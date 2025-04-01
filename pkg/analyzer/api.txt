@@ -3268,7 +3268,7 @@ package:analyzer/dart/element/element.dart:
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
   EnumElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: EnumElement Function())
-  ExecutableElement (class extends Object implements FunctionTypedElement):
+  ExecutableElement (class extends Object implements FunctionTypedElement, deprecated):
     new (constructor: ExecutableElement Function())
     declaration (getter: ExecutableElement)
     displayName (getter: String)
@@ -3284,14 +3284,14 @@ package:analyzer/dart/element/element.dart:
     isStatic (getter: bool)
     isSynchronous (getter: bool)
     name (getter: String)
-  ExtensionElement (class extends Object implements InstanceElement):
+  ExtensionElement (class extends Object implements InstanceElement, deprecated):
     new (constructor: ExtensionElement Function())
     extendedType (getter: DartType)
     getField (method: FieldElement? Function(String))
     getGetter (method: PropertyAccessorElement? Function(String))
     getMethod (method: MethodElement? Function(String))
     getSetter (method: PropertyAccessorElement? Function(String))
-  ExtensionTypeElement (class extends Object implements InterfaceElement, experimental):
+  ExtensionTypeElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: ExtensionTypeElement Function())
     primaryConstructor (getter: ConstructorElement, deprecated)
     representation (getter: FieldElement)
@@ -3308,7 +3308,7 @@ package:analyzer/dart/element/element.dart:
   FieldFormalParameterElement (class extends Object implements ParameterElement):
     new (constructor: FieldFormalParameterElement Function())
     field (getter: FieldElement?)
-  FunctionElement (class extends Object implements ExecutableElement, LocalElement):
+  FunctionElement (class extends Object implements ExecutableElement, LocalElement, deprecated):
     CALL_METHOD_NAME (static getter: String)
     LOAD_LIBRARY_NAME (static getter: String)
     MAIN_FUNCTION_NAME (static getter: String)
@@ -3329,7 +3329,7 @@ package:analyzer/dart/element/element.dart:
   ImportElementPrefix (class extends Object):
     new (constructor: ImportElementPrefix Function())
     element (getter: PrefixElement)
-  InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement):
+  InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement, deprecated):
     new (constructor: InstanceElement Function())
     accessors (getter: List<PropertyAccessorElement>)
     enclosingElement3 (getter: CompilationUnitElement, deprecated)
@@ -3337,7 +3337,7 @@ package:analyzer/dart/element/element.dart:
     isAugmentation (getter: bool)
     methods (getter: List<MethodElement>)
     thisType (getter: DartType)
-  InterfaceElement (class extends Object implements InstanceElement):
+  InterfaceElement (class extends Object implements InstanceElement, deprecated):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
     constructors (getter: List<ConstructorElement>, deprecated)
@@ -3367,13 +3367,13 @@ package:analyzer/dart/element/element.dart:
     variables (getter: List<PatternVariableElement>)
   LabelElement (class extends Object implements Element):
     new (constructor: LabelElement Function())
-    enclosingElement3 (getter: ExecutableElement)
+    enclosingElement3 (getter: ExecutableElement, deprecated)
     name (getter: String)
   LibraryElement (class extends Object implements _ExistingElement):
     new (constructor: LibraryElement Function())
     definingCompilationUnit (getter: CompilationUnitElement, deprecated)
     enclosingElement3 (getter: Null)
-    entryPoint (getter: FunctionElement?)
+    entryPoint (getter: FunctionElement?, deprecated)
     exportNamespace (getter: Namespace)
     exportedLibraries (getter: List<LibraryElement>)
     featureSet (getter: FeatureSet)
@@ -3384,7 +3384,7 @@ package:analyzer/dart/element/element.dart:
     isInSdk (getter: bool)
     languageVersion (getter: LibraryLanguageVersion)
     library (getter: LibraryElement)
-    loadLibraryFunction (getter: FunctionElement)
+    loadLibraryFunction (getter: FunctionElement, deprecated)
     name (getter: String)
     publicNamespace (getter: Namespace)
     session (getter: AnalysisSession)
@@ -3420,7 +3420,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: LocalVariableElement Function())
     hasInitializer (getter: bool)
     name (getter: String)
-  MethodElement (class extends Object implements ClassMemberElement, ExecutableElement):
+  MethodElement (class extends Object implements ClassMemberElement, ExecutableElement, deprecated):
     new (constructor: MethodElement Function())
     declaration (getter: MethodElement)
   MixinElement (class extends Object implements InterfaceElement, deprecated):
@@ -3471,7 +3471,7 @@ package:analyzer/dart/element/element.dart:
   PromotableElement (class extends Object implements LocalElement, VariableElement):
     new (constructor: PromotableElement Function())
     name (getter: String)
-  PropertyAccessorElement (class extends Object implements ExecutableElement):
+  PropertyAccessorElement (class extends Object implements ExecutableElement, deprecated):
     new (constructor: PropertyAccessorElement Function())
     correspondingGetter (getter: PropertyAccessorElement?)
     correspondingSetter (getter: PropertyAccessorElement?)
@@ -3483,12 +3483,12 @@ package:analyzer/dart/element/element.dart:
   PropertyInducingElement (class extends Object implements VariableElement):
     new (constructor: PropertyInducingElement Function())
     displayName (getter: String)
-    getter (getter: PropertyAccessorElement?)
+    getter (getter: PropertyAccessorElement?, deprecated)
     hasInitializer (getter: bool)
     isAugmentation (getter: bool)
     library (getter: LibraryElement)
     name (getter: String)
-    setter (getter: PropertyAccessorElement?)
+    setter (getter: PropertyAccessorElement?, deprecated)
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)

@@ -323,28 +323,6 @@ extension ExecutableElement2Extension on ExecutableElement2 {
   }
 }
 
-extension ExecutableElement2OrNullExtension on ExecutableElement2? {
-  ExecutableElement? get asElement {
-    return this?.asElement;
-  }
-}
-
-extension ExecutableElementExtension on ExecutableElement {
-  ExecutableElement2OrMember get asElement2 {
-    return switch (this) {
-      ExecutableFragment(:var element) => element,
-      ExecutableMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    }
-        // TODO(paulberry): eliminate this cast by using impl types in the
-        // switch patterns above.
-        as ExecutableElement2OrMember;
-  }
-
-  ExecutableElementImpl get declarationImpl =>
-      declaration as ExecutableElementImpl;
-}
-
 extension ExecutableElementImpl2Extension on ExecutableElementImpl2 {
   ExecutableElementImpl get asElement {
     return lastFragment;
@@ -366,25 +344,10 @@ extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
     };
   }
 
+  ExecutableElementImpl get declarationImpl =>
+      declaration as ExecutableElementImpl;
+
   ElementImpl get enclosingElementImpl => enclosingElement3 as ElementImpl;
-}
-
-extension ExecutableElementOrNullExtension on ExecutableElement? {
-  ExecutableElement2? get asElement2 {
-    return this?.asElement2;
-  }
-}
-
-extension ExtensionElement2Extension on ExtensionElement2 {
-  ExtensionElement get asElement {
-    return firstFragment as ExtensionElement;
-  }
-}
-
-extension ExtensionElementExtension on ExtensionElement {
-  ExtensionElementImpl2 get asElement2 {
-    return (this as ExtensionElementImpl).element;
-  }
 }
 
 extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {
@@ -396,12 +359,6 @@ extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {
 extension ExtensionElementImplExtension on ExtensionElementImpl {
   ExtensionElementImpl2 get asElement2 {
     return element;
-  }
-}
-
-extension ExtensionTypeElement2Extension on ExtensionTypeElement2 {
-  ExtensionTypeElement get asElement {
-    return firstFragment as ExtensionTypeElement;
   }
 }
 
@@ -477,18 +434,6 @@ extension GetterElementImplExtension on GetterElementImpl {
   }
 }
 
-extension InstanceElement2Extension on InstanceElement2 {
-  InstanceElement get asElement {
-    return firstFragment as InstanceElement;
-  }
-}
-
-extension InstanceElementExtension on InstanceElement {
-  InstanceElement2 get asElement2 {
-    return (this as InstanceElementImpl).element;
-  }
-}
-
 extension InstanceElementImpl2Extension on InstanceElementImpl2 {
   InstanceElementImpl get asElement {
     return firstFragment;
@@ -498,18 +443,6 @@ extension InstanceElementImpl2Extension on InstanceElementImpl2 {
 extension InstanceElementImplExtension on InstanceElementImpl {
   InstanceElementImpl2 get asElement2 {
     return element;
-  }
-}
-
-extension InterfaceElement2Extension on InterfaceElement2 {
-  InterfaceElement get asElement {
-    return firstFragment as InterfaceElement;
-  }
-}
-
-extension InterfaceElementExtension on InterfaceElement {
-  InterfaceElement2 get asElement2 {
-    return (this as InterfaceElementImpl).element;
   }
 }
 
@@ -595,6 +528,7 @@ extension LocalVariableElementImplExtension on LocalVariableElementImpl {
 }
 
 extension MethodElement2Extension on MethodElement2 {
+  @Deprecated('Use MethodElement2 instead')
   MethodElement get asElement {
     if (this case MethodMember member) {
       return member;
@@ -609,16 +543,6 @@ extension MethodElement2OrMemberExtension on MethodElement2OrMember {
       return member;
     }
     return (this as MethodElementImpl2).lastFragment;
-  }
-}
-
-extension MethodElementExtension on MethodElement {
-  MethodElement2 get asElement2 {
-    return switch (this) {
-      MethodFragment(:var element) => element,
-      MethodMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
   }
 }
 
@@ -694,15 +618,6 @@ extension PrefixElementExtension on PrefixElement {
   }
 }
 
-extension PropertyAccessorElement2Extension on PropertyAccessorElement2 {
-  PropertyAccessorElement get asElement {
-    if (this case PropertyAccessorMember member) {
-      return member;
-    }
-    return (this as PropertyAccessorElementImpl2).lastFragment;
-  }
-}
-
 extension PropertyAccessorElement2OrMemberExtension
     on PropertyAccessorElement2OrMember {
   PropertyAccessorElementOrMember get asElement {
@@ -710,16 +625,6 @@ extension PropertyAccessorElement2OrMemberExtension
       return member;
     }
     return (this as PropertyAccessorElementImpl2).lastFragment;
-  }
-}
-
-extension PropertyAccessorElementExtension on PropertyAccessorElement {
-  PropertyAccessorElement2 get asElement2 {
-    return switch (this) {
-      PropertyAccessorFragment(:var element) => element,
-      PropertyAccessorMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
   }
 }
 
@@ -756,12 +661,6 @@ extension PropertyInducingElementExtension on PropertyInducingElement2 {
 extension SetterElementImplExtension on SetterElementImpl {
   PropertyAccessorElementImpl get asElement {
     return lastFragment;
-  }
-}
-
-extension TopLevelFunctionElementExtension on TopLevelFunctionElement {
-  FunctionElement get asElement {
-    return (this as TopLevelFunctionElementImpl).lastFragment;
   }
 }
 

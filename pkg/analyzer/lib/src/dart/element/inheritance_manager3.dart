@@ -170,7 +170,7 @@ class InheritanceManager3 {
   @experimental
   ExecutableElement2? getInherited3(InterfaceType type, Name name) {
     var element = getInherited(type, name);
-    return element.asElement2;
+    return element?.asElement2;
   }
 
   /// Returns the most specific signature of the member with the given [name]

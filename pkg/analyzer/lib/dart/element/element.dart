@@ -1096,6 +1096,7 @@ abstract class EnumElement implements InterfaceElement {}
 /// constructors, getters, and setters.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ExecutableElement2 instead')
 abstract class ExecutableElement implements FunctionTypedElement {
   @override
   ExecutableElement get declaration;
@@ -1158,6 +1159,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An element that represents an extension.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ExtensionElement2 instead')
 abstract class ExtensionElement implements InstanceElement {
   /// The type that is extended by this extension.
   DartType get extendedType;
@@ -1186,7 +1188,7 @@ abstract class ExtensionElement implements InstanceElement {
 /// An element that represents an extension type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
+@Deprecated('Use ExtensionTypeElement2 instead')
 abstract class ExtensionTypeElement implements InterfaceElement {
   /// The primary constructor of this extension.
   @Deprecated(elementModelDeprecationMsg)
@@ -1252,6 +1254,7 @@ abstract class FieldFormalParameterElement implements ParameterElement {
 /// variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TopLevelFunctionElement or LocalFunctionElement')
 abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
@@ -1319,6 +1322,7 @@ abstract class ImportElementPrefix {
 /// An element that has `this`.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use InstanceElement2 instead')
 abstract class InstanceElement
     implements TypeDefiningElement, TypeParameterizedElement {
   /// The declared accessors (getters and setters).
@@ -1348,6 +1352,7 @@ abstract class InstanceElement
 /// An element that defines an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use InterfaceElement2 instead')
 abstract class InterfaceElement implements InstanceElement {
   /// All the supertypes defined for this element and its supertypes.
   ///
@@ -1627,6 +1632,7 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement implements Element {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   ExecutableElement get enclosingElement3;
 
@@ -1651,6 +1657,7 @@ abstract class LibraryElement implements _ExistingElement {
   ///
   /// The entry point is defined to be a zero argument top-level function
   /// whose name is `main`.
+  @Deprecated(elementModelDeprecationMsg)
   FunctionElement? get entryPoint;
 
   /// The libraries that are exported from this library.
@@ -1694,6 +1701,7 @@ abstract class LibraryElement implements _ExistingElement {
   /// The element representing the synthetic function `loadLibrary` that is
   /// implicitly defined for this library if the library is imported using a
   /// deferred import.
+  @Deprecated(elementModelDeprecationMsg)
   FunctionElement get loadLibraryFunction;
 
   /// The name of this library, possibly the empty string if this library does
@@ -1801,6 +1809,7 @@ class LibraryLanguageVersion {
 }
 
 /// An element that can be (but is not required to be) defined within a method
+// ignore:deprecated_member_use_from_same_package
 /// or function (an [ExecutableElement]).
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1821,11 +1830,8 @@ abstract class LocalVariableElement implements PromotableElement {
 /// An element that represents a method defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement
-    implements
-        // ignore:deprecated_member_use_from_same_package
-        ClassMemberElement,
-        ExecutableElement {
+@Deprecated('Use MethodElement2 instead')
+abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   @override
   MethodElement get declaration;
 }
@@ -2050,6 +2056,7 @@ abstract class PromotableElement implements LocalElement, VariableElement {
 ///   name) induces a field that is represented by a synthetic [FieldElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PropertyAccessorElement2 instead')
 abstract class PropertyAccessorElement implements ExecutableElement {
   /// The accessor representing the getter that corresponds to (has the same
   /// name as) this setter, or `null` if this accessor is not a setter or
@@ -2092,8 +2099,10 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a getter and possibly a setter, both of
+// ignore:deprecated_member_use_from_same_package
 ///   which are represented by synthetic [PropertyAccessorElement]s.
 /// * Every explicit getter or setter is represented by a non-synthetic
+// ignore:deprecated_member_use_from_same_package
 ///   [PropertyAccessorElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
 ///   name) induces a variable that is represented by a synthetic
@@ -2108,6 +2117,7 @@ abstract class PropertyInducingElement implements VariableElement {
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
+  @Deprecated(elementModelDeprecationMsg)
   PropertyAccessorElement? get getter;
 
   /// Whether the variable has an initializer at declaration.
@@ -2133,6 +2143,7 @@ abstract class PropertyInducingElement implements VariableElement {
   /// that does not have a corresponding setter. If this variable was
   /// explicitly defined (is not synthetic) then the setter associated with
   /// it will be synthetic.
+  @Deprecated(elementModelDeprecationMsg)
   PropertyAccessorElement? get setter;
 }
 

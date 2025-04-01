@@ -545,7 +545,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       unitElement: unitElement,
     );
 
-    element.entryPoint2 = reader.readElement2() as TopLevelFunctionElement?;
+    element.entryPoint2 = reader.readElement2() as TopLevelFunctionElementImpl?;
 
     element.fieldNameNonPromotabilityInfo =
         _readFieldNameNonPromotabilityInfo(reader);

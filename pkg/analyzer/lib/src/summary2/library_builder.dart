@@ -375,7 +375,7 @@ class LibraryBuilder {
     element.exportNamespace = namespace;
 
     var entryPoint = namespace.get2(TopLevelFunctionElement.MAIN_FUNCTION_NAME);
-    if (entryPoint is TopLevelFunctionElement) {
+    if (entryPoint is TopLevelFunctionElementImpl) {
       element.entryPoint2 = entryPoint;
     }
   }

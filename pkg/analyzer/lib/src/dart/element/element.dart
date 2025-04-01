@@ -218,16 +218,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return false;
   }
 
-  /// Return `true` if the class has a concrete `noSuchMethod()` method distinct
-  /// from the one declared in class `Object`, as per the Dart Language
-  /// Specification (section 10.4).
-  bool get hasNoSuchMethod {
-    MethodElement? method = lookUpConcreteMethod(
-        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
-    var definingClass = method?.enclosingElement3 as ClassElementImpl?;
-    return definingClass != null && !definingClass.isDartCoreObject;
-  }
-
   @override
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
@@ -814,9 +804,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     required this.lineInfo,
   }) : super(null, -1);
 
+  @Deprecated('Use accessibleExtensions2 instead')
   @override
   List<ExtensionElement> get accessibleExtensions {
-    return scope.accessibleExtensions.map((e) => e.asElement).toList();
+    return scope.accessibleExtensions
+        .map((e) => e.firstFragment as ExtensionElement)
+        .toList();
   }
 
   @override
@@ -3617,7 +3610,6 @@ abstract class ExecutableElement2OrMember implements ExecutableElement2 {
   FunctionTypeImpl get type;
 }
 
-/// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
     with AugmentableFragment, TypeParameterizedElementMixin
     implements ExecutableElementOrMember, ExecutableFragment {
@@ -3856,7 +3848,10 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement`.
 abstract class ExecutableElementOrMember
-    implements ExecutableElement, ElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ExecutableElement,
+        ElementOrMember {
   @override
   List<ParameterElementMixin> get parameters;
 
@@ -3870,9 +3865,11 @@ abstract class ExecutableElementOrMember
   List<TypeParameterElementImpl> get typeParameters;
 }
 
-/// A concrete implementation of an [ExtensionElement].
 class ExtensionElementImpl extends InstanceElementImpl
-    implements ExtensionElement, ExtensionFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ExtensionElement,
+        ExtensionFragment {
   late ExtensionElementImpl2 augmentedInternal;
 
   /// Initialize a newly created extension element to have the given [name] at
@@ -3978,6 +3975,7 @@ class ExtensionElementImpl extends InstanceElementImpl
     return null;
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   PropertyAccessorElement? getSetter(String setterName) {
     return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
@@ -4021,7 +4019,10 @@ class ExtensionElementImpl2 extends InstanceElementImpl2
 }
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
-    implements ExtensionTypeElement, ExtensionTypeFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ExtensionTypeElement,
+        ExtensionTypeFragment {
   late ExtensionTypeElementImpl2 augmentedInternal;
 
   @override
@@ -5118,9 +5119,9 @@ mixin FragmentedTypeParameterizedElementMixin<
   }
 }
 
-/// A concrete implementation of a [FunctionElement].
 sealed class FunctionElementImpl extends ExecutableElementImpl
     implements
+        // ignore:deprecated_member_use_from_same_package
         FunctionElement,
         FunctionTypedElementImpl,
         ExecutableElementOrMember {
@@ -5548,8 +5549,13 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with AugmentableFragment, TypeParameterizedElementMixin
-    implements InstanceElement, InstanceFragment {
+    with
+        AugmentableFragment,
+        TypeParameterizedElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        InstanceElement,
+        InstanceFragment {
   @override
   ElementLinkedData? linkedData;
 
@@ -5931,7 +5937,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    implements InterfaceElement, InterfaceFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        InterfaceElement,
+        InterfaceFragment {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
   List<InterfaceTypeImpl> _mixins = const [];
@@ -6144,6 +6153,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   MethodElement? lookUpConcreteMethod(
       String methodName, LibraryElement library) {
@@ -6159,6 +6169,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   PropertyAccessorElement? lookUpInheritedConcreteGetter(
       String getterName, LibraryElement library) {
@@ -6180,6 +6191,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     }
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   MethodElement? lookUpInheritedConcreteMethod(
       String methodName, LibraryElement library) {
@@ -6201,6 +6213,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         setter.enclosingElement3 != this);
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   MethodElement? lookUpInheritedMethod(
       String methodName, LibraryElement library) {
@@ -6230,6 +6243,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   PropertyAccessorElementOrMember? lookupStaticGetter(
       String name, LibraryElement library) {
     return _implementationsOfGetter(name).firstWhereOrNull(
@@ -6241,6 +6255,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   MethodElementOrMember? lookupStaticMethod(
       String name, LibraryElement library) {
     return _implementationsOfMethod(name).firstWhereOrNull(
@@ -6277,6 +6292,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The getters are returned based on the depth of their defining class; if
   /// this class contains a definition of the getter it will occur first, if
   /// Object contains a definition of the getter it will occur last.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   Iterable<PropertyAccessorElementOrMember> _implementationsOfGetter(
       String getterName) sync* {
     var visitedClasses = <InterfaceElement>{};
@@ -6307,6 +6323,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The methods are returned based on the depth of their defining class; if
   /// this class contains a definition of the method it will occur first, if
   /// Object contains a definition of the method it will occur last.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   Iterable<MethodElementOrMember> _implementationsOfMethod(
       String methodName) sync* {
     var visitedClasses = <InterfaceElement>{};
@@ -6935,7 +6952,7 @@ class LibraryElementImpl extends ElementImpl
 
   /// The entry point for this library, or `null` if this library does not have
   /// an entry point.
-  TopLevelFunctionElement? _entryPoint;
+  TopLevelFunctionElementImpl? _entryPoint;
 
   /// The provider for the synthetic function `loadLibrary` that is defined
   /// for this library.
@@ -7044,16 +7061,16 @@ class LibraryElementImpl extends ElementImpl
   @Deprecated('Use entryPoint2 instead')
   @override
   FunctionElement? get entryPoint {
-    return entryPoint2?.asElement;
+    return entryPoint2?.lastFragment;
   }
 
   @override
-  TopLevelFunctionElement? get entryPoint2 {
+  TopLevelFunctionElementImpl? get entryPoint2 {
     linkedData?.read(this);
     return _entryPoint;
   }
 
-  set entryPoint2(TopLevelFunctionElement? value) {
+  set entryPoint2(TopLevelFunctionElementImpl? value) {
     _entryPoint = value;
   }
 
@@ -7637,7 +7654,7 @@ final class LoadLibraryFunctionProvider {
   }
 
   TopLevelFunctionElementImpl _create(LibraryElementImpl library) {
-    var name = FunctionElement.LOAD_LIBRARY_NAME;
+    var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
     var fragment = TopLevelFunctionFragmentImpl(name, -1);
     fragment.name2 = name;
@@ -7756,7 +7773,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
   @override
   bool get _includeNameOffsetInIdentifier {
     return super._includeNameOffsetInIdentifier ||
-        enclosingElement3 is ExecutableElement ||
+        enclosingElement3 is ExecutableFragment ||
         enclosingElement3 is VariableElement;
   }
 }
@@ -8273,7 +8290,6 @@ final class MetadataImpl implements Metadata {
 abstract class MethodElement2OrMember
     implements MethodElement2, ExecutableElement2OrMember {}
 
-/// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
     implements MethodElementOrMember, MethodFragment {
   @override
@@ -8430,7 +8446,10 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `MethodElement`.
 abstract class MethodElementOrMember
-    implements MethodElement, ExecutableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        MethodElement,
+        ExecutableElementOrMember {
   @override
   TypeImpl get returnType;
 
@@ -8651,7 +8670,7 @@ enum Modifier {
   HAS_SINCE_SDK_VERSION_VALUE,
 
   /// Indicates that the associated element did not have an explicit type
-  /// associated with it. If the element is an [ExecutableElement], then the
+  /// associated with it. If the element is an [ExecutableElement2], then the
   /// type being referred to is the return type.
   IMPLICIT_TYPE,
 
@@ -9929,7 +9948,6 @@ abstract class PropertyAccessorElement2OrMember
   PropertyInducingElement2OrMember? get variable3;
 }
 
-/// A concrete implementation of a [PropertyAccessorElement].
 sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElementOrMember, PropertyAccessorFragment {
   @override
@@ -10209,7 +10227,10 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
-    implements PropertyAccessorElement, ExecutableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PropertyAccessorElement,
+        ExecutableElementOrMember {
   @override
   TypeImpl get returnType;
 
@@ -10821,7 +10842,7 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
 
   @override
   bool get isEntryPoint {
-    return displayName == FunctionElement.MAIN_FUNCTION_NAME;
+    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
   }
 }
 
