@@ -2269,6 +2269,7 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 /// includes functions and methods if support for generic methods is enabled.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeParameterizedElement2 instead')
 abstract class TypeParameterizedElement implements _ExistingElement {
   /// If the element defines a type, indicates whether the type may safely
   /// appear without explicit type parameters as the bounds of a type parameter

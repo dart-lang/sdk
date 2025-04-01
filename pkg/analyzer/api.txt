@@ -3516,7 +3516,7 @@ package:analyzer/dart/element/element.dart:
     displayName (getter: String)
     name (getter: String)
     instantiate (method: TypeParameterType Function({required NullabilitySuffix nullabilitySuffix}))
-  TypeParameterizedElement (class extends Object implements _ExistingElement):
+  TypeParameterizedElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: TypeParameterizedElement Function())
     isSimplyBounded (getter: bool)
     typeParameters (getter: List<TypeParameterElement>, deprecated)

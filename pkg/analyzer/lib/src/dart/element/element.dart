@@ -8710,7 +8710,7 @@ enum Modifier {
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
   SETTER,
 
-  /// See [TypeParameterizedElement.isSimplyBounded].
+  /// See [TypeParameterizedElement2.isSimplyBounded].
   SIMPLY_BOUNDED,
 
   /// Indicates that the modifier 'static' was applied to the element.
@@ -11639,6 +11639,7 @@ abstract class TypeParameterizedElementImpl2 extends ElementImpl2
 mixin TypeParameterizedElementMixin on ElementImpl
     implements
         _ExistingElementImpl,
+        // ignore:deprecated_member_use_from_same_package
         TypeParameterizedElement,
         TypeParameterizedFragment {
   List<TypeParameterElementImpl> _typeParameters = const [];
