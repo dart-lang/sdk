@@ -5117,9 +5117,9 @@ mixin FragmentedTypeParameterizedElementMixin<
   }
 }
 
-/// A concrete implementation of a [FunctionElement].
 sealed class FunctionElementImpl extends ExecutableElementImpl
     implements
+        // ignore:deprecated_member_use_from_same_package
         FunctionElement,
         FunctionTypedElementImpl,
         ExecutableElementOrMember {
@@ -6950,7 +6950,7 @@ class LibraryElementImpl extends ElementImpl
 
   /// The entry point for this library, or `null` if this library does not have
   /// an entry point.
-  TopLevelFunctionElement? _entryPoint;
+  TopLevelFunctionElementImpl? _entryPoint;
 
   /// The provider for the synthetic function `loadLibrary` that is defined
   /// for this library.
@@ -7059,16 +7059,16 @@ class LibraryElementImpl extends ElementImpl
   @Deprecated('Use entryPoint2 instead')
   @override
   FunctionElement? get entryPoint {
-    return entryPoint2?.asElement;
+    return entryPoint2?.lastFragment;
   }
 
   @override
-  TopLevelFunctionElement? get entryPoint2 {
+  TopLevelFunctionElementImpl? get entryPoint2 {
     linkedData?.read(this);
     return _entryPoint;
   }
 
-  set entryPoint2(TopLevelFunctionElement? value) {
+  set entryPoint2(TopLevelFunctionElementImpl? value) {
     _entryPoint = value;
   }
 
@@ -7652,7 +7652,7 @@ final class LoadLibraryFunctionProvider {
   }
 
   TopLevelFunctionElementImpl _create(LibraryElementImpl library) {
-    var name = FunctionElement.LOAD_LIBRARY_NAME;
+    var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
     var fragment = TopLevelFunctionFragmentImpl(name, -1);
     fragment.name2 = name;
@@ -10840,7 +10840,7 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
 
   @override
   bool get isEntryPoint {
-    return displayName == FunctionElement.MAIN_FUNCTION_NAME;
+    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
   }
 }
 

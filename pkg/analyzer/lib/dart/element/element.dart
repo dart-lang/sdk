@@ -1253,6 +1253,7 @@ abstract class FieldFormalParameterElement implements ParameterElement {
 /// variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TopLevelFunctionElement or LocalFunctionElement')
 abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
@@ -1654,6 +1655,7 @@ abstract class LibraryElement implements _ExistingElement {
   ///
   /// The entry point is defined to be a zero argument top-level function
   /// whose name is `main`.
+  @Deprecated(elementModelDeprecationMsg)
   FunctionElement? get entryPoint;
 
   /// The libraries that are exported from this library.
@@ -1697,6 +1699,7 @@ abstract class LibraryElement implements _ExistingElement {
   /// The element representing the synthetic function `loadLibrary` that is
   /// implicitly defined for this library if the library is imported using a
   /// deferred import.
+  @Deprecated(elementModelDeprecationMsg)
   FunctionElement get loadLibraryFunction;
 
   /// The name of this library, possibly the empty string if this library does

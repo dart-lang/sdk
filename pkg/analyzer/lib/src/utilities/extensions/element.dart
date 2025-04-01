@@ -689,12 +689,6 @@ extension SetterElementImplExtension on SetterElementImpl {
   }
 }
 
-extension TopLevelFunctionElementExtension on TopLevelFunctionElement {
-  FunctionElement get asElement {
-    return (this as TopLevelFunctionElementImpl).lastFragment;
-  }
-}
-
 extension TopLevelFunctionElementImplExtension on TopLevelFunctionElementImpl {
   FunctionElementImpl get asElement {
     return lastFragment;
