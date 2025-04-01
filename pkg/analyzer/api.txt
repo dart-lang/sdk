@@ -3316,12 +3316,12 @@ package:analyzer/dart/element/element.dart:
     new (constructor: FunctionElement Function())
     isDartCoreIdentical (getter: bool)
     isEntryPoint (getter: bool)
-  FunctionTypedElement (class extends Object implements TypeParameterizedElement):
+  FunctionTypedElement (class extends Object implements TypeParameterizedElement, deprecated):
     new (constructor: FunctionTypedElement Function())
     parameters (getter: List<ParameterElement>)
     returnType (getter: DartType)
     type (getter: FunctionType)
-  GenericFunctionTypeElement (class extends Object implements FunctionTypedElement):
+  GenericFunctionTypeElement (class extends Object implements FunctionTypedElement, deprecated):
     new (constructor: GenericFunctionTypeElement Function())
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
@@ -3501,7 +3501,7 @@ package:analyzer/dart/element/element.dart:
     isExternal (getter: bool)
   TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement):
     new (constructor: TypeAliasElement Function())
-    aliasedElement (getter: Element?)
+    aliasedElement (getter: Element?, deprecated)
     aliasedType (getter: DartType)
     enclosingElement3 (getter: CompilationUnitElement, deprecated)
     isAugmentation (getter: bool)
