@@ -3476,7 +3476,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     with AstNodeWithNameScopeMixin
     implements CompilationUnit {
   @override
-  Token beginToken;
+  final Token beginToken;
 
   ScriptTagImpl? _scriptTag;
 
