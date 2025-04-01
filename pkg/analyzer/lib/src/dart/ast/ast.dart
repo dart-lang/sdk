@@ -161,13 +161,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
   }
 
   @override
-  ChildEntities get _childEntities {
-    return ChildEntities()
-      ..addNode('documentationComment', documentationComment)
-      ..addNodeList('metadata', metadata);
-  }
-
-  @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
   }
@@ -6737,7 +6730,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
+  ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('name', name)
@@ -9452,8 +9445,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNodeList('metadata', metadata)
+  ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addToken('name', name)
@@ -13327,9 +13319,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   ChildEntities get _childEntities {
-    return ChildEntities()
-      ..addNode('documentationComment', documentationComment)
-      ..addNodeList('metadata', metadata)
+    return super._childEntities
       ..addToken('requiredKeyword', requiredKeyword)
       ..addToken('covariantKeyword', covariantKeyword);
   }
@@ -19444,6 +19434,14 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
       if (comment != null) comment,
       ..._metadata,
     ]..sort(AstNode.LEXICAL_ORDER);
+  }
+
+  @override
+  @mustCallSuper
+  ChildEntities get _childEntities {
+    return ChildEntities()
+      ..addNode('documentationComment', documentationComment)
+      ..addNodeList('metadata', metadata);
   }
 
   /// Returns `true` if there are no annotations before the comment.

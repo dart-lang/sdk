@@ -40,7 +40,7 @@ class MyClass1 {
     assertResponse(r'''
 suggestions
   constructor1
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -87,7 +87,22 @@ replacement
   left: 3
 suggestions
   MyExt
-    kind: extensionInvocation
+    kind: extension
+''');
+  }
+
+  Future<void> test_extension2() async {
+    allowedIdentifiers = const {'isEven'};
+    await computeSuggestions('''
+/// This doc should suggest other things like [int.isE^].
+extension MyExt on int {}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  isEven
+    kind: getter
 ''');
   }
 
@@ -365,6 +380,21 @@ replacement
 suggestions
   MyTypedef
     kind: typeAlias
+''');
+  }
+
+  Future<void> test_typedef2() async {
+    allowedIdentifiers = const {'delayed'};
+    await computeSuggestions('''
+/// This doc should suggest other things like [Future.de^].
+typedef MyTypedef = int Function();
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  delayed
+    kind: constructor
 ''');
   }
 
