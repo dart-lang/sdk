@@ -11751,9 +11751,10 @@ mixin TypeParameterizedElementMixin on ElementImpl
   }
 }
 
-/// A concrete implementation of a [UriReferencedElement].
 abstract class UriReferencedElementImpl extends _ExistingElementImpl
-    implements UriReferencedElement {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        UriReferencedElement {
   /// The offset of the URI in the file, or `-1` if this node is synthetic.
   int _uriOffset = -1;
 

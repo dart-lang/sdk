@@ -1000,18 +1000,6 @@ class ElementKind implements Comparable<ElementKind> {
 
   @override
   String toString() => name;
-
-  /// Returns the kind of the given [element], or [ERROR] if the element is
-  /// `null`.
-  ///
-  /// This is a utility method that can reduce the need for null checks in
-  /// other places.
-  static ElementKind of(Element? element) {
-    if (element == null) {
-      return ERROR;
-    }
-    return element.kind;
-  }
 }
 
 /// The location of an element within the element model.
@@ -2318,6 +2306,7 @@ abstract class UndefinedElement implements Element {}
 /// An element included into a library using some URI.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use Element2 instead')
 abstract class UriReferencedElement implements _ExistingElement {
   /// The URI that is used to include this element into the enclosing library,
   /// or `null` if this is the defining compilation unit of a library.
@@ -2385,6 +2374,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
 
 /// This class exists to provide non-nullable overrides for existing elements,
 /// as opposite to artificial "multiply defined" element.
+@Deprecated('Use Element2 instead')
 @AnalyzerPublicApi(
     message: 'Exposed because it is implemented by various elements')
 abstract class _ExistingElement implements Element {
