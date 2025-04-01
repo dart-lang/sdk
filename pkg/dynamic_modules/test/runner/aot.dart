@@ -6,6 +6,9 @@
 library;
 
 import 'dart:io';
+import 'package:front_end/src/util/trim.dart';
+import 'package:kernel/target/targets.dart';
+import 'package:vm/modular/target/vm.dart';
 import '../common/testing.dart' as helper;
 
 import 'model.dart';
@@ -73,6 +76,7 @@ class AotExecutor implements TargetExecutor {
       '-Ddart.vm.profile=false',
       '-Ddart.vm.product=true',
       if (isAot) '--aot' else '--no-aot',
+      '--no-embed-sources',
       '--platform',
       vmPlatformDill.toFilePath(),
       '--output',
@@ -105,6 +109,35 @@ class AotExecutor implements TargetExecutor {
     ];
     await runProcess(genSnapshotBin.toFilePath(), args, testDir, _logger,
         'aot snapshot ${test.name}/${test.main}');
+
+    // The next steps are optional, but done to test trimming of assets used
+    // by the bytecode compiler.
+
+    await createTrimmedCopy(TrimOptions(
+        inputAppPath: "$testDir/${test.main}_no_aot.dill",
+        outputAppPath: "$testDir/${test.main}_no_aot_trimmed.dill",
+        inputPlatformPath: vmPlatformDill.toFilePath(),
+        outputPlatformPath: "$testDir/${test.main}_platform_trimmed.dill",
+        dynamicInterfaceContents: File.fromUri(test.folder
+                .resolve('../../data/${test.name}/dynamic_interface.yaml'))
+            .readAsStringSync(),
+        dynamicInterfaceUri:
+            Uri.parse('$rootScheme:/data/${test.name}/dynamic_interface.yaml'),
+        requiredDartLibraries:
+            VmTarget(TargetFlags()).extraRequiredLibraries.toSet()));
+
+    void logSizeDiff(String path1, String path2) {
+      final originalSize = File(path1).statSync().size;
+      final trimmedSize = File(path2).statSync().size;
+      _logger.info('Size difference for $path2: '
+          '$originalSize => $trimmedSize '
+          '(${(trimmedSize * 100 / originalSize).toStringAsFixed(2)}%)');
+    }
+
+    logSizeDiff(vmPlatformDill.toFilePath(),
+        '$testDir/${test.main}_platform_trimmed.dill');
+    logSizeDiff("$testDir/${test.main}_no_aot.dill",
+        "$testDir/${test.main}_no_aot_trimmed.dill");
   }
 
   @override
@@ -117,7 +150,7 @@ class AotExecutor implements TargetExecutor {
       '--disable-dart-dev',
       dart2bytecodeSnapshot.toFilePath(),
       '--platform',
-      vmPlatformDill.toFilePath(),
+      '${test.main}_platform_trimmed.dill',
       '--target',
       'vm',
       '--packages',
@@ -125,7 +158,7 @@ class AotExecutor implements TargetExecutor {
       '-Ddart.vm.profile=false',
       '-Ddart.vm.product=true',
       '--import-dill',
-      '${test.main}_no_aot.dill',
+      '${test.main}_no_aot_trimmed.dill',
       '--validate',
       '$rootScheme:/data/${test.name}/dynamic_interface.yaml',
       '--verbosity=all',
