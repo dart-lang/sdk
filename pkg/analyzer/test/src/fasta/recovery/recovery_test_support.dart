@@ -89,8 +89,9 @@ class ResultComparator extends AstComparator {
   bool failIfNotNull(Object? first, Object? second) {
     if (second != null) {
       StringBuffer buffer = StringBuffer();
-      buffer.write('Expected null; found a ');
-      buffer.writeln(second.runtimeType);
+      buffer.write('Expected a ');
+      buffer.write(second.runtimeType);
+      buffer.writeln('; found null');
       if (second is AstNode) {
         _safelyWriteNodePath(buffer, second);
       }
@@ -102,9 +103,8 @@ class ResultComparator extends AstComparator {
   @override
   bool failIsNull(Object first, Object? second) {
     StringBuffer buffer = StringBuffer();
-    buffer.write('Expected a ');
-    buffer.write(first.runtimeType);
-    buffer.writeln('; found null');
+    buffer.write('Expected null; found a ');
+    buffer.writeln(first.runtimeType);
     if (first is AstNode) {
       _safelyWriteNodePath(buffer, first);
     }
@@ -115,7 +115,7 @@ class ResultComparator extends AstComparator {
   bool failRuntimeType(Object first, Object second) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Expected a ');
-    buffer.writeln(second.runtimeType);
+    buffer.write(second.runtimeType);
     buffer.write('; found ');
     buffer.writeln(first.runtimeType);
     if (first is AstNode) {
