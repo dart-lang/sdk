@@ -1330,7 +1330,7 @@ class ConstantInitializerImpl implements ConstantInitializer {
   }
 }
 
-/// A [FieldElement] for a 'const' or 'final' field that has an initializer.
+/// A [FieldElementImpl] for a 'const' or 'final' field that has an initializer.
 ///
 // TODO(paulberry): we should rename this class to reflect the fact that it's
 // used for both const and final fields.  However, we shouldn't do so until
@@ -3948,6 +3948,7 @@ class ExtensionElementImpl extends InstanceElementImpl
     builder.writeExtensionElement(this);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   FieldElement? getField(String name) {
     for (FieldElement fieldElement in fields) {
@@ -4160,7 +4161,6 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
 abstract class FieldElement2OrMember
     implements PropertyInducingElement2OrMember, FieldElement2 {}
 
-/// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
     implements FieldElementOrMember, FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
@@ -4370,7 +4370,10 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `FieldElement`.
 abstract class FieldElementOrMember
-    implements PropertyInducingElementOrMember, FieldElement {
+    implements
+        PropertyInducingElementOrMember,
+        // ignore:deprecated_member_use_from_same_package
+        FieldElement {
   @override
   FieldElementImpl get declaration;
 
@@ -4378,8 +4381,6 @@ abstract class FieldElementOrMember
   TypeImpl get type;
 }
 
-/// A [ParameterElementImpl] that has the additional information of the
-/// [FieldElement] associated with the parameter.
 class FieldFormalParameterElementImpl extends ParameterElementImpl
     implements
         FieldFormalParameterElementOrMember,
@@ -6110,6 +6111,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return constructors.firstWhereOrNull((element) => element.name.isEmpty);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   FieldElement? getField(String name) {
     return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);

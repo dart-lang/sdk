@@ -1206,11 +1206,9 @@ abstract class ExtensionTypeElement implements InterfaceElement {
 /// A field defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FieldElement2 instead')
 abstract class FieldElement
-    implements
-        // ignore:deprecated_member_use_from_same_package
-        ClassMemberElement,
-        PropertyInducingElement {
+    implements ClassMemberElement, PropertyInducingElement {
   @override
   FieldElement get declaration;
 
@@ -1246,6 +1244,7 @@ abstract class FieldElement
 abstract class FieldFormalParameterElement implements ParameterElement {
   /// The field element associated with this field formal parameter, or `null`
   /// if the parameter references a field that doesn't exist.
+  @Deprecated(elementModelDeprecationMsg)
   FieldElement? get field;
 }
 

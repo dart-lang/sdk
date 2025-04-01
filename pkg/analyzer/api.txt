@@ -3296,7 +3296,7 @@ package:analyzer/dart/element/element.dart:
     primaryConstructor (getter: ConstructorElement, deprecated)
     representation (getter: FieldElement)
     typeErasure (getter: DartType)
-  FieldElement (class extends Object implements ClassMemberElement, PropertyInducingElement):
+  FieldElement (class extends Object implements ClassMemberElement, PropertyInducingElement, deprecated):
     new (constructor: FieldElement Function())
     declaration (getter: FieldElement)
     isAbstract (getter: bool)
@@ -3307,7 +3307,7 @@ package:analyzer/dart/element/element.dart:
     isStatic (getter: bool)
   FieldFormalParameterElement (class extends Object implements ParameterElement):
     new (constructor: FieldFormalParameterElement Function())
-    field (getter: FieldElement?)
+    field (getter: FieldElement?, deprecated)
   FunctionElement (class extends Object implements ExecutableElement, LocalElement, deprecated):
     CALL_METHOD_NAME (static getter: String)
     LOAD_LIBRARY_NAME (static getter: String)
