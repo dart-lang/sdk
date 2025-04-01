@@ -9655,7 +9655,10 @@ mixin ParameterElementMixin
 }
 
 class PartElementImpl extends _ExistingElementImpl
-    implements PartElement, PartInclude {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PartElement,
+        PartInclude {
   @override
   final DirectiveUriImpl uri;
 

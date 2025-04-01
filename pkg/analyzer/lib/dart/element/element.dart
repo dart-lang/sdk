@@ -2007,6 +2007,7 @@ abstract class ParameterElement
 /// A 'part' directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PartInclude instead')
 abstract class PartElement implements _ExistingElement {
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
