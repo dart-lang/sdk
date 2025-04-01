@@ -643,15 +643,6 @@ extension PrefixElementExtension on PrefixElement {
   }
 }
 
-extension PropertyAccessorElement2Extension on PropertyAccessorElement2 {
-  PropertyAccessorElement get asElement {
-    if (this case PropertyAccessorMember member) {
-      return member;
-    }
-    return (this as PropertyAccessorElementImpl2).lastFragment;
-  }
-}
-
 extension PropertyAccessorElement2OrMemberExtension
     on PropertyAccessorElement2OrMember {
   PropertyAccessorElementOrMember get asElement {
@@ -659,16 +650,6 @@ extension PropertyAccessorElement2OrMemberExtension
       return member;
     }
     return (this as PropertyAccessorElementImpl2).lastFragment;
-  }
-}
-
-extension PropertyAccessorElementExtension on PropertyAccessorElement {
-  PropertyAccessorElement2 get asElement2 {
-    return switch (this) {
-      PropertyAccessorFragment(:var element) => element,
-      PropertyAccessorMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
   }
 }
 

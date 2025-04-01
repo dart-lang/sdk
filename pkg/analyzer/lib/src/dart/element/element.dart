@@ -3973,6 +3973,7 @@ class ExtensionElementImpl extends InstanceElementImpl
     return null;
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   PropertyAccessorElement? getSetter(String setterName) {
     return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
@@ -9945,7 +9946,6 @@ abstract class PropertyAccessorElement2OrMember
   PropertyInducingElement2OrMember? get variable3;
 }
 
-/// A concrete implementation of a [PropertyAccessorElement].
 sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElementOrMember, PropertyAccessorFragment {
   @override
@@ -10225,7 +10225,10 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
-    implements PropertyAccessorElement, ExecutableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PropertyAccessorElement,
+        ExecutableElementOrMember {
   @override
   TypeImpl get returnType;
 

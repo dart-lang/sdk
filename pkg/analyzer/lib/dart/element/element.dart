@@ -2050,6 +2050,7 @@ abstract class PromotableElement implements LocalElement, VariableElement {
 ///   name) induces a field that is represented by a synthetic [FieldElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PropertyAccessorElement2 instead')
 abstract class PropertyAccessorElement implements ExecutableElement {
   /// The accessor representing the getter that corresponds to (has the same
   /// name as) this setter, or `null` if this accessor is not a setter or
@@ -2092,8 +2093,10 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a getter and possibly a setter, both of
+// ignore:deprecated_member_use_from_same_package
 ///   which are represented by synthetic [PropertyAccessorElement]s.
 /// * Every explicit getter or setter is represented by a non-synthetic
+// ignore:deprecated_member_use_from_same_package
 ///   [PropertyAccessorElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
 ///   name) induces a variable that is represented by a synthetic
@@ -2108,6 +2111,7 @@ abstract class PropertyInducingElement implements VariableElement {
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
+  @Deprecated(elementModelDeprecationMsg)
   PropertyAccessorElement? get getter;
 
   /// Whether the variable has an initializer at declaration.
@@ -2133,6 +2137,7 @@ abstract class PropertyInducingElement implements VariableElement {
   /// that does not have a corresponding setter. If this variable was
   /// explicitly defined (is not synthetic) then the setter associated with
   /// it will be synthetic.
+  @Deprecated(elementModelDeprecationMsg)
   PropertyAccessorElement? get setter;
 }
 

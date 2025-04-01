@@ -3471,7 +3471,7 @@ package:analyzer/dart/element/element.dart:
   PromotableElement (class extends Object implements LocalElement, VariableElement):
     new (constructor: PromotableElement Function())
     name (getter: String)
-  PropertyAccessorElement (class extends Object implements ExecutableElement):
+  PropertyAccessorElement (class extends Object implements ExecutableElement, deprecated):
     new (constructor: PropertyAccessorElement Function())
     correspondingGetter (getter: PropertyAccessorElement?)
     correspondingSetter (getter: PropertyAccessorElement?)
@@ -3483,12 +3483,12 @@ package:analyzer/dart/element/element.dart:
   PropertyInducingElement (class extends Object implements VariableElement):
     new (constructor: PropertyInducingElement Function())
     displayName (getter: String)
-    getter (getter: PropertyAccessorElement?)
+    getter (getter: PropertyAccessorElement?, deprecated)
     hasInitializer (getter: bool)
     isAugmentation (getter: bool)
     library (getter: LibraryElement)
     name (getter: String)
-    setter (getter: PropertyAccessorElement?)
+    setter (getter: PropertyAccessorElement?, deprecated)
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)
