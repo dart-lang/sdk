@@ -3268,7 +3268,7 @@ package:analyzer/dart/element/element.dart:
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
   EnumElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: EnumElement Function())
-  ExecutableElement (class extends Object implements FunctionTypedElement):
+  ExecutableElement (class extends Object implements FunctionTypedElement, deprecated):
     new (constructor: ExecutableElement Function())
     declaration (getter: ExecutableElement)
     displayName (getter: String)
@@ -3367,7 +3367,7 @@ package:analyzer/dart/element/element.dart:
     variables (getter: List<PatternVariableElement>)
   LabelElement (class extends Object implements Element):
     new (constructor: LabelElement Function())
-    enclosingElement3 (getter: ExecutableElement)
+    enclosingElement3 (getter: ExecutableElement, deprecated)
     name (getter: String)
   LibraryElement (class extends Object implements _ExistingElement):
     new (constructor: LibraryElement Function())

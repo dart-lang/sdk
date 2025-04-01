@@ -323,28 +323,6 @@ extension ExecutableElement2Extension on ExecutableElement2 {
   }
 }
 
-extension ExecutableElement2OrNullExtension on ExecutableElement2? {
-  ExecutableElement? get asElement {
-    return this?.asElement;
-  }
-}
-
-extension ExecutableElementExtension on ExecutableElement {
-  ExecutableElement2OrMember get asElement2 {
-    return switch (this) {
-      ExecutableFragment(:var element) => element,
-      ExecutableMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    }
-        // TODO(paulberry): eliminate this cast by using impl types in the
-        // switch patterns above.
-        as ExecutableElement2OrMember;
-  }
-
-  ExecutableElementImpl get declarationImpl =>
-      declaration as ExecutableElementImpl;
-}
-
 extension ExecutableElementImpl2Extension on ExecutableElementImpl2 {
   ExecutableElementImpl get asElement {
     return lastFragment;
@@ -366,13 +344,10 @@ extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
     };
   }
 
-  ElementImpl get enclosingElementImpl => enclosingElement3 as ElementImpl;
-}
+  ExecutableElementImpl get declarationImpl =>
+      declaration as ExecutableElementImpl;
 
-extension ExecutableElementOrNullExtension on ExecutableElement? {
-  ExecutableElement2? get asElement2 {
-    return this?.asElement2;
-  }
+  ElementImpl get enclosingElementImpl => enclosingElement3 as ElementImpl;
 }
 
 extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {

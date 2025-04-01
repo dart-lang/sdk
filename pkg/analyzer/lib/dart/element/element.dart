@@ -1096,6 +1096,7 @@ abstract class EnumElement implements InterfaceElement {}
 /// constructors, getters, and setters.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ExecutableElement2 instead')
 abstract class ExecutableElement implements FunctionTypedElement {
   @override
   ExecutableElement get declaration;
@@ -1631,6 +1632,7 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement implements Element {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   ExecutableElement get enclosingElement3;
 
@@ -1807,6 +1809,7 @@ class LibraryLanguageVersion {
 }
 
 /// An element that can be (but is not required to be) defined within a method
+// ignore:deprecated_member_use_from_same_package
 /// or function (an [ExecutableElement]).
 ///
 /// Clients may not extend, implement or mix-in this class.

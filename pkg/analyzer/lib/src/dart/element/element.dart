@@ -3610,7 +3610,6 @@ abstract class ExecutableElement2OrMember implements ExecutableElement2 {
   FunctionTypeImpl get type;
 }
 
-/// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
     with AugmentableFragment, TypeParameterizedElementMixin
     implements ExecutableElementOrMember, ExecutableFragment {
@@ -3849,7 +3848,10 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement`.
 abstract class ExecutableElementOrMember
-    implements ExecutableElement, ElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ExecutableElement,
+        ElementOrMember {
   @override
   List<ParameterElementMixin> get parameters;
 
@@ -7771,7 +7773,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
   @override
   bool get _includeNameOffsetInIdentifier {
     return super._includeNameOffsetInIdentifier ||
-        enclosingElement3 is ExecutableElement ||
+        enclosingElement3 is ExecutableFragment ||
         enclosingElement3 is VariableElement;
   }
 }
@@ -8668,7 +8670,7 @@ enum Modifier {
   HAS_SINCE_SDK_VERSION_VALUE,
 
   /// Indicates that the associated element did not have an explicit type
-  /// associated with it. If the element is an [ExecutableElement], then the
+  /// associated with it. If the element is an [ExecutableElement2], then the
   /// type being referred to is the return type.
   IMPLICIT_TYPE,
 
