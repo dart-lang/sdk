@@ -27,8 +27,10 @@ class FlatTypeMask extends TypeMask {
   static Bitset _computeFlags(FlatTypeMaskKind kind, Bitset powerset) =>
       Bitset(kind.index << _powersetDomains.bitWidth | powerset.bits);
 
-  static FlatTypeMaskKind _lookupKind(Bitset flags) =>
+  static FlatTypeMaskKind _getKind(Bitset flags) =>
       FlatTypeMaskKind.values[flags.bits >> _powersetDomains.bitWidth];
+
+  static Bitset _getPowerset(Bitset flags) => _powersetDomains.restrict(flags);
 
   static EnumSet<TypeMaskSpecialValue> _composeSpecialValues({
     required bool isNullable,
@@ -80,26 +82,32 @@ class FlatTypeMask extends TypeMask {
   factory FlatTypeMask.nonNullEmpty(
     CommonMasks domain, {
     bool hasLateSentinel = false,
-  }) =>
-      hasLateSentinel
-          ? FlatTypeMask._cached(
-            null,
-            _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel),
-            domain,
-          )
-          : FlatTypeMask._cached(null, Bitset.empty(), domain);
+  }) {
+    final powerset =
+        hasLateSentinel
+            ? _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel)
+            : Bitset.empty();
+    return FlatTypeMask._cached(
+      null,
+      _computeFlags(FlatTypeMaskKind.empty, powerset),
+      domain,
+    );
+  }
 
   factory FlatTypeMask.empty(
     CommonMasks domain, {
     bool hasLateSentinel = false,
-  }) =>
-      hasLateSentinel
-          ? FlatTypeMask._cached(null, _specialValueDomain.allValues, domain)
-          : FlatTypeMask._cached(
-            null,
-            _specialValueDomain.fromValue(TypeMaskSpecialValue.null_),
-            domain,
-          );
+  }) {
+    final powerset =
+        hasLateSentinel
+            ? _specialValueDomain.allValues
+            : _specialValueDomain.fromValue(TypeMaskSpecialValue.null_);
+    return FlatTypeMask._cached(
+      null,
+      _computeFlags(FlatTypeMaskKind.empty, powerset),
+      domain,
+    );
+  }
 
   factory FlatTypeMask.nonNullExact(
     ClassEntity base,
@@ -164,7 +172,13 @@ class FlatTypeMask extends TypeMask {
     ClassEntity? base,
     Bitset flags,
     CommonMasks domain,
-  ) => domain.getCachedMask(base, flags, () => FlatTypeMask._(base, flags));
+  ) => domain.getCachedMask(base, flags, () {
+    final mask = FlatTypeMask._(base, flags);
+    // Since this is the only place [FlatTypeMask]s are allocated, it is an
+    // invariant that every [FlatTypeMask] is normalized.
+    assert(TypeMask.assertIsNormalized(mask, domain.closedWorld));
+    return mask;
+  });
 
   /// Ensures that the generated mask is normalized, i.e., a call to
   /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
@@ -221,10 +235,10 @@ class FlatTypeMask extends TypeMask {
     sink.end(tag);
   }
 
-  FlatTypeMaskKind get _kind => _lookupKind(flags);
+  FlatTypeMaskKind get _kind => _getKind(flags);
 
   @override
-  Bitset get powerset => _powersetDomains.restrict(flags);
+  Bitset get powerset => _getPowerset(flags);
 
   ClassQuery get _classQuery =>
       isExact
@@ -421,8 +435,6 @@ class FlatTypeMask extends TypeMask {
   @override
   TypeMask union(TypeMask other, CommonMasks domain) {
     JClosedWorld closedWorld = domain.closedWorld;
-    assert(TypeMask.assertIsNormalized(this, closedWorld));
-    assert(TypeMask.assertIsNormalized(other, closedWorld));
     if (other is! FlatTypeMask) return other.union(this, domain);
     final powerset = this.powerset.union(other.powerset);
     if (isEmptyOrSpecial) {
@@ -449,12 +461,9 @@ class FlatTypeMask extends TypeMask {
 
   TypeMask unionSame(FlatTypeMask other, CommonMasks domain) {
     assert(base == other.base);
-    assert(TypeMask.assertIsNormalized(this, domain.closedWorld));
-    assert(TypeMask.assertIsNormalized(other, domain.closedWorld));
     // The two masks share the base type, so we must chose the least
-    // constraining kind (the highest) of the two. If either one of
-    // the masks are nullable the result should be nullable too.
-    // As both masks are normalized, the result will be, too.
+    // constraining kind (the highest) of the two. As both masks are normalized,
+    // the result will be, too.
     final combined =
         (flags.bits > other.flags.bits)
             ? flags.union(other.powerset)
@@ -464,64 +473,57 @@ class FlatTypeMask extends TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return FlatTypeMask.normalized(
-        base!,
-        _lookupKind(combined),
-        combined,
-        domain,
-      );
+      return FlatTypeMask._cached(base, combined, domain);
     }
   }
 
   TypeMask unionStrictSubclass(FlatTypeMask other, CommonMasks domain) {
     assert(base != other.base);
     assert(domain.closedWorld.classHierarchy.isSubclassOf(other.base!, base!));
-    assert(TypeMask.assertIsNormalized(this, domain.closedWorld));
-    assert(TypeMask.assertIsNormalized(other, domain.closedWorld));
-    Bitset combined;
+    final FlatTypeMaskKind combinedKind;
+    final Bitset combinedPowerset;
     if ((isExact && other.isExact) ||
         base == domain.commonElements.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
-      // resulting union to be a subclass too. If either one of the
-      // masks are nullable the result should be nullable too.
-      combined = _computeFlags(
-        FlatTypeMaskKind.subclass,
-        powerset.union(other.powerset),
-      );
+      // resulting union to be a subclass too.
+      combinedKind = FlatTypeMaskKind.subclass;
+      combinedPowerset = powerset.union(other.powerset);
+      if (combinedKind == _kind && combinedPowerset == powerset) {
+        return this;
+      }
     } else {
       // Both masks are at least subclass masks, so we pick the least
-      // constraining kind (the highest) of the two. If either one of
-      // the masks are nullable the result should be nullable too.
-      combined =
+      // constraining kind (the highest) of the two.
+      final combined =
           (flags.bits > other.flags.bits)
               ? flags.union(other.powerset)
               : other.flags.union(powerset);
+      combinedKind = _getKind(combined);
+      combinedPowerset = _getPowerset(combined);
     }
     // If we weaken the constraint on this type, we have to make sure that
     // the result is normalized.
-    return flags != combined
-        ? FlatTypeMask.normalized(base, _lookupKind(combined), combined, domain)
-        : this;
+    return FlatTypeMask.normalized(
+      base,
+      combinedKind,
+      combinedPowerset,
+      domain,
+    );
   }
 
   TypeMask unionStrictSubtype(FlatTypeMask other, CommonMasks domain) {
     assert(base != other.base);
     assert(!domain.closedWorld.classHierarchy.isSubclassOf(other.base!, base!));
     assert(domain.closedWorld.classHierarchy.isSubtypeOf(other.base!, base!));
-    assert(TypeMask.assertIsNormalized(this, domain.closedWorld));
-    assert(TypeMask.assertIsNormalized(other, domain.closedWorld));
     // Since the other mask is a subtype of this mask, we need the
-    // resulting union to be a subtype too. If either one of the masks
-    // are nullable the result should be nullable too.
-    final combined = _computeFlags(
-      FlatTypeMaskKind.subtype,
-      powerset.union(other.powerset),
-    );
-    // We know there is at least one subtype, [other.base], so no need
-    // to normalize.
-    return flags != combined
-        ? FlatTypeMask.normalized(base, _lookupKind(combined), combined, domain)
-        : this;
+    // resulting union to be a subtype too.
+    final combinedKind = FlatTypeMaskKind.subtype;
+    final combinedPowerset = powerset.union(other.powerset);
+    return combinedKind == _kind && combinedPowerset == powerset
+        ? this
+        // If we weaken the constraint on this type, we have to make sure that
+        // the result is normalized.
+        : FlatTypeMask.normalized(base, combinedKind, combinedPowerset, domain);
   }
 
   @override
@@ -534,8 +536,6 @@ class FlatTypeMask extends TypeMask {
 
   TypeMask _intersection(TypeMask other, CommonMasks domain) {
     if (other is! FlatTypeMask) return other.intersection(this, domain);
-    assert(TypeMask.assertIsNormalized(this, domain.closedWorld));
-    assert(TypeMask.assertIsNormalized(other, domain.closedWorld));
 
     final otherBase = other.base;
     final powerset = this.powerset.intersection(other.powerset);
@@ -681,9 +681,8 @@ class FlatTypeMask extends TypeMask {
   TypeMask intersectionSame(FlatTypeMask other, CommonMasks domain) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
-    // constraining kind (the lowest) of the two. Only if both masks
-    // are nullable, will the result be nullable too.
-    // The result will be normalized, as the two inputs are normalized, too.
+    // constraining kind (the lowest) of the two. The result will be normalized,
+    // as the two inputs are normalized, too.
     final combined =
         (flags.bits < other.flags.bits)
             ? flags.intersection(other.flags.union(_powersetDomains.notMask))
@@ -694,12 +693,7 @@ class FlatTypeMask extends TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return FlatTypeMask.normalized(
-        base,
-        _lookupKind(combined),
-        combined,
-        domain,
-      );
+      return FlatTypeMask._cached(base, combined, domain);
     }
   }
 
@@ -710,22 +704,15 @@ class FlatTypeMask extends TypeMask {
     // intersection with the other mask is empty.
     if (isExact) return intersectionEmpty(other, domain);
     // Only the other mask puts constraints on the intersection mask,
-    // so base the combined flags on the other mask. Only if both
-    // masks are nullable, will the result be nullable too.
-    // The result is guaranteed to be normalized, as the other type
-    // was normalized.
+    // so base the combined flags on the other mask. The result is guaranteed to
+    // be normalized, as the other type was normalized.
     final combined = other.flags.intersection(
       flags.union(_powersetDomains.notMask),
     );
     if (other.flags == combined) {
       return other;
     } else {
-      return FlatTypeMask.normalized(
-        other.base,
-        _lookupKind(combined),
-        combined,
-        domain,
-      );
+      return FlatTypeMask._cached(other.base, combined, domain);
     }
   }
 
