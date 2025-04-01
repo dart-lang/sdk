@@ -2186,6 +2186,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 /// A type alias (`typedef`).
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeAliasElement2 instead')
 abstract class TypeAliasElement
     implements TypeParameterizedElement, TypeDefiningElement {
   /// If the aliased type has structure, return the corresponding element.

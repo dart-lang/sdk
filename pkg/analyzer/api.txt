@@ -3499,7 +3499,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: TopLevelVariableElement Function())
     declaration (getter: TopLevelVariableElement)
     isExternal (getter: bool)
-  TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement):
+  TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement, deprecated):
     new (constructor: TypeAliasElement Function())
     aliasedElement (getter: Element?, deprecated)
     aliasedType (getter: DartType)

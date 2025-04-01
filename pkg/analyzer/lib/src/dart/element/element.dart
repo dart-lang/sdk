@@ -10985,8 +10985,13 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with AugmentableFragment, TypeParameterizedElementMixin
-    implements TypeAliasElement, TypeAliasFragment {
+    with
+        AugmentableFragment,
+        TypeParameterizedElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TypeAliasElement,
+        TypeAliasFragment {
   @override
   String? name2;
 

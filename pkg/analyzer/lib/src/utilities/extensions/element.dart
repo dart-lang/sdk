@@ -689,18 +689,6 @@ extension TopLevelVariableElementImpl2Extension
   }
 }
 
-extension TypeAliasElement2Extension on TypeAliasElement2 {
-  TypeAliasElement get asElement {
-    return firstFragment as TypeAliasElement;
-  }
-}
-
-extension TypeAliasElementExtension on TypeAliasElement {
-  TypeAliasElement2 get asElement2 {
-    return (this as TypeAliasElementImpl).element;
-  }
-}
-
 extension TypeAliasElementImpl2Extension on TypeAliasElementImpl2 {
   TypeAliasElementImpl get asElement {
     return firstFragment;
