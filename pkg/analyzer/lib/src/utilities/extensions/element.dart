@@ -670,18 +670,6 @@ extension TopLevelFunctionElementImplExtension on TopLevelFunctionElementImpl {
   }
 }
 
-extension TopLevelVariableElement2Extension on TopLevelVariableElement2 {
-  TopLevelVariableElement get asElement {
-    return baseElement.firstFragment as TopLevelVariableElement;
-  }
-}
-
-extension TopLevelVariableElementExtension on TopLevelVariableElement {
-  TopLevelVariableElement2 get asElement2 {
-    return (this as TopLevelVariableElementImpl).element;
-  }
-}
-
 extension TopLevelVariableElementImpl2Extension
     on TopLevelVariableElementImpl2 {
   TopLevelVariableElementImpl get asElement {

@@ -1762,8 +1762,6 @@ mixin ConstructorElementMixin2
   InterfaceTypeImpl get returnType;
 }
 
-/// A [TopLevelVariableElement] for a top-level 'const' variable that has an
-/// initializer.
 class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
     with ConstVariableElement {
   /// Initialize a newly created synthetic top-level variable element to have
@@ -10859,9 +10857,11 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
   }
 }
 
-/// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    implements TopLevelVariableElement, TopLevelVariableFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TopLevelVariableElement,
+        TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl2 element;
 

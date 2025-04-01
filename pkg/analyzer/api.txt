@@ -3495,7 +3495,7 @@ package:analyzer/dart/element/element.dart:
   SuperFormalParameterElement (class extends Object implements ParameterElement):
     new (constructor: SuperFormalParameterElement Function())
     superConstructorParameter (getter: ParameterElement?)
-  TopLevelVariableElement (class extends Object implements PropertyInducingElement):
+  TopLevelVariableElement (class extends Object implements PropertyInducingElement, deprecated):
     new (constructor: TopLevelVariableElement Function())
     declaration (getter: TopLevelVariableElement)
     isExternal (getter: bool)

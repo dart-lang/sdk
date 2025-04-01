@@ -2175,6 +2175,7 @@ abstract class SuperFormalParameterElement implements ParameterElement {
 /// A top-level variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TopLevelVariableElement2 instead')
 abstract class TopLevelVariableElement implements PropertyInducingElement {
   @override
   TopLevelVariableElement get declaration;
