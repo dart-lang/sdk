@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -542,19 +543,6 @@ class Server {
     }
   }
 
-  /// Find the root directory of the analysis_server package by proceeding
-  /// upward to the 'test' dir, and then going up one more directory.
-  String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(path.basename(pathname))) {
-      var parent = path.dirname(pathname);
-      if (parent.length >= pathname.length) {
-        throw Exception("Can't find root directory");
-      }
-      pathname = parent;
-    }
-    return path.dirname(pathname);
-  }
-
   /// Return a future that will complete when all commands that have been sent
   /// to the server so far have been flushed to the OS buffer.
   Future<void> flushCommands() {
@@ -705,10 +693,15 @@ class Server {
         ),
       );
     } else {
-      var rootDir = findRoot(
-        Platform.script.toFilePath(windows: Platform.isWindows),
+      // Locate the root of the analysis server package without using
+      // `Platform.script` as it fails when run through the `dart test`.
+      // https://github.com/dart-lang/test/issues/110
+      var serverLibUri = await Isolate.resolvePackageUri(
+        Uri.parse('package:analysis_server/'),
       );
-      serverPath = path.normalize(path.join(rootDir, 'bin', 'server.dart'));
+      serverPath = path.normalize(
+        path.join(serverLibUri!.toFilePath(), '..', 'bin', 'server.dart'),
+      );
     }
 
     var arguments = <String>['--disable-dart-dev', '--no-dds'];
