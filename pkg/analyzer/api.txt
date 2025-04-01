@@ -3454,7 +3454,7 @@ package:analyzer/dart/element/element.dart:
     name (getter: String)
     parameterKind (getter: ParameterKind, deprecated)
     parameters (getter: List<ParameterElement>)
-    typeParameters (getter: List<TypeParameterElement>)
+    typeParameters (getter: List<TypeParameterElement>, deprecated)
     appendToWithoutDelimiters (method: void Function(StringBuffer, {bool withNullability}))
   PartElement (class extends Object implements _ExistingElement):
     new (constructor: PartElement Function())
@@ -3509,7 +3509,7 @@ package:analyzer/dart/element/element.dart:
     instantiate (method: DartType Function({required NullabilitySuffix nullabilitySuffix, required List<DartType> typeArguments}))
   TypeDefiningElement (class extends Object implements Element):
     new (constructor: TypeDefiningElement Function())
-  TypeParameterElement (class extends Object implements TypeDefiningElement):
+  TypeParameterElement (class extends Object implements TypeDefiningElement, deprecated):
     new (constructor: TypeParameterElement Function())
     bound (getter: DartType?)
     declaration (getter: TypeParameterElement)
@@ -3519,7 +3519,7 @@ package:analyzer/dart/element/element.dart:
   TypeParameterizedElement (class extends Object implements _ExistingElement):
     new (constructor: TypeParameterizedElement Function())
     isSimplyBounded (getter: bool)
-    typeParameters (getter: List<TypeParameterElement>)
+    typeParameters (getter: List<TypeParameterElement>, deprecated)
   UndefinedElement (class extends Object implements Element):
     new (constructor: UndefinedElement Function())
   UriReferencedElement (class extends Object implements _ExistingElement):

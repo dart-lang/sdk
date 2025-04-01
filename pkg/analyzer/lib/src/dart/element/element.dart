@@ -3298,7 +3298,7 @@ abstract class ElementImpl2 implements Element2 {
   /// The reference of this element, used during reading summaries.
   ///
   /// Can be `null` if this element cannot be referenced from outside,
-  /// for example a [LocalFunctionElement], a [TypeParameterElement],
+  /// for example a [LocalFunctionElement], a [TypeParameterElement2],
   /// a positional [FormalParameterElement], etc.
   Reference? get reference => null;
 
@@ -11343,9 +11343,11 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
 abstract class TypeDefiningElementImpl2 extends ElementImpl2
     implements TypeDefiningElement2 {}
 
-/// A concrete implementation of a [TypeParameterElement].
 class TypeParameterElementImpl extends ElementImpl
-    implements TypeParameterElement, TypeParameterFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TypeParameterElement,
+        TypeParameterFragment {
   @override
   String? name2;
 
