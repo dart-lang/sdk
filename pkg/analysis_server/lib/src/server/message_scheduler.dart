@@ -75,6 +75,9 @@ sealed class MessageObject {}
 /// and the Diagnostic server. The [MessageScheduler] acts as a hub for all
 /// incoming messages and forwards the messages to the appropriate handlers.
 final class MessageScheduler {
+  /// A flag to allow disabling overlapping message handlers.
+  static bool allowOverlappingHandlers = true;
+
   /// The [AnalysisServer] associated with the scheduler.
   late final AnalysisServer server;
 
@@ -278,7 +281,20 @@ final class MessageScheduler {
               completer,
             );
         }
-        await completer.future;
+
+        // Blocking here with an await on the future was intended to prevent unwanted
+        // interleaving but was found to cause a significant performance regression.
+        // For more context see: https://github.com/dart-lang/sdk/issues/60440.
+        // To re-disable interleaving, set [allowOverlappingHandlers] to `false`.
+        if (!allowOverlappingHandlers) {
+          await completer.future;
+        }
+
+        // NOTE that this message is not accurate if [allowOverlappingHandlers] is `true`
+        // as in that case we're not blocking anymore and the future may not be complete.
+        // TODO(pq): if not awaited, consider adding a `then` so we can track when the future completes
+        // but note that we may see some flakiness in tests as message handling gets
+        // non-deterministically interleaved.
         testView?.messageLog.add(
           '  Complete ${message.runtimeType}: ${message.toString()}',
         );
