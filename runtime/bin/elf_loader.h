@@ -36,7 +36,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
                                             const uint8_t** vm_isolate_instrs);
 #endif
 
-#if !defined(__Fuchsia__)
 /// Please see documentation for Dart_LoadElf_Fd.
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
@@ -45,7 +44,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          const uint8_t** vm_snapshot_instrs,
                                          const uint8_t** vm_isolate_data,
                                          const uint8_t** vm_isolate_instrs);
-#endif
 
 /// Please see documentation for Dart_LoadElf_Fd.
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(

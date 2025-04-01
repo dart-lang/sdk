@@ -105,6 +105,11 @@ abstract class CompilerConfiguration {
         return NoneCompilerConfiguration(configuration);
 
       case Compiler.dartkp:
+        // TODO(b/399714829): Test packages should be created at test-time, not
+        // build time.
+        if (configuration.system == System.fuchsia) {
+          return NoneCompilerConfiguration(configuration);
+        }
         return PrecompilerCompilerConfiguration(configuration);
 
       case Compiler.specParser:

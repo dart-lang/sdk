@@ -313,7 +313,7 @@
         "enable-asserts": true
       }
     },
-    "vm-aot-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-aot-(linux|mac|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {}
     },
     "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
@@ -1641,6 +1641,14 @@
             "-j4",
             "ffi"
           ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}",
+            "-j4",
+            "ffi"
+          ]
         }
       ]
     },
@@ -1664,6 +1672,14 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
+            "-j1",
+            "ffi"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}",
             "-j1",
             "ffi"
           ]

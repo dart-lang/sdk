@@ -149,7 +149,8 @@ class MemoryMappable : public Mappable {
 };
 
 Mappable* Mappable::FromPath(const char* path) {
-  return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead));
+  return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead,
+                                     /*executable=*/true));
 }
 
 #if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
@@ -583,7 +584,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
 }
 #endif
 
-#if !defined(DART_HOST_OS_FUCHSIA)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
                                          const char** error,
@@ -608,7 +608,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
 
   return reinterpret_cast<Dart_LoadedElf*>(elf.release());
 }
-#endif
 
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
     const uint8_t* snapshot,

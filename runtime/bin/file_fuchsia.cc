@@ -7,16 +7,18 @@
 
 #include "bin/file.h"
 
-#include <errno.h>               // NOLINT
-#include <fcntl.h>               // NOLINT
-#include <lib/fdio/fdio.h>       // NOLINT
-#include <lib/fdio/namespace.h>  // NOLINT
-#include <libgen.h>              // NOLINT
-#include <sys/mman.h>            // NOLINT
-#include <sys/stat.h>            // NOLINT
-#include <sys/types.h>           // NOLINT
-#include <unistd.h>              // NOLINT
-#include <utime.h>               // NOLINT
+#include <errno.h>
+#include <fcntl.h>
+#include <fuchsia/io/cpp/fidl.h>
+#include <lib/fdio/directory.h>
+#include <lib/fdio/fdio.h>
+#include <lib/fdio/namespace.h>
+#include <libgen.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <utime.h>
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
@@ -216,7 +218,10 @@ File* File::OpenFD(int fd) {
   return new File(new FileHandle(fd));
 }
 
-File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
+File* File::Open(Namespace* namespc,
+                 const char* name,
+                 FileOpenMode mode,
+                 bool executable) {
   NamespaceScope ns(namespc, name);
   // Report errors for non-regular files.
   struct stat st;
@@ -239,7 +244,18 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
     flags = flags | O_TRUNC;
   }
   flags |= O_CLOEXEC;
-  int fd = NO_RETRY_EXPECTED(openat(ns.fd(), ns.path(), flags, 0666));
+  int fd;
+  if (executable) {
+    fuchsia::io::Flags flags =
+        fuchsia::io::PERM_READABLE | fuchsia::io::PERM_EXECUTABLE;
+    zx_status_t status =
+        fdio_open3_fd_at(ns.fd(), ns.path(), uint64_t{flags}, &fd);
+    if (status != ZX_OK) {
+      return nullptr;
+    }
+  } else {
+    fd = NO_RETRY_EXPECTED(openat(ns.fd(), ns.path(), flags, 0666));
+  }
   if (fd < 0) {
     return nullptr;
   }
@@ -264,12 +280,15 @@ CStringUniquePtr File::UriToPath(const char* uri) {
   return CStringUniquePtr(strdup(uri_decoder.decoded()));
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+File* File::OpenUri(Namespace* namespc,
+                    const char* uri,
+                    FileOpenMode mode,
+                    bool executable) {
   auto path = UriToPath(uri);
   if (path == nullptr) {
     return nullptr;
   }
-  return File::Open(namespc, path.get(), mode);
+  return File::Open(namespc, path.get(), mode, executable);
 }
 
 File* File::OpenStdio(int fd) {
