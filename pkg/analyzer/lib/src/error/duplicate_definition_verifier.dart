@@ -196,17 +196,19 @@ class DuplicateDefinitionVerifier {
     }
 
     var libraryDeclarations = _currentLibrary.libraryDeclarations;
-    for (var importPrefix in fragment.libraryImportPrefixes) {
-      var name = importPrefix.name;
-      if (libraryDeclarations.withName(name) case var existing?) {
-        _errorReporter.reportError(
-          _diagnosticFactory.duplicateDefinition(
-            CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
-            importPrefix.asElement2,
-            existing,
-            [name],
-          ),
-        );
+    for (var importPrefix in fragment.prefixes) {
+      var name = importPrefix.name3;
+      if (name != null) {
+        if (libraryDeclarations.withName(name) case var existing?) {
+          _errorReporter.reportError(
+            _diagnosticFactory.duplicateDefinition(
+              CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+              importPrefix,
+              existing,
+              [name],
+            ),
+          );
+        }
       }
     }
 

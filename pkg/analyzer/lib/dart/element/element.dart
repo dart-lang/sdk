@@ -330,6 +330,7 @@ abstract class ConstructorElement
 /// [ImportElementPrefix] that is used together with `deferred`.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PrefixElement2 instead')
 abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 
 /// Meaning of a URI referenced in a directive.
@@ -1315,6 +1316,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 /// Usage of a [PrefixElement] in an `import` directive.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PrefixElement2 instead')
 abstract class ImportElementPrefix {
   /// The prefix that was specified as part of the import directive, or `null`
   /// if there was no prefix specified.
@@ -1786,6 +1788,7 @@ abstract class LibraryImportElement implements _ExistingElement {
 
   /// The prefix that was specified as part of the import directive, or `null`
   /// if there was no prefix specified.
+  @Deprecated(elementModelDeprecationMsg)
   ImportElementPrefix? get prefix;
 
   /// The interpretation of the URI specified in the directive.
@@ -2018,6 +2021,7 @@ abstract class PatternVariableElement implements LocalVariableElement {
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PrefixElement2 instead')
 abstract class PrefixElement implements _ExistingElement {
   @Deprecated(elementModelDeprecationMsg)
   @override

@@ -3074,7 +3074,7 @@ package:analyzer/dart/element/element.dart:
     redirectedConstructor (getter: ConstructorElement?)
     returnType (getter: InterfaceType)
     superConstructor (getter: ConstructorElement?)
-  DeferredImportElementPrefix (class extends Object implements ImportElementPrefix):
+  DeferredImportElementPrefix (class extends Object implements ImportElementPrefix, deprecated):
     new (constructor: DeferredImportElementPrefix Function())
   DirectiveUri (class extends Object):
     new (constructor: DirectiveUri Function())
@@ -3326,7 +3326,7 @@ package:analyzer/dart/element/element.dart:
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
     hiddenNames (getter: List<String>)
-  ImportElementPrefix (class extends Object):
+  ImportElementPrefix (class extends Object, deprecated):
     new (constructor: ImportElementPrefix Function())
     element (getter: PrefixElement)
   InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement, deprecated):
@@ -3407,7 +3407,7 @@ package:analyzer/dart/element/element.dart:
     importKeywordOffset (getter: int)
     importedLibrary (getter: LibraryElement?)
     namespace (getter: Namespace)
-    prefix (getter: ImportElementPrefix?)
+    prefix (getter: ImportElementPrefix?, deprecated)
     uri (getter: DirectiveUri)
   LibraryLanguageVersion (class extends Object):
     new (constructor: LibraryLanguageVersion Function({required Version? override, required Version package}))
@@ -3462,7 +3462,7 @@ package:analyzer/dart/element/element.dart:
   PatternVariableElement (class extends Object implements LocalVariableElement, deprecated):
     new (constructor: PatternVariableElement Function())
     join (getter: JoinPatternVariableElement?)
-  PrefixElement (class extends Object implements _ExistingElement):
+  PrefixElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: PrefixElement Function())
     enclosingElement3 (getter: CompilationUnitElement, deprecated)
     imports (getter: List<LibraryImportElement>)

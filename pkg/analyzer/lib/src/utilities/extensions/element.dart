@@ -595,18 +595,6 @@ extension PatternVariableElementImplExtension on PatternVariableElementImpl {
   }
 }
 
-extension PrefixElement2Extension on PrefixElement2 {
-  PrefixElement get asElement {
-    return (this as PrefixElementImpl2).asElement;
-  }
-}
-
-extension PrefixElementExtension on PrefixElement {
-  PrefixElement2 get asElement2 {
-    return (this as PrefixElementImpl).element2;
-  }
-}
-
 extension PropertyAccessorElement2OrMemberExtension
     on PropertyAccessorElement2OrMember {
   PropertyAccessorElementOrMember get asElement {

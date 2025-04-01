@@ -1949,7 +1949,9 @@ class DefaultSuperFormalParameterElementImpl
 }
 
 class DeferredImportElementPrefixImpl extends ImportElementPrefixImpl
-    implements DeferredImportElementPrefix {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        DeferredImportElementPrefix {
   DeferredImportElementPrefixImpl({
     required super.element,
   });
@@ -5547,7 +5549,10 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   }
 }
 
-class ImportElementPrefixImpl implements ImportElementPrefix {
+class ImportElementPrefixImpl
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ImportElementPrefix {
   @override
   final PrefixElementImpl element;
 
@@ -9766,8 +9771,10 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
   }
 }
 
-/// A concrete implementation of a [PrefixElement].
-class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
+class PrefixElementImpl extends _ExistingElementImpl
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PrefixElement {
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
