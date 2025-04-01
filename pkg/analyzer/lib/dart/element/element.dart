@@ -22,6 +22,7 @@
 /// children of the element representing the class.
 ///
 /// Every complete element structure is rooted by an instance of the class
+// ignore:deprecated_member_use_from_same_package
 /// [LibraryElement]. A library element represents a single Dart library. Every
 /// library is defined by one or more compilation units (the library and all of
 /// its parts). The compilation units are represented by the class
@@ -338,11 +339,12 @@ abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUri {}
 
-/// [DirectiveUriWithSource] that references a [LibraryElement].
+/// [DirectiveUriWithSource] that references a [LibraryElement2].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
   /// The library referenced by the [source].
+  @Deprecated('Use library2 instead')
   LibraryElement get library;
 
   /// The library referenced by the [source].
@@ -414,6 +416,7 @@ abstract class Element implements AnalysisTarget {
   /// A list of this element's children.
   ///
   /// There is no guarantee of the order in which the children will be included.
+  @Deprecated('Use Element2 instead')
   List<Element> get children;
 
   /// The analysis context in which this element is defined.
@@ -566,6 +569,7 @@ abstract class Element implements AnalysisTarget {
   /// This will be the element itself if it is a library element. This will be
   /// `null` if this element is [MultiplyDefinedElement2] that is not contained
   /// in a library.
+  @Deprecated('Use Element2 instead')
   LibraryElement? get library;
 
   /// The location of this element in the element model.
@@ -668,6 +672,7 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
+  @Deprecated('Use Element2 instead')
   bool isAccessibleIn(LibraryElement library);
 
   /// Returns either this element or the most immediate ancestor of this element
@@ -1648,6 +1653,7 @@ abstract class LabelElement implements Element {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryElement2 instead')
 abstract class LibraryElement implements _ExistingElement {
   /// The compilation unit that defines this library.
   @Deprecated(elementModelDeprecationMsg)
@@ -2304,6 +2310,7 @@ abstract class TypeParameterizedElement implements _ExistingElement {
 /// elements do not make sense and will return useless results.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Not used anymore')
 abstract class UndefinedElement implements Element {}
 
 /// An element included into a library using some URI.
@@ -2382,6 +2389,7 @@ abstract class _ExistingElement implements Element {
   @override
   Element get declaration;
 
+  @Deprecated('Use Element2 instead')
   @override
   LibraryElement get library;
 

@@ -228,12 +228,17 @@ abstract class ExecutableMember extends Member
     required this.typeParameters,
   });
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => parameters;
 
   @override
-  List<Element2> get children2 =>
-      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+  List<Element2> get children2 {
+    return [
+      ...typeParameters2,
+      ...formalParameters,
+    ];
+  }
 
   @override
   ExecutableElementImpl get declaration =>
@@ -292,6 +297,7 @@ abstract class ExecutableMember extends Member
   @override
   bool get isSynchronous => declaration.isSynchronous;
 
+  @Deprecated('Use ExecutableElement2 instead')
   @override
   LibraryElement get library => _declaration.library!;
 
@@ -507,8 +513,7 @@ class FieldMember extends VariableMember
   FieldElement2 get baseElement => _element2;
 
   @override
-  List<Element2> get children2 =>
-      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+  List<Element2> get children2 => const [];
 
   @override
   ConstantInitializer? get constantInitializer2 {
@@ -586,6 +591,7 @@ class FieldMember extends VariableMember
   @override
   bool get isPromotable => declaration.isPromotable;
 
+  @Deprecated('Use FieldElement2 instead')
   @override
   LibraryElement get library => _declaration.library!;
 
@@ -800,6 +806,7 @@ abstract class Member implements Element, ElementOrMember {
 
   Element2 get baseElement;
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => const [];
 
@@ -914,6 +921,7 @@ abstract class Member implements Element, ElementOrMember {
   @override
   ElementKind get kind => _declaration.kind;
 
+  @Deprecated('Use Element2 instead')
   @override
   LibraryElement? get library => _declaration.library;
 
@@ -976,6 +984,7 @@ abstract class Member implements Element, ElementOrMember {
     );
   }
 
+  @Deprecated('Use Element2 instead')
   @override
   bool isAccessibleIn(LibraryElement library) =>
       _declaration.isAccessibleIn(library);
@@ -1151,12 +1160,17 @@ class ParameterMember extends VariableMember
   @override
   FormalParameterElement get baseElement => _element2;
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => parameters;
 
   @override
-  List<Element2> get children2 =>
-      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+  List<Element2> get children2 {
+    return [
+      ...typeParameters2,
+      ...formalParameters,
+    ];
+  }
 
   @override
   ConstantInitializer? get constantInitializer2 {

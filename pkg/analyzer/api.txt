@@ -3080,7 +3080,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: DirectiveUri Function())
   DirectiveUriWithLibrary (class extends DirectiveUriWithSource):
     new (constructor: DirectiveUriWithLibrary Function())
-    library (getter: LibraryElement)
+    library (getter: LibraryElement, deprecated)
     library2 (getter: LibraryElement2)
   DirectiveUriWithRelativeUri (class extends DirectiveUriWithRelativeUriString):
     new (constructor: DirectiveUriWithRelativeUri Function())
@@ -3097,7 +3097,7 @@ package:analyzer/dart/element/element.dart:
     unit (getter: CompilationUnitElement, deprecated)
   Element (class extends Object implements AnalysisTarget):
     new (constructor: Element Function())
-    children (getter: List<Element>)
+    children (getter: List<Element>, deprecated)
     context (getter: AnalysisContext@2)
     declaration (getter: Element?)
     displayName (getter: String)
@@ -3135,7 +3135,7 @@ package:analyzer/dart/element/element.dart:
     isPublic (getter: bool)
     isSynthetic (getter: bool)
     kind (getter: ElementKind)
-    library (getter: LibraryElement?)
+    library (getter: LibraryElement?, deprecated)
     location (getter: ElementLocation?)
     metadata (getter: List<ElementAnnotation>)
     name (getter: String?)
@@ -3148,7 +3148,7 @@ package:analyzer/dart/element/element.dart:
     accept (method: T? Function<T>(ElementVisitor<T>), deprecated)
     getDisplayString (method: String Function({bool multiline, bool withNullability}))
     getExtendedDisplayName (method: String Function(String?))
-    isAccessibleIn (method: bool Function(LibraryElement))
+    isAccessibleIn (method: bool Function(LibraryElement), deprecated)
     thisOrAncestorMatching (method: E? Function<E extends Element>(bool Function(Element)), deprecated)
     thisOrAncestorMatching3 (method: E? Function<E extends Element>(bool Function(Element)), deprecated)
     thisOrAncestorOfType (method: E? Function<E extends Element>(), deprecated)
@@ -3369,7 +3369,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: LabelElement Function())
     enclosingElement3 (getter: ExecutableElement, deprecated)
     name (getter: String)
-  LibraryElement (class extends Object implements _ExistingElement):
+  LibraryElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryElement Function())
     definingCompilationUnit (getter: CompilationUnitElement, deprecated)
     enclosingElement3 (getter: Null)
@@ -3520,7 +3520,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: TypeParameterizedElement Function())
     isSimplyBounded (getter: bool)
     typeParameters (getter: List<TypeParameterElement>, deprecated)
-  UndefinedElement (class extends Object implements Element):
+  UndefinedElement (class extends Object implements Element, deprecated):
     new (constructor: UndefinedElement Function())
   UriReferencedElement (class extends Object implements _ExistingElement):
     new (constructor: UriReferencedElement Function())
@@ -3541,7 +3541,7 @@ package:analyzer/dart/element/element.dart:
   _ExistingElement (class extends Object implements Element):
     new (constructor: _ExistingElement Function())
     declaration (getter: Element)
-    library (getter: LibraryElement)
+    library (getter: LibraryElement, deprecated)
     librarySource (getter: Source)
     source (getter: Source)
 package:analyzer/dart/element/element2.dart:
@@ -5260,7 +5260,7 @@ package:analyzer/src/dart/constant/evaluation.dart:
     new (constructor: ConstantEvaluationTarget Function())
     context (getter: AnalysisContext@2)
     isConstantEvaluated (getter: bool)
-    library (getter: LibraryElement?)
+    library (getter: LibraryElement?, deprecated)
     library2 (getter: LibraryElement2?)
 package:analyzer/src/dart/resolver/scope.dart:
   Namespace (class extends Object):

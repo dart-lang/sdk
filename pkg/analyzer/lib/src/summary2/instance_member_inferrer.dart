@@ -489,7 +489,8 @@ class InstanceMemberInferrer {
     if (superType != null) {
       var index = classElement.constructors.indexOf(constructor);
       var superConstructors = superType.elementImpl.constructors
-          .where((element) => element.isAccessibleIn(classElement.library))
+          .where((element) =>
+              element.asElement2.isAccessibleIn2(classElement.library))
           .toList();
       if (index < superConstructors.length) {
         var baseConstructor = superConstructors[index];

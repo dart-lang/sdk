@@ -285,12 +285,6 @@ extension ElementOrNullExtension on Element? {
       return self;
     } else if (self is LocalVariableElementImpl) {
       return self.element;
-    } else if (self is MultiplyDefinedElementImpl) {
-      return MultiplyDefinedElementImpl2(
-        self.libraryFragment,
-        self.name,
-        self.conflictingElements.map((e) => e.asElement2).nonNulls.toList(),
-      );
     } else if (self is NeverElementImpl) {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
@@ -452,7 +446,7 @@ extension InterfaceElementImplExtension on InterfaceElementImpl {
 }
 
 extension InterfaceTypeImplExtension on InterfaceTypeImpl {
-  InterfaceElementImpl get elementImpl => element;
+  InterfaceElementImpl get elementImpl => element3.firstFragment;
 }
 
 extension JoinPatternVariableElementImplExtension
@@ -463,20 +457,16 @@ extension JoinPatternVariableElementImplExtension
 }
 
 extension LibraryElement2Extension on LibraryElement2 {
+  @Deprecated('Use LibraryElement2 instead')
   LibraryElement get asElement {
     return this as LibraryElement;
   }
 }
 
+@Deprecated('Use LibraryElement2 instead')
 extension LibraryElementExtension on LibraryElement {
   LibraryElement2 get asElement2 {
     return this as LibraryElement2;
-  }
-}
-
-extension LibraryElementOrNullExtension on LibraryElement? {
-  LibraryElement2? get asElement2 {
-    return this as LibraryElement2?;
   }
 }
 
