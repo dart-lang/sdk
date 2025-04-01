@@ -3414,7 +3414,7 @@ package:analyzer/dart/element/element.dart:
     effective (getter: Version)
     override (getter: Version?)
     package (getter: Version)
-  LocalElement (class extends Object implements Element):
+  LocalElement (class extends Object implements Element, deprecated):
     new (constructor: LocalElement Function())
   LocalVariableElement (class extends Object implements PromotableElement, deprecated):
     new (constructor: LocalVariableElement Function())

@@ -1811,10 +1811,10 @@ class LibraryLanguageVersion {
 }
 
 /// An element that can be (but is not required to be) defined within a method
-// ignore:deprecated_member_use_from_same_package
 /// or function (an [ExecutableElement]).
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LocalElement2 instead')
 abstract class LocalElement implements Element {}
 
 /// A local variable.
