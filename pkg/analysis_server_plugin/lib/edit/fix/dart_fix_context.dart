@@ -10,7 +10,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
+import 'package:analyzer/utilities/extensions/element.dart';
 
 /// An object used to provide context information for Dart fix contributors.
 ///
@@ -61,8 +63,7 @@ class DartFixContext implements FixContext {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
-  Stream<LibraryElement2> librariesWithExtensions(String memberName) async* {
+  Stream<LibraryElement2> librariesWithExtensions(Name memberName) async* {
     var analysisContext = unitResult.session.analysisContext;
     if (analysisContext is! DriverBasedAnalysisContext) {
       return;
@@ -86,7 +87,11 @@ class DartFixContext implements FixContext {
         continue;
       }
 
-      yield elementResult.element2;
+      if (elementResult.element2.exportedExtensions
+          .havingMemberWithBaseName(memberName)
+          .isNotEmpty) {
+        yield elementResult.element2;
+      }
     }
   }
 }

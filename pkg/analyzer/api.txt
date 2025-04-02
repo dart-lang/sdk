@@ -5318,6 +5318,9 @@ package:analyzer/src/task/api/model.dart:
     source (getter: Source?)
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
+package:analyzer/utilities/extensions/element.dart:
+  LibraryElement2Extensions (extension on LibraryElement2):
+    exportedExtensions (getter: Iterable<ExtensionElement2>)
 package:analyzer/utilities/extensions/uri.dart:
   UriExtension (extension on Uri):
     isImplementation (getter: bool)
