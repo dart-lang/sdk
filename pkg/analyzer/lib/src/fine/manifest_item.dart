@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
@@ -498,6 +499,7 @@ class TopLevelFunctionItem extends TopLevelItem {
 class TopLevelGetterItem extends TopLevelItem {
   final ManifestMetadata metadata;
   final ManifestType returnType;
+  final ManifestNode? constInitializer;
 
   TopLevelGetterItem({
     required super.libraryUri,
@@ -505,6 +507,7 @@ class TopLevelGetterItem extends TopLevelItem {
     required super.id,
     required this.metadata,
     required this.returnType,
+    required this.constInitializer,
   });
 
   factory TopLevelGetterItem.fromElement({
@@ -519,6 +522,7 @@ class TopLevelGetterItem extends TopLevelItem {
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata2),
       returnType: element.returnType.encode(context),
+      constInitializer: element.constInitializer?.encode(context),
     );
   }
 
@@ -529,6 +533,7 @@ class TopLevelGetterItem extends TopLevelItem {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       returnType: ManifestType.read(reader),
+      constInitializer: ManifestNode.readOptional(reader),
     );
   }
 
@@ -543,6 +548,10 @@ class TopLevelGetterItem extends TopLevelItem {
       return null;
     }
 
+    if (!constInitializer.match(context, element.constInitializer)) {
+      return null;
+    }
+
     return context;
   }
 
@@ -554,6 +563,7 @@ class TopLevelGetterItem extends TopLevelItem {
     id.write(sink);
     metadata.write(sink);
     returnType.write(sink);
+    constInitializer.writeOptional(sink);
   }
 }
 
@@ -664,4 +674,32 @@ enum _ManifestItemKind2 {
   instanceGetter,
   instanceMethod,
   interfaceConstructor,
+}
+
+extension _AstNodeExtension on AstNode {
+  ManifestNode encode(EncodeContext context) {
+    return ManifestNode.encode(context, this);
+  }
+}
+
+extension _GetterElementImplExtension on GetterElementImpl {
+  Expression? get constInitializer {
+    Expression? constInitializer;
+    if (isSynthetic) {
+      var variable = variable3!;
+      if (variable.isConst) {
+        constInitializer = variable.constantInitializer2?.expression;
+      }
+    }
+
+    // TODO(scheglov): support all expressions
+    switch (constInitializer) {
+      case IntegerLiteral():
+      case SimpleIdentifier():
+        break;
+      default:
+        constInitializer = null;
+    }
+    return constInitializer;
+  }
 }

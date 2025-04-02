@@ -17,6 +17,8 @@ sealed class ManifestNode {
     switch (node) {
       case Annotation():
         return ManifestNodeAnnotation.encode(context, node);
+      case IntegerLiteral():
+        return ManifestNodeIntegerLiteral.encode(node);
       case SimpleIdentifier():
         return ManifestNodeSimpleIdentifier.encode(context, node);
       default:
@@ -34,6 +36,10 @@ sealed class ManifestNode {
       case _ManifestNodeKind.simpleIdentifier:
         return ManifestNodeSimpleIdentifier.read(reader);
     }
+  }
+
+  static ManifestNode? readOptional(SummaryDataReader reader) {
+    return reader.readOptionalObject(() => ManifestNode.read(reader));
   }
 }
 
@@ -182,4 +188,21 @@ enum _ManifestNodeKind {
   annotation,
   integerLiteral,
   simpleIdentifier,
+}
+
+extension ManifestNodeOrNullExtension on ManifestNode? {
+  bool match(MatchContext context, AstNode? node) {
+    var self = this;
+    if (self == null && node == null) {
+      return true;
+    } else if (self == null || node == null) {
+      return false;
+    } else {
+      return self.match(context, node);
+    }
+  }
+
+  void writeOptional(BufferedSink sink) {
+    sink.writeOptionalObject(this, (it) => it.write(sink));
+  }
 }

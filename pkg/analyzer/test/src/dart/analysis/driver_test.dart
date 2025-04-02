@@ -9388,6 +9388,73 @@ class A {}
     );
   }
 
+  test_manifest_constInitializer_integerLiteral() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+        returnType: int @ dart:core
+        constInitializer: ManifestNodeIntegerLiteral
+          value: 0
+''',
+      updatedCode: r'''
+const a = 0;
+const b = 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+        returnType: int @ dart:core
+        constInitializer: ManifestNodeIntegerLiteral
+          value: 0
+      b: #M1
+        returnType: int @ dart:core
+        constInitializer: ManifestNodeIntegerLiteral
+          value: 1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_integerLiteral_value() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+        returnType: int @ dart:core
+        constInitializer: ManifestNodeIntegerLiteral
+          value: 0
+''',
+      updatedCode: r'''
+const a = 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+        returnType: int @ dart:core
+        constInitializer: ManifestNodeIntegerLiteral
+          value: 1
+''',
+    );
+  }
+
   test_manifest_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -10249,7 +10316,31 @@ final a = 1.2;
     );
   }
 
-  test_manifest_topLevelVariable_initializer_value() async {
+  test_manifest_topLevelVariable_initializer_value_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+const a = 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_initializer_value_final() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 final a = 0;
