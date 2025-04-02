@@ -48,6 +48,10 @@ _VM_PATHS = _CFE_PATHS + [
     "pkg/vm_service/.+",
 ]
 
+_DART2BYTECODE_PATHS = [
+    "pkg/(dart2bytecode|dynamic_modules)/.+",
+]
+
 _WEB_PATHS = _CFE_PATHS + [
     "sdk/lib/_js_interop/.+",
     "sdk/lib/_internal/js.+",
@@ -111,6 +115,7 @@ paths = struct(
     analyzer_nnbd = _ANALYZER_NNBD_PATHS,
     cfe = _CFE_PATHS,
     cfe_only = _CFE_PATHS_ONLY,
+    dart2bytecode = _DART2BYTECODE_PATHS,
     dart2js = _DART2JS_PATHS,
     dart2wasm = _DART2WASM_PATHS,
     ddc = _DDC_PATHS,

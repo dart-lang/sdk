@@ -306,6 +306,7 @@ _nightly_builder(
     "vm-aot-dyn-linux-debug-x64",
     category = "vm|aot|dm",
     channels = ["try"],
+    location_filters = paths.to_location_filters(paths.dart2bytecode),
 )
 
 # vm|misc
