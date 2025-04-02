@@ -3268,7 +3268,7 @@ abstract class ElementImpl2 implements Element2 {
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
   String get identifier {
-    var identifier = name3 ?? (asElement as ElementImpl).codeOffset.toString();
+    var identifier = name3!;
     // TODO(augmentations): Figure out how to get a unique identifier. In the
     //  old model we sometimes used the offset of the name to disambiguate
     //  between elements, but we can't do that anymore because the name can
