@@ -115,9 +115,8 @@ abstract class AstCodeGenerator
 
   w.ValueType translateType(DartType type) => translator.translateType(type);
 
-  w.Local addLocal(w.ValueType type) {
-    return b.addLocal(type);
-  }
+  w.Local addLocal(w.ValueType type, {String? name}) =>
+      b.addLocal(type, name: name);
 
   DartType dartTypeOf(Expression exp) {
     if (exp is ConstantExpression) {
@@ -257,7 +256,12 @@ abstract class AstCodeGenerator
         int index,
         Constant? defaultValue,
         bool isRequired) {
-      w.Local local = paramLocals[implicitParams + index];
+      final localIndex = implicitParams + index;
+      w.Local local = paramLocals[localIndex];
+      final variableName = variable.name;
+      if (variableName != null) {
+        b.localNames[local.index] = variableName;
+      }
       if (defaultValue == ParameterInfo.defaultValueSentinel) {
         // The default value for this parameter differs between implementations
         // within the same selector. This means that callers will pass the
@@ -357,7 +361,8 @@ abstract class AstCodeGenerator
       if (local.type == w.RefType.extern(nullable: true) &&
           !(parameterType is InterfaceType &&
               parameterType.classNode == translator.wasmExternRefClass)) {
-        w.Local newLocal = addLocal(translateType(parameterType));
+        w.Local newLocal =
+            addLocal(translateType(parameterType), name: parameter.name);
         b.local_get(local);
         translator.convertType(b, local.type, newLocal.type);
         b.local_set(newLocal);
@@ -490,9 +495,10 @@ abstract class AstCodeGenerator
         member.isInstanceMember || reference.isConstructorBodyReference;
     if (hasThis) {
       thisLocal = paramLocals[0];
+      b.localNames[thisLocal!.index] = "this";
       final preciseThisType = translator.preciseThisFor(member);
       if (translator.needsConversion(thisLocal!.type, preciseThisType)) {
-        preciseThisLocal = addLocal(preciseThisType);
+        preciseThisLocal = addLocal(preciseThisType, name: "preciseThis");
         b.local_get(thisLocal!);
         translator.convertType(b, thisLocal!.type, preciseThisType);
         b.local_set(preciseThisLocal!);
@@ -537,9 +543,10 @@ abstract class AstCodeGenerator
         }
 
         if (context.containsThis) {
-          thisLocal = addLocal(context
-              .struct.fields[context.thisFieldIndex].type.unpacked
-              .withNullability(false));
+          thisLocal = addLocal(
+              context.struct.fields[context.thisFieldIndex].type.unpacked
+                  .withNullability(false),
+              name: "this");
           preciseThisLocal = thisLocal;
 
           b.struct_get(context.struct, context.thisFieldIndex);
@@ -794,7 +801,7 @@ abstract class AstCodeGenerator
     w.Local? local;
     Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
-      local = addLocal(type);
+      local = addLocal(type, name: node.name);
       locals[node] = local;
     }
 
@@ -836,7 +843,7 @@ abstract class AstCodeGenerator
     w.Local? local;
     final Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
-      local = addLocal(type);
+      local = addLocal(type, name: node.name);
       locals[node] = local;
     }
 
@@ -1352,7 +1359,8 @@ abstract class AstCodeGenerator
         // Since the flow of the return value through the returnValueLocal
         // crosses control-flow constructs, the local needs to always have a
         // defaultable type in order for the Wasm code to validate.
-        returnValueLocal ??= addLocal(returnType.withNullability(true));
+        returnValueLocal ??=
+            addLocal(returnType.withNullability(true), name: "returnValue");
         b.local_set(returnValueLocal!);
       }
       b.br(returnFinalizers.last.label);

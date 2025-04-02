@@ -26,8 +26,9 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
 
     // (1) Create async state.
 
-    final asyncStateLocal =
-        b.addLocal(w.RefType(asyncSuspendStateInfo.struct, nullable: false));
+    final asyncStateLocal = b.addLocal(
+        w.RefType(asyncSuspendStateInfo.struct, nullable: false),
+        name: "asyncState");
 
     // AsyncResumeFun _resume
     translator.globals.readGlobal(b, translator.makeFunctionRef(resumeFun));
@@ -195,13 +196,16 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     Context? localContext = context;
     while (localContext != null) {
       if (!localContext.isEmpty) {
-        localContext.currentLocal =
-            b.addLocal(w.RefType.def(localContext.struct, nullable: true));
+        localContext.currentLocal = b.addLocal(
+            w.RefType.def(localContext.struct, nullable: true),
+            name: "context");
         if (localContext.containsThis) {
           assert(thisLocal == null);
-          thisLocal = b.addLocal(localContext
-              .struct.fields[localContext.thisFieldIndex].type.unpacked
-              .withNullability(false));
+          thisLocal = b.addLocal(
+              localContext
+                  .struct.fields[localContext.thisFieldIndex].type.unpacked
+                  .withNullability(false),
+              name: "this");
           translator
               .getDummyValuesCollectorForModule(b.module)
               .instantiateDummyValue(b, thisLocal!.type);
@@ -214,7 +218,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     }
 
     // Read target index from the suspend state.
-    targetIndexLocal = addLocal(w.NumType.i32);
+    targetIndexLocal = addLocal(w.NumType.i32, name: "targetIndex");
     b.local_get(_suspendStateLocal);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateTargetIndex);

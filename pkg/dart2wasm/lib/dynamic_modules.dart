@@ -572,9 +572,10 @@ class DynamicModuleInfo {
       final mainSelector = translator.dynamicMainModuleDispatchTable!
           .selectorForTarget(reference);
       signature = _getGeneralizedSignature(mainSelector);
-      buildMain = buildSelectorBranch(reference, useUncheckedEntry, signature);
+      buildMain =
+          buildSelectorBranch(reference, useUncheckedEntry, mainSelector);
       buildDynamic =
-          buildSelectorBranch(reference, useUncheckedEntry, signature);
+          buildSelectorBranch(reference, useUncheckedEntry, mainSelector);
 
       _createUpdateableFunction(
           mainSelector.id + BuiltinUpdatableFunctions.values.length,
@@ -690,8 +691,6 @@ class DynamicModuleInfo {
 
     // The shared entry point to this selector has to use 'any' because the
     // selector's signature may change between compilations.
-    // TODO(natebiggs): This doesn't account for overrides with extra
-    // parameters.
     final generalizedSignature = translator.typesBuilder.defineFunction([
       ...signature.inputs.map((e) => const w.RefType.any(nullable: true)),
       w.NumType.i32
@@ -701,14 +700,14 @@ class DynamicModuleInfo {
     return generalizedSignature;
   }
 
-  void Function(w.FunctionBuilder) buildSelectorBranch(Reference target,
-      bool useUncheckedEntry, w.FunctionType generalizedSignature) {
+  void Function(w.FunctionBuilder) buildSelectorBranch(
+      Reference target, bool useUncheckedEntry, SelectorInfo mainSelector) {
     return (w.FunctionBuilder function) {
-      final selector = translator.dispatchTable.selectorForTarget(target);
-      final localSignature = selector.signature;
+      final localSelector = translator.dispatchTable.selectorForTarget(target);
+      final localSignature = localSelector.signature;
       final ib = function.body;
 
-      final offset = selector.targets(unchecked: useUncheckedEntry).offset;
+      final offset = localSelector.targets(unchecked: useUncheckedEntry).offset;
 
       if (offset == null) {
         ib.unreachable();
@@ -716,11 +715,71 @@ class DynamicModuleInfo {
         return;
       }
 
-      for (int i = 0; i < ib.locals.length - 1; i++) {
-        ib.local_get(ib.locals[i]);
-        translator.convertType(
-            ib, generalizedSignature.inputs[i], localSignature.inputs[i]);
+      final generalizedMainSignature = _getGeneralizedSignature(mainSelector);
+
+      final mainParamInfo = mainSelector.paramInfo;
+      final localParamInfo = localSelector.paramInfo;
+
+      assert(mainParamInfo.takesContextOrReceiver ==
+          localParamInfo.takesContextOrReceiver);
+
+      int localsIndex = 0;
+      final takesContextOrReceiver = localParamInfo.takesContextOrReceiver;
+      if (takesContextOrReceiver) {
+        ib.local_get(ib.locals[localsIndex]);
+        translator.convertType(ib, generalizedMainSignature.inputs[localsIndex],
+            localSignature.inputs[localsIndex]);
+        localsIndex++;
       }
+
+      final mainTypeParamCount = mainParamInfo.typeParamCount;
+      assert(mainTypeParamCount == localParamInfo.typeParamCount);
+      for (int i = 0; i < mainTypeParamCount; i++, localsIndex++) {
+        ib.local_get(ib.locals[localsIndex]);
+        translator.convertType(ib, generalizedMainSignature.inputs[localsIndex],
+            localSignature.inputs[localsIndex]);
+      }
+
+      final localPositionalCount = localParamInfo.positional.length;
+      final mainPositionalCount = mainParamInfo.positional.length;
+      assert(localPositionalCount >= mainPositionalCount);
+
+      for (int i = 0; i < localPositionalCount; i++, localsIndex++) {
+        if (i < mainPositionalCount) {
+          ib.local_get(ib.locals[localsIndex]);
+          translator.convertType(
+              ib,
+              generalizedMainSignature.inputs[localsIndex],
+              localSignature.inputs[localsIndex]);
+          continue;
+        }
+        final constant = localParamInfo.positional[i]!;
+        translator.constants.instantiateConstant(
+            ib, constant, localSignature.inputs[localsIndex]);
+      }
+
+      final localNamedCount = localParamInfo.named.length;
+      final mainNamedCount = mainParamInfo.named.length;
+      assert(localNamedCount >= mainNamedCount);
+
+      for (int i = 0; i < localNamedCount; i++, localsIndex++) {
+        final name = localParamInfo.names[i];
+        final mainIndex = mainParamInfo.nameIndex[name];
+        if (mainIndex != null) {
+          final mainLocalIndex =
+              (takesContextOrReceiver ? 1 : 0) + mainTypeParamCount + mainIndex;
+          ib.local_get(ib.locals[mainLocalIndex]);
+          translator.convertType(
+              ib,
+              generalizedMainSignature.inputs[mainLocalIndex],
+              localSignature.inputs[localsIndex]);
+          continue;
+        }
+        final constant = localParamInfo.named[name]!;
+        translator.constants.instantiateConstant(
+            ib, constant, localSignature.inputs[localsIndex]);
+      }
+
       ib.local_get(ib.locals.last);
       if (isDynamicModule) {
         translator.callReference(translator.scopeClassId.reference, ib);
@@ -732,7 +791,7 @@ class DynamicModuleInfo {
       final table = translator.dispatchTable.getWasmTable(ib.module);
       ib.call_indirect(localSignature, table);
       translator.convertType(ib, localSignature.outputs.single,
-          generalizedSignature.outputs.single);
+          generalizedMainSignature.outputs.single);
       ib.end();
     };
   }
@@ -778,9 +837,9 @@ class DynamicModuleInfo {
     _callClassIdBranch(key, useUncheckedEntry, b, generalizedSignature,
         name: '#s${mainModuleSelector.id}_${mainModuleSelector.name}',
         buildMainMatch: buildSelectorBranch(
-            interfaceTarget, useUncheckedEntry, generalizedSignature),
+            interfaceTarget, useUncheckedEntry, mainModuleSelector),
         buildDynamicMatch: buildSelectorBranch(
-            interfaceTarget, useUncheckedEntry, generalizedSignature),
+            interfaceTarget, useUncheckedEntry, mainModuleSelector),
         skipDynamic: translator.isDynamicModule &&
             selector
                 .targets(unchecked: useUncheckedEntry)

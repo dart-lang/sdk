@@ -471,6 +471,28 @@ class NameSection extends CustomSection {
       }
     }
 
+    final localNameSubsection = Serializer();
+    List<ir.DefinedFunction> functionsWithLocalNames = [];
+    for (final function in functions) {
+      if (function is ir.DefinedFunction) {
+        if (function.localNames.isNotEmpty) {
+          functionsWithLocalNames.add(function);
+        }
+      }
+    }
+    localNameSubsection.writeUnsigned(functionsWithLocalNames.length);
+
+    if (functionsWithLocalNames.isNotEmpty) {
+      for (final function in functionsWithLocalNames) {
+        localNameSubsection.writeUnsigned(function.finalizableIndex.value);
+        localNameSubsection.writeUnsigned(function.localNames.length);
+        for (final entry in function.localNames.entries) {
+          localNameSubsection.writeUnsigned(entry.key);
+          localNameSubsection.writeName(entry.value);
+        }
+      }
+    }
+
     s.writeByte(0); // Module name subsection
     s.writeUnsigned(moduleNameSubsection.data.length);
     s.writeData(moduleNameSubsection);
@@ -478,6 +500,10 @@ class NameSection extends CustomSection {
     s.writeByte(1); // Function names subsection
     s.writeUnsigned(functionNameSubsection.data.length);
     s.writeData(functionNameSubsection);
+
+    s.writeByte(2); // Local names substion
+    s.writeUnsigned(localNameSubsection.data.length);
+    s.writeData(localNameSubsection);
 
     s.writeByte(4); // Type names subsection
     s.writeUnsigned(typeNameSubsection.data.length);

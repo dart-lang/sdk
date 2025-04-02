@@ -9,6 +9,12 @@ can-be-overridden:
   - library: 'shared/shared.dart'
     class: 'Base'
     member: 'method1'
+  - library: 'shared/shared.dart'
+    class: 'Base'
+    member: 'method2'
+  - library: 'shared/shared.dart'
+    class: 'Base'
+    member: 'method3'
 
 # TODO(sigmund): consider implying this for all extendable types.
 callable:
@@ -27,3 +33,6 @@ callable:
     member: 'override'
   - library: 'dart:core'
     class: 'num'
+  - library: 'dart:core'
+    class: 'String'
+    member: 'get:length'
