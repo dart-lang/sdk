@@ -44,6 +44,12 @@ abstract class TypeBuilder {
     return mask;
   }
 
+  /// If needed, create a HTypeKnown to 'trust' the type of [original] when the
+  /// language type promotion has refined the type to [type].
+  HInstruction trustPromotedType(HInstruction original, DartType type) {
+    return _trustType(original, type);
+  }
+
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
     bool hasLateSentinel =

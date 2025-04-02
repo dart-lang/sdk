@@ -4720,13 +4720,38 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       return;
     }
 
-    Local local = _localsMap.getLocalVariable(node.variable);
-    stack.add(
-      localsHandler.readLocal(
-        local,
-        sourceInformation: _sourceInformationBuilder.buildGet(node),
-      ),
+    final local = _localsMap.getLocalVariable(node.variable);
+    final readLocal = localsHandler.readLocal(
+      local,
+      sourceInformation: _sourceInformationBuilder.buildGet(node),
     );
+
+    if (node.promotedType != null) {
+      // Use the prompted type by inserting a HTypeKnown refinement node.
+      //
+      // The front end does not tell us _why_ the type was promoted, so the
+      // HTypeKnown is pinned at the variable reference rather than at the
+      // control flow reponsible for the promotion. Pinning at the variable
+      // reference impairs code motion.
+      //
+      // Many of the promoted types are also refined by the optimizer (in
+      // SsaTypeConversionInserter, where controlling phis are handled). This
+      // causes a similar HTypeKnown to be inserted, but pinned at a location
+      // responsible the promotion. The optimizer-inserted HTypeKnown nodes
+      // dominate the nodes inserted here, allowing the nodes inserted here to
+      // be removed as redundant, sometimes lifting the code motion
+      // restriction. There is not an exact match between the front-end
+      // inference, so some of the promotions remain.
+      final trusted = _typeBuilder.trustPromotedType(
+        readLocal,
+        _getDartTypeIfValid(node.promotedType!),
+      );
+      if (trusted != readLocal) {
+        push(trusted);
+        return;
+      }
+    }
+    stack.add(readLocal);
   }
 
   void _handlePropertySet(
