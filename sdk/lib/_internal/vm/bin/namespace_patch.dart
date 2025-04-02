@@ -20,14 +20,14 @@ base class _NamespaceImpl extends NativeFieldWrapperClass1
   // embedder with the platform-specific namespace information.
   static _NamespaceImpl? _cachedNamespace = null;
   static void _setupNamespace(var namespace) {
-    _cachedNamespace = _create(new _NamespaceImpl._(), namespace);
+    _cachedNamespace = _create(_NamespaceImpl._(), namespace);
   }
 
   static _NamespaceImpl get _namespace {
     if (_cachedNamespace == null) {
       // The embedder has not supplied a namespace before one is needed, so
       // instead use a safe-ish default value.
-      _cachedNamespace = _create(new _NamespaceImpl._(), _getDefault());
+      _cachedNamespace = _create(_NamespaceImpl._(), _getDefault());
     }
     return _cachedNamespace!;
   }

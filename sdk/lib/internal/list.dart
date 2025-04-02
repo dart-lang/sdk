@@ -12,69 +12,67 @@ part of dart._internal;
 mixin FixedLengthListMixin<E> {
   /** This operation is not supported by a fixed length list. */
   set length(int newLength) {
-    throw new UnsupportedError(
-      "Cannot change the length of a fixed-length list",
-    );
+    throw UnsupportedError("Cannot change the length of a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void add(E value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void insert(int index, E value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void insertAll(int at, Iterable<E> iterable) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void addAll(Iterable<E> iterable) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   bool remove(Object? element) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void removeWhere(bool test(E element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void retainWhere(bool test(E element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void clear() {
-    throw new UnsupportedError("Cannot clear a fixed-length list");
+    throw UnsupportedError("Cannot clear a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   E removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   E removeLast() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
   void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 }
 
@@ -88,107 +86,105 @@ mixin FixedLengthListMixin<E> {
 mixin UnmodifiableListMixin<E> implements List<E> {
   /** This operation is not supported by an unmodifiable list. */
   void operator []=(int index, E value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   set length(int newLength) {
-    throw new UnsupportedError(
-      "Cannot change the length of an unmodifiable list",
-    );
+    throw UnsupportedError("Cannot change the length of an unmodifiable list");
   }
 
   set first(E element) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   set last(E element) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void setAll(int at, Iterable<E> iterable) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void add(E value) {
-    throw new UnsupportedError("Cannot add to an unmodifiable list");
+    throw UnsupportedError("Cannot add to an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void insert(int index, E element) {
-    throw new UnsupportedError("Cannot add to an unmodifiable list");
+    throw UnsupportedError("Cannot add to an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void insertAll(int at, Iterable<E> iterable) {
-    throw new UnsupportedError("Cannot add to an unmodifiable list");
+    throw UnsupportedError("Cannot add to an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void addAll(Iterable<E> iterable) {
-    throw new UnsupportedError("Cannot add to an unmodifiable list");
+    throw UnsupportedError("Cannot add to an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   bool remove(Object? element) {
-    throw new UnsupportedError("Cannot remove from an unmodifiable list");
+    throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void removeWhere(bool test(E element)) {
-    throw new UnsupportedError("Cannot remove from an unmodifiable list");
+    throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void retainWhere(bool test(E element)) {
-    throw new UnsupportedError("Cannot remove from an unmodifiable list");
+    throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void sort([Comparator<E>? compare]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void shuffle([Random? random]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void clear() {
-    throw new UnsupportedError("Cannot clear an unmodifiable list");
+    throw UnsupportedError("Cannot clear an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   E removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from an unmodifiable list");
+    throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   E removeLast() {
-    throw new UnsupportedError("Cannot remove from an unmodifiable list");
+    throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot remove from an unmodifiable list");
+    throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw new UnsupportedError("Cannot remove from an unmodifiable list");
+    throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
   void fillRange(int start, int end, [E? fillValue]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 }
 
@@ -230,8 +226,8 @@ class ListMapView<E> extends UnmodifiableMapBase<int, E> {
   E? operator [](Object? key) => containsKey(key) ? _values[key as int] : null;
   int get length => _values.length;
 
-  Iterable<E> get values => new SubListIterable<E>(_values, 0, null);
-  Iterable<int> get keys => new _ListIndicesIterable(_values);
+  Iterable<E> get values => SubListIterable<E>(_values, 0, null);
+  Iterable<int> get keys => _ListIndicesIterable(_values);
 
   bool get isEmpty => _values.isEmpty;
   bool get isNotEmpty => _values.isNotEmpty;
@@ -243,7 +239,7 @@ class ListMapView<E> extends UnmodifiableMapBase<int, E> {
     for (int i = 0; i < length; i++) {
       f(i, _values[i]);
       if (length != _values.length) {
-        throw new ConcurrentModificationError(_values);
+        throw ConcurrentModificationError(_values);
       }
     }
   }
@@ -266,19 +262,19 @@ final class ReversedListIterable<E> extends ListIterable<E> {
 abstract class UnmodifiableListError {
   /** Error thrown when trying to add elements to an unmodifiable list. */
   static UnsupportedError add() =>
-      new UnsupportedError("Cannot add to unmodifiable List");
+      UnsupportedError("Cannot add to unmodifiable List");
 
   /** Error thrown when trying to add elements to an unmodifiable list. */
   static UnsupportedError change() =>
-      new UnsupportedError("Cannot change the content of an unmodifiable List");
+      UnsupportedError("Cannot change the content of an unmodifiable List");
 
   /** Error thrown when trying to change the length of an unmodifiable list. */
   static UnsupportedError length() =>
-      new UnsupportedError("Cannot change length of unmodifiable List");
+      UnsupportedError("Cannot change length of unmodifiable List");
 
   /** Error thrown when trying to remove elements from an unmodifiable list. */
   static UnsupportedError remove() =>
-      new UnsupportedError("Cannot remove from unmodifiable List");
+      UnsupportedError("Cannot remove from unmodifiable List");
 }
 
 /**
@@ -289,15 +285,15 @@ abstract class UnmodifiableListError {
 abstract class NonGrowableListError {
   /** Error thrown when trying to add elements to an non-growable list. */
   static UnsupportedError add() =>
-      new UnsupportedError("Cannot add to non-growable List");
+      UnsupportedError("Cannot add to non-growable List");
 
   /** Error thrown when trying to change the length of an non-growable list. */
   static UnsupportedError length() =>
-      new UnsupportedError("Cannot change length of non-growable List");
+      UnsupportedError("Cannot change length of non-growable List");
 
   /** Error thrown when trying to remove elements from an non-growable list. */
   static UnsupportedError remove() =>
-      new UnsupportedError("Cannot remove from non-growable List");
+      UnsupportedError("Cannot remove from non-growable List");
 }
 
 /**

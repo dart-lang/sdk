@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
+import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -29,10 +30,12 @@ String usingTargetOSMessageForPlatform(String targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
 final String usingTargetOSMessage =
     usingTargetOSMessageForPlatform(Platform.operatingSystem);
-String crossOSNotAllowedError(String command) =>
-    "'dart compile $command' does not support cross-OS compilation.";
-final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
-String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
+const crossOSExperimentalError =
+    'Native cross-compilation support is experimental';
+
+final Target host = Target.current;
+Target targetForOS(OS targetOS) =>
+    Target.fromArchitectureAndOS(host.architecture, targetOS);
 
 void defineCompileTests() {
   final isRunningOnIA32 = Platform.version.contains('ia32');
@@ -417,7 +420,7 @@ void defineCompileTests() {
         mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
-    final targetOS = Platform.isLinux ? 'macos' : 'linux';
+    final targetOS = Platform.isLinux ? OS.macOS : OS.linux;
 
     final result = await p.run(
       [
@@ -425,7 +428,7 @@ void defineCompileTests() {
         'exe',
         '-v',
         '--target-os',
-        targetOS,
+        targetOS.name,
         '-o',
         outFile,
         inFile,
@@ -433,9 +436,9 @@ void defineCompileTests() {
     );
 
     expect(result.stdout, isNot(contains(usingTargetOSMessage)));
-    expect(result.stderr, contains(crossOSNotAllowedError('exe')));
-    expect(result.stderr, contains(hostOSMessage));
-    expect(result.stderr, contains(targetOSMessage(targetOS)));
+    expect(result.stderr, contains(crossOSExperimentalError));
+    expect(result.stderr, contains(host.toString()));
+    expect(result.stderr, contains(targetForOS(targetOS).toString()));
     expect(result.exitCode, 128);
   }, skip: isRunningOnIA32);
 
@@ -455,8 +458,8 @@ void defineCompileTests() {
       ],
     );
 
-    // AOT snapshots should not be OS-specific by default.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    // AOT snapshots should be OS-specific by default.
+    expect(result.stdout, contains(usingTargetOSMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -509,11 +512,10 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile aot snapshot can compile cross platform', () async {
+  test('Compile aot snapshot cannot compile cross platform', () async {
     final targetOS = Platform.isLinux ? 'windows' : 'linux';
     final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
 
     var result = await p.run(
       [
@@ -528,21 +530,11 @@ void defineCompileTests() {
       ],
     );
 
-    expect(result.stdout, contains(usingTargetOSMessageForPlatform(targetOS)));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
+    expect(result.stdout,
+        isNot(contains(usingTargetOSMessageForPlatform(targetOS))));
+    expect(result.stderr, contains(crossOSExperimentalError));
 
-    final Directory binDir = File(Platform.resolvedExecutable).parent;
-    result = Process.runSync(
-      path.join(binDir.path, 'dartaotruntime'),
-      [outFile],
-    );
-
-    expect(result.stdout, contains('I love $targetOS'));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+    expect(result.exitCode, isNot(0));
   }, skip: isRunningOnIA32);
 
   test('Compile and run kernel snapshot', () async {

@@ -110,7 +110,7 @@ final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List {
 
   @override
   void operator []=(int index, Int32x4 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   @override
@@ -216,7 +216,7 @@ final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List {
 
   @override
   void operator []=(int index, Float32x4 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   @override
@@ -316,7 +316,7 @@ final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List {
 
   @override
   void operator []=(int index, Float64x2 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   @override

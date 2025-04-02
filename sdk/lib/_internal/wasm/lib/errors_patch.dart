@@ -274,7 +274,7 @@ class _DuplicatedFieldInitializerError extends Error {
 @patch
 class StateError {
   static _throwNew(String msg) {
-    throw new StateError(msg);
+    throw StateError(msg);
   }
 }
 

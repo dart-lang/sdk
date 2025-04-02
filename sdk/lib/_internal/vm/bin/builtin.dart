@@ -189,7 +189,7 @@ void _requestPackagesMap(Uri? packageConfig) {
     assert(msg.length >= 2);
     assert(msg[1] == null);
     _packageConfig = Uri.parse(msg[0]);
-    final pmap = new Map<String, Uri>();
+    final pmap = Map<String, Uri>();
     _packageMap = pmap;
     for (var i = 2; i < msg.length; i += 2) {
       // TODO(iposva): Complain about duplicate entries.
@@ -335,7 +335,7 @@ _findPackagesConfiguration(bool traceLoading, Uri base) {
     // of
     //   - .packages (preferred)
     //   - .dart_tool/package_config.json
-    var currentDir = new File.fromUri(base).parent;
+    var currentDir = File.fromUri(base).parent;
     while (true) {
       final dirUri = currentDir.uri;
 
@@ -497,7 +497,7 @@ void _Init(
   _setupHooks();
 
   // _workingDirectory must be set first.
-  _workingDirectory = new Uri.directory(workingDirectory);
+  _workingDirectory = Uri.directory(workingDirectory);
 
   // setup _rootScript.
   if (rootScript != null) {
@@ -521,7 +521,7 @@ void _setWorkingDirectory(String cwd) {
   if (_traceLoading) {
     _log('Setting working directory: $cwd');
   }
-  _workingDirectory = new Uri.directory(cwd);
+  _workingDirectory = Uri.directory(cwd);
   if (_traceLoading) {
     _log('Working directory URI: $_workingDirectory');
   }

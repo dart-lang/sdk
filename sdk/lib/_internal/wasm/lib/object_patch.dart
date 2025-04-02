@@ -11,7 +11,7 @@ class Object {
   external bool operator ==(Object other);
 
   // Random number generator used to generate identity hash codes.
-  static final _hashCodeRnd = new Random();
+  static final _hashCodeRnd = Random();
 
   static int _objectHashCode(Object obj) {
     var result = getIdentityHashField(obj);
@@ -55,7 +55,7 @@ class Object {
   @patch
   @pragma("wasm:entry-point")
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError.withInvocation(this, invocation);
+    throw NoSuchMethodError.withInvocation(this, invocation);
   }
 
   // Used for `null.toString` tear-offs.
@@ -65,6 +65,6 @@ class Object {
   // Used for `null.noSuchMethod` tear-offs.
   @pragma("wasm:entry-point")
   static dynamic _nullNoSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError.withInvocation(null, invocation);
+    throw NoSuchMethodError.withInvocation(null, invocation);
   }
 }

@@ -7,25 +7,25 @@ part of dart.io;
 /// The modes in which a [File] can be opened.
 class FileMode {
   /// The mode for opening a file only for reading.
-  static const read = const FileMode._internal(0);
+  static const read = FileMode._internal(0);
 
   /// Mode for opening a file for reading and writing. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
-  static const write = const FileMode._internal(1);
+  static const write = FileMode._internal(1);
 
   /// Mode for opening a file for reading and writing to the
   /// end of it. The file is created if it does not already exist.
-  static const append = const FileMode._internal(2);
+  static const append = FileMode._internal(2);
 
   /// Mode for opening a file for writing *only*. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
-  static const writeOnly = const FileMode._internal(3);
+  static const writeOnly = FileMode._internal(3);
 
   /// Mode for opening a file for writing *only* to the
   /// end of it. The file is created if it does not already exist.
-  static const writeOnlyAppend = const FileMode._internal(4);
+  static const writeOnlyAppend = FileMode._internal(4);
 
   final int _mode;
 
@@ -35,16 +35,16 @@ class FileMode {
 /// Type of lock when requesting a lock on a file.
 class FileLock {
   /// Shared file lock.
-  static const shared = const FileLock._internal(1);
+  static const shared = FileLock._internal(1);
 
   /// Exclusive file lock.
-  static const exclusive = const FileLock._internal(2);
+  static const exclusive = FileLock._internal(2);
 
   /// Blocking shared file lock.
-  static const blockingShared = const FileLock._internal(3);
+  static const blockingShared = FileLock._internal(3);
 
   /// Blocking exclusive file lock.
-  static const blockingExclusive = const FileLock._internal(4);
+  static const blockingExclusive = FileLock._internal(4);
 
   final int _type;
 
@@ -201,7 +201,7 @@ abstract interface class File implements FileSystemEntity {
   factory File(String path) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      return new _File(path);
+      return _File(path);
     }
     return overrides.createFile(path);
   }
@@ -209,7 +209,7 @@ abstract interface class File implements FileSystemEntity {
   /// Create a [File] object from a URI.
   ///
   /// If [uri] cannot reference a file this throws [UnsupportedError].
-  factory File.fromUri(Uri uri) => new File(uri.toFilePath());
+  factory File.fromUri(Uri uri) => File(uri.toFilePath());
 
   /// Creates a [File] object from a raw path.
   ///
@@ -217,7 +217,7 @@ abstract interface class File implements FileSystemEntity {
   @pragma("vm:entry-point")
   factory File.fromRawPath(Uint8List rawPath) {
     // TODO(bkonyi): Handle overrides.
-    return new _File.fromRawPath(rawPath);
+    return _File.fromRawPath(rawPath);
   }
 
   /// Creates the file.
@@ -1120,7 +1120,7 @@ class FileSystemException implements IOException {
   }
 
   String _toStringHelper(String className) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write(className);
     if (message.isNotEmpty) {
       sb.write(": $message");

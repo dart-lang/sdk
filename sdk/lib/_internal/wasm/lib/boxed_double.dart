@@ -294,7 +294,7 @@ final class BoxedDouble implements double {
 
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw ArgumentError(lowerLimit);
     }
     if (lowerLimit.isNaN) return lowerLimit;
     if (this.compareTo(lowerLimit) < 0) return lowerLimit;

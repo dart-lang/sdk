@@ -17,14 +17,14 @@ class CastStream<S, T> extends Stream<T> {
     void Function()? onDone,
     bool? cancelOnError,
   }) {
-    return new CastStreamSubscription<S, T>(
+    return CastStreamSubscription<S, T>(
         _source.listen(null, onDone: onDone, cancelOnError: cancelOnError),
       )
       ..onData(onData)
       ..onError(onError);
   }
 
-  Stream<R> cast<R>() => new CastStream<S, R>(_source);
+  Stream<R> cast<R>() => CastStream<S, R>(_source);
 }
 
 class CastStreamSubscription<S, T> implements StreamSubscription<T> {
@@ -115,7 +115,7 @@ class CastStreamTransformer<SS, ST, TS, TT>
   CastStreamTransformer(this._source);
 
   StreamTransformer<RS, RT> cast<RS, RT>() =>
-      new CastStreamTransformer<SS, ST, RS, RT>(_source);
+      CastStreamTransformer<SS, ST, RS, RT>(_source);
   Stream<TT> bind(Stream<TS> stream) =>
       _source.bind(stream.cast<SS>()).cast<TT>();
 }
@@ -131,6 +131,5 @@ class CastConverter<SS, ST, TS, TT> extends Converter<TS, TT> {
   Stream<TT> bind(Stream<TS> stream) =>
       _source.bind(stream.cast<SS>()).cast<TT>();
 
-  Converter<RS, RT> cast<RS, RT>() =>
-      new CastConverter<SS, ST, RS, RT>(_source);
+  Converter<RS, RT> cast<RS, RT>() => CastConverter<SS, ST, RS, RT>(_source);
 }

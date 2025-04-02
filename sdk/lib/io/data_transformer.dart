@@ -56,7 +56,7 @@ abstract final class ZLibOption {
 }
 
 /// An instance of the default implementation of the [ZLibCodec].
-const ZLibCodec zlib = const ZLibCodec._default();
+const ZLibCodec zlib = ZLibCodec._default();
 
 /// The [ZLibCodec] encodes raw bytes to ZLib compressed bytes and decodes ZLib
 /// compressed bytes to raw bytes.
@@ -131,7 +131,7 @@ final class ZLibCodec extends Codec<List<int>, List<int>> {
       dictionary = null;
 
   /// Get a [ZLibEncoder] for encoding to `ZLib` compressed data.
-  ZLibEncoder get encoder => new ZLibEncoder(
+  ZLibEncoder get encoder => ZLibEncoder(
     gzip: false,
     level: level,
     windowBits: windowBits,
@@ -143,11 +143,11 @@ final class ZLibCodec extends Codec<List<int>, List<int>> {
 
   /// Get a [ZLibDecoder] for decoding `ZLib` compressed data.
   ZLibDecoder get decoder =>
-      new ZLibDecoder(windowBits: windowBits, dictionary: dictionary, raw: raw);
+      ZLibDecoder(windowBits: windowBits, dictionary: dictionary, raw: raw);
 }
 
 /// An instance of the default implementation of the [GZipCodec].
-const GZipCodec gzip = const GZipCodec._default();
+const GZipCodec gzip = GZipCodec._default();
 
 /// The [GZipCodec] encodes raw bytes to GZip compressed bytes and decodes GZip
 /// compressed bytes to raw bytes.
@@ -224,7 +224,7 @@ final class GZipCodec extends Codec<List<int>, List<int>> {
       dictionary = null;
 
   /// Get a [ZLibEncoder] for encoding to `GZip` compressed data.
-  ZLibEncoder get encoder => new ZLibEncoder(
+  ZLibEncoder get encoder => ZLibEncoder(
     gzip: true,
     level: level,
     windowBits: windowBits,
@@ -235,7 +235,7 @@ final class GZipCodec extends Codec<List<int>, List<int>> {
   );
 
   /// Get a [ZLibDecoder] for decoding `GZip` compressed data.
-  ZLibDecoder get decoder => new ZLibDecoder(
+  ZLibDecoder get decoder => ZLibDecoder(
     gzip: true,
     windowBits: windowBits,
     dictionary: dictionary,
@@ -311,7 +311,7 @@ final class ZLibEncoder extends Converter<List<int>, List<int>> {
   /// Convert a list of bytes using the options given to the ZLibEncoder
   /// constructor.
   List<int> convert(List<int> bytes) {
-    _BufferSink sink = new _BufferSink();
+    _BufferSink sink = _BufferSink();
     startChunkedConversion(sink)
       ..add(bytes)
       ..close();
@@ -326,9 +326,9 @@ final class ZLibEncoder extends Converter<List<int>, List<int>> {
   /// using it.
   ByteConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
-      sink = new ByteConversionSink.from(sink);
+      sink = ByteConversionSink.from(sink);
     }
-    return new _ZLibEncoderSink._(
+    return _ZLibEncoderSink._(
       sink,
       gzip,
       level,
@@ -378,7 +378,7 @@ final class ZLibDecoder extends Converter<List<int>, List<int>> {
   /// Convert a list of bytes using the options given to the [ZLibDecoder]
   /// constructor.
   List<int> convert(List<int> bytes) {
-    _BufferSink sink = new _BufferSink();
+    _BufferSink sink = _BufferSink();
     startChunkedConversion(sink)
       ..add(bytes)
       ..close();
@@ -392,9 +392,9 @@ final class ZLibDecoder extends Converter<List<int>, List<int>> {
   /// using it.
   ByteConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
-      sink = new ByteConversionSink.from(sink);
+      sink = ByteConversionSink.from(sink);
     }
-    return new _ZLibDecoderSink._(sink, gzip, windowBits, dictionary, raw);
+    return _ZLibDecoderSink._(sink, gzip, windowBits, dictionary, raw);
   }
 }
 
@@ -468,7 +468,7 @@ abstract interface class RawZLibFilter {
 }
 
 class _BufferSink extends ByteConversionSink {
-  final BytesBuilder builder = new BytesBuilder(copy: false);
+  final BytesBuilder builder = BytesBuilder(copy: false);
 
   void add(List<int> chunk) {
     builder.add(chunk);
@@ -478,11 +478,7 @@ class _BufferSink extends ByteConversionSink {
     if (chunk is Uint8List) {
       Uint8List list = chunk;
       builder.add(
-        new Uint8List.view(
-          list.buffer,
-          list.offsetInBytes + start,
-          end - start,
-        ),
+        Uint8List.view(list.buffer, list.offsetInBytes + start, end - start),
       );
     } else {
       builder.add(chunk.sublist(start, end));
@@ -594,7 +590,7 @@ class _FilterSink extends ByteConversionSink {
 void _validateZLibWindowBits(int windowBits) {
   if (ZLibOption.minWindowBits > windowBits ||
       ZLibOption.maxWindowBits < windowBits) {
-    throw new RangeError.range(
+    throw RangeError.range(
       windowBits,
       ZLibOption.minWindowBits,
       ZLibOption.maxWindowBits,
@@ -604,13 +600,13 @@ void _validateZLibWindowBits(int windowBits) {
 
 void _validateZLibeLevel(int level) {
   if (ZLibOption.minLevel > level || ZLibOption.maxLevel < level) {
-    throw new RangeError.range(level, ZLibOption.minLevel, ZLibOption.maxLevel);
+    throw RangeError.range(level, ZLibOption.minLevel, ZLibOption.maxLevel);
   }
 }
 
 void _validateZLibMemLevel(int memLevel) {
   if (ZLibOption.minMemLevel > memLevel || ZLibOption.maxMemLevel < memLevel) {
-    throw new RangeError.range(
+    throw RangeError.range(
       memLevel,
       ZLibOption.minMemLevel,
       ZLibOption.maxMemLevel,
@@ -619,7 +615,7 @@ void _validateZLibMemLevel(int memLevel) {
 }
 
 void _validateZLibStrategy(int strategy) {
-  const strategies = const <int>[
+  const strategies = <int>[
     ZLibOption.strategyFiltered,
     ZLibOption.strategyHuffmanOnly,
     ZLibOption.strategyRle,
@@ -627,6 +623,6 @@ void _validateZLibStrategy(int strategy) {
     ZLibOption.strategyDefault,
   ];
   if (strategies.indexOf(strategy) == -1) {
-    throw new ArgumentError("Unsupported 'strategy'");
+    throw ArgumentError("Unsupported 'strategy'");
   }
 }

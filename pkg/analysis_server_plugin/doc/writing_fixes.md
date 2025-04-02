@@ -8,9 +8,9 @@ register it in an analyzer plugin.
 ## The analysis rule
 
 A quick fix must be associated with a diagnostic in order to be presented to a
-devloper in their IDE. (There is a separate feature calls "assists" which do
-not need to be associated with diagnostics; analyzer plugins can't currently
-offer assists.)
+developer in their IDE. (There is a separate feature calls "assists" which do
+not need to be associated with diagnostics; see the
+[writing assists][] doc.)
 
 For this guide, we will be using the "MyRule" rule from the [writing rules][]
 guide.
@@ -31,9 +31,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveAwait extends ResolvedCorrectionProducer {
   static const _removeAwaitKind = FixKind(
-      'dart.fix.moveBelowEnclosingTestCall',
+      'dart.fix.removeAwait',
       DartFixKindPriority.standard,
-      "Move below the enclosing 'test' call");
+      "Remove the 'await' keyword");
 
   RemoveAwait({required super.context});
 
@@ -65,12 +65,11 @@ Let's look at each declaration individually:
   resolved library.
 * `static const _removeAwaitKind = FixKind(...)` - Each quick fix must have an
   associated `FixKind` which has a unique `id`
-  (`'dart.fix.moveBelowEnclosingTestCall'`), a priority
-  (`DartFixKindPriority.standard` is a fine default), and a message which is
-  displayed in the IDE (`"Move below the enclosing 'test' call"`).
-* `RemoveAwait({required super.context});` - A standard constructor that
-  accepts a `CorrectionProducerContext` and passes it up to the
-  super-constructor.
+  (`'dart.fix.removeAwait'`), a priority (`DartFixKindPriority.standard` is a
+  fine default), and a message which is displayed in the IDE
+  (`"Remove the 'await' keyword"`).
+* `RemoveAwait({required super.context});` - A standard constructor that accepts
+  a `CorrectionProducerContext` and passes it up to the super-constructor.
 * `CorrectionApplicability get applicability =>` - the applicability field
   describes how widely a fix can be applied safely and sensibly. Currently,
   fixes registered in plugins cannot be applied in bulk, so only
@@ -99,11 +98,11 @@ Let's look at each declaration individually:
   desired fix. See the [fixes that are offered by Dart Analysis
   Server][existing-fixes] for hundreds of examples.
 
-Instances of the correction producer class are short-lived, and they can
-contain state related to the specific reported diagnostic and
-code-under-analysis. Indeed, the `CorrectionProducerContext`, which is passed
-into the constructor, and available as a field in the super-class, contains
-information specific to the code-under-analysis and the diagnostic.
+Instances of the correction producer class are short-lived, and they can contain
+state related to the specific reported diagnostic and code-under-analysis.
+Indeed, the `CorrectionProducerContext`, which is passed into the constructor,
+and available as a field in the super-class, contains information specific to
+the code-under-analysis and the diagnostic.
 
 ## Registering a quick fix
 
@@ -135,5 +134,6 @@ instead of a long-lived instance.
 See [writing a plugin][] for information about the `Plugin` class.
 
 [writing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md
+[writing assists]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_assists.md
 [existing-fixes]: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server/lib/src/services/correction/dart
 [writing a plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md

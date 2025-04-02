@@ -17,7 +17,7 @@ class _IOService {
     assert(data.length == 2);
     _forwardResponse(data[0] as int, data[1]);
   }, 'IO Service');
-  static HashMap<int, Completer> _messageMap = new HashMap<int, Completer>();
+  static HashMap<int, Completer> _messageMap = HashMap<int, Completer>();
   static int _id = 0;
 
   @patch
@@ -26,7 +26,7 @@ class _IOService {
     do {
       id = _getNextId();
     } while (_messageMap.containsKey(id));
-    final Completer completer = new Completer();
+    final Completer completer = Completer();
     try {
       if (_messageMap.isEmpty) {
         // This is the first outgoing request after being in an idle state,

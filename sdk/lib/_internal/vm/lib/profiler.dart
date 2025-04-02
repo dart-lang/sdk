@@ -8,7 +8,7 @@ part of "developer.dart";
 class UserTag {
   @patch
   factory UserTag(String label) {
-    return new _UserTag(label);
+    return _UserTag(label);
   }
   @patch
   static UserTag get defaultTag => _getDefaultTag();

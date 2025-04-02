@@ -35,4 +35,3 @@ callable:
     class: 'num'
   - library: 'dart:core'
     class: 'String'
-    member: 'get:length'

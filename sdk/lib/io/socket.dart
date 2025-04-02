@@ -10,10 +10,10 @@ part of dart.io;
 /// and Unix domain address are supported.
 /// Unix domain sockets are available only on Linux, MacOS and Android.
 final class InternetAddressType {
-  static const InternetAddressType IPv4 = const InternetAddressType._(0);
-  static const InternetAddressType IPv6 = const InternetAddressType._(1);
-  static const InternetAddressType unix = const InternetAddressType._(2);
-  static const InternetAddressType any = const InternetAddressType._(-1);
+  static const InternetAddressType IPv4 = InternetAddressType._(0);
+  static const InternetAddressType IPv6 = InternetAddressType._(1);
+  static const InternetAddressType unix = InternetAddressType._(2);
+  static const InternetAddressType any = InternetAddressType._(-1);
 
   final int _value;
 
@@ -23,7 +23,7 @@ final class InternetAddressType {
     if (value == IPv4._value) return IPv4;
     if (value == IPv6._value) return IPv6;
     if (value == unix._value) return unix;
-    throw new ArgumentError("Invalid type: $value");
+    throw ArgumentError("Invalid type: $value");
   }
 
   /// Get the name of the type, e.g. "IPv4" or "IPv6".
@@ -362,9 +362,9 @@ abstract interface class ServerSocket implements ServerSocketBase<Socket> {
 /// The [SocketDirection] is used as a parameter to [Socket.close] and
 /// [RawSocket.close] to close a socket in the specified direction(s).
 final class SocketDirection {
-  static const SocketDirection receive = const SocketDirection._(0);
-  static const SocketDirection send = const SocketDirection._(1);
-  static const SocketDirection both = const SocketDirection._(2);
+  static const SocketDirection receive = SocketDirection._(0);
+  static const SocketDirection send = SocketDirection._(1);
+  static const SocketDirection both = SocketDirection._(2);
 
   final _value;
 
@@ -382,12 +382,12 @@ final class SocketOption {
   /// as an individual TCP packet.
   ///
   /// tcpNoDelay is disabled by default.
-  static const SocketOption tcpNoDelay = const SocketOption._(0);
+  static const SocketOption tcpNoDelay = SocketOption._(0);
 
-  static const SocketOption _ipMulticastLoop = const SocketOption._(1);
-  static const SocketOption _ipMulticastHops = const SocketOption._(2);
-  static const SocketOption _ipMulticastIf = const SocketOption._(3);
-  static const SocketOption _ipBroadcast = const SocketOption._(4);
+  static const SocketOption _ipMulticastLoop = SocketOption._(1);
+  static const SocketOption _ipMulticastHops = SocketOption._(2);
+  static const SocketOption _ipMulticastIf = SocketOption._(3);
+  static const SocketOption _ipBroadcast = SocketOption._(4);
 
   final _value;
 
@@ -531,16 +531,16 @@ final class RawSocketOption {
 /// ```
 class RawSocketEvent {
   /// An event indicates the socket is ready to be read.
-  static const RawSocketEvent read = const RawSocketEvent._(0);
+  static const RawSocketEvent read = RawSocketEvent._(0);
 
   /// An event indicates the socket is ready to write.
-  static const RawSocketEvent write = const RawSocketEvent._(1);
+  static const RawSocketEvent write = RawSocketEvent._(1);
 
   /// An event indicates the reading from the socket is closed
-  static const RawSocketEvent readClosed = const RawSocketEvent._(2);
+  static const RawSocketEvent readClosed = RawSocketEvent._(2);
 
   /// An event indicates the socket is closed.
-  static const RawSocketEvent closed = const RawSocketEvent._(3);
+  static const RawSocketEvent closed = RawSocketEvent._(3);
 
   final int _value;
 
@@ -1408,7 +1408,7 @@ class SocketException implements IOException {
       port = null;
 
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write("SocketException");
     if (message.isNotEmpty) {
       sb.write(": $message");

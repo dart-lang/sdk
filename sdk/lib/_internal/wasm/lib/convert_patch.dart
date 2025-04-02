@@ -2607,7 +2607,7 @@ class _Utf8Decoder {
 
   // This table is the Wasm array version of `_Utf8Decoder.transitionTable`,
   // refer to the original type for documentation of the values.
-  static const _transitionTable = const ImmutableWasmArray<WasmI8>.literal([
+  static const _transitionTable = ImmutableWasmArray<WasmI8>.literal([
     32, 0, 48, 58, 88, 69, 67, 67, 67, 67, 67, 78, 58, 108, 68, 98, 32, 0, //
     48, 58, 88, 69, 67, 67, 67, 67, 67, 78, 118, 108, 68, 98, 32, 0, 48, 58, //
     88, 69, 67, 67, 67, 67, 67, 78, 58, 108, 68, 98, 32, 65, 65, 65, 65, 65, //
@@ -2620,7 +2620,7 @@ class _Utf8Decoder {
 
   // This table is the Wasm array version of `_Utf8Decoder.typeTable`,
   // refer to the original type for documentation of the values.
-  static const _typeTable = const ImmutableWasmArray<WasmI8>.literal([
+  static const _typeTable = ImmutableWasmArray<WasmI8>.literal([
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, //
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, //
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, //

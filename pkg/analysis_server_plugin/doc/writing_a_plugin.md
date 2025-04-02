@@ -37,16 +37,16 @@ final plugin = SimplePlugin();
 class SimplePlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
-    // Here we register analysis rules, and quick fixes.
+    // Here we register analysis rules, quick fixes, and quick assists.
   }
 }
 ```
 
 Here we have a class, `SimplePlugin`, which extends the `Plugin` class from the
 `analysis_server_plugin` package. This class has one method that we override:
-`register`. In the `register` method, we can register analysis rules and quick
-fixes (CorrectionProducers). See details in the [writing rules][] doc, and the
-[writing fixes][] doc.
+`register`. In the `register` method, we can register analysis rules, quick
+fixes, and quick assists (CorrectionProducers). See details in the
+[writing rules][] doc, and the [writing fixes][] and [writing assists][] docs.
 
 Additionally, we provide a top-level variable in this file called `plugin`,
 which is an instance of our `SimplePlugin` class. When a running instance of
@@ -65,4 +65,5 @@ can help in debugging plugin code.
 
 [writing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md
 [writing fixes]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_fixes.md
+[writing assists]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_assists.md
 [analyzer diagnostics pages]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/tutorial/instrumentation.md#open-the-analyzer-diagnostics-pages

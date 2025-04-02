@@ -84,8 +84,8 @@ class _Platform {
       if (env is Iterable<Object?>) {
         var result =
             Platform.isWindows
-                ? new _CaseInsensitiveStringMap<String>()
-                : new Map<String, String>();
+                ? _CaseInsensitiveStringMap<String>()
+                : Map<String, String>();
         for (var environmentEntry in env) {
           if (environmentEntry == null) {
             continue;
@@ -107,7 +107,7 @@ class _Platform {
             );
           }
         }
-        _environmentCache = new UnmodifiableMapView<String, String>(result);
+        _environmentCache = UnmodifiableMapView<String, String>(result);
       } else {
         _environmentCache = env;
       }
@@ -126,7 +126,7 @@ class _Platform {
 // Environment variables are case-insensitive on Windows. In order
 // to reflect that we use a case-insensitive string map on Windows.
 class _CaseInsensitiveStringMap<V> extends MapBase<String, V> {
-  final Map<String, V> _map = new Map<String, V>();
+  final Map<String, V> _map = Map<String, V>();
 
   bool containsKey(Object? key) =>
       key is String && _map.containsKey(key.toUpperCase());

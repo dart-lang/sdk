@@ -91,7 +91,7 @@ class _File {
 class _RandomAccessFileOps {
   @patch
   factory _RandomAccessFileOps(int pointer) =>
-      new _RandomAccessFileOpsImpl(pointer);
+      _RandomAccessFileOpsImpl(pointer);
 }
 
 @pragma("vm:entry-point")
@@ -100,7 +100,7 @@ base class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
   _RandomAccessFileOpsImpl._();
 
   factory _RandomAccessFileOpsImpl(int pointer) =>
-      new _RandomAccessFileOpsImpl._().._setPointer(pointer);
+      _RandomAccessFileOpsImpl._().._setPointer(pointer);
 
   @pragma("vm:external-name", "File_SetPointer")
   external void _setPointer(int pointer);
@@ -156,7 +156,7 @@ abstract class _FileSystemWatcher {
   _WatcherPath? _watcherPath;
 
   final StreamController<FileSystemEvent> _broadcastController =
-      new StreamController<FileSystemEvent>.broadcast();
+      StreamController<FileSystemEvent>.broadcast();
 
   /// Subscription on the stream returned by [_watchPath].
   ///
@@ -171,26 +171,22 @@ abstract class _FileSystemWatcher {
     bool recursive,
   ) {
     if (Platform.isLinux || Platform.isAndroid) {
-      return new _InotifyFileSystemWatcher(path, events, recursive)._stream;
+      return _InotifyFileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isWindows) {
-      return new _Win32FileSystemWatcher(path, events, recursive)._stream;
+      return _Win32FileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isMacOS) {
-      return new _FSEventStreamFileSystemWatcher(
-        path,
-        events,
-        recursive,
-      )._stream;
+      return _FSEventStreamFileSystemWatcher(path, events, recursive)._stream;
     }
-    throw new FileSystemException(
+    throw FileSystemException(
       "File system watching is not supported on this platform",
     );
   }
 
   _FileSystemWatcher._(this._path, this._events, this._recursive) {
     if (!isSupported) {
-      throw new FileSystemException(
+      throw FileSystemException(
         "File system watching is not supported on this platform",
         _path,
       );
@@ -236,7 +232,7 @@ abstract class _FileSystemWatcher {
       return;
     }
     if (!_idMap.containsKey(pathId)) {
-      _idMap[pathId] = new _WatcherPath(pathId, _path, _events);
+      _idMap[pathId] = _WatcherPath(pathId, _path, _events);
     }
     _watcherPath = _idMap[pathId];
     _watcherPath!.count++;
@@ -324,9 +320,9 @@ abstract class _FileSystemWatcher {
 
         void rewriteMove(event, isDir) {
           if (event[3]) {
-            add(event[4], new FileSystemCreateEvent(getPath(event), isDir));
+            add(event[4], FileSystemCreateEvent(getPath(event), isDir));
           } else {
-            add(event[4], new FileSystemDeleteEvent(getPath(event), false));
+            add(event[4], FileSystemDeleteEvent(getPath(event), false));
           }
         }
 
@@ -344,13 +340,13 @@ abstract class _FileSystemWatcher {
             bool isDir = getIsDir(event);
             var path = getPath(event);
             if ((event[0] & FileSystemEvent.create) != 0) {
-              add(event[4], new FileSystemCreateEvent(path, isDir));
+              add(event[4], FileSystemCreateEvent(path, isDir));
             }
             if ((event[0] & FileSystemEvent.modify) != 0) {
-              add(event[4], new FileSystemModifyEvent(path, isDir, true));
+              add(event[4], FileSystemModifyEvent(path, isDir, true));
             }
             if ((event[0] & FileSystemEvent._modifyAttributes) != 0) {
-              add(event[4], new FileSystemModifyEvent(path, isDir, false));
+              add(event[4], FileSystemModifyEvent(path, isDir, false));
             }
             if ((event[0] & FileSystemEvent.move) != 0) {
               int link = event[1];
@@ -359,7 +355,7 @@ abstract class _FileSystemWatcher {
                 if (pair[pathId].containsKey(link)) {
                   add(
                     event[4],
-                    new FileSystemMoveEvent(
+                    FileSystemMoveEvent(
                       getPath(pair[pathId][link]),
                       isDir,
                       path,
@@ -374,10 +370,10 @@ abstract class _FileSystemWatcher {
               }
             }
             if ((event[0] & FileSystemEvent.delete) != 0) {
-              add(event[4], new FileSystemDeleteEvent(path, false));
+              add(event[4], FileSystemDeleteEvent(path, false));
             }
             if ((event[0] & FileSystemEvent._deleteSelf) != 0) {
-              add(event[4], new FileSystemDeleteEvent(path, false));
+              add(event[4], FileSystemDeleteEvent(path, false));
               // Signal done event.
               stops.add([event[4], null]);
             }
@@ -479,7 +475,7 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     if (!_idMap.containsKey(pathId)) {
-      _idMap[pathId] = new StreamController<FileSystemEvent>.broadcast();
+      _idMap[pathId] = StreamController<FileSystemEvent>.broadcast();
     }
     return _idMap[pathId]!.stream;
   }
@@ -501,7 +497,7 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
 
   Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
-    _controller = new StreamController<FileSystemEvent>();
+    _controller = StreamController<FileSystemEvent>();
     _subscription = _FileSystemWatcher._listenOnSocket(
       pathId,
       0,
@@ -533,7 +529,7 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
-    _controller = new StreamController<FileSystemEvent>();
+    _controller = StreamController<FileSystemEvent>();
     _subscription = _FileSystemWatcher._listenOnSocket(
       socketId,
       0,
@@ -556,5 +552,5 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
 
 @pragma("vm:entry-point", "call")
 Uint8List _makeUint8ListView(Uint8List source, int offsetInBytes, int length) {
-  return new Uint8List.view(source.buffer, offsetInBytes, length);
+  return Uint8List.view(source.buffer, offsetInBytes, length);
 }

@@ -59,11 +59,12 @@ class DartNativeAssetsBuilder {
     );
   }();
 
-  DartNativeAssetsBuilder({
-    required this.packageConfigUri,
-    required this.runPackageName,
-    required this.verbose,
-  });
+  DartNativeAssetsBuilder(
+      {required this.packageConfigUri,
+      required this.runPackageName,
+      required this.verbose,
+      Target? target})
+      : target = target ?? Target.current;
 
   /// Compiles all native assets for host OS in JIT mode.
   ///
@@ -92,7 +93,7 @@ class DartNativeAssetsBuilder {
 
     final kernelAssets = await bundleNativeAssets(
       assets,
-      Target.current,
+      target,
       outputUri,
       relocatable: false,
     );
@@ -132,12 +133,12 @@ class DartNativeAssetsBuilder {
 
   late final _extensions = [
     CodeAssetExtension(
-          targetOS: target.os,
-          linkModePreference: LinkModePreference.dynamic,
-          targetArchitecture: target.architecture,
-          macOS: _macOSConfig,
-          cCompiler: _cCompilerConfig,
-        ),
+      targetOS: target.os,
+      linkModePreference: LinkModePreference.dynamic,
+      targetArchitecture: target.architecture,
+      macOS: _macOSConfig,
+      cCompiler: _cCompilerConfig,
+    ),
     // TODO(dacoharkes,mosum): This should be gated behind a data-assets
     // experiment flag.
     DataAssetsExtension(),
@@ -172,8 +173,7 @@ class DartNativeAssetsBuilder {
     return linkResult;
   }
 
-  /// Dart does not do cross compilation. Target is always host.
-  late final target = Target.current;
+  final Target target;
 
   late final _macOSConfig = target.os == OS.macOS
       ? MacOSCodeConfig(targetVersion: minimumSupportedMacOSVersion)

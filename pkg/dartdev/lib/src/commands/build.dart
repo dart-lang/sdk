@@ -63,7 +63,7 @@ class BuildCommand extends DartdevCommand {
   @override
   Future<int> run() async {
     if (!Sdk.checkArtifactExists(genKernel) ||
-        !Sdk.checkArtifactExists(genSnapshot) ||
+        !Sdk.checkArtifactExists(genSnapshotHost) ||
         !Sdk.checkArtifactExists(sdk.dart)) {
       return 255;
     }
@@ -152,6 +152,8 @@ class BuildCommand extends DartdevCommand {
         recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
       }
       final generator = KernelGenerator(
+        genSnapshot: genSnapshotHost,
+        targetDartAotRuntime: hostDartAotRuntime,
         kind: format,
         sourceFile: sourceUri.toFilePath(),
         outputFile: outputExeUri.toFilePath(),
@@ -159,7 +161,7 @@ class BuildCommand extends DartdevCommand {
         verbosity: args.option('verbosity')!,
         defines: [],
         packages: packageConfig.toFilePath(),
-        targetOS: targetOS,
+        targetOS: targetOS == null ? null : OS.fromString(targetOS),
         enableExperiment: args.enabledExperiments.join(','),
         tempDir: tempDir,
       );

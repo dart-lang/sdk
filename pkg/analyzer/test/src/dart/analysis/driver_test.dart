@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,11 +17,15 @@ import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/summary2/data_reader.dart';
+import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11628,6 +11633,11 @@ int get b => 0;
       collector.take();
     }
 
+    _assertLibraryManifestSerialization(
+      driver: driver,
+      libraryUri: libraryUri,
+    );
+
     modifyFile2(testFile, updatedCode);
     driver.changeFile2(testFile);
 
@@ -11635,6 +11645,68 @@ int get b => 0;
 
     setId('expectedUpdatedEvents');
     await assertEventsText(collector, expectedUpdatedEvents);
+  }
+
+  static void _assertLibraryManifestSerialization({
+    required AnalysisDriver driver,
+    required Uri libraryUri,
+  }) {
+    var idProvider = IdProvider();
+
+    String manifestAsStr(LibraryManifest manifest) {
+      var buffer = StringBuffer();
+      LibraryManifestPrinter(
+        configuration: DriverEventsPrinterConfiguration()
+          ..withElementManifests = true,
+        sink: TreeStringSink(sink: buffer, indent: ''),
+        idProvider: idProvider,
+      ).write(manifest);
+      return buffer.toString().trim();
+    }
+
+    Uint8List manifestAsBytes(LibraryManifest manifest) {
+      var byteSink = BufferedSink();
+      manifest.write(byteSink);
+      return byteSink.takeBytes();
+    }
+
+    // Write the current manifest as string, and as bytes.
+    String currentStr;
+    Uint8List currentBytes;
+    {
+      var elementFactory = driver.libraryContext.elementFactory;
+      var libraryElement = elementFactory.libraryOfUri2(libraryUri);
+      // SAFETY: this function is invoked when manifests are enabled.
+      var manifest = libraryElement.manifest!;
+      currentStr = manifestAsStr(manifest);
+      currentBytes = manifestAsBytes(manifest);
+    }
+
+    // Read from bytes; write as string and again as bytes.
+    String readStr;
+    Uint8List readBytes;
+    {
+      var manifest = LibraryManifest.read(
+        SummaryDataReader(currentBytes),
+      );
+      readStr = manifestAsStr(manifest);
+      readBytes = manifestAsBytes(manifest);
+    }
+
+    // The strings must be identical.
+    if (readStr != currentStr) {
+      print('${'-' * 16} current');
+      print(currentStr);
+      print('${'-' * 16} read');
+      print(readStr);
+      print('-' * 32);
+      fail('Library manifest strings are different');
+    }
+
+    // The bytes must be identical.
+    if (!const ListEquality<int>().equals(currentBytes, readBytes)) {
+      fail('Library manifest bytes are different');
+    }
   }
 }
 
