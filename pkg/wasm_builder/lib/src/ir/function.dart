@@ -46,6 +46,8 @@ class DefinedFunction extends BaseFunction implements Serializable {
   /// All local variables defined in the function, including its inputs.
   List<Local> get locals => body.locals;
 
+  Map<int, String> get localNames => body.localNames;
+
   DefinedFunction(
       super.enclosingModule, this.body, super.finalizableIndex, super.type,
       [super.functionName]);

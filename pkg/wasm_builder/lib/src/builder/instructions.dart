@@ -171,6 +171,12 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Locals declared in this body, including parameters.
   final List<ir.Local> locals = [];
 
+  /// Names of the locals in `locals`.
+  ///
+  /// Most of the locals won't have names, so this is a [Map] instead of [List]
+  /// like [locals], with local indices as keys and names as values.
+  final Map<int, String> localNames = {};
+
   /// Whether a textual trace of the instruction stream should be recorded when
   /// emitting instructions (provided asserts are enabled).
   ///
@@ -251,8 +257,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   @override
-  ir.Instructions forceBuild() => ir.Instructions(
-      locals, _instructions, _stackTraces, _traceLines, _sourceMappings);
+  ir.Instructions forceBuild() => ir.Instructions(locals, localNames,
+      _instructions, _stackTraces, _traceLines, _sourceMappings);
 
   void _add(ir.Instruction i) {
     assert(!_constantExpression || i.isConstant,
@@ -271,7 +277,11 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     return local;
   }
 
-  ir.Local addLocal(ir.ValueType type) {
+  ir.Local addLocal(ir.ValueType type, {String? name}) {
+    if (name != null) {
+      final index = locals.length;
+      localNames[index] = name;
+    }
     final local = ir.Local(locals.length, type);
     locals.add(local);
     _localInitialized.add(type.defaultable);

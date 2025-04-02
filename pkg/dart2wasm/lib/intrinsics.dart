@@ -1761,7 +1761,8 @@ class Intrinsifier {
         w.ArrayType arrayType =
             (functionType.outputs.single as w.RefType).heapType as w.ArrayType;
         w.Local object = paramLocals[0];
-        w.Local preciseObject = codeGen.addLocal(classInfo.nonNullableType);
+        w.Local preciseObject =
+            codeGen.addLocal(classInfo.nonNullableType, name: "this");
         b.local_get(object);
         b.ref_cast(classInfo.nonNullableType);
         b.local_set(preciseObject);
