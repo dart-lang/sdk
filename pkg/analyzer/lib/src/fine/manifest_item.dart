@@ -395,6 +395,52 @@ sealed class ManifestItem {
   void write(BufferedSink sink);
 }
 
+class ManifestMetadata {
+  final List<ManifestAnnotation> annotations;
+
+  ManifestMetadata({
+    required this.annotations,
+  });
+
+  factory ManifestMetadata.encode(
+    EncodeContext context,
+    MetadataImpl metadata,
+  ) {
+    return ManifestMetadata(
+      annotations: metadata.annotations.map((annotation) {
+        return ManifestAnnotation.encode(context, annotation);
+      }).toFixedList(),
+    );
+  }
+
+  factory ManifestMetadata.read(SummaryDataReader reader) {
+    return ManifestMetadata(
+      annotations: reader.readTypedList(() {
+        return ManifestAnnotation.read(reader);
+      }),
+    );
+  }
+
+  bool match(MatchContext context, MetadataImpl metadata) {
+    var metadataAnnotations = metadata.annotations;
+    if (annotations.length != metadataAnnotations.length) {
+      return false;
+    }
+
+    for (var i = 0; i < metadataAnnotations.length; i++) {
+      if (!annotations[i].match(context, metadataAnnotations[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeList(annotations, (x) => x.write(sink));
+  }
+}
+
 class TopLevelFunctionItem extends TopLevelItem {
   final ManifestFunctionType functionType;
 
@@ -450,7 +496,7 @@ class TopLevelFunctionItem extends TopLevelItem {
 }
 
 class TopLevelGetterItem extends TopLevelItem {
-  final List<ManifestAnnotation> metadata;
+  final ManifestMetadata metadata;
   final ManifestType returnType;
 
   TopLevelGetterItem({
@@ -471,9 +517,7 @@ class TopLevelGetterItem extends TopLevelItem {
       libraryUri: element.library2.uri,
       name: name,
       id: id,
-      metadata: element.metadata2.annotations.map((annotation) {
-        return ManifestAnnotation.encode(context, annotation);
-      }).toFixedList(),
+      metadata: ManifestMetadata.encode(context, element.metadata2),
       returnType: element.returnType.encode(context),
     );
   }
@@ -483,7 +527,7 @@ class TopLevelGetterItem extends TopLevelItem {
       libraryUri: reader.readUri(),
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
-      metadata: reader.readTypedList(() => ManifestAnnotation.read(reader)),
+      metadata: ManifestMetadata.read(reader),
       returnType: ManifestType.read(reader),
     );
   }
@@ -491,14 +535,8 @@ class TopLevelGetterItem extends TopLevelItem {
   MatchContext? match(GetterElementImpl element) {
     var context = MatchContext(parent: null);
 
-    var annotations = element.metadata2.annotations;
-    if (annotations.length != metadata.length) {
+    if (!metadata.match(context, element.metadata2)) {
       return null;
-    }
-    for (var i = 0; i < metadata.length; i++) {
-      if (!metadata[i].match(context, annotations[i])) {
-        return null;
-      }
     }
 
     if (!returnType.match(context, element.returnType)) {
@@ -514,7 +552,7 @@ class TopLevelGetterItem extends TopLevelItem {
     sink.writeUri(libraryUri);
     name.write(sink);
     id.write(sink);
-    metadata.writeList(sink);
+    metadata.write(sink);
     returnType.write(sink);
   }
 }
@@ -553,7 +591,7 @@ sealed class TopLevelItem extends ManifestItem {
 }
 
 class TopLevelSetterItem extends TopLevelItem {
-  final List<ManifestAnnotation> metadata;
+  final ManifestMetadata metadata;
   final ManifestType valueType;
 
   TopLevelSetterItem({
@@ -574,9 +612,7 @@ class TopLevelSetterItem extends TopLevelItem {
       libraryUri: element.library2.uri,
       name: name,
       id: id,
-      metadata: element.metadata2.annotations.map((annotation) {
-        return ManifestAnnotation.encode(context, annotation);
-      }).toFixedList(),
+      metadata: ManifestMetadata.encode(context, element.metadata2),
       valueType: element.formalParameters[0].type.encode(context),
     );
   }
@@ -586,7 +622,7 @@ class TopLevelSetterItem extends TopLevelItem {
       libraryUri: reader.readUri(),
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
-      metadata: reader.readTypedList(() => ManifestAnnotation.read(reader)),
+      metadata: ManifestMetadata.read(reader),
       valueType: ManifestType.read(reader),
     );
   }
@@ -594,14 +630,8 @@ class TopLevelSetterItem extends TopLevelItem {
   MatchContext? match(SetterElementImpl element) {
     var context = MatchContext(parent: null);
 
-    var annotations = element.metadata2.annotations;
-    if (annotations.length != metadata.length) {
+    if (!metadata.match(context, element.metadata2)) {
       return null;
-    }
-    for (var i = 0; i < metadata.length; i++) {
-      if (!metadata[i].match(context, annotations[i])) {
-        return null;
-      }
     }
 
     if (!valueType.match(context, element.formalParameters[0].type)) {
@@ -617,7 +647,7 @@ class TopLevelSetterItem extends TopLevelItem {
     sink.writeUri(libraryUri);
     name.write(sink);
     id.write(sink);
-    metadata.writeList(sink);
+    metadata.write(sink);
     valueType.write(sink);
   }
 }
@@ -634,10 +664,4 @@ enum _ManifestItemKind2 {
   instanceGetter,
   instanceMethod,
   interfaceConstructor,
-}
-
-extension ListOfManifestAnnotationExtension on List<ManifestAnnotation> {
-  void writeList(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
-  }
 }
