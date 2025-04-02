@@ -23,6 +23,8 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart' as watcher;
 
+import '../../support/sdk_paths.dart';
+
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuiltInPluginInfoTest);
@@ -876,19 +878,6 @@ class MinimalPlugin extends ServerPlugin {
 }
 ''';
 
-  /// The path to the package config file in the root of the Dart SDK.
-  static String get _sdkPackageConfigPath {
-    var filePath = io.Platform.script.toFilePath();
-    // Walk up the directory structure from this script file to the
-    // 'analysis_server' root directory.
-    while (filePath.isNotEmpty &&
-        path.basename(filePath) != 'analysis_server') {
-      filePath = path.dirname(filePath);
-    }
-    filePath = path.dirname(path.dirname(filePath));
-    return path.join(filePath, '.dart_tool', 'package_config.json');
-  }
-
   late PhysicalResourceProvider resourceProvider;
 
   late TestNotificationManager notificationManager;
@@ -930,7 +919,7 @@ class MinimalPlugin extends ServerPlugin {
         path.join(pluginDartToolPath, 'package_config.json'),
       );
       packageConfigFile.writeAsStringSync(
-        io.File(_sdkPackageConfigPath).readAsStringSync(),
+        io.File(sdkPackageConfigPath).readAsStringSync(),
       );
       //
       // Create the 'bin' directory.

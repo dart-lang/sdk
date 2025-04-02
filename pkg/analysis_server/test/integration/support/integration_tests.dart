@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -21,6 +20,7 @@ import 'package:test/test.dart';
 
 import '../../analysis_server_base.dart' show analysisOptionsContent;
 import '../../support/configuration_files.dart';
+import '../../support/sdk_paths.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
@@ -677,34 +677,7 @@ class Server {
     _time.start();
 
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
-
-    // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
-    // snapshot and run from source.
-    var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
-    String serverPath;
-
-    if (useSnapshot) {
-      // TODO(dantup): Consider changing this to "dart language_server" and
-      //  sharing this code with LSP integration tests.
-      serverPath = path.normalize(
-        path.join(
-          dartSdkPath,
-          'bin',
-          'snapshots',
-          'analysis_server.dart.snapshot',
-        ),
-      );
-    } else {
-      // Locate the root of the analysis server package without using
-      // `Platform.script` as it fails when run through the `dart test`.
-      // https://github.com/dart-lang/test/issues/110
-      var serverLibUri = await Isolate.resolvePackageUri(
-        Uri.parse('package:analysis_server/'),
-      );
-      serverPath = path.normalize(
-        path.join(serverLibUri!.toFilePath(), '..', 'bin', 'server.dart'),
-      );
-    }
+    var serverPath = getAnalysisServerPath(dartSdkPath);
 
     var arguments = <String>['--disable-dart-dev', '--no-dds'];
     //
