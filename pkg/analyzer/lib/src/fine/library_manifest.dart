@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -13,6 +15,7 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:collection/collection.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
@@ -95,6 +98,7 @@ class LibraryManifestBuilder {
 
     _buildManifests();
     _addReExports();
+    assert(_assertSerialization());
 
     return newManifests;
   }
@@ -340,6 +344,31 @@ class LibraryManifestBuilder {
       );
     });
     newItems[lookupName] = item;
+  }
+
+  /// Assert that every manifest can be serialized, and when deserialized
+  /// results in the same manifest.
+  bool _assertSerialization() {
+    Uint8List manifestAsBytes(LibraryManifest manifest) {
+      var byteSink = BufferedSink();
+      manifest.write(byteSink);
+      return byteSink.takeBytes();
+    }
+
+    newManifests.forEach((uri, manifest) {
+      var bytes = manifestAsBytes(manifest);
+
+      var readManifest = LibraryManifest.read(
+        SummaryDataReader(bytes),
+      );
+      var readBytes = manifestAsBytes(readManifest);
+
+      if (!const ListEquality<int>().equals(bytes, readBytes)) {
+        throw StateError('Library manifest bytes are different: $uri');
+      }
+    });
+
+    return true;
   }
 
   /// Fill `result` with new library manifests.
