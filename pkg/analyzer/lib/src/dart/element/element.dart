@@ -188,34 +188,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   bool get hasNonFinalField {
-    var classesToVisit = <InterfaceElementImpl>[];
-    var visitedClasses = <InterfaceElementImpl>{};
-    classesToVisit.add(this);
-    while (classesToVisit.isNotEmpty) {
-      var currentElement = classesToVisit.removeAt(0);
-      if (visitedClasses.add(currentElement)) {
-        // check fields
-        for (var field in currentElement.fields) {
-          if (!field.isFinal &&
-              !field.isConst &&
-              !field.isStatic &&
-              !field.isSynthetic) {
-            return true;
-          }
-        }
-        // check mixins
-        for (var mixinType in currentElement.mixins) {
-          classesToVisit.add(mixinType.element);
-        }
-        // check super
-        var supertype = currentElement.supertype;
-        if (supertype != null) {
-          classesToVisit.add(supertype.element);
-        }
-      }
-    }
-    // not found
-    return false;
+    return element.hasNonFinalField;
   }
 
   @override
@@ -247,42 +220,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   bool get isDartCoreRecord {
     return name == 'Record' && library.isDartCore;
-  }
-
-  bool get isEnumLike {
-    // Must be a concrete class.
-    if (isAbstract) {
-      return false;
-    }
-
-    // With only private non-factory constructors.
-    for (var constructor in constructors) {
-      if (constructor.isPublic || constructor.isFactory) {
-        return false;
-      }
-    }
-
-    // With 2+ static const fields with the type of this class.
-    var numberOfElements = 0;
-    for (var field in fields) {
-      if (field.isStatic && field.isConst && field.type == thisType) {
-        numberOfElements++;
-      }
-    }
-    if (numberOfElements < 2) {
-      return false;
-    }
-
-    // No subclasses in the library.
-    for (var unit in library.units) {
-      for (var class_ in unit.classes) {
-        if (class_.supertype?.element == this) {
-          return false;
-        }
-      }
-    }
-
-    return true;
   }
 
   @override
@@ -378,6 +315,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     builder.writeClassElement(this);
   }
 
+  @Deprecated('Use ClassElement2 instead')
   @override
   bool isExtendableIn(LibraryElement library) {
     if (library == this.library) {
@@ -386,6 +324,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return !isInterface && !isFinal && !isSealed;
   }
 
+  @Deprecated('Use ClassElement2 instead')
   @override
   bool isImplementableIn(LibraryElement library) {
     if (library == this.library) {
@@ -394,6 +333,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return !isBase && !isFinal && !isSealed;
   }
 
+  @Deprecated('Use ClassElement2 instead')
   @override
   bool isMixableIn(LibraryElement library) {
     if (library == this.library) {
@@ -424,10 +364,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     // Assign to break a possible infinite recursion during computing.
     _constructors = const <ConstructorElementImpl>[];
 
-    var superElement = superType.element as ClassElementImpl;
+    var superElement2 = superType.element3 as ClassElementImpl2;
+    var superElement = superElement2.firstFragment;
 
     var constructorsToForward = superElement.constructors
-        .where((constructor) => constructor.isAccessibleIn(library))
+        .where((constructor) => constructor.asElement2.isAccessibleIn2(library))
         .where((constructor) => !constructor.isFactory);
 
     // Figure out the type parameter substitution we need to perform in order
@@ -447,7 +388,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
     bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element.fields.any((e) => !e.isSynthetic);
+        type.element3.fields2.any((e) => !e.isSynthetic);
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
@@ -475,7 +416,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       if (count > 0) {
         var implicitParameters = <ParameterElementImpl>[];
         for (int i = 0; i < count; i++) {
-          ParameterElement superParameter = superParameters[i];
+          var superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
           if (superParameter is ConstVariableElement) {
             var constVariable = superParameter as ConstVariableElement;
@@ -484,7 +425,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               nameOffset: -1,
               name2: superParameter.name.nullIfEmpty,
               nameOffset2: null,
-              // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             )..constantInitializer = constVariable.constantInitializer;
             if (superParameter.isNamed) {
@@ -500,7 +440,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               nameOffset: -1,
               name2: superParameter.name.nullIfEmpty,
               nameOffset2: null,
-              // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             );
           }
@@ -622,7 +561,37 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement2 {
   }
 
   @override
-  bool get hasNonFinalField => firstFragment.hasNonFinalField;
+  @override
+  bool get hasNonFinalField {
+    var classesToVisit = <InterfaceElementImpl2>[];
+    var visitedClasses = <InterfaceElementImpl2>{};
+    classesToVisit.add(this);
+    while (classesToVisit.isNotEmpty) {
+      var currentElement = classesToVisit.removeAt(0);
+      if (visitedClasses.add(currentElement)) {
+        // check fields
+        for (var field in currentElement.fields2) {
+          if (!field.isFinal &&
+              !field.isConst &&
+              !field.isStatic &&
+              !field.isSynthetic) {
+            return true;
+          }
+        }
+        // check mixins
+        for (var mixinType in currentElement.mixins) {
+          classesToVisit.add(mixinType.element3);
+        }
+        // check super
+        var supertype = currentElement.supertype;
+        if (supertype != null) {
+          classesToVisit.add(supertype.element3);
+        }
+      }
+    }
+    // not found
+    return false;
+  }
 
   @override
   bool get isAbstract => firstFragment.isAbstract;
@@ -704,16 +673,30 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement2 {
   }
 
   @override
-  bool isExtendableIn2(LibraryElement2 library) =>
-      firstFragment.isExtendableIn(library as LibraryElement);
+  bool isExtendableIn2(LibraryElement2 library) {
+    if (library == library2) {
+      return true;
+    }
+    return !isInterface && !isFinal && !isSealed;
+  }
 
   @override
-  bool isImplementableIn2(LibraryElement2 library) =>
-      firstFragment.isImplementableIn(library as LibraryElement);
+  bool isImplementableIn2(LibraryElement2 library) {
+    if (library == library2) {
+      return true;
+    }
+    return !isBase && !isFinal && !isSealed;
+  }
 
   @override
-  bool isMixableIn2(LibraryElement2 library) =>
-      firstFragment.isMixableIn(library as LibraryElement);
+  bool isMixableIn2(LibraryElement2 library) {
+    if (library == library2) {
+      return true;
+    } else if (library2.featureSet.isEnabled(Feature.class_modifiers)) {
+      return isMixinClass && !isInterface && !isFinal && !isSealed;
+    }
+    return true;
+  }
 }
 
 abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
@@ -831,6 +814,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     _accessors = accessors;
   }
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
         ...super.children,
@@ -848,7 +832,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       ];
 
   @override
-  List<Fragment> get children3 => children.whereType<Fragment>().toList();
+  List<Fragment> get children3 {
+    return [
+      ...accessors,
+      ...classes,
+      ...enums,
+      ...extensions,
+      ...extensionTypes,
+      ...functions,
+      ...mixins,
+      ...typeAliases,
+      ...topLevelVariables,
+    ];
+  }
 
   @override
   List<ClassElementImpl> get classes {
@@ -1330,7 +1326,7 @@ class ConstantInitializerImpl implements ConstantInitializer {
   }
 }
 
-/// A [FieldElement] for a 'const' or 'final' field that has an initializer.
+/// A [FieldElementImpl] for a 'const' or 'final' field that has an initializer.
 ///
 // TODO(paulberry): we should rename this class to reflect the fact that it's
 // used for both const and final fields.  However, we shouldn't do so until
@@ -1725,7 +1721,7 @@ mixin ConstructorElementMixin
       return false;
     }
     // no required parameters
-    for (ParameterElement parameter in parameters) {
+    for (var parameter in parameters) {
       if (parameter.isRequired) {
         return false;
       }
@@ -1762,8 +1758,6 @@ mixin ConstructorElementMixin2
   InterfaceTypeImpl get returnType;
 }
 
-/// A [TopLevelVariableElement] for a top-level 'const' variable that has an
-/// initializer.
 class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
     with ConstVariableElement {
   /// Initialize a newly created synthetic top-level variable element to have
@@ -1856,7 +1850,7 @@ class DefaultFieldFormalParameterElementImpl
   }
 }
 
-/// A [ParameterElement] for parameters that have an initializer.
+/// A [ParameterElementImpl] for parameters that have an initializer.
 class DefaultParameterElementImpl extends ParameterElementImpl
     with ConstVariableElement {
   /// Initialize a newly created parameter element to have the given [name] and
@@ -1953,7 +1947,9 @@ class DefaultSuperFormalParameterElementImpl
 }
 
 class DeferredImportElementPrefixImpl extends ImportElementPrefixImpl
-    implements DeferredImportElementPrefix {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        DeferredImportElementPrefix {
   DeferredImportElementPrefixImpl({
     required super.element,
   });
@@ -2598,6 +2594,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     reference?.element = this;
   }
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => const [];
 
@@ -3119,6 +3116,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
   /// Return `true` if this element has the given [modifier] associated with it.
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
+  @Deprecated('Use Element2 instead')
   @override
   bool isAccessibleIn(LibraryElement library) {
     if (Identifier.isPrivateName(name!)) {
@@ -3633,9 +3631,16 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// [offset].
   ExecutableElementImpl(String super.name, super.offset, {super.reference});
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
         ...super.children,
+        ...typeParameters,
+        ...parameters,
+      ];
+
+  @override
+  List<Fragment> get children3 => [
         ...typeParameters,
         ...parameters,
       ];
@@ -3880,9 +3885,18 @@ class ExtensionElementImpl extends InstanceElementImpl
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
         ...super.children,
+        ...accessors,
+        ...fields,
+        ...methods,
+        ...typeParameters,
+      ];
+
+  @override
+  List<Fragment> get children3 => [
         ...accessors,
         ...fields,
         ...methods,
@@ -3948,6 +3962,7 @@ class ExtensionElementImpl extends InstanceElementImpl
     builder.writeExtensionElement(this);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   FieldElement? getField(String name) {
     for (FieldElement fieldElement in fields) {
@@ -4160,7 +4175,6 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
 abstract class FieldElement2OrMember
     implements PropertyInducingElement2OrMember, FieldElement2 {}
 
-/// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
     implements FieldElementOrMember, FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
@@ -4370,7 +4384,10 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `FieldElement`.
 abstract class FieldElementOrMember
-    implements PropertyInducingElementOrMember, FieldElement {
+    implements
+        PropertyInducingElementOrMember,
+        // ignore:deprecated_member_use_from_same_package
+        FieldElement {
   @override
   FieldElementImpl get declaration;
 
@@ -4378,8 +4395,6 @@ abstract class FieldElementOrMember
   TypeImpl get type;
 }
 
-/// A [ParameterElementImpl] that has the additional information of the
-/// [FieldElement] associated with the parameter.
 class FieldFormalParameterElementImpl extends ParameterElementImpl
     implements
         FieldFormalParameterElementOrMember,
@@ -4459,7 +4474,10 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class FieldFormalParameterElementOrMember
-    implements ParameterElementMixin, FieldFormalParameterElement {
+    implements
+        ParameterElementMixin,
+        // ignore:deprecated_member_use_from_same_package
+        FieldFormalParameterElement {
   @override
   FieldElementOrMember? get field;
 }
@@ -5239,9 +5257,16 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   GenericFunctionTypeElementImpl.forOffset(int nameOffset)
       : super("", nameOffset);
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
         ...super.children,
+        ...typeParameters,
+        ...parameters,
+      ];
+
+  @override
+  List<Fragment> get children3 => [
         ...typeParameters,
         ...parameters,
       ];
@@ -5547,7 +5572,10 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   }
 }
 
-class ImportElementPrefixImpl implements ImportElementPrefix {
+class ImportElementPrefixImpl
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ImportElementPrefix {
   @override
   final PrefixElementImpl element;
 
@@ -5806,8 +5834,13 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
-  bool isAccessibleIn2(LibraryElement2 library) =>
-      firstFragment.isAccessibleIn(library as LibraryElement);
+  bool isAccessibleIn2(LibraryElement2 library) {
+    var name = name3;
+    if (name != null && Identifier.isPrivateName(name)) {
+      return library == library2;
+    }
+    return true;
+  }
 
   @override
   GetterElement? lookUpGetter2({
@@ -5981,9 +6014,19 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         library.session.classHierarchy.implementedInterfaces(element);
   }
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
         ...super.children,
+        ...accessors,
+        ...fields,
+        ...constructors,
+        ...methods,
+        ...typeParameters,
+      ];
+
+  @override
+  List<Fragment> get children3 => [
         ...accessors,
         ...fields,
         ...constructors,
@@ -6110,6 +6153,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return constructors.firstWhereOrNull((element) => element.name.isEmpty);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   FieldElement? getField(String name) {
     return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
@@ -6811,9 +6855,11 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
       super._wrappedElement as JoinPatternVariableElementImpl;
 }
 
-/// A concrete implementation of a [LabelElement].
 class LabelElementImpl extends ElementImpl
-    implements LabelElement, LabelFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        LabelElement,
+        LabelFragment {
   late final LabelElementImpl2 element2 = LabelElementImpl2(this);
 
   /// A flag indicating whether this label is associated with a `switch` member
@@ -6923,10 +6969,14 @@ class LabelElementImpl2 extends ElementImpl2
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 }
 
-/// A concrete implementation of a [LibraryElement] or [LibraryElement2].
+/// A concrete implementation of [LibraryElement2].
 class LibraryElementImpl extends ElementImpl
-    with _HasLibraryMixin
-    implements LibraryElement, LibraryElement2 {
+    with
+        _HasLibraryMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        LibraryElement,
+        LibraryElement2 {
   /// The analysis context in which this library is defined.
   @override
   final AnalysisContext context;
@@ -7023,6 +7073,7 @@ class LibraryElementImpl extends ElementImpl
   @override
   LibraryElementImpl get baseElement => this;
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
         definingCompilationUnit,
@@ -7503,7 +7554,10 @@ class LibraryElementImpl extends ElementImpl
 }
 
 class LibraryExportElementImpl extends _ExistingElementImpl
-    implements LibraryExportElement, LibraryExport {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        LibraryExportElement,
+        LibraryExport {
   @override
   final List<NamespaceCombinator> combinators;
 
@@ -7563,7 +7617,10 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 }
 
 class LibraryImportElementImpl extends _ExistingElementImpl
-    implements LibraryImportElement, LibraryImport {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        LibraryImportElement,
+        LibraryImport {
   @override
   final List<NamespaceCombinator> combinators;
 
@@ -7782,7 +7839,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
   bool get _includeNameOffsetInIdentifier {
     return super._includeNameOffsetInIdentifier ||
         enclosingElement3 is ExecutableFragment ||
-        enclosingElement3 is VariableElement;
+        enclosingElement3 is VariableFragment;
   }
 }
 
@@ -8547,6 +8604,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
     builder.writeMixinElement(this);
   }
 
+  @Deprecated('Use MixinElement2 instead')
   @override
   bool isImplementableIn(LibraryElement library) {
     if (library == this.library) {
@@ -8595,8 +8653,12 @@ class MixinElementImpl2 extends InterfaceElementImpl2 implements MixinElement2 {
   }
 
   @override
-  bool isImplementableIn2(LibraryElement2 library) =>
-      firstFragment.isImplementableIn(library as LibraryElement);
+  bool isImplementableIn2(LibraryElement2 library) {
+    if (library == library2) {
+      return true;
+    }
+    return !isBase;
+  }
 }
 
 /// The constants for all of the modifiers defined by the Dart language and for
@@ -8710,7 +8772,7 @@ enum Modifier {
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
   SETTER,
 
-  /// See [TypeParameterizedElement.isSimplyBounded].
+  /// See [TypeParameterizedElement2.isSimplyBounded].
   SIMPLY_BOUNDED,
 
   /// Indicates that the modifier 'static' was applied to the element.
@@ -8723,7 +8785,7 @@ enum Modifier {
   SYNTHETIC
 }
 
-/// A concrete implementation of a [MultiplyDefinedElement].
+@Deprecated('Use MultiplyDefinedElement2 instead')
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /// The unique integer identifier of this element.
   @override
@@ -8746,6 +8808,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     this.conflictingElements,
   );
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => const [];
 
@@ -9007,14 +9070,6 @@ class MultiplyDefinedElementImpl2 extends ElementImpl2
     this.name3,
     this.conflictingElements2,
   );
-
-  MultiplyDefinedElementImpl get asElement {
-    return MultiplyDefinedElementImpl(
-      libraryFragment,
-      name3,
-      conflictingElements2.map((e) => e.asElement).nonNulls.toList(),
-    );
-  }
 
   @override
   MultiplyDefinedElementImpl2 get baseElement => this;
@@ -9307,10 +9362,13 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   }
 }
 
-/// A concrete implementation of a [ParameterElement].
 class ParameterElementImpl extends VariableElementImpl
-    with ParameterElementMixin
-    implements ParameterElement, FormalParameterFragment {
+    with
+        ParameterElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ParameterElement,
+        FormalParameterFragment {
   @override
   String? name2;
 
@@ -9368,6 +9426,7 @@ class ParameterElementImpl extends VariableElementImpl
     return element;
   }
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => parameters;
 
@@ -9565,9 +9624,12 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 }
 
 /// A mixin that provides a common implementation for methods defined in
-/// [ParameterElement].
+/// `ParameterElement`.
 mixin ParameterElementMixin
-    implements ParameterElement, VariableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ParameterElement,
+        VariableElementOrMember {
   @override
   ParameterElementImpl get declaration;
 
@@ -9633,7 +9695,10 @@ mixin ParameterElementMixin
 }
 
 class PartElementImpl extends _ExistingElementImpl
-    implements PartElement, PartInclude {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PartElement,
+        PartInclude {
   @override
   final DirectiveUriImpl uri;
 
@@ -9759,8 +9824,10 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
   }
 }
 
-/// A concrete implementation of a [PrefixElement].
-class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
+class PrefixElementImpl extends _ExistingElementImpl
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PrefixElement {
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
@@ -10260,7 +10327,6 @@ abstract class PropertyInducingElement2OrMember
   SetterElement2OrMember? get setter2;
 }
 
-/// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl
     with AugmentableFragment
@@ -10483,7 +10549,10 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyInducingElement`.
 abstract class PropertyInducingElementOrMember
-    implements PropertyInducingElement, VariableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PropertyInducingElement,
+        VariableElementOrMember {
   @override
   TypeImpl get type;
 }
@@ -10756,7 +10825,10 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class SuperFormalParameterElementOrMember
-    implements ParameterElementMixin, SuperFormalParameterElement {}
+    implements
+        ParameterElementMixin,
+        // ignore:deprecated_member_use_from_same_package
+        SuperFormalParameterElement {}
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
     with
@@ -10857,9 +10929,11 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
   }
 }
 
-/// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    implements TopLevelVariableElement, TopLevelVariableFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TopLevelVariableElement,
+        TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl2 element;
 
@@ -11054,6 +11128,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   TypeImpl? get aliasedTypeRaw => _aliasedType;
 
   @override
+  List<Fragment> get children3 => const [];
+
+  @override
   String get displayName => name;
 
   @override
@@ -11207,15 +11284,15 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
       return false;
     }
     var typeParameters = typeParameters2;
-    var aliasedClass = aliasedType_.element;
+    var aliasedClass = aliasedType_.element3;
     var typeArguments = aliasedType_.typeArguments;
     var typeParameterCount = typeParameters.length;
-    if (typeParameterCount != aliasedClass.typeParameters.length) {
+    if (typeParameterCount != aliasedClass.typeParameters2.length) {
       return false;
     }
     for (var i = 0; i < typeParameterCount; i++) {
       var bound = typeParameters[i].bound ?? DynamicTypeImpl.instance;
-      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+      var aliasedBound = aliasedClass.typeParameters2[i].bound ??
           library2.typeProvider.dynamicType;
       if (!library2.typeSystem.isSubtypeOf(bound, aliasedBound) ||
           !library2.typeSystem.isSubtypeOf(aliasedBound, bound)) {
@@ -11639,12 +11716,10 @@ abstract class TypeParameterizedElementImpl2 extends ElementImpl2
 mixin TypeParameterizedElementMixin on ElementImpl
     implements
         _ExistingElementImpl,
+        // ignore:deprecated_member_use_from_same_package
         TypeParameterizedElement,
         TypeParameterizedFragment {
   List<TypeParameterElementImpl> _typeParameters = const [];
-
-  @override
-  List<Fragment> get children3 => children.whereType<Fragment>().toList();
 
   @override
   bool get isSimplyBounded => true;
@@ -11731,7 +11806,6 @@ abstract class VariableElement2OrMember implements VariableElement2 {
   TypeImpl get type;
 }
 
-/// A concrete implementation of a [VariableElement].
 abstract class VariableElementImpl extends ElementImpl
     implements VariableElementOrMember, VariableFragment {
   /// The type of this variable.
@@ -11890,7 +11964,10 @@ abstract class VariableElementImpl2 extends ElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement`.
 abstract class VariableElementOrMember
-    implements ElementOrMember, VariableElement {
+    implements
+        ElementOrMember,
+        // ignore:deprecated_member_use_from_same_package
+        VariableElement {
   @override
   VariableElementImpl get declaration;
 

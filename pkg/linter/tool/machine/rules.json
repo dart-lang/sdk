@@ -953,7 +953,7 @@
   },
   {
     "name": "discarded_futures",
-    "description": "Don't invoke asynchronous functions in non-`async` blocks.",
+    "description": "There should be no `Future`-returning calls in synchronous functions unless they are assigned or returned.",
     "categories": [
       "errorProne"
     ],

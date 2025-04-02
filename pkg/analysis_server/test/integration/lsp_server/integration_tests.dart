@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
@@ -190,19 +191,6 @@ class LspServerClient {
     _process?.kill();
   }
 
-  /// Find the root directory of the analysis_server package by proceeding
-  /// upward to the 'test' dir, and then going up one more directory.
-  String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(basename(pathname))) {
-      var parent = dirname(pathname);
-      if (parent.length >= pathname.length) {
-        throw Exception("Can't find root directory");
-      }
-      pathname = parent;
-    }
-    return dirname(pathname);
-  }
-
   Future<void> start({
     required String dartSdkPath,
     List<String>? vmArgs,
@@ -219,14 +207,21 @@ class LspServerClient {
     String serverPath;
 
     if (useSnapshot) {
+      // TODO(dantup): Consider changing this to "dart language_server" and
+      //  sharing this code with legacy-server integration tests.
       serverPath = normalize(
         join(dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'),
       );
     } else {
-      var rootDir = findRoot(
-        Platform.script.toFilePath(windows: Platform.isWindows),
+      // Locate the root of the analysis server package without using
+      // `Platform.script` as it fails when run through the `dart test`.
+      // https://github.com/dart-lang/test/issues/110
+      var serverLibUri = await Isolate.resolvePackageUri(
+        Uri.parse('package:analysis_server/'),
       );
-      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+      serverPath = normalize(
+        join(serverLibUri!.toFilePath(), '..', 'bin', 'server.dart'),
+      );
     }
 
     var arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];

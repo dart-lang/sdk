@@ -672,6 +672,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }).toFixedList();
   }
 
+  @Deprecated('Use element3 instead')
   @override
   InterfaceElementImpl get element => element3.asElement;
 
@@ -977,14 +978,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement? lookUpGetter2(
     String name,
-    LibraryElement library, {
+    covariant LibraryElementImpl library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
     return lookUpGetter3(
       name,
-      library.asElement2,
+      library,
       concrete: concrete,
       inherited: inherited,
       recoveryStatic: recoveryStatic,
@@ -1033,14 +1034,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   MethodElementOrMember? lookUpMethod2(
     String name,
-    LibraryElement library, {
+    covariant LibraryElementImpl library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
     return lookUpMethod3(
       name,
-      library.asElement2,
+      library,
       concrete: concrete,
       inherited: inherited,
       recoveryStatic: recoveryStatic,
@@ -1089,14 +1090,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement? lookUpSetter2(
     String name,
-    LibraryElement library, {
+    covariant LibraryElementImpl library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
     return lookUpSetter3(
       name,
-      library.asElement2,
+      library,
       concrete: concrete,
       inherited: inherited,
       recoveryStatic: recoveryStatic,

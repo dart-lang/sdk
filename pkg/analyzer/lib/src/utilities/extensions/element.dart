@@ -285,12 +285,6 @@ extension ElementOrNullExtension on Element? {
       return self;
     } else if (self is LocalVariableElementImpl) {
       return self.element;
-    } else if (self is MultiplyDefinedElementImpl) {
-      return MultiplyDefinedElementImpl2(
-        self.libraryFragment,
-        self.name,
-        self.conflictingElements.map((e) => e.asElement2).nonNulls.toList(),
-      );
     } else if (self is NeverElementImpl) {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
@@ -385,13 +379,6 @@ extension FieldElementOrMemberExtension on FieldElementOrMember {
 }
 
 extension FormalParameterElementExtension on FormalParameterElement {
-  ParameterElement get asElement {
-    if (this case ParameterMember member) {
-      return member;
-    }
-    return firstFragment as ParameterElement;
-  }
-
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')
@@ -459,7 +446,7 @@ extension InterfaceElementImplExtension on InterfaceElementImpl {
 }
 
 extension InterfaceTypeImplExtension on InterfaceTypeImpl {
-  InterfaceElementImpl get elementImpl => element;
+  InterfaceElementImpl get elementImpl => element3.firstFragment;
 }
 
 extension JoinPatternVariableElementImplExtension
@@ -469,27 +456,17 @@ extension JoinPatternVariableElementImplExtension
   }
 }
 
-extension LabelElement2Extension on LabelElement2 {
-  LabelElement get asElement {
-    return firstFragment as LabelElement;
-  }
-}
-
 extension LibraryElement2Extension on LibraryElement2 {
+  @Deprecated('Use LibraryElement2 instead')
   LibraryElement get asElement {
     return this as LibraryElement;
   }
 }
 
+@Deprecated('Use LibraryElement2 instead')
 extension LibraryElementExtension on LibraryElement {
   LibraryElement2 get asElement2 {
     return this as LibraryElement2;
-  }
-}
-
-extension LibraryElementOrNullExtension on LibraryElement? {
-  LibraryElement2? get asElement2 {
-    return this as LibraryElement2?;
   }
 }
 
@@ -574,23 +551,19 @@ extension MixinElementImplExtension on MixinElementImpl {
   }
 }
 
-extension ParameterElementExtension on ParameterElement {
+extension ParameterElementImplExtension on ParameterElementImpl {
+  FormalParameterElementImpl get asElement2 {
+    return element;
+  }
+}
+
+extension ParameterElementMixinExtension on ParameterElementMixin {
   FormalParameterElementMixin get asElement2 {
     return switch (this) {
       ParameterElementImpl(:var element) => element,
       ParameterMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
-  }
-
-  ParameterElementImpl get declarationImpl {
-    return declaration as ParameterElementImpl;
-  }
-}
-
-extension ParameterElementImplExtension on ParameterElementImpl {
-  FormalParameterElementImpl get asElement2 {
-    return element;
   }
 }
 
@@ -603,18 +576,6 @@ extension PatternVariableElementImpl2Extension on PatternVariableElementImpl2 {
 extension PatternVariableElementImplExtension on PatternVariableElementImpl {
   PatternVariableElementImpl2 get asElement2 {
     return element;
-  }
-}
-
-extension PrefixElement2Extension on PrefixElement2 {
-  PrefixElement get asElement {
-    return (this as PrefixElementImpl2).asElement;
-  }
-}
-
-extension PrefixElementExtension on PrefixElement {
-  PrefixElement2 get asElement2 {
-    return (this as PrefixElementImpl).element2;
   }
 }
 
@@ -667,18 +628,6 @@ extension SetterElementImplExtension on SetterElementImpl {
 extension TopLevelFunctionElementImplExtension on TopLevelFunctionElementImpl {
   FunctionElementImpl get asElement {
     return lastFragment;
-  }
-}
-
-extension TopLevelVariableElement2Extension on TopLevelVariableElement2 {
-  TopLevelVariableElement get asElement {
-    return baseElement.firstFragment as TopLevelVariableElement;
-  }
-}
-
-extension TopLevelVariableElementExtension on TopLevelVariableElement {
-  TopLevelVariableElement2 get asElement2 {
-    return (this as TopLevelVariableElementImpl).element;
   }
 }
 

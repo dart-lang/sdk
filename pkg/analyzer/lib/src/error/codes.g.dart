@@ -7049,6 +7049,7 @@ class WarningCode extends ErrorCode {
     "Using multiple 'hide' or 'show' combinators is never necessary and often "
         "produces surprising results.",
     correctionMessage: "Try using a single combinator.",
+    hasPublishedDocs: true,
   );
 
   ///  Generates a warning for classes that inherit from classes annotated with

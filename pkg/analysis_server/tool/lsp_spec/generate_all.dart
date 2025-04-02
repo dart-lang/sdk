@@ -425,6 +425,7 @@ List<LspEntity> getCustomClasses() {
       field('documentation', type: 'string', canBeUndefined: true),
       // TODO(dantup): field('refactors', ...),
       field('arguments', type: 'EditableArgument', array: true),
+      field('range', type: 'Range', comment: 'The range of the invocation.'),
     ]),
     interface('EditableArgument', [
       field(

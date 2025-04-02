@@ -12,22 +12,16 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
-class ClassItem extends TopLevelItem {
-  final List<ManifestTypeParameter> typeParameters;
-  final ManifestType? supertype;
-  final List<ManifestType> interfaces;
-  final List<ManifestType> mixins;
-  final Map<LookupName, InstanceMemberItem> members;
-
+class ClassItem extends InterfaceItem {
   ClassItem({
     required super.libraryUri,
     required super.name,
     required super.id,
-    required this.typeParameters,
-    required this.supertype,
-    required this.interfaces,
-    required this.mixins,
-    required this.members,
+    required super.typeParameters,
+    required super.supertype,
+    required super.interfaces,
+    required super.mixins,
+    required super.members,
   });
 
   factory ClassItem.fromElement({
@@ -45,8 +39,8 @@ class ClassItem extends TopLevelItem {
           id: id,
           typeParameters: typeParameters,
           supertype: element.supertype?.encode(context),
-          interfaces: element.interfaces.encode(context),
           mixins: element.mixins.encode(context),
+          interfaces: element.interfaces.encode(context),
           members: {},
         );
       },
@@ -58,45 +52,22 @@ class ClassItem extends TopLevelItem {
       libraryUri: reader.readUri(),
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
-      typeParameters: reader.readTypedList(
-        () => ManifestTypeParameter.read(reader),
-      ),
-      supertype: reader.readOptionalObject(() => ManifestType.read(reader)),
-      interfaces: reader.readTypedList(() => ManifestType.read(reader)),
-      mixins: reader.readTypedList(() => ManifestType.read(reader)),
-      members: reader.readMap(
-        readKey: () => LookupName.read(reader),
-        readValue: () => InstanceMemberItem.read(reader),
-      ),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      members: InstanceItem._readMembers(reader),
+      supertype: ManifestType.readOptional(reader),
+      mixins: ManifestType.readList(reader),
+      interfaces: ManifestType.readList(reader),
     );
   }
 
   MatchContext? match(ClassElementImpl2 element) {
-    var context = MatchContext(parent: null);
-    context.addTypeParameters(element.typeParameters2);
-    if (supertype.match(context, element.supertype) &&
-        interfaces.match(context, element.interfaces) &&
-        mixins.match(context, element.mixins)) {
-      return context;
-    }
-    return null;
+    return super._matchInterfaceElement(element);
   }
 
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.class_);
-    sink.writeUri(libraryUri);
-    name.write(sink);
-    id.write(sink);
-    sink.writeList(typeParameters, (e) => e.write(sink));
-    sink.writeOptionalObject(supertype, (x) => x.write(sink));
-    sink.writeList(interfaces, (x) => x.write(sink));
-    sink.writeList(mixins, (x) => x.write(sink));
-    sink.writeMap(
-      members,
-      writeKey: (name) => name.write(sink),
-      writeValue: (member) => member.write(sink),
-    );
+    super._write(sink);
   }
 }
 
@@ -171,6 +142,41 @@ class InstanceGetterItem extends InstanceMemberItem {
     name.write(sink);
     id.write(sink);
     returnType.write(sink);
+  }
+}
+
+/// The item for [InstanceElementImpl2].
+sealed class InstanceItem extends TopLevelItem {
+  final List<ManifestTypeParameter> typeParameters;
+  final Map<LookupName, InstanceMemberItem> members;
+
+  InstanceItem({
+    required super.libraryUri,
+    required super.name,
+    required super.id,
+    required this.typeParameters,
+    required this.members,
+  });
+
+  void _write(BufferedSink sink) {
+    sink.writeUri(libraryUri);
+    name.write(sink);
+    id.write(sink);
+    typeParameters.writeList(sink);
+    sink.writeMap(
+      members,
+      writeKey: (name) => name.write(sink),
+      writeValue: (member) => member.write(sink),
+    );
+  }
+
+  static Map<LookupName, InstanceMemberItem> _readMembers(
+    SummaryDataReader reader,
+  ) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => InstanceMemberItem.read(reader),
+    );
   }
 }
 
@@ -310,6 +316,43 @@ class InterfaceConstructorItem extends InstanceMemberItem {
     sink.writeBool(isConst);
     sink.writeBool(isFactory);
     functionType.write(sink);
+  }
+}
+
+/// The item for [InterfaceElementImpl2].
+sealed class InterfaceItem extends InstanceItem {
+  final ManifestType? supertype;
+  final List<ManifestType> interfaces;
+  final List<ManifestType> mixins;
+
+  InterfaceItem({
+    required super.libraryUri,
+    required super.name,
+    required super.id,
+    required super.typeParameters,
+    required super.members,
+    required this.supertype,
+    required this.interfaces,
+    required this.mixins,
+  });
+
+  MatchContext? _matchInterfaceElement(InterfaceElementImpl2 element) {
+    var context = MatchContext(parent: null);
+    context.addTypeParameters(element.typeParameters2);
+    if (supertype.match(context, element.supertype) &&
+        interfaces.match(context, element.interfaces) &&
+        mixins.match(context, element.mixins)) {
+      return context;
+    }
+    return null;
+  }
+
+  @override
+  void _write(BufferedSink sink) {
+    super._write(sink);
+    supertype.writeOptional(sink);
+    mixins.writeList(sink);
+    interfaces.writeList(sink);
   }
 }
 

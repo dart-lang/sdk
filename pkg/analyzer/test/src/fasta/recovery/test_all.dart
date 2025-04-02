@@ -10,6 +10,7 @@ import 'invalid_code_test.dart' as invalid_code_test;
 import 'missing_code_test.dart' as missing_code;
 import 'paired_tokens_test.dart' as paired_tokens;
 import 'partial_code/test_all.dart' as partial_code;
+import 'result_comparator_test.dart' as result_comparator_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -19,5 +20,6 @@ main() {
     missing_code.main();
     paired_tokens.main();
     partial_code.main();
+    result_comparator_test.main();
   }, name: 'recovery');
 }

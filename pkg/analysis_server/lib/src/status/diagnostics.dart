@@ -16,6 +16,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
+import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
@@ -568,6 +569,9 @@ class CollectReportPage extends DiagnosticPage {
       collectedData['clientDiagnosticInformation'] =
           server.clientDiagnosticInformation;
     }
+
+    collectedData['allowOverlappingHandlers'] =
+        MessageScheduler.allowOverlappingHandlers;
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     UsageInfo? usage;
@@ -2051,6 +2055,12 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption('Server type', server.runtimeType));
     // buf.writeln(writeOption('Instrumentation enabled',
     //     AnalysisEngine.instance.instrumentationService.isActive));
+    buf.writeln(
+      writeOption(
+        '(Scheduler) allow overlapping message handlers:',
+        MessageScheduler.allowOverlappingHandlers,
+      ),
+    );
     buf.writeln(writeOption('Server process ID', pid));
     buf.writeln('</div>');
 

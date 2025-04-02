@@ -7,7 +7,6 @@ import 'http_get_vm_rpc_common.dart';
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
-      tests,
+      httpGetVmRpcTests,
       'http_auth_get_vm_rpc_test.dart',
-      testeeBefore: testeeBefore,
     );

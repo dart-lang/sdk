@@ -11,7 +11,7 @@ import '../common/expect.dart';
 import '../common/service_test_common.dart';
 import 'http_request_helpers.dart';
 
-Future<String> getIsolateGroupId(
+Future<String> _getIsolateGroupId(
   Uri serverUri,
 ) async {
   final result = await makeHttpServiceRequest(
@@ -21,30 +21,26 @@ Future<String> getIsolateGroupId(
   return result['isolateGroups'][0]['id'] as String;
 }
 
-Future<void> testeeBefore() async {
-  final info = await waitForServiceInfo();
-  final serverUri = info.serverUri!;
-  try {
-    final result = createServiceObject(
-      await makeHttpServiceRequest(
-        serverUri: serverUri,
-        method: 'getIsolateGroup',
-        params: {'isolateGroupId': await getIsolateGroupId(serverUri)},
-      ),
-      ['IsolateGroup'],
-    )! as IsolateGroup;
-    Expect.isTrue(result.id!.startsWith('isolateGroups/'));
-    Expect.isNotNull(result.number);
-    Expect.isFalse(result.isSystemIsolateGroup);
-    Expect.isTrue(result.isolates!.isNotEmpty);
-  } catch (e) {
-    fail('invalid request: $e');
-  }
-}
+final httpGetIsolateGroupRpcTests = <IsolateTest>[
+  (VmService service, _) async {
+    final wsUri = Uri.parse(service.wsUri!);
+    final serverUri = Uri.parse('http://${wsUri.authority}');
 
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolate) async {
-    // Just getting here means that the testee enabled the service protocol
-    // web server.
+    try {
+      final result = createServiceObject(
+        await makeHttpServiceRequest(
+          serverUri: serverUri,
+          method: 'getIsolateGroup',
+          params: {'isolateGroupId': await _getIsolateGroupId(serverUri)},
+        ),
+        ['IsolateGroup'],
+      )! as IsolateGroup;
+      Expect.isTrue(result.id!.startsWith('isolateGroups/'));
+      Expect.isNotNull(result.number);
+      Expect.isFalse(result.isSystemIsolateGroup);
+      Expect.isTrue(result.isolates!.isNotEmpty);
+    } catch (e) {
+      fail('invalid request: $e');
+    }
   }
 ];

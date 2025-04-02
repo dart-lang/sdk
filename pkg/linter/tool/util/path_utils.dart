@@ -3,13 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as path;
 
 String get linterPackageRoot => path.joinAll(_packageRoot);
 
 List<String> get _packageRoot {
-  var parts = path.split(path.dirname(path.fromUri(Platform.script.path)));
+  // Locate the root of the package without using `Platform.script` as it fails
+  // when run through the `dart test`.
+  // https://github.com/dart-lang/test/issues/110
+  var packageLibUri = Isolate.resolvePackageUriSync(
+    Uri.parse('package:linter/'),
+  );
+
+  var parts = path.split(path.dirname(packageLibUri!.toFilePath()));
   while (parts.last != 'linter') {
     parts.removeLast();
     if (parts.isEmpty) {

@@ -64,7 +64,7 @@ void f(InterfaceTypeImpl type) {
   type.element;
 }
 ''',
-      [lint(95, 7)],
+      [error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 95, 7), lint(95, 7)],
     );
   }
 

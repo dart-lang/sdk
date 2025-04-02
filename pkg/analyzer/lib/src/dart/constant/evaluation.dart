@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
@@ -535,6 +533,7 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
   bool get isConstantEvaluated;
 
   /// The library with this constant.
+  @Deprecated('Use library2 instead')
   LibraryElement? get library;
 
   /// The library with this constant.
@@ -3171,7 +3170,7 @@ class _InstanceCreationEvaluator {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
       var superConstructor = superclass
-          .lookUpConstructor2(superName, _constructor.library.asElement2)
+          .lookUpConstructor2(superName, _constructor.library)
           ?.asElement;
       if (superConstructor == null) {
         return null;

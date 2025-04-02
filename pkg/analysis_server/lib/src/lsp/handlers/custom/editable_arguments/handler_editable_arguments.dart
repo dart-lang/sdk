@@ -90,14 +90,15 @@ class EditableArgumentsHandler
     TextDocumentIdentifier textDocument,
     int offset,
   ) {
-    var invocation = getInvocationInfo(result, offset);
-    if (invocation == null) {
+    var invocationInfo = getInvocationInfo(result, offset);
+    if (invocationInfo == null) {
       return null;
     }
 
     var textDocument = server.getVersionedDocumentIdentifier(result.path);
 
     var (
+      :invocation,
       :widgetName,
       :widgetDocumentation,
       :parameters,
@@ -106,7 +107,7 @@ class EditableArgumentsHandler
       :argumentList,
       :numPositionals,
       :numSuppliedPositionals,
-    ) = invocation;
+    ) = invocationInfo;
 
     // Build the complete list of editable arguments.
     //
@@ -135,6 +136,7 @@ class EditableArgumentsHandler
       name: widgetName,
       documentation: widgetDocumentation,
       arguments: editableArguments.nonNulls.toList(),
+      range: toRange(result.lineInfo, invocation.offset, invocation.length),
     );
   }
 

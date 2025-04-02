@@ -7,7 +7,6 @@ import 'http_get_isolate_group_rpc_common.dart';
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
-      tests,
+      httpGetIsolateGroupRpcTests,
       'http_get_isolate_group_rpc_test.dart',
-      testeeBefore: testeeBefore,
     );
