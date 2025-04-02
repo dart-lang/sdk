@@ -8,29 +8,56 @@ import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 
-class ManifestAnnotation extends ManifestNode {
-  final ManifestSimpleIdentifier name;
+sealed class ManifestNode {
+  bool match(MatchContext context, AstNode node);
 
-  ManifestAnnotation({
+  void write(BufferedSink sink);
+
+  static ManifestNode encode(EncodeContext context, AstNode node) {
+    switch (node) {
+      case Annotation():
+        return ManifestNodeAnnotation.encode(context, node);
+      case SimpleIdentifier():
+        return ManifestNodeSimpleIdentifier.encode(context, node);
+      default:
+        throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
+  static ManifestNode read(SummaryDataReader reader) {
+    var kind = reader.readEnum(_ManifestNodeKind.values);
+    switch (kind) {
+      case _ManifestNodeKind.annotation:
+        return ManifestNodeAnnotation.read(reader);
+      case _ManifestNodeKind.simpleIdentifier:
+        return ManifestNodeSimpleIdentifier.read(reader);
+    }
+  }
+}
+
+class ManifestNodeAnnotation extends ManifestNode {
+  final ManifestNodeSimpleIdentifier name;
+
+  ManifestNodeAnnotation({
     required this.name,
   });
 
-  factory ManifestAnnotation.encode(
+  factory ManifestNodeAnnotation.encode(
     EncodeContext context,
     Annotation node,
   ) {
     if (node.name case SimpleIdentifier identifier) {
-      return ManifestAnnotation(
-        name: ManifestSimpleIdentifier.encode(context, identifier),
+      return ManifestNodeAnnotation(
+        name: ManifestNodeSimpleIdentifier.encode(context, identifier),
       );
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
-  factory ManifestAnnotation.read(SummaryDataReader reader) {
-    return ManifestAnnotation(
-      name: ManifestSimpleIdentifier.read(reader),
+  factory ManifestNodeAnnotation.read(SummaryDataReader reader) {
+    return ManifestNodeAnnotation(
+      name: ManifestNodeSimpleIdentifier.read(reader),
     );
   }
 
@@ -54,56 +81,29 @@ class ManifestAnnotation extends ManifestNode {
   }
 }
 
-sealed class ManifestNode {
-  bool match(MatchContext context, AstNode node);
-
-  void write(BufferedSink sink);
-
-  static ManifestNode encode(EncodeContext context, AstNode node) {
-    switch (node) {
-      case Annotation():
-        return ManifestAnnotation.encode(context, node);
-      case SimpleIdentifier():
-        return ManifestSimpleIdentifier.encode(context, node);
-      default:
-        throw UnimplementedError('(${node.runtimeType}) $node');
-    }
-  }
-
-  static ManifestNode read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_ManifestNodeKind.values);
-    switch (kind) {
-      case _ManifestNodeKind.annotation:
-        return ManifestAnnotation.read(reader);
-      case _ManifestNodeKind.simpleIdentifier:
-        return ManifestSimpleIdentifier.read(reader);
-    }
-  }
-}
-
-class ManifestSimpleIdentifier extends ManifestNode {
+class ManifestNodeSimpleIdentifier extends ManifestNode {
   final String name;
   final ManifestElement? element;
 
-  ManifestSimpleIdentifier({
+  ManifestNodeSimpleIdentifier({
     required this.name,
     required this.element,
   });
 
-  factory ManifestSimpleIdentifier.encode(
+  factory ManifestNodeSimpleIdentifier.encode(
     EncodeContext context,
     SimpleIdentifier node,
   ) {
     var element = node.element;
-    return ManifestSimpleIdentifier(
+    return ManifestNodeSimpleIdentifier(
       name: node.name,
       element:
           element != null ? ManifestElement.encode(context, element) : null,
     );
   }
 
-  factory ManifestSimpleIdentifier.read(SummaryDataReader reader) {
-    return ManifestSimpleIdentifier(
+  factory ManifestNodeSimpleIdentifier.read(SummaryDataReader reader) {
+    return ManifestNodeSimpleIdentifier(
       name: reader.readStringUtf8(),
       element: reader.readOptionalObject(
         () => ManifestElement.read(reader),
