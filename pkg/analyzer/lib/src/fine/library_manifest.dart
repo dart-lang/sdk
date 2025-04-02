@@ -124,9 +124,9 @@ class LibraryManifestBuilder {
       element.typeParameters2,
       (typeParameters) {
         classItem.members.clear();
-        _addInterfaceConstructors(
+        _addStaticExecutables(
           encodingContext: encodingContext,
-          interfaceElement: element,
+          instanceElement: element,
           interfaceItem: classItem,
         );
         _addInstanceExecutables(
@@ -144,12 +144,6 @@ class LibraryManifestBuilder {
     required Name nameObj,
     required ExecutableElement2OrMember element,
   }) {
-    // Skip private names, cannot be used outside this library.
-    // TODO(scheglov): reconsider for static that can be reference from const
-    if (!nameObj.isPublic) {
-      return;
-    }
-
     var lookupName = nameObj.name.asLookupName;
 
     switch (element) {
@@ -227,10 +221,6 @@ class LibraryManifestBuilder {
     required ConstructorElementImpl2 element,
     required LookupName lookupName,
   }) {
-    // Constructors can be referenced by constants.
-    // So, we include all of them, including private.
-    // This is a general rule for "static" elements.
-
     var item = _getOrBuildElementItem(element, () {
       return InterfaceConstructorItem.fromElement(
         name: lookupName,
@@ -240,24 +230,6 @@ class LibraryManifestBuilder {
       );
     });
     interfaceItem.members[lookupName] = item;
-  }
-
-  void _addInterfaceConstructors({
-    required EncodeContext encodingContext,
-    required InterfaceElementImpl2 interfaceElement,
-    required ClassItem interfaceItem,
-  }) {
-    for (var constructor in interfaceElement.constructors2) {
-      var lookupName = constructor.name3?.asLookupName;
-      if (lookupName != null) {
-        _addInterfaceConstructor(
-          encodingContext: encodingContext,
-          interfaceItem: interfaceItem,
-          element: constructor,
-          lookupName: lookupName,
-        );
-      }
-    }
   }
 
   void _addReExports() {
@@ -291,6 +263,54 @@ class LibraryManifestBuilder {
           name: name,
           id: id,
         );
+      }
+    }
+  }
+
+  void _addStaticExecutables({
+    required EncodeContext encodingContext,
+    required InstanceElementImpl2 instanceElement,
+    required ClassItem interfaceItem,
+  }) {
+    if (instanceElement is InterfaceElementImpl2) {
+      for (var constructor in instanceElement.constructors2) {
+        var lookupName = constructor.name3?.asLookupName;
+        if (lookupName != null) {
+          _addInterfaceConstructor(
+            encodingContext: encodingContext,
+            interfaceItem: interfaceItem,
+            element: constructor,
+            lookupName: lookupName,
+          );
+        }
+      }
+    }
+
+    for (var getter in instanceElement.getters2) {
+      if (getter.isStatic) {
+        var lookupName = getter.name3?.asLookupName;
+        if (lookupName != null) {
+          _addInstanceGetter(
+            encodingContext: encodingContext,
+            instanceItem: interfaceItem,
+            element: getter,
+            lookupName: lookupName,
+          );
+        }
+      }
+    }
+
+    for (var method in instanceElement.methods2) {
+      if (method.isStatic) {
+        var lookupName = method.name3?.asLookupName;
+        if (lookupName != null) {
+          _addInstanceMethod(
+            encodingContext: encodingContext,
+            instanceItem: interfaceItem,
+            element: method,
+            lookupName: lookupName,
+          );
+        }
       }
     }
   }
@@ -612,6 +632,11 @@ class _LibraryMatch {
       interfaceElement: element,
       item: item,
     );
+    _matchStaticExecutables(
+      matchContext: matchContext,
+      element: element,
+      item: item,
+    );
 
     _matchInstanceExecutables(
       matchContext: matchContext,
@@ -625,15 +650,10 @@ class _LibraryMatch {
   bool _matchInstanceExecutable({
     required MatchContext interfaceMatchContext,
     required Map<LookupName, InstanceMemberItem> members,
-    required Name nameObj,
+    required LookupName lookupName,
     required ExecutableElement2 executable,
   }) {
-    // Skip private names, cannot be used outside this library.
-    if (!nameObj.isPublic) {
-      return true;
-    }
-
-    var item = members[nameObj.name.asLookupName];
+    var item = members[lookupName];
 
     switch (executable) {
       case GetterElement2OrMember():
@@ -685,7 +705,7 @@ class _LibraryMatch {
       if (!_matchInstanceExecutable(
         interfaceMatchContext: matchContext,
         members: item.members,
-        nameObj: nameObj,
+        lookupName: nameObj.name.asLookupName,
         executable: executable,
       )) {
         structureMismatched.add(executable);
@@ -731,6 +751,46 @@ class _LibraryMatch {
         element: constructor,
       )) {
         structureMismatched.add(constructor);
+      }
+    }
+  }
+
+  void _matchStaticExecutables({
+    required MatchContext matchContext,
+    required ClassElementImpl2 element,
+    required ClassItem item,
+  }) {
+    // TODO(scheglov): it looks that we repeat iterations
+    // We do it for structural matching, and then for adding.
+    for (var getters in element.getters2) {
+      if (getters.isStatic) {
+        var lookupName = getters.name3?.asLookupName;
+        if (lookupName != null) {
+          if (!_matchInstanceExecutable(
+            interfaceMatchContext: matchContext,
+            members: item.members,
+            lookupName: lookupName,
+            executable: getters,
+          )) {
+            structureMismatched.add(getters);
+          }
+        }
+      }
+    }
+
+    for (var method in element.methods2) {
+      if (method.isStatic) {
+        var lookupName = method.name3?.asLookupName;
+        if (lookupName != null) {
+          if (!_matchInstanceExecutable(
+            interfaceMatchContext: matchContext,
+            members: item.members,
+            lookupName: lookupName,
+            executable: method,
+          )) {
+            structureMismatched.add(method);
+          }
+        }
       }
     }
   }

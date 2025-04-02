@@ -8474,6 +8474,70 @@ class B extends A<int> {}
     );
   }
 
+  test_manifest_class_getter_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get _foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get _foo => 0;
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+        bar: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get _foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int get _foo => 0;
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+        bar: #M2
+''',
+    );
+  }
+
   test_manifest_class_getter_returnType() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -8505,6 +8569,68 @@ class A {
         supertype: Object @ dart:core
         foo: #M2
           returnType: double @ dart:core
+''',
+    );
+  }
+
+  test_manifest_class_getter_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int get foo => 0;
+  static int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_static_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
 ''',
     );
   }
@@ -8970,6 +9096,70 @@ class A {
     );
   }
 
+  test_manifest_class_method_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void _foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void _foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+        bar: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static void _foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static void _foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+        bar: #M2
+''',
+    );
+  }
+
   test_manifest_class_method_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -9148,6 +9338,32 @@ class A {
     manifest
       A: #M0
         foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_private() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class _A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _A: #M0
+''',
+      updatedCode: r'''
+class _A {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M1
+      _A: #M0
 ''',
     );
   }
@@ -9662,6 +9878,32 @@ void bar() {}
     );
   }
 
+  test_manifest_topLevelFunction_private() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void _foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _foo: #M0
+''',
+      updatedCode: r'''
+void _foo() {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _foo: #M0
+      bar: #M1
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_returnType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -9828,6 +10070,32 @@ int get a => 1;
       expectedUpdatedEvents: r'''
 [operation] readLibraryCycleBundle
   package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_topLevelGetter_private() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get _a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+''',
+      updatedCode: r'''
+int get _a => 0;
+int get b => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+      b: #M1
 ''',
     );
   }
@@ -10001,6 +10269,87 @@ final a = 1;
   package:test/test.dart
     manifest
       a: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_private_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const _a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+''',
+      updatedCode: r'''
+const _a = 0;
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+      b: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_private_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final _a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+''',
+      updatedCode: r'''
+final _a = 0;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+      b: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_private_var() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+var _a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+      _a=: #M1
+''',
+      updatedCode: r'''
+var _a = 0;
+var b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _a: #M0
+      _a=: #M1
+      b: #M2
+      b=: #M3
 ''',
     );
   }
