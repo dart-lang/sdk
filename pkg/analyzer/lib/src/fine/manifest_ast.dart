@@ -50,7 +50,7 @@ class ManifestAnnotation extends ManifestNode {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestNodeKind.annotation);
-    name.write(sink);
+    name.writeNoTag(sink);
   }
 }
 
@@ -136,6 +136,10 @@ class ManifestSimpleIdentifier extends ManifestNode {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestNodeKind.simpleIdentifier);
+    writeNoTag(sink);
+  }
+
+  void writeNoTag(BufferedSink sink) {
     sink.writeStringUtf8(name);
     sink.writeOptionalObject(element, (it) => it.write(sink));
   }

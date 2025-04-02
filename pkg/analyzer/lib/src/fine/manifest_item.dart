@@ -248,7 +248,7 @@ class InstanceMethodItem extends InstanceMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceMethod);
     name.write(sink);
     id.write(sink);
-    functionType.write(sink);
+    functionType.writeNoTag(sink);
   }
 }
 
@@ -315,7 +315,7 @@ class InterfaceConstructorItem extends InstanceMemberItem {
     id.write(sink);
     sink.writeBool(isConst);
     sink.writeBool(isFactory);
-    functionType.write(sink);
+    functionType.writeNoTag(sink);
   }
 }
 
@@ -375,6 +375,10 @@ class ManifestAnnotation {
       return false;
     }
     return true;
+  }
+
+  void write(BufferedSink sink) {
+    ast.write(sink);
   }
 
   static ManifestAnnotation encode(
@@ -441,7 +445,7 @@ class TopLevelFunctionItem extends TopLevelItem {
     sink.writeUri(libraryUri);
     name.write(sink);
     id.write(sink);
-    functionType.write(sink);
+    functionType.writeNoTag(sink);
   }
 }
 
@@ -510,6 +514,7 @@ class TopLevelGetterItem extends TopLevelItem {
     sink.writeUri(libraryUri);
     name.write(sink);
     id.write(sink);
+    sink.writeList(metadata, (annotation) => annotation.write(sink));
     returnType.write(sink);
   }
 }

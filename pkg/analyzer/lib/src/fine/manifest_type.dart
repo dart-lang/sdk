@@ -40,18 +40,6 @@ sealed class ManifestFunctionFormalParameter {
     required this.isRequired,
     required this.type,
   });
-
-  factory ManifestFunctionFormalParameter.read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_ManifestFunctionFormalParameterKind.values);
-    switch (kind) {
-      case _ManifestFunctionFormalParameterKind.positional:
-        return ManifestFunctionPositionalFormalParameter.read(reader);
-      case _ManifestFunctionFormalParameterKind.named:
-        return ManifestFunctionNamedFormalParameter.read(reader);
-    }
-  }
-
-  void write(BufferedSink sink);
 }
 
 class ManifestFunctionNamedFormalParameter
@@ -87,9 +75,7 @@ class ManifestFunctionNamedFormalParameter
         element.name3 == name;
   }
 
-  @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestFunctionFormalParameterKind.named);
     sink.writeBool(isRequired);
     type.write(sink);
     sink.writeStringUtf8(name);
@@ -139,9 +125,7 @@ class ManifestFunctionPositionalFormalParameter
         type.match(context, element.type);
   }
 
-  @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestFunctionFormalParameterKind.positional);
     sink.writeBool(isRequired);
     type.write(sink);
   }
@@ -256,6 +240,10 @@ final class ManifestFunctionType extends ManifestType {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestTypeKind.function);
+    writeNoTag(sink);
+  }
+
+  void writeNoTag(BufferedSink sink) {
     sink.writeList(typeParameters, (e) => e.write(sink));
     returnType.write(sink);
     sink.writeList(positional, (e) => e.write(sink));
@@ -638,7 +626,7 @@ class ManifestTypeParameter {
   }
 
   void write(BufferedSink sink) {
-    sink.writeOptionalObject(bound, (bound) => bound.write(sink));
+    bound.writeOptional(sink);
   }
 
   static bool matchList(
@@ -742,11 +730,6 @@ final class ManifestVoidType extends ManifestType {
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestTypeKind.void_);
   }
-}
-
-enum _ManifestFunctionFormalParameterKind {
-  positional,
-  named,
 }
 
 enum _ManifestTypeKind {
