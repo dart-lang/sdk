@@ -1,6 +1,9 @@
-> [!warning]
-> **Google Summer of Code 2025 is not accepting applications yet**.
+> [!info]
+> **Google Summer of Code 2025 is currently accepting applications until April 8, 2025.**
 
+The list of accepted projects will be announced on [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/organizations/).
+
+📌 See the [official timeline](https://developers.google.com/open-source/gsoc/timeline) for more details.
 ------
 
 A list of Google Summer of Code project ideas for Dart.
