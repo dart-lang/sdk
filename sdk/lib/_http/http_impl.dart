@@ -874,13 +874,13 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       // For basic authentication don't retry already used credentials
       // as they must have already been added to the request causing
       // this authenticate response.
-      if (cr.scheme == _AuthenticationScheme.BASIC && !cr.used) {
+      if (cr.scheme == _AuthenticationScheme.Basic && !cr.used) {
         // Credentials were found, prepare for retrying the request.
         return retry();
       }
 
       // Digest authentication only supports the MD5 algorithm.
-      if (cr.scheme == _AuthenticationScheme.DIGEST) {
+      if (cr.scheme == _AuthenticationScheme.Digest) {
         var algorithm = header.parameters["algorithm"];
         if (algorithm == null || algorithm.toLowerCase() == "md5") {
           var nonce = cr.nonce;
@@ -2390,7 +2390,7 @@ class _HttpClientConnection {
             // requests the client to start using a new nonce for proxy
             // authentication.
             if (proxyCreds != null &&
-                proxyCreds.scheme == _AuthenticationScheme.DIGEST) {
+                proxyCreds.scheme == _AuthenticationScheme.Digest) {
               var authInfo = incoming.headers["proxy-authentication-info"];
               if (authInfo != null && authInfo.length == 1) {
                 var header = _HeaderValue.parse(
@@ -2403,7 +2403,7 @@ class _HttpClientConnection {
             }
             // For digest authentication check if the server requests the
             // client to start using a new nonce.
-            if (creds != null && creds.scheme == _AuthenticationScheme.DIGEST) {
+            if (creds != null && creds.scheme == _AuthenticationScheme.Digest) {
               var authInfo = incoming.headers["authentication-info"];
               if (authInfo != null && authInfo.length == 1) {
                 var header = _HeaderValue.parse(
@@ -3909,45 +3909,37 @@ class _DetachedSocket extends Stream<Uint8List> implements Socket {
   }
 }
 
-class _AuthenticationScheme {
-  final int _scheme;
-
-  static const UNKNOWN = _AuthenticationScheme(-1);
-  static const BASIC = _AuthenticationScheme(0);
-  static const BEARER = _AuthenticationScheme(1);
-  static const DIGEST = _AuthenticationScheme(2);
-
-  const _AuthenticationScheme(this._scheme);
+enum _AuthenticationScheme {
+  Unknown(),
+  Basic(),
+  Bearer(),
+  Digest();
 
   factory _AuthenticationScheme.fromString(String scheme) {
-    if (scheme.toLowerCase() == "basic") return BASIC;
-    if (scheme.toLowerCase() == "bearer") return BEARER;
-    if (scheme.toLowerCase() == "digest") return DIGEST;
-    return UNKNOWN;
+    final lower = scheme.toLowerCase();
+    return _AuthenticationScheme.values
+            .where((e) => e.name.toLowerCase() == lower)
+            .singleOrNull ??
+        Unknown;
   }
 
-  String toString() {
-    if (this == BASIC) return "Basic";
-    if (this == BEARER) return "Bearer";
-    if (this == DIGEST) return "Digest";
-    return "Unknown";
-  }
+  String toString() => name;
 }
 
 abstract class _Credentials {
-  _HttpClientCredentials credentials;
-  String realm;
+  final _HttpClientCredentials credentials;
+  final String realm;
   bool used = false;
 
   // Digest specific fields.
-  String? ha1;
+  late final String? ha1;
   String? nonce;
   String? algorithm;
   String? qop;
   int? nonceCount;
 
   _Credentials(this.credentials, this.realm) {
-    if (credentials.scheme == _AuthenticationScheme.DIGEST) {
+    if (credentials.scheme == _AuthenticationScheme.Digest) {
       // Calculate the H(A1) value once. There is no mentioning of
       // username/password encoding in RFC 2617. However there is an
       // open draft for adding an additional accept-charset parameter to
@@ -3990,7 +3982,7 @@ class _SiteCredentials extends _Credentials {
   void authorize(HttpClientRequest request) {
     // Digest credentials cannot be used without a nonce from the
     // server.
-    if (credentials.scheme == _AuthenticationScheme.DIGEST && nonce == null) {
+    if (credentials.scheme == _AuthenticationScheme.Digest && nonce == null) {
       return;
     }
     credentials.authorize(this, request as _HttpClientRequest);
@@ -4013,7 +4005,7 @@ class _ProxyCredentials extends _Credentials {
   void authorize(HttpClientRequest request) {
     // Digest credentials cannot be used without a nonce from the
     // server.
-    if (credentials.scheme == _AuthenticationScheme.DIGEST && nonce == null) {
+    if (credentials.scheme == _AuthenticationScheme.Digest && nonce == null) {
       return;
     }
     credentials.authorizeProxy(this, request as _HttpClientRequest);
@@ -4033,7 +4025,7 @@ final class _HttpClientBasicCredentials extends _HttpClientCredentials
 
   _HttpClientBasicCredentials(this.username, this.password);
 
-  _AuthenticationScheme get scheme => _AuthenticationScheme.BASIC;
+  _AuthenticationScheme get scheme => _AuthenticationScheme.Basic;
 
   String authorization() {
     // There is no mentioning of username/password encoding in RFC
@@ -4067,7 +4059,7 @@ final class _HttpClientBearerCredentials extends _HttpClientCredentials
     }
   }
 
-  _AuthenticationScheme get scheme => _AuthenticationScheme.BEARER;
+  _AuthenticationScheme get scheme => _AuthenticationScheme.Bearer;
 
   String authorization() {
     return "Bearer $token";
@@ -4089,7 +4081,7 @@ final class _HttpClientDigestCredentials extends _HttpClientCredentials
 
   _HttpClientDigestCredentials(this.username, this.password);
 
-  _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
+  _AuthenticationScheme get scheme => _AuthenticationScheme.Digest;
 
   String authorization(_Credentials credentials, _HttpClientRequest request) {
     String requestUri = request._requestUri();
