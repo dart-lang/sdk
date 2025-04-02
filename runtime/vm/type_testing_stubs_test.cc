@@ -1239,6 +1239,8 @@ const char* kRecordSubtypeRangeCheckScript =
       getRecordType2() => getType<(A, int, String)>();
       @pragma("vm:entry-point", "call")
       getRecordType3() => getType<(int, D)>();
+      @pragma("vm:entry-point", "call")
+      getRecordType4() => getType<(int?, A?)>();
 
       @pragma("vm:entry-point", "call")
       createObj1() => (1, B());
@@ -1256,6 +1258,10 @@ const char* kRecordSubtypeRangeCheckScript =
       createObj7() => (3, D<int>());
       @pragma("vm:entry-point", "call")
       createObj8() => (D<int>(), 3);
+      @pragma("vm:entry-point", "call")
+      createObj9() => (1, null);
+      @pragma("vm:entry-point", "call")
+      createObj10() => (null, null);
 )";
 
 ISOLATE_UNIT_TEST_CASE(TTS_RecordSubtypeRangeCheck) {
@@ -1268,6 +1274,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_RecordSubtypeRangeCheck) {
       Object::Handle(Invoke(root_library, "getRecordType2")));
   const auto& type3 = AbstractType::Cast(
       Object::Handle(Invoke(root_library, "getRecordType3")));
+  const auto& type4 = AbstractType::Cast(
+      Object::Handle(Invoke(root_library, "getRecordType4")));
 
   const auto& obj1 = Object::Handle(Invoke(root_library, "createObj1"));
   const auto& obj2 = Object::Handle(Invoke(root_library, "createObj2"));
@@ -1277,6 +1285,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_RecordSubtypeRangeCheck) {
   const auto& obj6 = Object::Handle(Invoke(root_library, "createObj6"));
   const auto& obj7 = Object::Handle(Invoke(root_library, "createObj7"));
   const auto& obj8 = Object::Handle(Invoke(root_library, "createObj8"));
+  const auto& obj9 = Object::Handle(Invoke(root_library, "createObj9"));
+  const auto& obj10 = Object::Handle(Invoke(root_library, "createObj10"));
 
   const auto& tav_null = TypeArguments::Handle(TypeArguments::null());
 
@@ -1284,10 +1294,14 @@ ISOLATE_UNIT_TEST_CASE(TTS_RecordSubtypeRangeCheck) {
   // (1, 'bye')    as (int, A)
   // (1, foo: B()) as (int, A)
   // (1, B(), 2)   as (int, A)
+  // (1, null)     as (int, A)
+  // (null, null)  as (int, A)
   RunTTSTest(type1, {obj1, tav_null, tav_null});
   RunTTSTest(type1, Failure({obj2, tav_null, tav_null}));
   RunTTSTest(type1, Failure({obj3, tav_null, tav_null}));
   RunTTSTest(type1, Failure({obj4, tav_null, tav_null}));
+  RunTTSTest(type1, Failure({obj9, tav_null, tav_null}));
+  RunTTSTest(type1, Failure({obj10, tav_null, tav_null}));
 
   // (C(), 2, 'hi') as (A, int, String)
   // (D(), 2, 'hi') as (A, int, String)
@@ -1298,6 +1312,15 @@ ISOLATE_UNIT_TEST_CASE(TTS_RecordSubtypeRangeCheck) {
   // (D<int>(), 3) as (int, D)
   RunTTSTest(type3, {obj7, tav_null, tav_null});
   RunTTSTest(type3, Failure({obj8, tav_null, tav_null}));
+
+  // (1, B())      as (int?, A?)
+  // (1, 'bye')    as (int?, A?)
+  // (1, null)     as (int?, A?)
+  // (null, null)  as (int?, A?)
+  RunTTSTest(type4, {obj1, tav_null, tav_null});
+  RunTTSTest(type4, Failure({obj2, tav_null, tav_null}));
+  RunTTSTest(type4, {obj9, tav_null, tav_null});
+  RunTTSTest(type4, {obj10, tav_null, tav_null});
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_Generic_Implements_Instantiated_Interface) {
