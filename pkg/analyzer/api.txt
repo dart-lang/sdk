@@ -740,7 +740,7 @@ package:analyzer/dart/ast/ast.dart:
     period (getter: Token)
   DotShorthandPropertyAccess (class extends Expression, experimental):
     period (getter: Token)
-    propertyName (getter: Token)
+    propertyName (getter: SimpleIdentifier)
   DottedName (class extends Object implements AstNode):
     components (getter: NodeList<SimpleIdentifier>)
   DoubleLiteral (class extends Object implements Literal):
@@ -3095,7 +3095,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: DirectiveUriWithUnit Function())
     libraryFragment (getter: LibraryFragment, experimental)
     unit (getter: CompilationUnitElement, deprecated)
-  Element (class extends Object implements AnalysisTarget):
+  Element (class extends Object implements AnalysisTarget, deprecated):
     new (constructor: Element Function())
     children (getter: List<Element>, deprecated)
     context (getter: AnalysisContext@2)
@@ -5318,6 +5318,9 @@ package:analyzer/src/task/api/model.dart:
     source (getter: Source?)
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
+package:analyzer/utilities/extensions/element.dart:
+  LibraryElement2Extensions (extension on LibraryElement2):
+    exportedExtensions (getter: Iterable<ExtensionElement2>)
 package:analyzer/utilities/extensions/uri.dart:
   UriExtension (extension on Uri):
     isImplementation (getter: bool)

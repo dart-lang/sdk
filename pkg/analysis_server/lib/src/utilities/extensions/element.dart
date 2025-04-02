@@ -87,13 +87,6 @@ extension FragmentExtensions on Fragment {
   }
 }
 
-extension LibraryElementExtensions on LibraryElement2 {
-  /// Return all extensions exported from this library.
-  Iterable<ExtensionElement2> get exportedExtensions {
-    return exportNamespace.definedNames2.values.whereType();
-  }
-}
-
 extension MethodElementExtensions on MethodElement2 {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.

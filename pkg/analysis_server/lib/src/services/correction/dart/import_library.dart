@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/iterable.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
+import 'package:analyzer/utilities/extensions/element.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -508,7 +508,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       dartFixContext.unitResult.libraryElement2,
       memberName,
     );
-    await for (var libraryToImport in librariesWithExtensions(memberName)) {
+    await for (var libraryToImport in librariesWithExtensions(name)) {
       names.addAll(
         _namesForExtensionInLibrary(libraryToImport, finalTargetType, name),
       );

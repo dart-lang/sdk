@@ -779,7 +779,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(String memberName) {
+  Stream<LibraryElement2> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
   }
 }

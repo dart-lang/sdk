@@ -725,8 +725,13 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool? visitDotShorthandPropertyAccess(
-          covariant DotShorthandPropertyAccessImpl node) =>
-      visitNode(node);
+      covariant DotShorthandPropertyAccessImpl node) {
+    if (identical(node.propertyName, _oldNode)) {
+      node.propertyName = _newNode as SimpleIdentifierImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
 
   @override
   bool visitDottedName(covariant DottedNameImpl node) {
