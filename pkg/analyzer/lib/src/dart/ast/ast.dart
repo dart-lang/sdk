@@ -5479,7 +5479,7 @@ abstract final class DotShorthandPropertyAccess extends Expression {
   Token get period;
 
   /// The name of the property being accessed.
-  Token get propertyName;
+  SimpleIdentifier get propertyName;
 }
 
 final class DotShorthandPropertyAccessImpl extends ExpressionImpl
@@ -5487,28 +5487,36 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @override
   final Token period;
 
-  @override
-  final Token propertyName;
+  SimpleIdentifierImpl _propertyName;
 
   /// Initializes a newly created dot shorthand property access.
   DotShorthandPropertyAccessImpl({
     required this.period,
-    required this.propertyName,
-  });
+    required SimpleIdentifierImpl propertyName,
+  }) : _propertyName = propertyName {
+    _becomeParentOf(_propertyName);
+  }
 
   @override
   Token get beginToken => period;
 
   @override
-  Token get endToken => propertyName;
+  Token get endToken => propertyName.endToken;
 
   @override
   Precedence get precedence => Precedence.postfix;
 
   @override
+  SimpleIdentifierImpl get propertyName => _propertyName;
+
+  set propertyName(SimpleIdentifierImpl identifier) {
+    _propertyName = _becomeParentOf(identifier);
+  }
+
+  @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
-    ..addToken('propertyName', propertyName);
+    ..addNode('propertyName', propertyName);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -5520,7 +5528,9 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    propertyName.accept(visitor);
+  }
 }
 
 /// A dotted name, used in a configuration within an import or export directive.
