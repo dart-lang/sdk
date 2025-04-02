@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -27,7 +25,7 @@ class ConstructorMember extends ExecutableMember
         ConstructorElementMixin,
         ConstructorElementMixin2
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ConstructorElement,
         ConstructorElement2 {
   /// Initialize a newly created element to represent a constructor, based on
@@ -529,6 +527,8 @@ class FieldMember extends VariableMember
   @override
   InstanceElement2 get enclosingElement2 => _element2.enclosingElement2;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -785,7 +785,11 @@ class GetterMember extends PropertyAccessorMember
 
 /// An element defined in a parameterized type where the values of the type
 /// parameters are known.
-abstract class Member implements Element, ElementOrMember {
+abstract class Member
+    implements
+        // ignore:analyzer_use_new_elements
+        Element,
+        ElementOrMember {
   /// The element on which the parameterized element was created.
   final ElementImpl _declaration;
 
@@ -822,6 +826,8 @@ abstract class Member implements Element, ElementOrMember {
   @override
   String? get documentationComment => _declaration.documentationComment;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element? get enclosingElement3 => _declaration.enclosingElement3;
 
@@ -945,6 +951,7 @@ abstract class Member implements Element, ElementOrMember {
   @override
   int get nameOffset => _declaration.nameOffset;
 
+  @Deprecated('Use Element2.nonSynthetic instead')
   @override
   Element get nonSynthetic => _declaration.nonSynthetic;
 
@@ -1062,6 +1069,8 @@ class MethodMember extends ExecutableMember
   @override
   MethodElementImpl get declaration => _declaration as MethodElementImpl;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -1129,7 +1138,7 @@ class ParameterMember extends VariableMember
         ParameterElementMixin,
         FormalParameterElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ParameterElement {
   @override
   final List<TypeParameterElementImpl> typeParameters;
@@ -1189,6 +1198,8 @@ class ParameterMember extends VariableMember
   @override
   Element2? get enclosingElement2 => _element2.enclosingElement2;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element? get enclosingElement3 => declaration.enclosingElement3;
 
@@ -1403,6 +1414,8 @@ abstract class PropertyAccessorMember extends ExecutableMember
     return super.enclosingElement2!;
   }
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 

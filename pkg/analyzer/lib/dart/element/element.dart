@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// Defines the element model. The element model describes the semantic (as
 /// opposed to syntactic) structure of Dart code. The syntactic structure of the
 /// code is modeled by the [AST
 /// structure](../dart_ast_ast/dart_ast_ast-library.html).
 ///
 /// The element model consists of two closely related kinds of objects: elements
-/// (instances of a subclass of [Element]) and types. This library defines the
+/// (instances of a subclass of `Element`) and types. This library defines the
 /// elements, the types are defined in
 /// [type.dart](../dart_element_type/dart_element_type-library.html).
 ///
@@ -22,8 +20,7 @@
 /// children of the element representing the class.
 ///
 /// Every complete element structure is rooted by an instance of the class
-// ignore:deprecated_member_use_from_same_package
-/// [LibraryElement]. A library element represents a single Dart library. Every
+/// `LibraryElement`. A library element represents a single Dart library. Every
 /// library is defined by one or more compilation units (the library and all of
 /// its parts). The compilation units are represented by the class
 /// `CompilationUnitElement` and are children of the library that is defined by
@@ -344,7 +341,7 @@ abstract class DirectiveUri {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
   /// The library referenced by the [source].
-  @Deprecated('Use library2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   LibraryElement get library;
 
   /// The library referenced by the [source].
@@ -416,7 +413,7 @@ abstract class Element implements AnalysisTarget {
   /// A list of this element's children.
   ///
   /// There is no guarantee of the order in which the children will be included.
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   List<Element> get children;
 
   /// The analysis context in which this element is defined.
@@ -429,6 +426,7 @@ abstract class Element implements AnalysisTarget {
   /// from the class, without any substitutions. If this element is already a
   /// declaration (or a synthetic element, e.g. a synthetic property accessor),
   /// return itself.
+  @Deprecated(elementModelDeprecationMsg)
   Element? get declaration;
 
   /// The display name of this element, possibly the empty string if the
@@ -569,7 +567,7 @@ abstract class Element implements AnalysisTarget {
   /// This will be the element itself if it is a library element. This will be
   /// `null` if this element is [MultiplyDefinedElement2] that is not contained
   /// in a library.
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   LibraryElement? get library;
 
   /// The location of this element in the element model.
@@ -603,6 +601,7 @@ abstract class Element implements AnalysisTarget {
   /// element is returned. For example, for a synthetic getter of a
   /// non-synthetic field the field is returned; for a synthetic constructor
   /// the enclosing class is returned.
+  @Deprecated(elementModelDeprecationMsg)
   Element get nonSynthetic;
 
   /// The analysis session in which this element is defined.
@@ -672,7 +671,7 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   bool isAccessibleIn(LibraryElement library);
 
   /// Returns either this element or the most immediate ancestor of this element
@@ -998,18 +997,6 @@ class ElementKind implements Comparable<ElementKind> {
 
   @override
   String toString() => name;
-
-  /// Returns the kind of the given [element], or [ERROR] if the element is
-  /// `null`.
-  ///
-  /// This is a utility method that can reduce the need for null checks in
-  /// other places.
-  static ElementKind of(Element? element) {
-    if (element == null) {
-      return ERROR;
-    }
-    return element.kind;
-  }
 }
 
 /// The location of an element within the element model.
@@ -2316,6 +2303,7 @@ abstract class UndefinedElement implements Element {}
 /// An element included into a library using some URI.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use Element2 instead')
 abstract class UriReferencedElement implements _ExistingElement {
   /// The URI that is used to include this element into the enclosing library,
   /// or `null` if this is the defining compilation unit of a library.
@@ -2383,13 +2371,15 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
 
 /// This class exists to provide non-nullable overrides for existing elements,
 /// as opposite to artificial "multiply defined" element.
+@Deprecated('Use Element2 instead')
 @AnalyzerPublicApi(
     message: 'Exposed because it is implemented by various elements')
 abstract class _ExistingElement implements Element {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   Element get declaration;
 
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   @override
   LibraryElement get library;
 

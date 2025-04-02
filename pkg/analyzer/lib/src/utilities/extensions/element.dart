@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -188,6 +186,7 @@ extension Element2Extension on Element2 {
 }
 
 extension Element2OrNullExtension on Element2? {
+  @Deprecated('Use Element2 instead')
   Element? get asElement {
     var self = this;
     switch (self) {
@@ -243,8 +242,6 @@ extension Element2OrNullExtension on Element2? {
         throw UnsupportedError('Unsupported type: $runtimeType');
     }
   }
-
-  ElementImpl? get asElementImpl => asElement as ElementImpl;
 }
 
 extension ElementImplExtension on ElementImpl {
@@ -255,6 +252,7 @@ extension ElementImplExtension on ElementImpl {
   }
 }
 
+@Deprecated('Use Element2 instead')
 extension ElementOrNullExtension on Element? {
   Element2? get asElement2 {
     var self = this;
@@ -339,9 +337,10 @@ extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
   }
 
   ExecutableElementImpl get declarationImpl =>
-      declaration as ExecutableElementImpl;
+      asElement2.baseElement.firstFragment as ExecutableElementImpl;
 
-  ElementImpl get enclosingElementImpl => enclosingElement3 as ElementImpl;
+  ElementImpl get enclosingElementImpl =>
+      asElement2.enclosingElement2!.firstFragment as ElementImpl;
 }
 
 extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {

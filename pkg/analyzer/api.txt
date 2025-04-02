@@ -3099,7 +3099,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: Element Function())
     children (getter: List<Element>, deprecated)
     context (getter: AnalysisContext@2)
-    declaration (getter: Element?)
+    declaration (getter: Element?, deprecated)
     displayName (getter: String)
     documentationComment (getter: String?)
     enclosingElement3 (getter: Element?, deprecated)
@@ -3141,7 +3141,7 @@ package:analyzer/dart/element/element.dart:
     name (getter: String?)
     nameLength (getter: int)
     nameOffset (getter: int)
-    nonSynthetic (getter: Element)
+    nonSynthetic (getter: Element, deprecated)
     session (getter: AnalysisSession?)
     sinceSdkVersion (getter: Version?)
     source (getter: Source?)
@@ -3227,7 +3227,6 @@ package:analyzer/dart/element/element.dart:
     TYPE_PARAMETER (static getter: ElementKind)
     UNIVERSE (static getter: ElementKind)
     values (static getter: List<ElementKind>)
-    of (static method: ElementKind Function(Element?))
     new (constructor: ElementKind Function(String, int, String))
     displayName (getter: String)
     name (getter: String)
@@ -3522,7 +3521,7 @@ package:analyzer/dart/element/element.dart:
     typeParameters (getter: List<TypeParameterElement>, deprecated)
   UndefinedElement (class extends Object implements Element, deprecated):
     new (constructor: UndefinedElement Function())
-  UriReferencedElement (class extends Object implements _ExistingElement):
+  UriReferencedElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: UriReferencedElement Function())
     uri (getter: String?)
     uriEnd (getter: int)
@@ -3538,9 +3537,9 @@ package:analyzer/dart/element/element.dart:
     name (getter: String)
     type (getter: DartType)
     computeConstantValue (method: DartObject? Function())
-  _ExistingElement (class extends Object implements Element):
+  _ExistingElement (class extends Object implements Element, deprecated):
     new (constructor: _ExistingElement Function())
-    declaration (getter: Element)
+    declaration (getter: Element, deprecated)
     library (getter: LibraryElement, deprecated)
     librarySource (getter: Source)
     source (getter: Source)
