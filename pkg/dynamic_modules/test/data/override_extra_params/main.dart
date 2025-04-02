@@ -12,5 +12,7 @@ import 'shared/shared.dart' show Base;
 void main() async {
   final o = (await helper.load('entry1.dart')) as Base;
   Expect.equals(1, o.method1(1));
+  Expect.equals(5, o.method2(2, j: 3));
+  Expect.equals(5, o.method3<num>(2, j: 3));
   helper.done();
 }
