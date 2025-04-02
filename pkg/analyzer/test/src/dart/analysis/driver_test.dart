@@ -9861,6 +9861,81 @@ double get a => 0;
     );
   }
 
+  test_manifest_topLevelSetter_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+set a(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+''',
+      updatedCode: r'''
+set a(int _) {}
+set b(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+      b=: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelSetter_body() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+set a(int _) { 0; }
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+''',
+      updatedCode: r'''
+set a(int _) { 1; }
+''',
+      expectedUpdatedEvents: r'''
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_topLevelSetter_valueType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+set a(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+        valueType: int @ dart:core
+''',
+      updatedCode: r'''
+set a(double _) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M1
+        valueType: double @ dart:core
+''',
+    );
+  }
+
   test_manifest_topLevelVariable_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -9946,6 +10021,7 @@ int? a;
   package:test/test.dart
     manifest
       a: #M0
+      a=: #M1
 ''',
       updatedCode: r'''
 double? a;
@@ -9954,7 +10030,8 @@ double? a;
 [operation] linkLibraryCycle
   package:test/test.dart
     manifest
-      a: #M1
+      a: #M2
+      a=: #M3
 ''',
     );
   }
@@ -9962,7 +10039,7 @@ double? a;
   test_manifest_type_dynamicType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-dynamic a = 0;
+final dynamic a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -9972,7 +10049,7 @@ dynamic a = 0;
       a: #M0
 ''',
       updatedCode: r'''
-dynamic a = 0;
+final dynamic a = 0;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -9988,7 +10065,7 @@ final b = 0;
   test_manifest_type_dynamicType_to_interfaceType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-dynamic a = 0;
+final dynamic a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -9998,7 +10075,7 @@ dynamic a = 0;
       a: #M0
 ''',
       updatedCode: r'''
-int a = 0;
+final int a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10012,7 +10089,7 @@ int a = 0;
   test_manifest_type_functionType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-int Function() a;
+final int Function() a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10022,7 +10099,7 @@ int Function() a;
       a: #M0
 ''',
       updatedCode: r'''
-int Function() a;
+final int Function() a;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10038,7 +10115,7 @@ final b = 0;
   test_manifest_type_functionType_named() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function({int p1}) a;
+final void Function({int p1}) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10048,7 +10125,7 @@ void Function({int p1}) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function({int p1}) a;
+final void Function({int p1}) a;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10064,7 +10141,7 @@ final b = 0;
   test_manifest_type_functionType_named_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function({int p1}) a;
+final void Function({int p1}) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10074,7 +10151,7 @@ void Function({int p1}) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function({int p1, double p2}) a;
+final void Function({int p1, double p2}) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10088,7 +10165,7 @@ void Function({int p1, double p2}) a;
   test_manifest_type_functionType_named_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function({int p1, double p2}) a;
+final void Function({int p1, double p2}) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10098,7 +10175,7 @@ void Function({int p1, double p2}) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function({int p1}) a;
+final void Function({int p1}) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10112,7 +10189,7 @@ void Function({int p1}) a;
   test_manifest_type_functionType_named_toPositional() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function({int p}) a;
+final void Function({int p}) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10122,7 +10199,7 @@ void Function({int p}) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function(int p) a;
+final void Function(int p) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10136,7 +10213,7 @@ void Function(int p) a;
   test_manifest_type_functionType_named_toRequiredFalse() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function({required int p1}) a;
+final void Function({required int p1}) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10146,7 +10223,7 @@ void Function({required int p1}) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function({int p1}) a;
+final void Function({int p1}) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10160,7 +10237,7 @@ void Function({int p1}) a;
   test_manifest_type_functionType_named_toRequiredTrue() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function({int p1}) a;
+final void Function({int p1}) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10170,7 +10247,7 @@ void Function({int p1}) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function({required int p1}) a;
+final void Function({required int p1}) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10184,7 +10261,7 @@ void Function({required int p1}) a;
   test_manifest_type_functionType_named_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function({int p1}) a;
+final void Function({int p1}) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10194,7 +10271,7 @@ void Function({int p1}) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function({double p1}) a;
+final void Function({double p1}) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10208,7 +10285,7 @@ void Function({double p1}) a;
   test_manifest_type_functionType_nullabilitySuffix() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-int Function() a;
+final int Function() a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10218,7 +10295,7 @@ int Function() a;
       a: #M0
 ''',
       updatedCode: r'''
-int Function()? a;
+final int Function()? a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10232,7 +10309,7 @@ int Function()? a;
   test_manifest_type_functionType_positional() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function(int p1) a;
+final void Function(int p1) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10242,7 +10319,7 @@ void Function(int p1) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function(int p1) a;
+final void Function(int p1) a;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10258,7 +10335,7 @@ final b = 0;
   test_manifest_type_functionType_positional_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function(int p1) a;
+final void Function(int p1) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10268,7 +10345,7 @@ void Function(int p1) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function(int p1, double p2) a;
+final void Function(int p1, double p2) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10282,7 +10359,7 @@ void Function(int p1, double p2) a;
   test_manifest_type_functionType_positional_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function(int p1, double p2) a;
+final void Function(int p1, double p2) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10292,7 +10369,7 @@ void Function(int p1, double p2) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function(int p1) a;
+final void Function(int p1) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10306,7 +10383,7 @@ void Function(int p1) a;
   test_manifest_type_functionType_positional_toNamed() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function(int p) a;
+final void Function(int p) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10316,7 +10393,7 @@ void Function(int p) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function({int p}) a;
+final void Function({int p}) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10330,7 +10407,7 @@ void Function({int p}) a;
   test_manifest_type_functionType_positional_toRequiredFalse() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function(int p1) a;
+final void Function(int p1) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10340,7 +10417,7 @@ void Function(int p1) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function([int p1]) a;
+final void Function([int p1]) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10354,7 +10431,7 @@ void Function([int p1]) a;
   test_manifest_type_functionType_positional_toRequiredTrue() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function([int p1]) a;
+final void Function([int p1]) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10364,7 +10441,7 @@ void Function([int p1]) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function(int p1) a;
+final void Function(int p1) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10378,7 +10455,7 @@ void Function(int p1) a;
   test_manifest_type_functionType_positional_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function(int p1) a;
+final void Function(int p1) a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10388,7 +10465,7 @@ void Function(int p1) a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function(double p1) a;
+final void Function(double p1) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10402,7 +10479,7 @@ void Function(double p1) a;
   test_manifest_type_functionType_returnType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-int Function() a;
+final int Function() a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10412,7 +10489,7 @@ int Function() a;
       a: #M0
 ''',
       updatedCode: r'''
-double Function() a;
+final double Function() a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10426,7 +10503,7 @@ double Function() a;
   test_manifest_type_functionType_typeParameter() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-T Function<T>() a;
+final T Function<T>() a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10436,7 +10513,7 @@ T Function<T>() a;
       a: #M0
 ''',
       updatedCode: r'''
-T Function<T>() a;
+final T Function<T>() a;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10452,7 +10529,7 @@ final b = 0;
   test_manifest_type_functionType_typeParameter_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function<E1>() a;
+final void Function<E1>() a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10462,7 +10539,7 @@ void Function<E1>() a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function<E1, E2>() a;
+final void Function<E1, E2>() a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10476,7 +10553,7 @@ void Function<E1, E2>() a;
   test_manifest_type_functionType_typeParameter_bound() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-T Function<T extends int>() a;
+final T Function<T extends int>() a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10486,7 +10563,7 @@ T Function<T extends int>() a;
       a: #M0
 ''',
       updatedCode: r'''
-T Function<T extends double>() a;
+final T Function<T extends double>() a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10500,7 +10577,7 @@ T Function<T extends double>() a;
   test_manifest_type_functionType_typeParameter_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void Function<E1, E2>() a;
+final void Function<E1, E2>() a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10510,7 +10587,7 @@ void Function<E1, E2>() a;
       a: #M0
 ''',
       updatedCode: r'''
-void Function<E1>() a;
+final void Function<E1>() a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10524,7 +10601,7 @@ void Function<E1>() a;
   test_manifest_type_interfaceType_element() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-int a = 0;
+final int a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10534,7 +10611,7 @@ int a = 0;
       a: #M0
 ''',
       updatedCode: r'''
-double a = 0;
+final double a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10548,7 +10625,7 @@ double a = 0;
   test_manifest_type_interfaceType_nullabilitySuffix() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-int a = 0;
+final int a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10558,7 +10635,7 @@ int a = 0;
       a: #M0
 ''',
       updatedCode: r'''
-int? a = 0;
+final int? a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10572,7 +10649,7 @@ int? a = 0;
   test_manifest_type_interfaceType_typeArguments() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-List<int> a = 0;
+final List<int> a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10582,7 +10659,7 @@ List<int> a = 0;
       a: #M0
 ''',
       updatedCode: r'''
-List<double> a = 0;
+final List<double> a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10596,7 +10673,7 @@ List<double> a = 0;
   test_manifest_type_invalidType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-NotType a = 0;
+final NotType a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10606,7 +10683,7 @@ NotType a = 0;
       a: #M0
 ''',
       updatedCode: r'''
-NotType a = 0;
+final NotType a = 0;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10622,7 +10699,7 @@ final b = 0;
   test_manifest_type_neverType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-Never a;
+final Never a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10632,7 +10709,7 @@ Never a;
       a: #M0
 ''',
       updatedCode: r'''
-Never a;
+final Never a;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10648,7 +10725,7 @@ final b = 0;
   test_manifest_type_neverType_nullabilitySuffix() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-Never a;
+final Never a;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10658,7 +10735,7 @@ Never a;
       a: #M0
 ''',
       updatedCode: r'''
-Never? a;
+final Never? a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10672,7 +10749,7 @@ Never? a;
   test_manifest_type_recordType_namedFields() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-({int f1}) a = 0;
+final ({int f1}) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10682,7 +10759,7 @@ Never? a;
       a: #M0
 ''',
       updatedCode: r'''
-({int f1}) a = 0;
+final ({int f1}) a = 0;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10698,7 +10775,7 @@ final b = 0;
   test_manifest_type_recordType_namedFields_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-({int f1}) a = 0;
+final ({int f1}) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10708,7 +10785,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-({int f1, double f2}) a = 0;
+final ({int f1, double f2}) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10722,7 +10799,7 @@ final b = 0;
   test_manifest_type_recordType_namedFields_name() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-({int f1}) a = 0;
+final ({int f1}) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10732,7 +10809,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-({int f2}) a = 0;
+final ({int f2}) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10746,7 +10823,7 @@ final b = 0;
   test_manifest_type_recordType_namedFields_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-({int f1, double f2}) a = 0;
+final ({int f1, double f2}) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10756,7 +10833,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-({int f1}) a = 0;
+final ({int f1}) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10770,7 +10847,7 @@ final b = 0;
   test_manifest_type_recordType_namedFields_reorder() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-({int f1, double f2}) a = 0;
+final ({int f1, double f2}) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10780,7 +10857,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-({double f2, int f1}) a = 0;
+final ({double f2, int f1}) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10794,7 +10871,7 @@ final b = 0;
   test_manifest_type_recordType_namedFields_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-({int f1}) a = 0;
+final ({int f1}) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10804,7 +10881,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-({double f1}) a = 0;
+final ({double f1}) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10818,7 +10895,7 @@ final b = 0;
   test_manifest_type_recordType_nullabilitySuffix() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-(int,) a = 0;
+final (int,) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10828,7 +10905,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-(int,)? a = 0;
+final (int,)? a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10842,7 +10919,7 @@ final b = 0;
   test_manifest_type_recordType_positionalFields() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-(int,) a = 0;
+final (int,) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10852,7 +10929,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-(int,) a = 0;
+final (int,) a = 0;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''
@@ -10868,7 +10945,7 @@ final b = 0;
   test_manifest_type_recordType_positionalFields_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-(int,) a = 0;
+final (int,) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10878,7 +10955,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-(int, double) a = 0;
+final (int, double) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10892,7 +10969,7 @@ final b = 0;
   test_manifest_type_recordType_positionalFields_name() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-(int x,) a = 0;
+final (int x,) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10902,7 +10979,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-(int y,) a = 0;
+final (int y,) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10916,7 +10993,7 @@ final b = 0;
   test_manifest_type_recordType_positionalFields_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-(int, double) a = 0;
+final (int, double) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10926,7 +11003,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-(int,) a = 0;
+final (int,) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10940,7 +11017,7 @@ final b = 0;
   test_manifest_type_recordType_positionalFields_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-(int,) a = 0;
+final (int,) a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10950,7 +11027,7 @@ final b = 0;
       a: #M0
 ''',
       updatedCode: r'''
-(double,) a = 0;
+final (double,) a = 0;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -10964,7 +11041,7 @@ final b = 0;
   test_manifest_type_voidType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
-void a = 0;
+final void a = 0;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -10974,7 +11051,7 @@ void a = 0;
       a: #M0
 ''',
       updatedCode: r'''
-void a = 0;
+final void a = 0;
 final b = 0;
 ''',
       expectedUpdatedEvents: r'''

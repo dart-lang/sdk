@@ -325,6 +325,23 @@ class LibraryManifestBuilder {
     newItems[lookupName] = item;
   }
 
+  void _addTopLevelSetter({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TopLevelItem> newItems,
+    required SetterElementImpl element,
+    required LookupName lookupName,
+  }) {
+    var item = _getOrBuildElementItem(element, () {
+      return TopLevelSetterItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    newItems[lookupName] = item;
+  }
+
   /// Fill `result` with new library manifests.
   /// We reuse existing items when they fully match.
   /// We build new items for mismatched elements.
@@ -352,6 +369,13 @@ class LibraryManifestBuilder {
             );
           case GetterElementImpl():
             _addTopLevelGetter(
+              encodingContext: encodingContext,
+              newItems: newItems,
+              element: element,
+              lookupName: lookupName,
+            );
+          case SetterElementImpl():
+            _addTopLevelSetter(
               encodingContext: encodingContext,
               newItems: newItems,
               element: element,
@@ -522,6 +546,10 @@ class _LibraryMatch {
           }
         case GetterElementImpl():
           if (!_matchTopGetter(name: name, element: element)) {
+            structureMismatched.add(element);
+          }
+        case SetterElementImpl():
+          if (!_matchTopSetter(name: name, element: element)) {
             structureMismatched.add(element);
           }
         case TopLevelFunctionElementImpl():
@@ -705,6 +733,26 @@ class _LibraryMatch {
   }) {
     var item = manifest.items[name];
     if (item is! TopLevelGetterItem) {
+      return false;
+    }
+
+    var matchContext = item.match(element);
+    if (matchContext == null) {
+      return false;
+    }
+
+    itemMap[element] = item;
+    refElementsMap[element] = matchContext.elementList;
+    refExternalIds.addAll(matchContext.externalIds);
+    return true;
+  }
+
+  bool _matchTopSetter({
+    required LookupName? name,
+    required SetterElementImpl element,
+  }) {
+    var item = manifest.items[name];
+    if (item is! TopLevelSetterItem) {
       return false;
     }
 
