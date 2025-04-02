@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// Defines the element model. The element model describes the semantic (as
 /// opposed to syntactic) structure of Dart code. The syntactic structure of the
 /// code is modeled by the [AST
 /// structure](../dart_ast_ast/dart_ast_ast-library.html).
 ///
 /// The element model consists of two closely related kinds of objects: elements
-/// (instances of a subclass of [Element]) and types. This library defines the
+/// (instances of a subclass of `Element`) and types. This library defines the
 /// elements, the types are defined in
 /// [type.dart](../dart_element_type/dart_element_type-library.html).
 ///
@@ -22,8 +20,7 @@
 /// children of the element representing the class.
 ///
 /// Every complete element structure is rooted by an instance of the class
-// ignore:deprecated_member_use_from_same_package
-/// [LibraryElement]. A library element represents a single Dart library. Every
+/// `LibraryElement`. A library element represents a single Dart library. Every
 /// library is defined by one or more compilation units (the library and all of
 /// its parts). The compilation units are represented by the class
 /// `CompilationUnitElement` and are children of the library that is defined by
