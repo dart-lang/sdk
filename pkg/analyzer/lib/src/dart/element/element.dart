@@ -2545,7 +2545,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
 abstract class ElementImpl
     implements
-        // ignore:analyzer_use_new_elements
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         Element,
         ElementOrMember {
   static const _metadataFlag_isReady = 1 << 0;

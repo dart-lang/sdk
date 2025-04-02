@@ -3095,7 +3095,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: DirectiveUriWithUnit Function())
     libraryFragment (getter: LibraryFragment, experimental)
     unit (getter: CompilationUnitElement, deprecated)
-  Element (class extends Object implements AnalysisTarget):
+  Element (class extends Object implements AnalysisTarget, deprecated):
     new (constructor: Element Function())
     children (getter: List<Element>, deprecated)
     context (getter: AnalysisContext@2)

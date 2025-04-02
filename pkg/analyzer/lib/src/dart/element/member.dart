@@ -787,7 +787,7 @@ class GetterMember extends PropertyAccessorMember
 /// parameters are known.
 abstract class Member
     implements
-        // ignore:analyzer_use_new_elements
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         Element,
         ElementOrMember {
   /// The element on which the parameterized element was created.

@@ -408,7 +408,7 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 /// represent the semantic structure of the program.
 ///
 /// Clients may not extend, implement or mix-in this class.
-// ignore: deprecated_member_use_from_same_package
+@Deprecated(elementModelDeprecationMsg)
 abstract class Element implements AnalysisTarget {
   /// A list of this element's children.
   ///
