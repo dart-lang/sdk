@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
@@ -79,7 +77,7 @@ mixin AugmentableFragment on ElementImpl {
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements
-        // ignore: deprecated_member_use_from_same_package
+        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
         BindPatternVariableElement,
         BindPatternVariableFragment {
   final DeclaredVariablePatternImpl node;
@@ -141,7 +139,7 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ClassElement,
         ClassFragment {
   late ClassElementImpl2 augmentedInternal;
@@ -716,7 +714,7 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
 /// A concrete implementation of [LibraryFragment].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         CompilationUnitElement,
         LibraryFragment {
   /// The source that corresponds to this compilation unit.
@@ -1360,7 +1358,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     with
         ConstructorElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ConstructorElement,
         ConstructorFragment {
   late final ConstructorElementImpl2 element =
@@ -1705,7 +1703,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
 
 mixin ConstructorElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ConstructorElement,
         ExecutableElementOrMember {
   @override
@@ -1948,7 +1946,7 @@ class DefaultSuperFormalParameterElementImpl
 
 class DeferredImportElementPrefixImpl extends ImportElementPrefixImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         DeferredImportElementPrefix {
   DeferredImportElementPrefixImpl({
     required super.element,
@@ -2034,7 +2032,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 /// The synthetic element representing the declaration of the type `dynamic`.
 class DynamicElementImpl extends ElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         TypeDefiningElement,
         TypeDefiningFragment {
   /// The unique instance of this class.
@@ -2545,7 +2543,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 }
 
-abstract class ElementImpl implements Element, ElementOrMember {
+abstract class ElementImpl
+    implements
+        // ignore:analyzer_use_new_elements
+        Element,
+        ElementOrMember {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
@@ -3507,7 +3509,7 @@ abstract class ElementOrMember {}
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         EnumElement,
         EnumFragment {
   late EnumElementImpl2 augmentedInternal;
@@ -3855,7 +3857,7 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 /// `ExecutableElement`.
 abstract class ExecutableElementOrMember
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ExecutableElement,
         ElementOrMember {
   @override
@@ -3873,7 +3875,7 @@ abstract class ExecutableElementOrMember
 
 class ExtensionElementImpl extends InstanceElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ExtensionElement,
         ExtensionFragment {
   late ExtensionElementImpl2 augmentedInternal;
@@ -4036,7 +4038,7 @@ class ExtensionElementImpl2 extends InstanceElementImpl2
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ExtensionTypeElement,
         ExtensionTypeFragment {
   late ExtensionTypeElementImpl2 augmentedInternal;
@@ -4384,7 +4386,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 abstract class FieldElementOrMember
     implements
         PropertyInducingElementOrMember,
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         FieldElement {
   @override
   FieldElementImpl get declaration;
@@ -4474,7 +4476,7 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
 abstract class FieldFormalParameterElementOrMember
     implements
         ParameterElementMixin,
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         FieldFormalParameterElement {
   @override
   FieldElementOrMember? get field;
@@ -4621,7 +4623,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   TypeImpl get typeShared => type;
 
   @override
-  Element? get _enclosingFunction => wrappedElement._enclosingElement3;
+  ElementImpl? get _enclosingFunction => wrappedElement._enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -5140,7 +5142,7 @@ mixin FragmentedTypeParameterizedElementMixin<
 
 sealed class FunctionElementImpl extends ExecutableElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         FunctionElement,
         FunctionTypedElementImpl,
         ExecutableElementOrMember {
@@ -5200,7 +5202,7 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 abstract class FunctionTypedElementImpl
     implements
         _ExistingElementImpl,
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         FunctionTypedElement {
   @override
   List<ParameterElementImpl> get parameters;
@@ -5231,7 +5233,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     with
         TypeParameterizedElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         GenericFunctionTypeElement,
         FunctionTypedElementImpl,
         GenericFunctionTypeFragment {
@@ -5572,7 +5574,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 
 class ImportElementPrefixImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ImportElementPrefix {
   @override
   final PrefixElementImpl element;
@@ -5587,7 +5589,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
         AugmentableFragment,
         TypeParameterizedElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         InstanceElement,
         InstanceFragment {
   @override
@@ -5977,7 +5979,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         InterfaceElement,
         InterfaceFragment {
   /// A list containing all of the mixins that are applied to the class being
@@ -6728,7 +6730,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
     implements
-        // ignore: deprecated_member_use_from_same_package
+        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
         JoinPatternVariableElement,
         JoinPatternVariableFragment {
   @override
@@ -6855,7 +6857,7 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
 
 class LabelElementImpl extends ElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         LabelElement,
         LabelFragment {
   late final LabelElementImpl2 element2 = LabelElementImpl2(this);
@@ -6972,7 +6974,7 @@ class LibraryElementImpl extends ElementImpl
     with
         _HasLibraryMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         LibraryElement,
         LibraryElement2 {
   /// The analysis context in which this library is defined.
@@ -7553,7 +7555,7 @@ class LibraryElementImpl extends ElementImpl
 
 class LibraryExportElementImpl extends _ExistingElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         LibraryExportElement,
         LibraryExport {
   @override
@@ -7616,7 +7618,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 
 class LibraryImportElementImpl extends _ExistingElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         LibraryImportElement,
         LibraryImport {
   @override
@@ -7843,7 +7845,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
 
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements
-        // ignore: deprecated_member_use_from_same_package
+        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
         LocalVariableElement,
         LocalVariableFragment,
         VariableElementOrMember {
@@ -7971,7 +7973,7 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   }
 
   @override
-  Element? get _enclosingFunction => _wrappedElement.enclosingElement3;
+  ElementImpl? get _enclosingFunction => _wrappedElement.enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -8510,7 +8512,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 /// `MethodElement`.
 abstract class MethodElementOrMember
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         MethodElement,
         ExecutableElementOrMember {
   @override
@@ -8526,7 +8528,7 @@ abstract class MethodElementOrMember
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         MixinElement,
         MixinFragment {
   List<InterfaceTypeImpl> _superclassConstraints = const [];
@@ -9214,7 +9216,7 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
 /// The synthetic element representing the declaration of the type `Never`.
 class NeverElementImpl extends ElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         TypeDefiningElement,
         TypeDefiningFragment {
   /// The unique instance of this class.
@@ -9364,7 +9366,7 @@ class ParameterElementImpl extends VariableElementImpl
     with
         ParameterElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ParameterElement,
         FormalParameterFragment {
   @override
@@ -9625,7 +9627,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 /// `ParameterElement`.
 mixin ParameterElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         ParameterElement,
         VariableElementOrMember {
   @override
@@ -9694,7 +9696,7 @@ mixin ParameterElementMixin
 
 class PartElementImpl extends _ExistingElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         PartElement,
         PartInclude {
   @override
@@ -9737,7 +9739,7 @@ class PartElementImpl extends _ExistingElementImpl
 
 class PatternVariableElementImpl extends LocalVariableElementImpl
     implements
-        // ignore: deprecated_member_use_from_same_package
+        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
         PatternVariableElement,
         PatternVariableFragment {
   @override
@@ -9824,7 +9826,7 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
 
 class PrefixElementImpl extends _ExistingElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         PrefixElement {
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
@@ -10304,7 +10306,7 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         PropertyAccessorElement,
         ExecutableElementOrMember {
   @override
@@ -10548,7 +10550,7 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
 /// `PropertyInducingElement`.
 abstract class PropertyInducingElementOrMember
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         PropertyInducingElement,
         VariableElementOrMember {
   @override
@@ -10825,7 +10827,7 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
 abstract class SuperFormalParameterElementOrMember
     implements
         ParameterElementMixin,
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         SuperFormalParameterElement {}
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
@@ -10929,7 +10931,7 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
 
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         TopLevelVariableElement,
         TopLevelVariableFragment {
   @override
@@ -11067,7 +11069,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         AugmentableFragment,
         TypeParameterizedElementMixin
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         TypeAliasElement,
         TypeAliasFragment {
   @override
@@ -11426,7 +11428,7 @@ abstract class TypeDefiningElementImpl2 extends ElementImpl2
 
 class TypeParameterElementImpl extends ElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         TypeParameterElement,
         TypeParameterFragment {
   @override
@@ -11677,7 +11679,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  Element? get _enclosingFunction => firstFragment._enclosingElement3;
+  ElementImpl? get _enclosingFunction => firstFragment._enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -11714,7 +11716,7 @@ abstract class TypeParameterizedElementImpl2 extends ElementImpl2
 mixin TypeParameterizedElementMixin on ElementImpl
     implements
         _ExistingElementImpl,
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         TypeParameterizedElement,
         TypeParameterizedFragment {
   List<TypeParameterElementImpl> _typeParameters = const [];
@@ -11751,7 +11753,7 @@ mixin TypeParameterizedElementMixin on ElementImpl
 
 abstract class UriReferencedElementImpl extends _ExistingElementImpl
     implements
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         UriReferencedElement {
   /// The offset of the URI in the file, or `-1` if this node is synthetic.
   int _uriOffset = -1;
@@ -11965,7 +11967,7 @@ abstract class VariableElementImpl2 extends ElementImpl2
 abstract class VariableElementOrMember
     implements
         ElementOrMember,
-        // ignore:deprecated_member_use_from_same_package
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
         VariableElement {
   @override
   VariableElementImpl get declaration;
@@ -12072,7 +12074,7 @@ mixin _NonTopLevelVariableOrParameter on Element2 {
     };
   }
 
-  Element? get _enclosingFunction;
+  ElementImpl? get _enclosingFunction;
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
