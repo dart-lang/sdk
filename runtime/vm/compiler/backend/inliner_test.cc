@@ -475,7 +475,7 @@ void InspectStack(Dart_NativeArguments args) {
   EXPECT_EQ(3, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(102 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(102 > StackTrace::kFixedOOMStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;

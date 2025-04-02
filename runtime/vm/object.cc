@@ -1283,6 +1283,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   error_str = String::New("Out of memory", Heap::kOld);
   *out_of_memory_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
+  *unhandled_oom_exception_ =
+      UnhandledException::New(error_str, StackTrace::Handle(), Heap::kOld);
 
   // Allocate the parameter types and names for synthetic getters.
   *synthetic_getter_parameter_types_ = Array::New(1, Heap::kOld);
@@ -1407,6 +1409,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(background_compilation_error_->IsLanguageError());
   ASSERT(!out_of_memory_error_->IsSmi());
   ASSERT(out_of_memory_error_->IsLanguageError());
+  ASSERT(!unhandled_oom_exception_->IsSmi());
+  ASSERT(unhandled_oom_exception_->IsUnhandledException());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
   ASSERT(!synthetic_getter_parameter_types_->IsSmi());
@@ -2887,6 +2891,9 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       Report::LongJump(Object::out_of_memory_error());
       UNREACHABLE();
     } else if (thread->top_exit_frame_info() != 0) {
+      if (thread->IsInNoThrowOOMScope()) {
+        return Object::null();
+      }
       Exceptions::ThrowOOM();
       UNREACHABLE();
     } else {
