@@ -29,6 +29,8 @@ sealed class ManifestNode {
     switch (kind) {
       case _ManifestNodeKind.annotation:
         return ManifestNodeAnnotation.read(reader);
+      case _ManifestNodeKind.integerLiteral:
+        return ManifestNodeIntegerLiteral.read(reader);
       case _ManifestNodeKind.simpleIdentifier:
         return ManifestNodeSimpleIdentifier.read(reader);
     }
@@ -78,6 +80,37 @@ class ManifestNodeAnnotation extends ManifestNode {
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestNodeKind.annotation);
     name.writeNoTag(sink);
+  }
+}
+
+class ManifestNodeIntegerLiteral extends ManifestNode {
+  final int? value;
+
+  ManifestNodeIntegerLiteral({
+    required this.value,
+  });
+
+  factory ManifestNodeIntegerLiteral.encode(IntegerLiteral node) {
+    return ManifestNodeIntegerLiteral(
+      value: node.value,
+    );
+  }
+
+  factory ManifestNodeIntegerLiteral.read(SummaryDataReader reader) {
+    return ManifestNodeIntegerLiteral(
+      value: reader.readOptionalInt64(),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, AstNode node) {
+    return node is IntegerLiteral && node.value == value;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestNodeKind.integerLiteral);
+    sink.writeOptionalInt64(value);
   }
 }
 
@@ -147,5 +180,6 @@ class ManifestNodeSimpleIdentifier extends ManifestNode {
 
 enum _ManifestNodeKind {
   annotation,
+  integerLiteral,
   simpleIdentifier,
 }
