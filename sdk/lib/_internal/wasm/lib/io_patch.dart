@@ -12,42 +12,42 @@ import 'dart:typed_data';
 class _Directory {
   @patch
   static _current(_Namespace namespace) {
-    throw new UnsupportedError("Directory._current");
+    throw UnsupportedError("Directory._current");
   }
 
   @patch
   static _setCurrent(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("Directory_SetCurrent");
+    throw UnsupportedError("Directory_SetCurrent");
   }
 
   @patch
   static _createTemp(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("Directory._createTemp");
+    throw UnsupportedError("Directory._createTemp");
   }
 
   @patch
   static String _systemTemp(_Namespace namespace) {
-    throw new UnsupportedError("Directory._systemTemp");
+    throw UnsupportedError("Directory._systemTemp");
   }
 
   @patch
   static _exists(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("Directory._exists");
+    throw UnsupportedError("Directory._exists");
   }
 
   @patch
   static _create(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("Directory._create");
+    throw UnsupportedError("Directory._create");
   }
 
   @patch
   static _deleteNative(_Namespace namespace, Uint8List path, bool recursive) {
-    throw new UnsupportedError("Directory._deleteNative");
+    throw UnsupportedError("Directory._deleteNative");
   }
 
   @patch
   static _rename(_Namespace namespace, Uint8List path, String newPath) {
-    throw new UnsupportedError("Directory._rename");
+    throw UnsupportedError("Directory._rename");
   }
 
   @patch
@@ -58,7 +58,7 @@ class _Directory {
     bool recursive,
     bool followLinks,
   ) {
-    throw new UnsupportedError("Directory._fillWithDirectoryListing");
+    throw UnsupportedError("Directory._fillWithDirectoryListing");
   }
 }
 
@@ -66,7 +66,7 @@ class _Directory {
 class _AsyncDirectoryListerOps {
   @patch
   factory _AsyncDirectoryListerOps(int pointer) {
-    throw new UnsupportedError("Directory._list");
+    throw UnsupportedError("Directory._list");
   }
 }
 
@@ -74,7 +74,7 @@ class _AsyncDirectoryListerOps {
 class _EventHandler {
   @patch
   static void _sendData(Object? sender, SendPort sendPort, int data) {
-    throw new UnsupportedError("EventHandler._sendData");
+    throw UnsupportedError("EventHandler._sendData");
   }
 }
 
@@ -82,7 +82,7 @@ class _EventHandler {
 class FileStat {
   @patch
   static _statSync(_Namespace namespace, String path) {
-    throw new UnsupportedError("FileStat.stat");
+    throw UnsupportedError("FileStat.stat");
   }
 }
 
@@ -94,17 +94,17 @@ class FileSystemEntity {
     Uint8List path,
     bool followLinks,
   ) {
-    throw new UnsupportedError("FileSystemEntity._getType");
+    throw UnsupportedError("FileSystemEntity._getType");
   }
 
   @patch
   static _identicalNative(_Namespace namespace, String path1, String path2) {
-    throw new UnsupportedError("FileSystemEntity._identical");
+    throw UnsupportedError("FileSystemEntity._identical");
   }
 
   @patch
   static _resolveSymbolicLinks(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("FileSystemEntity._resolveSymbolicLinks");
+    throw UnsupportedError("FileSystemEntity._resolveSymbolicLinks");
   }
 }
 
@@ -112,17 +112,17 @@ class FileSystemEntity {
 class _File {
   @patch
   static _exists(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("File._exists");
+    throw UnsupportedError("File._exists");
   }
 
   @patch
   static _create(_Namespace namespace, Uint8List path, bool exclusive) {
-    throw new UnsupportedError("File._create");
+    throw UnsupportedError("File._create");
   }
 
   @patch
   static _createLink(_Namespace namespace, Uint8List path, String target) {
-    throw new UnsupportedError("File._createLink");
+    throw UnsupportedError("File._createLink");
   }
 
   @patch
@@ -132,67 +132,67 @@ class _File {
 
   @patch
   static _linkTarget(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("File._linkTarget");
+    throw UnsupportedError("File._linkTarget");
   }
 
   @patch
   static _deleteNative(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("File._deleteNative");
+    throw UnsupportedError("File._deleteNative");
   }
 
   @patch
   static _deleteLinkNative(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("File._deleteLinkNative");
+    throw UnsupportedError("File._deleteLinkNative");
   }
 
   @patch
   static _rename(_Namespace namespace, Uint8List oldPath, String newPath) {
-    throw new UnsupportedError("File._rename");
+    throw UnsupportedError("File._rename");
   }
 
   @patch
   static _renameLink(_Namespace namespace, Uint8List oldPath, String newPath) {
-    throw new UnsupportedError("File._renameLink");
+    throw UnsupportedError("File._renameLink");
   }
 
   @patch
   static _copy(_Namespace namespace, Uint8List oldPath, String newPath) {
-    throw new UnsupportedError("File._copy");
+    throw UnsupportedError("File._copy");
   }
 
   @patch
   static _lengthFromPath(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("File._lengthFromPath");
+    throw UnsupportedError("File._lengthFromPath");
   }
 
   @patch
   static _lastModified(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("File._lastModified");
+    throw UnsupportedError("File._lastModified");
   }
 
   @patch
   static _lastAccessed(_Namespace namespace, Uint8List path) {
-    throw new UnsupportedError("File._lastAccessed");
+    throw UnsupportedError("File._lastAccessed");
   }
 
   @patch
   static _setLastModified(_Namespace namespace, Uint8List path, int millis) {
-    throw new UnsupportedError("File._setLastModified");
+    throw UnsupportedError("File._setLastModified");
   }
 
   @patch
   static _setLastAccessed(_Namespace namespace, Uint8List path, int millis) {
-    throw new UnsupportedError("File._setLastAccessed");
+    throw UnsupportedError("File._setLastAccessed");
   }
 
   @patch
   static _open(_Namespace namespace, Uint8List path, int mode) {
-    throw new UnsupportedError("File._open");
+    throw UnsupportedError("File._open");
   }
 
   @patch
   static int _openStdio(int fd) {
-    throw new UnsupportedError("File._openStdio");
+    throw UnsupportedError("File._openStdio");
   }
 }
 
@@ -200,17 +200,17 @@ class _File {
 class _Namespace {
   @patch
   static void _setupNamespace(var namespace) {
-    throw new UnsupportedError("_Namespace");
+    throw UnsupportedError("_Namespace");
   }
 
   @patch
   static _Namespace get _namespace {
-    throw new UnsupportedError("_Namespace");
+    throw UnsupportedError("_Namespace");
   }
 
   @patch
   static int get _namespacePointer {
-    throw new UnsupportedError("_Namespace");
+    throw UnsupportedError("_Namespace");
   }
 }
 
@@ -218,7 +218,7 @@ class _Namespace {
 class _RandomAccessFileOps {
   @patch
   factory _RandomAccessFileOps(int pointer) {
-    throw new UnsupportedError("RandomAccessFile");
+    throw UnsupportedError("RandomAccessFile");
   }
 }
 
@@ -226,7 +226,7 @@ class _RandomAccessFileOps {
 class _IOCrypto {
   @patch
   static Uint8List getRandomBytes(int count) {
-    throw new UnsupportedError("_IOCrypto.getRandomBytes");
+    throw UnsupportedError("_IOCrypto.getRandomBytes");
   }
 }
 
@@ -234,67 +234,67 @@ class _IOCrypto {
 class _Platform {
   @patch
   static int _numberOfProcessors() {
-    throw new UnsupportedError("Platform._numberOfProcessors");
+    throw UnsupportedError("Platform._numberOfProcessors");
   }
 
   @patch
   static String _pathSeparator() {
-    throw new UnsupportedError("Platform._pathSeparator");
+    throw UnsupportedError("Platform._pathSeparator");
   }
 
   @patch
   static String _operatingSystem() {
-    throw new UnsupportedError("Platform._operatingSystem");
+    throw UnsupportedError("Platform._operatingSystem");
   }
 
   @patch
   static _operatingSystemVersion() {
-    throw new UnsupportedError("Platform._operatingSystemVersion");
+    throw UnsupportedError("Platform._operatingSystemVersion");
   }
 
   @patch
   static _localHostname() {
-    throw new UnsupportedError("Platform._localHostname");
+    throw UnsupportedError("Platform._localHostname");
   }
 
   @patch
   static _executable() {
-    throw new UnsupportedError("Platform._executable");
+    throw UnsupportedError("Platform._executable");
   }
 
   @patch
   static _resolvedExecutable() {
-    throw new UnsupportedError("Platform._resolvedExecutable");
+    throw UnsupportedError("Platform._resolvedExecutable");
   }
 
   @patch
   static List<String> _executableArguments() {
-    throw new UnsupportedError("Platform._executableArguments");
+    throw UnsupportedError("Platform._executableArguments");
   }
 
   @patch
   static String _packageConfig() {
-    throw new UnsupportedError("Platform._packageConfig");
+    throw UnsupportedError("Platform._packageConfig");
   }
 
   @patch
   static _environment() {
-    throw new UnsupportedError("Platform._environment");
+    throw UnsupportedError("Platform._environment");
   }
 
   @patch
   static String _version() {
-    throw new UnsupportedError("Platform._version");
+    throw UnsupportedError("Platform._version");
   }
 
   @patch
   static String _localeName() {
-    throw new UnsupportedError("Platform._localeName");
+    throw UnsupportedError("Platform._localeName");
   }
 
   @patch
   static Uri _script() {
-    throw new UnsupportedError("Platform._script");
+    throw UnsupportedError("Platform._script");
   }
 }
 
@@ -302,32 +302,32 @@ class _Platform {
 class _ProcessUtils {
   @patch
   static Never _exit(int status) {
-    throw new UnsupportedError("ProcessUtils._exit");
+    throw UnsupportedError("ProcessUtils._exit");
   }
 
   @patch
   static void _setExitCode(int status) {
-    throw new UnsupportedError("ProcessUtils._setExitCode");
+    throw UnsupportedError("ProcessUtils._setExitCode");
   }
 
   @patch
   static int _getExitCode() {
-    throw new UnsupportedError("ProcessUtils._getExitCode");
+    throw UnsupportedError("ProcessUtils._getExitCode");
   }
 
   @patch
   static void _sleep(int millis) {
-    throw new UnsupportedError("ProcessUtils._sleep");
+    throw UnsupportedError("ProcessUtils._sleep");
   }
 
   @patch
   static int _pid(Process? process) {
-    throw new UnsupportedError("ProcessUtils._pid");
+    throw UnsupportedError("ProcessUtils._pid");
   }
 
   @patch
   static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
-    throw new UnsupportedError("ProcessUtils._watchSignal");
+    throw UnsupportedError("ProcessUtils._watchSignal");
   }
 }
 
@@ -335,12 +335,12 @@ class _ProcessUtils {
 class ProcessInfo {
   @patch
   static int get currentRss {
-    throw new UnsupportedError("ProcessInfo.currentRss");
+    throw UnsupportedError("ProcessInfo.currentRss");
   }
 
   @patch
   static int get maxRss {
-    throw new UnsupportedError("ProcessInfo.maxRss");
+    throw UnsupportedError("ProcessInfo.maxRss");
   }
 }
 
@@ -356,7 +356,7 @@ class Process {
     bool runInShell = false,
     ProcessStartMode mode = ProcessStartMode.normal,
   }) {
-    throw new UnsupportedError("Process.start");
+    throw UnsupportedError("Process.start");
   }
 
   @patch
@@ -370,7 +370,7 @@ class Process {
     Encoding? stdoutEncoding = systemEncoding,
     Encoding? stderrEncoding = systemEncoding,
   }) {
-    throw new UnsupportedError("Process.run");
+    throw UnsupportedError("Process.run");
   }
 
   @patch
@@ -384,12 +384,12 @@ class Process {
     Encoding? stdoutEncoding = systemEncoding,
     Encoding? stderrEncoding = systemEncoding,
   }) {
-    throw new UnsupportedError("Process.runSync");
+    throw UnsupportedError("Process.runSync");
   }
 
   @patch
   static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
-    throw new UnsupportedError("Process.killPid");
+    throw UnsupportedError("Process.killPid");
   }
 }
 
@@ -397,27 +397,27 @@ class Process {
 class InternetAddress {
   @patch
   static InternetAddress get loopbackIPv4 {
-    throw new UnsupportedError("InternetAddress.loopbackIPv4");
+    throw UnsupportedError("InternetAddress.loopbackIPv4");
   }
 
   @patch
   static InternetAddress get loopbackIPv6 {
-    throw new UnsupportedError("InternetAddress.loopbackIPv6");
+    throw UnsupportedError("InternetAddress.loopbackIPv6");
   }
 
   @patch
   static InternetAddress get anyIPv4 {
-    throw new UnsupportedError("InternetAddress.anyIPv4");
+    throw UnsupportedError("InternetAddress.anyIPv4");
   }
 
   @patch
   static InternetAddress get anyIPv6 {
-    throw new UnsupportedError("InternetAddress.anyIPv6");
+    throw UnsupportedError("InternetAddress.anyIPv6");
   }
 
   @patch
   factory InternetAddress(String address, {InternetAddressType? type}) {
-    throw new UnsupportedError("InternetAddress");
+    throw UnsupportedError("InternetAddress");
   }
 
   @patch
@@ -425,7 +425,7 @@ class InternetAddress {
     Uint8List rawAddress, {
     InternetAddressType? type,
   }) {
-    throw new UnsupportedError("InternetAddress.fromRawAddress");
+    throw UnsupportedError("InternetAddress.fromRawAddress");
   }
 
   @patch
@@ -433,7 +433,7 @@ class InternetAddress {
     String host, {
     InternetAddressType type = InternetAddressType.any,
   }) {
-    throw new UnsupportedError("InternetAddress.lookup");
+    throw UnsupportedError("InternetAddress.lookup");
   }
 
   @patch
@@ -441,7 +441,7 @@ class InternetAddress {
     InternetAddress address,
     String host,
   ) {
-    throw new UnsupportedError("InternetAddress._cloneWithNewHost");
+    throw UnsupportedError("InternetAddress._cloneWithNewHost");
   }
 
   @patch
@@ -454,7 +454,7 @@ class InternetAddress {
 class NetworkInterface {
   @patch
   static bool get listSupported {
-    throw new UnsupportedError("NetworkInterface.listSupported");
+    throw UnsupportedError("NetworkInterface.listSupported");
   }
 
   @patch
@@ -463,7 +463,7 @@ class NetworkInterface {
     bool includeLinkLocal = false,
     InternetAddressType type = InternetAddressType.any,
   }) {
-    throw new UnsupportedError("NetworkInterface.list");
+    throw UnsupportedError("NetworkInterface.list");
   }
 }
 
@@ -477,7 +477,7 @@ class RawServerSocket {
     bool v6Only = false,
     bool shared = false,
   }) {
-    throw new UnsupportedError("RawServerSocket.bind");
+    throw UnsupportedError("RawServerSocket.bind");
   }
 }
 
@@ -491,7 +491,7 @@ class ServerSocket {
     bool v6Only = false,
     bool shared = false,
   }) {
-    throw new UnsupportedError("ServerSocket.bind");
+    throw UnsupportedError("ServerSocket.bind");
   }
 }
 
@@ -505,7 +505,7 @@ class RawSocket {
     int sourcePort = 0,
     Duration? timeout,
   }) {
-    throw new UnsupportedError("RawSocket constructor");
+    throw UnsupportedError("RawSocket constructor");
   }
 
   @patch
@@ -515,7 +515,7 @@ class RawSocket {
     dynamic sourceAddress,
     int sourcePort = 0,
   }) {
-    throw new UnsupportedError("RawSocket constructor");
+    throw UnsupportedError("RawSocket constructor");
   }
 }
 
@@ -529,7 +529,7 @@ class Socket {
     int sourcePort = 0,
     Duration? timeout,
   }) {
-    throw new UnsupportedError("Socket constructor");
+    throw UnsupportedError("Socket constructor");
   }
 
   @patch
@@ -539,7 +539,7 @@ class Socket {
     dynamic sourceAddress,
     int sourcePort = 0,
   }) {
-    throw new UnsupportedError("Socket constructor");
+    throw UnsupportedError("Socket constructor");
   }
 }
 
@@ -600,7 +600,7 @@ class ResourceHandle {
 class SecureSocket {
   @patch
   factory SecureSocket._(RawSecureSocket rawSocket) {
-    throw new UnsupportedError("SecureSocket constructor");
+    throw UnsupportedError("SecureSocket constructor");
   }
 }
 
@@ -608,7 +608,7 @@ class SecureSocket {
 class RawSynchronousSocket {
   @patch
   static RawSynchronousSocket connectSync(dynamic host, int port) {
-    throw new UnsupportedError("RawSynchronousSocket.connectSync");
+    throw UnsupportedError("RawSynchronousSocket.connectSync");
   }
 }
 
@@ -624,17 +624,17 @@ class RawSocketOption {
 class SecurityContext {
   @patch
   factory SecurityContext({bool withTrustedRoots = false}) {
-    throw new UnsupportedError("SecurityContext constructor");
+    throw UnsupportedError("SecurityContext constructor");
   }
 
   @patch
   static SecurityContext get defaultContext {
-    throw new UnsupportedError("default SecurityContext getter");
+    throw UnsupportedError("default SecurityContext getter");
   }
 
   @patch
   static bool get alpnSupported {
-    throw new UnsupportedError("SecurityContext alpnSupported getter");
+    throw UnsupportedError("SecurityContext alpnSupported getter");
   }
 }
 
@@ -642,7 +642,7 @@ class SecurityContext {
 class X509Certificate {
   @patch
   factory X509Certificate._() {
-    throw new UnsupportedError("X509Certificate constructor");
+    throw UnsupportedError("X509Certificate constructor");
   }
 }
 
@@ -656,7 +656,7 @@ class RawDatagramSocket {
     bool reusePort = false,
     int ttl = 1,
   }) {
-    throw new UnsupportedError("RawDatagramSocket.bind");
+    throw UnsupportedError("RawDatagramSocket.bind");
   }
 }
 
@@ -664,7 +664,7 @@ class RawDatagramSocket {
 class _SecureFilter {
   @patch
   factory _SecureFilter._() {
-    throw new UnsupportedError("_SecureFilter._SecureFilter");
+    throw UnsupportedError("_SecureFilter._SecureFilter");
   }
 }
 
@@ -672,22 +672,22 @@ class _SecureFilter {
 class _StdIOUtils {
   @patch
   static Stdin _getStdioInputStream(int fd) {
-    throw new UnsupportedError("StdIOUtils._getStdioInputStream");
+    throw UnsupportedError("StdIOUtils._getStdioInputStream");
   }
 
   @patch
   static _getStdioOutputStream(int fd) {
-    throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
+    throw UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
 
   @patch
   static int _socketType(Socket socket) {
-    throw new UnsupportedError("StdIOUtils._socketType");
+    throw UnsupportedError("StdIOUtils._socketType");
   }
 
   @patch
   static _getStdioHandleType(int fd) {
-    throw new UnsupportedError("StdIOUtils._getStdioHandleType");
+    throw UnsupportedError("StdIOUtils._getStdioHandleType");
   }
 }
 
@@ -695,7 +695,7 @@ class _StdIOUtils {
 class _WindowsCodePageDecoder {
   @patch
   static String _decodeBytes(List<int> bytes) {
-    throw new UnsupportedError("_WindowsCodePageDecoder._decodeBytes");
+    throw UnsupportedError("_WindowsCodePageDecoder._decodeBytes");
   }
 }
 
@@ -703,7 +703,7 @@ class _WindowsCodePageDecoder {
 class _WindowsCodePageEncoder {
   @patch
   static List<int> _encodeString(String string) {
-    throw new UnsupportedError("_WindowsCodePageEncoder._encodeString");
+    throw UnsupportedError("_WindowsCodePageEncoder._encodeString");
   }
 }
 
@@ -719,7 +719,7 @@ class RawZLibFilter {
     List<int>? dictionary,
     bool raw,
   ) {
-    throw new UnsupportedError("_newZLibDeflateFilter");
+    throw UnsupportedError("_newZLibDeflateFilter");
   }
 
   @patch
@@ -729,7 +729,7 @@ class RawZLibFilter {
     List<int>? dictionary,
     bool raw,
   ) {
-    throw new UnsupportedError("_newZLibInflateFilter");
+    throw UnsupportedError("_newZLibInflateFilter");
   }
 }
 
@@ -737,17 +737,17 @@ class RawZLibFilter {
 class Stdin {
   @patch
   int readByteSync() {
-    throw new UnsupportedError("Stdin.readByteSync");
+    throw UnsupportedError("Stdin.readByteSync");
   }
 
   @patch
   bool get echoMode {
-    throw new UnsupportedError("Stdin.echoMode");
+    throw UnsupportedError("Stdin.echoMode");
   }
 
   @patch
   void set echoMode(bool enabled) {
-    throw new UnsupportedError("Stdin.echoMode");
+    throw UnsupportedError("Stdin.echoMode");
   }
 
   @patch
@@ -762,17 +762,17 @@ class Stdin {
 
   @patch
   bool get lineMode {
-    throw new UnsupportedError("Stdin.lineMode");
+    throw UnsupportedError("Stdin.lineMode");
   }
 
   @patch
   void set lineMode(bool enabled) {
-    throw new UnsupportedError("Stdin.lineMode");
+    throw UnsupportedError("Stdin.lineMode");
   }
 
   @patch
   bool get supportsAnsiEscapes {
-    throw new UnsupportedError("Stdin.supportsAnsiEscapes");
+    throw UnsupportedError("Stdin.supportsAnsiEscapes");
   }
 }
 
@@ -780,22 +780,22 @@ class Stdin {
 class Stdout {
   @patch
   bool _hasTerminal(int fd) {
-    throw new UnsupportedError("Stdout.hasTerminal");
+    throw UnsupportedError("Stdout.hasTerminal");
   }
 
   @patch
   int _terminalColumns(int fd) {
-    throw new UnsupportedError("Stdout.terminalColumns");
+    throw UnsupportedError("Stdout.terminalColumns");
   }
 
   @patch
   int _terminalLines(int fd) {
-    throw new UnsupportedError("Stdout.terminalLines");
+    throw UnsupportedError("Stdout.terminalLines");
   }
 
   @patch
   static bool _supportsAnsiEscapes(int fd) {
-    throw new UnsupportedError("Stdout.supportsAnsiEscapes");
+    throw UnsupportedError("Stdout.supportsAnsiEscapes");
   }
 }
 
@@ -807,12 +807,12 @@ class _FileSystemWatcher {
     int events,
     bool recursive,
   ) {
-    throw new UnsupportedError("_FileSystemWatcher.watch");
+    throw UnsupportedError("_FileSystemWatcher.watch");
   }
 
   @patch
   static bool get isSupported {
-    throw new UnsupportedError("_FileSystemWatcher.isSupported");
+    throw UnsupportedError("_FileSystemWatcher.isSupported");
   }
 }
 
@@ -820,6 +820,6 @@ class _FileSystemWatcher {
 class _IOService {
   @patch
   static Future<Object?> _dispatch(int request, List data) {
-    throw new UnsupportedError("_IOService._dispatch");
+    throw UnsupportedError("_IOService._dispatch");
   }
 }

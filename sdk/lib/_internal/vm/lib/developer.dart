@@ -38,11 +38,11 @@ void log(
   StackTrace? stackTrace,
 }) {
   if (message is! String) {
-    throw new ArgumentError.value(message, "message", "Must be a String");
+    throw ArgumentError.value(message, "message", "Must be a String");
   }
-  time ??= new DateTime.now();
+  time ??= DateTime.now();
   if (time is! DateTime) {
-    throw new ArgumentError.value(time, "time", "Must be a DateTime");
+    throw ArgumentError.value(time, "time", "Must be a DateTime");
   }
   if (sequenceNumber == null) {
     sequenceNumber = _nextSequenceNumber++;
@@ -92,7 +92,7 @@ external ServiceExtensionHandler? _lookupExtension(String method);
 external _registerExtension(String method, ServiceExtensionHandler handler);
 
 // This code is only invoked when there is no other Dart code on the stack.
-@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", !bool.fromEnvironment("dart.vm.product"))
 _runExtension(
   ServiceExtensionHandler handler,
   String method,
@@ -111,7 +111,7 @@ _runExtension(
     response = handler(method, parameters);
   } catch (e, st) {
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    response = new ServiceExtensionResponse.error(
+    response = ServiceExtensionResponse.error(
       ServiceExtensionResponse.extensionError,
       errorDetails,
     );
@@ -119,7 +119,7 @@ _runExtension(
     return;
   }
   if (response is! Future) {
-    response = new ServiceExtensionResponse.error(
+    response = ServiceExtensionResponse.error(
       ServiceExtensionResponse.extensionError,
       "Extension handler must return a Future",
     );
@@ -130,7 +130,7 @@ _runExtension(
       .catchError((e, st) {
         // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
         var errorDetails = (st == null) ? '$e' : '$e\n$st';
-        return new ServiceExtensionResponse.error(
+        return ServiceExtensionResponse.error(
           ServiceExtensionResponse.extensionError,
           errorDetails,
         );
@@ -139,7 +139,7 @@ _runExtension(
         // Post the valid response or the wrapped error after verifying that
         // the response is a ServiceExtensionResponse.
         if (response is! ServiceExtensionResponse) {
-          response = new ServiceExtensionResponse.error(
+          response = ServiceExtensionResponse.error(
             ServiceExtensionResponse.extensionError,
             "Extension handler must complete to a ServiceExtensionResponse",
           );
@@ -169,7 +169,7 @@ _postResponse(
     return;
   }
   assert(id != null);
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write('{"jsonrpc":"2.0",');
   if (response.isError()) {
     if (trace_service) {

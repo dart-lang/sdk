@@ -39,7 +39,7 @@ Map<String, Object?> _createHttpProfileRequestFromProfileMap(
   };
 }
 
-@pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
+@pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
   // Http relative RPCs
   static const _kHttpEnableTimelineLogging =
@@ -58,7 +58,7 @@ abstract class _NetworkProfiling {
   // if more methods added to dart:io,
   static const _kGetVersionRPC = 'ext.dart.io.getVersion';
 
-  @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
+  @pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
   static void _registerServiceExtension() {
     registerExtension(_kHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);

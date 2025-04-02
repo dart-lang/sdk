@@ -103,7 +103,7 @@ mixin _UnmodifiableSetMixin<E> implements LinkedHashSet<E> {
 /// field type nullable.
 @pragma("wasm:entry-point")
 final WasmArray<WasmI32> _uninitializedHashBaseIndex =
-    const WasmArray<WasmI32>.literal([const WasmI32(0)]);
+    const WasmArray<WasmI32>.literal([WasmI32(0)]);
 
 /// The object marking uninitialized [_HashFieldBase._data] fields.
 ///
@@ -312,9 +312,7 @@ base class _ConstMap<K, V> extends _HashFieldBase
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   factory _ConstMap._uninstantiable() {
-    throw new UnsupportedError(
-      "_ConstMap can only be allocated by the compiler",
-    );
+    throw UnsupportedError("_ConstMap can only be allocated by the compiler");
   }
 }
 
@@ -1125,9 +1123,7 @@ base class _ConstSet<E> extends _HashFieldBase
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
   factory _ConstSet._uninstantiable() {
-    throw new UnsupportedError(
-      "_ConstSet can only be allocated by the compiler",
-    );
+    throw UnsupportedError("_ConstSet can only be allocated by the compiler");
   }
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);

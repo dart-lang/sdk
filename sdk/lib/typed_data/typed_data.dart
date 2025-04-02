@@ -402,10 +402,10 @@ final class Endian {
   final bool _littleEndian;
   const Endian._(this._littleEndian);
 
-  static const Endian big = const Endian._(false);
-  static const Endian little = const Endian._(true);
+  static const Endian big = Endian._(false);
+  static const Endian little = Endian._(true);
   static final Endian host =
-      (new ByteData.view(new Uint16List.fromList([1]).buffer)).getInt8(0) == 1
+      (ByteData.view(Uint16List.fromList([1]).buffer)).getInt8(0) == 1
           ? little
           : big;
 }

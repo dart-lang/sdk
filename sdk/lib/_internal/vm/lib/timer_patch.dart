@@ -10,7 +10,7 @@ class Timer {
   static Timer _createTimer(Duration duration, void callback()) {
     final factory = VMLibraryHooks.timerFactory;
     if (factory == null) {
-      throw new UnsupportedError("Timer interface not supported.");
+      throw UnsupportedError("Timer interface not supported.");
     }
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
@@ -26,7 +26,7 @@ class Timer {
   ) {
     final factory = VMLibraryHooks.timerFactory;
     if (factory == null) {
-      throw new UnsupportedError("Timer interface not supported.");
+      throw UnsupportedError("Timer interface not supported.");
     }
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;

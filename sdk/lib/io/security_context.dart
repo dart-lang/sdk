@@ -231,7 +231,7 @@ abstract final class SecurityContext {
   /// We will be conservative and support only messages up to (1<<13)-1 bytes.
   static Uint8List _protocolsToLengthEncoding(List<String>? protocols) {
     if (protocols == null || protocols.length == 0) {
-      return new Uint8List(0);
+      return Uint8List(0);
     }
     int protocolsLength = protocols.length;
 
@@ -242,20 +242,18 @@ abstract final class SecurityContext {
       if (length > 0 && length <= 255) {
         expectedLength += length;
       } else {
-        throw new ArgumentError(
+        throw ArgumentError(
           'Length of protocol must be between 1 and 255 (was: $length).',
         );
       }
     }
 
     if (expectedLength >= (1 << 13)) {
-      throw new ArgumentError(
-        'The maximum message length supported is 2^13-1.',
-      );
+      throw ArgumentError('The maximum message length supported is 2^13-1.');
     }
 
     // Try encoding the `List<String> protocols` array using fast ASCII path.
-    var bytes = new Uint8List(expectedLength);
+    var bytes = Uint8List(expectedLength);
     int bytesOffset = 0;
     for (int i = 0; i < protocolsLength; i++) {
       String proto = protocols[i];
@@ -287,7 +285,7 @@ abstract final class SecurityContext {
       var len = protocolBytes.length;
 
       if (len > 255) {
-        throw new ArgumentError(
+        throw ArgumentError(
           'Length of protocol must be between 1 and 255 (was: $len)',
         );
       }
@@ -304,11 +302,9 @@ abstract final class SecurityContext {
     }
 
     if (bytes.length >= (1 << 13)) {
-      throw new ArgumentError(
-        'The maximum message length supported is 2^13-1.',
-      );
+      throw ArgumentError('The maximum message length supported is 2^13-1.');
     }
 
-    return new Uint8List.fromList(bytes);
+    return Uint8List.fromList(bytes);
   }
 }

@@ -133,7 +133,7 @@ class _Timer implements Timer {
 
   // Timers are ordered by wakeup time. Timers with a timeout value of > 0 do
   // end up on the TimerHeap. Timers with a timeout of 0 are queued in a list.
-  static final _heap = new _TimerHeap();
+  static final _heap = _TimerHeap();
   static _Timer? _firstZeroTimer;
   static _Timer _lastZeroTimer = _sentinelTimer;
 
@@ -198,7 +198,7 @@ class _Timer implements Timer {
     int now = VMLibraryHooks.timerMillisecondClock();
     int wakeupTime = (milliSeconds == 0) ? now : (now + 1 + milliSeconds);
 
-    _Timer timer = new _Timer._internal(
+    _Timer timer = _Timer._internal(
       callback,
       wakeupTime,
       milliSeconds,
@@ -491,9 +491,9 @@ class _Timer implements Timer {
     bool repeating,
   ) {
     if (repeating) {
-      return new _Timer.periodic(milliSeconds, callback);
+      return _Timer.periodic(milliSeconds, callback);
     }
-    return new _Timer(milliSeconds, callback);
+    return _Timer(milliSeconds, callback);
   }
 }
 

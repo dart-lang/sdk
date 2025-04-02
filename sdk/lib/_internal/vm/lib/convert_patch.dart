@@ -28,8 +28,8 @@ dynamic _parseJson(
   String source,
   Object? Function(Object? key, Object? value)? reviver,
 ) {
-  _JsonListener listener = new _JsonListener(reviver);
-  var parser = new _JsonStringParser(listener);
+  _JsonListener listener = _JsonListener(reviver);
+  var parser = _JsonStringParser(listener);
   parser.chunk = source;
   parser.chunkEnd = source.length;
   parser.parse(0);
@@ -42,7 +42,7 @@ class Utf8Decoder {
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
-      return new _JsonUtf8Decoder(
+      return _JsonUtf8Decoder(
             (next as JsonDecoder)._reviver,
             this._allowMalformed,
           )
@@ -66,7 +66,7 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
   }
 
   ByteConversionSink startChunkedConversion(Sink<Object?> sink) {
-    return new _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
+    return _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
   }
 }
 
@@ -206,7 +206,7 @@ class _NumberBuffer {
   Uint8List list;
   int length = 0;
   _NumberBuffer(int initialCapacity)
-    : list = new Uint8List(_initialCapacity(initialCapacity));
+    : list = Uint8List(_initialCapacity(initialCapacity));
 
   int get capacity => list.length;
 
@@ -229,13 +229,13 @@ class _NumberBuffer {
   void ensureCapacity(int newCapacity) {
     Uint8List list = this.list;
     if (newCapacity <= list.length) return;
-    Uint8List newList = new Uint8List(newCapacity);
+    Uint8List newList = Uint8List(newCapacity);
     newList.setRange(0, list.length, list, 0);
     this.list = newList;
   }
 
   String getString() {
-    String result = new String.fromCharCodes(list, 0, length);
+    String result = String.fromCharCodes(list, 0, length);
     return result;
   }
 
@@ -1251,7 +1251,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   int beginChunkNumber(int state, int start) {
     int end = chunkEnd;
     int length = end - start;
-    var buffer = new _NumberBuffer(length);
+    var buffer = _NumberBuffer(length);
     copyCharsToList(start, end, buffer.list, 0);
     buffer.length = length;
     this.buffer = buffer;
@@ -1460,7 +1460,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       message = "Unexpected character";
       if (position == chunkEnd) message = "Unexpected end of input";
     }
-    throw new FormatException(message, chunk, position);
+    throw FormatException(message, chunk, position);
   }
 }
 
@@ -1486,7 +1486,7 @@ class _JsonStringParser extends _JsonParserWithListener
   }
 
   void beginString() {
-    this.buffer = new StringBuffer();
+    this.buffer = StringBuffer();
   }
 
   void addSliceToString(int start, int end) {
@@ -1521,7 +1521,7 @@ class _JsonStringParser extends _JsonParserWithListener
 class JsonDecoder {
   @patch
   StringConversionSink startChunkedConversion(Sink<Object?> sink) {
-    return new _JsonStringDecoderSink(this._reviver, sink);
+    return _JsonStringDecoderSink(this._reviver, sink);
   }
 }
 
@@ -1542,7 +1542,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   static _JsonStringParser _createParser(
     Object? Function(Object? key, Object? value)? reviver,
   ) {
-    return new _JsonStringParser(new _JsonListener(reviver));
+    return _JsonStringParser(_JsonListener(reviver));
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
@@ -1564,7 +1564,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   ByteConversionSink asUtf8Sink(bool allowMalformed) {
-    return new _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
+    return _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
   }
 }
 
@@ -1580,7 +1580,7 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   int chunkEnd = 0;
 
   _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
-    : decoder = new _Utf8Decoder(allowMalformed),
+    : decoder = _Utf8Decoder(allowMalformed),
       super(listener) {
     // Starts out checking for an optional BOM (KWD_BOM, count = 0).
     partialState =
@@ -1621,7 +1621,7 @@ class _JsonUtf8Parser extends _JsonParserWithListener
 
   void beginString() {
     decoder.reset();
-    this.buffer = new StringBuffer();
+    this.buffer = StringBuffer();
   }
 
   void addSliceToString(int start, int end) {
@@ -1671,7 +1671,7 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
     Object? Function(Object? key, Object? value)? reviver,
     bool allowMalformed,
   ) {
-    return new _JsonUtf8Parser(new _JsonListener(reviver), allowMalformed);
+    return _JsonUtf8Parser(_JsonListener(reviver), allowMalformed);
   }
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {

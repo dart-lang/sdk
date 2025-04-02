@@ -66,12 +66,12 @@ class MirrorSystem {
     }
     if (candidates.length > 1) {
       var uris = candidates.map((lib) => lib.uri.toString()).toList();
-      throw new Exception(
+      throw Exception(
         "There are multiple libraries named "
         "'${getName(libraryName)}': $uris",
       );
     }
-    throw new Exception("There is no library named '${getName(libraryName)}'");
+    throw Exception("There is no library named '${getName(libraryName)}'");
   }
 
   @patch
@@ -83,12 +83,12 @@ class MirrorSystem {
   static Symbol getSymbol(String name, [LibraryMirror? library]) {
     if ((library != null && library is! _LibraryMirror) ||
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
-      throw new ArgumentError(library);
+      throw ArgumentError(library);
     }
     if (library != null) {
       name = _mangleName(name, (library as _LibraryMirror)._reflectee);
     }
-    return new internal.Symbol.unvalidated(name);
+    return internal.Symbol.unvalidated(name);
   }
 
   @pragma("vm:external-name", "Mirrors_mangleName")
