@@ -2545,7 +2545,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 }
 
-/// A base class for concrete implementations of an [Element] or [Element2].
 abstract class ElementImpl implements Element, ElementOrMember {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
@@ -2628,8 +2627,8 @@ abstract class ElementImpl implements Element, ElementOrMember {
   ElementImpl? get enclosingElement3 => _enclosingElement3;
 
   /// Set the enclosing element of this element to the given [element].
-  set enclosingElement3(Element? element) {
-    _enclosingElement3 = element as ElementImpl?;
+  set enclosingElement3(ElementImpl? element) {
+    _enclosingElement3 = element;
   }
 
   /// Return the enclosing unit element (which might be the same as `this`), or
@@ -3084,9 +3083,8 @@ abstract class ElementImpl implements Element, ElementOrMember {
   }
 
   /// Set this element as the enclosing element for given [elements].
-  void encloseElements(List<Element> elements) {
-    for (Element element in elements) {
-      element as ElementImpl;
+  void encloseElements(List<ElementImpl> elements) {
+    for (var element in elements) {
       element._enclosingElement3 = this;
     }
   }
@@ -3399,11 +3397,11 @@ class ElementLocationImpl implements ElementLocation {
   late final List<String> _components;
 
   /// Initialize a newly created location to represent the given [element].
-  ElementLocationImpl.con1(Element element) {
+  ElementLocationImpl.con1(ElementImpl element) {
     List<String> components = <String>[];
-    Element? ancestor = element;
+    ElementImpl? ancestor = element;
     while (ancestor != null) {
-      components.insert(0, (ancestor as ElementImpl).identifier);
+      components.insert(0, ancestor.identifier);
       if (ancestor is CompilationUnitElementImpl) {
         components.insert(0, ancestor.library.identifier);
         break;
@@ -3502,8 +3500,8 @@ class ElementLocationImpl implements ElementLocation {
   }
 }
 
-/// A shared internal interface of [Element] and [Member].
-/// Used during migration to avoid referencing [Element].
+/// A shared internal interface of `Element` and [Member].
+/// Used during migration to avoid referencing `Element`.
 abstract class ElementOrMember {}
 
 /// An [InterfaceElementImpl] which is an enum.
@@ -7873,7 +7871,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
   set enclosingFragment(Fragment value) {
-    enclosingElement3 = value as Element;
+    enclosingElement3 = value as ElementImpl;
   }
 
   @override
@@ -8733,7 +8731,7 @@ enum Modifier {
   /// but is used as a library.
   HAS_PART_OF_DIRECTIVE,
 
-  /// Indicates that the value of [Element.sinceSdkVersion] was computed.
+  /// Indicates that the value of [ElementImpl.sinceSdkVersion] was computed.
   HAS_SINCE_SDK_VERSION_COMPUTED,
 
   /// [HAS_SINCE_SDK_VERSION_COMPUTED] and the value was not `null`.
