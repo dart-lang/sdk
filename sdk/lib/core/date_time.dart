@@ -412,6 +412,7 @@ class DateTime implements Comparable<DateTime> {
   ///     DateTime.fromSecondsSinceEpoch(1641031200, isUtc:true);
   /// print(newYearsDay); // 2022-01-01 10:00:00.000Z
   /// ```
+  @Since("3.8")
   external DateTime.fromSecondsSinceEpoch(
     int secondsSinceEpoch, {
     bool isUtc = false,
@@ -814,6 +815,7 @@ class DateTime implements Comparable<DateTime> {
   /// This value is at most
   /// 86,400,000,000s. (100,000,000 days) from the Unix epoch.
   /// In other words: `secondsSinceEpoch.abs() <= 86400000000`.
+  @Since("3.8")
   external int get secondsSinceEpoch;
 
   /// The number of milliseconds since
@@ -1032,26 +1034,6 @@ extension DateTimeCopyWith on DateTime {
       second ?? this.second,
       millisecond ?? this.millisecond,
       microsecond ?? this.microsecond,
-    );
-  }
-}
-
-/// Adds methods for seconds since epoch to [DateTime] objects.
-@Since("3.8")
-extension DateTimeSecondsSinceEpoch on DateTime {
-  /// This value is independent of the time zone.
-  ///
-  /// The value is at most 8,640,000,000,000 seconds (100,000,000 days)
-  /// from the Unix epoch.
-  /// In other words: `secondsSinceEpoch.abs() <= 8640000000000`.
-  int get secondsSinceEpoch {
-    return this.millisecondsSinceEpoch ~/ Duration.millisecondsPerSecond;
-  }
-
-  /// Creates a [DateTime] instance from seconds since epoch.
-  static DateTime fromSecondsSinceEpoch(int seconds) {
-    return DateTime.fromMillisecondsSinceEpoch(
-      seconds * Duration.millisecondsPerSecond,
     );
   }
 }
