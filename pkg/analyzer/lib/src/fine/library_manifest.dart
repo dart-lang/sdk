@@ -188,7 +188,7 @@ class LibraryManifestBuilder {
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
-      return InstanceGetterItem.fromElement(
+      return InstanceItemGetterItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
@@ -205,7 +205,7 @@ class LibraryManifestBuilder {
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
-      return InstanceMethodItem.fromElement(
+      return InstanceItemMethodItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
@@ -222,7 +222,7 @@ class LibraryManifestBuilder {
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
-      return InterfaceConstructorItem.fromElement(
+      return InterfaceItemConstructorItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
@@ -649,7 +649,7 @@ class _LibraryMatch {
 
   bool _matchInstanceExecutable({
     required MatchContext interfaceMatchContext,
-    required Map<LookupName, InstanceMemberItem> members,
+    required Map<LookupName, InstanceItemMemberItem> members,
     required LookupName lookupName,
     required ExecutableElement2 executable,
   }) {
@@ -657,7 +657,7 @@ class _LibraryMatch {
 
     switch (executable) {
       case GetterElement2OrMember():
-        if (item is! InstanceGetterItem) {
+        if (item is! InstanceItemGetterItem) {
           return false;
         }
 
@@ -671,7 +671,7 @@ class _LibraryMatch {
         refExternalIds.addAll(matchContext.externalIds);
         return true;
       case MethodElement2OrMember():
-        if (item is! InstanceMethodItem) {
+        if (item is! InstanceItemMethodItem) {
           return false;
         }
 
@@ -715,7 +715,7 @@ class _LibraryMatch {
 
   bool _matchInterfaceConstructor({
     required MatchContext interfaceMatchContext,
-    required Map<LookupName, InstanceMemberItem> members,
+    required Map<LookupName, InstanceItemMemberItem> members,
     required ConstructorElementImpl2 element,
   }) {
     var lookupName = element.name3?.asLookupName;
@@ -724,7 +724,7 @@ class _LibraryMatch {
     }
 
     var item = members[lookupName];
-    if (item is! InterfaceConstructorItem) {
+    if (item is! InterfaceItemConstructorItem) {
       return false;
     }
 

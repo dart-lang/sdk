@@ -96,30 +96,65 @@ class ExportItem extends TopLevelItem {
   }
 }
 
-class InstanceGetterItem extends InstanceMemberItem {
+/// The item for [InstanceElementImpl2].
+sealed class InstanceItem extends TopLevelItem {
+  final List<ManifestTypeParameter> typeParameters;
+  final Map<LookupName, InstanceItemMemberItem> members;
+
+  InstanceItem({
+    required super.libraryUri,
+    required super.name,
+    required super.id,
+    required this.typeParameters,
+    required this.members,
+  });
+
+  void _write(BufferedSink sink) {
+    sink.writeUri(libraryUri);
+    name.write(sink);
+    id.write(sink);
+    typeParameters.writeList(sink);
+    sink.writeMap(
+      members,
+      writeKey: (name) => name.write(sink),
+      writeValue: (member) => member.write(sink),
+    );
+  }
+
+  static Map<LookupName, InstanceItemMemberItem> _readMembers(
+    SummaryDataReader reader,
+  ) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => InstanceItemMemberItem.read(reader),
+    );
+  }
+}
+
+class InstanceItemGetterItem extends InstanceItemMemberItem {
   final ManifestType returnType;
 
-  InstanceGetterItem({
+  InstanceItemGetterItem({
     required super.name,
     required super.id,
     required this.returnType,
   });
 
-  factory InstanceGetterItem.fromElement({
+  factory InstanceItemGetterItem.fromElement({
     required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required GetterElement2OrMember element,
   }) {
-    return InstanceGetterItem(
+    return InstanceItemGetterItem(
       name: name,
       id: id,
       returnType: element.returnType.encode(context),
     );
   }
 
-  factory InstanceGetterItem.read(SummaryDataReader reader) {
-    return InstanceGetterItem(
+  factory InstanceItemGetterItem.read(SummaryDataReader reader) {
+    return InstanceItemGetterItem(
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       returnType: ManifestType.read(reader),
@@ -146,87 +181,52 @@ class InstanceGetterItem extends InstanceMemberItem {
   }
 }
 
-/// The item for [InstanceElementImpl2].
-sealed class InstanceItem extends TopLevelItem {
-  final List<ManifestTypeParameter> typeParameters;
-  final Map<LookupName, InstanceMemberItem> members;
-
-  InstanceItem({
-    required super.libraryUri,
-    required super.name,
-    required super.id,
-    required this.typeParameters,
-    required this.members,
-  });
-
-  void _write(BufferedSink sink) {
-    sink.writeUri(libraryUri);
-    name.write(sink);
-    id.write(sink);
-    typeParameters.writeList(sink);
-    sink.writeMap(
-      members,
-      writeKey: (name) => name.write(sink),
-      writeValue: (member) => member.write(sink),
-    );
-  }
-
-  static Map<LookupName, InstanceMemberItem> _readMembers(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => InstanceMemberItem.read(reader),
-    );
-  }
-}
-
-sealed class InstanceMemberItem extends ManifestItem {
+sealed class InstanceItemMemberItem extends ManifestItem {
   final LookupName name;
   final ManifestItemId id;
 
-  InstanceMemberItem({
+  InstanceItemMemberItem({
     required this.name,
     required this.id,
   });
 
-  factory InstanceMemberItem.read(SummaryDataReader reader) {
+  factory InstanceItemMemberItem.read(SummaryDataReader reader) {
     var kind = reader.readEnum(_ManifestItemKind2.values);
     switch (kind) {
       case _ManifestItemKind2.instanceGetter:
-        return InstanceGetterItem.read(reader);
+        return InstanceItemGetterItem.read(reader);
       case _ManifestItemKind2.instanceMethod:
-        return InstanceMethodItem.read(reader);
+        return InstanceItemMethodItem.read(reader);
       case _ManifestItemKind2.interfaceConstructor:
-        return InterfaceConstructorItem.read(reader);
+        return InterfaceItemConstructorItem.read(reader);
     }
   }
 }
 
-class InstanceMethodItem extends InstanceMemberItem {
+class InstanceItemMethodItem extends InstanceItemMemberItem {
   final ManifestFunctionType functionType;
 
-  InstanceMethodItem({
+  InstanceItemMethodItem({
     required super.name,
     required super.id,
     required this.functionType,
   });
 
-  factory InstanceMethodItem.fromElement({
+  factory InstanceItemMethodItem.fromElement({
     required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required MethodElement2OrMember element,
   }) {
-    return InstanceMethodItem(
+    return InstanceItemMethodItem(
       name: name,
       id: id,
       functionType: element.type.encode(context),
     );
   }
 
-  factory InstanceMethodItem.read(SummaryDataReader reader) {
-    return InstanceMethodItem(
+  factory InstanceItemMethodItem.read(SummaryDataReader reader) {
+    return InstanceItemMethodItem(
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       functionType: ManifestFunctionType.read(reader),
@@ -249,73 +249,6 @@ class InstanceMethodItem extends InstanceMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceMethod);
     name.write(sink);
     id.write(sink);
-    functionType.writeNoTag(sink);
-  }
-}
-
-class InterfaceConstructorItem extends InstanceMemberItem {
-  final bool isConst;
-  final bool isFactory;
-  final ManifestFunctionType functionType;
-
-  InterfaceConstructorItem({
-    required super.name,
-    required super.id,
-    required this.isConst,
-    required this.isFactory,
-    required this.functionType,
-  });
-
-  factory InterfaceConstructorItem.fromElement({
-    required LookupName name,
-    required ManifestItemId id,
-    required EncodeContext context,
-    required ConstructorElementImpl2 element,
-  }) {
-    // TODO(scheglov): initializers
-    return InterfaceConstructorItem(
-      name: name,
-      id: id,
-      isConst: element.isConst,
-      isFactory: element.isFactory,
-      functionType: element.type.encode(context),
-    );
-  }
-
-  factory InterfaceConstructorItem.read(SummaryDataReader reader) {
-    return InterfaceConstructorItem(
-      name: LookupName.read(reader),
-      id: ManifestItemId.read(reader),
-      isConst: reader.readBool(),
-      isFactory: reader.readBool(),
-      functionType: ManifestFunctionType.read(reader),
-    );
-  }
-
-  MatchContext? match(
-    MatchContext instanceContext,
-    ConstructorElementImpl2 element,
-  ) {
-    var context = MatchContext(parent: instanceContext);
-    if (isConst != element.isConst) {
-      return null;
-    }
-    if (isFactory != element.isFactory) {
-      return null;
-    }
-    if (!functionType.match(context, element.type)) {
-      return null;
-    }
-    return context;
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind2.interfaceConstructor);
-    name.write(sink);
-    id.write(sink);
-    sink.writeBool(isConst);
-    sink.writeBool(isFactory);
     functionType.writeNoTag(sink);
   }
 }
@@ -354,6 +287,73 @@ sealed class InterfaceItem extends InstanceItem {
     supertype.writeOptional(sink);
     mixins.writeList(sink);
     interfaces.writeList(sink);
+  }
+}
+
+class InterfaceItemConstructorItem extends InstanceItemMemberItem {
+  final bool isConst;
+  final bool isFactory;
+  final ManifestFunctionType functionType;
+
+  InterfaceItemConstructorItem({
+    required super.name,
+    required super.id,
+    required this.isConst,
+    required this.isFactory,
+    required this.functionType,
+  });
+
+  factory InterfaceItemConstructorItem.fromElement({
+    required LookupName name,
+    required ManifestItemId id,
+    required EncodeContext context,
+    required ConstructorElementImpl2 element,
+  }) {
+    // TODO(scheglov): initializers
+    return InterfaceItemConstructorItem(
+      name: name,
+      id: id,
+      isConst: element.isConst,
+      isFactory: element.isFactory,
+      functionType: element.type.encode(context),
+    );
+  }
+
+  factory InterfaceItemConstructorItem.read(SummaryDataReader reader) {
+    return InterfaceItemConstructorItem(
+      name: LookupName.read(reader),
+      id: ManifestItemId.read(reader),
+      isConst: reader.readBool(),
+      isFactory: reader.readBool(),
+      functionType: ManifestFunctionType.read(reader),
+    );
+  }
+
+  MatchContext? match(
+    MatchContext instanceContext,
+    ConstructorElementImpl2 element,
+  ) {
+    var context = MatchContext(parent: instanceContext);
+    if (isConst != element.isConst) {
+      return null;
+    }
+    if (isFactory != element.isFactory) {
+      return null;
+    }
+    if (!functionType.match(context, element.type)) {
+      return null;
+    }
+    return context;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind2.interfaceConstructor);
+    name.write(sink);
+    id.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFactory);
+    functionType.writeNoTag(sink);
   }
 }
 
