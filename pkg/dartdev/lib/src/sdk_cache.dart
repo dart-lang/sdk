@@ -10,7 +10,6 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:http/http.dart' as http;
 import 'package:native_assets_cli/code_assets_builder.dart' show OS, Target;
-import 'package:path/path.dart' as path;
 
 /// S_IXUSR bit from POSIX sys/stat.h.
 ///
@@ -23,18 +22,13 @@ const sIxusr = 0x40;
 class ArchiveFolder {
   final String version;
   final String revision;
-
   final Channel channel;
-  final Stage stage;
 
-  Uri fileUri(String path) => SdkCache.archiveUri(
-      channel: channel, stage: stage, version: 'hash/$revision', path: path);
+  Uri fileUri(String path, {required Stage stage}) => SdkCache.archiveUri(
+      channel: channel, version: 'hash/$revision', stage: stage, path: path);
 
   ArchiveFolder(
-      {required this.version,
-      required this.revision,
-      required this.channel,
-      required this.stage});
+      {required this.version, required this.revision, required this.channel});
 }
 
 /// Cache for retrieving artifacts that are not shipped with the Dart SDK.
@@ -85,14 +79,8 @@ class SdkCache {
       throw ArgumentError('Unsupported channel: "$channelName".');
     }
 
-    // Require signed artifacts on macOS past main channel (main channel
-    // releases aren't signed).
-    final stage = host.os == OS.macOS && channel != Channel.main
-        ? Stage.signed
-        : Stage.raw;
-
-    final folderFromArgs = ArchiveFolder(
-        version: version, revision: revision, channel: channel, stage: stage);
+    final folderFromArgs =
+        ArchiveFolder(version: version, revision: revision, channel: channel);
     if (channel != Channel.main) {
       // Past main channel, we always assume that given version and revision
       // must exist on the server.
@@ -104,19 +92,23 @@ class SdkCache {
       return folderFromArgs;
     }
 
+    // Require signed artifacts on macOS past main channel (main channel
+    // releases aren't signed).
+    final stage = host.os == OS.macOS && channel != Channel.main
+        ? Stage.signed
+        : Stage.raw;
+
     // On the main channel, on contrary, we do not trust the revision, because
     // it can be empty (if Dart SDK is built with RBE), or be at the local
     // commit revision, which does not exist on storage.
     if (revision.isNotEmpty) {
       // Check that the given revision exists.
-      var exists = await _exists(folderFromArgs.fileUri('VERSION'));
+      var exists =
+          await _exists(folderFromArgs.fileUri('VERSION', stage: stage));
 
       if (exists) {
         return ArchiveFolder(
-            version: version,
-            revision: revision,
-            channel: channel,
-            stage: stage);
+            version: version, revision: revision, channel: channel);
       } else {
         if (verbose) {
           _stderr.writeln('Cannot find revision $revision in an archive.');
@@ -132,7 +124,7 @@ class SdkCache {
       _stderr.writeln('Using revision $revision.');
     }
     return ArchiveFolder(
-        version: version, revision: revision, channel: channel, stage: stage);
+        version: version, revision: revision, channel: channel);
   }
 
   void _ensureExecutable(File destinationFile, OS hostOS) {
@@ -168,7 +160,8 @@ class SdkCache {
         archiveFolder: archiveFolder,
         host: host,
         target: target,
-        basename: basename);
+        basename: basename,
+        isExecutable: true);
   }
 
   Future<String> ensureDartAotRuntime({
@@ -178,11 +171,11 @@ class SdkCache {
   }) {
     host ??= Target.current;
     return ensureArtifact(
-      archiveFolder: archiveFolder,
-      basename: 'dartaotruntime_$target',
-      target: target,
-      host: host,
-    );
+        archiveFolder: archiveFolder,
+        basename: 'dartaotruntime_$target',
+        target: target,
+        host: host,
+        isExecutable: false);
   }
 
   Future<String> ensureArtifact({
@@ -190,17 +183,24 @@ class SdkCache {
     required String basename,
     required Target target,
     required Target host,
+    required bool isExecutable,
   }) async {
     // Calculate the local path.
     var localFile =
-        fs.file(path.join(directory.path, archiveFolder.version, basename));
+        directory.childDirectory(archiveFolder.version).childFile(basename);
     if (localFile.existsSync()) {
-      _ensureExecutable(localFile, host.os);
+      if (isExecutable) {
+        _ensureExecutable(localFile, host.os);
+      }
       return localFile.path;
     }
 
     localFile.parent.createSync(recursive: true);
-    final uri = archiveFolder.fileUri('sdk/$basename');
+    final uri = archiveFolder.fileUri('sdk/$basename',
+        stage: resolveStage(
+            channel: archiveFolder.channel,
+            isExecutable: isExecutable,
+            hostOS: host.os));
 
     try {
       localFile.writeAsBytesSync(await _download(uri));
@@ -209,7 +209,10 @@ class SdkCache {
       _stderr.writeln('If the problem persists, try downloading it manually.');
       rethrow;
     }
-    _ensureExecutable(localFile, host.os);
+
+    if (isExecutable) {
+      _ensureExecutable(localFile, host.os);
+    }
     return localFile.path;
   }
 
@@ -244,6 +247,17 @@ class SdkCache {
       throw SdkCacheException('GET $uri failed: ${response.statusCode}');
     }
     return response.bodyBytes;
+  }
+
+  static Stage resolveStage(
+      {required Channel channel,
+      required bool isExecutable,
+      required OS hostOS}) {
+    if (channel == Channel.main || !isExecutable) {
+      return Stage.raw;
+    }
+
+    return hostOS == OS.macOS ? Stage.signed : Stage.raw;
   }
 
   static Uri archiveUri(

@@ -9,7 +9,7 @@ import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http;
-import 'package:native_assets_cli/code_assets_builder.dart' show Target;
+import 'package:native_assets_cli/code_assets_builder.dart' show Target, OS;
 import 'package:test/test.dart';
 
 const dartArchiveUri = 'https://storage.googleapis.com/dart-archive';
@@ -22,13 +22,17 @@ void main() {
   late Map<String, io.ProcessResult> chmodRuns;
 
   setUp(() {
-    fs = MemoryFileSystem();
+    // Make sure we support both path separators.
+    fs = MemoryFileSystem(
+        style: io.Platform.isWindows
+            ? FileSystemStyle.windows
+            : FileSystemStyle.posix);
     stderr = StringBuffer();
     expectedRequests = <String, http.Response>{};
     chmodRuns = <String, io.ProcessResult>{};
 
     cache = SdkCache(
-        directory: '/tmp/cache',
+        directory: fs.directory(Uri.file('/tmp/cache')).path,
         stderr: stderr,
         verbose: true,
         fs: fs,
@@ -42,6 +46,29 @@ void main() {
         chmod: (path) => chmodRuns[path]!);
   });
 
+  group('resolveStage', () {
+    test('Uses signed on macOS dev for executables', () {
+      expect(
+          SdkCache.resolveStage(
+              channel: Channel.dev, isExecutable: true, hostOS: OS.macOS),
+          Stage.signed);
+    });
+
+    test('Uses raw on macOS main for executables', () {
+      expect(
+          SdkCache.resolveStage(
+              channel: Channel.main, isExecutable: true, hostOS: OS.macOS),
+          Stage.raw);
+    });
+
+    test('Uses raw on macOS stable for non-executables', () {
+      expect(
+          SdkCache.resolveStage(
+              channel: Channel.stable, isExecutable: false, hostOS: OS.macOS),
+          Stage.raw);
+    });
+  });
+
   group('resolveVersion', () {
     test('Resolves release version', () async {
       final version = '3.4.4';
@@ -53,26 +80,9 @@ void main() {
           host: Target.linuxArm64);
       expect(folder.version, version);
       expect(folder.revision, revision);
-      expect(folder.stage, Stage.raw);
       expect(folder.channel, Channel.stable);
-      expect(folder.fileUri('VERSION').toString(),
+      expect(folder.fileUri('VERSION', stage: Stage.raw).toString(),
           '$dartArchiveUri/channels/stable/raw/hash/$revision/VERSION');
-    });
-
-    test('Uses signed binaries on macOS', () async {
-      final version = '3.8.0-171.2.beta';
-      final revision = '54cec4d7d36e7a5066770287998f425606a2f983';
-      final folder = await cache.resolveVersion(
-          version: version,
-          revision: revision,
-          channelName: 'beta',
-          host: Target.macOSArm64);
-      expect(folder.version, version);
-      expect(folder.revision, revision);
-      expect(folder.stage, Stage.signed);
-      expect(folder.channel, Channel.beta);
-      expect(folder.fileUri('').toString(),
-          '$dartArchiveUri/channels/beta/signed/hash/$revision/');
     });
 
     test('Falls back to the latest on empty main revision', () async {
@@ -95,7 +105,6 @@ void main() {
           host: Target.macOSArm64);
       expect(folder.version, latestVersion);
       expect(folder.revision, latestRevision);
-      expect(folder.stage, Stage.raw);
       expect(folder.channel, Channel.main);
     });
 
@@ -124,7 +133,6 @@ void main() {
           host: Target.macOSArm64);
       expect(folder.version, latestVersion);
       expect(folder.revision, latestRevision);
-      expect(folder.stage, Stage.raw);
       expect(folder.channel, Channel.main);
     });
 
@@ -147,31 +155,49 @@ void main() {
       final version = '3.4.4';
       final revision = '60465149414572c8ca189d8f65fdb39795c4b97d';
 
-      final genSnapshotFile = fs
-          .file('/tmp/cache/$version/gen_snapshot_windows_arm64_linux_x64.exe');
+      final genSnapshotFile = fs.file(Uri.file(
+          '/tmp/cache/$version/gen_snapshot_windows_arm64_linux_x64.exe'));
       genSnapshotFile.createSync(exclusive: true, recursive: true);
 
       final path = await cache.ensureGenSnapshot(
           archiveFolder: ArchiveFolder(
-              channel: Channel.stable,
-              stage: Stage.raw,
-              version: version,
-              revision: revision),
+              channel: Channel.stable, version: version, revision: revision),
           host: Target.windowsArm64,
           target: Target.linuxX64);
       expect(path, genSnapshotFile.path);
     });
 
-    test('Downloads', () async {
+    test('Downloads signed gen_snapshot on macOS beta', () async {
       final version = '3.8.0-171.2.beta';
       final revision = '54cec4d7d36e7a5066770287998f425606a2f983';
 
       final archiveFolder = ArchiveFolder(
-          channel: Channel.beta,
-          stage: Stage.signed,
-          version: version,
-          revision: revision);
+          channel: Channel.beta, version: version, revision: revision);
       expectedRequests['GET $dartArchiveUri/channels/beta/signed/hash/'
+              '$revision/sdk/gen_snapshot_macos_arm64_linux_x64'] =
+          http.Response('i am gen_snapshot', io.HttpStatus.ok);
+
+      final path = await cache.ensureGenSnapshot(
+          archiveFolder: archiveFolder,
+          host: Target.macOSArm64,
+          target: Target.linuxX64);
+
+      expect(
+          path,
+          fs
+              .file(Uri.file(
+                  '/tmp/cache/$version/gen_snapshot_macos_arm64_linux_x64'))
+              .path);
+      expect(fs.file(path).readAsStringSync(), 'i am gen_snapshot');
+    });
+
+    test('Downloads raw dartaotruntime on macOS beta', () async {
+      final version = '3.8.0-171.2.beta';
+      final revision = '54cec4d7d36e7a5066770287998f425606a2f983';
+
+      final archiveFolder = ArchiveFolder(
+          channel: Channel.beta, version: version, revision: revision);
+      expectedRequests['GET $dartArchiveUri/channels/beta/raw/hash/'
               '$revision/sdk/dartaotruntime_linux_x64'] =
           http.Response('i am dartaotruntime', io.HttpStatus.ok);
 
@@ -180,7 +206,53 @@ void main() {
           host: Target.macOSArm64,
           target: Target.linuxX64);
 
-      expect(path, '/tmp/cache/$version/dartaotruntime_linux_x64');
+      expect(
+          path,
+          fs
+              .file(Uri.file('/tmp/cache/$version/dartaotruntime_linux_x64'))
+              .path);
+      expect(fs.file(path).readAsStringSync(), 'i am dartaotruntime');
+    });
+
+    test('Downloads gen_snapshot.exe on Windows stable', () async {
+      final version = '3.7.2';
+      final channel = Channel.stable;
+      final revision = '9594995093f642957b780603c6435d9e7a61b923';
+      final binary = 'gen_snapshot_windows_x64_linux_x64.exe';
+
+      final archiveFolder =
+          ArchiveFolder(channel: channel, version: version, revision: revision);
+      expectedRequests['GET $dartArchiveUri/channels/stable/raw/hash/'
+              '$revision/sdk/$binary'] =
+          http.Response('i am gen_snapshot', io.HttpStatus.ok);
+
+      final path = await cache.ensureGenSnapshot(
+          archiveFolder: archiveFolder,
+          host: Target.windowsX64,
+          target: Target.linuxX64);
+
+      expect(path, fs.file(Uri.file('/tmp/cache/$version/$binary')).path);
+      expect(fs.file(path).readAsStringSync(), 'i am gen_snapshot');
+    });
+
+    test('Downloads dartaotruntime on Windows stable', () async {
+      final version = '3.7.2';
+      final channel = Channel.stable;
+      final revision = '9594995093f642957b780603c6435d9e7a61b923';
+      final binary = 'dartaotruntime_linux_x64';
+
+      final archiveFolder =
+          ArchiveFolder(channel: channel, version: version, revision: revision);
+      expectedRequests['GET $dartArchiveUri/channels/stable/raw/hash/'
+              '$revision/sdk/$binary'] =
+          http.Response('i am dartaotruntime', io.HttpStatus.ok);
+
+      final path = await cache.ensureDartAotRuntime(
+          archiveFolder: archiveFolder,
+          host: Target.windowsX64,
+          target: Target.linuxX64);
+
+      expect(path, fs.file(Uri.file('/tmp/cache/$version/$binary')).path);
       expect(fs.file(path).readAsStringSync(), 'i am dartaotruntime');
     });
   });
