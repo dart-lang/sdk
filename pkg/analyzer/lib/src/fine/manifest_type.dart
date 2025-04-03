@@ -46,19 +46,32 @@ class ManifestFunctionNamedFormalParameter
     extends ManifestFunctionFormalParameter {
   final String name;
 
-  ManifestFunctionNamedFormalParameter({
-    required super.isRequired,
-    required super.type,
-    required this.name,
-  });
+  factory ManifestFunctionNamedFormalParameter.encode(
+    EncodeContext context, {
+    required bool isRequired,
+    required DartType type,
+    required String name,
+  }) {
+    return ManifestFunctionNamedFormalParameter._(
+      isRequired: isRequired,
+      type: type.encode(context),
+      name: name,
+    );
+  }
 
   factory ManifestFunctionNamedFormalParameter.read(SummaryDataReader reader) {
-    return ManifestFunctionNamedFormalParameter(
+    return ManifestFunctionNamedFormalParameter._(
       isRequired: reader.readBool(),
       type: ManifestType.read(reader),
       name: reader.readStringUtf8(),
     );
   }
+
+  ManifestFunctionNamedFormalParameter._({
+    required super.isRequired,
+    required super.type,
+    required this.name,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -80,36 +93,34 @@ class ManifestFunctionNamedFormalParameter
     type.write(sink);
     sink.writeStringUtf8(name);
   }
-
-  static ManifestFunctionNamedFormalParameter encode(
-    EncodeContext context, {
-    required bool isRequired,
-    required DartType type,
-    required String name,
-  }) {
-    return ManifestFunctionNamedFormalParameter(
-      isRequired: isRequired,
-      type: type.encode(context),
-      name: name,
-    );
-  }
 }
 
 class ManifestFunctionPositionalFormalParameter
     extends ManifestFunctionFormalParameter {
-  ManifestFunctionPositionalFormalParameter({
-    required super.isRequired,
-    required super.type,
-  });
+  factory ManifestFunctionPositionalFormalParameter.encode(
+    EncodeContext context, {
+    required bool isRequired,
+    required DartType type,
+  }) {
+    return ManifestFunctionPositionalFormalParameter._(
+      isRequired: isRequired,
+      type: type.encode(context),
+    );
+  }
 
   factory ManifestFunctionPositionalFormalParameter.read(
     SummaryDataReader reader,
   ) {
-    return ManifestFunctionPositionalFormalParameter(
+    return ManifestFunctionPositionalFormalParameter._(
       isRequired: reader.readBool(),
       type: ManifestType.read(reader),
     );
   }
+
+  ManifestFunctionPositionalFormalParameter._({
+    required super.isRequired,
+    required super.type,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -129,17 +140,6 @@ class ManifestFunctionPositionalFormalParameter
     sink.writeBool(isRequired);
     type.write(sink);
   }
-
-  static ManifestFunctionPositionalFormalParameter encode(
-    EncodeContext context, {
-    required bool isRequired,
-    required DartType type,
-  }) {
-    return ManifestFunctionPositionalFormalParameter(
-      isRequired: isRequired,
-      type: type.encode(context),
-    );
-  }
 }
 
 final class ManifestFunctionType extends ManifestType {
@@ -148,16 +148,37 @@ final class ManifestFunctionType extends ManifestType {
   final List<ManifestFunctionPositionalFormalParameter> positional;
   final List<ManifestFunctionNamedFormalParameter> named;
 
-  ManifestFunctionType({
-    required this.typeParameters,
-    required this.returnType,
-    required this.positional,
-    required this.named,
-    required super.nullabilitySuffix,
-  });
+  factory ManifestFunctionType.encode(
+    EncodeContext context,
+    FunctionTypeImpl type,
+  ) {
+    return context.withTypeParameters(
+      type.typeParameters,
+      (typeParameters) {
+        return ManifestFunctionType._(
+          typeParameters: typeParameters,
+          returnType: type.returnType.encode(context),
+          positional: type.positionalParameterTypes.indexed.map((pair) {
+            return ManifestFunctionPositionalFormalParameter._(
+              isRequired: pair.$1 < type.requiredPositionalParameterCount,
+              type: pair.$2.encode(context),
+            );
+          }).toFixedList(),
+          named: type.sortedNamedParametersShared.map((element) {
+            return ManifestFunctionNamedFormalParameter._(
+              isRequired: element.isRequired,
+              type: element.type.encode(context),
+              name: element.name3!,
+            );
+          }).toFixedList(),
+          nullabilitySuffix: type.nullabilitySuffix,
+        );
+      },
+    );
+  }
 
   factory ManifestFunctionType.read(SummaryDataReader reader) {
-    return ManifestFunctionType(
+    return ManifestFunctionType._(
       typeParameters: reader.readTypedList(() {
         return ManifestTypeParameter.read(reader);
       }),
@@ -171,6 +192,14 @@ final class ManifestFunctionType extends ManifestType {
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
+
+  ManifestFunctionType._({
+    required this.typeParameters,
+    required this.returnType,
+    required this.positional,
+    required this.named,
+    required super.nullabilitySuffix,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -250,49 +279,25 @@ final class ManifestFunctionType extends ManifestType {
     sink.writeList(named, (e) => e.write(sink));
     sink.writeEnum(nullabilitySuffix);
   }
-
-  static ManifestFunctionType encode(
-    EncodeContext context,
-    FunctionTypeImpl type,
-  ) {
-    return context.withTypeParameters(
-      type.typeParameters,
-      (typeParameters) {
-        return ManifestFunctionType(
-          typeParameters: typeParameters,
-          returnType: type.returnType.encode(context),
-          positional: type.positionalParameterTypes.indexed.map((pair) {
-            return ManifestFunctionPositionalFormalParameter(
-              isRequired: pair.$1 < type.requiredPositionalParameterCount,
-              type: pair.$2.encode(context),
-            );
-          }).toFixedList(),
-          named: type.sortedNamedParametersShared.map((element) {
-            return ManifestFunctionNamedFormalParameter(
-              isRequired: element.isRequired,
-              type: element.type.encode(context),
-              name: element.name3!,
-            );
-          }).toFixedList(),
-          nullabilitySuffix: type.nullabilitySuffix,
-        );
-      },
-    );
-  }
 }
 
 final class ManifestInterfaceType extends ManifestType {
   final ManifestElement element;
   final List<ManifestType> arguments;
 
-  ManifestInterfaceType({
-    required this.element,
-    required this.arguments,
-    required super.nullabilitySuffix,
-  });
+  factory ManifestInterfaceType.encode(
+    EncodeContext context,
+    InterfaceType type,
+  ) {
+    return ManifestInterfaceType._(
+      element: ManifestElement.encode(context, type.element3),
+      arguments: type.typeArguments.encode(context),
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
+  }
 
   factory ManifestInterfaceType.read(SummaryDataReader reader) {
-    return ManifestInterfaceType(
+    return ManifestInterfaceType._(
       element: ManifestElement.read(reader),
       arguments: reader.readTypedList(() {
         return ManifestType.read(reader);
@@ -300,6 +305,12 @@ final class ManifestInterfaceType extends ManifestType {
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
+
+  ManifestInterfaceType._({
+    required this.element,
+    required this.arguments,
+    required super.nullabilitySuffix,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -345,17 +356,6 @@ final class ManifestInterfaceType extends ManifestType {
     });
     sink.writeEnum(nullabilitySuffix);
   }
-
-  static ManifestInterfaceType encode(
-    EncodeContext context,
-    InterfaceType type,
-  ) {
-    return ManifestInterfaceType(
-      element: ManifestElement.encode(context, type.element3),
-      arguments: type.typeArguments.encode(context),
-      nullabilitySuffix: type.nullabilitySuffix,
-    );
-  }
 }
 
 final class ManifestInvalidType extends ManifestType {
@@ -378,15 +378,21 @@ final class ManifestInvalidType extends ManifestType {
 }
 
 final class ManifestNeverType extends ManifestType {
-  ManifestNeverType({
-    required super.nullabilitySuffix,
-  });
+  factory ManifestNeverType.encode(NeverTypeImpl type) {
+    return ManifestNeverType._(
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
+  }
 
   factory ManifestNeverType.read(SummaryDataReader reader) {
-    return ManifestNeverType(
+    return ManifestNeverType._(
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
+
+  ManifestNeverType._({
+    required super.nullabilitySuffix,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -411,29 +417,29 @@ final class ManifestNeverType extends ManifestType {
     sink.writeEnum(_ManifestTypeKind.never);
     sink.writeEnum(nullabilitySuffix);
   }
-
-  static ManifestNeverType encode(
-    EncodeContext context,
-    NeverTypeImpl type,
-  ) {
-    return ManifestNeverType(
-      nullabilitySuffix: type.nullabilitySuffix,
-    );
-  }
 }
 
 final class ManifestRecordType extends ManifestType {
   final List<ManifestType> positionalFields;
   final List<ManifestRecordTypeNamedField> namedFields;
 
-  ManifestRecordType({
-    required this.positionalFields,
-    required this.namedFields,
-    required super.nullabilitySuffix,
-  });
+  factory ManifestRecordType.encode(
+    EncodeContext context,
+    RecordTypeImpl type,
+  ) {
+    return ManifestRecordType._(
+      positionalFields: type.positionalFields.map((field) {
+        return field.type;
+      }).encode(context),
+      namedFields: type.namedFields.map((field) {
+        return ManifestRecordTypeNamedField.encode(context, field);
+      }).toFixedList(),
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
+  }
 
   factory ManifestRecordType.read(SummaryDataReader reader) {
-    return ManifestRecordType(
+    return ManifestRecordType._(
       positionalFields: reader.readTypedList(() {
         return ManifestType.read(reader);
       }),
@@ -443,6 +449,12 @@ final class ManifestRecordType extends ManifestType {
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
+
+  ManifestRecordType._({
+    required this.positionalFields,
+    required this.namedFields,
+    required super.nullabilitySuffix,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -497,38 +509,33 @@ final class ManifestRecordType extends ManifestType {
     sink.writeList(namedFields, (e) => e.write(sink));
     sink.writeEnum(nullabilitySuffix);
   }
-
-  static ManifestRecordType encode(
-    EncodeContext context,
-    RecordTypeImpl type,
-  ) {
-    return ManifestRecordType(
-      positionalFields: type.positionalFields.map((field) {
-        return field.type;
-      }).encode(context),
-      namedFields: type.namedFields.map((field) {
-        return ManifestRecordTypeNamedField.encode(context, field);
-      }).toFixedList(),
-      nullabilitySuffix: type.nullabilitySuffix,
-    );
-  }
 }
 
 class ManifestRecordTypeNamedField {
   final String name;
   final ManifestType type;
 
-  ManifestRecordTypeNamedField({
-    required this.name,
-    required this.type,
-  });
+  factory ManifestRecordTypeNamedField.encode(
+    EncodeContext context,
+    RecordTypeNamedField field,
+  ) {
+    return ManifestRecordTypeNamedField._(
+      name: field.name,
+      type: field.type.encode(context),
+    );
+  }
 
   factory ManifestRecordTypeNamedField.read(SummaryDataReader reader) {
-    return ManifestRecordTypeNamedField(
+    return ManifestRecordTypeNamedField._(
       name: reader.readStringUtf8(),
       type: ManifestType.read(reader),
     );
   }
+
+  ManifestRecordTypeNamedField._({
+    required this.name,
+    required this.type,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -545,16 +552,6 @@ class ManifestRecordTypeNamedField {
   void write(BufferedSink sink) {
     sink.writeStringUtf8(name);
     type.write(sink);
-  }
-
-  static ManifestRecordTypeNamedField encode(
-    EncodeContext context,
-    RecordTypeNamedField field,
-  ) {
-    return ManifestRecordTypeNamedField(
-      name: field.name,
-      type: field.type.encode(context),
-    );
   }
 }
 
@@ -603,17 +600,26 @@ sealed class ManifestType {
 class ManifestTypeParameter {
   final ManifestType? bound;
 
-  ManifestTypeParameter({
-    required this.bound,
-  });
+  factory ManifestTypeParameter.encode(
+    EncodeContext context,
+    TypeParameterElement2 element,
+  ) {
+    return ManifestTypeParameter._(
+      bound: element.bound?.encode(context),
+    );
+  }
 
   factory ManifestTypeParameter.read(
     SummaryDataReader reader,
   ) {
-    return ManifestTypeParameter(
+    return ManifestTypeParameter._(
       bound: ManifestType.readOptional(reader),
     );
   }
+
+  ManifestTypeParameter._({
+    required this.bound,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -657,17 +663,27 @@ class ManifestTypeParameter {
 final class ManifestTypeParameterType extends ManifestType {
   final int index;
 
-  ManifestTypeParameterType({
-    required this.index,
-    required super.nullabilitySuffix,
-  });
+  factory ManifestTypeParameterType.encode(
+    EncodeContext context,
+    TypeParameterTypeImpl type,
+  ) {
+    return ManifestTypeParameterType._(
+      index: context.indexOfTypeParameter(type.element3),
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
+  }
 
   factory ManifestTypeParameterType.read(SummaryDataReader reader) {
-    return ManifestTypeParameterType(
+    return ManifestTypeParameterType._(
       index: reader.readUInt30(),
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
+
+  ManifestTypeParameterType._({
+    required this.index,
+    required super.nullabilitySuffix,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -700,16 +716,6 @@ final class ManifestTypeParameterType extends ManifestType {
     sink.writeEnum(_ManifestTypeKind.typeParameter);
     sink.writeUInt30(index);
     sink.writeEnum(nullabilitySuffix);
-  }
-
-  static ManifestTypeParameterType encode(
-    EncodeContext context,
-    TypeParameterTypeImpl type,
-  ) {
-    return ManifestTypeParameterType(
-      index: context.indexOfTypeParameter(type.element3),
-      nullabilitySuffix: type.nullabilitySuffix,
-    );
   }
 }
 
@@ -756,7 +762,7 @@ extension DartTypeExtension on DartType {
       case InvalidTypeImpl():
         return ManifestInvalidType.instance;
       case NeverTypeImpl():
-        return ManifestNeverType.encode(context, type);
+        return ManifestNeverType.encode(type);
       case RecordTypeImpl():
         return ManifestRecordType.encode(context, type);
       case TypeParameterTypeImpl():

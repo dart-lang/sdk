@@ -759,7 +759,7 @@ class LibraryManifestPrinter {
     sink.withIndent(() {
       var entries = item.members.sorted;
       for (var entry in entries) {
-        _writeInstanceMember(entry.key, entry.value);
+        _writeInstanceItemMember(entry.key, entry.value);
       }
     });
   }
@@ -772,7 +772,7 @@ class LibraryManifestPrinter {
     }
   }
 
-  void _writeInstanceMember(LookupName name, InstanceMemberItem item) {
+  void _writeInstanceItemMember(LookupName name, InstanceItemMemberItem item) {
     if (configuration.ignoredManifestInstanceMemberNames
         .contains(item.name.asString)) {
       return;
@@ -783,11 +783,11 @@ class LibraryManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         switch (item) {
-          case InstanceGetterItem():
+          case InstanceItemGetterItem():
             _writeNamedType('returnType', item.returnType);
-          case InstanceMethodItem():
+          case InstanceItemMethodItem():
             _writeNamedType('functionType', item.functionType);
-          case InterfaceConstructorItem():
+          case InterfaceItemConstructorItem():
             _writeNamedType('functionType', item.functionType);
         }
       });
