@@ -1124,8 +1124,6 @@ void KernelLoader::FinishTopLevelClassLoading(
 
 void KernelLoader::LoadLibraryImportsAndExports(Library* library,
                                                 const Class& toplevel_class) {
-  GrowableObjectArray& show_list = GrowableObjectArray::Handle(Z);
-  GrowableObjectArray& hide_list = GrowableObjectArray::Handle(Z);
   Array& show_names = Array::Handle(Z);
   Array& hide_names = Array::Handle(Z);
   Namespace& ns = Namespace::Handle(Z);
@@ -1153,8 +1151,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     }
 
     // Prepare show and hide lists.
-    show_list = GrowableObjectArray::New(Heap::kOld);
-    hide_list = GrowableObjectArray::New(Heap::kOld);
+    GrowableObjectArray& show_list = GrowableObjectArray::Handle(Z);
+    GrowableObjectArray& hide_list = GrowableObjectArray::Handle(Z);
     const intptr_t combinator_count = helper_.ReadListLength();
     for (intptr_t c = 0; c < combinator_count; ++c) {
       uint8_t flags = helper_.ReadFlags();
@@ -1163,8 +1161,14 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         String& show_hide_name =
             H.DartSymbolObfuscate(helper_.ReadStringReference());
         if ((flags & LibraryDependencyHelper::Show) != 0) {
+          if (show_list.IsNull()) {
+            show_list = GrowableObjectArray::New(Heap::kOld);
+          }
           show_list.Add(show_hide_name, Heap::kOld);
         } else {
+          if (hide_list.IsNull()) {
+            hide_list = GrowableObjectArray::New(Heap::kOld);
+          }
           hide_list.Add(show_hide_name, Heap::kOld);
         }
       }
