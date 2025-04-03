@@ -717,6 +717,7 @@ extension _GetterElementImplExtension on GetterElementImpl {
 
     // TODO(scheglov): support all expressions
     switch (constInitializer) {
+      case BinaryExpression():
       case IntegerLiteral():
       case SimpleIdentifier():
         break;

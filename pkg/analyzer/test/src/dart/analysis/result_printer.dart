@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
+import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
@@ -794,6 +795,16 @@ class LibraryManifestPrinter {
     }
   }
 
+  void _writelnElement(ManifestElement element) {
+    var parts = [
+      element.libraryUri,
+      element.topLevelName,
+      if (element.memberName case var memberName?) memberName,
+    ];
+    var idStr = idProvider.manifestId(element.id);
+    sink.writeln('(${parts.join(', ')}) $idStr');
+  }
+
   void _writeNamedId(LookupName name, ManifestItemId id) {
     var idStr = idProvider.manifestId(id);
     sink.writelnWithIndent('$name: $idStr');
@@ -810,20 +821,25 @@ class LibraryManifestPrinter {
 
   void _writeNode(String name, ManifestNode? node) {
     if (node != null) {
-      sink.writeWithIndent('$name: ');
-      switch (node) {
-        case ManifestNodeAnnotation():
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError();
-        case ManifestNodeIntegerLiteral():
-          sink.writeln('ManifestNodeIntegerLiteral');
+      sink.writelnWithIndent(name);
+      sink.withIndent(() {
+        sink.writelnWithIndent('tokenBuffer: ${node.tokenBuffer}');
+        sink.writelnWithIndent('tokenLengthList: ${node.tokenLengthList}');
+
+        if (node.elements.isNotEmpty) {
+          sink.writelnWithIndent('elements');
           sink.withIndent(() {
-            sink.writelnWithIndent('value: ${node.value}');
+            for (var (index, element) in node.elements.indexed) {
+              sink.writeWithIndent('[${1 + index}] ');
+              _writelnElement(element);
+            }
           });
-        case ManifestNodeSimpleIdentifier():
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError();
-      }
+        }
+
+        if (node.elementIndexList.isNotEmpty) {
+          sink.writelnWithIndent('elementIndexList: ${node.elementIndexList}');
+        }
+      });
     }
   }
 
@@ -884,7 +900,7 @@ class LibraryManifestPrinter {
         });
       case ManifestInterfaceType():
         var element = type.element;
-        sink.write(element.name);
+        sink.write(element.topLevelName);
         writeNullabilitySuffix();
         sink.write(' @ ');
         sink.writeln(element.libraryUri);

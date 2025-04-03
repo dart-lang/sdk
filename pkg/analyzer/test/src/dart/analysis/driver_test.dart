@@ -9538,8 +9538,269 @@ class A {}
     );
   }
 
-  test_manifest_constInitializer_integerLiteral() async {
+  test_manifest_constInitializer_binaryExpression() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0 + 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+const a = 0 + 1;
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_binaryExpression_left_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = a + 2;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+const a = 1;
+const b = a + 2;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M2
+      b: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_binaryExpression_left_token() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0 + 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+const a = 2 + 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_binaryExpression_operator() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A();
+  int operator+(_) {}
+}
+const a = A();
+const x = a + 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        +: #M1
+      a: #M2
+      x: #M3
+''',
+      updatedCode: r'''
+class A {
+  const A();
+  double operator+(_) {}
+}
+const a = A();
+const x = a + 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        +: #M4
+      a: #M2
+      x: #M5
+''',
+    );
+  }
+
+  test_manifest_constInitializer_binaryExpression_operator_token() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0 + 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+const a = 0 - 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_binaryExpression_right() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 2 + a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+const a = 1;
+const b = 2 + a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M2
+      b: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_binaryExpression_right_add() async {
     configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const b = 0 + a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      b: #M0
+        returnType: double @ dart:core
+        constInitializer
+          tokenBuffer: 0+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [1] (dart:core, num, +) #M1
+          elementIndexList: [1, 0]
+''',
+      updatedCode: r'''
+const a = 1;
+const b = 0 + a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M2
+        returnType: int @ dart:core
+        constInitializer
+          tokenBuffer: 1
+          tokenLengthList: [1]
+      b: #M3
+        returnType: int @ dart:core
+        constInitializer
+          tokenBuffer: 0+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [1] (dart:core, num, +) #M1
+            [2] (package:test/test.dart, a) <null>
+          elementIndexList: [1, 2]
+''',
+    );
+  }
+
+  test_manifest_constInitializer_binaryExpression_right_remove() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 1 + a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+        returnType: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+      b: #M1
+        returnType: int @ dart:core
+        constInitializer
+          tokenBuffer: 1+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [1] (dart:core, num, +) #M2
+            [2] (package:test/test.dart, a) <null>
+          elementIndexList: [1, 2]
+''',
+      updatedCode: r'''
+const b = 1 + a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      b: #M3
+        returnType: double @ dart:core
+        constInitializer
+          tokenBuffer: 1+a
+          tokenLengthList: [1, 1, 1]
+          elements
+            [1] (dart:core, num, +) #M2
+          elementIndexList: [1, 0]
+''',
+    );
+  }
+
+  test_manifest_constInitializer_integerLiteral() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 const a = 0;
@@ -9550,9 +9811,6 @@ const a = 0;
   package:test/test.dart
     manifest
       a: #M0
-        returnType: int @ dart:core
-        constInitializer: ManifestNodeIntegerLiteral
-          value: 0
 ''',
       updatedCode: r'''
 const a = 0;
@@ -9563,19 +9821,12 @@ const b = 1;
   package:test/test.dart
     manifest
       a: #M0
-        returnType: int @ dart:core
-        constInitializer: ManifestNodeIntegerLiteral
-          value: 0
       b: #M1
-        returnType: int @ dart:core
-        constInitializer: ManifestNodeIntegerLiteral
-          value: 1
 ''',
     );
   }
 
   test_manifest_constInitializer_integerLiteral_value() async {
-    configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
       initialCode: r'''
 const a = 0;
@@ -9586,9 +9837,6 @@ const a = 0;
   package:test/test.dart
     manifest
       a: #M0
-        returnType: int @ dart:core
-        constInitializer: ManifestNodeIntegerLiteral
-          value: 0
 ''',
       updatedCode: r'''
 const a = 1;
@@ -9598,9 +9846,6 @@ const a = 1;
   package:test/test.dart
     manifest
       a: #M1
-        returnType: int @ dart:core
-        constInitializer: ManifestNodeIntegerLiteral
-          value: 1
 ''',
     );
   }
