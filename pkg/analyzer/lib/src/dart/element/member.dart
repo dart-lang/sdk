@@ -718,7 +718,7 @@ class GetterMember extends PropertyAccessorMember
   }) : super._();
 
   @override
-  GetterElement get baseElement => _element2;
+  GetterElementImpl get baseElement => _element2;
 
   @override
   SetterElement2OrMember? get correspondingSetter2 {
@@ -760,7 +760,9 @@ class GetterMember extends PropertyAccessorMember
       variable2.asElement2 as PropertyInducingElement2OrMember?;
 
   @override
-  GetterElement get _element2 => declaration.asElement2 as GetterElement;
+  GetterElementImpl get _element2 {
+    return declaration.asElement2 as GetterElementImpl;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -1492,7 +1494,7 @@ class SetterMember extends PropertyAccessorMember
   }) : super._();
 
   @override
-  SetterElement get baseElement => _element2;
+  SetterElementImpl get baseElement => _element2;
 
   @override
   GetterElement2OrMember? get correspondingGetter2 {
@@ -1534,7 +1536,9 @@ class SetterMember extends PropertyAccessorMember
       variable2.asElement2 as PropertyInducingElement2OrMember?;
 
   @override
-  SetterElement get _element2 => declaration.asElement2 as SetterElement;
+  SetterElementImpl get _element2 {
+    return declaration.asElement2 as SetterElementImpl;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
