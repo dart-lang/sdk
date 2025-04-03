@@ -6702,8 +6702,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             .toAssignExpression(js_ast.PropertyAccess(
                 _visitExpression(node.arguments.positional[0]),
                 _visitExpression(node.arguments.positional[1])));
-      } else if (RegExp(r'^\_callMethodUnchecked(TrustType)?[0-4]')
-          .hasMatch(name)) {
+      } else if (_callMethodUncheckedRegex.hasMatch(name)) {
         // Note that we don't lower `_callMethodTrustType`. This is because it
         // uses `assertInterop` checks.
         var trustType = name.contains('TrustType');
@@ -6722,7 +6721,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           call = _emitCast(call, node.arguments.types[0]);
         }
         return call;
-      } else if (RegExp(r'^\_callConstructorUnchecked[0-4]').hasMatch(name)) {
+      } else if (_callConstructorUncheckedRegex.hasMatch(name)) {
         var args = <js_ast.Expression>[];
         assert(node.arguments.named.isEmpty);
         // Ignore the constructor.
@@ -8693,6 +8692,16 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
   static const String metricsLocationID =
       'MetricsJ7xFWBfSv6ZjrW9yLb21GNzisZr3anSf5h';
+
+  /// Matches against the `dart:js_util` `_callMethodUnchecked` and
+  /// `_callMethodUncheckedTrustType` variants with 0 to 4 arguments.
+  static final RegExp _callMethodUncheckedRegex =
+      RegExp(r'^\_callMethodUnchecked(TrustType)?[0-4]');
+
+  /// Matches against the `dart:js_util` `_callConstructorUnchecked` and
+  /// `_callConstructorUncheckedTrustType` variants with 0 to 4 arguments.
+  static final RegExp _callConstructorUncheckedRegex =
+      RegExp(r'^\_callConstructorUnchecked[0-4]');
 }
 
 bool _isInlineJSFunction(Statement? body) {
