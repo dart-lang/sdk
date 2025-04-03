@@ -22,12 +22,12 @@ import 'package:language_server_protocol/protocol_custom_generated.dart';
 /// Represents a message from DTD (Dart Tooling Daemon).
 final class DtdMessage extends MessageObject {
   final lsp.IncomingMessage message;
-  final Completer<Map<String, Object?>> completer;
+  final Completer<Map<String, Object?>> responseCompleter;
   final OperationPerformanceImpl performance;
 
   DtdMessage({
     required this.message,
-    required this.completer,
+    required this.responseCompleter,
     required this.performance,
   });
 
@@ -67,7 +67,11 @@ final class LspMessage extends MessageObject {
   }
 }
 
-/// Represents a message from a client, can be an IDE, DTD etc.
+/// A message from a client.
+///
+/// The message can be either a request, a notification, or a response.
+///
+/// The client can be an IDE, a command-line tool, or DTD.
 sealed class MessageObject {}
 
 /// The [MessageScheduler] receives messages from all clients of the
@@ -81,8 +85,8 @@ final class MessageScheduler {
   /// The [AnalysisServer] associated with the scheduler.
   late final AnalysisServer server;
 
-  /// A queue of incoming messages from all the clients of the [AnalysisServer].
-  final ListQueue<MessageObject> _incomingMessages = ListQueue<MessageObject>();
+  /// The messages that have been received and are waiting to be handled.
+  final ListQueue<MessageObject> _pendingMessages = ListQueue<MessageObject>();
 
   /// Whether the [MessageScheduler] is idle or is processing messages.
   bool isActive = false;
@@ -156,7 +160,9 @@ final class MessageScheduler {
     }
     if (message is LspMessage) {
       var msg = message.message;
-      // Responses do not go on the queue.
+      // Responses do not go on the queue because there might be an active
+      // message that can't complete until the response is received. If the
+      // response was added to the queue then this process could deadlock.
       if (msg is lsp.ResponseMessage) {
         (server as LspAnalysisServer).handleMessage(msg, null);
         return;
@@ -191,7 +197,7 @@ final class MessageScheduler {
               return;
             }
           }
-          var lspRequests = _incomingMessages.whereType<LspMessage>().where(
+          var lspRequests = _pendingMessages.whereType<LspMessage>().where(
             (m) => m.isRequest,
           );
           if (lspRequests.isNotEmpty) {
@@ -229,7 +235,7 @@ final class MessageScheduler {
             }
           }
           // Cancel any other similar requests that are in the queue.
-          var lspRequests = _incomingMessages.whereType<LspMessage>().where(
+          var lspRequests = _pendingMessages.whereType<LspMessage>().where(
             (m) => m.isRequest,
           );
           for (var queueMsg in lspRequests) {
@@ -243,10 +249,10 @@ final class MessageScheduler {
         }
       }
     }
-    _incomingMessages.addLast(message);
+    _pendingMessages.addLast(message);
     if (_currentMessage == null) {
       testView?.messageLog.add('Entering process messages loop');
-      _currentMessage = _incomingMessages.removeFirst();
+      _currentMessage = _pendingMessages.removeFirst();
       processMessages();
     }
   }
@@ -277,32 +283,34 @@ final class MessageScheduler {
             server.dtd!.processMessage(
               message.message,
               message.performance,
-              message.completer,
+              message.responseCompleter,
               completer,
             );
         }
 
-        // Blocking here with an await on the future was intended to prevent unwanted
-        // interleaving but was found to cause a significant performance regression.
-        // For more context see: https://github.com/dart-lang/sdk/issues/60440.
-        // To re-disable interleaving, set [allowOverlappingHandlers] to `false`.
+        // Blocking here with an await on the future was intended to prevent
+        // unwanted interleaving but was found to cause a significant
+        // performance regression. For more context see:
+        // https://github.com/dart-lang/sdk/issues/60440. To re-disable
+        // interleaving, set [allowOverlappingHandlers] to `false`.
         if (!allowOverlappingHandlers) {
           await completer.future;
         }
 
-        // NOTE that this message is not accurate if [allowOverlappingHandlers] is `true`
-        // as in that case we're not blocking anymore and the future may not be complete.
-        // TODO(pq): if not awaited, consider adding a `then` so we can track when the future completes
-        // but note that we may see some flakiness in tests as message handling gets
-        // non-deterministically interleaved.
+        // This message is not accurate if [allowOverlappingHandlers] is `true`
+        // because in that case we're not blocking anymore and the future might
+        // not be complete.
+        // TODO(pq): if not awaited, consider adding a `then` so we can track
+        // when the future completes. But note that we may see some flakiness in
+        // tests as message handling gets non-deterministically interleaved.
         testView?.messageLog.add(
           '  Complete ${message.runtimeType}: ${message.toString()}',
         );
-        if (_incomingMessages.isEmpty) {
+        if (_pendingMessages.isEmpty) {
           _currentMessage = null;
           testView?.messageLog.add('Exit process messages loop');
         } else {
-          _currentMessage = _incomingMessages.removeFirst();
+          _currentMessage = _pendingMessages.removeFirst();
         }
       }
     } catch (error, stackTrace) {
@@ -458,7 +466,7 @@ final class MessageScheduler {
       }
     }
     // Cancel any other refactor requests that are in the queue.
-    var lspRequests = _incomingMessages.whereType<LspMessage>().where(
+    var lspRequests = _pendingMessages.whereType<LspMessage>().where(
       (m) =>
           m.isRequest &&
           (m.message as lsp.RequestMessage).method ==
@@ -467,7 +475,7 @@ final class MessageScheduler {
     for (var queueMsg in lspRequests) {
       checkAndCancelRefactor(queueMsg);
     }
-    var renameRequests = _incomingMessages.whereType<LspMessage>().where(
+    var renameRequests = _pendingMessages.whereType<LspMessage>().where(
       (m) =>
           m.isRequest &&
           (m.message as lsp.RequestMessage).method ==
