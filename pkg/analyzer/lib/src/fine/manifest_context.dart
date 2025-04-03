@@ -39,14 +39,10 @@ class EncodeContext {
       _typeParameters[typeParameter] = _typeParameters.length;
     }
 
-    var encoded = <ManifestTypeParameter>[];
-    for (var typeParameter in typeParameters) {
-      encoded.add(
-        ManifestTypeParameter(
-          bound: typeParameter.bound?.encode(this),
-        ),
-      );
-    }
+    var encoded = <ManifestTypeParameter>[
+      for (var typeParameter in typeParameters)
+        ManifestTypeParameter.encode(this, typeParameter)
+    ];
 
     try {
       return operation(encoded);
