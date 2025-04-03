@@ -8605,6 +8605,36 @@ class A {
     );
   }
 
+  test_manifest_class_getter_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
   test_manifest_class_getter_static_returnType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8623,6 +8653,36 @@ class A {
       updatedCode: r'''
 class A {
   static double get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
 }
 ''',
       expectedUpdatedEvents: r'''
@@ -9225,6 +9285,96 @@ class A {
         foo: #M2
           functionType: FunctionType
             returnType: double @ dart:core
+''',
+    );
+  }
+
+  test_manifest_class_method_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_static_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
 ''',
     );
   }

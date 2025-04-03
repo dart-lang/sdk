@@ -137,6 +137,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   InstanceItemGetterItem({
     required super.name,
     required super.id,
+    required super.isStatic,
     required this.returnType,
   });
 
@@ -149,6 +150,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     return InstanceItemGetterItem(
       name: name,
       id: id,
+      isStatic: element.isStatic,
       returnType: element.returnType.encode(context),
     );
   }
@@ -157,6 +159,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     return InstanceItemGetterItem(
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
+      isStatic: reader.readBool(),
       returnType: ManifestType.read(reader),
     );
   }
@@ -166,6 +169,9 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     GetterElement2OrMember element,
   ) {
     var context = MatchContext(parent: instanceContext);
+    if (element.isStatic != isStatic) {
+      return null;
+    }
     if (!returnType.match(context, element.returnType)) {
       return null;
     }
@@ -177,6 +183,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceGetter);
     name.write(sink);
     id.write(sink);
+    sink.writeBool(isStatic);
     returnType.write(sink);
   }
 }
@@ -184,10 +191,12 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
 sealed class InstanceItemMemberItem extends ManifestItem {
   final LookupName name;
   final ManifestItemId id;
+  final bool isStatic;
 
   InstanceItemMemberItem({
     required this.name,
     required this.id,
+    required this.isStatic,
   });
 
   factory InstanceItemMemberItem.read(SummaryDataReader reader) {
@@ -209,6 +218,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   InstanceItemMethodItem({
     required super.name,
     required super.id,
+    required super.isStatic,
     required this.functionType,
   });
 
@@ -221,6 +231,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
     return InstanceItemMethodItem(
       name: name,
       id: id,
+      isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
   }
@@ -229,6 +240,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
     return InstanceItemMethodItem(
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
+      isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
   }
@@ -238,6 +250,9 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
     MethodElement2OrMember element,
   ) {
     var context = MatchContext(parent: instanceContext);
+    if (element.isStatic != isStatic) {
+      return null;
+    }
     if (!functionType.match(context, element.type)) {
       return null;
     }
@@ -249,6 +264,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceMethod);
     name.write(sink);
     id.write(sink);
+    sink.writeBool(isStatic);
     functionType.writeNoTag(sink);
   }
 }
@@ -301,7 +317,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
     required this.isConst,
     required this.isFactory,
     required this.functionType,
-  });
+  }) : super(isStatic: false);
 
   factory InterfaceItemConstructorItem.fromElement({
     required LookupName name,
