@@ -812,7 +812,23 @@ class Listener implements UnescapeErrorListener {
 
   void beginFunctionName(Token token) {}
 
-  void endFunctionName(Token beginToken, Token token) {
+  /// The end of the function name in either a local function declaration, like
+  /// 'local' in:
+  ///
+  ///     void m() {
+  ///       void local() {}
+  ///     }
+  ///
+  /// or an erroneous function expression, like 'local' in:
+  ///
+  ///     void m() {
+  ///       var f = void local() {};
+  ///     }
+  ///
+  /// The boolean [isFunctionExpression] indicates that we are in the latter
+  /// case.
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     logEvent("FunctionName");
   }
 

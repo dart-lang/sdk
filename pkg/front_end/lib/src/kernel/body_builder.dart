@@ -5085,41 +5085,49 @@ class BodyBuilder extends StackListenerImpl
   void enterNominalVariablesScope(
       List<NominalParameterBuilder>? nominalVariableBuilders) {
     debugEvent("enterNominalVariableScope");
-    enterLocalScope(_localScope.createNestedScope(
-        debugName: "function-type scope", kind: ScopeKind.typeParameters));
+    Map<String, TypeParameterBuilder> typeParameters = {};
     if (nominalVariableBuilders != null) {
       for (NominalParameterBuilder builder in nominalVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
-        Builder? existing = _localScope.lookupLocalVariable(name);
+        TypeParameterBuilder? existing = typeParameters[name];
         if (existing == null) {
-          _localScope.addLocalVariable(name, builder);
+          typeParameters[name] = builder;
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
+    enterLocalScope(new LocalTypeParameterScope(
+        local: typeParameters,
+        parent: _localScope,
+        debugName: "local function type parameter scope",
+        kind: ScopeKind.typeParameters));
   }
 
   void enterStructuralVariablesScope(
       List<StructuralParameterBuilder>? structuralVariableBuilders) {
     debugEvent("enterStructuralVariableScope");
-    enterLocalScope(_localScope.createNestedScope(
-        debugName: "function-type scope", kind: ScopeKind.typeParameters));
+    Map<String, TypeParameterBuilder> typeParameters = {};
     if (structuralVariableBuilders != null) {
       for (StructuralParameterBuilder builder in structuralVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
-        Builder? existing = _localScope.lookupLocalVariable(name);
+        TypeParameterBuilder? existing = typeParameters[name];
         if (existing == null) {
-          _localScope.addLocalVariable(name, builder);
+          typeParameters[name] = builder;
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
+    enterLocalScope(new LocalTypeParameterScope(
+        local: typeParameters,
+        parent: _localScope,
+        debugName: "function-type scope",
+        kind: ScopeKind.typeParameters));
   }
 
   @override
@@ -7273,7 +7281,8 @@ class BodyBuilder extends StackListenerImpl
   void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     debugEvent("FunctionName");
     Identifier name = pop() as Identifier;
     Token nameToken = name.token;
@@ -7290,20 +7299,24 @@ class BodyBuilder extends StackListenerImpl
         isLocalFunction: true,
         isWildcard: isWildcard)
       ..fileOffset = name.nameOffset;
-    // TODO(ahe): Why are we looking up in local scope, but declaring in parent
-    // scope?
-    Builder? existing = _localScope.lookupLocalVariable(name.name);
-    if (existing != null) {
-      // Coverage-ignore-block(suite): Not run.
-      reportDuplicatedDeclaration(existing, name.name, name.nameOffset);
-    }
     push(new FunctionDeclarationImpl(
         variable,
         // The real function node is created later.
         dummyFunctionNode)
       ..fileOffset = beginToken.charOffset);
     if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
-      declareVariable(variable, _localScopes.previous);
+      // The local scope stack contains a type parameter scope for the local
+      // function on top of the scope for the block in which the local function
+      // declaration occurs. So for a local function declaration, we add the
+      // declaration to the previous scope, i.e. the block scope.
+      //
+      // For a named function expression, a nested scope is created to hold the
+      // name, so that it doesn't pollute the block scope (the named function
+      // expression is erroneous and should introduce the name in the scope) and
+      // we therefore use the current scope in this case.
+      LocalScope scope =
+          isFunctionExpression ? _localScope : _localScopes.previous;
+      declareVariable(variable, scope);
     }
   }
 

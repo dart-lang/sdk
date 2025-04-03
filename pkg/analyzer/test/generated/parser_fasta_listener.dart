@@ -981,9 +981,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(Token beginToken, Token token, bool isFunctionExpression) {
     end('FunctionName');
-    super.endFunctionName(beginToken, token);
+    super.endFunctionName(beginToken, token, isFunctionExpression);
   }
 
   @override

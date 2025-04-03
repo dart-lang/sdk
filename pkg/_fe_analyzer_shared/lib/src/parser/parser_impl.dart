@@ -5222,7 +5222,7 @@ class Parser {
       reportRecoverableError(
           beforeName.next!, codes.messageNamedFunctionExpression);
     }
-    listener.endFunctionName(begin, token);
+    listener.endFunctionName(begin, token, isFunctionExpression);
     token = parseFormalParametersRequiredOpt(formals, MemberKind.Local);
     token = parseInitializersOpt(token);
     token = parseAsyncOptBody(

@@ -1308,6 +1308,7 @@ pm
 pn
 pointed
 pointwise
+pollute
 polluted
 polymorphism
 pool

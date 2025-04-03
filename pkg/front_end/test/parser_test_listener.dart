@@ -1151,11 +1151,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     indent--;
     seen(beginToken);
     seen(token);
-    doPrint('endFunctionName(' '$beginToken, ' '$token)');
+    doPrint(
+        'endFunctionName(' '$beginToken, ' '$token, ' '$isFunctionExpression)');
   }
 
   @override
