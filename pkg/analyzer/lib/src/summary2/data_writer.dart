@@ -15,6 +15,9 @@ class BufferedSink {
   Uint8List _buffer = Uint8List(_SIZE);
   int _length = 0;
 
+  final Int64List _int64Buffer = Int64List(1);
+  late final Uint8List _int64BufferUint8 = _int64Buffer.buffer.asUint8List();
+
   final Float64List _doubleBuffer = Float64List(1);
   late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
 
@@ -116,6 +119,22 @@ class BufferedSink {
     }
   }
 
+  void writeInt64(int value) {
+    _int64Buffer[0] = value;
+    _addByte4(
+      _int64BufferUint8[0],
+      _int64BufferUint8[1],
+      _int64BufferUint8[2],
+      _int64BufferUint8[3],
+    );
+    _addByte4(
+      _int64BufferUint8[4],
+      _int64BufferUint8[5],
+      _int64BufferUint8[6],
+      _int64BufferUint8[7],
+    );
+  }
+
   /// Writes [items], converts to [List] first.
   void writeIterable<T>(Iterable<T> items, void Function(T x) writeItem) {
     writeList(items.toList(), writeItem);
@@ -146,6 +165,15 @@ class BufferedSink {
     for (var entry in map.entries) {
       writeKey(entry.key);
       writeValue(entry.value);
+    }
+  }
+
+  void writeOptionalInt64(int? value) {
+    if (value != null) {
+      writeBool(true);
+      writeInt64(value);
+    } else {
+      writeBool(false);
     }
   }
 

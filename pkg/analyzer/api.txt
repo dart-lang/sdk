@@ -3012,7 +3012,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  elementModelDeprecationMsg (static getter: String)
   BindPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: BindPatternVariableElement Function())
   ClassElement (class extends Object implements InterfaceElement, deprecated):

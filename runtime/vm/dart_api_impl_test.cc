@@ -520,7 +520,7 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   EXPECT_EQ(101, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(101 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(101 > StackTrace::kFixedOOMStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -598,7 +598,7 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
   intptr_t frame_count = 0;
   result = Dart_StackTraceLength(stacktrace, &frame_count);
   EXPECT_VALID(result);
-  EXPECT_EQ(StackTrace::kPreallocatedStackdepth - 1, frame_count);
+  EXPECT_EQ(StackTrace::kFixedOOMStackdepth - 1, frame_count);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -693,7 +693,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   EXPECT_EQ(102, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(102 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(102 > StackTrace::kFixedOOMStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;

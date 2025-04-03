@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -13,6 +15,7 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:collection/collection.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
@@ -95,6 +98,7 @@ class LibraryManifestBuilder {
 
     _buildManifests();
     _addReExports();
+    assert(_assertSerialization());
 
     return newManifests;
   }
@@ -120,9 +124,9 @@ class LibraryManifestBuilder {
       element.typeParameters2,
       (typeParameters) {
         classItem.members.clear();
-        _addInterfaceConstructors(
+        _addStaticExecutables(
           encodingContext: encodingContext,
-          interfaceElement: element,
+          instanceElement: element,
           interfaceItem: classItem,
         );
         _addInstanceExecutables(
@@ -140,12 +144,6 @@ class LibraryManifestBuilder {
     required Name nameObj,
     required ExecutableElement2OrMember element,
   }) {
-    // Skip private names, cannot be used outside this library.
-    // TODO(scheglov): reconsider for static that can be reference from const
-    if (!nameObj.isPublic) {
-      return;
-    }
-
     var lookupName = nameObj.name.asLookupName;
 
     switch (element) {
@@ -223,10 +221,6 @@ class LibraryManifestBuilder {
     required ConstructorElementImpl2 element,
     required LookupName lookupName,
   }) {
-    // Constructors can be referenced by constants.
-    // So, we include all of them, including private.
-    // This is a general rule for "static" elements.
-
     var item = _getOrBuildElementItem(element, () {
       return InterfaceConstructorItem.fromElement(
         name: lookupName,
@@ -236,24 +230,6 @@ class LibraryManifestBuilder {
       );
     });
     interfaceItem.members[lookupName] = item;
-  }
-
-  void _addInterfaceConstructors({
-    required EncodeContext encodingContext,
-    required InterfaceElementImpl2 interfaceElement,
-    required ClassItem interfaceItem,
-  }) {
-    for (var constructor in interfaceElement.constructors2) {
-      var lookupName = constructor.name3?.asLookupName;
-      if (lookupName != null) {
-        _addInterfaceConstructor(
-          encodingContext: encodingContext,
-          interfaceItem: interfaceItem,
-          element: constructor,
-          lookupName: lookupName,
-        );
-      }
-    }
   }
 
   void _addReExports() {
@@ -287,6 +263,54 @@ class LibraryManifestBuilder {
           name: name,
           id: id,
         );
+      }
+    }
+  }
+
+  void _addStaticExecutables({
+    required EncodeContext encodingContext,
+    required InstanceElementImpl2 instanceElement,
+    required ClassItem interfaceItem,
+  }) {
+    if (instanceElement is InterfaceElementImpl2) {
+      for (var constructor in instanceElement.constructors2) {
+        var lookupName = constructor.name3?.asLookupName;
+        if (lookupName != null) {
+          _addInterfaceConstructor(
+            encodingContext: encodingContext,
+            interfaceItem: interfaceItem,
+            element: constructor,
+            lookupName: lookupName,
+          );
+        }
+      }
+    }
+
+    for (var getter in instanceElement.getters2) {
+      if (getter.isStatic) {
+        var lookupName = getter.name3?.asLookupName;
+        if (lookupName != null) {
+          _addInstanceGetter(
+            encodingContext: encodingContext,
+            instanceItem: interfaceItem,
+            element: getter,
+            lookupName: lookupName,
+          );
+        }
+      }
+    }
+
+    for (var method in instanceElement.methods2) {
+      if (method.isStatic) {
+        var lookupName = method.name3?.asLookupName;
+        if (lookupName != null) {
+          _addInstanceMethod(
+            encodingContext: encodingContext,
+            instanceItem: interfaceItem,
+            element: method,
+            lookupName: lookupName,
+          );
+        }
       }
     }
   }
@@ -325,6 +349,48 @@ class LibraryManifestBuilder {
     newItems[lookupName] = item;
   }
 
+  void _addTopLevelSetter({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TopLevelItem> newItems,
+    required SetterElementImpl element,
+    required LookupName lookupName,
+  }) {
+    var item = _getOrBuildElementItem(element, () {
+      return TopLevelSetterItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    newItems[lookupName] = item;
+  }
+
+  /// Assert that every manifest can be serialized, and when deserialized
+  /// results in the same manifest.
+  bool _assertSerialization() {
+    Uint8List manifestAsBytes(LibraryManifest manifest) {
+      var byteSink = BufferedSink();
+      manifest.write(byteSink);
+      return byteSink.takeBytes();
+    }
+
+    newManifests.forEach((uri, manifest) {
+      var bytes = manifestAsBytes(manifest);
+
+      var readManifest = LibraryManifest.read(
+        SummaryDataReader(bytes),
+      );
+      var readBytes = manifestAsBytes(readManifest);
+
+      if (!const ListEquality<int>().equals(bytes, readBytes)) {
+        throw StateError('Library manifest bytes are different: $uri');
+      }
+    });
+
+    return true;
+  }
+
   /// Fill `result` with new library manifests.
   /// We reuse existing items when they fully match.
   /// We build new items for mismatched elements.
@@ -352,6 +418,13 @@ class LibraryManifestBuilder {
             );
           case GetterElementImpl():
             _addTopLevelGetter(
+              encodingContext: encodingContext,
+              newItems: newItems,
+              element: element,
+              lookupName: lookupName,
+            );
+          case SetterElementImpl():
+            _addTopLevelSetter(
               encodingContext: encodingContext,
               newItems: newItems,
               element: element,
@@ -524,6 +597,10 @@ class _LibraryMatch {
           if (!_matchTopGetter(name: name, element: element)) {
             structureMismatched.add(element);
           }
+        case SetterElementImpl():
+          if (!_matchTopSetter(name: name, element: element)) {
+            structureMismatched.add(element);
+          }
         case TopLevelFunctionElementImpl():
           if (!_matchTopFunction(name: name, element: element)) {
             structureMismatched.add(element);
@@ -555,6 +632,11 @@ class _LibraryMatch {
       interfaceElement: element,
       item: item,
     );
+    _matchStaticExecutables(
+      matchContext: matchContext,
+      element: element,
+      item: item,
+    );
 
     _matchInstanceExecutables(
       matchContext: matchContext,
@@ -568,15 +650,10 @@ class _LibraryMatch {
   bool _matchInstanceExecutable({
     required MatchContext interfaceMatchContext,
     required Map<LookupName, InstanceMemberItem> members,
-    required Name nameObj,
+    required LookupName lookupName,
     required ExecutableElement2 executable,
   }) {
-    // Skip private names, cannot be used outside this library.
-    if (!nameObj.isPublic) {
-      return true;
-    }
-
-    var item = members[nameObj.name.asLookupName];
+    var item = members[lookupName];
 
     switch (executable) {
       case GetterElement2OrMember():
@@ -628,7 +705,7 @@ class _LibraryMatch {
       if (!_matchInstanceExecutable(
         interfaceMatchContext: matchContext,
         members: item.members,
-        nameObj: nameObj,
+        lookupName: nameObj.name.asLookupName,
         executable: executable,
       )) {
         structureMismatched.add(executable);
@@ -678,6 +755,46 @@ class _LibraryMatch {
     }
   }
 
+  void _matchStaticExecutables({
+    required MatchContext matchContext,
+    required ClassElementImpl2 element,
+    required ClassItem item,
+  }) {
+    // TODO(scheglov): it looks that we repeat iterations
+    // We do it for structural matching, and then for adding.
+    for (var getters in element.getters2) {
+      if (getters.isStatic) {
+        var lookupName = getters.name3?.asLookupName;
+        if (lookupName != null) {
+          if (!_matchInstanceExecutable(
+            interfaceMatchContext: matchContext,
+            members: item.members,
+            lookupName: lookupName,
+            executable: getters,
+          )) {
+            structureMismatched.add(getters);
+          }
+        }
+      }
+    }
+
+    for (var method in element.methods2) {
+      if (method.isStatic) {
+        var lookupName = method.name3?.asLookupName;
+        if (lookupName != null) {
+          if (!_matchInstanceExecutable(
+            interfaceMatchContext: matchContext,
+            members: item.members,
+            lookupName: lookupName,
+            executable: method,
+          )) {
+            structureMismatched.add(method);
+          }
+        }
+      }
+    }
+  }
+
   bool _matchTopFunction({
     required LookupName? name,
     required TopLevelFunctionElementImpl element,
@@ -705,6 +822,26 @@ class _LibraryMatch {
   }) {
     var item = manifest.items[name];
     if (item is! TopLevelGetterItem) {
+      return false;
+    }
+
+    var matchContext = item.match(element);
+    if (matchContext == null) {
+      return false;
+    }
+
+    itemMap[element] = item;
+    refElementsMap[element] = matchContext.elementList;
+    refExternalIds.addAll(matchContext.externalIds);
+    return true;
+  }
+
+  bool _matchTopSetter({
+    required LookupName? name,
+    required SetterElementImpl element,
+  }) {
+    var item = manifest.items[name];
+    if (item is! TopLevelSetterItem) {
       return false;
     }
 

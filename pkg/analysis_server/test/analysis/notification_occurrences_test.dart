@@ -215,6 +215,18 @@ void f(E e) {
       ''');
   }
 
+  Future<void> test_extension() async {
+    await assertOccurrences(kind: ElementKind.EXTENSION, '''
+void foo(int i) {
+  /*[0*/E/*0]*/(i).self;
+}
+
+extension /*[1*/E/*1]*/<ThisType> on ThisType {
+  ThisType get self => this;
+}
+''');
+  }
+
   Future<void> test_extensionType() async {
     await assertOccurrences(kind: ElementKind.EXTENSION_TYPE, '''
 extension type /*[0*/E/*0]*/(int it) {}
@@ -733,5 +745,65 @@ void f() {
     await prepareOccurrences();
     var offset = findOffset('void f()');
     findRegion(offset, 'void'.length, exists: false);
+  }
+
+  Future<void> test_typeParameter_class() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+abstract class A</*[0*/ThisType/*0]*/> {
+  /*[1*/ThisType/*1]*/ f();
+}
+''');
+  }
+
+  Future<void> test_typeParameter_enum() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+enum E</*[0*/ThisType/*0]*/> {
+  a;
+
+  /*[1*/ThisType/*1]*/ get t => throw UnimplementedError();
+}
+''');
+  }
+
+  Future<void> test_typeParameter_extension() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+extension E</*[0*/ThisType/*0]*/> on /*[1*/ThisType/*1]*/ {
+  /*[2*/ThisType/*2]*/ f() => this;
+}
+''');
+  }
+
+  Future<void> test_typeParameter_extensionType() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+extension type Et</*[0*/ThisType/*0]*/>(/*[1*/ThisType/*1]*/ value) {
+  /*[2*/ThisType/*2]*/ get v => value;
+}
+''');
+  }
+
+  Future<void> test_typeParameter_function() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+/*[0*/ThisType/*0]*/ f</*[1*/ThisType/*1]*/>() => 0 as /*[2*/ThisType/*2]*/;
+''');
+  }
+
+  Future<void> test_typeParameter_functionParameter() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+void f(/*[0*/ThisType/*0]*/ Function</*[1*/ThisType/*1]*/>() f) => f();
+''');
+  }
+
+  Future<void> test_typeParameter_mixin() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+mixin M</*[0*/ThisType/*0]*/> {
+  /*[1*/ThisType/*1]*/ get t;
+}
+''');
+  }
+
+  Future<void> test_typeParameter_typedef() async {
+    await assertOccurrences(kind: ElementKind.TYPE_PARAMETER, '''
+typedef TypeDef</*[0*/ThisType/*0]*/> = /*[1*/ThisType/*1]*/ Function(/*[2*/ThisType/*2]*/);
+''');
   }
 }

@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
+import 'package:analyzer/src/fine/manifest_ast.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
@@ -742,6 +743,8 @@ class LibraryManifestPrinter {
           _writeTopLevelFunctionItem(topLevelItem);
         case TopLevelGetterItem():
           _writeTopLevelGetterItem(topLevelItem);
+        case TopLevelSetterItem():
+          _writeTopLevelSetterItem(topLevelItem);
       }
     });
   }
@@ -805,6 +808,25 @@ class LibraryManifestPrinter {
     }
   }
 
+  void _writeNode(String name, ManifestNode? node) {
+    if (node != null) {
+      sink.writeWithIndent('$name: ');
+      switch (node) {
+        case ManifestNodeAnnotation():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
+        case ManifestNodeIntegerLiteral():
+          sink.writeln('ManifestNodeIntegerLiteral');
+          sink.withIndent(() {
+            sink.writelnWithIndent('value: ${node.value}');
+          });
+        case ManifestNodeSimpleIdentifier():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
+      }
+    }
+  }
+
   void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
@@ -817,6 +839,15 @@ class LibraryManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         _writeNamedType('returnType', item.returnType);
+        _writeNode('constInitializer', item.constInitializer);
+      });
+    }
+  }
+
+  void _writeTopLevelSetterItem(TopLevelSetterItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeNamedType('valueType', item.valueType);
       });
     }
   }

@@ -59,6 +59,11 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+const String elementModelDeprecationMsg = '''
+This is part of the old analyzer element model. Please see
+https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/element_model_migration_guide.md
+for information about how to migrate to the new element model.''';
+
 @Deprecated('This is an internal class, do not use it')
 // TODO(scheglov): remove it when DartDoc stops using it
 // https://github.com/dart-lang/dartdoc/issues/4015

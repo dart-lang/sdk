@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
@@ -395,6 +396,52 @@ sealed class ManifestItem {
   void write(BufferedSink sink);
 }
 
+class ManifestMetadata {
+  final List<ManifestAnnotation> annotations;
+
+  ManifestMetadata({
+    required this.annotations,
+  });
+
+  factory ManifestMetadata.encode(
+    EncodeContext context,
+    MetadataImpl metadata,
+  ) {
+    return ManifestMetadata(
+      annotations: metadata.annotations.map((annotation) {
+        return ManifestAnnotation.encode(context, annotation);
+      }).toFixedList(),
+    );
+  }
+
+  factory ManifestMetadata.read(SummaryDataReader reader) {
+    return ManifestMetadata(
+      annotations: reader.readTypedList(() {
+        return ManifestAnnotation.read(reader);
+      }),
+    );
+  }
+
+  bool match(MatchContext context, MetadataImpl metadata) {
+    var metadataAnnotations = metadata.annotations;
+    if (annotations.length != metadataAnnotations.length) {
+      return false;
+    }
+
+    for (var i = 0; i < metadataAnnotations.length; i++) {
+      if (!annotations[i].match(context, metadataAnnotations[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeList(annotations, (x) => x.write(sink));
+  }
+}
+
 class TopLevelFunctionItem extends TopLevelItem {
   final ManifestFunctionType functionType;
 
@@ -450,8 +497,9 @@ class TopLevelFunctionItem extends TopLevelItem {
 }
 
 class TopLevelGetterItem extends TopLevelItem {
-  final List<ManifestAnnotation> metadata;
+  final ManifestMetadata metadata;
   final ManifestType returnType;
+  final ManifestNode? constInitializer;
 
   TopLevelGetterItem({
     required super.libraryUri,
@@ -459,6 +507,7 @@ class TopLevelGetterItem extends TopLevelItem {
     required super.id,
     required this.metadata,
     required this.returnType,
+    required this.constInitializer,
   });
 
   factory TopLevelGetterItem.fromElement({
@@ -471,10 +520,9 @@ class TopLevelGetterItem extends TopLevelItem {
       libraryUri: element.library2.uri,
       name: name,
       id: id,
-      metadata: element.metadata2.annotations.map((annotation) {
-        return ManifestAnnotation.encode(context, annotation);
-      }).toFixedList(),
+      metadata: ManifestMetadata.encode(context, element.metadata2),
       returnType: element.returnType.encode(context),
+      constInitializer: element.constInitializer?.encode(context),
     );
   }
 
@@ -483,25 +531,24 @@ class TopLevelGetterItem extends TopLevelItem {
       libraryUri: reader.readUri(),
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
-      metadata: reader.readTypedList(() => ManifestAnnotation.read(reader)),
+      metadata: ManifestMetadata.read(reader),
       returnType: ManifestType.read(reader),
+      constInitializer: ManifestNode.readOptional(reader),
     );
   }
 
   MatchContext? match(GetterElementImpl element) {
     var context = MatchContext(parent: null);
 
-    var annotations = element.metadata2.annotations;
-    if (annotations.length != metadata.length) {
+    if (!metadata.match(context, element.metadata2)) {
       return null;
-    }
-    for (var i = 0; i < metadata.length; i++) {
-      if (!metadata[i].match(context, annotations[i])) {
-        return null;
-      }
     }
 
     if (!returnType.match(context, element.returnType)) {
+      return null;
+    }
+
+    if (!constInitializer.match(context, element.constInitializer)) {
       return null;
     }
 
@@ -514,8 +561,9 @@ class TopLevelGetterItem extends TopLevelItem {
     sink.writeUri(libraryUri);
     name.write(sink);
     id.write(sink);
-    sink.writeList(metadata, (annotation) => annotation.write(sink));
+    metadata.write(sink);
     returnType.write(sink);
+    constInitializer.writeOptional(sink);
   }
 }
 
@@ -546,7 +594,71 @@ sealed class TopLevelItem extends ManifestItem {
         return TopLevelFunctionItem.read(reader);
       case _ManifestItemKind.topLevelGetter:
         return TopLevelGetterItem.read(reader);
+      case _ManifestItemKind.topLevelSetter:
+        return TopLevelSetterItem.read(reader);
     }
+  }
+}
+
+class TopLevelSetterItem extends TopLevelItem {
+  final ManifestMetadata metadata;
+  final ManifestType valueType;
+
+  TopLevelSetterItem({
+    required super.libraryUri,
+    required super.name,
+    required super.id,
+    required this.metadata,
+    required this.valueType,
+  });
+
+  factory TopLevelSetterItem.fromElement({
+    required LookupName name,
+    required ManifestItemId id,
+    required EncodeContext context,
+    required SetterElementImpl element,
+  }) {
+    return TopLevelSetterItem(
+      libraryUri: element.library2.uri,
+      name: name,
+      id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
+      valueType: element.formalParameters[0].type.encode(context),
+    );
+  }
+
+  factory TopLevelSetterItem.read(SummaryDataReader reader) {
+    return TopLevelSetterItem(
+      libraryUri: reader.readUri(),
+      name: LookupName.read(reader),
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      valueType: ManifestType.read(reader),
+    );
+  }
+
+  MatchContext? match(SetterElementImpl element) {
+    var context = MatchContext(parent: null);
+
+    if (!metadata.match(context, element.metadata2)) {
+      return null;
+    }
+
+    if (!valueType.match(context, element.formalParameters[0].type)) {
+      return null;
+    }
+
+    return context;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind.topLevelSetter);
+    sink.writeUri(libraryUri);
+    name.write(sink);
+    id.write(sink);
+    metadata.write(sink);
+    valueType.write(sink);
   }
 }
 
@@ -555,10 +667,39 @@ enum _ManifestItemKind {
   export_,
   topLevelFunction,
   topLevelGetter,
+  topLevelSetter,
 }
 
 enum _ManifestItemKind2 {
   instanceGetter,
   instanceMethod,
   interfaceConstructor,
+}
+
+extension _AstNodeExtension on AstNode {
+  ManifestNode encode(EncodeContext context) {
+    return ManifestNode.encode(context, this);
+  }
+}
+
+extension _GetterElementImplExtension on GetterElementImpl {
+  Expression? get constInitializer {
+    Expression? constInitializer;
+    if (isSynthetic) {
+      var variable = variable3!;
+      if (variable.isConst) {
+        constInitializer = variable.constantInitializer2?.expression;
+      }
+    }
+
+    // TODO(scheglov): support all expressions
+    switch (constInitializer) {
+      case IntegerLiteral():
+      case SimpleIdentifier():
+        break;
+      default:
+        constInitializer = null;
+    }
+    return constInitializer;
+  }
 }

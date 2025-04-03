@@ -759,6 +759,8 @@ class Thread : public ThreadState {
     return stopped_mutators_scope_depth_ > 0;
   }
 
+  bool IsInNoThrowOOMScope() const { return no_throw_oom_scope_depth_ > 0; }
+
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
   static intptr_t member_name##offset() {                                      \
     return OFFSET_OF(Thread, member_name);                                     \
@@ -1437,6 +1439,7 @@ class Thread : public ThreadState {
   VMHandles reusable_handles_;
   int32_t stack_overflow_count_;
   uint32_t runtime_call_count_ = 0;
+  intptr_t no_throw_oom_scope_depth_ = 0;
 
   // Deoptimization of stack frames.
   RuntimeCallDeoptAbility runtime_call_deopt_ability_ =
@@ -1610,6 +1613,7 @@ class Thread : public ThreadState {
   friend class Simulator;
   friend class StackZone;
   friend class StoppedMutatorsScope;
+  friend class NoThrowOOMScope;
   friend class ThreadRegistry;
   friend class CompilerState;
   friend class compiler::target::Thread;
@@ -1837,6 +1841,22 @@ class LeaveCompilerScope : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(LeaveCompilerScope);
 };
 #endif  // defined(DEBUG)
+
+class NoThrowOOMScope : public ThreadStackResource {
+ public:
+  explicit NoThrowOOMScope(Thread* thread) : ThreadStackResource(thread) {
+    thread->no_throw_oom_scope_depth_++;
+    ASSERT(thread->no_throw_oom_scope_depth_ >= 0);
+  }
+
+  ~NoThrowOOMScope() {
+    thread()->no_throw_oom_scope_depth_ -= 1;
+    ASSERT(thread()->no_throw_oom_scope_depth_ >= 0);
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoThrowOOMScope);
+};
 
 }  // namespace dart
 

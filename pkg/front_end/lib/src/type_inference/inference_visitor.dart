@@ -12166,9 +12166,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   node.name.text.length));
         }
 
+        // With constructor invocations, the shorthand expression is preceded by
+        // the raw type and then type inference infers the type arguments.
+        FunctionType functionType = constructor.function
+            .computeThisFunctionType(Nullability.nonNullable);
+        InvocationInferenceResult result = inferInvocation(
+            this,
+            typeContext,
+            node.fileOffset,
+            new InvocationTargetFunctionType(functionType),
+            node.arguments as ArgumentsImpl,
+            isConst: node.isConst,
+            staticTarget: constructor);
         expr = new ConstructorInvocation(constructor, node.arguments,
             isConst: node.isConst)
           ..fileOffset = node.fileOffset;
+        return new ExpressionInferenceResult(
+            result.inferredType, result.applyResult(expr));
       } else if (constructor is Procedure) {
         // [constructor] can be a [Procedure] if we have an extension type
         // constructor or a redirecting factory constructor.
@@ -12180,15 +12194,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   node.name.text.length));
         }
 
+        // With constructor invocations, the shorthand expression is preceded by
+        // the raw type and then type inference infers the type arguments.
+        FunctionType functionType = constructor.function
+            .computeThisFunctionType(Nullability.nonNullable);
+        InvocationInferenceResult result = inferInvocation(
+            this,
+            typeContext,
+            node.fileOffset,
+            new InvocationTargetFunctionType(functionType),
+            node.arguments as ArgumentsImpl,
+            isConst: node.isConst,
+            staticTarget: constructor);
         if (constructor.isRedirectingFactory) {
-          expr = new FactoryConstructorInvocation(constructor, node.arguments,
-              isConst: node.isConst)
-            ..fileOffset = node.fileOffset;
+          expr = helper.resolveRedirectingFactoryTarget(
+              constructor, node.arguments, node.fileOffset, node.isConst)!;
         } else {
           expr = new StaticInvocation(constructor, node.arguments,
               isConst: node.isConst)
             ..fileOffset = node.fileOffset;
         }
+        return new ExpressionInferenceResult(
+            result.inferredType, result.applyResult(expr));
       }
     }
 

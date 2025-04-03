@@ -515,6 +515,7 @@ class Object {
   V(LanguageError, background_compilation_error)                               \
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
+  V(UnhandledException, unhandled_oom_exception)                               \
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
@@ -8246,11 +8247,13 @@ class LanguageError : public Error {
 class UnhandledException : public Error {
  public:
   InstancePtr exception() const { return untag()->exception(); }
+  void set_exception(const Instance& exception) const;
   static intptr_t exception_offset() {
     return OFFSET_OF(UntaggedUnhandledException, exception_);
   }
 
   InstancePtr stacktrace() const { return untag()->stacktrace(); }
+  void set_stacktrace(const Instance& stacktrace) const;
   static intptr_t stacktrace_offset() {
     return OFFSET_OF(UntaggedUnhandledException, stacktrace_);
   }
@@ -8262,15 +8265,11 @@ class UnhandledException : public Error {
   static UnhandledExceptionPtr New(const Instance& exception,
                                    const Instance& stacktrace,
                                    Heap::Space space = Heap::kNew);
+  static UnhandledExceptionPtr New(Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
 
  private:
-  static UnhandledExceptionPtr New(Heap::Space space = Heap::kNew);
-
-  void set_exception(const Instance& exception) const;
-  void set_stacktrace(const Instance& stacktrace) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
   friend class ObjectStore;
@@ -12620,7 +12619,7 @@ class DebuggerStackTrace;
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
-  static constexpr int kPreallocatedStackdepth = 90;
+  static constexpr int kFixedOOMStackdepth = 90;
 
   intptr_t Length() const;
 

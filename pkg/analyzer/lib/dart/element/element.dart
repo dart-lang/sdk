@@ -50,6 +50,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/element/element.dart'
+    show elementModelDeprecationMsg;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -57,12 +59,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-@internal
-const String elementModelDeprecationMsg = '''
-This is part of the old analyzer element model. Please see
-https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/element_model_migration_guide.md
-for information about how to migrate to the new element model.''';
 
 /// A pattern variable that is explicitly declared.
 ///

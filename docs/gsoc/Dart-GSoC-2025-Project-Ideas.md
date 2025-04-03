@@ -35,7 +35,7 @@ mentors available, and will only be able to accept a few applicants.
 
 Applications can be submitted through the [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/) website. Applicants are encouraged to submit draft proposals, linking to Google Docs with permission for mentors to comment. See also the [contributor guide](https://google.github.io/gsocguides/student/writing-a-proposal) on writing a proposal.
 
-**IMPORTANT**: Remember to submit _final proposals_ before [the April 2nd deadline](https://developers.google.com/open-source/gsoc/timeline).
+**IMPORTANT**: Remember to submit _final proposals_ before [the April 8th deadline](https://developers.google.com/open-source/gsoc/timeline).
 
 ## **Idea:** Exception testing for `package:webcrypto`
 

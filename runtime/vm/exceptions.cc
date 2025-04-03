@@ -46,7 +46,7 @@ class StackTraceBuilder : public ValueObject {
   void AddFrame(const Object& code, uword pc_offset);
 
  private:
-  static constexpr int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
+  static constexpr int kNumTopframes = StackTrace::kFixedOOMStackdepth / 2;
 
   const StackTrace& stacktrace_;
   intptr_t cur_index_;
@@ -56,10 +56,10 @@ class StackTraceBuilder : public ValueObject {
 };
 
 void StackTraceBuilder::AddFrame(const Object& code, uword pc_offset) {
-  if (cur_index_ >= StackTrace::kPreallocatedStackdepth) {
+  if (cur_index_ >= StackTrace::kFixedOOMStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
     Object& frame_code = Object::Handle();
-    intptr_t start = StackTrace::kPreallocatedStackdepth - (kNumTopframes - 1);
+    intptr_t start = StackTrace::kFixedOOMStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
     // We are going to drop one frame.
     dropped_frames_++;
@@ -73,14 +73,14 @@ void StackTraceBuilder::AddFrame(const Object& code, uword pc_offset) {
     // Encode the number of dropped frames into the pc offset.
     stacktrace_.SetPcOffsetAtFrame(null_slot, dropped_frames_);
     // Move frames one slot down so that we can accommodate the new frame.
-    for (intptr_t i = start; i < StackTrace::kPreallocatedStackdepth; i++) {
+    for (intptr_t i = start; i < StackTrace::kFixedOOMStackdepth; i++) {
       intptr_t prev = (i - 1);
       frame_code = stacktrace_.CodeAtFrame(i);
       const uword frame_offset = stacktrace_.PcOffsetAtFrame(i);
       stacktrace_.SetCodeAtFrame(prev, frame_code);
       stacktrace_.SetPcOffsetAtFrame(prev, frame_offset);
     }
-    cur_index_ = (StackTrace::kPreallocatedStackdepth - 1);
+    cur_index_ = (StackTrace::kFixedOOMStackdepth - 1);
   }
   stacktrace_.SetCodeAtFrame(cur_index_, code);
   stacktrace_.SetPcOffsetAtFrame(cur_index_, pc_offset);
@@ -710,16 +710,44 @@ StackTracePtr Exceptions::CurrentStackTrace() {
 
 static StackTracePtr CreateStackTrace(Zone* zone) {
   const Array& code_array = Array::Handle(
-      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
+      zone, Array::New(StackTrace::kFixedOOMStackdepth, Heap::kOld));
+  if (code_array.IsNull()) {
+    return StackTrace::null();
+  }
   const TypedData& pc_offset_array = TypedData::Handle(
-      zone, TypedData::New(kUintPtrCid, StackTrace::kPreallocatedStackdepth,
-                           Heap::kOld));
+      zone,
+      TypedData::New(kUintPtrCid, StackTrace::kFixedOOMStackdepth, Heap::kOld));
+  if (pc_offset_array.IsNull()) {
+    return StackTrace::null();
+  }
   const StackTrace& stack_trace =
       StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
   // Expansion of inlined functions requires additional memory at run time,
   // avoid it.
+  if (stack_trace.IsNull()) {
+    return StackTrace::null();
+  }
   stack_trace.set_expand_inlined(false);
   return stack_trace.ptr();
+}
+
+static UnhandledExceptionPtr CreateUnhandledExceptionOrUsePrecanned(
+    Thread* thread,
+    const Instance& exception,
+    const Instance& stacktrace) {
+  UnhandledException& unhandled = UnhandledException::Handle(thread->zone());
+  {
+    NoThrowOOMScope no_throw_oom_scope(thread);
+    unhandled ^= UnhandledException::New(Heap::kOld);
+  }
+  if (unhandled.IsNull()) {
+    // If we failed to create new instance, use pre-canned one.
+    unhandled ^= Object::unhandled_oom_exception().ptr();
+  } else {
+    unhandled.set_exception(exception);
+    unhandled.set_stacktrace(stacktrace);
+  }
+  return unhandled.ptr();
 }
 
 DART_NORETURN
@@ -745,7 +773,7 @@ static void ThrowExceptionHelper(Thread* thread,
     }
   }
 #endif
-  bool use_preallocated_stacktrace = false;
+  bool create_stacktrace = false;
   Instance& exception = Instance::Handle(zone, incoming_exception.ptr());
   if (exception.IsNull()) {
     const Array& args = Array::Handle(zone, Array::New(4));
@@ -758,7 +786,7 @@ static void ThrowExceptionHelper(Thread* thread,
   } else if (existing_stacktrace.IsNull() &&
              (exception.ptr() == object_store->out_of_memory() ||
               exception.ptr() == object_store->stack_overflow())) {
-    use_preallocated_stacktrace = true;
+    create_stacktrace = true;
   }
   // Find the exception handler and determine if the handler needs a
   // stacktrace.
@@ -769,24 +797,32 @@ static void ThrowExceptionHelper(Thread* thread,
   uword handler_fp = finder.handler_fp;
   bool handler_needs_stacktrace = finder.needs_stacktrace;
   Instance& stacktrace = Instance::Handle(zone);
-  if (use_preallocated_stacktrace) {
-    stacktrace = CreateStackTrace(zone);
-    if (handler_pc == 0) {
-      // No Dart frame.
-      ASSERT(incoming_exception.ptr() == object_store->out_of_memory());
-      const UnhandledException& error = UnhandledException::Handle(
-          zone, UnhandledException::New(
-                    Instance::Handle(zone, object_store->out_of_memory()),
-                    stacktrace));
-      thread->long_jump_base()->Jump(1, error);
-      UNREACHABLE();
+  if (create_stacktrace) {
+    {
+      NoThrowOOMScope no_throw_oom_scope(thread);
+      stacktrace = CreateStackTrace(zone);
     }
-    StackTraceBuilder frame_builder(stacktrace);
-    ASSERT(existing_stacktrace.IsNull() ||
-           (existing_stacktrace.ptr() == stacktrace.ptr()));
-    ASSERT(existing_stacktrace.IsNull() || is_rethrow);
-    if (handler_needs_stacktrace && existing_stacktrace.IsNull()) {
-      BuildStackTrace(&frame_builder);
+    // Ensure we have enough memory to create stacktrace,
+    // otherwise fallback to reporting OOM without stacktrace.
+    if (!stacktrace.IsNull()) {
+      if (handler_pc == 0) {
+        // No Dart frame.
+        ASSERT(incoming_exception.ptr() == object_store->out_of_memory());
+        UnhandledException& error = UnhandledException::Handle(
+            zone,
+            CreateUnhandledExceptionOrUsePrecanned(
+                thread, Instance::Handle(zone, object_store->out_of_memory()),
+                stacktrace));
+        thread->long_jump_base()->Jump(1, error);
+        UNREACHABLE();
+      }
+      StackTraceBuilder frame_builder(stacktrace);
+      ASSERT(existing_stacktrace.IsNull() ||
+             (existing_stacktrace.ptr() == stacktrace.ptr()));
+      ASSERT(existing_stacktrace.IsNull() || is_rethrow);
+      if (handler_needs_stacktrace && existing_stacktrace.IsNull()) {
+        BuildStackTrace(&frame_builder);
+      }
     }
   } else {
     if (!existing_stacktrace.IsNull()) {
@@ -839,7 +875,8 @@ static void ThrowExceptionHelper(Thread* thread,
     // the isolate etc.). This can happen in the compiler, which is not
     // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, UnhandledException::New(exception, stacktrace, Heap::kOld));
+        zone,
+        CreateUnhandledExceptionOrUsePrecanned(thread, exception, stacktrace));
     stacktrace = StackTrace::null();
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            unhandled_exception, stacktrace);
