@@ -765,17 +765,11 @@ class LibraryManifestPrinter {
     });
   }
 
-  void _writeExportItem(ExportItem item) {
-    if (configuration.withElementManifests) {
-      sink.withIndent(() {
-        sink.writeln('libraryUri: ${item.libraryUri}');
-      });
-    }
-  }
+  void _writeExportItem(ExportItem item) {}
 
   void _writeInstanceItemMember(LookupName name, InstanceItemMemberItem item) {
     if (configuration.ignoredManifestInstanceMemberNames
-        .contains(item.name.asString)) {
+        .contains(name.asString)) {
       return;
     }
 

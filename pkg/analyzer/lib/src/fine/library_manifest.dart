@@ -111,7 +111,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return ClassItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -150,7 +149,6 @@ class LibraryManifestBuilder {
 
     var item = _getOrBuildElementItem(element, () {
       return InstanceItemGetterItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -193,7 +191,6 @@ class LibraryManifestBuilder {
 
     var item = _getOrBuildElementItem(element, () {
       return InstanceItemMethodItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -240,7 +237,6 @@ class LibraryManifestBuilder {
 
     var item = _getOrBuildElementItem(element, () {
       return InterfaceItemConstructorItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -312,8 +308,6 @@ class LibraryManifestBuilder {
           continue;
         }
         manifest.items[name] = ExportItem(
-          libraryUri: libraryUri,
-          name: name,
           id: id,
         );
       }
@@ -328,7 +322,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return TopLevelFunctionItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -345,7 +338,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return TopLevelGetterItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -362,7 +354,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return TopLevelSetterItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,

@@ -15,8 +15,6 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ClassItem extends InterfaceItem {
   ClassItem({
-    required super.libraryUri,
-    required super.name,
     required super.id,
     required super.typeParameters,
     required super.supertype,
@@ -26,7 +24,6 @@ class ClassItem extends InterfaceItem {
   });
 
   factory ClassItem.fromElement({
-    required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required ClassElementImpl2 element,
@@ -35,8 +32,6 @@ class ClassItem extends InterfaceItem {
       element.typeParameters2,
       (typeParameters) {
         return ClassItem(
-          libraryUri: element.library2.uri,
-          name: name,
           id: id,
           typeParameters: typeParameters,
           supertype: element.supertype?.encode(context),
@@ -50,8 +45,6 @@ class ClassItem extends InterfaceItem {
 
   factory ClassItem.read(SummaryDataReader reader) {
     return ClassItem(
-      libraryUri: reader.readUri(),
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       members: InstanceItem._readMembers(reader),
@@ -74,15 +67,11 @@ class ClassItem extends InterfaceItem {
 
 class ExportItem extends TopLevelItem {
   ExportItem({
-    required super.libraryUri,
-    required super.name,
     required super.id,
   });
 
   factory ExportItem.read(SummaryDataReader reader) {
     return ExportItem(
-      libraryUri: reader.readUri(),
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
     );
   }
@@ -100,8 +89,6 @@ sealed class InstanceItem extends TopLevelItem {
   final Map<LookupName, InstanceItemMemberItem> members;
 
   InstanceItem({
-    required super.libraryUri,
-    required super.name,
     required super.id,
     required this.typeParameters,
     required this.members,
@@ -132,20 +119,17 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   final ManifestType returnType;
 
   InstanceItemGetterItem({
-    required super.name,
     required super.id,
     required super.isStatic,
     required this.returnType,
   });
 
   factory InstanceItemGetterItem.fromElement({
-    required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required GetterElement2OrMember element,
   }) {
     return InstanceItemGetterItem(
-      name: name,
       id: id,
       isStatic: element.isStatic,
       returnType: element.returnType.encode(context),
@@ -154,7 +138,6 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
 
   factory InstanceItemGetterItem.read(SummaryDataReader reader) {
     return InstanceItemGetterItem(
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       isStatic: reader.readBool(),
       returnType: ManifestType.read(reader),
@@ -187,7 +170,6 @@ sealed class InstanceItemMemberItem extends ManifestItem {
   final bool isStatic;
 
   InstanceItemMemberItem({
-    required super.name,
     required super.id,
     required this.isStatic,
   });
@@ -215,20 +197,17 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   final ManifestFunctionType functionType;
 
   InstanceItemMethodItem({
-    required super.name,
     required super.id,
     required super.isStatic,
     required this.functionType,
   });
 
   factory InstanceItemMethodItem.fromElement({
-    required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required MethodElement2OrMember element,
   }) {
     return InstanceItemMethodItem(
-      name: name,
       id: id,
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
@@ -237,7 +216,6 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
 
   factory InstanceItemMethodItem.read(SummaryDataReader reader) {
     return InstanceItemMethodItem(
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
@@ -273,8 +251,6 @@ sealed class InterfaceItem extends InstanceItem {
   final List<ManifestType> mixins;
 
   InterfaceItem({
-    required super.libraryUri,
-    required super.name,
     required super.id,
     required super.typeParameters,
     required super.members,
@@ -309,7 +285,6 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
   final ManifestFunctionType functionType;
 
   InterfaceItemConstructorItem({
-    required super.name,
     required super.id,
     required super.isStatic,
     required this.isConst,
@@ -318,14 +293,12 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
   });
 
   factory InterfaceItemConstructorItem.fromElement({
-    required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required ConstructorElementImpl2 element,
   }) {
     // TODO(scheglov): initializers
     return InterfaceItemConstructorItem(
-      name: name,
       id: id,
       isStatic: false,
       isConst: element.isConst,
@@ -336,7 +309,6 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
 
   factory InterfaceItemConstructorItem.read(SummaryDataReader reader) {
     return InterfaceItemConstructorItem(
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       isStatic: reader.readBool(),
       isConst: reader.readBool(),
@@ -408,19 +380,14 @@ class ManifestAnnotation {
 }
 
 sealed class ManifestItem {
-  /// The name of the item, mostly for debugging.
-  final LookupName name;
-
   /// The unique identifier of this item.
   final ManifestItemId id;
 
   ManifestItem({
-    required this.name,
     required this.id,
   });
 
   void write(BufferedSink sink) {
-    name.write(sink);
     id.write(sink);
   }
 }
@@ -475,21 +442,16 @@ class TopLevelFunctionItem extends TopLevelItem {
   final ManifestFunctionType functionType;
 
   TopLevelFunctionItem({
-    required super.libraryUri,
-    required super.name,
     required super.id,
     required this.functionType,
   });
 
   factory TopLevelFunctionItem.fromElement({
-    required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required TopLevelFunctionElementImpl element,
   }) {
     return TopLevelFunctionItem(
-      libraryUri: element.library2.uri,
-      name: name,
       id: id,
       functionType: element.type.encode(context),
     );
@@ -497,8 +459,6 @@ class TopLevelFunctionItem extends TopLevelItem {
 
   factory TopLevelFunctionItem.read(SummaryDataReader reader) {
     return TopLevelFunctionItem(
-      libraryUri: reader.readUri(),
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -529,8 +489,6 @@ class TopLevelGetterItem extends TopLevelItem {
   final ManifestNode? constInitializer;
 
   TopLevelGetterItem({
-    required super.libraryUri,
-    required super.name,
     required super.id,
     required this.metadata,
     required this.returnType,
@@ -538,14 +496,11 @@ class TopLevelGetterItem extends TopLevelItem {
   });
 
   factory TopLevelGetterItem.fromElement({
-    required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required GetterElementImpl element,
   }) {
     return TopLevelGetterItem(
-      libraryUri: element.library2.uri,
-      name: name,
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata2),
       returnType: element.returnType.encode(context),
@@ -555,8 +510,6 @@ class TopLevelGetterItem extends TopLevelItem {
 
   factory TopLevelGetterItem.read(SummaryDataReader reader) {
     return TopLevelGetterItem(
-      libraryUri: reader.readUri(),
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       returnType: ManifestType.read(reader),
@@ -593,12 +546,7 @@ class TopLevelGetterItem extends TopLevelItem {
 }
 
 sealed class TopLevelItem extends ManifestItem {
-  /// The URI of the declaring library, mostly for debugging.
-  final Uri libraryUri;
-
   TopLevelItem({
-    required this.libraryUri,
-    required super.name,
     required super.id,
   });
 
@@ -617,12 +565,6 @@ sealed class TopLevelItem extends ManifestItem {
         return TopLevelSetterItem.read(reader);
     }
   }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeUri(libraryUri);
-    super.write(sink);
-  }
 }
 
 class TopLevelSetterItem extends TopLevelItem {
@@ -630,22 +572,17 @@ class TopLevelSetterItem extends TopLevelItem {
   final ManifestType valueType;
 
   TopLevelSetterItem({
-    required super.libraryUri,
-    required super.name,
     required super.id,
     required this.metadata,
     required this.valueType,
   });
 
   factory TopLevelSetterItem.fromElement({
-    required LookupName name,
     required ManifestItemId id,
     required EncodeContext context,
     required SetterElementImpl element,
   }) {
     return TopLevelSetterItem(
-      libraryUri: element.library2.uri,
-      name: name,
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata2),
       valueType: element.formalParameters[0].type.encode(context),
@@ -654,8 +591,6 @@ class TopLevelSetterItem extends TopLevelItem {
 
   factory TopLevelSetterItem.read(SummaryDataReader reader) {
     return TopLevelSetterItem(
-      libraryUri: reader.readUri(),
-      name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       valueType: ManifestType.read(reader),
