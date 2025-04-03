@@ -68,7 +68,7 @@ class ClassItem extends InterfaceItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.class_);
-    super._write(sink);
+    super.write(sink);
   }
 }
 
@@ -90,9 +90,7 @@ class ExportItem extends TopLevelItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.export_);
-    sink.writeUri(libraryUri);
-    name.write(sink);
-    id.write(sink);
+    super.write(sink);
   }
 }
 
@@ -109,10 +107,9 @@ sealed class InstanceItem extends TopLevelItem {
     required this.members,
   });
 
-  void _write(BufferedSink sink) {
-    sink.writeUri(libraryUri);
-    name.write(sink);
-    id.write(sink);
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
     typeParameters.writeList(sink);
     sink.writeMap(
       members,
@@ -181,21 +178,17 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind2.instanceGetter);
-    name.write(sink);
-    id.write(sink);
-    sink.writeBool(isStatic);
+    super.write(sink);
     returnType.write(sink);
   }
 }
 
 sealed class InstanceItemMemberItem extends ManifestItem {
-  final LookupName name;
-  final ManifestItemId id;
   final bool isStatic;
 
   InstanceItemMemberItem({
-    required this.name,
-    required this.id,
+    required super.name,
+    required super.id,
     required this.isStatic,
   });
 
@@ -209,6 +202,12 @@ sealed class InstanceItemMemberItem extends ManifestItem {
       case _ManifestItemKind2.interfaceConstructor:
         return InterfaceItemConstructorItem.read(reader);
     }
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isStatic);
   }
 }
 
@@ -262,9 +261,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind2.instanceMethod);
-    name.write(sink);
-    id.write(sink);
-    sink.writeBool(isStatic);
+    super.write(sink);
     functionType.writeNoTag(sink);
   }
 }
@@ -286,6 +283,14 @@ sealed class InterfaceItem extends InstanceItem {
     required this.mixins,
   });
 
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    supertype.writeOptional(sink);
+    mixins.writeList(sink);
+    interfaces.writeList(sink);
+  }
+
   MatchContext? _matchInterfaceElement(InterfaceElementImpl2 element) {
     var context = MatchContext(parent: null);
     context.addTypeParameters(element.typeParameters2);
@@ -295,14 +300,6 @@ sealed class InterfaceItem extends InstanceItem {
       return context;
     }
     return null;
-  }
-
-  @override
-  void _write(BufferedSink sink) {
-    super._write(sink);
-    supertype.writeOptional(sink);
-    mixins.writeList(sink);
-    interfaces.writeList(sink);
   }
 }
 
@@ -314,10 +311,11 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
   InterfaceItemConstructorItem({
     required super.name,
     required super.id,
+    required super.isStatic,
     required this.isConst,
     required this.isFactory,
     required this.functionType,
-  }) : super(isStatic: false);
+  });
 
   factory InterfaceItemConstructorItem.fromElement({
     required LookupName name,
@@ -329,6 +327,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
     return InterfaceItemConstructorItem(
       name: name,
       id: id,
+      isStatic: false,
       isConst: element.isConst,
       isFactory: element.isFactory,
       functionType: element.type.encode(context),
@@ -339,6 +338,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
     return InterfaceItemConstructorItem(
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
+      isStatic: reader.readBool(),
       isConst: reader.readBool(),
       isFactory: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
@@ -365,8 +365,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind2.interfaceConstructor);
-    name.write(sink);
-    id.write(sink);
+    super.write(sink);
     sink.writeBool(isConst);
     sink.writeBool(isFactory);
     functionType.writeNoTag(sink);
@@ -409,7 +408,21 @@ class ManifestAnnotation {
 }
 
 sealed class ManifestItem {
-  void write(BufferedSink sink);
+  /// The name of the item, mostly for debugging.
+  final LookupName name;
+
+  /// The unique identifier of this item.
+  final ManifestItemId id;
+
+  ManifestItem({
+    required this.name,
+    required this.id,
+  });
+
+  void write(BufferedSink sink) {
+    name.write(sink);
+    id.write(sink);
+  }
 }
 
 class ManifestMetadata {
@@ -505,9 +518,7 @@ class TopLevelFunctionItem extends TopLevelItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.topLevelFunction);
-    sink.writeUri(libraryUri);
-    name.write(sink);
-    id.write(sink);
+    super.write(sink);
     functionType.writeNoTag(sink);
   }
 }
@@ -574,9 +585,7 @@ class TopLevelGetterItem extends TopLevelItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.topLevelGetter);
-    sink.writeUri(libraryUri);
-    name.write(sink);
-    id.write(sink);
+    super.write(sink);
     metadata.write(sink);
     returnType.write(sink);
     constInitializer.writeOptional(sink);
@@ -587,16 +596,10 @@ sealed class TopLevelItem extends ManifestItem {
   /// The URI of the declaring library, mostly for debugging.
   final Uri libraryUri;
 
-  /// The name of the item, mostly for debugging.
-  final LookupName name;
-
-  /// The unique identifier of this item.
-  final ManifestItemId id;
-
   TopLevelItem({
     required this.libraryUri,
-    required this.name,
-    required this.id,
+    required super.name,
+    required super.id,
   });
 
   factory TopLevelItem.read(SummaryDataReader reader) {
@@ -613,6 +616,12 @@ sealed class TopLevelItem extends ManifestItem {
       case _ManifestItemKind.topLevelSetter:
         return TopLevelSetterItem.read(reader);
     }
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeUri(libraryUri);
+    super.write(sink);
   }
 }
 
@@ -670,9 +679,7 @@ class TopLevelSetterItem extends TopLevelItem {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.topLevelSetter);
-    sink.writeUri(libraryUri);
-    name.write(sink);
-    id.write(sink);
+    super.write(sink);
     metadata.write(sink);
     valueType.write(sink);
   }
