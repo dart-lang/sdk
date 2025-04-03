@@ -10,8 +10,8 @@ import 'dart:_internal'
         Since,
         valueOfNonNullableParamWithDefault,
         HttpStatus;
-import 'dart:async';
 import 'dart:async' as dart_async show runZoned;
+import 'dart:async';
 import 'dart:collection'
     show
         HashMap,
@@ -2045,9 +2045,15 @@ enum HttpClientResponseCompressionState {
   compressed,
 }
 
+/// Represents credentials for authentication in [HttpClient].
+///
+/// Subtypes of [HttpClientCredentials] can be passed to
+/// [HttpClient.addCredentials] or [HttpClient.addProxyCredentials].
 abstract interface class HttpClientCredentials {}
 
 /// Represents credentials for basic authentication.
+///
+/// See https://datatracker.ietf.org/doc/html/rfc7617
 abstract final class HttpClientBasicCredentials
     implements HttpClientCredentials {
   factory HttpClientBasicCredentials(String username, String password) =>
@@ -2055,16 +2061,20 @@ abstract final class HttpClientBasicCredentials
 }
 
 /// Represents credentials for bearer token authentication.
+///
+/// See https://datatracker.ietf.org/doc/html/rfc6750
 abstract final class HttpClientBearerCredentials
     implements HttpClientCredentials {
   factory HttpClientBearerCredentials(String token) =>
       _HttpClientBearerCredentials(token);
 }
 
-/// Represents credentials for digest authentication. Digest
-/// authentication is only supported for servers using the MD5
-/// algorithm and quality of protection (qop) of either "none" or
-/// "auth".
+/// Represents credentials for digest authentication.
+///
+/// Digest authentication is only supported for servers using the MD5 algorithm
+/// and quality of protection (qop) of either "none" or "auth".
+///
+/// See https://datatracker.ietf.org/doc/html/rfc7616
 abstract final class HttpClientDigestCredentials
     implements HttpClientCredentials {
   factory HttpClientDigestCredentials(String username, String password) =>
