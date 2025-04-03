@@ -1054,9 +1054,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     FunctionNameEnd data = new FunctionNameEnd(ParserAstType.END,
-        beginToken: beginToken, token: token);
+        beginToken: beginToken,
+        token: token,
+        isFunctionExpression: isFunctionExpression);
     seen(data);
   }
 
@@ -5373,15 +5376,19 @@ class FunctionNameBegin extends ParserAstNode {
 class FunctionNameEnd extends ParserAstNode {
   final Token beginToken;
   final Token token;
+  final bool isFunctionExpression;
 
   FunctionNameEnd(ParserAstType type,
-      {required this.beginToken, required this.token})
+      {required this.beginToken,
+      required this.token,
+      required this.isFunctionExpression})
       : super("FunctionName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "token": token,
+        "isFunctionExpression": isFunctionExpression,
       };
 
   @override

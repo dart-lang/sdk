@@ -2105,7 +2105,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     debugEvent("FunctionName");
   }
 

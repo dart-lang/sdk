@@ -966,8 +966,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
-    listener?.endFunctionName(beginToken, token);
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
+    listener?.endFunctionName(beginToken, token, isFunctionExpression);
   }
 
   @override
