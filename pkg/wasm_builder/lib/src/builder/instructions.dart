@@ -1408,16 +1408,16 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.BrOnCastFail(_labelIndex(label), inputType, targetType));
   }
 
-  /// Emit an `extern.internalize` instruction.
-  void extern_internalize() {
+  /// Emit an `any.convert_extern` instruction.
+  void any_convert_extern() {
     assert(_verifyTypesFun(const [ir.RefType.extern(nullable: true)],
         (inputs) => [ir.RefType.any(nullable: inputs.single.nullable)],
         trace: ['extern.internalize']));
     _add(const ir.ExternInternalize());
   }
 
-  /// Emit an `extern.externalize` instruction.
-  void extern_externalize() {
+  /// Emit an `extern.convert_any` instruction.
+  void extern_convert_any() {
     assert(_verifyTypesFun(const [ir.RefType.any(nullable: true)],
         (inputs) => [ir.RefType.extern(nullable: inputs.single.nullable)],
         trace: ['extern.externalize']));

@@ -1464,22 +1464,22 @@ class Intrinsifier {
       case StaticIntrinsic.externalizeNonNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.any(nullable: false));
-        b.extern_externalize();
+        b.extern_convert_any();
         return w.RefType.extern(nullable: false);
       case StaticIntrinsic.externalizeNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.any(nullable: true));
-        b.extern_externalize();
+        b.extern_convert_any();
         return w.RefType.extern(nullable: true);
       case StaticIntrinsic.internalizeNonNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.extern(nullable: false));
-        b.extern_internalize();
+        b.any_convert_extern();
         return w.RefType.any(nullable: false);
       case StaticIntrinsic.internalizeNullable:
         final value = node.arguments.positional.single;
         codeGen.translateExpression(value, w.RefType.extern(nullable: true));
-        b.extern_internalize();
+        b.any_convert_extern();
         return w.RefType.any(nullable: true);
       case StaticIntrinsic.wasmExternRefIsNull:
         final value = node.arguments.positional.single;
