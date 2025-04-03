@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
@@ -87,17 +89,13 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final OperationsCfe operations;
 
+  TypeAnalyzerOptions typeAnalyzerOptions;
+
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
           SharedTypeView> flowAnalysis =
-      new FlowAnalysis(
-          operations, assignedVariables,
-          respectImplicitlyTypedVarInitializers:
-              libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
-          fieldPromotionEnabled:
-              libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled,
-          inferenceUpdate4Enabled:
-              libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled);
+      new FlowAnalysis(operations, assignedVariables,
+          typeAnalyzerOptions: typeAnalyzerOptions);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
@@ -144,14 +142,24 @@ class TypeInferrerImpl implements TypeInferrer {
             fieldNonPromotabilityInfo: libraryBuilder.fieldNonPromotabilityInfo,
             typeCacheNonNullable: engine.typeCacheNonNullable,
             typeCacheNullable: engine.typeCacheNullable,
-            typeCacheLegacy: engine.typeCacheLegacy);
+            typeCacheLegacy: engine.typeCacheLegacy),
+        typeAnalyzerOptions = new TypeAnalyzerOptions(
+            patternsEnabled: libraryBuilder.libraryFeatures.patterns.isEnabled,
+            inferenceUpdate3Enabled:
+                libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled,
+            respectImplicitlyTypedVarInitializers:
+                libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
+            fieldPromotionEnabled:
+                libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled,
+            inferenceUpdate4Enabled:
+                libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
       [ConstructorDeclarationBuilder? constructorDeclaration]) {
     // For full (non-top level) inference, we need access to the
     // InferenceHelper so that we can perform error reporting.
     return new InferenceVisitorImpl(
-        this, helper, constructorDeclaration, operations);
+        this, helper, constructorDeclaration, operations, typeAnalyzerOptions);
   }
 
   @override

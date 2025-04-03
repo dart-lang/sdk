@@ -149,7 +149,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   final List<Object> _rewriteStack = [];
 
   @override
-  final TypeAnalyzerOptions options;
+  final TypeAnalyzerOptions typeAnalyzerOptions;
 
   final ConstructorDeclarationBuilder? constructorDeclaration;
 
@@ -175,13 +175,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   bool _inTryOrLocalFunction = false;
 
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
-      this.constructorDeclaration, this.operations)
-      : options = new TypeAnalyzerOptions(
-            patternsEnabled:
-                inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled,
-            inferenceUpdate3Enabled: inferrer
-                .libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled),
-        super(inferrer, helper);
+      this.constructorDeclaration, this.operations, this.typeAnalyzerOptions)
+      : super(inferrer, helper);
 
   @override
   int get stackHeight => _rewriteStack.length;
@@ -10620,7 +10615,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void handleSwitchScrutinee(SharedTypeView type) {
     DartType unwrapped = type.unwrapTypeView();
-    if ((!options.patternsEnabled) &&
+    if ((!typeAnalyzerOptions.patternsEnabled) &&
         unwrapped is InterfaceType &&
         unwrapped.classNode.isEnum) {
       _enumFields = <Field?>{

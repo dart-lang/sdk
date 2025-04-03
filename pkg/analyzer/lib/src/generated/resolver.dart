@@ -147,7 +147,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   SwitchExhaustiveness? legacySwitchExhaustiveness;
 
   @override
-  final TypeAnalyzerOptions options;
+  final TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
   late final SharedTypeAnalyzerErrors errors =
@@ -324,6 +324,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
     required FlowAnalysisHelper flowAnalysisHelper,
+    required TypeAnalyzerOptions typeAnalyzerOptions,
   }) : this._(
           inheritanceManager,
           definingLibrary,
@@ -336,6 +337,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           analysisOptions,
           flowAnalysisHelper,
           libraryFragment: libraryFragment,
+          typeAnalyzerOptions: typeAnalyzerOptions,
         );
 
   ResolverVisitor._(
@@ -350,16 +352,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     this.analysisOptions,
     this.flowAnalysis, {
     required this.libraryFragment,
+    required this.typeAnalyzerOptions,
   })  : _featureSet = featureSet,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
         inferenceUsingBoundsIsEnabled = definingLibrary.featureSet
             .isEnabled(Feature.inference_using_bounds),
-        options = TypeAnalyzerOptions(
-            patternsEnabled:
-                definingLibrary.featureSet.isEnabled(Feature.patterns),
-            inferenceUpdate3Enabled: definingLibrary.featureSet
-                .isEnabled(Feature.inference_update_3)),
         baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
             definingLibrary: definingLibrary, errorReporter: errorReporter) {
     inferenceHelper = InvocationInferenceHelper(
@@ -1125,7 +1123,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleSwitchScrutinee(SharedTypeView type) {
-    if (!options.patternsEnabled) {
+    if (!typeAnalyzerOptions.patternsEnabled) {
       legacySwitchExhaustiveness = SwitchExhaustiveness(type.unwrapTypeView());
     }
   }
