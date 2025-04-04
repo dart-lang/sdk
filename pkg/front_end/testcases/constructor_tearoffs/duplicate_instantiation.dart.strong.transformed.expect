@@ -179,11 +179,6 @@ library;
 //   Class<int><int>.named<int>;
 //                   ^^^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:21:24: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
-// Try changing the operand or remove the type arguments.
-//   Class<int><int>.named<int>;
-//                        ^
-//
 // pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the class 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
@@ -276,10 +271,11 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int>;
-       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:21:24: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
-Try changing the operand or remove the type arguments.
+       ^" in #C2{<unresolved>}.<(#C3){dynamic}.>(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:21:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named<int>;
-                       ^");
+                  ^^^^^" in core::_GrowableList::•<core::int>(0){<unresolved>}.named);
   invalid-expression "pkg/front_end/testcases/constructor_tearoffs/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the class 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.

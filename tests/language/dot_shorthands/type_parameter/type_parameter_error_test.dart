@@ -9,6 +9,13 @@
 
 import '../dot_shorthand_helper.dart';
 
+class C {
+  C();
+  C.named();
+}
+
+extension type ET<T>(T v) {}
+
 void main() {
   StaticMember<int> s = .memberType<String, String>('s');
   //                    ^
@@ -31,6 +38,17 @@ void main() {
   //                                                     ^^^
   // [analyzer] unspecified
   // [cfe] The static getter or field 'new' isn't defined for the type 'UnnamedConstructorTypeParameters<dynamic> Function()'.
-  //                                                        ^
-  // [cfe] The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+
+  C newTearoff = .new<int>;
+  //              ^^^
+  // [analyzer] unspecified
+  // [cfe] A dot shorthand constructor invocation can't have type arguments.
+  C namedTearoff = .new<int>;
+  //                ^^^
+  // [analyzer] unspecified
+  // [cfe] A dot shorthand constructor invocation can't have type arguments.
+  ET e = .new<int>;
+  //      ^^^
+  // [analyzer] unspecified
+  // [cfe] A dot shorthand constructor invocation can't have type arguments.
 }

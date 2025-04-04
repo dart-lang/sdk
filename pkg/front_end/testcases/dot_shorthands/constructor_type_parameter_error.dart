@@ -7,8 +7,12 @@ class C {
   C.named();
 }
 
+extension type ET<T>(T v) {}
+
 void test() {
   C newConstructor = .new<int>();
   C namedConstructor = .named<int>();
   C newTearoff = .new<int>;
+  C namedTearoff = .new<int>;
+  ET e = .new<int>;
 }
