@@ -942,7 +942,7 @@ abstract class Member
   @override
   List<ElementAnnotation> get metadata => _declaration.metadata;
 
-  Metadata get metadata2 => declaration.metadata2;
+  MetadataImpl get metadata2 => declaration.metadata2;
 
   @override
   String? get name => _declaration.name;

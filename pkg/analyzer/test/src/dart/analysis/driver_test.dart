@@ -8236,6 +8236,44 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprected('0')
+  A.foo();
+  @Deprected('0')
+  A.bar();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprected('1')
+  A.foo();
+  @Deprected('0')
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M3
+''',
+    );
+  }
+
   test_manifest_class_constructor_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8469,6 +8507,44 @@ class B extends A<int> {}
         foo: #M1
       B: #M2
         bar: #M5
+        foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_getter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('1')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
         foo: #M3
 ''',
     );
@@ -8779,6 +8855,38 @@ class C {}
       A: #M3
       B: #M1
       C: #M2
+''',
+    );
+  }
+
+  test_manifest_class_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+class A {}
+@Deprecated('0')
+class B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+class A {}
+@Deprecated('1')
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M2
 ''',
     );
   }
@@ -9152,6 +9260,44 @@ class A {
     manifest
       A: #M0
         foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('1')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M3
 ''',
     );
   }
@@ -10979,6 +11125,38 @@ void bar() {}
     );
   }
 
+  test_manifest_topLevelFunction_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprected('0')
+void a() {}
+@Deprected('0')
+void b() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+@Deprected('0')
+void a() {}
+@Deprected('1')
+void b() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M2
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -11175,6 +11353,38 @@ int get a => 1;
     );
   }
 
+  test_manifest_topLevelGetter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+int get a => 0;
+@Deprecated('0')
+int get b => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+int get a => 0;
+@Deprecated('1')
+int get b => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M2
+''',
+    );
+  }
+
   test_manifest_topLevelGetter_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -11269,6 +11479,38 @@ set a(int _) { 1; }
       expectedUpdatedEvents: r'''
 [operation] readLibraryCycleBundle
   package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_topLevelSetter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+set a(int _) {}
+@Deprecated('0')
+set b(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+      b=: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+set a(int _) {}
+@Deprecated('1')
+set b(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+      b=: #M2
 ''',
     );
   }
@@ -11394,6 +11636,42 @@ final a = 1;
   package:test/test.dart
     manifest
       a: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+var a = 0;
+@Deprecated('0')
+var b = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      a=: #M1
+      b: #M2
+      b=: #M3
+''',
+      updatedCode: r'''
+@Deprecated('0')
+var a = 0;
+@Deprecated('1')
+var b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      a=: #M1
+      b: #M4
+      b=: #M5
 ''',
     );
   }

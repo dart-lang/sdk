@@ -13,9 +13,26 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
+// TODO(scheglov): inline into ManifestItem when remove ExportItem
+sealed class AnnotatedItem extends ManifestItem {
+  final ManifestMetadata metadata;
+
+  AnnotatedItem({
+    required super.id,
+    required this.metadata,
+  });
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    metadata.write(sink);
+  }
+}
+
 class ClassItem extends InterfaceItem {
   ClassItem({
     required super.id,
+    required super.metadata,
     required super.typeParameters,
     required super.supertype,
     required super.interfaces,
@@ -33,6 +50,7 @@ class ClassItem extends InterfaceItem {
       (typeParameters) {
         return ClassItem(
           id: id,
+          metadata: ManifestMetadata.encode(context, element.metadata2),
           typeParameters: typeParameters,
           supertype: element.supertype?.encode(context),
           mixins: element.mixins.encode(context),
@@ -46,6 +64,7 @@ class ClassItem extends InterfaceItem {
   factory ClassItem.read(SummaryDataReader reader) {
     return ClassItem(
       id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       members: InstanceItem._readMembers(reader),
       supertype: ManifestType.readOptional(reader),
@@ -68,11 +87,13 @@ class ClassItem extends InterfaceItem {
 class ExportItem extends TopLevelItem {
   ExportItem({
     required super.id,
+    required super.metadata,
   });
 
   factory ExportItem.read(SummaryDataReader reader) {
     return ExportItem(
       id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
     );
   }
 
@@ -90,6 +111,7 @@ sealed class InstanceItem extends TopLevelItem {
 
   InstanceItem({
     required super.id,
+    required super.metadata,
     required this.typeParameters,
     required this.members,
   });
@@ -120,6 +142,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
 
   InstanceItemGetterItem({
     required super.id,
+    required super.metadata,
     required super.isStatic,
     required this.returnType,
   });
@@ -131,6 +154,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   }) {
     return InstanceItemGetterItem(
       id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
       isStatic: element.isStatic,
       returnType: element.returnType.encode(context),
     );
@@ -139,6 +163,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   factory InstanceItemGetterItem.read(SummaryDataReader reader) {
     return InstanceItemGetterItem(
       id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       returnType: ManifestType.read(reader),
     );
@@ -149,6 +174,9 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     GetterElement2OrMember element,
   ) {
     var context = MatchContext(parent: instanceContext);
+    if (!metadata.match(context, element.metadata2)) {
+      return null;
+    }
     if (element.isStatic != isStatic) {
       return null;
     }
@@ -166,11 +194,12 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   }
 }
 
-sealed class InstanceItemMemberItem extends ManifestItem {
+sealed class InstanceItemMemberItem extends AnnotatedItem {
   final bool isStatic;
 
   InstanceItemMemberItem({
     required super.id,
+    required super.metadata,
     required this.isStatic,
   });
 
@@ -198,6 +227,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
 
   InstanceItemMethodItem({
     required super.id,
+    required super.metadata,
     required super.isStatic,
     required this.functionType,
   });
@@ -209,6 +239,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   }) {
     return InstanceItemMethodItem(
       id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
@@ -217,6 +248,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   factory InstanceItemMethodItem.read(SummaryDataReader reader) {
     return InstanceItemMethodItem(
       id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -227,6 +259,9 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
     MethodElement2OrMember element,
   ) {
     var context = MatchContext(parent: instanceContext);
+    if (!metadata.match(context, element.metadata2)) {
+      return null;
+    }
     if (element.isStatic != isStatic) {
       return null;
     }
@@ -252,6 +287,7 @@ sealed class InterfaceItem extends InstanceItem {
 
   InterfaceItem({
     required super.id,
+    required super.metadata,
     required super.typeParameters,
     required super.members,
     required this.supertype,
@@ -269,6 +305,11 @@ sealed class InterfaceItem extends InstanceItem {
 
   MatchContext? _matchInterfaceElement(InterfaceElementImpl2 element) {
     var context = MatchContext(parent: null);
+
+    if (!metadata.match(context, element.metadata2)) {
+      return null;
+    }
+
     context.addTypeParameters(element.typeParameters2);
     if (supertype.match(context, element.supertype) &&
         interfaces.match(context, element.interfaces) &&
@@ -286,6 +327,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
 
   InterfaceItemConstructorItem({
     required super.id,
+    required super.metadata,
     required super.isStatic,
     required this.isConst,
     required this.isFactory,
@@ -300,6 +342,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
     // TODO(scheglov): initializers
     return InterfaceItemConstructorItem(
       id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
       isStatic: false,
       isConst: element.isConst,
       isFactory: element.isFactory,
@@ -310,6 +353,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
   factory InterfaceItemConstructorItem.read(SummaryDataReader reader) {
     return InterfaceItemConstructorItem(
       id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       isConst: reader.readBool(),
       isFactory: reader.readBool(),
@@ -322,6 +366,9 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
     ConstructorElementImpl2 element,
   ) {
     var context = MatchContext(parent: instanceContext);
+    if (!metadata.match(context, element.metadata2)) {
+      return null;
+    }
     if (isConst != element.isConst) {
       return null;
     }
@@ -443,6 +490,7 @@ class TopLevelFunctionItem extends TopLevelItem {
 
   TopLevelFunctionItem({
     required super.id,
+    required super.metadata,
     required this.functionType,
   });
 
@@ -453,6 +501,7 @@ class TopLevelFunctionItem extends TopLevelItem {
   }) {
     return TopLevelFunctionItem(
       id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
       functionType: element.type.encode(context),
     );
   }
@@ -460,6 +509,7 @@ class TopLevelFunctionItem extends TopLevelItem {
   factory TopLevelFunctionItem.read(SummaryDataReader reader) {
     return TopLevelFunctionItem(
       id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
     );
   }
@@ -468,6 +518,11 @@ class TopLevelFunctionItem extends TopLevelItem {
     TopLevelFunctionElementImpl element,
   ) {
     var context = MatchContext(parent: null);
+
+    if (!metadata.match(context, element.metadata2)) {
+      return null;
+    }
+
     if (!functionType.match(context, element.type)) {
       return null;
     }
@@ -484,13 +539,12 @@ class TopLevelFunctionItem extends TopLevelItem {
 }
 
 class TopLevelGetterItem extends TopLevelItem {
-  final ManifestMetadata metadata;
   final ManifestType returnType;
   final ManifestNode? constInitializer;
 
   TopLevelGetterItem({
     required super.id,
-    required this.metadata,
+    required super.metadata,
     required this.returnType,
     required this.constInitializer,
   });
@@ -502,7 +556,10 @@ class TopLevelGetterItem extends TopLevelItem {
   }) {
     return TopLevelGetterItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
       returnType: element.returnType.encode(context),
       constInitializer: element.constInitializer?.encode(context),
     );
@@ -520,7 +577,7 @@ class TopLevelGetterItem extends TopLevelItem {
   MatchContext? match(GetterElementImpl element) {
     var context = MatchContext(parent: null);
 
-    if (!metadata.match(context, element.metadata2)) {
+    if (!metadata.match(context, element.thisOrVariableMetadata)) {
       return null;
     }
 
@@ -539,15 +596,15 @@ class TopLevelGetterItem extends TopLevelItem {
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.topLevelGetter);
     super.write(sink);
-    metadata.write(sink);
     returnType.write(sink);
     constInitializer.writeOptional(sink);
   }
 }
 
-sealed class TopLevelItem extends ManifestItem {
+sealed class TopLevelItem extends AnnotatedItem {
   TopLevelItem({
     required super.id,
+    required super.metadata,
   });
 
   factory TopLevelItem.read(SummaryDataReader reader) {
@@ -568,12 +625,11 @@ sealed class TopLevelItem extends ManifestItem {
 }
 
 class TopLevelSetterItem extends TopLevelItem {
-  final ManifestMetadata metadata;
   final ManifestType valueType;
 
   TopLevelSetterItem({
     required super.id,
-    required this.metadata,
+    required super.metadata,
     required this.valueType,
   });
 
@@ -584,7 +640,10 @@ class TopLevelSetterItem extends TopLevelItem {
   }) {
     return TopLevelSetterItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
       valueType: element.formalParameters[0].type.encode(context),
     );
   }
@@ -600,7 +659,7 @@ class TopLevelSetterItem extends TopLevelItem {
   MatchContext? match(SetterElementImpl element) {
     var context = MatchContext(parent: null);
 
-    if (!metadata.match(context, element.metadata2)) {
+    if (!metadata.match(context, element.thisOrVariableMetadata)) {
       return null;
     }
 
@@ -615,7 +674,6 @@ class TopLevelSetterItem extends TopLevelItem {
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestItemKind.topLevelSetter);
     super.write(sink);
-    metadata.write(sink);
     valueType.write(sink);
   }
 }
@@ -649,5 +707,15 @@ extension _GetterElementImplExtension on GetterElementImpl {
       }
     }
     return null;
+  }
+}
+
+extension _PropertyAccessExtension on PropertyAccessorElement2OrMember {
+  MetadataImpl get thisOrVariableMetadata {
+    if (isSynthetic) {
+      return variable3!.metadata2;
+    } else {
+      return metadata2;
+    }
   }
 }
