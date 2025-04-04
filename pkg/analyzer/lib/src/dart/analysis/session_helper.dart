@@ -116,7 +116,12 @@ class AnalysisSessionHelper {
   Future<ResolvedLibraryResult?> _getResolvedLibrary(String path) async {
     var result = _resolvedLibraries[path];
     if (result == null) {
-      var some = await session.getResolvedLibrary(path);
+      var unit = await session.getUnitElement(path);
+      if (unit is! UnitElementResult) {
+        return null;
+      }
+      var some =
+          await session.getResolvedLibraryByElement2(unit.fragment.element);
       if (some is ResolvedLibraryResult) {
         result = _resolvedLibraries[path] = some;
       }
