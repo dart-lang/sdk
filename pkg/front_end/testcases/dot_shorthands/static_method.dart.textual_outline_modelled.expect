@@ -1,3 +1,8 @@
+class C<T> {
+  C<U> cast<U>() => new C<U>();
+  static C<X> foo<X>(X x) => new C<X>();
+}
+
 class Color {
   Color(this.x);
   final int x;

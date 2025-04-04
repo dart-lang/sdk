@@ -4,4 +4,9 @@ class Color {
   Color(this.x);
 }
 
+class C<T> {
+  static C<X> foo<X>(X x) => new C<X>();
+  C<U> cast<U>() => new C<U>();
+}
+
 void main() {}

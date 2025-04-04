@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Color {
-  final int x;
-  static Color red() => Color(1);
-  Color(this.x);
-}
+// Type parameters are inferred in dot shorthand static invocations.
+
+// SharedOptions=--enable-experiment=dot-shorthands
 
 class C<T> {
   static C<X> foo<X>(X x) => new C<X>();
-
   C<U> cast<U>() => new C<U>();
 }
 
 void main() {
-  Color color = .red();
   C<bool> c = .foo("String").cast();
 }

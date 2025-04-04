@@ -12134,8 +12134,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression? expr;
     if (member is Procedure && member.kind == ProcedureKind.Method) {
+      // The shorthand expression is inferred in the empty context and then type
+      // inference infers the type arguments.
+      FunctionType functionType =
+          member.function.computeThisFunctionType(Nullability.nonNullable);
+      InvocationInferenceResult result = inferInvocation(
+          this,
+          typeContext,
+          node.fileOffset,
+          new InvocationTargetFunctionType(functionType),
+          node.arguments as ArgumentsImpl,
+          isConst: node.isConst,
+          staticTarget: member);
       expr = new StaticInvocation(member, node.arguments)
         ..fileOffset = node.fileOffset;
+      return new ExpressionInferenceResult(
+          result.inferredType, result.applyResult(expr));
     } else if (member == null && cachedContext is TypeDeclarationType) {
       // Couldn't find a static method in the declaration so we'll try and find
       // a constructor of that name instead.
@@ -12161,8 +12175,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   node.name.text.length));
         }
 
-        // With constructor invocations, the shorthand expression is preceded by
-        // the raw type and then type inference infers the type arguments.
+        // The shorthand expression is inferred in the empty context and then
+        // type inference infers the type arguments.
         FunctionType functionType = constructor.function
             .computeThisFunctionType(Nullability.nonNullable);
         InvocationInferenceResult result = inferInvocation(
@@ -12189,8 +12203,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   node.name.text.length));
         }
 
-        // With constructor invocations, the shorthand expression is preceded by
-        // the raw type and then type inference infers the type arguments.
+        // The shorthand expression is inferred in the empty context and then
+        // type inference infers the type arguments.
         FunctionType functionType = constructor.function
             .computeThisFunctionType(Nullability.nonNullable);
         InvocationInferenceResult result = inferInvocation(
@@ -12224,33 +12238,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           isExpressionInvocation: true, isImplicitCall: true);
     }
 
-    if (expr == null) {
-      Expression replacement;
-      if (isKnown(cachedContext)) {
-        // Error when we can't find the static member or constructor named
-        // [node.name] in the declaration of [cachedContext].
-        replacement = helper.buildProblem(
-            templateDotShorthandsUndefinedInvocation.withArguments(
-                node.name.text, cachedContext),
-            node.nameOffset,
-            node.name.text.length);
-      } else {
-        // Error when no context type or an invalid context type is given to
-        // resolve the dot shorthand.
-        //
-        // e.g. `var x = .one;`
-        replacement = helper.buildProblem(
-            templateDotShorthandsInvalidContext.withArguments(node.name.text),
-            node.nameOffset,
-            node.name.text.length);
-      }
-      return new ExpressionInferenceResult(const DynamicType(), replacement);
+    // Error handling. At this point, we've exhausted all possible valid
+    // invocations.
+    Expression replacement;
+    if (isKnown(cachedContext)) {
+      // Error when we can't find the static member or constructor named
+      // [node.name] in the declaration of [cachedContext].
+      replacement = helper.buildProblem(
+          templateDotShorthandsUndefinedInvocation.withArguments(
+              node.name.text, cachedContext),
+          node.nameOffset,
+          node.name.text.length);
+    } else {
+      // Error when no context type or an invalid context type is given to
+      // resolve the dot shorthand.
+      //
+      // e.g. `var x = .one;`
+      replacement = helper.buildProblem(
+          templateDotShorthandsInvalidContext.withArguments(node.name.text),
+          node.nameOffset,
+          node.name.text.length);
     }
-
-    ExpressionInferenceResult expressionInferenceResult =
-        inferExpression(expr, cachedContext);
-    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
-    return expressionInferenceResult;
+    return new ExpressionInferenceResult(const DynamicType(), replacement);
   }
 
   ExpressionInferenceResult visitDotShorthandPropertyGet(
