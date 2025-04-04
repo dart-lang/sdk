@@ -266,11 +266,12 @@ class RunningProcess {
                 command.executable.contains("SIMARM64") ||
                 command.executable.contains("SIMARM64C") ||
                 command.executable.contains("SIMRISCV64");
+            var isARM64 = !isX64 && command.executable.contains("ARM64");
             if (configuration.windowsSdkPath != null) {
               executable = [
                 configuration.windowsSdkPath!,
                 'Debuggers',
-                if (isX64) 'x64' else 'x86',
+                if (isX64) 'x64' else if (isARM64) 'arm64' else 'x86',
                 'cdb.exe',
               ].join('\\');
               diagnostics.add("Using $executable to print stack traces");
