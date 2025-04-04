@@ -738,8 +738,6 @@ class LibraryManifestPrinter {
       switch (topLevelItem) {
         case ClassItem():
           _writeClassItem(topLevelItem);
-        case ExportItem():
-          _writeExportItem(topLevelItem);
         case TopLevelFunctionItem():
           _writeTopLevelFunctionItem(topLevelItem);
         case TopLevelGetterItem():
@@ -748,6 +746,16 @@ class LibraryManifestPrinter {
           _writeTopLevelSetterItem(topLevelItem);
       }
     });
+
+    var reExportEntries = manifest.reExportMap.sorted;
+    if (reExportEntries.isNotEmpty) {
+      sink.writelnWithIndent('reExportMap');
+      sink.withIndent(() {
+        for (var entry in reExportEntries) {
+          _writeNamedId(entry.key, entry.value);
+        }
+      });
+    }
   }
 
   void _writeClassItem(ClassItem item) {
@@ -765,8 +773,6 @@ class LibraryManifestPrinter {
       }
     });
   }
-
-  void _writeExportItem(ExportItem item) {}
 
   void _writeInstanceItemMember(LookupName name, InstanceItemMemberItem item) {
     if (configuration.ignoredManifestInstanceMemberNames

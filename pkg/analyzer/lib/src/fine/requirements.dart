@@ -105,13 +105,13 @@ class BundleRequirementsManifest {
 
       for (var topLevelEntry in libraryEntry.value.entries) {
         var name = topLevelEntry.key;
-        var item = libraryManifest.items[name];
-        if (topLevelEntry.value != item?.id) {
+        var actualId = libraryManifest.getExportedId(name);
+        if (topLevelEntry.value != actualId) {
           return TopLevelIdMismatch(
             libraryUri: libraryUri,
             name: name,
             expectedId: topLevelEntry.value,
-            actualId: item?.id,
+            actualId: actualId,
           );
         }
       }
@@ -216,7 +216,7 @@ class BundleRequirementsManifest {
       var uri = importedLibrary.uri;
       var nameToId = topLevels[uri] ??= {};
       var name = nameStr.asLookupName;
-      nameToId[name] = manifest.items[name]?.id;
+      nameToId[name] = manifest.getExportedId(name);
     }
   }
 

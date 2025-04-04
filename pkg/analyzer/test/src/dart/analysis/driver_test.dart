@@ -6609,7 +6609,7 @@ export ':';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -6671,7 +6671,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -6711,7 +6711,7 @@ final b = 0;
     actualId: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
       b: #M1
   requirements
@@ -6752,7 +6752,7 @@ export 'a.dart' hide b;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -6818,7 +6818,7 @@ export 'a.dart' hide c;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -6860,7 +6860,7 @@ final b = 0;
     actualId: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
       b: #M1
   requirements
@@ -6903,7 +6903,7 @@ export 'a.dart' show a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -6969,7 +6969,7 @@ export 'a.dart' show a, b;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -7011,7 +7011,7 @@ final b = 0;
     actualId: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
       b: #M1
   requirements
@@ -7054,7 +7054,7 @@ export 'a.dart' show a, b hide c;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -7097,7 +7097,7 @@ final b = 0;
     actualId: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
       b: #M1
   requirements
@@ -7141,7 +7141,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -7209,7 +7209,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
       b: #M1
   requirements
@@ -7246,7 +7246,7 @@ final a = 0;
     required: 2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -7287,7 +7287,7 @@ export 'a.dart' show a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -7355,7 +7355,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
       b: #M1
   requirements
@@ -7397,7 +7397,7 @@ final c = 0;
     actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
-    manifest
+    reExportMap
       a: #M0
       c: #M2
   requirements
@@ -7447,7 +7447,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -7498,7 +7498,7 @@ final a = 1.2;
     actualId: #M2
 [operation] linkLibraryCycle
   package:test/b.dart
-    manifest
+    reExportMap
       a: #M2
   requirements
     exportRequirements
@@ -7920,7 +7920,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
-    manifest
+    reExportMap
       a: #M0
   requirements
     exportRequirements
@@ -7967,7 +7967,7 @@ final a = 1.2;
     actualId: #M2
 [operation] linkLibraryCycle
   package:test/b.dart
-    manifest
+    reExportMap
       a: #M2
   requirements
     exportRequirements

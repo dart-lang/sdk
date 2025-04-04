@@ -19,20 +19,24 @@ import 'package:collection/collection.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
-  /// The URI of the library, mostly for debugging.
-  final Uri uri;
+  /// The names that are re-exported by this library.
+  /// This does not include names that are declared in this library.
+  final Map<LookupName, ManifestItemId> reExportMap;
 
   /// The manifests of the top-level items.
   final Map<LookupName, TopLevelItem> items;
 
   LibraryManifest({
-    required this.uri,
+    required this.reExportMap,
     required this.items,
   });
 
   factory LibraryManifest.read(SummaryDataReader reader) {
     return LibraryManifest(
-      uri: reader.readUri(),
+      reExportMap: reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => ManifestItemId.read(reader),
+      ),
       items: reader.readMap(
         readKey: () => LookupName.read(reader),
         readValue: () => TopLevelItem.read(reader),
@@ -40,8 +44,18 @@ class LibraryManifest {
     );
   }
 
+  /// Returns the ID of a top-level element either declared or re-exported,
+  /// or `null` if there is no such element.
+  ManifestItemId? getExportedId(LookupName name) {
+    return items[name]?.id ?? reExportMap[name];
+  }
+
   void write(BufferedSink sink) {
-    sink.writeUri(uri);
+    sink.writeMap(
+      reExportMap,
+      writeKey: (lookupName) => lookupName.write(sink),
+      writeValue: (id) => id.write(sink),
+    );
     sink.writeMap(
       items,
       writeKey: (lookupName) => lookupName.write(sink),
@@ -296,23 +310,34 @@ class LibraryManifestBuilder {
           continue;
         }
 
+        // Skip elements declared in this library.
+        if (elementLibraryUri == libraryUri) {
+          continue;
+        }
+
         // Skip if the element is declared in this library.
         if (element.library2 == libraryElement) {
           continue;
         }
 
-        var id = elementFactory.getElementId(element) ??
-            newManifests[elementLibraryUri]?.items[name]?.id;
+        // Maybe exported from a library outside the current cycle.
+        var id = elementFactory.getElementId(element);
+
+        // If not, then look into new manifest.
+        if (id == null) {
+          var newManifest = newManifests[elementLibraryUri];
+          // Maybe declared in this library.
+          id ??= newManifest?.items[name]?.id;
+          // Maybe exported from this library.
+          // TODO(scheglov): repeat for re-re-exports
+          id ??= newManifest?.reExportMap[name];
+        }
+
         if (id == null) {
           // TODO(scheglov): complete
           continue;
         }
-        manifest.items[name] = ExportItem(
-          id: id,
-          // TODO(scheglov): Exports should not be items at all.
-          // We should have a separate map of names to IDs.
-          metadata: ManifestMetadata(annotations: []),
-        );
+        manifest.reExportMap[name] = id;
       }
     }
   }
@@ -441,7 +466,7 @@ class LibraryManifestBuilder {
       }
 
       var newManifest = LibraryManifest(
-        uri: libraryUri,
+        reExportMap: {},
         items: newItems,
       );
       libraryElement.manifest = newManifest;
@@ -517,7 +542,7 @@ class LibraryManifestBuilder {
 
   /// Returns the manifest from [inputManifests], empty if absent.
   LibraryManifest _getInputManifest(Uri uri) {
-    return inputManifests[uri] ?? LibraryManifest(uri: uri, items: {});
+    return inputManifests[uri] ?? LibraryManifest(reExportMap: {}, items: {});
   }
 
   /// Returns either the existing item from [itemMap], or builds a new one.
