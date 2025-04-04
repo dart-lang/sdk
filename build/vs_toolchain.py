@@ -17,39 +17,57 @@ import sys
 
 from gn_helpers import ToGNString
 
-# VS 2022 17.4 with 10.0.22621.0 SDK with ARM64 libraries and UWP support.
-# See go/chromium-msvc-toolchain for instructions about how to update the
+# VS 2022 17.13.4 with 10.0.26100.3323 SDK with ARM64 libraries and UWP support.
+# See go/win-toolchain-reference for instructions about how to update the
 # toolchain.
 #
 # When updating the toolchain, consider the following areas impacted by the
 # toolchain version:
 #
-# * //base/win/windows_version.cc NTDDI preprocessor check
-#   Triggers a compiler error if the available SDK is older than the minimum.
-# * SDK_VERSION in this file
-#   Must match the packaged/required SDK version.
-# * SDK_VERSION in build/toolchain/win/setup_toolchain.py.
-# * //build/config/win/BUILD.gn NTDDI_VERSION value
-#   Affects the availability of APIs in the toolchain headers.
-# * //docs/windows_build_instructions.md mentions of VS or Windows SDK.
-#   Keeps the document consistent with the toolchain version.
-# * //tools/win/setenv.py
+# * This file -- SDK_VERSION and TOOLCHAIN_HASH
+#   Determines which version of the toolchain is used by gclient. The hash
+#   is the name of the toolchain package (minus the zip) in gcloud, and
+#   SDK_VERSION should match the SDK version in that package.
+#
+# * This file -- MSVS_VERSIONS
+#   Records the supported versions of Visual Studio, in priority order.
+#
+# * This file -- MSVC_TOOLSET_VERSION
+#   Determines the expected MSVC toolset for each version of Visual Studio.
+#   The packaged toolset version can be seen at <package>/VC/redist/MSVC;
+#   there will be a folder named `v143` or similar.
+#
+# * build/toolchain/win/setup_toolchain.py -- SDK_VERSION
+#   Secondary specification of the SDK Version, to make sure we're loading the
+#   right one. Should always match SDK_VERSION in this file.
+#
+# * base/win/windows_version.cc -- NTDDI preprocessor check
+#   Forces developers to have a specific SDK version (or newer). Triggers a
+#   compiler error if the available SDK is older than the minimum.
+#
+# * build/config/win/BUILD.gn -- NTDDI_VERSION
+#   Specifies which SDK/WDK version is installed. Some of the toolchain headers
+#   check this macro to conditionally compile code.
+#
+# * build/config/win/BUILD.gn -- WINVER and _WIN32_WINNT
+#   Specify the minimum supported Windows version. These very rarely need to
+#   be changed.
+#
+# * tools/win/setenv.py -- list of accepted `vs_version`s
 #   Add/remove VS versions when upgrading to a new VS version.
-# * MSVC_TOOLSET_VERSION in this file
-#   Maps between Visual Studio version and MSVC toolset
-# * MSVS_VERSIONS in this file
-#   Records the packaged and default version of Visual Studio
-TOOLCHAIN_HASH = '27370823e7'
-SDK_VERSION = '10.0.22621.0'
+#
+# * docs/windows_build_instructions.md
+#   Make sure any version numbers in the documentation match the code.
+#
+TOOLCHAIN_HASH = '076960eda6'
+SDK_VERSION = '10.0.26100.0'
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-json_data_file = os.path.join(script_dir, 'win_toolchain.json')
-
-# VS versions are listed in descending order of priority (highest first).
+# Visual Studio versions are listed in descending order of priority.
 # The first version is assumed by this script to be the one that is packaged,
 # which makes a difference for the arm64 runtime.
+# The second number is an alternate version number, only used in an error string
 MSVS_VERSIONS = collections.OrderedDict([
-    ('2022', '17.0'),  # Default and packaged version of Visual Studio.
+    ('2022', '17.0'),  # The VS version in our packaged toolchain.
     ('2019', '16.0'),
     ('2017', '15.0'),
 ])
@@ -61,6 +79,10 @@ MSVC_TOOLSET_VERSION = {
     '2019': 'VC142',
     '2017': 'VC141',
 }
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+json_data_file = os.path.join(script_dir, 'win_toolchain.json')
+
 
 def _HostIsWindows():
   """Returns True if running on a Windows host (including under cygwin)."""
@@ -560,11 +582,56 @@ def SetEnvironmentAndGetSDKDir():
   return NormalizePath(os.environ['WINDOWSSDKDIR'])
 
 
+def SDKIncludesIDCompositionDevice4():
+  """Returns true if the selected Windows SDK includes the declaration for the
+    IDCompositionDevice4 interface. This is essentially the equivalent checking
+    if a (non-preview) SDK version >=10.0.22621.2428.
+
+    We cannot check for this SDK version directly since it installs to a folder
+    with the minor version set to 0 (i.e. 10.0.22621.0) and the
+    IDCompositionDevice4 interface was added in a servicing release which did
+    not increment the major version.
+
+    There doesn't seem to be a straightforward and cross-platform way to get the
+    minor version of an installed SDK directory. To work around this, we look
+    for the GUID declaring the interface which implies the SDK version and
+    ensures the interface itself is present."""
+  win_sdk_dir = SetEnvironmentAndGetSDKDir()
+  if not win_sdk_dir:
+    return False
+
+  # Skip this check if we know the major version definitely includes
+  # IDCompositionDevice4.
+  if int(SDK_VERSION.split('.')[2]) > 22621:
+    return True
+
+  dcomp_header_path = os.path.join(win_sdk_dir, 'Include', SDK_VERSION, 'um',
+                                   'dcomp.h')
+  DECLARE_DEVICE4_LINE = ('DECLARE_INTERFACE_IID_('
+                          'IDCompositionDevice4, IDCompositionDevice3, '
+                          '"85FC5CCA-2DA6-494C-86B6-4A775C049B8A")')
+  with open(dcomp_header_path) as f:
+    for line in f.readlines():
+      if line.rstrip() == DECLARE_DEVICE4_LINE:
+        return True
+
+  return False
+
+
 def GetToolchainDir():
   """Gets location information about the current toolchain (must have been
   previously updated by 'update'). This is used for the GN build."""
   runtime_dll_dirs = SetEnvironmentAndGetRuntimeDllDirs()
   win_sdk_dir = SetEnvironmentAndGetSDKDir()
+  version_as_year = GetVisualStudioVersion()
+
+  if not SDKIncludesIDCompositionDevice4():
+    print(
+        'Windows SDK >= 10.0.22621.2428 required. You can get it by updating '
+        f'Visual Studio {version_as_year} using the Visual Studio Installer.',
+        file=sys.stderr,
+    )
+    return 1
 
   print('''vs_path = %s
 sdk_version = %s
@@ -574,7 +641,7 @@ wdk_dir = %s
 runtime_dirs = %s
 ''' % (ToGNString(NormalizePath(
       os.environ['GYP_MSVS_OVERRIDE_PATH'])), ToGNString(SDK_VERSION),
-       ToGNString(win_sdk_dir), ToGNString(GetVisualStudioVersion()),
+       ToGNString(win_sdk_dir), ToGNString(version_as_year),
        ToGNString(NormalizePath(os.environ.get('WDK_DIR', ''))),
        ToGNString(os.path.pathsep.join(runtime_dll_dirs or ['None']))))
 

@@ -26,9 +26,9 @@ import 'package:analysis_server/src/protocol_server.dart'
     as legacy
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';

@@ -10,6 +10,16 @@ class Color extends core::Object {
   static method red() → self::Color
     return new self::Color::•(1);
 }
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  static method foo<X extends core::Object? = dynamic>(self::C::foo::X% x) → self::C<self::C::foo::X%>
+    return new self::C::•<self::C::foo::X%>();
+  method cast<U extends core::Object? = dynamic>() → self::C<self::C::cast::U%>
+    return new self::C::•<self::C::cast::U%>();
+}
 static method main() → void {
-  self::Color c = self::Color::red();
+  self::Color color = self::Color::red();
+  self::C<core::bool> c = self::C::foo<core::String>("String").{self::C::cast}<core::bool>(){() → self::C<core::bool>};
 }

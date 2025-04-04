@@ -753,6 +753,7 @@ class LibraryManifestPrinter {
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);
       });
@@ -779,10 +780,13 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         switch (item) {
           case InstanceItemGetterItem():
+            _writeMetadata(item);
             _writeNamedType('returnType', item.returnType);
           case InstanceItemMethodItem():
+            _writeMetadata(item);
             _writeNamedType('functionType', item.functionType);
           case InterfaceItemConstructorItem():
+            _writeMetadata(item);
             _writeNamedType('functionType', item.functionType);
         }
       });
@@ -797,6 +801,18 @@ class LibraryManifestPrinter {
     ];
     var idStr = idProvider.manifestId(element.id);
     sink.writeln('(${parts.join(', ')}) $idStr');
+  }
+
+  void _writeMetadata(AnnotatedItem item) {
+    if (configuration.withElementManifests) {
+      sink.writeElements(
+        'metadata',
+        item.metadata.annotations.indexed.toList(),
+        (indexed) {
+          _writeNode('[${indexed.$1}]', indexed.$2.ast);
+        },
+      );
+    }
   }
 
   void _writeNamedId(LookupName name, ManifestItemId id) {
@@ -824,7 +840,7 @@ class LibraryManifestPrinter {
           sink.writelnWithIndent('elements');
           sink.withIndent(() {
             for (var (index, element) in node.elements.indexed) {
-              sink.writeWithIndent('[${1 + index}] ');
+              sink.writeWithIndent('[${2 + index}] ');
               _writelnElement(element);
             }
           });
@@ -840,6 +856,7 @@ class LibraryManifestPrinter {
   void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });
     }
@@ -848,6 +865,7 @@ class LibraryManifestPrinter {
   void _writeTopLevelGetterItem(TopLevelGetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        _writeMetadata(item);
         _writeNamedType('returnType', item.returnType);
         _writeNode('constInitializer', item.constInitializer);
       });
@@ -857,6 +875,7 @@ class LibraryManifestPrinter {
   void _writeTopLevelSetterItem(TopLevelSetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        _writeMetadata(item);
         _writeNamedType('valueType', item.valueType);
       });
     }

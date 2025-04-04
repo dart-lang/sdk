@@ -8236,6 +8236,44 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprected('0')
+  A.foo();
+  @Deprected('0')
+  A.bar();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprected('1')
+  A.foo();
+  @Deprected('0')
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M3
+''',
+    );
+  }
+
   test_manifest_class_constructor_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8469,6 +8507,44 @@ class B extends A<int> {}
         foo: #M1
       B: #M2
         bar: #M5
+        foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_getter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('1')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
         foo: #M3
 ''',
     );
@@ -8779,6 +8855,38 @@ class C {}
       A: #M3
       B: #M1
       C: #M2
+''',
+    );
+  }
+
+  test_manifest_class_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+class A {}
+@Deprecated('0')
+class B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+class A {}
+@Deprecated('1')
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M2
 ''',
     );
   }
@@ -9152,6 +9260,44 @@ class A {
     manifest
       A: #M0
         foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('1')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M3
 ''',
     );
   }
@@ -9538,6 +9684,46 @@ class A {}
     );
   }
 
+  test_manifest_constInitializer_adjacentStrings() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = '$a' 'x';
+const d = 'x' '$a';
+const e = '$b' 'x';
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+      e: #M4
+''',
+      updatedCode: r'''
+const a = 1;
+const b = 0;
+const c = '$a' 'x';
+const d = 'x' '$a';
+const e = '$b' 'x';
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M5
+      b: #M1
+      c: #M6
+      d: #M7
+      e: #M4
+''',
+    );
+  }
+
   test_manifest_constInitializer_binaryExpression() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -9725,8 +9911,8 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [1] (dart:core, num, +) #M1
-          elementIndexList: [1, 0]
+            [2] (dart:core, num, +) #M1
+          elementIndexList: [0, 2]
 ''',
       updatedCode: r'''
 const a = 1;
@@ -9747,9 +9933,9 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [1] (dart:core, num, +) #M1
             [2] (package:test/test.dart, a) <null>
-          elementIndexList: [1, 2]
+            [3] (dart:core, num, +) #M1
+          elementIndexList: [2, 3]
 ''',
     );
   }
@@ -9777,9 +9963,9 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [1] (dart:core, num, +) #M2
             [2] (package:test/test.dart, a) <null>
-          elementIndexList: [1, 2]
+            [3] (dart:core, num, +) #M2
+          elementIndexList: [2, 3]
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -9794,8 +9980,184 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [1] (dart:core, num, +) #M2
-          elementIndexList: [1, 0]
+            [2] (dart:core, num, +) #M2
+          elementIndexList: [0, 2]
+''',
+    );
+  }
+
+  test_manifest_constInitializer_boolLiteral() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = true;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+const a = true;
+const b = false;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_constructorName_named() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.named();
+}
+const a = A.named();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        named: #M1
+      a: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.named(int _);
+}
+const a = A.named();
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        named: #M3
+      a: #M4
+''',
+    );
+  }
+
+  test_manifest_constInitializer_constructorName_unnamed() async {
+    configuration.ignoredManifestInstanceMemberNames.remove('new');
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A();
+}
+const a = A();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        new: #M1
+      a: #M2
+''',
+      updatedCode: r'''
+class A {
+  A(int _);
+}
+const a = A();
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        new: #M3
+      a: #M4
+''',
+    );
+  }
+
+  test_manifest_constInitializer_constructorName_unnamed_notAffected() async {
+    configuration.ignoredManifestInstanceMemberNames.remove('new');
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A();
+}
+const a = A();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        new: #M1
+      a: #M2
+''',
+      updatedCode: r'''
+class A {
+  A();
+  void foo() {}
+}
+const a = A();
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M3
+        new: #M1
+      a: #M2
+''',
+    );
+  }
+
+  test_manifest_constInitializer_instanceCreation_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A(_);
+}
+const a = 0;
+const b = 0;
+const c = A(a);
+const d = A(b);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      a: #M1
+      b: #M2
+      c: #M3
+      d: #M4
+''',
+      updatedCode: r'''
+class A {
+  A(_);
+}
+const a = 1;
+const b = 0;
+const c = A(a);
+const d = A(b);
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      a: #M5
+      b: #M2
+      c: #M6
+      d: #M4
 ''',
     );
   }
@@ -9846,6 +10208,399 @@ const a = 1;
   package:test/test.dart
     manifest
       a: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_listLiteral() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = [a];
+const d = [b];
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = 1;
+const b = 0;
+const c = [a];
+const d = [b];
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M4
+      b: #M1
+      c: #M5
+      d: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_mapLiteral_key() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = {a: 0};
+const d = {b: 0};
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = 1;
+const b = 0;
+const c = {a: 0};
+const d = {b: 0};
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M4
+      b: #M1
+      c: #M5
+      d: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_mapLiteral_value() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = {0: a};
+const d = {0: b};
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = 1;
+const b = 0;
+const c = {0: a};
+const d = {0: b};
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M4
+      b: #M1
+      c: #M5
+      d: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_namedType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+const a = A;
+const b = B;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      a: #M2
+      b: #M3
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+const a = A;
+const b = B;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M4
+      a: #M2
+      b: #M5
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix() async {
+    // TODO(scheglov): also test ClassName.field
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import '' as self;
+const a = 0;
+const b = 0;
+const c = self.a;
+const d = self.b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+import '' as self;
+const a = 0;
+const b = 1;
+const c = self.a;
+const d = self.b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M4
+      c: #M2
+      d: #M5
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const x = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+const x = 0;
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart' as p;
+const z = p.x;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      x: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M1
+''',
+      updatedCode: r'''
+import 'b.dart' as p;
+const z = p.x;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/b.dart
+    manifest
+      x: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix3() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart' as x;
+const z = x.x + y.y;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M0
+''',
+      updatedCode: r'''
+import 'a.dart' as y;
+const z = x.x + y.y;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixExpression() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator-() {}
+}
+const a = A();
+const b = -a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        unary-: #M1
+      a: #M2
+      b: #M3
+''',
+      updatedCode: r'''
+class A {
+  double operator-() {}
+}
+const a = A();
+const b = -a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        unary-: #M4
+      a: #M2
+      b: #M5
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixExpression_notAffected() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator-() {}
+}
+const a = A();
+const b = -a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        unary-: #M1
+      a: #M2
+      b: #M3
+''',
+      updatedCode: r'''
+class A {
+  int operator-() {}
+  void foo() {}
+}
+const a = A();
+const b = -a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M4
+        unary-: #M1
+      a: #M2
+      b: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_propertyAccess_stringLength() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = '0'.length;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+const a = '1'.length;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_setLiteral() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = {a};
+const d = {b};
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = 1;
+const b = 0;
+const c = {a};
+const d = {b};
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M4
+      b: #M1
+      c: #M5
+      d: #M3
 ''',
     );
   }
@@ -9929,6 +10684,36 @@ int get a => 0;
   }
 
   test_manifest_metadata_simpleIdentifier_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+@a
+int get foo => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      foo: #M1
+''',
+      updatedCode: r'''
+const a = 1;
+@a
+int get foo => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M2
+      foo: #M3
+''',
+    );
+  }
+
+  test_manifest_metadata_simpleIdentifier_replace() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 @deprecated
@@ -10340,6 +11125,38 @@ void bar() {}
     );
   }
 
+  test_manifest_topLevelFunction_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprected('0')
+void a() {}
+@Deprected('0')
+void b() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+@Deprected('0')
+void a() {}
+@Deprected('1')
+void b() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M2
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -10536,6 +11353,38 @@ int get a => 1;
     );
   }
 
+  test_manifest_topLevelGetter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+int get a => 0;
+@Deprecated('0')
+int get b => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+int get a => 0;
+@Deprecated('1')
+int get b => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M2
+''',
+    );
+  }
+
   test_manifest_topLevelGetter_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -10630,6 +11479,38 @@ set a(int _) { 1; }
       expectedUpdatedEvents: r'''
 [operation] readLibraryCycleBundle
   package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_topLevelSetter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+set a(int _) {}
+@Deprecated('0')
+set b(int _) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+      b=: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+set a(int _) {}
+@Deprecated('1')
+set b(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a=: #M0
+      b=: #M2
 ''',
     );
   }
@@ -10755,6 +11636,42 @@ final a = 1;
   package:test/test.dart
     manifest
       a: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+var a = 0;
+@Deprecated('0')
+var b = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      a=: #M1
+      b: #M2
+      b=: #M3
+''',
+      updatedCode: r'''
+@Deprecated('0')
+var a = 0;
+@Deprecated('1')
+var b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      a=: #M1
+      b: #M4
+      b=: #M5
 ''',
     );
   }

@@ -309,6 +309,9 @@ class LibraryManifestBuilder {
         }
         manifest.items[name] = ExportItem(
           id: id,
+          // TODO(scheglov): Exports should not be items at all.
+          // We should have a separate map of names to IDs.
+          metadata: ManifestMetadata(annotations: []),
         );
       }
     }

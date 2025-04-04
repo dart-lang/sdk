@@ -3028,7 +3028,7 @@ abstract class ElementImpl
     _metadata = metadata;
   }
 
-  Metadata get metadata2 => MetadataImpl(_getMetadataFlags(), metadata);
+  MetadataImpl get metadata2 => MetadataImpl(_getMetadataFlags(), metadata);
 
   @override
   String? get name => _name;
@@ -3611,6 +3611,9 @@ abstract class ExecutableElement2OrMember implements ExecutableElement2 {
 
   @override
   List<FormalParameterElementMixin> get formalParameters;
+
+  @override
+  MetadataImpl get metadata2;
 
   @override
   TypeImpl get returnType;
@@ -5787,7 +5790,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   LibraryElementImpl get library2 => firstFragment.library;
 
   @override
-  Metadata get metadata2 => firstFragment.metadata2;
+  MetadataImpl get metadata2 => firstFragment.metadata2;
 
   @override
   List<MethodElementImpl2> get methods2 {
@@ -7799,7 +7802,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   bool get isStatic => _wrappedElement.isStatic;
 
   @override
-  Metadata get metadata2 => _wrappedElement.metadata2;
+  MetadataImpl get metadata2 => _wrappedElement.metadata2;
 
   @override
   TypeImpl get returnType => _wrappedElement.returnType;
@@ -10339,6 +10342,9 @@ abstract class PropertyInducingElement2OrMember
     implements VariableElement2OrMember, PropertyInducingElement2 {
   @override
   GetterElement2OrMember? get getter2;
+
+  @override
+  MetadataImpl get metadata2;
 
   @override
   SetterElement2OrMember? get setter2;

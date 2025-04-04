@@ -5630,7 +5630,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitSuperPropertyGet(Member target) {
     if (_reifyTearoff(target)) {
       if (_superAllowed) {
-        var jsTarget = _emitSuperTarget(target);
         var jsName = _declareMemberName(target);
         var enclosingClass = target.enclosingClass!;
         js_ast.Expression? supertypeReference =
@@ -5647,9 +5646,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
         }
         return _runtimeCall(
-            'bind(this, #, #, #)', [supertypeReference, jsName, jsTarget]);
+            'superTearoff(this, #, #)', [supertypeReference, jsName]);
       } else {
-        return _emitSuperTearoff(target);
+        return _emitSuperTearoffFromDisallowedContext(target);
       }
     }
     return _emitSuperTarget(target);
@@ -6345,7 +6344,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // NOTE: This is intended to help in the cases of calling a `super` getter,
     // setter, or method. For the case of tearing off a `super` method in
-    // contexts where `super` isn't allowed, see [_emitSuperTearoff].
+    // contexts where `super` isn't allowed, see
+    // [_emitSuperTearoffFromDisallowedContext].
     var name = member.name.text;
     var getter = (member is Field && !setter) ||
         (member is Procedure && member.isGetter);
@@ -6413,17 +6413,17 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This method assumes `super` is not allowed in the current context.
   // TODO(nshahan) Replace with a kernel transform and synthetic method filters
   // for devtools.
-  js_ast.Expression _emitSuperTearoff(Member member) {
+  js_ast.Expression _emitSuperTearoffFromDisallowedContext(Member member) {
     var jsName = _declareMemberName(member);
     var name = '_#super#tearOff#${member.name.text}';
     var jsMethod = _superHelpers.putIfAbsent(name, () {
-      var superclass = member.enclosingClass?.superclass;
-      var supertypeReference = superclass == null
-          ? js_ast.LiteralNull()
-          : _mixinSuperclassCache[member.enclosingClass!] ??
-              _emitTopLevelNameNoExternalInterop(superclass);
-      var jsReturnValue = _runtimeCall(
-          'bind(this, #, #, super[#])', [supertypeReference, jsName, jsName]);
+      var superclass = member.enclosingClass!;
+      var supertypeReference = _mixinSuperclassCache[superclass] ??
+          _emitTopLevelNameNoExternalInterop(superclass);
+      var jsReturnValue = _runtimeCall('superTearoff(this, #, #)', [
+        supertypeReference,
+        jsName,
+      ]);
       var fn = js.fun('function() { return #; }', [jsReturnValue]);
       name = js_ast.friendlyNameForDartOperator[name] ?? name;
       return js_ast.Method(_emitScopedId(name), fn);

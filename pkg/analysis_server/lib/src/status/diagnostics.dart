@@ -15,8 +15,8 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/server/http_server.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
