@@ -1174,13 +1174,13 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
       }
     }
 
-    if (show_list.Length() > 0) {
+    if (!show_list.IsNull() && show_list.Length() > 0) {
       show_names = Array::MakeFixedLength(show_list);
     } else {
       show_names = Array::null();
     }
 
-    if (hide_list.Length() > 0) {
+    if (!hide_list.IsNull() && hide_list.Length() > 0) {
       hide_names = Array::MakeFixedLength(hide_list);
     } else {
       hide_names = Array::null();
