@@ -65,6 +65,7 @@ class CoreTypesUtil {
   final Procedure jsifyJSArrayBufferImpl; // JS ByteBuffer
   final Procedure jsArrayBufferFromDartByteBuffer; // Wasm ByteBuffer
   final Procedure jsifyFunction;
+  final Procedure internalizeNullable;
 
   // Classes used in type tests for the converters.
   final Class jsInt8ArrayImplClass;
@@ -191,6 +192,8 @@ class CoreTypesUtil {
             'dart:_js_helper', 'jsArrayBufferFromDartByteBuffer'),
         jsifyFunction = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'jsifyFunction'),
+        internalizeNullable = coreTypes.index
+            .getTopLevelProcedure('dart:_wasm', '_internalizeNullable'),
         jsInt8ArrayImplClass =
             coreTypes.index.getClass('dart:_js_types', 'JSInt8ArrayImpl'),
         jsUint8ArrayImplClass =
@@ -286,36 +289,38 @@ class CoreTypesUtil {
   Expression castInvocationForReturn(
       Expression invocation, DartType returnType) {
     if (returnType is VoidType) {
-      // `undefined` may be returned for `void` external members. It, however,
-      // is an extern ref, and therefore needs to be made a Dart type before
-      // we can finish the invocation.
-      return invokeOneArg(dartifyRawTarget, invocation);
-    } else {
-      Expression expression;
-      if (isJSValueType(returnType)) {
-        // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
-        // code after migrating existing users of js interop on Dart2Wasm.
-        // expression = _createJSValue(invocation);
-        // Casts are expensive, so we stick to a null-assertion if needed. If
-        // the nullability can't be determined, cast.
-        expression = invokeOneArg(jsValueBoxTarget, invocation);
-        final nullability = returnType.extensionTypeErasure.nullability;
-        if (nullability == Nullability.nonNullable) {
-          expression = NullCheck(expression);
-        } else if (nullability == Nullability.undetermined) {
-          expression = AsExpression(expression, returnType);
-        }
-      } else {
-        // Because we simply don't have enough information, we leave all JS
-        // numbers as doubles. However, in cases where we know the user expects
-        // an `int` we check that the double is an integer, and then insert a
-        // cast. We also let static interop types flow through without
-        // conversion, both as arguments, and as the return type.
-        expression = convertAndCast(
-            returnType, invokeOneArg(dartifyRawTarget, invocation));
-      }
-      return expression;
+      // Technically a `void` return value can still be used, by casting the
+      // return type to `dynamic` or `Object?`. However this case should be
+      // extremely rare, and `dartifyRaw` overhead for return values that will
+      // never be used in practice is too much, so we avoid `dartifyRaw` on
+      // `void` returns.
+      return StaticInvocation(internalizeNullable, Arguments([invocation]));
     }
+
+    Expression expression;
+    if (isJSValueType(returnType)) {
+      // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
+      // code after migrating existing users of js interop on Dart2Wasm.
+      // expression = _createJSValue(invocation);
+      // Casts are expensive, so we stick to a null-assertion if needed. If
+      // the nullability can't be determined, cast.
+      expression = invokeOneArg(jsValueBoxTarget, invocation);
+      final nullability = returnType.extensionTypeErasure.nullability;
+      if (nullability == Nullability.nonNullable) {
+        expression = NullCheck(expression);
+      } else if (nullability == Nullability.undetermined) {
+        expression = AsExpression(expression, returnType);
+      }
+    } else {
+      // Because we simply don't have enough information, we leave all JS
+      // numbers as doubles. However, in cases where we know the user expects
+      // an `int` we check that the double is an integer, and then insert a
+      // cast. We also let static interop types flow through without
+      // conversion, both as arguments, and as the return type.
+      expression = convertAndCast(
+          returnType, invokeOneArg(dartifyRawTarget, invocation));
+    }
+    return expression;
   }
 
   // Handles any necessary type conversions. Today this is just for handling the
