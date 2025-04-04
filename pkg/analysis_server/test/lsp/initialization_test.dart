@@ -9,7 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart' hide MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:language_server_protocol/json_parsing.dart';

@@ -13,66 +13,10 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:language_server_protocol/json_parsing.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
-
-/// Represents a message from DTD (Dart Tooling Daemon).
-final class DtdMessage extends MessageObject {
-  final lsp.IncomingMessage message;
-  final Completer<Map<String, Object?>> responseCompleter;
-  final OperationPerformanceImpl performance;
-
-  DtdMessage({
-    required this.message,
-    required this.responseCompleter,
-    required this.performance,
-  });
-
-  @override
-  String toString() => message.method.toString();
-}
-
-/// Represents a message in the Legacy protocol format.
-final class LegacyMessage extends MessageObject {
-  final legacy.Request request;
-  CancelableToken? cancellationToken;
-
-  LegacyMessage({required this.request, this.cancellationToken});
-
-  @override
-  String toString() => request.method;
-}
-
-/// Represents a message in the LSP protocol format.
-final class LspMessage extends MessageObject {
-  final lsp.Message message;
-  CancelableToken? cancellationToken;
-
-  LspMessage({required this.message, this.cancellationToken});
-
-  bool get isRequest => message is lsp.RequestMessage;
-
-  @override
-  String toString() {
-    var msg = message;
-    return switch (msg) {
-      RequestMessage() => msg.method.toString(),
-      NotificationMessage() => msg.method.toString(),
-      ResponseMessage() => 'ResponseMessage',
-      Message() => 'Message',
-    };
-  }
-}
-
-/// A message from a client.
-///
-/// The message can be either a request, a notification, or a response.
-///
-/// The client can be an IDE, a command-line tool, or DTD.
-sealed class MessageObject {}
 
 /// The [MessageScheduler] receives messages from all clients of the
 /// [AnalysisServer]. Clients can include IDE's (LSP and Legacy protocol), DTD,
@@ -86,7 +30,8 @@ final class MessageScheduler {
   late final AnalysisServer server;
 
   /// The messages that have been received and are waiting to be handled.
-  final ListQueue<MessageObject> _pendingMessages = ListQueue<MessageObject>();
+  final ListQueue<ScheduledMessage> _pendingMessages =
+      ListQueue<ScheduledMessage>();
 
   /// Whether the [MessageScheduler] is idle or is processing messages.
   bool isActive = false;
@@ -99,7 +44,7 @@ final class MessageScheduler {
 
   /// The message that is currently being processed, and null when there is
   /// no message being processed.
-  MessageObject? _currentMessage;
+  ScheduledMessage? _currentMessage;
 
   MessageScheduler({this.testView}) {
     testView?.messageScheduler = this;
@@ -127,7 +72,7 @@ final class MessageScheduler {
   /// LSP over Legacy
   /// - The incoming [legacy.ANALYSIS_REQUEST_UPDATE_CONTENT] message cancels
   /// any rename files request that is in progress.
-  void add(MessageObject message) {
+  void add(ScheduledMessage message) {
     testView?.logAddMessage(message);
     if (message is LegacyMessage) {
       var request = message.request;
@@ -492,13 +437,13 @@ class MessageSchedulerTestView {
 
   List<String> messageLog = <String>[];
 
-  void logAddMessage(MessageObject message) {
+  void logAddMessage(ScheduledMessage message) {
     messageLog.add(
       'Incoming ${message is LspMessage ? message.message.runtimeType : message.runtimeType}: ${message.toString()}',
     );
   }
 
-  void logHandleMessage(MessageObject message) {
+  void logHandleMessage(ScheduledMessage message) {
     messageLog.add('  Start ${message.runtimeType}: ${message.toString()}');
   }
 }
