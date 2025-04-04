@@ -210,8 +210,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting an "as" expression.
   ///
   /// [subExpression] should be the expression to which the "as" check was
-  /// applied.  [type] should be the type being checked.
-  void asExpression_end(Expression subExpression, Type type);
+  /// applied, and [subExpressionType] should be its static type. [castType]
+  /// should be the type being cast to.
+  void asExpression_end(Expression subExpression,
+      {required Type subExpressionType, required Type castType});
 
   /// Call this method after visiting the condition part of an assert statement
   /// (or assert initializer).
@@ -659,11 +661,13 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting the LHS of an "is" expression.
   ///
   /// [isExpression] should be the complete expression.  [subExpression] should
-  /// be the expression to which the "is" check was applied.  [isNot] should be
-  /// a boolean indicating whether this is an "is" or an "is!" expression.
-  /// [type] should be the type being checked.
+  /// be the expression to which the "is" check was applied, and
+  /// [subExpressionType] should be its static type. [isNot] should be a
+  /// boolean indicating whether this is an "is" or an "is!" expression.
+  /// [checkedType] should be the type being checked.
   void isExpression_end(
-      Expression isExpression, Expression subExpression, bool isNot, Type type);
+      Expression isExpression, Expression subExpression, bool isNot,
+      {required Type subExpressionType, required Type checkedType});
 
   /// Return whether the [variable] is definitely unassigned in the current
   /// state.
@@ -1214,9 +1218,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   FlowAnalysisOperations<Variable, Type> get operations => _wrapped.operations;
 
   @override
-  void asExpression_end(Expression subExpression, Type type) {
-    _wrap('asExpression_end($subExpression, $type)',
-        () => _wrapped.asExpression_end(subExpression, type));
+  void asExpression_end(Expression subExpression,
+      {required Type subExpressionType, required Type castType}) {
+    _wrap(
+        'asExpression_end($subExpression, subExpressionType: '
+        '$subExpressionType, castType: $castType)',
+        () => _wrapped.asExpression_end(subExpression,
+            subExpressionType: subExpressionType, castType: castType));
   }
 
   @override
@@ -1573,12 +1581,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void isExpression_end(Expression isExpression, Expression subExpression,
-      bool isNot, Type type) {
+  void isExpression_end(
+      Expression isExpression, Expression subExpression, bool isNot,
+      {required Type subExpressionType, required Type checkedType}) {
     _wrap(
-        'isExpression_end($isExpression, $subExpression, $isNot, $type)',
-        () => _wrapped.isExpression_end(
-            isExpression, subExpression, isNot, type));
+        'isExpression_end($isExpression, $subExpression, $isNot, '
+        'subExpressionType: $subExpressionType, checkedType: $checkedType)',
+        () => _wrapped.isExpression_end(isExpression, subExpression, isNot,
+            subExpressionType: subExpressionType, checkedType: checkedType));
   }
 
   @override
@@ -4290,7 +4300,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     implements
         FlowAnalysis<Node, Statement, Expression, Variable, Type>,
         _PropertyTargetHelper<Expression, Type> {
-  /// Options affecting the behavior of flow analysis.
+  /// Language features enables affecting the behavior of flow analysis.
   final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The [FlowAnalysisOperations], used to access types, check subtyping, and
@@ -4413,10 +4423,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   FlowAnalysisTypeOperations<Type> get typeOperations => operations;
 
   @override
-  void asExpression_end(Expression subExpression, Type type) {
+  void asExpression_end(Expression subExpression,
+      {required Type subExpressionType, required Type castType}) {
+    // Depending on types, flow analysis may be able to prove that the `as`
+    // expression is guaranteed to fail.
+    if (_isTypeCheckGuaranteedToFailWithSoundNullSafety(
+        staticType: subExpressionType, checkedType: castType)) {
+      _current = _current.setUnreachable();
+    }
+
     _Reference<Type>? reference = _getExpressionReference(subExpression);
     if (reference == null) return;
-    _current = _current.tryPromoteForTypeCast(this, reference, type);
+    _current = _current.tryPromoteForTypeCast(this, reference, castType);
   }
 
   @override
@@ -4950,16 +4968,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void isExpression_end(Expression isExpression, Expression subExpression,
-      bool isNot, Type type) {
-    if (operations.isBottomType(type)) {
+  void isExpression_end(
+      Expression isExpression, Expression subExpression, bool isNot,
+      {required Type subExpressionType, required Type checkedType}) {
+    if (operations.isBottomType(checkedType) ||
+        _isTypeCheckGuaranteedToFailWithSoundNullSafety(
+            staticType: subExpressionType, checkedType: checkedType)) {
       booleanLiteral(isExpression, isNot);
     } else {
       _Reference<Type>? subExpressionReference =
           _getExpressionReference(subExpression);
       if (subExpressionReference != null) {
-        ExpressionInfo<Type> expressionInfo =
-            _current.tryPromoteForTypeCheck(this, subExpressionReference, type);
+        ExpressionInfo<Type> expressionInfo = _current.tryPromoteForTypeCheck(
+            this, subExpressionReference, checkedType);
         _storeExpressionInfo(
             isExpression, isNot ? expressionInfo._invert() : expressionInfo);
       }
@@ -6060,6 +6081,32 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .tryPromoteForTypeCheck(this,
               _variableReference(promotionKey, unpromotedType), matchedType)
           .ifTrue;
+    }
+  }
+
+  /// Determines whether an expression having the given [staticType] is
+  /// guaranteed to fail an `is` or `as` check using [checkedType] due to sound
+  /// null safety.
+  ///
+  /// If [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `false`, this method
+  /// will return `false` regardless of its input. This reflects the fact that
+  /// in language versions prior to the introduction of sound flow analysis,
+  /// flow analysis assumed that the program might be executing in unsound null
+  /// safety mode.
+  bool _isTypeCheckGuaranteedToFailWithSoundNullSafety(
+      {required Type staticType, required Type checkedType}) {
+    if (!typeAnalyzerOptions.soundFlowAnalysisEnabled) return false;
+    switch (typeOperations.classifyType(staticType)) {
+      case TypeClassification.nonNullable
+          when typeOperations.classifyType(checkedType) ==
+              TypeClassification.nullOrEquivalent:
+      case TypeClassification.nullOrEquivalent
+          when typeOperations.classifyType(checkedType) ==
+              TypeClassification.nonNullable:
+        // Guaranteed to fail due to nullability mismatch.
+        return true;
+      default:
+        return false;
     }
   }
 

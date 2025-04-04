@@ -564,7 +564,7 @@ main() {
       h.thisType = 'C';
       h.addSuperInterfaces('C', (_) => [Type('Object')]);
       h.run([
-        if_(this_.is_('Null'), [
+        if_(this_.is_('Null', isInverted: true), [
           if_(this_.eq(nullLiteral), [
             checkReachable(true),
           ], [
@@ -1691,27 +1691,6 @@ main() {
     test('isExpression_end does not promote to an unrelated type, inverted',
         () {
       _checkIs('int', 'String', null, null, inverted: true);
-    });
-
-    test('isExpression_end does nothing if applied to a non-variable', () {
-      h.run([
-        if_(expr('Null').is_('int'), [
-          checkReachable(true),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
-    });
-
-    test('isExpression_end does nothing if applied to a non-variable, inverted',
-        () {
-      h.run([
-        if_(expr('Null').isNot('int'), [
-          checkReachable(true),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
     });
 
     test('isExpression_end() does not promote write-captured vars', () {
@@ -10663,6 +10642,134 @@ main() {
                 // can't ever match.
                 checkReachable(false),
               ]),
+        ]);
+      });
+    });
+  });
+
+  group('Sound null safety:', () {
+    group('<nonNull> as Null:', () {
+      test('When enabled, is guaranteed to throw', () {
+        h.run([
+          expr('int').as_('Null'),
+          checkReachable(false),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          expr('int').as_('Null'),
+          checkReachable(true),
+        ]);
+      });
+    });
+
+    group('<Null> as <nonNullable>:', () {
+      test('When enabled, is guaranteed to throw', () {
+        h.run([
+          expr('Null').as_('int'),
+          checkReachable(false),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          expr('Null').as_('int'),
+          checkReachable(true),
+        ]);
+      });
+    });
+
+    group('<nonNull> is Null:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('int').is_('Null'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('int').is_('Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<nonNull> is! Null:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('int').is_('Null', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('int').is_('Null', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> is <nonNullable>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('Null').is_('int'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').is_('int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> is! <nonNullable>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('Null').is_('int', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').is_('int', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
         ]);
       });
     });

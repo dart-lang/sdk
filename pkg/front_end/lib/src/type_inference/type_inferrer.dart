@@ -152,7 +152,9 @@ class TypeInferrerImpl implements TypeInferrer {
             fieldPromotionEnabled:
                 libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled,
             inferenceUpdate4Enabled:
-                libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled);
+                libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled,
+            soundFlowAnalysisEnabled:
+                libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
       [ConstructorDeclarationBuilder? constructorDeclaration]) {

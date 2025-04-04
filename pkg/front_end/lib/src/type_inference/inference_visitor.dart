@@ -813,7 +813,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult operandResult =
         inferExpression(node.operand, const UnknownType(), isVoidAllowed: true);
     node.operand = operandResult.expression..parent = node;
-    flowAnalysis.asExpression_end(node.operand, new SharedTypeView(node.type));
+    flowAnalysis.asExpression_end(node.operand,
+        subExpressionType: new SharedTypeView(operandResult.inferredType),
+        castType: new SharedTypeView(node.type));
     return new ExpressionInferenceResult(node.type, node);
   }
 
@@ -2285,8 +2287,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.operand, const UnknownType(),
         isVoidAllowed: false);
     node.operand = operandResult.expression..parent = node;
-    flowAnalysis.isExpression_end(
-        node, node.operand, /*isNot:*/ false, new SharedTypeView(node.type));
+    flowAnalysis.isExpression_end(node, node.operand, /*isNot:*/ false,
+        subExpressionType: new SharedTypeView(operandResult.inferredType),
+        checkedType: new SharedTypeView(node.type));
     return new ExpressionInferenceResult(
         coreTypes.boolRawType(Nullability.nonNullable), node);
   }

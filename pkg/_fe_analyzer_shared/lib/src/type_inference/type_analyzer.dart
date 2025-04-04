@@ -2744,11 +2744,14 @@ class TypeAnalyzerOptions {
 
   final bool inferenceUpdate4Enabled;
 
+  final bool soundFlowAnalysisEnabled;
+
   TypeAnalyzerOptions({
     required this.patternsEnabled,
     required this.inferenceUpdate3Enabled,
     required this.respectImplicitlyTypedVarInitializers,
     required this.fieldPromotionEnabled,
     required this.inferenceUpdate4Enabled,
+    required this.soundFlowAnalysisEnabled,
   });
 }
