@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
+import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
@@ -68,59 +69,78 @@ final class ManifestElement {
   /// The URI of the library that declares the element.
   final Uri libraryUri;
 
-  /// The name of the element.
-  final String name;
+  /// The top-level element name.
+  final String topLevelName;
+
+  /// The member name, e.g. a method name.
+  final String? memberName;
 
   /// The id of the element, if not from the same bundle.
   final ManifestItemId? id;
 
   ManifestElement({
     required this.libraryUri,
-    required this.name,
+    required this.topLevelName,
+    required this.memberName,
     required this.id,
   });
 
   factory ManifestElement.read(SummaryDataReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
-      name: reader.readStringUtf8(),
+      topLevelName: reader.readStringUtf8(),
+      memberName: reader.readOptionalStringUtf8(),
       id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
     );
   }
 
   @override
-  int get hashCode => Object.hash(libraryUri, name);
+  int get hashCode => Object.hash(libraryUri, topLevelName, memberName);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ManifestElement &&
         other.libraryUri == libraryUri &&
-        other.name == name;
+        other.topLevelName == topLevelName &&
+        other.memberName == memberName;
   }
 
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
   bool match(MatchContext context, Element2 element) {
-    var enclosingElement = element.enclosingElement2;
-    if (enclosingElement case LibraryElement2 library) {
-      if (library.uri == libraryUri && element.name3 == name) {
-        context.elements.add(element);
-        if (id case var id?) {
-          context.externalIds[element] = id;
-        }
-        return true;
-      }
+    var enclosingElement = element.enclosingElement2!;
+    Element2 givenTopLevelElement;
+    Element2? givenMemberElement;
+    if (enclosingElement is LibraryElement2) {
+      givenTopLevelElement = element;
+    } else {
+      givenTopLevelElement = enclosingElement;
+      givenMemberElement = element;
+    }
+    var givenLibraryUri = enclosingElement.library2!.uri;
+
+    if (givenLibraryUri != libraryUri) {
+      return false;
+    }
+    if (givenTopLevelElement.lookupName != topLevelName) {
+      return false;
+    }
+    if (givenMemberElement?.lookupName != memberName) {
       return false;
     }
 
-    // TODO(scheglov): support also not top-level elements.
-    return false;
+    context.elements.add(element);
+    if (id case var id?) {
+      context.externalIds[element] = id;
+    }
+    return true;
   }
 
   void write(BufferedSink sink) {
     sink.writeUri(libraryUri);
-    sink.writeStringUtf8(name);
+    sink.writeStringUtf8(topLevelName);
+    sink.writeOptionalStringUtf8(memberName);
     sink.writeOptionalObject(id, (it) => it.write(sink));
   }
 
@@ -128,12 +148,26 @@ final class ManifestElement {
     EncodeContext context,
     Element2 element,
   ) {
-    // TODO(scheglov): support also not top-level elements.
+    Element2 topLevelElement;
+    Element2? memberElement;
+    var enclosingElement = element.enclosingElement2!;
+    if (enclosingElement is LibraryElement2) {
+      topLevelElement = element;
+    } else {
+      topLevelElement = enclosingElement;
+      memberElement = element;
+    }
+
     return ManifestElement(
-      libraryUri: element.library2!.uri,
-      name: element.name3!,
+      libraryUri: topLevelElement.library2!.uri,
+      topLevelName: topLevelElement.lookupName!,
+      memberName: memberElement?.lookupName,
       id: context.getElementId(element),
     );
+  }
+
+  static List<ManifestElement> readList(SummaryDataReader reader) {
+    return reader.readTypedList(() => ManifestElement.read(reader));
   }
 }
 
@@ -192,12 +226,18 @@ class MatchContext {
 
 extension LinkedElementFactoryExtension on LinkedElementFactory {
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element) {
-    // SAFETY: if we can reference the element, it has a name.
-    var name = element.lookupName!.asLookupName;
+  ManifestItemId? getElementId(Element2 element2) {
+    Element2 topLevelElement;
+    Element2? memberElement;
+    if (element2.enclosingElement2 is LibraryElement2) {
+      topLevelElement = element2;
+    } else {
+      topLevelElement = element2.enclosingElement2!;
+      memberElement = element2;
+    }
 
     // SAFETY: if we can reference the element, it is in a library.
-    var libraryUri = element.library2!.uri;
+    var libraryUri = topLevelElement.library2!.uri;
 
     // Prepare the external library manifest.
     var manifest = libraryManifests[libraryUri];
@@ -205,8 +245,27 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
       return null;
     }
 
-    // SAFETY: every element is in the manifest of the declaring library.
-    // TODO(scheglov): if we do null assert, it fails, investigate
-    return manifest.items[name]?.id;
+    // SAFETY: if we can reference the element, it has a name.
+    var topLevelName = topLevelElement.lookupName!.asLookupName;
+    var topLevelItem = manifest.items[topLevelName];
+
+    // TODO(scheglov): remove it after supporting all elements
+    if (topLevelItem == null) {
+      return null;
+    }
+
+    if (memberElement == null) {
+      return topLevelItem.id;
+    }
+
+    // TODO(scheglov): When implementation is complete, cast unconditionally.
+    if (topLevelItem is InstanceItem) {
+      var memberName = memberElement.lookupName!.asLookupName;
+      var memberItem = topLevelItem.members[memberName];
+      // TODO(scheglov): When implementation is complete, null assert.
+      return memberItem?.id;
+    }
+
+    return null;
   }
 }

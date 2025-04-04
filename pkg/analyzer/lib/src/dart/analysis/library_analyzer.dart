@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
@@ -196,9 +197,12 @@ class LibraryAnalyzer {
         ),
       );
 
+      var featureSet = _libraryElement.featureSet;
+      var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _testingData != null, _libraryElement.featureSet,
-          typeSystemOperations: _typeSystemOperations);
+          _testingData != null,
+          typeSystemOperations: _typeSystemOperations,
+          typeAnalyzerOptions: typeAnalyzerOptions);
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
@@ -213,6 +217,7 @@ class LibraryAnalyzer {
         analysisOptions: _library.file.analysisOptions,
         flowAnalysisHelper: flowAnalysisHelper,
         libraryFragment: unitElement,
+        typeAnalyzerOptions: typeAnalyzerOptions,
       );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
           file.uri, resolverVisitor.inferenceHelper.dataForTesting!);
@@ -864,9 +869,11 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
+    var typeAnalyzerOptions = computeTypeAnalyzerOptions(unit.featureSet);
     FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _testingData != null, unit.featureSet,
-        typeSystemOperations: _typeSystemOperations);
+        _testingData != null,
+        typeSystemOperations: _typeSystemOperations,
+        typeAnalyzerOptions: typeAnalyzerOptions);
     _testingData?.recordFlowAnalysisDataForTesting(
         fileAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
 
@@ -881,6 +888,7 @@ class LibraryAnalyzer {
       featureSet: unit.featureSet,
       flowAnalysisHelper: flowAnalysisHelper,
       libraryFragment: unitElement,
+      typeAnalyzerOptions: typeAnalyzerOptions,
     );
     unit.accept(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(

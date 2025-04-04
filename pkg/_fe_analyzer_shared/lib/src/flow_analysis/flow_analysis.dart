@@ -5,6 +5,7 @@
 /// @docImport 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 library;
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:meta/meta.dart';
 
@@ -195,18 +196,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   factory FlowAnalysis(
     FlowAnalysisOperations<Variable, Type> operations,
     AssignedVariables<Node, Variable> assignedVariables, {
-    required bool respectImplicitlyTypedVarInitializers,
-    required bool fieldPromotionEnabled,
-    required bool inferenceUpdate4Enabled,
+    required TypeAnalyzerOptions typeAnalyzerOptions,
   }) {
-    return new _FlowAnalysisImpl(
-      operations,
-      assignedVariables,
-      respectImplicitlyTypedVarInitializers:
-          respectImplicitlyTypedVarInitializers,
-      fieldPromotionEnabled: fieldPromotionEnabled,
-      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-    );
+    return new _FlowAnalysisImpl(operations, assignedVariables,
+        typeAnalyzerOptions: typeAnalyzerOptions);
   }
 
   /// Return `true` if the current state is reachable.
@@ -1204,18 +1197,11 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   factory FlowAnalysisDebug(FlowAnalysisOperations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers,
-      required bool fieldPromotionEnabled,
-      required bool inferenceUpdate4Enabled}) {
+      {required TypeAnalyzerOptions typeAnalyzerOptions}) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
-      operations,
-      assignedVariables,
-      respectImplicitlyTypedVarInitializers:
-          respectImplicitlyTypedVarInitializers,
-      fieldPromotionEnabled: fieldPromotionEnabled,
-      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-    ));
+        operations, assignedVariables,
+        typeAnalyzerOptions: typeAnalyzerOptions));
   }
 
   FlowAnalysisDebug._(this._wrapped);
@@ -4304,6 +4290,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     implements
         FlowAnalysis<Node, Statement, Expression, Variable, Type>,
         _PropertyTargetHelper<Expression, Type> {
+  /// Options affecting the behavior of flow analysis.
+  final TypeAnalyzerOptions typeAnalyzerOptions;
+
   /// The [FlowAnalysisOperations], used to access types, check subtyping, and
   /// query variable types.
   @override
@@ -4387,17 +4376,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
-  /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
-  /// always, and we need to be able to replicate the old behavior when
-  /// analyzing old language versions).
-  final bool respectImplicitlyTypedVarInitializers;
-
-  final bool fieldPromotionEnabled;
-
-  final bool inferenceUpdate4Enabled;
-
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
@@ -4417,13 +4395,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final List<_Reference<Type>> _cascadeTargetStack = [];
 
-  _FlowAnalysisImpl(
-    this.operations,
-    this._assignedVariables, {
-    required this.respectImplicitlyTypedVarInitializers,
-    required this.fieldPromotionEnabled,
-    required this.inferenceUpdate4Enabled,
-  }) : promotionKeyStore = _assignedVariables.promotionKeyStore {
+  _FlowAnalysisImpl(this.operations, this._assignedVariables,
+      {required this.typeAnalyzerOptions})
+      : promotionKeyStore = _assignedVariables.promotionKeyStore {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -4994,7 +4968,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   bool isFinal(int variableKey) {
-    if (!inferenceUpdate4Enabled) return false;
+    if (!typeAnalyzerOptions.inferenceUpdate4Enabled) return false;
     Variable? variable = promotionKeyStore.variableForKey(variableKey);
     if (variable != null && operations.isFinal(variable)) return true;
     return false;
@@ -5899,12 +5873,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
                 result[type] = whyNotPromotable == null
                     ? new PropertyNotPromotedForNonInherentReason(
                         reference.propertyName, propertyMember,
-                        fieldPromotionEnabled: fieldPromotionEnabled)
+                        fieldPromotionEnabled:
+                            typeAnalyzerOptions.fieldPromotionEnabled)
                     : new PropertyNotPromotedForInherentReason(
                         reference.propertyName,
                         propertyMember,
                         whyNotPromotable,
-                        fieldPromotionEnabled: fieldPromotionEnabled);
+                        fieldPromotionEnabled:
+                            typeAnalyzerOptions.fieldPromotionEnabled);
               }
             }
             return result;
@@ -6032,7 +6008,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // Find the SSA node for the target of the property access, and figure out
     // whether the property in question is promotable.
     bool isPromotable = propertyMember != null &&
-        fieldPromotionEnabled &&
+        typeAnalyzerOptions.fieldPromotionEnabled &&
         operations.isPropertyPromotable(propertyMember);
     _PropertySsaNode<Type> propertySsaNode =
         targetSsaNode.getOrCreatePropertyNode(propertyName, promotionKeyStore,
@@ -6063,7 +6039,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // Don't use expression info for late variables, since we don't know when
       // they'll be initialized.
       expressionInfo = null;
-    } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
+    } else if (isImplicitlyTyped &&
+        !typeAnalyzerOptions.respectImplicitlyTypedVarInitializers) {
       // If the language version is too old, SSA analysis has to ignore
       // initializer expressions for implicitly typed variables, in order to
       // preserve the buggy behavior of
@@ -6285,7 +6262,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         unpromotedType: unpromotedType);
 
     // Update the type of the variable for looking up the write expression.
-    if (inferenceUpdate4Enabled && node is Expression && !isPostfixIncDec) {
+    if (typeAnalyzerOptions.inferenceUpdate4Enabled &&
+        node is Expression &&
+        !isPostfixIncDec) {
       _Reference<Type> reference = _variableReference(
         variableKey,
         unpromotedType,

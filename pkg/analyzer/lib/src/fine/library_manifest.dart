@@ -111,7 +111,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return ClassItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -124,112 +123,162 @@ class LibraryManifestBuilder {
       element.typeParameters2,
       (typeParameters) {
         classItem.members.clear();
-        _addStaticExecutables(
+        _addInterfaceElementStaticExecutables(
           encodingContext: encodingContext,
           instanceElement: element,
           interfaceItem: classItem,
         );
-        _addInstanceExecutables(
+        _addInterfaceElementInstanceExecutables(
           encodingContext: encodingContext,
-          element: element,
-          classItem: classItem,
+          interfaceElement: element,
+          interfaceItem: classItem,
         );
       },
     );
   }
 
-  void _addInstanceExecutable({
+  void _addInstanceElementGetter({
     required EncodeContext encodingContext,
-    required ClassItem instanceItem,
-    required Name nameObj,
+    required InstanceItem instanceItem,
+    required GetterElement2OrMember element,
+  }) {
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return;
+    }
+
+    var item = _getOrBuildElementItem(element, () {
+      return InstanceItemGetterItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    instanceItem.members[lookupName] = item;
+  }
+
+  void _addInstanceElementInstanceExecutable({
+    required EncodeContext encodingContext,
+    required InstanceItem instanceItem,
     required ExecutableElement2OrMember element,
   }) {
-    var lookupName = nameObj.name.asLookupName;
-
     switch (element) {
       case GetterElement2OrMember():
-        _addInstanceGetter(
+        _addInstanceElementGetter(
           encodingContext: encodingContext,
           instanceItem: instanceItem,
           element: element,
-          lookupName: lookupName,
         );
       case MethodElement2OrMember():
-        _addInstanceMethod(
+        _addInstanceElementMethod(
           encodingContext: encodingContext,
           instanceItem: instanceItem,
           element: element,
-          lookupName: lookupName,
         );
       // TODO(scheglov): add setters support
     }
   }
 
-  void _addInstanceExecutables({
+  void _addInstanceElementMethod({
     required EncodeContext encodingContext,
-    required ClassElementImpl2 element,
-    required ClassItem classItem,
+    required InstanceItem instanceItem,
+    required MethodElement2OrMember element,
   }) {
-    var map = element.inheritanceManager.getInterface2(element).map2;
-    for (var entry in map.entries) {
-      _addInstanceExecutable(
-        encodingContext: encodingContext,
-        instanceItem: classItem,
-        nameObj: entry.key,
-        element: entry.value,
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return;
+    }
+
+    var item = _getOrBuildElementItem(element, () {
+      return InstanceItemMethodItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
       );
+    });
+    instanceItem.members[lookupName] = item;
+  }
+
+  void _addInstanceElementStaticExecutables({
+    required EncodeContext encodingContext,
+    required InstanceElementImpl2 instanceElement,
+    required InstanceItem instanceItem,
+  }) {
+    for (var getter in instanceElement.getters2) {
+      if (getter.isStatic) {
+        _addInstanceElementGetter(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: getter,
+        );
+      }
+    }
+
+    for (var method in instanceElement.methods2) {
+      if (method.isStatic) {
+        _addInstanceElementMethod(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: method,
+        );
+      }
     }
   }
 
-  void _addInstanceGetter({
+  void _addInterfaceElementConstructor({
     required EncodeContext encodingContext,
-    required ClassItem instanceItem,
-    required GetterElement2OrMember element,
-    required LookupName lookupName,
-  }) {
-    var item = _getOrBuildElementItem(element, () {
-      return InstanceItemGetterItem.fromElement(
-        name: lookupName,
-        id: ManifestItemId.generate(),
-        context: encodingContext,
-        element: element,
-      );
-    });
-    instanceItem.members[lookupName] = item;
-  }
-
-  void _addInstanceMethod({
-    required EncodeContext encodingContext,
-    required ClassItem instanceItem,
-    required MethodElement2OrMember element,
-    required LookupName lookupName,
-  }) {
-    var item = _getOrBuildElementItem(element, () {
-      return InstanceItemMethodItem.fromElement(
-        name: lookupName,
-        id: ManifestItemId.generate(),
-        context: encodingContext,
-        element: element,
-      );
-    });
-    instanceItem.members[lookupName] = item;
-  }
-
-  void _addInterfaceConstructor({
-    required EncodeContext encodingContext,
-    required ClassItem interfaceItem,
+    required InterfaceItem interfaceItem,
     required ConstructorElementImpl2 element,
-    required LookupName lookupName,
   }) {
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return;
+    }
+
     var item = _getOrBuildElementItem(element, () {
       return InterfaceItemConstructorItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
     });
     interfaceItem.members[lookupName] = item;
+  }
+
+  void _addInterfaceElementInstanceExecutables({
+    required EncodeContext encodingContext,
+    required InterfaceElementImpl2 interfaceElement,
+    required InterfaceItem interfaceItem,
+  }) {
+    var inheritance = interfaceElement.inheritanceManager;
+    var map = inheritance.getInterface2(interfaceElement).map2;
+    for (var entry in map.entries) {
+      _addInstanceElementInstanceExecutable(
+        encodingContext: encodingContext,
+        instanceItem: interfaceItem,
+        element: entry.value,
+      );
+    }
+  }
+
+  void _addInterfaceElementStaticExecutables({
+    required EncodeContext encodingContext,
+    required InterfaceElementImpl2 instanceElement,
+    required InterfaceItem interfaceItem,
+  }) {
+    for (var constructor in instanceElement.constructors2) {
+      _addInterfaceElementConstructor(
+        encodingContext: encodingContext,
+        interfaceItem: interfaceItem,
+        element: constructor,
+      );
+    }
+
+    _addInstanceElementStaticExecutables(
+      encodingContext: encodingContext,
+      instanceElement: instanceElement,
+      instanceItem: interfaceItem,
+    );
   }
 
   void _addReExports() {
@@ -259,58 +308,8 @@ class LibraryManifestBuilder {
           continue;
         }
         manifest.items[name] = ExportItem(
-          libraryUri: libraryUri,
-          name: name,
           id: id,
         );
-      }
-    }
-  }
-
-  void _addStaticExecutables({
-    required EncodeContext encodingContext,
-    required InstanceElementImpl2 instanceElement,
-    required ClassItem interfaceItem,
-  }) {
-    if (instanceElement is InterfaceElementImpl2) {
-      for (var constructor in instanceElement.constructors2) {
-        var lookupName = constructor.name3?.asLookupName;
-        if (lookupName != null) {
-          _addInterfaceConstructor(
-            encodingContext: encodingContext,
-            interfaceItem: interfaceItem,
-            element: constructor,
-            lookupName: lookupName,
-          );
-        }
-      }
-    }
-
-    for (var getter in instanceElement.getters2) {
-      if (getter.isStatic) {
-        var lookupName = getter.name3?.asLookupName;
-        if (lookupName != null) {
-          _addInstanceGetter(
-            encodingContext: encodingContext,
-            instanceItem: interfaceItem,
-            element: getter,
-            lookupName: lookupName,
-          );
-        }
-      }
-    }
-
-    for (var method in instanceElement.methods2) {
-      if (method.isStatic) {
-        var lookupName = method.name3?.asLookupName;
-        if (lookupName != null) {
-          _addInstanceMethod(
-            encodingContext: encodingContext,
-            instanceItem: interfaceItem,
-            element: method,
-            lookupName: lookupName,
-          );
-        }
       }
     }
   }
@@ -323,7 +322,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return TopLevelFunctionItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -340,7 +338,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return TopLevelGetterItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -357,7 +354,6 @@ class LibraryManifestBuilder {
   }) {
     var item = _getOrBuildElementItem(element, () {
       return TopLevelSetterItem.fromElement(
-        name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,

@@ -3607,6 +3607,9 @@ class EnumElementImpl2 extends InterfaceElementImpl2 implements EnumElement2 {
 /// `ExecutableElement2`.
 abstract class ExecutableElement2OrMember implements ExecutableElement2 {
   @override
+  ExecutableElementImpl2 get baseElement;
+
+  @override
   List<FormalParameterElementMixin> get formalParameters;
 
   @override
@@ -3826,7 +3829,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
     implements ExecutableElement2OrMember {
   @override
-  ExecutableElement2 get baseElement => this;
+  ExecutableElementImpl2 get baseElement => this;
 
   @override
   List<Element2> get children2 => [
@@ -5438,7 +5441,10 @@ class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// [GetterElement].
 abstract class GetterElement2OrMember
-    implements PropertyAccessorElement2OrMember, GetterElement {}
+    implements PropertyAccessorElement2OrMember, GetterElement {
+  @override
+  GetterElementImpl get baseElement;
+}
 
 class GetterElementImpl extends PropertyAccessorElementImpl2
     with
@@ -5461,7 +5467,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
   }
 
   @override
-  GetterElement get baseElement => this;
+  GetterElementImpl get baseElement => this;
 
   @override
   SetterElement? get correspondingSetter2 =>
@@ -8358,7 +8364,10 @@ final class MetadataImpl implements Metadata {
 /// Common base class for all analyzer-internal classes that implement
 /// `MethodElement2`.
 abstract class MethodElement2OrMember
-    implements MethodElement2, ExecutableElement2OrMember {}
+    implements MethodElement2, ExecutableElement2OrMember {
+  @override
+  MethodElementImpl2 get baseElement;
+}
 
 class MethodElementImpl extends ExecutableElementImpl
     implements MethodElementOrMember, MethodFragment {
@@ -8472,7 +8481,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
   MethodElementImpl2(this.name3, this.firstFragment);
 
   @override
-  MethodElement2 get baseElement => this;
+  MethodElementImpl2 get baseElement => this;
 
   @override
   Element2? get enclosingElement2 =>
@@ -10028,6 +10037,9 @@ abstract class PromotableElementImpl2 extends VariableElementImpl2
 abstract class PropertyAccessorElement2OrMember
     implements PropertyAccessorElement2, ExecutableElement2OrMember {
   @override
+  PropertyAccessorElementImpl2 get baseElement;
+
+  @override
   PropertyInducingElement2OrMember? get variable3;
 }
 
@@ -10143,7 +10155,7 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
 abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
     implements PropertyAccessorElement2OrMember {
   @override
-  PropertyAccessorElement2 get baseElement => this;
+  PropertyAccessorElementImpl2 get baseElement => this;
 
   @override
   Element2 get enclosingElement2 => firstFragment.enclosingFragment.element;
@@ -10571,7 +10583,10 @@ abstract class PropertyInducingElementTypeInference {
 /// Common base class for all analyzer-internal classes that implement
 /// [SetterElement].
 abstract class SetterElement2OrMember
-    implements PropertyAccessorElement2OrMember, SetterElement {}
+    implements PropertyAccessorElement2OrMember, SetterElement {
+  @override
+  SetterElementImpl get baseElement;
+}
 
 class SetterElementImpl extends PropertyAccessorElementImpl2
     with
@@ -10594,7 +10609,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
   }
 
   @override
-  SetterElement get baseElement => this;
+  SetterElementImpl get baseElement => this;
 
   @override
   GetterElement? get correspondingGetter2 =>
@@ -10856,7 +10871,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   }
 
   @override
-  TopLevelFunctionElement get baseElement => this;
+  TopLevelFunctionElementImpl get baseElement => this;
 
   @override
   LibraryElementImpl get enclosingElement2 {

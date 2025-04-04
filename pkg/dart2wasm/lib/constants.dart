@@ -373,7 +373,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
     if (translator.needsConversion(resultType, expectedType)) {
       if (expectedType == const w.RefType.extern(nullable: true)) {
         assert(resultType.isSubtypeOf(w.RefType.any(nullable: true)));
-        b.extern_externalize();
+        b.extern_convert_any();
       } else {
         // This only happens in invalid but unreachable code produced by the
         // TFA dead-code elimination.

@@ -202,7 +202,7 @@ class DtdServices {
       DtdMessage(
         message: message,
         performance: performance,
-        completer: completer,
+        responseCompleter: completer,
       ),
     );
     return completer.future;

@@ -1611,11 +1611,8 @@ class Harness {
           isPromotable: false, whyNotPromotable: null)
   };
 
-  late final typeAnalyzer = _MiniAstTypeAnalyzer(
-      this,
-      TypeAnalyzerOptions(
-          patternsEnabled: patternsEnabled,
-          inferenceUpdate3Enabled: inferenceUpdate3Enabled));
+  late final typeAnalyzer =
+      _MiniAstTypeAnalyzer(this, computeTypeAnalyzerOptions());
 
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
@@ -1703,6 +1700,15 @@ class Harness {
       String className, List<Type> Function(List<Type>) template) {
     operations.addSuperInterfaces(className, template);
   }
+
+  shared.TypeAnalyzerOptions computeTypeAnalyzerOptions() =>
+      TypeAnalyzerOptions(
+          patternsEnabled: patternsEnabled,
+          inferenceUpdate3Enabled: inferenceUpdate3Enabled,
+          respectImplicitlyTypedVarInitializers:
+              _respectImplicitlyTypedVarInitializers,
+          fieldPromotionEnabled: _fieldPromotionEnabled,
+          inferenceUpdate4Enabled: inferenceUpdate4Enabled);
 
   void disableFieldPromotion() {
     assert(!_started);
@@ -1798,13 +1804,8 @@ class Harness {
       var b = Block._(statements, location: computeLocation());
       b.preVisit(visitor);
       flow = FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>(
-        operations,
-        visitor._assignedVariables,
-        respectImplicitlyTypedVarInitializers:
-            _respectImplicitlyTypedVarInitializers,
-        fieldPromotionEnabled: _fieldPromotionEnabled,
-        inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-      );
+          operations, visitor._assignedVariables,
+          typeAnalyzerOptions: computeTypeAnalyzerOptions());
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
@@ -5413,7 +5414,7 @@ class _MiniAstTypeAnalyzer
   final _irBuilder = MiniIRBuilder();
 
   @override
-  final TypeAnalyzerOptions options;
+  final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The temporary variable used in the IR to represent the target of the
   /// innermost enclosing cascade expression, or `null` if no cascade expression
@@ -5425,7 +5426,7 @@ class _MiniAstTypeAnalyzer
   /// cascade expression is currently being visited.
   SharedTypeView? _currentCascadeTargetType;
 
-  _MiniAstTypeAnalyzer(this._harness, this.options);
+  _MiniAstTypeAnalyzer(this._harness, this.typeAnalyzerOptions);
 
   @override
   FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView> get flow =>

@@ -285,7 +285,7 @@ mixin TypeAnalyzer<
       get operations;
 
   /// Options affecting the behavior of [TypeAnalyzer].
-  TypeAnalyzerOptions get options;
+  TypeAnalyzerOptions get typeAnalyzerOptions;
 
   /// Analyzes a non-wildcard variable pattern appearing in an assignment
   /// context.  [node] is the pattern itself, and [variable] is the variable
@@ -425,11 +425,11 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = analyzeExpression(
         expression, operations.typeToSchema(matchedValueType));
     flow.constantPattern_end(expression, expressionType,
-        patternsEnabled: options.patternsEnabled,
+        patternsEnabled: typeAnalyzerOptions.patternsEnabled,
         matchedValueType: matchedValueType);
     // Stack: (Expression)
     Error? caseExpressionTypeMismatchError;
-    if (!options.patternsEnabled) {
+    if (!typeAnalyzerOptions.patternsEnabled) {
       Expression? switchScrutinee = context.switchScrutinee;
       if (switchScrutinee != null) {
         bool matches = operations.isSubtypeOf(expressionType, matchedValueType);
@@ -1848,7 +1848,7 @@ mixin TypeAnalyzer<
         // Stack: (Expression, (i + 1) * ExpressionCase)
       }
       // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-      if (!this.options.inferenceUpdate3Enabled) {
+      if (!typeAnalyzerOptions.inferenceUpdate3Enabled) {
         staticType = t!;
       } else
       // - If `T <: S`, then the type of `E` is `T`.
@@ -1975,7 +1975,7 @@ mixin TypeAnalyzer<
       //         n * Statement), where n = body.length
       lastCaseTerminates = !flow.switchStatement_afterCase();
       if (caseIndex < numCases - 1 &&
-          !options.patternsEnabled &&
+          !typeAnalyzerOptions.patternsEnabled &&
           !lastCaseTerminates) {
         (switchCaseCompletesNormallyErrors ??= {})[caseIndex] = errors
             .switchCaseCompletesNormally(node: node, caseIndex: caseIndex);
@@ -1990,7 +1990,7 @@ mixin TypeAnalyzer<
     if (hasDefault) {
       isExhaustive = true;
       requiresExhaustivenessValidation = false;
-    } else if (options.patternsEnabled) {
+    } else if (typeAnalyzerOptions.patternsEnabled) {
       requiresExhaustivenessValidation =
           isExhaustive = operations.isAlwaysExhaustiveType(scrutineeType);
     } else {
@@ -2733,6 +2733,22 @@ class TypeAnalyzerOptions {
 
   final bool inferenceUpdate3Enabled;
 
-  TypeAnalyzerOptions(
-      {required this.patternsEnabled, required this.inferenceUpdate3Enabled});
+  /// Indicates whether initializers of implicitly typed variables should be
+  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
+  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// always, and we need to be able to replicate the old behavior when
+  /// analyzing old language versions).
+  final bool respectImplicitlyTypedVarInitializers;
+
+  final bool fieldPromotionEnabled;
+
+  final bool inferenceUpdate4Enabled;
+
+  TypeAnalyzerOptions({
+    required this.patternsEnabled,
+    required this.inferenceUpdate3Enabled,
+    required this.respectImplicitlyTypedVarInitializers,
+    required this.fieldPromotionEnabled,
+    required this.inferenceUpdate4Enabled,
+  });
 }

@@ -637,9 +637,7 @@ main() {
       var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>(
           h.typeOperations, AssignedVariables<Node, Var>(),
-          respectImplicitlyTypedVarInitializers: true,
-          fieldPromotionEnabled: true,
-          inferenceUpdate4Enabled: true);
+          typeAnalyzerOptions: h.computeTypeAnalyzerOptions());
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
