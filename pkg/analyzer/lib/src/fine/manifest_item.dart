@@ -642,23 +642,12 @@ extension _AstNodeExtension on AstNode {
 
 extension _GetterElementImplExtension on GetterElementImpl {
   Expression? get constInitializer {
-    Expression? constInitializer;
     if (isSynthetic) {
       var variable = variable3!;
       if (variable.isConst) {
-        constInitializer = variable.constantInitializer2?.expression;
+        return variable.constantInitializer2?.expression;
       }
     }
-
-    // TODO(scheglov): support all expressions
-    switch (constInitializer) {
-      case BinaryExpression():
-      case IntegerLiteral():
-      case SimpleIdentifier():
-        break;
-      default:
-        constInitializer = null;
-    }
-    return constInitializer;
+    return null;
   }
 }

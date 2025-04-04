@@ -824,7 +824,7 @@ class LibraryManifestPrinter {
           sink.writelnWithIndent('elements');
           sink.withIndent(() {
             for (var (index, element) in node.elements.indexed) {
-              sink.writeWithIndent('[${1 + index}] ');
+              sink.writeWithIndent('[${2 + index}] ');
               _writelnElement(element);
             }
           });

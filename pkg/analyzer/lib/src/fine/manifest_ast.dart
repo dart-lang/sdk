@@ -32,8 +32,10 @@ class ManifestNode {
   final List<ManifestElement> elements;
 
   /// For each property in the AST structure summarized by this manifest that
-  /// might point to an element, `0` if the element pointer is `null`; otherwise
-  /// one plus the index of the associated manifest element in [elements].
+  /// might point to an element:
+  ///   - `0` if the element pointer is `null`;
+  ///   - `1` if the element is an import prefix;
+  ///   - otherwise `2 + ` the index of the element in [elements].
   ///
   /// The order of this list reflects the AST structure, according to the
   /// behavior of [_ElementCollector].
@@ -141,27 +143,134 @@ class ManifestNode {
 
 class _ElementCollector extends ThrowingAstVisitor<void> {
   static const int _nullIndex = 0;
+  static const int _importPrefixIndex = 1;
 
   final Map<Element2, int> map = Map.identity();
   final List<int> elementIndexList = [];
 
   @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitAnnotation(Annotation node) {
-    // TODO(scheglov): implement visitAnnotation
+    node.visitChildren(this);
+    _addElement(node.element2);
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    node.visitChildren(this);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    node.leftOperand.accept(this);
+    node.visitChildren(this);
     _addElement(node.element);
-    node.rightOperand.accept(this);
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {}
+
+  @override
+  void visitConstructorName(ConstructorName node) {
+    node.visitChildren(this);
+    _addElement(node.element);
+  }
+
+  @override
+  void visitConstructorReference(ConstructorReference node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {}
+
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    node.visitChildren(this);
   }
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {}
 
   @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitInterpolationString(InterpolationString node) {}
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNamedExpression(NamedExpression node) {
+    node.expression.accept(this);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    node.visitChildren(this);
+    _addElement(node.element2);
+  }
+
+  @override
+  void visitNullLiteral(NullLiteral node) {}
+
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    node.prefix.accept(this);
+    _addElement(node.element);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    node.visitChildren(this);
+    _addElement(node.element);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.visitChildren(this);
   }
 
@@ -170,12 +279,33 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
     _addElement(node.element);
   }
 
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {}
+
+  @override
+  void visitSpreadElement(SpreadElement node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    node.visitChildren(this);
+  }
+
   void _addElement(Element2? element) {
-    if (element == null) {
-      elementIndexList.add(_nullIndex);
-    } else {
-      var index = map[element] ??= 1 + map.length;
-      elementIndexList.add(index);
+    switch (element) {
+      case null:
+        elementIndexList.add(_nullIndex);
+      case PrefixElement2():
+        elementIndexList.add(_importPrefixIndex);
+      default:
+        var index = map[element] ??= 2 + map.length;
+        elementIndexList.add(index);
     }
   }
 }
