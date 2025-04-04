@@ -660,6 +660,15 @@ abstract class ResolvedCorrectionProducer
   }
 }
 
+/// A stub implementation of [CorrectionProducerContext], which can be used to
+/// instantiate a correction producer for the purpose of examining fixed
+/// properties on it.
+///
+/// This has several acceptable use cases:
+/// * checking the applicability of a correction producer,
+/// * testing purposes,
+/// * short-circuiting logic in a correction producer factory constructor that
+///   relies on the context's `node` property.
 final class StubCorrectionProducerContext implements CorrectionProducerContext {
   static final instance = StubCorrectionProducerContext._();
 
