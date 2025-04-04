@@ -1173,7 +1173,6 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitNode(js.Node node, _) {}
 
   void _handleFunction(_PositionInfoNode node, js.Node body, int start) {
@@ -1267,7 +1266,6 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitCall(js.Call node, _) {
     _visit(
       node.target,
@@ -1298,7 +1296,6 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitNew(js.New node, _) {
     _visit(
       node.target,
@@ -1312,7 +1309,6 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitAccess(js.PropertyAccess node, _) {
     final receiverNode = _visit(node.receiver);
     // Technically we'd like to use the offset of the `.` in the property
@@ -1446,19 +1442,16 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitContinue(js.Continue node, _) {
     _currentNode.addNotifyStep(StepKind.continue_);
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitBreak(js.Break node, _) {
     _currentNode.addNotifyStep(StepKind.break_);
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitTry(js.Try node, _) {
     _visit(node.body);
     _visit(node.catchPart, branchKind: BranchKind.catch_);
@@ -1466,7 +1459,6 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitConditional(js.Conditional node, _) {
     _visit(node.condition);
     _visit(node.then, branchKind: BranchKind.condition, branchToken: 1);
@@ -1495,7 +1487,6 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  // ignore: avoid_renaming_method_parameters
   void visitDeferredExpression(js.DeferredExpression node, _) {
     _visit(node.value);
   }
