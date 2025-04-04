@@ -809,7 +809,7 @@ class LibraryManifestPrinter {
     sink.writeln('(${parts.join(', ')}) $idStr');
   }
 
-  void _writeMetadata(AnnotatedItem item) {
+  void _writeMetadata(ManifestItem item) {
     if (configuration.withElementManifests) {
       sink.writeElements(
         'metadata',
