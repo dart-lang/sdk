@@ -12,22 +12,7 @@ import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-
-// TODO(scheglov): inline into ManifestItem when remove ExportItem
-sealed class AnnotatedItem extends ManifestItem {
-  final ManifestMetadata metadata;
-
-  AnnotatedItem({
-    required super.id,
-    required this.metadata,
-  });
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    metadata.write(sink);
-  }
-}
+import 'package:meta/meta.dart';
 
 class ClassItem extends InterfaceItem {
   ClassItem({
@@ -71,10 +56,6 @@ class ClassItem extends InterfaceItem {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
     );
-  }
-
-  MatchContext? match(ClassElementImpl2 element) {
-    return super._matchInterfaceElement(element);
   }
 
   @override
@@ -149,21 +130,13 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     );
   }
 
-  MatchContext? match(
-    MatchContext instanceContext,
-    GetterElement2OrMember element,
+  @override
+  bool match(
+    MatchContext context,
+    covariant GetterElement2OrMember element,
   ) {
-    var context = MatchContext(parent: instanceContext);
-    if (!metadata.match(context, element.metadata2)) {
-      return null;
-    }
-    if (element.isStatic != isStatic) {
-      return null;
-    }
-    if (!returnType.match(context, element.returnType)) {
-      return null;
-    }
-    return context;
+    return super.match(context, element) &&
+        returnType.match(context, element.returnType);
   }
 
   @override
@@ -174,7 +147,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   }
 }
 
-sealed class InstanceItemMemberItem extends AnnotatedItem {
+sealed class InstanceItemMemberItem extends ManifestItem {
   final bool isStatic;
 
   InstanceItemMemberItem({
@@ -193,6 +166,14 @@ sealed class InstanceItemMemberItem extends AnnotatedItem {
       case _ManifestItemKind2.interfaceConstructor:
         return InterfaceItemConstructorItem.read(reader);
     }
+  }
+
+  @override
+  bool match(
+    MatchContext context,
+    covariant ExecutableElement2OrMember element,
+  ) {
+    return super.match(context, element) && element.isStatic == isStatic;
   }
 
   @override
@@ -234,21 +215,13 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
     );
   }
 
-  MatchContext? match(
-    MatchContext instanceContext,
-    MethodElement2OrMember element,
+  @override
+  bool match(
+    MatchContext context,
+    covariant MethodElement2OrMember element,
   ) {
-    var context = MatchContext(parent: instanceContext);
-    if (!metadata.match(context, element.metadata2)) {
-      return null;
-    }
-    if (element.isStatic != isStatic) {
-      return null;
-    }
-    if (!functionType.match(context, element.type)) {
-      return null;
-    }
-    return context;
+    return super.match(context, element) &&
+        functionType.match(context, element.type);
   }
 
   @override
@@ -276,27 +249,20 @@ sealed class InterfaceItem extends InstanceItem {
   });
 
   @override
+  bool match(MatchContext context, covariant InterfaceElementImpl2 element) {
+    context.addTypeParameters(element.typeParameters2);
+    return super.match(context, element) &&
+        supertype.match(context, element.supertype) &&
+        interfaces.match(context, element.interfaces) &&
+        mixins.match(context, element.mixins);
+  }
+
+  @override
   void write(BufferedSink sink) {
     super.write(sink);
     supertype.writeOptional(sink);
     mixins.writeList(sink);
     interfaces.writeList(sink);
-  }
-
-  MatchContext? _matchInterfaceElement(InterfaceElementImpl2 element) {
-    var context = MatchContext(parent: null);
-
-    if (!metadata.match(context, element.metadata2)) {
-      return null;
-    }
-
-    context.addTypeParameters(element.typeParameters2);
-    if (supertype.match(context, element.supertype) &&
-        interfaces.match(context, element.interfaces) &&
-        mixins.match(context, element.mixins)) {
-      return context;
-    }
-    return null;
   }
 }
 
@@ -341,24 +307,15 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
     );
   }
 
-  MatchContext? match(
-    MatchContext instanceContext,
-    ConstructorElementImpl2 element,
+  @override
+  bool match(
+    MatchContext context,
+    covariant ConstructorElementImpl2 element,
   ) {
-    var context = MatchContext(parent: instanceContext);
-    if (!metadata.match(context, element.metadata2)) {
-      return null;
-    }
-    if (isConst != element.isConst) {
-      return null;
-    }
-    if (isFactory != element.isFactory) {
-      return null;
-    }
-    if (!functionType.match(context, element.type)) {
-      return null;
-    }
-    return context;
+    return super.match(context, element) &&
+        isConst == element.isConst &&
+        isFactory == element.isFactory &&
+        functionType.match(context, element.type);
   }
 
   @override
@@ -385,11 +342,7 @@ class ManifestAnnotation {
   }
 
   bool match(MatchContext context, ElementAnnotationImpl annotation) {
-    var annotationAst = annotation.annotationAst;
-    if (!ast.match(context, annotationAst)) {
-      return false;
-    }
-    return true;
+    return ast.match(context, annotation.annotationAst);
   }
 
   void write(BufferedSink sink) {
@@ -409,13 +362,21 @@ class ManifestAnnotation {
 sealed class ManifestItem {
   /// The unique identifier of this item.
   final ManifestItemId id;
+  final ManifestMetadata metadata;
 
   ManifestItem({
     required this.id,
+    required this.metadata,
   });
+
+  @mustCallSuper
+  bool match(MatchContext context, AnnotatableElement element) {
+    return metadata.match(context, element.effectiveMetadata);
+  }
 
   void write(BufferedSink sink) {
     id.write(sink);
+    metadata.write(sink);
   }
 }
 
@@ -494,20 +455,13 @@ class TopLevelFunctionItem extends TopLevelItem {
     );
   }
 
-  MatchContext? match(
-    TopLevelFunctionElementImpl element,
+  @override
+  bool match(
+    MatchContext context,
+    covariant TopLevelFunctionElementImpl element,
   ) {
-    var context = MatchContext(parent: null);
-
-    if (!metadata.match(context, element.metadata2)) {
-      return null;
-    }
-
-    if (!functionType.match(context, element.type)) {
-      return null;
-    }
-
-    return context;
+    return super.match(context, element) &&
+        functionType.match(context, element.type);
   }
 
   @override
@@ -554,22 +508,14 @@ class TopLevelGetterItem extends TopLevelItem {
     );
   }
 
-  MatchContext? match(GetterElementImpl element) {
-    var context = MatchContext(parent: null);
-
-    if (!metadata.match(context, element.thisOrVariableMetadata)) {
-      return null;
-    }
-
-    if (!returnType.match(context, element.returnType)) {
-      return null;
-    }
-
-    if (!constInitializer.match(context, element.constInitializer)) {
-      return null;
-    }
-
-    return context;
+  @override
+  bool match(
+    MatchContext context,
+    covariant GetterElementImpl element,
+  ) {
+    return super.match(context, element) &&
+        returnType.match(context, element.returnType) &&
+        constInitializer.match(context, element.constInitializer);
   }
 
   @override
@@ -581,7 +527,7 @@ class TopLevelGetterItem extends TopLevelItem {
   }
 }
 
-sealed class TopLevelItem extends AnnotatedItem {
+sealed class TopLevelItem extends ManifestItem {
   TopLevelItem({
     required super.id,
     required super.metadata,
@@ -634,18 +580,13 @@ class TopLevelSetterItem extends TopLevelItem {
     );
   }
 
-  MatchContext? match(SetterElementImpl element) {
-    var context = MatchContext(parent: null);
-
-    if (!metadata.match(context, element.thisOrVariableMetadata)) {
-      return null;
-    }
-
-    if (!valueType.match(context, element.formalParameters[0].type)) {
-      return null;
-    }
-
-    return context;
+  @override
+  bool match(
+    MatchContext context,
+    covariant SetterElementImpl element,
+  ) {
+    return super.match(context, element) &&
+        valueType.match(context, element.formalParameters[0].type);
   }
 
   @override
@@ -667,6 +608,15 @@ enum _ManifestItemKind2 {
   instanceGetter,
   instanceMethod,
   interfaceConstructor,
+}
+
+extension _AnnotatableElementExtension on AnnotatableElement {
+  MetadataImpl get effectiveMetadata {
+    if (this case PropertyAccessorElement2OrMember accessor) {
+      return accessor.thisOrVariableMetadata;
+    }
+    return metadata2;
+  }
 }
 
 extension _AstNodeExtension on AstNode {

@@ -13,6 +13,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -82,6 +84,37 @@ class _FakeAnalysisDriver implements AnalysisDriver {
     _currentSession = fileResolver.contextObjects?.analysisSession
         as _MicroAnalysisSessionImpl;
     return _currentSession;
+  }
+
+  @override
+  LibraryContext get libraryContext => fileResolver.libraryContext!;
+
+  @override
+  bool get shouldReportInconsistentAnalysisException => false;
+
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) async {
+    var uriResolution = fileResolver.fsState?.getFileForUri(uri);
+    if (uriResolution case UriResolutionFile(:var file)) {
+      return currentSession.getResolvedLibrary(file.path);
+    }
+    return CannotResolveUriResult();
+  }
+
+  @override
+  Future<SomeUnitElementResult> getUnitElement(String path) async {
+    var file = fileResolver.fsState?.getFileForPath(path);
+    if (file == null) {
+      return InvalidPathResult();
+    }
+    var kind = file.kind;
+    var library = kind.library ?? kind.asLibrary;
+    var element = libraryContext.computeUnitElement(library, file);
+    return UnitElementResultImpl(
+      element: element,
+      fileState: file,
+      session: currentSession,
+    );
   }
 
   @override

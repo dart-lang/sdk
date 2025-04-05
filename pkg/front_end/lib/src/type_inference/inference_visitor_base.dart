@@ -1148,7 +1148,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Finds a constructor of [type] called [name].
-  Member? findConstructor(TypeDeclarationType type, Name name, int fileOffset) {
+  Member? findConstructor(TypeDeclarationType type, Name name, int fileOffset,
+      {bool isTearoff = false}) {
     // TODO(Dart Model team): Seems like an abstraction level issue to require
     // going from `Class` objects back to builders to find a `Member`.
     DeclarationBuilder builder;
@@ -1164,7 +1165,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     MemberBuilder? constructorBuilder = builder.findConstructorOrFactory(
         name.text, fileOffset, helper.uri, libraryBuilder);
-    return constructorBuilder?.invokeTarget;
+    return isTearoff
+        ? constructorBuilder?.readTarget
+        : constructorBuilder?.invokeTarget;
   }
 
   /// Finds a member of [receiverType] called [name], and if it is found,

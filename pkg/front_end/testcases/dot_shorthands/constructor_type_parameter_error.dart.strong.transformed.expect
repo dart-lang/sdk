@@ -2,26 +2,30 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:11:23: Error: A dot shorthand constructor invocation can't have type arguments.
+// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:13:23: Error: A dot shorthand constructor invocation can't have type arguments.
 // Try adding the class name and type arguments explicitly before the constructor name.
 //   C newConstructor = .new<int>();
 //                       ^^^
 //
-// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:12:25: Error: A dot shorthand constructor invocation can't have type arguments.
+// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:14:25: Error: A dot shorthand constructor invocation can't have type arguments.
 // Try adding the class name and type arguments explicitly before the constructor name.
 //   C namedConstructor = .named<int>();
 //                         ^^^^^
 //
-// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:13:19: Error: The static getter or field 'new' isn't defined for the type 'C'.
-//  - 'C' is from 'pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart'.
-// Try correcting the name to the name of an existing static getter or field, or defining a getter or field named 'new'.
+// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:15:19: Error: A dot shorthand constructor invocation can't have type arguments.
+// Try adding the class name and type arguments explicitly before the constructor name.
 //   C newTearoff = .new<int>;
 //                   ^^^
 //
-// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:13:22: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
-// Try changing the operand or remove the type arguments.
-//   C newTearoff = .new<int>;
-//                      ^
+// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:16:21: Error: A dot shorthand constructor invocation can't have type arguments.
+// Try adding the class name and type arguments explicitly before the constructor name.
+//   C namedTearoff = .new<int>;
+//                     ^^^
+//
+// pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:17:11: Error: A dot shorthand constructor invocation can't have type arguments.
+// Try adding the class name and type arguments explicitly before the constructor name.
+//   ET e = .new<int>;
+//           ^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -34,17 +38,36 @@ class C extends core::Object {
     : super core::Object::•()
     ;
 }
+extension type ET<T extends core::Object? = dynamic>(T% v) {
+  abstract extension-type-member representation-field get v() → T%;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static extension-type-member method ET|constructor#<T extends core::Object? = dynamic>(self::ET|constructor#::T% v) → self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */ {
+  lowered final self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */ #this = v;
+  return #this;
+}
+static extension-type-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T%>(v);
 static method test() → void {
-  self::C newConstructor = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:11:23: Error: A dot shorthand constructor invocation can't have type arguments.
+  self::C newConstructor = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:13:23: Error: A dot shorthand constructor invocation can't have type arguments.
 Try adding the class name and type arguments explicitly before the constructor name.
   C newConstructor = .new<int>();
                       ^^^" as{TypeError,ForDynamic,Unchecked} self::C;
-  self::C namedConstructor = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:12:25: Error: A dot shorthand constructor invocation can't have type arguments.
+  self::C namedConstructor = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:14:25: Error: A dot shorthand constructor invocation can't have type arguments.
 Try adding the class name and type arguments explicitly before the constructor name.
   C namedConstructor = .named<int>();
                         ^^^^^" as{TypeError,ForDynamic,Unchecked} self::C;
-  self::C newTearoff = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:13:22: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
-Try changing the operand or remove the type arguments.
+  self::C newTearoff = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:15:19: Error: A dot shorthand constructor invocation can't have type arguments.
+Try adding the class name and type arguments explicitly before the constructor name.
   C newTearoff = .new<int>;
-                     ^";
+                  ^^^" as{TypeError,ForDynamic,Unchecked} self::C;
+  self::C namedTearoff = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:16:21: Error: A dot shorthand constructor invocation can't have type arguments.
+Try adding the class name and type arguments explicitly before the constructor name.
+  C namedTearoff = .new<int>;
+                    ^^^" as{TypeError,ForDynamic,Unchecked} self::C;
+  self::ET<dynamic>% /* erasure=dynamic, declared=! */ e = invalid-expression "pkg/front_end/testcases/dot_shorthands/constructor_type_parameter_error.dart:17:11: Error: A dot shorthand constructor invocation can't have type arguments.
+Try adding the class name and type arguments explicitly before the constructor name.
+  ET e = .new<int>;
+          ^^^" as{TypeError,ForDynamic,Unchecked} self::ET<dynamic>% /* erasure=dynamic, declared=! */;
 }

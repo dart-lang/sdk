@@ -642,8 +642,8 @@ class _LibraryMatch {
       return false;
     }
 
-    var matchContext = item.match(element);
-    if (matchContext == null) {
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
       return false;
     }
 
@@ -685,8 +685,8 @@ class _LibraryMatch {
           return false;
         }
 
-        var matchContext = item.match(interfaceMatchContext, executable);
-        if (matchContext == null) {
+        var matchContext = MatchContext(parent: interfaceMatchContext);
+        if (!item.match(matchContext, executable)) {
           return false;
         }
 
@@ -699,8 +699,8 @@ class _LibraryMatch {
           return false;
         }
 
-        var matchContext = item.match(interfaceMatchContext, executable);
-        if (matchContext == null) {
+        var matchContext = MatchContext(parent: interfaceMatchContext);
+        if (!item.match(matchContext, executable)) {
           return false;
         }
 
@@ -752,8 +752,8 @@ class _LibraryMatch {
       return false;
     }
 
-    var matchContext = item.match(interfaceMatchContext, element);
-    if (matchContext == null) {
+    var matchContext = MatchContext(parent: interfaceMatchContext);
+    if (!item.match(matchContext, element)) {
       return false;
     }
 
@@ -828,8 +828,8 @@ class _LibraryMatch {
       return false;
     }
 
-    var matchContext = item.match(element);
-    if (matchContext == null) {
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
       return false;
     }
 
@@ -849,8 +849,8 @@ class _LibraryMatch {
       return false;
     }
 
-    var matchContext = item.match(element);
-    if (matchContext == null) {
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
       return false;
     }
 
@@ -869,8 +869,8 @@ class _LibraryMatch {
       return false;
     }
 
-    var matchContext = item.match(element);
-    if (matchContext == null) {
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, element)) {
       return false;
     }
 

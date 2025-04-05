@@ -9323,6 +9323,9 @@ class BodyBuilder extends StackListenerImpl
         pop() as List<TypeBuilder>?; // typeArguments
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       Object? operand = pop();
+      if (operand is DotShorthandPropertyGet && typeArguments != null) {
+        operand.hasTypeParameters = true;
+      }
       if (operand is Generator) {
         push(operand.applyTypeArguments(
             openAngleBracket.charOffset, typeArguments));

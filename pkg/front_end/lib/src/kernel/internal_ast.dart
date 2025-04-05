@@ -3293,7 +3293,14 @@ class DotShorthandPropertyGet extends InternalExpression {
   final Name name;
   final int nameOffset;
 
-  DotShorthandPropertyGet(this.name, {required this.nameOffset});
+  /// Whether this dot shorthand has type parameters.
+  ///
+  /// Used for error checking for constructors with type parameters in the
+  /// [InferenceVisitor].
+  bool hasTypeParameters;
+
+  DotShorthandPropertyGet(this.name,
+      {required this.nameOffset, this.hasTypeParameters = false});
 
   @override
   ExpressionInferenceResult acceptInference(

@@ -697,6 +697,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult operandResult = inferExpression(
         node.expression, const UnknownType(),
         isVoidAllowed: true);
+    if (operandResult.expression is InvalidExpression) return operandResult;
     Expression operand = operandResult.expression;
     DartType operandType = operandResult.inferredType;
     if (operandType is! FunctionType) {
@@ -12289,12 +12290,42 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expressionInferenceResult =
               inferExpression(new StaticGet(member), cachedContext);
         } else {
-          // Tearoff like `Object.new`;
-          expressionInferenceResult =
-              inferExpression(new StaticTearOff(member), cachedContext);
+          // Method tearoffs.
+          DartType type =
+              member.function.computeFunctionType(Nullability.nonNullable);
+          return instantiateTearOff(
+              type, typeContext, new StaticTearOff(member));
         }
       case Constructor():
       case null:
+        // Handle constructor tearoffs.
+        if (cachedContext is TypeDeclarationType) {
+          Member? constructor = findConstructor(
+              cachedContext, node.name, node.fileOffset,
+              isTearoff: true);
+          // Dot shorthand constructor invocations with type parameters
+          // `.id<type>()` are not allowed.
+          if (constructor != null && node.hasTypeParameters) {
+            return new ExpressionInferenceResult(
+                const DynamicType(),
+                helper.buildProblem(
+                    messageDotShorthandsConstructorInvocationWithTypeArguments,
+                    node.nameOffset,
+                    node.name.text.length));
+          }
+          if (constructor is Constructor) {
+            DartType type = constructor.function
+                .computeFunctionType(Nullability.nonNullable);
+            return instantiateTearOff(
+                type, typeContext, new ConstructorTearOff(constructor));
+          } else if (constructor is Procedure) {
+            DartType type = constructor.function
+                .computeFunctionType(Nullability.nonNullable);
+            return instantiateTearOff(
+                type, typeContext, new StaticTearOff(constructor));
+          }
+        }
+
         if (isKnown(cachedContext)) {
           // Error when we can't find the static getter or field [node.name] in
           // the declaration of [cachedContext].

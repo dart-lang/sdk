@@ -20,6 +20,82 @@ class CreateGetterMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_GETTER;
 
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(M a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+mixin M {
+  int? get myUndefinedGetter => null;
+}
+''', target: partPath);
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+mixin M {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+mixin M {
+  int? get myUndefinedGetter => null;
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+mixin M {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(M a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+mixin M {
+  int? get myUndefinedGetter => null;
+}
+''', target: part1Path);
+  }
+
   Future<void> test_qualified_instance() async {
     await resolveTestCode('''
 mixin M {
@@ -193,6 +269,30 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_main_part() async {
+    var partPath = join(testPackageLibPath, 'part.dart');
+    newFile(partPath, '''
+part of 'test.dart';
+
+class A {
+}
+''');
+    await resolveTestCode('''
+part 'part.dart';
+
+void foo(A a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'test.dart';
+
+class A {
+  int? get myUndefinedGetter => null;
+}
+''', target: partPath);
+  }
+
   Future<void> test_multiLevel() async {
     await resolveTestCode('''
 class A {
@@ -337,6 +437,58 @@ void f(String s) {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_part_main() async {
+    var mainPath = join(testPackageLibPath, 'main.dart');
+    newFile(mainPath, '''
+part 'test.dart';
+
+class A {
+}
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(A a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+class A {
+  int? get myUndefinedGetter => null;
+}
+''', target: mainPath);
+  }
+
+  Future<void> test_part_sibling() async {
+    var part1Path = join(testPackageLibPath, 'part1.dart');
+    newFile(part1Path, '''
+part of 'main.dart';
+
+class A {
+}
+''');
+    newFile(join(testPackageLibPath, 'main.dart'), '''
+part 'part1.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'main.dart';
+
+void foo(A a) {
+  int? _ = a.myUndefinedGetter;
+}
+''');
+    await assertHasFix('''
+part of 'main.dart';
+
+class A {
+  int? get myUndefinedGetter => null;
+}
+''', target: part1Path);
   }
 
   Future<void> test_qualified_instance() async {

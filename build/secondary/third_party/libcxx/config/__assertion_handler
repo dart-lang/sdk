@@ -1,8 +1,0 @@
-#ifndef DART_LIBCXX_ASSERTION_HANDLER
-#define DART_LIBCXX_ASSERTION_HANDLER
-
-#include <__verbose_abort>
-
-#define _LIBCPP_ASSERTION_HANDLER(message) _LIBCPP_VERBOSE_ABORT("%s", message)
-
-#endif  // DART_LIBCXX_ASSERTION_HANDLER
