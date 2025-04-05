@@ -274,9 +274,9 @@ class RecordRepresentation {
 
 /// Conversion of records to classes.
 class RecordDataBuilder {
-  final DiagnosticReporter _reporter;
+  final DiagnosticReporter _reporter; // ignore: unused_field
   final JsToElementMap _elementMap;
-  final AnnotationsData _annotationsData;
+  final AnnotationsData _annotationsData; // ignore: unused_field
   final Map<RecordShape, List<MemberEntity>> _gettersByShape = {};
 
   RecordDataBuilder(this._reporter, this._elementMap, this._annotationsData);
@@ -285,9 +285,6 @@ class RecordDataBuilder {
     JClosedWorldBuilder closedWorldBuilder,
     Iterable<RecordType> recordTypes,
   ) {
-    _reporter;
-    _annotationsData;
-
     // Sorted shapes lead to a more consistent class ordering in the generated
     // code.
     final shapes =

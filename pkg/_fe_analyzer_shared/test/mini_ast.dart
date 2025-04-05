@@ -1601,6 +1601,8 @@ class Harness {
 
   bool? _inferenceUpdate4Enabled;
 
+  bool? _soundFlowAnalysisEnabled;
+
   bool? _patternsEnabled;
 
   Type? _thisType;
@@ -1630,6 +1632,8 @@ class Harness {
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   bool get patternsEnabled => _patternsEnabled ?? true;
+
+  bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
 
   set thisType(String type) {
     assert(!_started);
@@ -1708,7 +1712,8 @@ class Harness {
           respectImplicitlyTypedVarInitializers:
               _respectImplicitlyTypedVarInitializers,
           fieldPromotionEnabled: _fieldPromotionEnabled,
-          inferenceUpdate4Enabled: inferenceUpdate4Enabled);
+          inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+          soundFlowAnalysisEnabled: soundFlowAnalysisEnabled);
 
   void disableFieldPromotion() {
     assert(!_started);
@@ -1723,6 +1728,11 @@ class Harness {
   void disableInferenceUpdate4() {
     assert(!_started);
     _inferenceUpdate4Enabled = false;
+  }
+
+  void disableSoundFlowAnalysis() {
+    assert(!_started);
+    _soundFlowAnalysisEnabled = false;
   }
 
   void disablePatterns() {
@@ -5733,16 +5743,21 @@ class _MiniAstTypeAnalyzer
 
   ExpressionTypeAnalysisResult analyzeTypeCast(
       Expression node, Expression expression, Type type) {
-    analyzeExpression(expression, operations.unknownType);
-    flow.asExpression_end(expression, SharedTypeView(type));
+    var subExpressionType =
+        analyzeExpression(expression, operations.unknownType);
+    flow.asExpression_end(expression,
+        subExpressionType: subExpressionType, castType: SharedTypeView(type));
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(type));
   }
 
   ExpressionTypeAnalysisResult analyzeTypeTest(
       Expression node, Expression expression, Type type,
       {bool isInverted = false}) {
-    analyzeExpression(expression, operations.unknownType);
-    flow.isExpression_end(node, expression, isInverted, SharedTypeView(type));
+    var subExpressionType =
+        analyzeExpression(expression, operations.unknownType);
+    flow.isExpression_end(node, expression, isInverted,
+        subExpressionType: subExpressionType,
+        checkedType: SharedTypeView(type));
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
   }
 

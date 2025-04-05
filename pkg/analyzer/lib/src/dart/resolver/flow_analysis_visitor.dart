@@ -108,8 +108,9 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.asExpression_end(
-        expression, SharedTypeView(typeAnnotation.typeOrThrow));
+    flow!.asExpression_end(expression,
+        subExpressionType: SharedTypeView(expression.typeOrThrow),
+        castType: SharedTypeView(typeAnnotation.typeOrThrow));
   }
 
   void assignmentExpression(AssignmentExpressionImpl node) {
@@ -274,7 +275,8 @@ class FlowAnalysisHelper {
       node,
       expression,
       node.notOperator != null,
-      SharedTypeView(typeAnnotation.typeOrThrow),
+      subExpressionType: SharedTypeView(expression.typeOrThrow),
+      checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
     );
   }
 

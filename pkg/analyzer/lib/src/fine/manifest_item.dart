@@ -84,26 +84,6 @@ class ClassItem extends InterfaceItem {
   }
 }
 
-class ExportItem extends TopLevelItem {
-  ExportItem({
-    required super.id,
-    required super.metadata,
-  });
-
-  factory ExportItem.read(SummaryDataReader reader) {
-    return ExportItem(
-      id: ManifestItemId.read(reader),
-      metadata: ManifestMetadata.read(reader),
-    );
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind.export_);
-    super.write(sink);
-  }
-}
-
 /// The item for [InstanceElementImpl2].
 sealed class InstanceItem extends TopLevelItem {
   final List<ManifestTypeParameter> typeParameters;
@@ -612,8 +592,6 @@ sealed class TopLevelItem extends AnnotatedItem {
     switch (kind) {
       case _ManifestItemKind.class_:
         return ClassItem.read(reader);
-      case _ManifestItemKind.export_:
-        return ExportItem.read(reader);
       case _ManifestItemKind.topLevelFunction:
         return TopLevelFunctionItem.read(reader);
       case _ManifestItemKind.topLevelGetter:
@@ -680,7 +658,6 @@ class TopLevelSetterItem extends TopLevelItem {
 
 enum _ManifestItemKind {
   class_,
-  export_,
   topLevelFunction,
   topLevelGetter,
   topLevelSetter,

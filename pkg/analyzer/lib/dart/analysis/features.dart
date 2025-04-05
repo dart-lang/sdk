@@ -86,6 +86,9 @@ abstract class Feature {
   /// Feature information for set literals.
   static final set_literals = ExperimentalFeatures.set_literals;
 
+  /// Feature information for sound flow analysis.
+  static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
+
   /// Feature information for super parameters.
   static final super_parameters = ExperimentalFeatures.super_parameters;
 

@@ -15,4 +15,6 @@ TypeAnalyzerOptions computeTypeAnalyzerOptions(FeatureSet featureSet) =>
           featureSet.isEnabled(Feature.constructor_tearoffs),
       fieldPromotionEnabled: featureSet.isEnabled(Feature.inference_update_2),
       inferenceUpdate4Enabled: featureSet.isEnabled(Feature.inference_update_4),
+      soundFlowAnalysisEnabled:
+          featureSet.isEnabled(Feature.sound_flow_analysis),
     );

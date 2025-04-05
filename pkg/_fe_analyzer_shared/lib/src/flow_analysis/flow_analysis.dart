@@ -210,8 +210,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting an "as" expression.
   ///
   /// [subExpression] should be the expression to which the "as" check was
-  /// applied.  [type] should be the type being checked.
-  void asExpression_end(Expression subExpression, Type type);
+  /// applied, and [subExpressionType] should be its static type. [castType]
+  /// should be the type being cast to.
+  void asExpression_end(Expression subExpression,
+      {required Type subExpressionType, required Type castType});
 
   /// Call this method after visiting the condition part of an assert statement
   /// (or assert initializer).
@@ -659,11 +661,13 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting the LHS of an "is" expression.
   ///
   /// [isExpression] should be the complete expression.  [subExpression] should
-  /// be the expression to which the "is" check was applied.  [isNot] should be
-  /// a boolean indicating whether this is an "is" or an "is!" expression.
-  /// [type] should be the type being checked.
+  /// be the expression to which the "is" check was applied, and
+  /// [subExpressionType] should be its static type. [isNot] should be a
+  /// boolean indicating whether this is an "is" or an "is!" expression.
+  /// [checkedType] should be the type being checked.
   void isExpression_end(
-      Expression isExpression, Expression subExpression, bool isNot, Type type);
+      Expression isExpression, Expression subExpression, bool isNot,
+      {required Type subExpressionType, required Type checkedType});
 
   /// Return whether the [variable] is definitely unassigned in the current
   /// state.
@@ -1214,9 +1218,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   FlowAnalysisOperations<Variable, Type> get operations => _wrapped.operations;
 
   @override
-  void asExpression_end(Expression subExpression, Type type) {
-    _wrap('asExpression_end($subExpression, $type)',
-        () => _wrapped.asExpression_end(subExpression, type));
+  void asExpression_end(Expression subExpression,
+      {required Type subExpressionType, required Type castType}) {
+    _wrap(
+        'asExpression_end($subExpression, subExpressionType: '
+        '$subExpressionType, castType: $castType)',
+        () => _wrapped.asExpression_end(subExpression,
+            subExpressionType: subExpressionType, castType: castType));
   }
 
   @override
@@ -1573,12 +1581,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void isExpression_end(Expression isExpression, Expression subExpression,
-      bool isNot, Type type) {
+  void isExpression_end(
+      Expression isExpression, Expression subExpression, bool isNot,
+      {required Type subExpressionType, required Type checkedType}) {
     _wrap(
-        'isExpression_end($isExpression, $subExpression, $isNot, $type)',
-        () => _wrapped.isExpression_end(
-            isExpression, subExpression, isNot, type));
+        'isExpression_end($isExpression, $subExpression, $isNot, '
+        'subExpressionType: $subExpressionType, checkedType: $checkedType)',
+        () => _wrapped.isExpression_end(isExpression, subExpression, isNot,
+            subExpressionType: subExpressionType, checkedType: checkedType));
   }
 
   @override
@@ -4280,7 +4290,7 @@ class _EqualityCheckIsNullCheck<Type extends Object>
 
 /// Result of performing equality check.  This class is used as the return value
 /// for [_FlowAnalysisImpl._equalityCheck].
-abstract class _EqualityCheckResult {
+sealed class _EqualityCheckResult {
   const _EqualityCheckResult._();
 }
 
@@ -4290,7 +4300,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     implements
         FlowAnalysis<Node, Statement, Expression, Variable, Type>,
         _PropertyTargetHelper<Expression, Type> {
-  /// Options affecting the behavior of flow analysis.
+  /// Language features enables affecting the behavior of flow analysis.
   final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The [FlowAnalysisOperations], used to access types, check subtyping, and
@@ -4413,10 +4423,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   FlowAnalysisTypeOperations<Type> get typeOperations => operations;
 
   @override
-  void asExpression_end(Expression subExpression, Type type) {
+  void asExpression_end(Expression subExpression,
+      {required Type subExpressionType, required Type castType}) {
+    // Depending on types, flow analysis may be able to prove that the `as`
+    // expression is guaranteed to fail.
+    if (_isTypeCheckGuaranteedToFailWithSoundNullSafety(
+        staticType: subExpressionType, checkedType: castType)) {
+      _current = _current.setUnreachable();
+    }
+
     _Reference<Type>? reference = _getExpressionReference(subExpression);
     if (reference == null) return;
-    _current = _current.tryPromoteForTypeCast(this, reference, type);
+    _current = _current.tryPromoteForTypeCast(this, reference, castType);
   }
 
   @override
@@ -4668,30 +4686,33 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // information about legacy operands.  But since we are currently in full
     // (post null safety) flow analysis logic, we can safely assume that they
     // are not null.
-    _EqualityCheckResult equalityCheckResult = _equalityCheck(
-        leftOperandInfo, leftOperandType, rightOperandInfo, rightOperandType);
-    if (equalityCheckResult is _GuaranteedEqual) {
-      // Both operands are known by flow analysis to compare equal, so the whole
-      // expression behaves equivalently to a boolean (either `true` or `false`
-      // depending whether the check uses the `!=` operator).
-      booleanLiteral(wholeExpression, !notEqual);
-    } else if (equalityCheckResult is _EqualityCheckIsNullCheck<Type>) {
-      _Reference<Type>? reference = equalityCheckResult.reference;
-      if (reference == null) {
-        // One side of the equality check is `null`, but the other side is not a
-        // promotable reference.  So there's no promotion to do.
-        return;
-      }
-      // The equality check is a null check of something potentially promotable
-      // (e.g. a local variable).  Record the necessary information so that if
-      // this null check winds up being used for a conditional branch, the
-      // variable's will be promoted on the appropriate code path.
-      ExpressionInfo<Type> equalityInfo =
-          _current.tryMarkNonNullable(this, reference);
-      _storeExpressionInfo(
-          wholeExpression, notEqual ? equalityInfo : equalityInfo._invert());
-    } else {
-      assert(equalityCheckResult is _NoEqualityInformation);
+    switch (_equalityCheck(
+        leftOperandInfo, leftOperandType, rightOperandInfo, rightOperandType)) {
+      case _GuaranteedEqual():
+        // Both operands are known by flow analysis to compare equal, so the
+        // whole expression behaves equivalently to a boolean (either `true` or
+        // `false` depending whether the check uses the `!=` operator).
+        booleanLiteral(wholeExpression, !notEqual);
+
+      // SAFETY: we can assume `reference` is a `_Reference<Type>` because we
+      // require clients not to mix data obtained from different
+      // instantiations of `FlowAnalysis`.
+      case _EqualityCheckIsNullCheck(:var reference as _Reference<Type>?):
+        if (reference == null) {
+          // One side of the equality check is `null`, but the other side is not
+          // a promotable reference.  So there's no promotion to do.
+          return;
+        }
+        // The equality check is a null check of something potentially
+        // promotable (e.g. a local variable).  Record the necessary information
+        // so that if this null check winds up being used for a conditional
+        // branch, the variable's will be promoted on the appropriate code path.
+        ExpressionInfo<Type> equalityInfo =
+            _current.tryMarkNonNullable(this, reference);
+        _storeExpressionInfo(
+            wholeExpression, notEqual ? equalityInfo : equalityInfo._invert());
+
+      case _NoEqualityInformation():
       // Since flow analysis can't garner any information from this equality
       // check, nothing needs to be done; by not calling `_storeExpressionInfo`,
       // we ensure that if `_getExpressionInfo` is later called on this
@@ -4950,16 +4971,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void isExpression_end(Expression isExpression, Expression subExpression,
-      bool isNot, Type type) {
-    if (operations.isBottomType(type)) {
+  void isExpression_end(
+      Expression isExpression, Expression subExpression, bool isNot,
+      {required Type subExpressionType, required Type checkedType}) {
+    if (operations.isBottomType(checkedType) ||
+        _isTypeCheckGuaranteedToFailWithSoundNullSafety(
+            staticType: subExpressionType, checkedType: checkedType)) {
       booleanLiteral(isExpression, isNot);
     } else {
       _Reference<Type>? subExpressionReference =
           _getExpressionReference(subExpression);
       if (subExpressionReference != null) {
-        ExpressionInfo<Type> expressionInfo =
-            _current.tryPromoteForTypeCheck(this, subExpressionReference, type);
+        ExpressionInfo<Type> expressionInfo = _current.tryPromoteForTypeCheck(
+            this, subExpressionReference, checkedType);
         _storeExpressionInfo(
             isExpression, isNot ? expressionInfo._invert() : expressionInfo);
       }
@@ -5937,69 +5961,68 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _Reference<Type> newReference = context
         .createReference(matchedValueType, _current)
         .addPreviousInfo(context._matchedValueInfo, this, _current);
-    _EqualityCheckResult equalityCheckResult = _equalityCheck(newReference,
-        matchedValueType, _getExpressionInfo(operand), operandType);
-    if (equalityCheckResult is _NoEqualityInformation) {
-      // We have no information so we have to assume the pattern might or
-      // might not match.
-      _unmatched = _join(_unmatched!, _current);
-    } else if (equalityCheckResult is _EqualityCheckIsNullCheck<Type>) {
-      FlowModel<Type>? ifNotNull;
-      if (!equalityCheckResult.isReferenceOnRight) {
-        // The `null` literal is on the right hand side of the implicit
-        // equality check, meaning it is the constant value.  So the user is
-        // doing something like this:
-        //
-        //     if (v case == null) { ... }
-        //
-        // So we want to promote the type of `v` in the case where the
-        // constant pattern *didn't* match.
-        ifNotNull = _nullCheckPattern(matchedValueType: matchedValueType);
-        if (ifNotNull == null) {
-          // `_nullCheckPattern` returns `null` in the case where the matched
-          // value type is non-nullable.  In fully sound programs, this would
-          // mean that the pattern cannot possibly match.  However, in mixed
-          // mode programs it might match due to unsoundness.  Since we don't
-          // want type inference results to change when a program becomes
-          // fully sound, we have to assume that we're in mixed mode, and thus
-          // the pattern might match.
+    switch (_equalityCheck(newReference, matchedValueType,
+        _getExpressionInfo(operand), operandType)) {
+      case _NoEqualityInformation():
+        // We have no information so we have to assume the pattern might or
+        // might not match.
+        _unmatched = _join(_unmatched!, _current);
+      case _EqualityCheckIsNullCheck<Object>(:var isReferenceOnRight):
+        FlowModel<Type>? ifNotNull;
+        if (!isReferenceOnRight) {
+          // The `null` literal is on the right hand side of the implicit
+          // equality check, meaning it is the constant value.  So the user is
+          // doing something like this:
+          //
+          //     if (v case == null) { ... }
+          //
+          // So we want to promote the type of `v` in the case where the
+          // constant pattern *didn't* match.
+          ifNotNull = _nullCheckPattern(matchedValueType: matchedValueType);
+          if (ifNotNull == null) {
+            // `_nullCheckPattern` returns `null` in the case where the matched
+            // value type is non-nullable.  In fully sound programs, this would
+            // mean that the pattern cannot possibly match.  However, in mixed
+            // mode programs it might match due to unsoundness.  Since we don't
+            // want type inference results to change when a program becomes
+            // fully sound, we have to assume that we're in mixed mode, and thus
+            // the pattern might match.
+            ifNotNull = _current;
+          }
+        } else {
+          // The `null` literal is on the left hand side of the implicit
+          // equality check, meaning it is the scrutinee.  So the user is doing
+          // something silly like this:
+          //
+          //     if (null case == c) { ... }
+          //
+          // (where `c` is some constant).  There's no variable to promote.
+          //
+          // Since flow analysis can't make use of the results of constant
+          // evaluation, we can't really assume anything; as far as we know, the
+          // pattern might or might not match.
           ifNotNull = _current;
         }
-      } else {
-        // The `null` literal is on the left hand side of the implicit
-        // equality check, meaning it is the scrutinee.  So the user is doing
-        // something silly like this:
-        //
-        //     if (null case == c) { ... }
-        //
-        // (where `c` is some constant).  There's no variable to promote.
-        //
-        // Since flow analysis can't make use of the results of constant
-        // evaluation, we can't really assume anything; as far as we know, the
-        // pattern might or might not match.
-        ifNotNull = _current;
-      }
-      if (notEqual) {
-        _unmatched = _join(_unmatched!, _current);
-        _current = ifNotNull;
-      } else {
-        _unmatched = _join(_unmatched!, ifNotNull);
-      }
-    } else {
-      assert(equalityCheckResult is _GuaranteedEqual);
-      if (notEqual) {
-        // Both operands are known by flow analysis to compare equal, so the
-        // constant pattern is guaranteed *not* to match.
-        _unmatched = _join(_unmatched!, _current);
-        _current = _current.setUnreachable();
-      } else {
-        // Both operands are known by flow analysis to compare equal, so the
-        // constant pattern is guaranteed to match.  Since our approach to
-        // handling patterns in flow analysis uses "implicit and" semantics
-        // (initially assuming that the pattern always matches, and then
-        // updating the `_current` and `_unmatched` states to reflect what
-        // values the pattern rejects), we don't have to do any updates.
-      }
+        if (notEqual) {
+          _unmatched = _join(_unmatched!, _current);
+          _current = ifNotNull;
+        } else {
+          _unmatched = _join(_unmatched!, ifNotNull);
+        }
+      case _GuaranteedEqual():
+        if (notEqual) {
+          // Both operands are known by flow analysis to compare equal, so the
+          // constant pattern is guaranteed *not* to match.
+          _unmatched = _join(_unmatched!, _current);
+          _current = _current.setUnreachable();
+        } else {
+          // Both operands are known by flow analysis to compare equal, so the
+          // constant pattern is guaranteed to match.  Since our approach to
+          // handling patterns in flow analysis uses "implicit and" semantics
+          // (initially assuming that the pattern always matches, and then
+          // updating the `_current` and `_unmatched` states to reflect what
+          // values the pattern rejects), we don't have to do any updates.
+        }
     }
   }
 
@@ -6060,6 +6083,32 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .tryPromoteForTypeCheck(this,
               _variableReference(promotionKey, unpromotedType), matchedType)
           .ifTrue;
+    }
+  }
+
+  /// Determines whether an expression having the given [staticType] is
+  /// guaranteed to fail an `is` or `as` check using [checkedType] due to sound
+  /// null safety.
+  ///
+  /// If [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `false`, this method
+  /// will return `false` regardless of its input. This reflects the fact that
+  /// in language versions prior to the introduction of sound flow analysis,
+  /// flow analysis assumed that the program might be executing in unsound null
+  /// safety mode.
+  bool _isTypeCheckGuaranteedToFailWithSoundNullSafety(
+      {required Type staticType, required Type checkedType}) {
+    if (!typeAnalyzerOptions.soundFlowAnalysisEnabled) return false;
+    switch (typeOperations.classifyType(staticType)) {
+      case TypeClassification.nonNullable
+          when typeOperations.classifyType(checkedType) ==
+              TypeClassification.nullOrEquivalent:
+      case TypeClassification.nullOrEquivalent
+          when typeOperations.classifyType(checkedType) ==
+              TypeClassification.nonNullable:
+        // Guaranteed to fail due to nullability mismatch.
+        return true;
+      default:
+        return false;
     }
   }
 
