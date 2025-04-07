@@ -25,11 +25,46 @@ class InlineValueTest extends AbstractLspAnalysisServerTest {
   /// client configuration passed during initialization.
   bool experimentalInlineValuesProperties = false;
 
+  Future<void> test_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    // There are no marked ranges, because none of these should produce values.
+    code = TestCode.parse(r'''
+import 'dart:async';
+
+void f(
+  Iterable<int> p1,
+  Future<int> p2,
+  FutureOr<int> p3,
+  Stream<int> p4,
+) {
+  ^
+}
+''');
+
+    await verify_values(code);
+  }
+
   Future<void> test_parameter_declaration() async {
     code = TestCode.parse(r'''
 void f(int /*[0*/aaa/*0]*/, int /*[1*/bbb/*1]*/) {
   ^
   aaa + bbb;
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  /// Lists are included, iterables are not.
+  Future<void> test_parameter_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f(List list1, List<int> /*[0*/list2/*0]*/, Iterable iterable1, Iterable iterable2) {
+  print(/*[1*/list1/*1]*/);
+  print(iterable1);
+  ^
 }
 ''');
 
@@ -154,6 +189,27 @@ void f() {
 ''');
 
     await verify_values(code, ofType: InlineValueEvaluatableExpression);
+  }
+
+  /// Lists are included, iterables are not.
+  Future<void> test_property_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f(List<int> /*[0*/list/*0]*/, Iterable<int> iterable) {
+  print(/*[1*/list.length/*1]*/);
+  print(iterable.length);
+  ^
+}
+''');
+
+    await verify_values(
+      code,
+      ofTypes: {
+        0: InlineValueVariableLookup,
+        1: InlineValueEvaluatableExpression,
+      },
+    );
   }
 
   Future<void> test_property_method() async {
@@ -294,6 +350,24 @@ void f() {
   ^
   aaa + bbb;
   ccc;
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  /// Lists are included, iterables are not.
+  Future<void> test_variable_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f() {
+  var list = [1,];
+  var iterable = list as Iterable<int>;
+
+  print(/*[0*/list/*0]*/);
+  print(iterable);
+  ^
 }
 ''');
 

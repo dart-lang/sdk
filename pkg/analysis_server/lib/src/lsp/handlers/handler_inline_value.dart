@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_null_check_
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 
@@ -210,9 +211,36 @@ class _InlineValueCollector {
     );
   }
 
+  /// Returns whether [element] is something that should never be eagerly
+  /// evaluated because of potential side-effects (such as `iterable.length`).
+  bool _isExcludedElement(Element2 element) {
+    return switch (element) {
+      VariableElement2() => _isExcludedType(element.type),
+      GetterElement() => _isExcludedType(element.returnType),
+      _ => false,
+    };
+  }
+
+  /// Returns whether [type] is something that should never be eagerly
+  /// evaluated because of potential side-effects (such as `iterable.length`).
+  bool _isExcludedType(DartType? type) {
+    if (type == null) {
+      return false;
+    }
+    return type.isDartCoreIterable ||
+        type.isDartAsyncFuture ||
+        type.isDartAsyncFutureOr ||
+        type.isDartAsyncStream;
+  }
+
   /// Records an inline value [value] for [element] if it is within range and is
   /// the latest one in the source for that element.
   void _record(InlineValue value, Element2 element) {
+    // Don't create values for any elements that are excluded types.
+    if (_isExcludedElement(element)) {
+      return;
+    }
+
     var range = _getRange(value);
 
     // We only want to show each variable once, so keep only the one furthest
@@ -266,6 +294,11 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (experimentalInlineValuesProperties) {
+      // Don't create values for excluded types or access of their properties.
+      if (collector._isExcludedType(node.prefix.staticType)) {
+        return;
+      }
+
       var parent = node.parent;
 
       // Never produce values for the left side of a property access.
@@ -286,7 +319,13 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (experimentalInlineValuesProperties && node.target is Identifier) {
+    var target = node.target;
+    if (experimentalInlineValuesProperties && target is Identifier) {
+      // Don't create values for excluded types or access of their properties.
+      if (collector._isExcludedType(target.staticType)) {
+        return;
+      }
+
       collector.recordExpression(
         node.canonicalElement,
         node.offset,

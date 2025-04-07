@@ -32,7 +32,7 @@ import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
-  final MemoryByteStore byteStore = MemoryByteStore();
+  final CiderByteStore byteStore = CiderByteStore();
 
   final FileResolverTestData testData = FileResolverTestData();
 

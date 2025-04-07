@@ -327,6 +327,35 @@ void main(List<String> args) {
       });
     },
   );
+
+  test(
+    'dart build with user defines',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('user_defines', (packageUri) async {
+        await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'build',
+            'bin/user_defines.dart',
+          ],
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+
+        final outputDirectory =
+            Directory.fromUri(packageUri.resolve('bin/user_defines'));
+        expect(outputDirectory.existsSync(), true);
+
+        final proccessResult = await runProcess(
+          executable: outputDirectory.uri.resolve('user_defines.exe'),
+          logger: logger,
+          throwOnUnexpectedExitCode: true,
+        );
+        expect(proccessResult.stdout, contains('Hello world!'));
+      });
+    },
+  );
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

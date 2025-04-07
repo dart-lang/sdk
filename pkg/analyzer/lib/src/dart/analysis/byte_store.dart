@@ -37,14 +37,11 @@ abstract class ByteStore {
   void release(Iterable<String> keys);
 }
 
-/// [ByteStore] which stores data only in memory.
-class MemoryByteStore implements ByteStore {
+/// [ByteStore] which stores data only in memory, and evicts data as soon as it
+/// becomes unreferenced.
+class CiderByteStore implements ByteStore {
   @visibleForTesting
-  final Map<String, MemoryByteStoreEntry> map = {};
-
-  /// Throws [StateError] if [release] invoked when there is no entry.
-  @visibleForTesting
-  bool throwIfReleaseWithoutEntry = false;
+  final Map<String, CiderByteStoreEntry> map = {};
 
   @override
   Uint8List? get(String key) {
@@ -65,7 +62,7 @@ class MemoryByteStore implements ByteStore {
       return entry.bytes;
     }
 
-    map[key] = MemoryByteStoreEntry._(bytes);
+    map[key] = CiderByteStoreEntry._(bytes);
     return bytes;
   }
 
@@ -73,29 +70,49 @@ class MemoryByteStore implements ByteStore {
   void release(Iterable<String> keys) {
     for (var key in keys) {
       var entry = map[key];
-      if (entry != null) {
-        entry.refCount--;
-        if (entry.refCount == 0) {
-          map.remove(key);
-        }
-      } else if (throwIfReleaseWithoutEntry) {
-        throw StateError('No entry: $key');
+      if (entry == null) {
+        // TODO(scheglov): enable and fix
+        // throw StateError('No entry: $key');
+        return;
+      }
+      entry.refCount--;
+      if (entry.refCount == 0) {
+        map.remove(key);
       }
     }
   }
 }
 
 @visibleForTesting
-class MemoryByteStoreEntry {
+class CiderByteStoreEntry {
   final Uint8List bytes;
   int refCount = 1;
 
-  MemoryByteStoreEntry._(this.bytes);
+  CiderByteStoreEntry._(this.bytes);
 
   @override
   String toString() {
     return '(length: ${bytes.length}, refCount: $refCount)';
   }
+}
+
+/// [ByteStore] which stores data only in memory.
+class MemoryByteStore implements ByteStore {
+  final Map<String, Uint8List> map = {};
+
+  @override
+  Uint8List? get(String key) {
+    return map[key];
+  }
+
+  @override
+  Uint8List putGet(String key, Uint8List bytes) {
+    map[key] = bytes;
+    return bytes;
+  }
+
+  @override
+  void release(Iterable<String> keys) {}
 }
 
 /// A wrapper around [ByteStore] which adds an in-memory LRU cache to it.
