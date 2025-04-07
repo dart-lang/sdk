@@ -40,6 +40,14 @@ class DartFixContext implements FixContext {
   /// The workspace in which the fix contributor operates.
   final ChangeWorkspace workspace;
 
+  /// Cache of previously computed [getTopLevelDeclarations] responses.
+  ///
+  /// It's been observed that the same request is fired multiple times for at
+  /// least some getFixes requsts. Caching the response can speed up such
+  /// requests.
+  final Map<String, Future<Map<LibraryElement2, Element2>>>
+      _cachedTopLevelDeclarations = {};
+
   @override
   final AnalysisError error;
 
@@ -58,7 +66,11 @@ class DartFixContext implements FixContext {
   ///
   /// For getters and setters the corresponding top-level variable is returned.
   Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(String name) {
-    return TopLevelDeclarations(unitResult).withName(name);
+    var cachedResult = _cachedTopLevelDeclarations[name];
+    if (cachedResult != null) return cachedResult;
+    var result = TopLevelDeclarations(unitResult).withName(name);
+    _cachedTopLevelDeclarations[name] = result;
+    return result;
   }
 
   /// Returns libraries with extensions that declare non-static public
