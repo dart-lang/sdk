@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // `is` tests against some parameterized interface types are equivalent to a
-// weaker test for just the interace. The weaker test is usually more efficient,
+// weaker test for just the interface. The weaker test is usually more efficient,
 // sometimes being compiled to `instanceof`.
 
 class Base<T extends num> {
