@@ -175,8 +175,6 @@ class Thread;
     StubCode::LazySpecializeTypeTest().ptr(), nullptr)                         \
   V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().ptr(), nullptr) \
   V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().ptr(), nullptr)   \
-  V(CodePtr, exit_safepoint_ignore_unwind_in_progress_stub_,                   \
-    StubCode::ExitSafepointIgnoreUnwindInProgress().ptr(), nullptr)            \
   V(CodePtr, call_native_through_safepoint_stub_,                              \
     StubCode::CallNativeThroughSafepoint().ptr(), nullptr)
 
@@ -1170,6 +1168,14 @@ class Thread : public ThreadState {
       // of a safepoint operation.
       ExitSafepointUsingLock();
     }
+
+#ifndef PRODUCT
+    // Exit frame must have remained valid for the whole duration of the
+    // safepoint. Do some quick checks to validate that.
+    if (FLAG_use_slow_path) {
+      ValidateExitFrameState();
+    }
+#endif
   }
 
   bool TryExitSafepointFromNative() {
@@ -1195,8 +1201,21 @@ class Thread : public ThreadState {
 
     ASSERT(!ActiveMutatorStealableField::decode(safepoint_state_));
     ASSERT(!ActiveMutatorStolenField::decode(safepoint_state_));
+
+#ifndef PRODUCT
+    // Exit frame must have remained valid for the whole duration of the
+    // safepoint. Do some quick checks to validate that.
+    if (FLAG_use_slow_path) {
+      ValidateExitFrameState();
+    }
+#endif
   }
+
   void HandleStolen();
+
+#ifndef PRODUCT
+  void ValidateExitFrameState();
+#endif
 
   void CheckForSafepoint() {
     // If we are in a runtime call that doesn't support lazy deopt, we will only

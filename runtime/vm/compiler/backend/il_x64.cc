@@ -1474,7 +1474,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // The callback trampoline (caller) has already left the safepoint for us.
   __ TransitionNativeToGenerated(/*exit_safepoint=*/false,
-                                 /*ignore_unwind_in_progress=*/false,
                                  /*set_tag=*/false);
 
   // Load the code object.

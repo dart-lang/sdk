@@ -4399,13 +4399,10 @@ void Assembler::TransitionGeneratedToNative(Register destination,
 
 void Assembler::TransitionNativeToGenerated(Register state,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress,
                                             bool set_tag) {
   if (exit_safepoint) {
-    ExitFullSafepoint(state, ignore_unwind_in_progress);
+    ExitFullSafepoint(state);
   } else {
-    // flag only makes sense if we are leaving safepoint
-    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     ASSERT(target::Thread::native_safepoint_state_acquired() != 0);
@@ -4495,8 +4492,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   Bind(&done);
 }
 
-void Assembler::ExitFullSafepoint(Register state,
-                                  bool ignore_unwind_in_progress) {
+void Assembler::ExitFullSafepoint(Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   // For TSAN, we always go to the runtime so TSAN is aware of the acquire
@@ -4524,14 +4520,7 @@ void Assembler::ExitFullSafepoint(Register state,
   }
 
   Bind(&slow_path);
-  if (ignore_unwind_in_progress) {
-    lx(addr,
-       Address(THR,
-               target::Thread::
-                   exit_safepoint_ignore_unwind_in_progress_stub_offset()));
-  } else {
-    lx(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  }
+  lx(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   lx(addr, FieldAddress(addr, target::Code::entry_point_offset()));
   jalr(addr);
 

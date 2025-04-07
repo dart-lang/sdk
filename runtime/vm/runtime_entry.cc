@@ -4377,33 +4377,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint,
                               /*is_float=*/false,
                               DFLRT_ExitSafepoint);
 
-// This is expected to be invoked when jumping to destination frame,
-// during exception handling.
-extern "C" void DFLRT_ExitSafepointIgnoreUnwindInProgress(
-    NativeArguments __unusable_) {
-  CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress");
-  Thread* thread = Thread::Current();
-  ASSERT(thread->top_exit_frame_info() != 0);
-
-  // Compared to ExitSafepoint above we are going to ignore
-  // is_unwind_in_progress flag because this is called as part of JumpToFrame
-  // exception handler - we want this transition to complete so that the next
-  // safepoint check does error propagation.
-  if (thread->execution_state() == Thread::kThreadInNative) {
-    thread->ExitSafepointFromNative();
-  } else {
-    ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->ExitSafepoint();
-  }
-
-  TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress done");
-}
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
-                              /*argument_count=*/0,
-                              /*is_float*/ false,
-                              DFLRT_ExitSafepointIgnoreUnwindInProgress);
-
 // This is called by a native callback trampoline
 // (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
 // a runtime entry because we can't use Thread to look it up.

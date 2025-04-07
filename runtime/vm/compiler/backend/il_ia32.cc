@@ -1294,7 +1294,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // The callback trampoline (caller) has already left the safepoint for us.
   __ TransitionNativeToGenerated(EAX, /*exit_safepoint=*/false,
-                                 /*ignore_unwind_in_progress=*/false,
                                  /*set_tag=*/false);
 
   // Now that the safepoint has ended, we can hold Dart objects with bare hands.

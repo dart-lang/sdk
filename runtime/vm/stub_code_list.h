@@ -152,7 +152,6 @@ namespace dart {
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
-  V(ExitSafepointIgnoreUnwindInProgress)                                       \
   V(CallNativeThroughSafepoint)                                                \
   V(FfiCallbackTrampoline)                                                     \
   V(InitStaticField)                                                           \
