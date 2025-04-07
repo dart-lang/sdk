@@ -3153,6 +3153,122 @@ import 'b.dart';
     expect(driver.knownFiles, isEmpty);
   }
 
+  test_linkedBundleProvider_changeFile() async {
+    var a = newFile('$testPackageLibPath/a.dart', 'var V = 1;');
+
+    var driver = driverFor(a);
+    var collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    driver.priorityFiles2 = [a];
+
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
+      switch (result.uriStr) {
+        case 'package:test/a.dart':
+          return [
+            result.findElement2.topVar('V'),
+          ];
+        default:
+          return [];
+      }
+    };
+
+    // Initial analysis.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    selectedVariableTypes
+      V: int
+[status] idle
+''');
+
+    // When no fine-grained dependencies, we don't cache bundles.
+    // So, [LinkedBundleProvider] is empty, and not printed.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_1 dart:core synthetic
+        fileKinds: library_0
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+  /home/test/lib/a.dart
+    current: cycle_0
+      key: k01
+    get: []
+    put: [k01]
+elementFactory
+  hasElement
+    package:test/a.dart
+''');
+
+    // Update the file, but don't notify the driver.
+    // No new results.
+    modifyFile2(a, 'var V = 1.2;');
+    await assertEventsText(collector, r'''
+''');
+
+    // Notify the driver about the change.
+    // We get a new result.
+    driver.changeFile2(a);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    selectedVariableTypes
+      V: double
+[status] idle
+''');
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_6
+        libraryImports
+          library_1 dart:core synthetic
+        fileKinds: library_6
+        cycle_2
+          dependencies: dart:core
+          libraries: library_6
+          apiSignature_1
+      unlinkedKey: k02
+libraryCycles
+  /home/test/lib/a.dart
+    current: cycle_2
+      key: k03
+    get: []
+    put: [k01, k03]
+elementFactory
+  hasElement
+    package:test/a.dart
+''');
+  }
+
   test_missingDartLibrary_async() async {
     var driver = driverFor(testFile);
 
@@ -7990,6 +8106,186 @@ final a = 1.2;
       package:test/b.dart
         a: #M2
 [status] idle
+''',
+    );
+  }
+
+  test_linkedBundleProvider_newBundleKey() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      // Here `k02` is for `dart:core`.
+      expectedInitialDriverState: r'''
+files
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_1 dart:core synthetic
+        fileKinds: library_0
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+  /home/test/lib/test.dart
+    current: cycle_0
+      key: k01
+    get: []
+    put: [k01]
+linkedBundleProvider: [k01, k02]
+elementFactory
+  hasElement
+    package:test/test.dart
+''',
+      // Add a part, this changes the linked bundle key.
+      updateFiles: () {
+        var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+final b = 0;
+''');
+        return [a];
+      },
+      updatedCode: r'''
+part 'a.dart';
+final a = 0;
+''',
+      // So, we cannot find the existing library manifest.
+      // So, we relink the library, and give new IDs.
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+      b: #M2
+''',
+      // Note a new bundle key is generated: k05
+      // TODO(scheglov): Here is a memory leak: k01 is still present.
+      expectedUpdatedDriverState: r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_6
+      kind: partOfUriKnown_6
+        uriFile: file_0
+        library: library_7
+      referencingFiles: file_0
+      unlinkedKey: k03
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_0
+      kind: library_7
+        libraryImports
+          library_1 dart:core synthetic
+        partIncludes
+          partOfUriKnown_6
+        fileKinds: library_7 partOfUriKnown_6
+        cycle_2
+          dependencies: dart:core
+          libraries: library_7
+          apiSignature_1
+      unlinkedKey: k04
+libraryCycles
+  /home/test/lib/test.dart
+    current: cycle_2
+      key: k05
+    get: []
+    put: [k01, k05]
+linkedBundleProvider: [k01, k02, k05]
+elementFactory
+  hasElement
+    package:test/test.dart
+''',
+    );
+  }
+
+  test_linkedBundleProvider_sameBundleKey() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      expectedInitialDriverState: r'''
+files
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_1 dart:core synthetic
+        fileKinds: library_0
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+  /home/test/lib/test.dart
+    current: cycle_0
+      key: k01
+    get: []
+    put: [k01]
+linkedBundleProvider: [k01, k02]
+elementFactory
+  hasElement
+    package:test/test.dart
+''',
+      updatedCode: r'''
+final a = 0;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      expectedUpdatedDriverState: r'''
+files
+  /home/test/lib/test.dart
+    uri: package:test/test.dart
+    current
+      id: file_0
+      kind: library_6
+        libraryImports
+          library_1 dart:core synthetic
+        fileKinds: library_6
+        cycle_2
+          dependencies: dart:core
+          libraries: library_6
+          apiSignature_1
+      unlinkedKey: k03
+libraryCycles
+  /home/test/lib/test.dart
+    current: cycle_2
+      key: k01
+    get: []
+    put: [k01, k01]
+linkedBundleProvider: [k01, k02]
+elementFactory
+  hasElement
+    package:test/test.dart
 ''',
     );
   }
@@ -13424,8 +13720,11 @@ int get b => 0;
   Future<void> _runLibraryManifestScenario({
     required String initialCode,
     String? expectedInitialEvents,
+    String? expectedInitialDriverState,
+    List<File> Function()? updateFiles,
     required String updatedCode,
     required String expectedUpdatedEvents,
+    String? expectedUpdatedDriverState,
   }) async {
     void setId(String id) {
       NodeTextExpectationsCollector.intraInvocationId = id;
@@ -13457,6 +13756,17 @@ int get b => 0;
       collector.take();
     }
 
+    if (expectedInitialDriverState != null) {
+      assertDriverStateString(testFile, expectedInitialDriverState);
+    }
+
+    if (updateFiles != null) {
+      var updatedFiles = updateFiles();
+      for (var updatedFile in updatedFiles) {
+        driver.changeFile2(updatedFile);
+      }
+    }
+
     modifyFile2(testFile, updatedCode);
     driver.changeFile2(testFile);
 
@@ -13464,6 +13774,10 @@ int get b => 0;
 
     setId('expectedUpdatedEvents');
     await assertEventsText(collector, expectedUpdatedEvents);
+
+    if (expectedUpdatedDriverState != null) {
+      assertDriverStateString(testFile, expectedUpdatedDriverState);
+    }
   }
 }
 

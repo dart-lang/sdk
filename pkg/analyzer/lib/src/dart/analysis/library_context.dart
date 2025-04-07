@@ -71,6 +71,8 @@ class LibraryContext {
     required this.packagesFile,
     required SummaryDataStore? externalSummaries,
   }) {
+    testData?.instance = this;
+
     analysisContext = AnalysisContextImpl(
       analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
@@ -116,6 +118,7 @@ class LibraryContext {
   Set<String> dispose() {
     var keys = unloadAll();
     elementFactory.dispose();
+    testData?.instance = null;
     return keys;
   }
 
@@ -430,6 +433,9 @@ class LibraryContextTestData {
     equals: const ListEquality<FileTestData>().equals,
   );
 
+  /// The current instance of [LibraryContext].
+  LibraryContext? instance;
+
   LibraryContextTestData({
     required this.fileSystemTestData,
   });
@@ -491,6 +497,9 @@ class LinkedBundleEntry {
 class LinkedBundleProvider {
   final ByteStore byteStore;
 
+  /// The cache of deserialized bundles, used only when [withFineDependencies]
+  /// to avoid reading requirements and manifests again and again.
+  ///
   /// The keys are [LibraryCycle.linkedKey].
   final Map<String, LinkedBundleEntry> map = {};
 
@@ -517,12 +526,16 @@ class LinkedBundleProvider {
     var requirements = BundleRequirementsManifest.read(reader);
     var linkedBytes = reader.readUint8List();
 
-    var result = map[key] = LinkedBundleEntry(
+    var result = LinkedBundleEntry(
       apiSignature: apiSignature,
       libraryManifests: libraryManifests,
       requirements: requirements,
       linkedBytes: linkedBytes,
     );
+
+    if (withFineDependencies) {
+      map[key] = result;
+    }
 
     // We have copies of all data.
     byteStore.release([key]);
@@ -548,6 +561,8 @@ class LinkedBundleProvider {
     var bytes = sink.takeBytes();
     byteStore.putGet(key, bytes);
 
-    map[key] = entry;
+    if (withFineDependencies) {
+      map[key] = entry;
+    }
   }
 }
