@@ -4045,7 +4045,7 @@ class HLateInitializeOnceCheck extends HLateCheck {
 
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
-  AbstractValue knownType;
+  final AbstractValue knownType;
   final bool _isMovable;
 
   HTypeKnown.pinned(this.knownType, HInstruction input)
