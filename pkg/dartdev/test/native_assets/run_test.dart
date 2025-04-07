@@ -192,4 +192,23 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
       expect(result.stdout, contains('42'));
     });
   });
+
+  test(
+    'dart run with user defines',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('user_defines', (packageUri) async {
+        final result = await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'run',
+            'bin/user_defines.dart',
+          ],
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+        expect(result.stdout, contains('Hello world!'));
+      });
+    },
+  );
 }

@@ -19,6 +19,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 import 'core.dart';
 
 class DartNativeAssetsBuilder {
+  final Map<Object?, Object?>? pubspec;
   final Uri packageConfigUri;
   final String runPackageName;
   final bool verbose;
@@ -50,21 +51,34 @@ class DartNativeAssetsBuilder {
 
   late final Future<NativeAssetsBuildRunner> _nativeAssetsBuildRunner =
       () async {
+    final Map<String, Map<String, Object?>?> userDefines;
+    if (pubspec == null) {
+      userDefines = {};
+    } else {
+      userDefines =
+          NativeAssetsBuildRunner.readHooksUserDefinesFromPubspec(pubspec!);
+    }
     return NativeAssetsBuildRunner(
       // This always runs in JIT mode.
       dartExecutable: Uri.file(sdk.dart),
       logger: _logger,
       fileSystem: const LocalFileSystem(),
       packageLayout: await _packageLayout,
+      userDefines: userDefines,
     );
   }();
 
-  DartNativeAssetsBuilder(
-      {required this.packageConfigUri,
-      required this.runPackageName,
-      required this.verbose,
-      Target? target})
-      : target = target ?? Target.current;
+  static List<String> validateHooksUserDefinesFromPubspec(
+          Map<Object?, Object?> pubspec) =>
+      NativeAssetsBuildRunner.validateHooksUserDefinesFromPubspec(pubspec);
+
+  DartNativeAssetsBuilder({
+    this.pubspec,
+    required this.packageConfigUri,
+    required this.runPackageName,
+    required this.verbose,
+    Target? target,
+  }) : target = target ?? Target.current;
 
   /// Compiles all native assets for host OS in JIT mode.
   ///
@@ -223,7 +237,7 @@ class DartNativeAssetsBuilder {
     // TODO(https://github.com/dart-lang/package_config/issues/126): Use
     // package config resolution from package:package_config.
     if (packageConfig == null) {
-      final pubspecMaybe = await _findPubspec(uri);
+      final pubspecMaybe = await findPubspec(uri);
       if (pubspecMaybe != null) {
         // Silently run `pub get`, this is what would happen in
         // `getExecutableForCommand` later.
@@ -259,7 +273,7 @@ class DartNativeAssetsBuilder {
     }
   }
 
-  static Future<Uri?> _findPubspec(Uri uri) async {
+  static Future<Uri?> findPubspec(Uri uri) async {
     while (true) {
       final candidate = uri.resolve('pubspec.yaml');
       if (await File.fromUri(candidate).exists()) {
@@ -277,7 +291,7 @@ class DartNativeAssetsBuilder {
   ///
   /// Returns `null` if package cannnot be determined.
   static Future<String?> findRootPackageName(Uri uri) async {
-    final pubspecUri = await _findPubspec(uri);
+    final pubspecUri = await findPubspec(uri);
     if (pubspecUri == null) {
       return null;
     }

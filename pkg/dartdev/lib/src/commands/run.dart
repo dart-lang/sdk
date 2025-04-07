@@ -12,6 +12,7 @@ import 'package:frontend_server/resident_frontend_server_utils.dart'
     show invokeReplaceCachedDill;
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
+import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -380,7 +381,25 @@ class RunCommand extends DartdevCommand {
             Directory.current.uri,
           );
       if (runPackageName != null) {
+        final pubspecUri =
+            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+        final Map? pubspec;
+        if (pubspecUri == null) {
+          pubspec = null;
+        } else {
+          pubspec =
+              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
+          final pubspecErrors =
+              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
+                  pubspec);
+          if (pubspecErrors.isNotEmpty) {
+            log.stderr('Errors in pubspec:');
+            pubspecErrors.forEach(log.stderr);
+            return errorExitCode;
+          }
+        }
         final builder = DartNativeAssetsBuilder(
+          pubspec: pubspec,
           packageConfigUri: packageConfig,
           runPackageName: runPackageName,
           verbose: verbose,
