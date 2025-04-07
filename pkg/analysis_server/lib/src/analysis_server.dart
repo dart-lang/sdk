@@ -917,6 +917,9 @@ abstract class AnalysisServer {
   /// Report analytics data related to the number and size of files that were
   /// analyzed.
   void reportAnalysisAnalytics() {
+    if (!analyticsManager.needsAnslysisCompleteCall()) {
+      return;
+    }
     var packagesFileMap = <String, File?>{};
     var immediateFileCount = 0;
     var immediateFileLineCount = 0;

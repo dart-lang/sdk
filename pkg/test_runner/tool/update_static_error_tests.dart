@@ -188,6 +188,11 @@ List<TestFile> _listFiles(List<String> pathGlobs,
     // or relative to the current directory.
     var root = pathGlob.startsWith("tests") ? "." : "tests";
 
+    // [Glob] doesn't handle Windows path delimiters, so we normalize it using
+    // [Path]. [Glob] doesn't handle absolute Windows paths, though, so this
+    // only supports the relative paths.
+    pathGlob = Path.normalize(pathGlob);
+
     for (var file in Glob(pathGlob, recursive: true).listSync(root: root)) {
       if (file is! File) continue;
 
@@ -404,7 +409,7 @@ Future<Map<TestFile, List<StaticError>>> _runCfe(
         result.stdout as String, parsedErrors, parsedErrors);
     for (var error in parsedErrors) {
       var testFile =
-          testFiles.firstWhere((test) => test.path.toString() == error.path);
+          testFiles.firstWhere((test) => test.path == Path(error.path));
       errors.putIfAbsent(testFile, () => []).add(error);
     }
   }
@@ -468,20 +473,21 @@ void _updateErrors(TestFile testFile, List<StaticError> errors,
   // Error expectations can be in imported libraries or part files. Iterate
   // over the set of paths that is the main file path plus all paths mentioned
   // in expectations, updating them.
-  var paths = {testFile.path.toString(), for (var error in errors) error.path};
+  var paths = {testFile.path, for (var error in errors) Path(error.path)};
 
   for (var path in paths) {
-    var file = File(path);
-    var pathErrors = errors.where((e) => e.path == path).toList();
+    var nativePath = path.toNativePath();
+    var file = File(nativePath);
+    var pathErrors = errors.where((e) => Path(e.path) == path).toList();
     var result = updateErrorExpectations(
-        path, file.readAsStringSync(), pathErrors,
+        nativePath, file.readAsStringSync(), pathErrors,
         remove: remove, includeContext: includeContext);
 
     if (dryRun) {
       print(result);
     } else {
       file.writeAsString(result);
-      print('- $path (${_plural(pathErrors, 'error')})');
+      print('- $nativePath (${_plural(pathErrors, 'error')})');
     }
   }
 }

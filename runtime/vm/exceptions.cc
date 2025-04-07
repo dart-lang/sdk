@@ -619,6 +619,33 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
 
+  // Prepare for unwinding frames by destroying all the stack resources
+  // in the previous frames.
+  StackResource::Unwind(thread);
+
+  // If execution exited generated code through FFI then exit the safepoint
+  // and transition back to kThreadInGenerated execution state. JumpToFrame
+  // stub will transfer control directly to the exception handler and bypass
+  // inlined transition code which follows the FFI callsite.
+  //
+  // For contrast, runtime calls perform transition by entering
+  // the |TransitionGeneratedToVM| scope in the runtime entry itself
+  // (see DEFINE_RUNTIME_ENTRY_IMPL boilerplate in runtime_entry.h). This scope
+  // will be destroyed by |StackResource::Unwind| above and execution state
+  // will transition to kThreadInGenerated as a side-effect of that.
+  //
+  // Important: thread must exit safepoint before |JumpToFrame| is called
+  // because the stub will unwind the stack and thus destroy the exit frame,
+  // which can only happen outside of safepoint - as GC otherwise might try
+  // to use it to traverse the stack.
+  if (thread->exit_through_ffi() == Thread::kExitThroughFfi) {
+    // StackResource::Unwind above should have left us in the Native state by
+    // destroying appropriate TransitionNativeToVM.
+    ASSERT(thread->execution_state() == Thread::kThreadInNative);
+    thread->ExitSafepointFromNative();
+    thread->set_execution_state(Thread::kThreadInGenerated);
+  }
+
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack
@@ -631,10 +658,6 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
   Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
                                     frame_pointer, thread);
 #else
-
-  // Prepare for unwinding frames by destroying all the stack resources
-  // in the previous frames.
-  StackResource::Unwind(thread);
 
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = OSThread::GetCurrentStackPointer() - 1024;

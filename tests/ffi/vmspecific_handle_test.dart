@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // SharedObjects=ffi_test_functions
+// VMOptions=
+// VMOptions=--use_slow_path
 
 import 'dart:ffi';
 

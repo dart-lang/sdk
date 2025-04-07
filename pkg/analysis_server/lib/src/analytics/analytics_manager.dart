@@ -220,6 +220,8 @@ class AnalyticsManager {
     requestData.addValue(openWorkspacePathsKey, openWorkspacePaths.length);
   }
 
+  bool needsAnslysisCompleteCall() => _contextStructure == null;
+
   Future<void> sendMemoryUsage(MemoryUsageEvent event) async {
     var delta = event.delta;
     var seconds = event.period?.inSeconds;

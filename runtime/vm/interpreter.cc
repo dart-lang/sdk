@@ -3928,11 +3928,6 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   ASSERT(buf != nullptr);
   ASSERT(last_setjmp_buffer() == buf);
 
-  // The C++ caller has not cleaned up the stack memory of C++ frames.
-  // Prepare for unwinding frames by destroying all the stack resources
-  // in the previous C++ frames.
-  StackResource::Unwind(thread);
-
   fp_ = reinterpret_cast<ObjectPtr*>(fp);
 
   if (pc == StubCode::RunExceptionHandler().EntryPoint()) {

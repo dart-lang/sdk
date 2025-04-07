@@ -229,8 +229,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ ret();
 }
 
-static void GenerateExitSafepointStubCommon(Assembler* assembler,
-                                            uword runtime_entry_offset) {
+void StubCodeCompiler::GenerateExitSafepointStub() {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
 
@@ -241,23 +240,12 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
 
   __ VerifyNotInGenerated(TMP);
 
-  __ lx(TMP, Address(THR, runtime_entry_offset));
+  __ lx(TMP, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ jalr(TMP);
 
   __ LeaveFrame();
   __ PopRegisters(all_registers);
   __ ret();
-}
-
-void StubCodeCompiler::GenerateExitSafepointStub() {
-  GenerateExitSafepointStubCommon(
-      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
-}
-
-void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
-  GenerateExitSafepointStubCommon(
-      assembler,
-      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Calls native code within a safepoint.
@@ -2926,20 +2914,6 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
-  Label exit_through_non_ffi;
-  // Check if we exited generated from FFI. If so do transition - this is needed
-  // because normally runtime calls transition back to generated via destructor
-  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
-  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
-  // have this boilerplate, don't have this stack resource, have to transition
-  // explicitly.
-  __ LoadFromOffset(TMP, THR,
-                    compiler::target::Thread::exit_through_ffi_offset());
-  __ LoadImmediate(TMP2, target::Thread::exit_through_ffi());
-  __ bne(TMP, TMP2, &exit_through_non_ffi);
-  __ TransitionNativeToGenerated(TMP, /*exit_safepoint=*/true,
-                                 /*ignore_unwind_in_progress=*/true);
-  __ Bind(&exit_through_non_ffi);
 
   // Refresh pinned registers values (inc. write barrier mask and null object).
   __ RestorePinnedRegisters();

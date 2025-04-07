@@ -57,7 +57,10 @@ $overrides
     Platform.resolvedExecutable,
     ['pub', 'get'],
     workingDirectory: repoRoot.toFilePath(),
-    environment: {}, // Prevent overriding, e.g., PUB_CACHE
+    // Solve pretending we are running [currentSDKVersion].
+    environment: {
+      '_PUB_TEST_SDK_VERSION': currentSDKVersion()
+    }, // Prevent overriding, e.g., PUB_CACHE
   );
   if (result.exitCode != 0) {
     print('`pub get` failed');
@@ -94,4 +97,17 @@ $overrides
       }
     }
   }
+}
+
+String currentSDKVersion() {
+  final versionContents =
+      File.fromUri(repoRoot.resolve('tools/VERSION')).readAsStringSync();
+  final lines = versionContents
+      .split('\n')
+      .where((line) => !line.startsWith('#') && line.isNotEmpty);
+  final versionParts = Map.fromEntries(lines.map((line) {
+    final parts = line.split(' ');
+    return MapEntry(parts[0], parts[1]);
+  }));
+  return '${versionParts['MAJOR']}.${versionParts['MINOR']}.${versionParts['PATCH']}';
 }
