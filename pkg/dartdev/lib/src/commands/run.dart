@@ -68,6 +68,12 @@ class RunCommand extends DartdevCommand {
             "start -h' for more information about info files.",
         hide: !verbose,
       )
+      ..addFlag(
+        quietOption,
+        hide: !verbose,
+        help: 'Disable the printing of messages about the resident compiler '
+            'starting up / shutting down.',
+      )
       ..addOption(
         CompilationServerCommand.residentCompilerInfoFileFlag,
         hide: !verbose,
@@ -310,6 +316,7 @@ class RunCommand extends DartdevCommand {
     required File residentCompilerInfoFile,
     required ArgResults args,
     required bool shouldRetryOnFrontendCompilerException,
+    required bool quiet,
   }) async {
     final executableFile = File(executable.executable);
     assert(!await isFileKernelFile(executableFile) &&
@@ -322,15 +329,18 @@ class RunCommand extends DartdevCommand {
         residentCompilerInfoFile,
         args,
         createCompileJitJson,
+        quiet: quiet,
       );
     } on FrontendCompilerException catch (e) {
       if (e.issue == CompilationIssue.serverError) {
         if (shouldRetryOnFrontendCompilerException) {
-          log.stderr(
-            'Error: A connection to the Resident Frontend Compiler could '
-            'not be established. Restarting the Resident Frontend Compiler '
-            'and retrying compilation.',
-          );
+          if (!quiet) {
+            log.stderr(
+              'Error: A connection to the Resident Frontend Compiler could '
+              'not be established. Restarting the Resident Frontend Compiler '
+              'and retrying compilation.',
+            );
+          }
           await shutDownOrForgetResidentFrontendCompiler(
             residentCompilerInfoFile,
           );
@@ -339,6 +349,7 @@ class RunCommand extends DartdevCommand {
             residentCompilerInfoFile: residentCompilerInfoFile,
             args: args,
             shouldRetryOnFrontendCompilerException: false,
+            quiet: quiet,
           );
         } else {
           log.stderr(
@@ -431,6 +442,13 @@ class RunCommand extends DartdevCommand {
       );
       return errorExitCode;
     }
+    if (args.wasParsed(quietOption) && !useResidentCompiler) {
+      log.stderr(
+        'Error: the --resident flag must be passed whenever the --quiet flag '
+        'is passed.',
+      );
+      return errorExitCode;
+    }
 
     DartExecutableWithPackageConfig executable;
     final hasExperiments = args.enabledExperiments.isNotEmpty;
@@ -467,7 +485,10 @@ class RunCommand extends DartdevCommand {
         // need to replace the file in the resident frontend compiler kernel
         // cache associated with this executable, because the cached kernel file
         // may be used to populate context for expression evaluation later.
-        await ensureCompilationServerIsRunning(residentCompilerInfoFile);
+        await ensureCompilationServerIsRunning(
+          residentCompilerInfoFile,
+          quiet: args[quietOption] ?? false,
+        );
         final succeeded = await invokeReplaceCachedDill(
           replacementDillPath: executableFile.absolute.path,
           serverInfoFile: residentCompilerInfoFile,
@@ -488,6 +509,7 @@ class RunCommand extends DartdevCommand {
           residentCompilerInfoFile: residentCompilerInfoFile,
           args: args,
           shouldRetryOnFrontendCompilerException: true,
+          quiet: args[quietOption] ?? false,
         );
         if (compiledKernelFile == null) {
           return errorExitCode;

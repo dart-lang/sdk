@@ -84,7 +84,10 @@ class CompilationServerStartCommand extends DartdevCommand {
     }
 
     try {
-      await ensureCompilationServerIsRunning(residentCompilerInfoFile);
+      await ensureCompilationServerIsRunning(
+        residentCompilerInfoFile,
+        quiet: false,
+      );
     } catch (e) {
       // We already print the error in `ensureCompilationServerIsRunning` when we
       // throw a state error.
