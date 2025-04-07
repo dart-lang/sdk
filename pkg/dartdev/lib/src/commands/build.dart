@@ -179,7 +179,10 @@ class BuildCommand extends DartdevCommand {
         return 255;
       }
 
-      final allAssets = linkResult.encodedAssets;
+      final allAssets = [
+        ...buildResult.encodedAssets,
+        ...linkResult.encodedAssets
+      ];
 
       final staticAssets = allAssets
           .where((e) => e.isCodeAsset)
