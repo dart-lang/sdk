@@ -108,10 +108,7 @@ abstract class _TestFileBase {
     return originPath.relativeTo(_suiteDirectory).toString().hashCode;
   }
 
-  _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors) {
-    // The VM C++ unit tests have a special fake TestFile with no path.
-    assert(path.isAbsolute);
-  }
+  _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors);
 
   /// The logical name of the test.
   ///

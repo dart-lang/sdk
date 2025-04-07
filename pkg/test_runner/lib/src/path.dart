@@ -21,6 +21,11 @@ class Path {
 
   Path._internal(this._path, this.isWindowsShare);
 
+  /// Normalizes [source] to use '/' as delimiter.
+  static String normalize(String source) {
+    return Path(source)._path;
+  }
+
   static String _clean(String source) {
     if (Platform.operatingSystem == 'windows') return _cleanWindows(source);
     // Remove trailing slash from directories:
