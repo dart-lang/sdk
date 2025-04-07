@@ -1666,7 +1666,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06, k07, k08]
 ''');
 
     var b_library = await fileResolver.getLibraryByUri2(
@@ -1735,7 +1735,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06, k07, k08]
 ''');
   }
 
