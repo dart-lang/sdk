@@ -102,10 +102,12 @@ class ProtocolConverter {
         }
       }
       return stringValue;
-    } else if (_isList(ref)) {
+    } else if (ref.isList) {
       return '${ref.kind} (${ref.length} ${ref.length == 1 ? "item" : "items"})';
-    } else if (_isMap(ref)) {
+    } else if (ref.isMap) {
       return 'Map (${ref.length} ${ref.length == 1 ? "item" : "items"})';
+    } else if (ref.isSet) {
+      return 'Set (${ref.length} ${ref.length == 1 ? "item" : "items"})';
     } else if (ref.kind == 'Type') {
       return 'Type (${ref.name})';
     } else {
@@ -145,14 +147,17 @@ class ProtocolConverter {
         )
       ];
     } else if (elements != null) {
-      // For lists, map each item (in the requested subset) to a variable.
+      // For lists and sets, map each item (in the requested subset) to a
+      // variable.
       // Elements can contain nulls!
       final start = startItem ?? 0;
       return Future.wait(elements.cast<vm.Response?>().mapIndexed(
         (index, response) {
           final name = '[${start + index}]';
+          final nameForEvaluation =
+              instance.isSet ? '.elementAt(${start + index})' : name;
           final itemEvaluateName =
-              _adapter.combineEvaluateName(evaluateName, name);
+              _adapter.combineEvaluateName(evaluateName, nameForEvaluation);
           if (response is vm.InstanceRef) {
             _adapter.storeEvaluateName(response, itemEvaluateName);
           }
@@ -209,7 +214,7 @@ class ProtocolConverter {
           variablesReference: thread.storeData(VariableData(mapEntry, format)),
         );
       }));
-    } else if (_isList(instance) &&
+    } else if (instance.isList &&
         instance.length != null &&
         instance.bytes != null) {
       final formatter = format ?? const VariableFormat();
@@ -518,7 +523,8 @@ class ProtocolConverter {
           allowCallingToString: allowCallingToString,
           format: format,
         ),
-        indexedVariables: _isList(response) ? response.length : null,
+        indexedVariables:
+            response.isList || response.isSet ? response.length : null,
         variablesReference: variablesReference,
       );
     } else if (response is vm.Sentinel) {
@@ -549,15 +555,6 @@ class ProtocolConverter {
       );
     }
   }
-
-  /// Returns whether [ref] is a List kind.
-  ///
-  /// This includes standard Dart [List], as well as lists from
-  /// `dart:typed_data` such as `Uint8List`.
-  bool _isList(vm.InstanceRef ref) => ref.kind?.endsWith('List') ?? false;
-
-  /// Returns whether [ref] is a Map kind.
-  bool _isMap(vm.InstanceRef ref) => ref.kind == 'Map';
 
   /// Converts a VM Service stack frame to a DAP stack frame.
   Future<dap.StackFrame> convertVmToDapStackFrame(
@@ -819,4 +816,18 @@ class ProtocolConverter {
 
     return null;
   }
+}
+
+extension on vm.InstanceRef {
+  /// Whether this instance is a List kind.
+  ///
+  /// This includes standard Dart [List], as well as lists from
+  /// `dart:typed_data` such as `Uint8List`.
+  bool get isList => kind?.endsWith('List') ?? false;
+
+  /// Whether this instance is a Map kind.
+  bool get isMap => kind == 'Map';
+
+  /// Whether this instance is a Set kind.
+  bool get isSet => kind == 'Set';
 }
