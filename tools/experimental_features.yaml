@@ -110,13 +110,15 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.8.0'
+current-version: '3.9.0'
 
 features:
   variance:
+    experimentalReleaseVersion: '3.8.0'
     help: "Sound variance"
 
   const-functions:
+    experimentalReleaseVersion: '3.8.0'
     help: "Allow more of the Dart language to be executed in const expressions."
 
   macros:
@@ -143,12 +145,15 @@ features:
     help: "Augmentations - enhancing declarations from outside"
 
   inference-update-4:
+    experimentalReleaseVersion: '3.8.0'
     help: "A bundle of updates to type inference."
 
   dot-shorthands:
+    experimentalReleaseVersion: '3.8.0'
     help: "Shorter dot syntax for static accesses."
 
   getter-setter-error:
+    experimentalReleaseVersion: '3.8.0'
     help: "Stop reporting errors about mismatching types in a getter/setter pair."
 
   sound-flow-analysis:
