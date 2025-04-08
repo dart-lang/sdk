@@ -1077,6 +1077,37 @@ library
 ''');
   }
 
+  test_variable_functionTyped_nested_invalid_functionTypedFormal() async {
+    var library = await buildLibrary(r'''
+final int Function(int, {void fn()})? foo;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        foo @38
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <testLibrary>::@topLevelVariable::foo
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        synthetic get foo
+          reference: <testLibraryFragment>::@getter::foo
+          element: <testLibraryFragment>::@getter::foo#element
+  topLevelVariables
+    final foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int Function(int, {void Function() fn})?
+      getter: <testLibraryFragment>::@getter::foo#element
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
+''');
+  }
+
   test_variable_getterInLib_setterInPart() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of my.lib;
