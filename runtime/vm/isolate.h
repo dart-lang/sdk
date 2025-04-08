@@ -776,10 +776,19 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Isolate* EnterTemporaryIsolate();
   static void ExitTemporaryIsolate();
 
+  void RunWithCachedCatchEntryMoves(
+      const Code& code,
+      intptr_t pc,
+      std::function<void(const CatchEntryMoves&)> action);
+  void ClearCatchEntryMovesCache();
+
   void SetNativeAssetsCallbacks(NativeAssetsApi* native_assets_api) {
     native_assets_api_ = *native_assets_api;
   }
   NativeAssetsApi* native_assets_api() { return &native_assets_api_; }
+
+  Mutex* cache_mutex() { return &cache_mutex_; }
+  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
 
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
@@ -931,6 +940,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
 
   NativeAssetsApi native_assets_api_;
+
+  Mutex cache_mutex_;
+  HandlerInfoCache handler_info_cache_;
+  CatchEntryMovesCache catch_entry_moves_cache_;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1447,12 +1460,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
   static bool IsVMInternalIsolate(const Isolate* isolate);
 
-  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
-
-  CatchEntryMovesCache* catch_entry_moves_cache() {
-    return &catch_entry_moves_cache_;
-  }
-
   // The weak table used in the snapshot writer for the purpose of fast message
   // sending.
   WeakTable* forward_table_new() { return forward_table_new_.get(); }
@@ -1696,9 +1703,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // destroyed while there are child isolates in the midst of a spawn.
   Monitor spawn_count_monitor_;
   intptr_t spawn_count_ = 0;
-
-  HandlerInfoCache handler_info_cache_;
-  CatchEntryMovesCache catch_entry_moves_cache_;
 
   // Used during message sending of messages between isolates.
   std::unique_ptr<WeakTable> forward_table_new_;

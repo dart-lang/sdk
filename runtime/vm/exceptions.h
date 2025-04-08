@@ -329,9 +329,9 @@ class CatchEntryMovesRefPtr {
     return *this;
   }
 
-  bool IsEmpty() { return ref_count_ == nullptr; }
+  bool IsEmpty() const { return ref_count_ == nullptr; }
 
-  const CatchEntryMoves& moves() { return *moves_; }
+  const CatchEntryMoves& moves() const { return *moves_; }
 
  private:
   void Destroy() {
