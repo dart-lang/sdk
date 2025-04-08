@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/cider/rename.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:test/test.dart';
@@ -927,14 +928,13 @@ void f(bar a) {}
   }
 
   void _updateFile(String content) {
-    var offset = content.indexOf('^');
-    expect(offset, isPositive, reason: 'Expected to find ^');
-    expect(content.indexOf('^', offset + 1), -1, reason: 'Expected only one ^');
+    var code = TestCode.parse(content);
+    var offset = code.position.offset;
 
-    var lineInfo = LineInfo.fromContent(content);
+    _testCode = code.code;
+    var lineInfo = LineInfo.fromContent(_testCode);
     var location = lineInfo.getLocation(offset);
 
-    _testCode = content.substring(0, offset) + content.substring(offset + 1);
     newFile(testPath, _testCode);
 
     _correctionContext = _CorrectionContext(

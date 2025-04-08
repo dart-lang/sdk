@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,15 +30,10 @@ class GetSuggestions2Test extends AbstractAnalysisServerIntegrationTest {
 
     path = sourcePath(relPath);
 
-    completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    var code = TestCode.parse(content);
+    completionOffset = code.position.offset;
 
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-
-    this.content =
-        content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1);
+    this.content = code.code;
   }
 
   Future<void> test_getSuggestions() async {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1095,13 +1096,11 @@ abstract class FeatureComputerTest extends AbstractSingleUnitTest {
   bool verifyNoTestUnitErrors = false;
 
   Future<void> completeIn(String content) async {
-    cursorIndex = content.indexOf('^');
-    if (cursorIndex < 0) {
-      fail('Missing node offset marker (^) in content');
-    }
-    content =
-        content.substring(0, cursorIndex) + content.substring(cursorIndex + 1);
-    await resolveTestCode(content);
+    var code = TestCode.parse(content);
+    cursorIndex = code.position.offset;
+
+    content = code.code;
+    await resolveTestCode(code.code);
     completionTarget = CompletionTarget.forOffset(testUnit, cursorIndex);
   }
 }
