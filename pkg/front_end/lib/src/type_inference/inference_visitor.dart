@@ -12284,18 +12284,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult expressionInferenceResult;
     switch (member) {
       case Field():
-        expressionInferenceResult =
-            inferExpression(new StaticGet(member), cachedContext);
+        Expression staticGet = new StaticGet(member)
+          ..fileOffset = node.fileOffset;
+        expressionInferenceResult = inferExpression(staticGet, cachedContext);
       case Procedure():
         if (member.isGetter) {
-          expressionInferenceResult =
-              inferExpression(new StaticGet(member), cachedContext);
+          Expression staticGet = new StaticGet(member)
+            ..fileOffset = node.fileOffset;
+          expressionInferenceResult = inferExpression(staticGet, cachedContext);
         } else {
           // Method tearoffs.
           DartType type =
               member.function.computeFunctionType(Nullability.nonNullable);
-          return instantiateTearOff(
-              type, typeContext, new StaticTearOff(member));
+          Expression tearOff = new StaticTearOff(member)
+            ..fileOffset = node.fileOffset;
+          return instantiateTearOff(type, typeContext, tearOff);
         }
       case Constructor():
       case null:
@@ -12317,13 +12320,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (constructor is Constructor) {
             DartType type = constructor.function
                 .computeFunctionType(Nullability.nonNullable);
-            return instantiateTearOff(
-                type, typeContext, new ConstructorTearOff(constructor));
+            Expression tearOff = new ConstructorTearOff(constructor)
+              ..fileOffset = node.fileOffset;
+            return instantiateTearOff(type, typeContext, tearOff);
           } else if (constructor is Procedure) {
             DartType type = constructor.function
                 .computeFunctionType(Nullability.nonNullable);
-            return instantiateTearOff(
-                type, typeContext, new StaticTearOff(constructor));
+            Expression tearOff = new StaticTearOff(constructor)
+              ..fileOffset = node.fileOffset;
+            return instantiateTearOff(type, typeContext, tearOff);
           }
         }
 
