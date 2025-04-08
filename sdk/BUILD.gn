@@ -781,15 +781,6 @@ copy("copy_sdk_packages_yaml") {
   outputs = [ "$root_out_dir/$dart_sdk_output/sdk_packages.yaml" ]
 }
 
-# This rule copies pkg/_macros to pkg/_macros in the built SDK. This is a
-# vendored SDK package.
-copy_tree("copy_pkg_macros") {
-  visibility = [ ":create_common_sdk" ]
-  source = "../pkg/_macros"
-  dest = "$root_out_dir/$dart_sdk_output/pkg/_macros"
-  exclude = "{}"
-}
-
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
   visibility = [
@@ -803,7 +794,6 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
-    ":copy_pkg_macros",
     ":copy_prebuilt_devtools",
     ":copy_readme",
     ":copy_sdk_packages_yaml",
