@@ -124,10 +124,6 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           '--filesystem-root option',
       defaultsTo: 'org-dartlang-root',
       hide: true)
-  ..addOption('binary-protocol-address',
-      hide: true,
-      help: 'The server will establish TCP connection to this address, and'
-          ' will exchange binary requests and responses with the client.')
   ..addFlag('enable-http-uris',
       defaultsTo: false, hide: true, help: 'Enables support for http uris.')
   ..addFlag('verbose', help: 'Enables verbose output from the compiler.')

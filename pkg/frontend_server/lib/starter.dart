@@ -10,7 +10,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 
 import 'frontend_server.dart';
-import 'src/binary_protocol.dart';
 import 'src/resident_frontend_server.dart';
 
 /// Entry point for this module, that creates either a `_FrontendCompiler`
@@ -78,12 +77,6 @@ Future<int> starter(
     } finally {
       temp.deleteSync(recursive: true);
     }
-  }
-
-  final String? binaryProtocolAddressStr = options['binary-protocol-address'];
-  if (binaryProtocolAddressStr != null) {
-    await runBinaryProtocol(binaryProtocolAddressStr);
-    return 0;
   }
 
   compiler ??= new FrontendCompiler(
