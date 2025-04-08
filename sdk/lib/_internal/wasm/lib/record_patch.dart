@@ -12,6 +12,7 @@ abstract class Record {
   _RecordType get _masqueradedRecordRuntimeType;
   _RecordType get _recordRuntimeType;
 
+  @pragma('dyn-module:can-be-overridden')
   bool _checkRecordType(
     WasmArray<_Type> types,
     ImmutableWasmArray<String> names,

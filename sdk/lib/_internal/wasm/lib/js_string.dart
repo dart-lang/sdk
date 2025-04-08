@@ -212,6 +212,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
   }
 
   @override
+  @pragma('dyn-module:callable')
   String operator +(String other) {
     return JSStringImpl(
       _jsStringConcatImport(

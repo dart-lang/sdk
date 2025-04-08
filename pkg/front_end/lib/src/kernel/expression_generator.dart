@@ -1648,7 +1648,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Procedure? readTarget;
     Procedure? invokeTarget;
     if (getterBuilder != null) {
-      if (getterBuilder.isGetter) {
+      if (getterBuilder.isField) {
+        assert(!getterBuilder.isStatic && getterBuilder.isExternal);
+        readTarget = getterBuilder.readTarget as Procedure?;
+      } else if (getterBuilder.isGetter) {
         assert(!getterBuilder.isStatic);
         readTarget = getterBuilder.readTarget as Procedure?;
       } else if (getterBuilder.isRegularMethod) {
@@ -1670,7 +1673,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
     }
     Procedure? writeTarget;
     if (setterBuilder != null) {
-      if (setterBuilder.isSetter) {
+      if (setterBuilder.isField) {
+        assert(!setterBuilder.isStatic && setterBuilder.isExternal);
+        writeTarget = setterBuilder.writeTarget as Procedure?;
+      } else if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
         writeTarget = setterBuilder.writeTarget as Procedure?;
         // Coverage-ignore-block(suite): Not run.
@@ -3444,7 +3450,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               offsetForToken(send.token), send.typeArguments, arguments,
               isTypeArgumentsInForest: send.isTypeArgumentsInForest);
     } else {
-      // Coverage-ignore-block(suite): Not run.
       // `SomeType?.toString` is the same as `SomeType.toString`, not
       // `(SomeType).toString`.
       return super.buildSelectorAccess(send, operatorOffset, isNullAware);
@@ -4434,6 +4439,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression qualifiedLookup(Token name) {
     return buildProblem();
   }

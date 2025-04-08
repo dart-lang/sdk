@@ -8,6 +8,13 @@ class Color {
   Color(this.x);
 }
 
+class C<T> {
+  static C<X> foo<X>(X x) => new C<X>();
+
+  C<U> cast<U>() => new C<U>();
+}
+
 void main() {
-  Color c = .red();
+  Color color = .red();
+  C<bool> c = .foo("String").cast();
 }

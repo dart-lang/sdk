@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -27,7 +28,6 @@ class AstResolver {
   final AnalysisOptions analysisOptions;
   final InterfaceElementImpl2? enclosingClassElement;
   final ExecutableElementImpl2? enclosingExecutableElement;
-  final AugmentableElement? enclosingAugmentation;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
     nameScope: _nameScope,
@@ -40,10 +40,12 @@ class AstResolver {
     ErrorReporter(_errorListener, _unitElement.source),
     nameScope: _nameScope,
   );
-  late final _flowAnalysis = FlowAnalysisHelper(false, _featureSet,
+  late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
+  late final _flowAnalysis = FlowAnalysisHelper(false,
       typeSystemOperations: TypeSystemOperations(
           _unitElement.library.typeSystem,
-          strictCasts: analysisOptions.strictCasts));
+          strictCasts: analysisOptions.strictCasts),
+      typeAnalyzerOptions: _typeAnalyzerOptions);
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,
@@ -55,6 +57,7 @@ class AstResolver {
     analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,
     libraryFragment: _unitElement,
+    typeAnalyzerOptions: _typeAnalyzerOptions,
   );
 
   AstResolver(
@@ -64,7 +67,6 @@ class AstResolver {
     this.analysisOptions, {
     this.enclosingClassElement,
     this.enclosingExecutableElement,
-    this.enclosingAugmentation,
   }) : _featureSet = _unitElement.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
@@ -117,7 +119,6 @@ class AstResolver {
     _resolverVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
-      enclosingAugmentation: enclosingAugmentation,
     );
   }
 }

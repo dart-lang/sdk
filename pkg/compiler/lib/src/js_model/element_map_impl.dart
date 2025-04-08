@@ -124,7 +124,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ) : options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
-    _types = KernelDartTypes(this, options);
+    _types = KernelDartTypes(this);
     _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
@@ -281,7 +281,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ) {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
-    _types = KernelDartTypes(this, options);
+    _types = KernelDartTypes(this);
     _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
@@ -1782,7 +1782,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         in node.namedParameters.toList()
           ..sort((a, b) => a.name!.compareTo(b.name!))) {
       namedParameters.add(p.name!);
-      if (p.isRequired && !options.useLegacySubtyping) {
+      if (p.isRequired) {
         requiredNamedParameters.add(p.name!);
       }
     }

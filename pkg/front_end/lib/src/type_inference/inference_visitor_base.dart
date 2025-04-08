@@ -37,7 +37,6 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeParameters;
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
@@ -290,37 +289,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Ensures that all parameter types of [constructor] have been inferred.
   void _inferConstructorParameterTypes(Member target) {
-    SourceConstructorBuilder? constructorBuilder = engine.beingInferred[target];
-    if (constructorBuilder != null) {
-      // There is a cyclic dependency where inferring the types of the
-      // initializing formals of a constructor required us to infer the
-      // corresponding field type which required us to know the type of the
-      // constructor.
-      String name = constructorBuilder.declarationBuilder.name;
-      if (target.name.text.isNotEmpty) {
-        // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-        // instead. However, `inferrer.helper` may be null.
-        name += ".${target.name.text}";
+    InferableMember? inferableMember = engine.beingInferred[target];
+    if (inferableMember != null) {
+      inferableMember.reportCyclicDependency();
+    } else {
+      inferableMember = engine.toBeInferred.remove(target);
+      if (inferableMember != null) {
+        engine.beingInferred[target] = inferableMember;
+        inferableMember.inferMemberTypes(hierarchyBuilder);
+        engine.beingInferred.remove(target);
       }
-      constructorBuilder.libraryBuilder.addProblem(
-          templateCantInferTypeDueToCircularity.withArguments(name),
-          target.fileOffset,
-          name.length,
-          target.fileUri);
-      // TODO(johnniwinther): Is this needed? VariableDeclaration.type is
-      // non-nullable so the loops have no effect.
-      /*for (VariableDeclaration declaration
-          in target.function.positionalParameters) {
-        declaration.type ??= const InvalidType();
-      }
-      for (VariableDeclaration declaration in target.function.namedParameters) {
-        declaration.type ??= const InvalidType();
-      }*/
-    } else if ((constructorBuilder = engine.toBeInferred[target]) != null) {
-      engine.toBeInferred.remove(target);
-      engine.beingInferred[target] = constructorBuilder!;
-      constructorBuilder.inferFormalTypes(hierarchyBuilder);
-      engine.beingInferred.remove(target);
     }
   }
 
@@ -1170,9 +1148,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Finds a constructor of [type] called [name].
-  Member? findConstructor(TypeDeclarationType type, Name name, int fileOffset) {
-    assert(isKnown(type));
-
+  Member? findConstructor(TypeDeclarationType type, Name name, int fileOffset,
+      {bool isTearoff = false}) {
     // TODO(Dart Model team): Seems like an abstraction level issue to require
     // going from `Class` objects back to builders to find a `Member`.
     DeclarationBuilder builder;
@@ -1188,7 +1165,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     MemberBuilder? constructorBuilder = builder.findConstructorOrFactory(
         name.text, fileOffset, helper.uri, libraryBuilder);
-    return constructorBuilder?.invokeTarget;
+    return isTearoff
+        ? constructorBuilder?.readTarget
+        : constructorBuilder?.invokeTarget;
   }
 
   /// Finds a member of [receiverType] called [name], and if it is found,
@@ -1206,8 +1185,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Name name, int fileOffset,
       {required bool isSetter,
       bool instrumented = true,
-      bool includeExtensionMethods = false,
-      bool isDotShorthand = false}) {
+      bool includeExtensionMethods = false}) {
     assert(isKnown(receiverType));
 
     DartType receiverBound = receiverType.nonTypeParameterBound;
@@ -1226,7 +1204,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             classNode: classNode,
             receiverBound: receiverBound,
             hasNonObjectMemberAccess: hasNonObjectMemberAccess,
-            isDotShorthand: isDotShorthand,
             isSetter: isSetter,
             fileOffset: fileOffset);
 
@@ -1288,6 +1265,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     return target;
+  }
+
+  /// Finds a static member of [type] called [name].
+  Member? findStaticMember(DartType type, Name name, int fileOffset) {
+    if (type is! TypeDeclarationType) return null;
+    switch (type) {
+      case InterfaceType():
+        return _getStaticMember(type.classNode, name, false);
+      case ExtensionType():
+        ObjectAccessTarget? target = _findExtensionTypeMember(
+            type, type, name, fileOffset,
+            isSetter: false,
+            hasNonObjectMemberAccess: type.hasNonObjectMemberAccess,
+            isDotShorthand: true);
+        return target?.member;
+    }
   }
 
   /// If target is missing on a non-dynamic receiver, an error is reported
@@ -4440,13 +4433,12 @@ class _WhyNotPromotedVisitor
   List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
       PropertyNotPromotedForNonInherentReason reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
-        this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
+        inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      // `fieldPromotabilityInfo` is computed for all library builders except
-      // those for augmentation libraries.
-      assert(this.inferrer.libraryBuilder.isAugmenting);
-      // "why not promoted" functionality is not supported in augmentation
-      // libraries, so just don't generate a context message.
+      assert(
+          false,
+          "Missing field non-promotability info for "
+          "${inferrer.libraryBuilder}.");
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceMemberBuilder,
@@ -4662,7 +4654,6 @@ class _ObjectAccessDescriptor {
   final DartType receiverBound;
   final Class classNode;
   final bool hasNonObjectMemberAccess;
-  final bool isDotShorthand;
   final bool isSetter;
   final int fileOffset;
 
@@ -4672,7 +4663,6 @@ class _ObjectAccessDescriptor {
       required this.receiverBound,
       required this.classNode,
       required this.hasNonObjectMemberAccess,
-      required this.isDotShorthand,
       required this.isSetter,
       required this.fileOffset});
 
@@ -4757,17 +4747,15 @@ class _ObjectAccessDescriptor {
       ObjectAccessTarget? target = visitor._findExtensionTypeMember(
           receiverType, receiverBound, name, fileOffset,
           isSetter: isSetter,
-          hasNonObjectMemberAccess: hasNonObjectMemberAccess,
-          isDotShorthand: isDotShorthand);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
       if (target != null) {
         return target;
       }
     }
 
     ObjectAccessTarget? target;
-    Member? interfaceMember = isDotShorthand
-        ? visitor._getStaticMember(classNode, name, false)
-        : visitor._getInterfaceMember(classNode, name, isSetter);
+    Member? interfaceMember =
+        visitor._getInterfaceMember(classNode, name, isSetter);
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(
           receiverType, interfaceMember,

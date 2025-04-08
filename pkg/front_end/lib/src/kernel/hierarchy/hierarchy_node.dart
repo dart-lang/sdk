@@ -118,9 +118,8 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   Uri get _fileUri => _classBuilder.fileUri;
 
   ClassHierarchyNode build() {
-    assert(!_classBuilder.isAugmenting);
     ClassHierarchyNode? supernode;
-    if (_objectClass != _classBuilder.origin) {
+    if (_objectClass != _classBuilder) {
       ClassBuilder? superClassBuilder =
           getClass(_classBuilder.supertypeBuilder!);
       supernode =
@@ -397,7 +396,6 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   Uri get _fileUri => _extensionTypeBuilder.fileUri;
 
   ExtensionTypeHierarchyNode build() {
-    assert(!_extensionTypeBuilder.isAugmenting);
     Map<Class, Supertype> superclasses = {};
     Map<ExtensionTypeDeclaration, ExtensionType> superExtensionTypes = {};
     List<ClassHierarchyNode>? superclassNodes;

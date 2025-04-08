@@ -232,14 +232,7 @@ mixin AbstractValueDomain {
   /// the input's abstract type. The check can only be removed with additional
   /// reasoning, for example, that a dominating check uses the same type
   /// expression.
-  ///
-  /// [nullable] determines if the type in weak or legacy mode should be
-  /// interpreted as nullable. This is passed as `false` for is-tests and `true`
-  /// for as-checks and other contexts (e.g. parameter checks).
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  });
+  AbstractValueWithPrecision createFromStaticType(DartType type);
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);

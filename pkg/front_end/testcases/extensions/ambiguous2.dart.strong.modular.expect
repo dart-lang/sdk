@@ -1,0 +1,63 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/ambiguous2.dart:9:3: Error: 'AmbiguousExtension1' is imported from both 'pkg/front_end/testcases/extensions/ambiguous_lib1.dart' and 'pkg/front_end/testcases/extensions/ambiguous_lib2.dart'.
+//   AmbiguousExtension1.ambiguousStaticMethod1(); // Error
+//   ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/ambiguous2.dart:10:3: Error: 'AmbiguousExtension2' is imported from both 'pkg/front_end/testcases/extensions/ambiguous_lib1.dart' and 'pkg/front_end/testcases/extensions/ambiguous_lib2.dart'.
+//   AmbiguousExtension2.unambiguousStaticMethod1(); // Error
+//   ^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "ambiguous_lib1.dart" as amb;
+import "ambiguous_lib2.dart" as amb2;
+
+import "org-dartlang-testcase:///ambiguous_lib1.dart";
+import "org-dartlang-testcase:///ambiguous_lib2.dart";
+
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/ambiguous2.dart:9:3: Error: 'AmbiguousExtension1' is imported from both 'pkg/front_end/testcases/extensions/ambiguous_lib1.dart' and 'pkg/front_end/testcases/extensions/ambiguous_lib2.dart'.
+  AmbiguousExtension1.ambiguousStaticMethod1(); // Error
+  ^^^^^^^^^^^^^^^^^^^"{dynamic}.ambiguousStaticMethod1();
+  invalid-expression "pkg/front_end/testcases/extensions/ambiguous2.dart:10:3: Error: 'AmbiguousExtension2' is imported from both 'pkg/front_end/testcases/extensions/ambiguous_lib1.dart' and 'pkg/front_end/testcases/extensions/ambiguous_lib2.dart'.
+  AmbiguousExtension2.unambiguousStaticMethod1(); // Error
+  ^^^^^^^^^^^^^^^^^^^"{dynamic}.unambiguousStaticMethod1();
+  amb::UnambiguousExtension1|ambiguousStaticMethod2();
+  amb2::UnambiguousExtension2|ambiguousStaticMethod2();
+}
+
+library;
+import self as amb;
+import "dart:core" as core;
+
+extension AmbiguousExtension1 on core::String {
+  static method ambiguousStaticMethod1 = amb::AmbiguousExtension1|ambiguousStaticMethod1;
+}
+extension AmbiguousExtension2 on core::String {
+  static method unambiguousStaticMethod1 = amb::AmbiguousExtension2|unambiguousStaticMethod1;
+}
+extension UnambiguousExtension1 on core::String {
+  static method ambiguousStaticMethod2 = amb::UnambiguousExtension1|ambiguousStaticMethod2;
+}
+static extension-member method AmbiguousExtension1|ambiguousStaticMethod1() → void {}
+static extension-member method AmbiguousExtension2|unambiguousStaticMethod1() → void {}
+static extension-member method UnambiguousExtension1|ambiguousStaticMethod2() → void {}
+
+library;
+import self as amb2;
+import "dart:core" as core;
+
+extension AmbiguousExtension1 on core::String {
+  static method ambiguousStaticMethod1 = amb2::AmbiguousExtension1|ambiguousStaticMethod1;
+}
+extension AmbiguousExtension2 on core::String {
+  static method unambiguousStaticMethod2 = amb2::AmbiguousExtension2|unambiguousStaticMethod2;
+}
+extension UnambiguousExtension2 on core::String {
+  static method ambiguousStaticMethod2 = amb2::UnambiguousExtension2|ambiguousStaticMethod2;
+}
+static extension-member method AmbiguousExtension1|ambiguousStaticMethod1() → void {}
+static extension-member method AmbiguousExtension2|unambiguousStaticMethod2() → void {}
+static extension-member method UnambiguousExtension2|ambiguousStaticMethod2() → void {}

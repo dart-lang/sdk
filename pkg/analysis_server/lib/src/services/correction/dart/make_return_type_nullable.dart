@@ -14,9 +14,8 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
@@ -46,21 +45,6 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (body.isAsynchronous || body.isGenerator) {
-      if (returnType is! NamedType) {
-        return;
-      }
-      var typeArguments = returnType.typeArguments;
-      if (typeArguments == null) {
-        return;
-      }
-      var arguments = typeArguments.arguments;
-      if (arguments.length != 1) {
-        return;
-      }
-      returnType = arguments[0];
-    }
-
     if (node is! NullLiteral &&
         !typeSystem.isAssignableTo(
           returnType.typeOrThrow,
@@ -70,9 +54,8 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    var returnType_final = returnType;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(returnType_final.end, '?');
+      builder.addSimpleInsertion(returnType.end, '?');
     });
   }
 
@@ -81,11 +64,29 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
     if (function is FunctionExpression) {
       function = function.parent;
     }
+    TypeAnnotation? returnType;
     if (function is MethodDeclaration) {
-      return function.returnType;
+      returnType = function.returnType;
     } else if (function is FunctionDeclaration) {
-      return function.returnType;
+      returnType = function.returnType;
+    } else {
+      return null;
     }
-    return null;
+
+    if (body.isAsynchronous || body.isGenerator) {
+      if (returnType is! NamedType) {
+        return null;
+      }
+      var typeArguments = returnType.typeArguments;
+      if (typeArguments == null) {
+        return null;
+      }
+      var arguments = typeArguments.arguments;
+      if (arguments.length != 1) {
+        return null;
+      }
+      returnType = arguments.single;
+    }
+    return returnType;
   }
 }

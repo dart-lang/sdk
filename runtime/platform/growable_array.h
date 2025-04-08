@@ -268,6 +268,10 @@ class Malloc : public AllStatic {
   static inline void Free(T* old_array, intptr_t old_len) {
     free(old_array);
   }
+
+  // Allow templated containers to check if this allocator supports
+  // freeing individual allocations.
+  static constexpr bool kSupportsFreeingIndividualAllocations = true;
 };
 
 template <typename T>

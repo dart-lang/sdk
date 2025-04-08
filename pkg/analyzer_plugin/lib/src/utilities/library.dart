@@ -8,6 +8,9 @@
 /// In other words, returns whether each is a 'package:' URI referencing the
 /// same package name.
 bool canBeRelativeImport(Uri library1, Uri library2) {
+  // TODO(srawlins): Replace this with `isSamePackageAs` from
+  // 'package:analyzer/src/utilities/extensions/uri.dart', once that is
+  // available on pub.
   return library1.isScheme('package') &&
       library2.isScheme('package') &&
       library1.pathSegments.isNotEmpty &&

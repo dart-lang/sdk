@@ -1,3 +1,6 @@
+## 7.3.1-wip
+* Updated SDK constraint to `^3.5.0`.
+
 ## 7.3.0
 * Add `flags` optional named parameter to `FeatureSet.latestLanguageVersion()`.
 

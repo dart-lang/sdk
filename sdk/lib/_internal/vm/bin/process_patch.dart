@@ -30,7 +30,7 @@ class Process {
     bool runInShell = false,
     ProcessStartMode mode = ProcessStartMode.normal,
   }) {
-    _ProcessImpl process = new _ProcessImpl(
+    _ProcessImpl process = _ProcessImpl(
       executable,
       arguments,
       workingDirectory,
@@ -96,12 +96,12 @@ class Process {
   }
 }
 
-List<_SignalController?> _signalControllers = new List.filled(32, null);
+List<_SignalController?> _signalControllers = List.filled(32, null);
 
 class _SignalController {
   final ProcessSignal signal;
 
-  final _controller = new StreamController<ProcessSignal>.broadcast();
+  final _controller = StreamController<ProcessSignal>.broadcast();
   var _id;
 
   _SignalController(this.signal) {
@@ -115,13 +115,11 @@ class _SignalController {
   void _listen() {
     var id = _setSignalHandler(signal.signalNumber);
     if (id is! int) {
-      _controller.addError(
-        new SignalException("Failed to listen for $signal", id),
-      );
+      _controller.addError(SignalException("Failed to listen for $signal", id));
       return;
     }
     _id = id;
-    var socket = new _RawSocket(new _NativeSocket.watchSignal(id));
+    var socket = _RawSocket(_NativeSocket.watchSignal(id));
     socket.listen((event) {
       if (event == RawSocketEvent.read) {
         var bytes = socket.read()!;
@@ -176,16 +174,14 @@ class _ProcessUtils {
             (signal != ProcessSignal.sigusr1 &&
                 signal != ProcessSignal.sigusr2 &&
                 signal != ProcessSignal.sigwinch))) {
-      throw new SignalException(
-        "Listening for signal $signal is not supported",
-      );
+      throw SignalException("Listening for signal $signal is not supported");
     }
     return _watchSignalInternal(signal);
   }
 
   static Stream<ProcessSignal> _watchSignalInternal(ProcessSignal signal) {
     if (_signalControllers[signal.signalNumber] == null) {
-      _signalControllers[signal.signalNumber] = new _SignalController(signal);
+      _signalControllers[signal.signalNumber] = _SignalController(signal);
     }
     return _signalControllers[signal.signalNumber]!.stream;
   }
@@ -299,14 +295,14 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
 
     if (_modeHasStdio(_mode)) {
       // stdin going to process.
-      _stdin = new _StdSink(new _Socket._writePipe().._owner = this);
+      _stdin = _StdSink(_Socket._writePipe().._owner = this);
       // stdout coming from process.
-      _stdout = new _StdStream(new _Socket._readPipe().._owner = this);
+      _stdout = _StdStream(_Socket._readPipe().._owner = this);
       // stderr coming from process.
-      _stderr = new _StdStream(new _Socket._readPipe().._owner = this);
+      _stderr = _StdStream(_Socket._readPipe().._owner = this);
     }
     if (_modeIsAttached(_mode)) {
-      _exitHandler = new _Socket._readPipe();
+      _exitHandler = _Socket._readPipe();
     }
   }
 
@@ -346,7 +342,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
         shellArguments.add(arg);
       }
     } else {
-      var commandLine = new StringBuffer();
+      var commandLine = StringBuffer();
       executable = executable.replaceAll("'", "'\"'\"'");
       commandLine.write("'$executable'");
       shellArguments.add("-c");
@@ -373,7 +369,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
       // Replace any number of '\' followed by '"' with
       // twice as many '\' followed by '\"'.
       var backslash = '\\'.codeUnitAt(0);
-      var sb = new StringBuffer();
+      var sb = StringBuffer();
       var nextPos = 0;
       var quotePos = argument.indexOf('"', nextPos);
       while (quotePos != -1) {
@@ -396,7 +392,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
 
       // Add '"' at the beginning and end and replace all '\' at
       // the end with two '\'.
-      sb = new StringBuffer('"');
+      sb = StringBuffer('"');
       sb.write(result);
       nextPos = argument.length - 1;
       while (argument.codeUnitAt(nextPos) == backslash) {
@@ -418,15 +414,15 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   }
 
   Future<Process> _start() {
-    var completer = new Completer<Process>();
+    var completer = Completer<Process>();
     var stackTrace = StackTrace.current;
     if (_modeIsAttached(_mode)) {
-      _exitCode = new Completer<int>();
+      _exitCode = Completer<int>();
     }
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
     Timer.run(() {
-      var status = new _ProcessStartStatus();
+      var status = _ProcessStartStatus();
       bool success = _startNative(
         _Namespace._namespace,
         _path,
@@ -442,7 +438,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
       );
       if (!success) {
         completer.completeError(
-          new ProcessException(
+          ProcessException(
             _path,
             _arguments,
             status._errorMessage!,
@@ -454,14 +450,14 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
       }
 
       _started = true;
-      final resourceInfo = new _SpawnedProcessResourceInfo(this);
+      final resourceInfo = _SpawnedProcessResourceInfo(this);
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
       if (_modeIsAttached(_mode)) {
         int exitDataRead = 0;
         final int EXIT_DATA_SIZE = 8;
-        List<int> exitDataBuffer = new List<int>.filled(EXIT_DATA_SIZE, 0);
+        List<int> exitDataBuffer = List<int>.filled(EXIT_DATA_SIZE, 0);
         _exitHandler.listen((data) {
           int exitCode(List<int> ints) {
             var code = _intFromBytes(ints, 0);
@@ -501,8 +497,8 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     Encoding? stdoutEncoding,
     Encoding? stderrEncoding,
   ) {
-    var status = new _ProcessStartStatus();
-    _exitCode = new Completer<int>();
+    var status = _ProcessStartStatus();
+    _exitCode = Completer<int>();
     bool success = _startNative(
       _Namespace._namespace,
       _path,
@@ -517,7 +513,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
       status,
     );
     if (!success) {
-      throw new ProcessException(
+      throw ProcessException(
         _path,
         _arguments,
         status._errorMessage!,
@@ -525,7 +521,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
       );
     }
 
-    final resourceInfo = new _SpawnedProcessResourceInfo(this);
+    final resourceInfo = _SpawnedProcessResourceInfo(this);
 
     var result = _wait(
       _stdinNativeSocket,
@@ -541,7 +537,7 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
 
     resourceInfo.stopped();
 
-    return new ProcessResult(
+    return ProcessResult(
       result[0],
       result[1],
       getOutput(result[2], stdoutEncoding),
@@ -641,14 +637,14 @@ Future<ProcessResult> _runNonInteractiveProcess(
       if (encoding == null) {
         return stream
             .fold<BytesBuilder>(
-              new BytesBuilder(),
+              BytesBuilder(),
               (builder, data) => builder..add(data),
             )
             .then((builder) => builder.takeBytes());
       } else {
         return stream
             .transform(encoding.decoder)
-            .fold<StringBuffer>(new StringBuffer(), (buf, data) {
+            .fold<StringBuffer>(StringBuffer(), (buf, data) {
               buf.write(data);
               return buf;
             })
@@ -660,7 +656,7 @@ Future<ProcessResult> _runNonInteractiveProcess(
     Future stderr = foldStream(p.stderr, stderrEncoding);
 
     return Future.wait([p.exitCode, stdout, stderr]).then((result) {
-      return new ProcessResult(pid, result[0], result[1], result[2]);
+      return ProcessResult(pid, result[0], result[1], result[2]);
     });
   });
 }
@@ -675,7 +671,7 @@ ProcessResult _runNonInteractiveProcessSync(
   Encoding? stdoutEncoding,
   Encoding? stderrEncoding,
 ) {
-  var process = new _ProcessImpl(
+  var process = _ProcessImpl(
     executable,
     arguments,
     workingDirectory,

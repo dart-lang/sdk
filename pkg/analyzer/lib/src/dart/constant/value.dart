@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements, as_much_as_we_can
-
 /// The implementation of the class [DartObject].
 ///
 /// @docImport 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -159,6 +157,7 @@ class ConstructorInvocation {
   ConstructorInvocation(
       this.constructor2, this._argumentValues, this.namedArguments);
 
+  @Deprecated('Use constructor2 instead')
   ConstructorElement get constructor => constructor2.asElement;
 
   /// The positional arguments passed to the constructor.
@@ -2410,11 +2409,11 @@ class IntState extends NumState {
 
 /// An invalid constant that contains diagnostic information.
 class InvalidConstant implements Constant {
-  /// The length of the entity that the evaluation error is reported at.
-  final int length;
-
   /// The offset of the entity that the evaluation error is reported at.
   final int offset;
+
+  /// The length of the entity that the evaluation error is reported at.
+  final int length;
 
   /// The error code that is being reported.
   final ErrorCode errorCode;
@@ -2448,11 +2447,13 @@ class InvalidConstant implements Constant {
   final bool isUnresolved;
 
   /// Creates a duplicate instance of [other], with a different [entity].
-  factory InvalidConstant.copyWithEntity(
-      InvalidConstant other, SyntacticEntity entity) {
+  factory InvalidConstant.copyWithEntity({
+    required InvalidConstant other,
+    required SyntacticEntity entity,
+  }) {
     return InvalidConstant.forEntity(
-      entity,
-      other.errorCode,
+      entity: entity,
+      errorCode: other.errorCode,
       arguments: other.arguments,
       contextMessages: other.contextMessages,
       avoidReporting: other.avoidReporting,
@@ -2462,16 +2463,18 @@ class InvalidConstant implements Constant {
   }
 
   /// Creates a constant evaluation error associated with an [element].
-  InvalidConstant.forElement(Element2 element, ErrorCode errorCode,
-      {List<Object>? arguments,
-      List<DiagnosticMessage>? contextMessages,
-      bool avoidReporting = false,
-      bool isUnresolved = false,
-      bool isRuntimeException = false})
-      : this._(
-          element.name3!.length,
-          element.firstFragment.nameOffset2 ?? -1,
-          errorCode,
+  InvalidConstant.forElement({
+    required Element2 element,
+    required ErrorCode errorCode,
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    bool avoidReporting = false,
+    bool isUnresolved = false,
+    bool isRuntimeException = false,
+  }) : this._(
+          length: element.name3!.length,
+          offset: element.firstFragment.nameOffset2 ?? -1,
+          errorCode: errorCode,
           arguments: arguments,
           contextMessages: contextMessages,
           avoidReporting: avoidReporting,
@@ -2481,16 +2484,18 @@ class InvalidConstant implements Constant {
 
   /// Creates a constant evaluation error associated with a token or node
   /// [entity].
-  InvalidConstant.forEntity(SyntacticEntity entity, ErrorCode errorCode,
-      {List<Object>? arguments,
-      List<DiagnosticMessage>? contextMessages,
-      bool avoidReporting = false,
-      bool isUnresolved = false,
-      bool isRuntimeException = false})
-      : this._(
-          entity.length,
-          entity.offset,
-          errorCode,
+  InvalidConstant.forEntity({
+    required SyntacticEntity entity,
+    required ErrorCode errorCode,
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    bool avoidReporting = false,
+    bool isUnresolved = false,
+    bool isRuntimeException = false,
+  }) : this._(
+          offset: entity.offset,
+          length: entity.length,
+          errorCode: errorCode,
           arguments: arguments,
           contextMessages: contextMessages,
           avoidReporting: avoidReporting,
@@ -2499,29 +2504,38 @@ class InvalidConstant implements Constant {
         );
 
   /// Creates a generic error depending on the [node] provided.
-  factory InvalidConstant.genericError(AstNode node,
-      {bool isUnresolved = false}) {
+  factory InvalidConstant.genericError({
+    required AstNode node,
+    bool isUnresolved = false,
+  }) {
     var parent = node.parent;
     var parent2 = parent?.parent;
     if (parent is ArgumentList &&
         parent2 is InstanceCreationExpression &&
         parent2.isConst) {
       return InvalidConstant.forEntity(
-          node, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
-          isUnresolved: isUnresolved);
+        entity: node,
+        errorCode: CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+        isUnresolved: isUnresolved,
+      );
     }
     return InvalidConstant.forEntity(
-        node, CompileTimeErrorCode.INVALID_CONSTANT,
-        isUnresolved: isUnresolved);
+      entity: node,
+      errorCode: CompileTimeErrorCode.INVALID_CONSTANT,
+      isUnresolved: isUnresolved,
+    );
   }
 
-  InvalidConstant._(this.length, this.offset, this.errorCode,
-      {List<Object>? arguments,
-      List<DiagnosticMessage>? contextMessages,
-      this.avoidReporting = false,
-      this.isUnresolved = false,
-      this.isRuntimeException = false})
-      : arguments = arguments ?? [],
+  InvalidConstant._({
+    required this.offset,
+    required this.length,
+    required this.errorCode,
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    this.avoidReporting = false,
+    this.isUnresolved = false,
+    this.isRuntimeException = false,
+  })  : arguments = arguments ?? [],
         contextMessages = contextMessages ?? [];
 }
 

@@ -42,14 +42,17 @@ class AnalyzerUseNewElementsTest extends LintRuleTest {
   }
 
   test_enablement_optedOut() async {
-    await assertDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 // ignore_for_file: analyzer_use_new_elements
 import 'package:analyzer/dart/element/element.dart';
 
 ClassElement f() {
   throw 42;
 }
-''', []);
+''',
+      [error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 100, 12)],
+    );
   }
 
   test_interfaceTypeImpl_element() async {
@@ -61,7 +64,7 @@ void f(InterfaceTypeImpl type) {
   type.element;
 }
 ''',
-      [lint(95, 7)],
+      [error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 95, 7), lint(95, 7)],
     );
   }
 
@@ -138,7 +141,10 @@ ClassElement f() {
   throw 42;
 }
 ''',
-      [lint(54, 12)],
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 54, 12),
+        lint(54, 12),
+      ],
     );
   }
 

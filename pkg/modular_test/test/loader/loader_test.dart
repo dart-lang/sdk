@@ -13,7 +13,7 @@ import 'package:modular_test/src/suite.dart';
 
 import 'package:args/args.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   var options = _Options.parse(args);
   var baseUri = Platform.script.resolve('./');
   var baseDir = Directory.fromUri(baseUri);

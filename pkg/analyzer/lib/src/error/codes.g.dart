@@ -7043,6 +7043,15 @@ class WarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode MULTIPLE_COMBINATORS = WarningCode(
+    'MULTIPLE_COMBINATORS',
+    "Using multiple 'hide' or 'show' combinators is never necessary and often "
+        "produces surprising results.",
+    correctionMessage: "Try using a single combinator.",
+    hasPublishedDocs: true,
+  );
+
   ///  Generates a warning for classes that inherit from classes annotated with
   ///  `@immutable` but that are not immutable.
   ///

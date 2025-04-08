@@ -28,7 +28,9 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
       element = node.element;
-      if (node.parent case PrefixedIdentifier(prefix: var currentPrefix)) {
+      if (node.parent case PrefixedIdentifier(
+        prefix: var currentPrefix,
+      ) when currentPrefix != node) {
         prefix = currentPrefix.name;
       }
     }
@@ -167,9 +169,8 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -241,9 +242,8 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {

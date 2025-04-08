@@ -35,7 +35,7 @@ class Error {
 
   @patch
   @pragma("wasm:intrinsic")
-  external Never _throw(Object object, StackTrace stackTrace);
+  external static Never _throw(Object object, StackTrace stackTrace);
 }
 
 class _Error extends Error {
@@ -73,7 +73,9 @@ class _TypeError extends _Error implements TypeError {
   }
 
   @pragma("wasm:entry-point")
-  static Never _throwNullCheckError(StackTrace stackTrace) {
+  @pragma("wasm:never-inline")
+  static Never _throwNullCheckErrorWithCurrentStack() {
+    final stackTrace = StackTrace.current;
     final typeError = _TypeError.fromMessageAndStackTrace(
       "Null check operator used on a null value",
       stackTrace,
@@ -272,7 +274,7 @@ class _DuplicatedFieldInitializerError extends Error {
 @patch
 class StateError {
   static _throwNew(String msg) {
-    throw new StateError(msg);
+    throw StateError(msg);
   }
 }
 

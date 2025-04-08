@@ -183,26 +183,15 @@ static constexpr uword kZapUninitializedWord = 0xabababababababab;
 static constexpr intptr_t kAllocationCanary = 123;
 
 // Macros to get the contents of the fp register.
-#if defined(DART_HOST_OS_WINDOWS)
-
-// clang-format off
-#if defined(HOST_ARCH_IA32)
+#if __GNUC__
 #define COPY_FP_REGISTER(fp)                                                   \
-  __asm { mov fp, ebp}                                                         \
-  ;  // NOLINT
-// clang-format on
+  fp = reinterpret_cast<uintptr_t>(__builtin_frame_address(0))
+#elif _MSC_VER
+#define COPY_FP_REGISTER(fp)                                                   \
+  fp = reinterpret_cast<uintptr_t>(_AddressOfReturnAddress()) - kWordSize
 #else
-// Inline assembly is only available on x86; return the stack pointer instead.
-#define COPY_FP_REGISTER(fp) fp = OSThread::GetCurrentStackPointer();
+#define COPY_FP_REGISTER(fp) fp = 0
 #endif
-
-#else  // !defined(DART_HOST_OS_WINDOWS))
-
-// Assume GCC-compatible builtins.
-#define COPY_FP_REGISTER(fp)                                                   \
-  fp = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
-
-#endif  // !defined(DART_HOST_OS_WINDOWS))
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_RISCV32) ||                \

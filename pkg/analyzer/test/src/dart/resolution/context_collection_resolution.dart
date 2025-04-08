@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -203,7 +202,7 @@ abstract class ContextResolutionTest
       sdkPath: sdkRoot.path,
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
-      updateAnalysisOptions2: updateAnalysisOptions,
+      updateAnalysisOptions3: updateAnalysisOptions,
       drainStreams: false,
     );
 
@@ -341,7 +340,6 @@ abstract class ContextResolutionTest
   /// the default or already updated with `analysis_options.yaml` file.
   void updateAnalysisOptions({
     required AnalysisOptionsImpl analysisOptions,
-    required ContextRoot contextRoot,
     required DartSdk sdk,
   }) {}
 
@@ -419,7 +417,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
     return bundleFile;
   }
-
 
   @override
   void setUp() {

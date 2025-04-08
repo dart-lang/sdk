@@ -931,14 +931,15 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
 // into an arguments descriptor for the target function.
 // Arg0: implicit closure arguments descriptor
 // Arg1: target function
+// Arg2: new type args length
 // Return value: target arguments descriptor
-DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 2) {
+DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
 #if defined(DART_DYNAMIC_MODULES)
   const auto& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(0));
   const auto& target = Function::CheckedHandle(zone, arguments.ArgAt(1));
+  intptr_t type_args_len = Smi::CheckedHandle(zone, arguments.ArgAt(2)).Value();
 
   const ArgumentsDescriptor args_desc(descriptor);
-  intptr_t type_args_len = args_desc.TypeArgsLen();
   intptr_t num_arguments = args_desc.Count();
 
   if (target.is_static()) {
@@ -4353,19 +4354,21 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
 
-  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   if (thread->is_unwind_in_progress()) {
     // Clean up safepoint unwind error marker to prevent safepoint tripping.
     // The safepoint marker will get restored just before jumping back
     // to generated code.
+    TransitionToVM transition(thread);
     thread->SetUnwindErrorInProgress(false);
     NoSafepointScope no_safepoint;
-    Error unwind_error;
-    unwind_error ^=
-        thread->isolate()->isolate_object_store()->preallocated_unwind_error();
-    Exceptions::PropagateError(unwind_error);
+    Exceptions::PropagateError(Object::unwind_error());
   }
-  thread->ExitSafepointFromNative();
+  if (thread->execution_state() == Thread::kThreadInNative) {
+    thread->ExitSafepointFromNative();
+  } else {
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->ExitSafepoint();
+  }
 
   TRACE_RUNTIME_CALL("%s", "ExitSafepoint done");
 }
@@ -4373,30 +4376,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint,
                               /*argument_count=*/0,
                               /*is_float=*/false,
                               DFLRT_ExitSafepoint);
-
-// This is expected to be invoked when jumping to destination frame,
-// during exception handling.
-extern "C" void DFLRT_ExitSafepointIgnoreUnwindInProgress(
-    NativeArguments __unusable_) {
-  CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress");
-  Thread* thread = Thread::Current();
-  ASSERT(thread->top_exit_frame_info() != 0);
-
-  ASSERT(thread->execution_state() == Thread::kThreadInVM);
-
-  // Compared to ExitSafepoint above we are going to ignore
-  // is_unwind_in_progress flag because this is called as part of JumpToFrame
-  // exception handler - we want this transition to complete so that the next
-  // safepoint check does error propagation.
-  thread->ExitSafepointFromNative();
-
-  TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress done");
-}
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
-                              /*argument_count=*/0,
-                              /*is_float*/ false,
-                              DFLRT_ExitSafepointIgnoreUnwindInProgress);
 
 // This is called by a native callback trampoline
 // (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
@@ -4499,12 +4478,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     FATAL("Cannot invoke native callback from a leaf call.");
   }
 
-  // Set the execution state to VM while waiting for the safepoint to end.
-  // This isn't strictly necessary but enables tests to check that we're not
-  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
-  current_thread->set_execution_state(Thread::kThreadInVM);
-
   current_thread->ExitSafepointFromNative();
+  current_thread->set_execution_state(Thread::kThreadInVM);
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
 

@@ -270,6 +270,7 @@ class _FutureOrType extends _Type {
 
 @pragma("wasm:entry-point")
 class _InterfaceType extends _Type {
+  @pragma("wasm:entry-point")
   final WasmI32 classId;
   final WasmArray<_Type> typeArguments;
 
@@ -355,7 +356,7 @@ class _InterfaceType extends _Type {
 }
 
 class _NamedParameter {
-  final String name;
+  final Symbol name;
   final _Type type;
   final bool isRequired;
 
@@ -385,7 +386,7 @@ class _NamedParameter {
     if (isRequired) s.write('required ');
     s.write(type);
     s.write(' ');
-    s.write(name);
+    s.write(_symbolToString(name));
     return s.toString();
   }
 }
@@ -579,6 +580,7 @@ class _RecordType extends _Type {
   _Type get _asNullable => _RecordType(names, fieldTypes, true);
 
   @override
+  @pragma('dyn-module:callable')
   bool _checkInstance(Object o) {
     if (!_isRecordClassId(ClassID.getID(o))) return false;
     return unsafeCast<Record>(o)._checkRecordType(fieldTypes, names);
@@ -1287,43 +1289,56 @@ abstract class _TypeUniverse {
 
     // Check that [t]'s named arguments are subtypes of [s]'s named arguments.
     // This logic assumes the named arguments are stored in sorted order.
-    WasmArray<_NamedParameter> sNamed = s.namedParameters;
-    WasmArray<_NamedParameter> tNamed = t.namedParameters;
-    int sNamedLength = sNamed.length;
-    int tNamedLength = tNamed.length;
+    final WasmArray<_NamedParameter> sNamed = s.namedParameters;
+    final WasmArray<_NamedParameter> tNamed = t.namedParameters;
+    final sNamedLength = sNamed.length;
+    final tNamedLength = tNamed.length;
     int sIndex = 0;
     for (int tIndex = 0; tIndex < tNamedLength; tIndex++) {
       _NamedParameter tNamedParameter = tNamed[tIndex];
-      String tName = tNamedParameter.name;
+      Symbol tName = tNamedParameter.name;
+      _NamedParameter? sParameter; // current named parameter of `t` in `s`
+
+      // Find the current named parameter of `t` in `s`, skipping optional
+      // parameters.
       while (true) {
-        if (sIndex >= sNamedLength) return false;
-        _NamedParameter sNamedParameter = sNamed[sIndex];
-        String sName = sNamedParameter.name;
-        sIndex++;
-        int sNameComparedToTName = sName.compareTo(tName);
-        if (sNameComparedToTName > 0) return false;
-        bool sIsRequired = sNamedParameter.isRequired;
-        if (sNameComparedToTName < 0) {
-          if (sIsRequired) return false;
-          continue;
-        }
-        bool tIsRequired = tNamedParameter.isRequired;
-        if (sIsRequired && !tIsRequired) return false;
-        if (!isSubtype(
-          tNamedParameter.type,
-          tEnv,
-          sNamedParameter.type,
-          sEnv,
-        )) {
+        if (sIndex >= sNamedLength) {
+          // Named parameter not in `s`.
           return false;
         }
-        break;
+
+        _NamedParameter sNamedParameter = sNamed[sIndex];
+        Symbol sName = sNamedParameter.name;
+        sIndex++;
+
+        if (identical(tName, sName)) {
+          if (sNamedParameter.isRequired && !tNamedParameter.isRequired) {
+            return false;
+          }
+          sParameter = sNamedParameter;
+          break;
+        }
+
+        // Skip the named parameter of `s` if it's optional. Otherwise we have a
+        // required parameter in `s` that's not in `t`, so `s` can't be a
+        // subtype of `t`.
+        if (sNamedParameter.isRequired) {
+          return false;
+        }
+      }
+
+      if (!isSubtype(tNamedParameter.type, tEnv, sParameter.type, sEnv)) {
+        return false;
       }
     }
+
+    // If we have more named parameters in `s` after the parameters in `t`,
+    // those parameters should all be optional.
     while (sIndex < sNamedLength) {
       if (sNamed[sIndex].isRequired) return false;
       sIndex++;
     }
+
     return true;
   }
 
@@ -1792,42 +1807,57 @@ bool _checkClosureShape(
 
   // Check named args. Both parameters and args are sorted, so we can iterate
   // them in parallel.
+  //
+  // The function type should have all of the arguments passed. The arguments
+  // can omit optional parameters of the function type.
+  //
+  // Function type named parameter symbols will be constants and minified, but
+  // the argument symbols may not be constants, so won't always be minified.
   int namedParamIdx = 0;
-  int namedArgIdx = 0;
-  while (namedParamIdx < functionType.namedParameters.length) {
-    _NamedParameter param = functionType.namedParameters[namedParamIdx];
+  argLoop:
+  for (
+    int namedArgIdx = 0;
+    namedArgIdx < namedArguments.length;
+    namedArgIdx += 2
+  ) {
+    Symbol argName = unsafeCast<Symbol>(namedArguments[namedArgIdx]);
 
-    if (namedArgIdx * 2 >= namedArguments.length) {
-      if (param.isRequired) {
+    // Find the parameter for the argument in the function type.
+    while (true) {
+      if (namedParamIdx >= functionType.namedParameters.length) {
+        // Function doesn't expect the named argument.
         return false;
       }
-      namedParamIdx += 1;
-      continue;
-    }
 
-    String argName = _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
+      _NamedParameter namedParameter =
+          functionType.namedParameters[namedParamIdx];
+      Symbol namedParameterName = namedParameter.name;
+      namedParamIdx++;
 
-    final cmp = argName.compareTo(param.name);
+      // NB. `namedParameterName` is coming from a function type, so it will
+      // always be a constant symbol and minified. `argName` may or may not be
+      // constant and minified. When in minification mode we don't have to
+      // compare symbol values as they will never be equal if the symbols are
+      // not identical.
+      if (identical(argName, namedParameterName) ||
+          (!minify && argName == namedParameterName)) {
+        continue argLoop;
+      }
 
-    if (cmp == 0) {
-      // Expected arg passed
-      namedParamIdx += 1;
-      namedArgIdx += 1;
-    } else if (cmp < 0) {
-      // Unexpected arg passed
-      return false;
-    } else if (param.isRequired) {
-      // Required param not passed
-      return false;
-    } else {
-      // Optional param not passed
-      namedParamIdx += 1;
+      if (namedParameter.isRequired) {
+        return false;
+      }
+
+      // Skip optional named parameter.
     }
   }
 
-  // All named parameters checked, any extra arguments are unexpected
-  if (namedArgIdx * 2 < namedArguments.length) {
-    return false;
+  // Check that the remaining parameters are all optional.
+  while (namedParamIdx < functionType.namedParameters.length) {
+    if (functionType.namedParameters[namedParamIdx].isRequired) {
+      return false;
+    }
+    namedParamIdx += 1;
   }
 
   return true;
@@ -1893,26 +1923,37 @@ void _checkClosureType(
   // Check named arguments. Since the shape check passed we know that passed
   // names exist in named parameters of the function.
   int namedParamIdx = 0;
-  int namedArgIdx = 0;
-  while (namedArgIdx * 2 < namedArguments.length) {
-    final String argName = _symbolToString(
-      namedArguments[namedArgIdx * 2] as Symbol,
-    );
-    if (argName == functionType.namedParameters[namedParamIdx].name) {
-      final arg = namedArguments[namedArgIdx * 2 + 1];
-      final paramTy = functionType.namedParameters[namedParamIdx].type;
-      if (!_isSubtype(arg, paramTy)) {
-        _TypeError._throwArgumentTypeCheckError(
-          arg,
-          paramTy,
-          argName,
-          StackTrace.current,
-        );
+  argLoop:
+  for (
+    int namedArgIdx = 0;
+    namedArgIdx < namedArguments.length;
+    namedArgIdx += 2
+  ) {
+    final argName = unsafeCast<Symbol>(namedArguments[namedArgIdx]);
+
+    // Find the parameter for the argument in the function type.
+    while (true) {
+      _NamedParameter namedParameter =
+          functionType.namedParameters[namedParamIdx];
+      Symbol namedParameterName = namedParameter.name;
+      namedParamIdx++;
+
+      if (identical(argName, namedParameterName) ||
+          (!minify && argName == namedParameterName)) {
+        final argTy = namedArguments[namedArgIdx + 1];
+        final paramTy = namedParameter.type;
+        if (!_isSubtype(argTy, paramTy)) {
+          _TypeError._throwArgumentTypeCheckError(
+            argTy,
+            paramTy,
+            _symbolToString(argName),
+            StackTrace.current,
+          );
+        }
+        continue argLoop;
       }
-      namedParamIdx += 1;
-      namedArgIdx += 1;
-    } else {
-      namedParamIdx += 1;
+
+      // Skip optional named parameter.
     }
   }
 }
@@ -1931,6 +1972,7 @@ _Type _getActualRuntimeType(Object object) {
 }
 
 @pragma("wasm:prefer-inline")
+@pragma('dyn-module:callable')
 _Type _getActualRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getActualRuntimeType(object);
 

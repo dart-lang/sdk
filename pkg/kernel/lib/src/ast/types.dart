@@ -497,16 +497,7 @@ sealed class DartType extends Node implements SharedType {
   Nullability get nullability;
 
   @override
-  NullabilitySuffix get nullabilitySuffix {
-    if (isTypeWithoutNullabilityMarker(this)) {
-      return NullabilitySuffix.none;
-    } else if (isNullableTypeConstructorApplication(this)) {
-      return NullabilitySuffix.question;
-    } else {
-      assert(isLegacyTypeConstructorApplication(this));
-      return NullabilitySuffix.star;
-    }
-  }
+  bool get isQuestionType => !isTypeWithoutNullabilityMarker(this);
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
   /// the root term is not a typedef type, otherwise returns the type itself.
@@ -587,6 +578,11 @@ sealed class DartType extends Node implements SharedType {
     // TODO(cstefantsova): Use the actual algorithm for structural equality.
     return this == other;
   }
+
+  @override
+  DartType asQuestionType(bool isNullable) => isNullable
+      ? withDeclaredNullability(Nullability.nullable)
+      : computeTypeWithoutNullabilityMarker(this);
 
   /// Returns a textual representation of the this type.
   ///

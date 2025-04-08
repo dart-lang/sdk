@@ -72,19 +72,6 @@ class CompiledApp {
       throw "Unable to print message: " + js;
     }
 
-    // Converts a Dart List to a JS array. Any Dart objects will be converted, but
-    // this will be cheap for JSValues.
-    function arrayFromDartList(constructor, list) {
-      const exports = dartInstance.exports;
-      const read = exports.$listRead;
-      const length = exports.$listLength(list);
-      const array = new constructor(length);
-      for (let i = 0; i < length; i++) {
-        array[i] = read(list, i);
-      }
-      return array;
-    }
-
     // A special symbol attached to functions that wrap Dart functions.
     const jsWrappedDartFunctionSymbol = Symbol("JSWrappedDartFunction");
 
@@ -111,53 +98,12 @@ class CompiledApp {
 
     <<JS_STRING_POLYFILL_METHODS>>
 
-    const loadModuleFromBytes = async (bytes) => {
-        const module = await WebAssembly.compile(bytes, this.builtins);
-        return await WebAssembly.instantiate(module, {
-          ...baseImports,
-          ...additionalImports,
-          "wasm:js-string": jsStringPolyfill,
-          "module0": dartInstance.exports,
-        });
-    }
-
-    const loadModule = async (loader, loaderArgument) => {
-        const source = await Promise.resolve(loader(loaderArgument));
-        const module = await ((source instanceof Response)
-            ? WebAssembly.compileStreaming(source, this.builtins)
-            : WebAssembly.compile(source, this.builtins));
-        return await WebAssembly.instantiate(module, {
-          ...baseImports,
-          ...additionalImports,
-          <<JS_POLYFILL_IMPORT>>
-          "module0": dartInstance.exports,
-        });
-    }
-
-    const deferredLibraryHelper = {
-      "loadModule": async (moduleName) => {
-        if (!loadDeferredWasm) {
-          throw "No implementation of loadDeferredWasm provided.";
-        }
-        return await loadModule(loadDeferredWasm, moduleName);
-      },
-      "loadDynamicModuleFromUri": async (uri) => {
-        if (!loadDynamicModule) {
-          throw "No implementation of loadDynamicModule provided.";
-        }
-        const loadedModule = await loadModule(loadDynamicModule, uri);
-        return loadedModule.exports.$invokeEntryPoint;
-      },
-      "loadDynamicModuleFromBytes": async (bytes) => {
-        const loadedModule = await loadModuleFromBytes(loadDynamicModule, uri);
-        return loadedModule.exports.$invokeEntryPoint;
-      },
-    };
+    <<DEFERRED_LIBRARY_HELPER_METHODS>>
 
     dartInstance = await WebAssembly.instantiate(this.module, {
       ...baseImports,
       ...additionalImports,
-      "deferredLibraryHelper": deferredLibraryHelper,
+      <<MODULE_LOADING_IMPORT>>
       <<JS_POLYFILL_IMPORT>>
     });
 
@@ -222,6 +168,51 @@ const jsStringPolyfill = {
       },
     };
 ''';
+
+final moduleLoadingHelperTemplate = Template(r'''
+const loadModuleFromBytes = async (bytes) => {
+        const module = await WebAssembly.compile(bytes, this.builtins);
+        return await WebAssembly.instantiate(module, {
+          ...baseImports,
+          ...additionalImports,
+          <<JS_POLYFILL_IMPORT>>
+          "module0": dartInstance.exports,
+        });
+    }
+
+    const loadModule = async (loader, loaderArgument) => {
+        const source = await Promise.resolve(loader(loaderArgument));
+        const module = await ((source instanceof Response)
+            ? WebAssembly.compileStreaming(source, this.builtins)
+            : WebAssembly.compile(source, this.builtins));
+        return await WebAssembly.instantiate(module, {
+          ...baseImports,
+          ...additionalImports,
+          <<JS_POLYFILL_IMPORT>>
+          "module0": dartInstance.exports,
+        });
+    }
+
+    const moduleLoadingHelper = {
+      "loadModule": async (moduleName) => {
+        if (!loadDeferredWasm) {
+          throw "No implementation of loadDeferredWasm provided.";
+        }
+        return await loadModule(loadDeferredWasm, moduleName);
+      },
+      "loadDynamicModuleFromUri": async (uri) => {
+        if (!loadDynamicModule) {
+          throw "No implementation of loadDynamicModule provided.";
+        }
+        const loadedModule = await loadModule(loadDynamicModule, uri);
+        return loadedModule.exports.$invokeEntryPoint;
+      },
+      "loadDynamicModuleFromBytes": async (bytes) => {
+        const loadedModule = await loadModuleFromBytes(loadDynamicModule, uri);
+        return loadedModule.exports.$invokeEntryPoint;
+      },
+    };
+''');
 
 class Template {
   static final _templateVariableRegExp = RegExp(r'<<(?<varname>[A-Z_]+)>>');

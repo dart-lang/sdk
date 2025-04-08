@@ -18,10 +18,12 @@ class DtdTest
         // This test uses the LspOverLegacy base as it uses an LSP request to tell
         // the server to connect DTD, however these tests themselves are verifying
         // the servers integration with DTD.
-        extends AbstractLspOverLegacyTest
+        extends
+        AbstractLspOverLegacyTest
         // Test implementations come from this mixin because they
         // are shared with the legacy server integration tests.
-        with SharedDtdTests {
+        with
+        SharedDtdTests {
   @override
   void createFile(String path, String content) {
     writeFile(path, content);

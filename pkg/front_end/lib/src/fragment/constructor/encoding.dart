@@ -5,10 +5,10 @@
 import 'package:kernel/ast.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
-import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
@@ -19,7 +19,10 @@ import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_member_builder.dart';
+import '../../source/source_type_parameter_builder.dart';
 import '../../type_inference/type_schema.dart';
+import 'body_builder_context.dart';
+import 'declaration.dart';
 
 class RegularConstructorEncoding {
   late final Constructor _constructor;
@@ -28,10 +31,14 @@ class RegularConstructorEncoding {
 
   final bool _isExternal;
 
+  final bool _isEnumConstructor;
+
   Statement? bodyInternal;
 
-  RegularConstructorEncoding({required bool isExternal})
-      : _isExternal = isExternal;
+  RegularConstructorEncoding(
+      {required bool isExternal, required bool isEnumConstructor})
+      : _isExternal = isExternal,
+        _isEnumConstructor = isEnumConstructor;
 
   Member get readTarget =>
       _constructorTearOff ??
@@ -39,13 +46,11 @@ class RegularConstructorEncoding {
       // [GenericFunction].
       _constructor as Member;
 
-  // Coverage-ignore(suite): Not run.
   Reference get readTargetReference =>
       (_constructorTearOff ?? _constructor).reference;
 
   Member get invokeTarget => _constructor;
 
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _constructor.reference;
 
   void registerFunctionBody(Statement value) {
@@ -110,7 +115,7 @@ class RegularConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -141,7 +146,7 @@ class RegularConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -195,8 +200,8 @@ class RegularConstructorEncoding {
         }
       }
       if (needsInference) {
-        libraryBuilder.loader
-            .registerConstructorToBeInferred(_constructor, constructorBuilder);
+        libraryBuilder.loader.registerConstructorToBeInferred(
+            new InferableConstructor(_constructor, constructorBuilder));
       }
     }
   }
@@ -225,6 +230,20 @@ class RegularConstructorEncoding {
     _constructor.isExternal = true;
   }
 
+  VariableDeclaration getFormalParameter(int index) {
+    if (_isEnumConstructor) {
+      // Skip synthetic parameters for index and name.
+      index += 2;
+    }
+    if (index < function.positionalParameters.length) {
+      return function.positionalParameters[index];
+    } else {
+      index -= function.positionalParameters.length;
+      assert(index < function.namedParameters.length);
+      return function.namedParameters[index];
+    }
+  }
+
   VariableDeclaration? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
@@ -240,16 +259,6 @@ class RegularConstructorEncoding {
     return null;
   }
 
-  void finishAugmentation(SourceConstructorBuilder origin) {
-    finishConstructorAugmentation(
-        origin.invokeTarget as Constructor, _constructor);
-
-    if (_constructorTearOff != null) {
-      finishProcedureAugmentation(
-          origin.readTarget as Procedure, _constructorTearOff);
-    }
-  }
-
   bool _hasAddedDefaultValueCloners = false;
 
   void addSuperParameterDefaultValueCloners(
@@ -262,7 +271,7 @@ class RegularConstructorEncoding {
       // If this constructor formals are part of a cyclic dependency this
       // might be called more than once.
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          superTarget, invokeTarget,
+          superTarget, _constructor,
           positionalSuperParameters: positionalSuperParameters ?? const <int>[],
           namedSuperParameters: namedSuperParameters ?? const <String>[],
           isOutlineNode: true,
@@ -278,6 +287,13 @@ class RegularConstructorEncoding {
       }
       _hasAddedDefaultValueCloners = true;
     }
+  }
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilderImpl constructorBuilder,
+      ConstructorDeclaration constructorDeclaration) {
+    return new ConstructorBodyBuilderContext(
+        constructorBuilder, constructorDeclaration, _constructor);
   }
 }
 
@@ -309,13 +325,13 @@ class ExtensionTypeConstructorEncoding {
       _constructorTearOff ?? // Coverage-ignore(suite): Not run.
       _constructor;
 
-  // Coverage-ignore(suite): Not run.
   Reference get readTargetReference =>
-      (_constructorTearOff ?? _constructor).reference;
+      (_constructorTearOff ?? // Coverage-ignore(suite): Not run.
+              _constructor)
+          .reference;
 
   Member get invokeTarget => _constructor;
 
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _constructor.reference;
 
   void registerFunctionBody(Statement value) {
@@ -375,7 +391,7 @@ class ExtensionTypeConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -408,7 +424,7 @@ class ExtensionTypeConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -484,8 +500,8 @@ class ExtensionTypeConstructorEncoding {
         }
       }
       if (needsInference) {
-        libraryBuilder.loader
-            .registerConstructorToBeInferred(_constructor, constructorBuilder);
+        libraryBuilder.loader.registerConstructorToBeInferred(
+            new InferableConstructor(_constructor, constructorBuilder));
       }
     }
   }
@@ -521,6 +537,16 @@ class ExtensionTypeConstructorEncoding {
 
   void prependInitializer(Initializer initializer) {
     initializers.insert(0, initializer);
+  }
+
+  VariableDeclaration getFormalParameter(int index) {
+    if (index < function.positionalParameters.length) {
+      return function.positionalParameters[index];
+    } else {
+      index -= function.positionalParameters.length;
+      assert(index < function.namedParameters.length);
+      return function.namedParameters[index];
+    }
   }
 
   VariableDeclaration? getTearOffParameter(int index) {
@@ -560,5 +586,12 @@ class ExtensionTypeConstructorEncoding {
       registerFunctionBody(new Block(statements));
     }
     _hasBuiltBody = true;
+  }
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilderImpl constructorBuilder,
+      ConstructorDeclaration constructorDeclaration) {
+    return new ConstructorBodyBuilderContext(
+        constructorBuilder, constructorDeclaration, _constructor);
   }
 }

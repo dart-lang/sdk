@@ -50,10 +50,9 @@ class AnalysisDriverUnlinkedUnit {
   }
 
   Uint8List toBytes() {
-    var byteSink = ByteSink();
-    var sink = BufferedSink(byteSink);
+    var sink = BufferedSink();
     write(sink);
-    return sink.flushAndTake();
+    return sink.takeBytes();
   }
 
   void write(BufferedSink sink) {
@@ -228,7 +227,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
       isDocImport: reader.readBool(),
       isSyntheticDartCore: reader.readBool(),
       prefix: reader.readOptionalObject(
-        UnlinkedLibraryImportPrefix.read,
+        () => UnlinkedLibraryImportPrefix.read(reader),
       ),
       uri: reader.readOptionalStringUtf8(),
     );
@@ -274,9 +273,9 @@ class UnlinkedLibraryImportPrefix {
       deferredOffset: reader.readOptionalUInt30(),
       asOffset: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
-      name: reader.readOptionalObject((reader) {
-        return UnlinkedLibraryImportPrefixName.read(reader);
-      }),
+      name: reader.readOptionalObject(
+        () => UnlinkedLibraryImportPrefixName.read(reader),
+      ),
     );
   }
 
@@ -559,17 +558,17 @@ class UnlinkedUnit {
       informativeBytes: reader.readUint8List(),
       isDartCore: reader.readBool(),
       libraryDirective: reader.readOptionalObject(
-        UnlinkedLibraryDirective.read,
+        () => UnlinkedLibraryDirective.read(reader),
       ),
       lineStarts: reader.readUInt30List(),
       parts: reader.readTypedList(
         () => UnlinkedPartDirective.read(reader),
       ),
       partOfNameDirective: reader.readOptionalObject(
-        UnlinkedPartOfNameDirective.read,
+        () => UnlinkedPartOfNameDirective.read(reader),
       ),
       partOfUriDirective: reader.readOptionalObject(
-        UnlinkedPartOfUriDirective.read,
+        () => UnlinkedPartOfUriDirective.read(reader),
       ),
       topLevelDeclarations: reader.readStringUtf8Set(),
       dartdocTemplates: reader.readTypedList(

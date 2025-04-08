@@ -99,8 +99,6 @@ class IncrementalCompiler {
   IncrementalCompilerResult _combinePendingDeltas(bool includePlatform) {
     assert(_pendingDeltas.isNotEmpty);
     Procedure? mainMethod;
-    NonNullableByDefaultCompiledMode compilationMode =
-        NonNullableByDefaultCompiledMode.Invalid;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     ClassHierarchy classHierarchy = _pendingDeltas.last.classHierarchy;
@@ -110,7 +108,6 @@ class IncrementalCompiler {
       if (delta.mainMethod != null) {
         mainMethod = delta.mainMethod;
       }
-      compilationMode = delta.mode;
       uriToSource.addAll(delta.uriToSource);
       for (Library library in delta.libraries) {
         bool isPlatform =
@@ -125,7 +122,7 @@ class IncrementalCompiler {
       new Component(
         libraries: combined.values.toList(),
         uriToSource: uriToSource,
-      )..setMainMethodAndMode(mainMethod?.reference, true, compilationMode),
+      )..setMainMethodAndMode(mainMethod?.reference, true),
       classHierarchy: classHierarchy,
       coreTypes: coreTypes,
     );
@@ -174,11 +171,7 @@ class IncrementalCompiler {
           new Component(
             libraries: combined.values.toList(),
             uriToSource: uriToSource,
-          )..setMainMethodAndMode(
-            candidate.mainMethod?.reference,
-            true,
-            candidate.mode,
-          ),
+          )..setMainMethodAndMode(candidate.mainMethod?.reference, true),
           classHierarchy: result.classHierarchy,
           coreTypes: result.coreTypes,
         );

@@ -453,6 +453,7 @@ void foo() {}''');
     newFile(join(testPackageLibPath, 'lib2.dart'), '''
 void bar() {}''');
     await resolveTestCode('''
+// ignore: multiple_combinators
 import 'lib1.dart' hide baz hide foo;
 import 'lib2.dart';
 
@@ -461,6 +462,7 @@ void foo() {
 }
 ''');
     await assertHasFix('''
+// ignore: multiple_combinators
 import 'lib1.dart' hide baz, bar hide foo, bar;
 import 'lib2.dart';
 
@@ -537,6 +539,62 @@ void f(l.N? n) {
   print(n);
 }
 ''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart' as l");
+  }
+
+  Future<void> test_static_member() async {
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+class N {}''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart';
+import 'lib2.dart';
+
+void f() {
+  var _ = [N.new];
+}
+''');
+    await assertHasFix(
+      '''
+import 'lib1.dart' hide N;
+import 'lib2.dart';
+
+void f() {
+  var _ = [N.new];
+}
+''',
+      matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
+      errorFilter:
+          (error) => error.errorCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+    );
+  }
+
+  Future<void> test_static_member_prefixed() async {
+    newFile(join(testPackageLibPath, 'lib1.dart'), '''
+class N {}''');
+    newFile(join(testPackageLibPath, 'lib2.dart'), '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart' as l;
+import 'lib2.dart' as l;
+
+void f() {
+  var _ = [l.N.new];
+}
+''');
+    await assertHasFix(
+      '''
+import 'lib1.dart' as l hide N;
+import 'lib2.dart' as l;
+
+void f() {
+  var _ = [l.N.new];
+}
+''',
+      matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as l",
+      errorFilter:
+          (error) => error.errorCode == CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+    );
   }
 
   Future<void> test_triple() async {
@@ -817,6 +875,7 @@ class O {}''');
     newFile(join(testPackageLibPath, 'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
+// ignore: multiple_combinators
 import 'lib1.dart' show N show N, O, M;
 import 'lib2.dart' show N;
 
@@ -825,6 +884,7 @@ void f(N? n) {
 }
 ''');
     await assertHasFix('''
+// ignore: multiple_combinators
 import 'lib1.dart' show O, M;
 import 'lib2.dart' show N;
 
@@ -840,6 +900,7 @@ class N {}''');
     newFile(join(testPackageLibPath, 'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
+// ignore: multiple_combinators
 import 'lib1.dart' show N show N;
 import 'lib2.dart' show N;
 
@@ -848,6 +909,7 @@ void f(N? n) {
 }
 ''');
     await assertHasFix('''
+// ignore: multiple_combinators
 import 'lib1.dart' hide N;
 import 'lib2.dart' show N;
 
@@ -864,6 +926,7 @@ class N {}''');
     newFile(join(testPackageLibPath, 'lib2.dart'), '''
 class N {}''');
     await resolveTestCode('''
+// ignore: multiple_combinators
 import 'lib1.dart' show N hide M hide M;
 import 'lib2.dart' show N;
 
@@ -872,6 +935,7 @@ void f(N? n) {
 }
 ''');
     await assertHasFix('''
+// ignore: multiple_combinators
 import 'lib1.dart' hide M, N hide M, N;
 import 'lib2.dart' show N;
 

@@ -141,6 +141,76 @@ UNIT_TEST_CASE(DartAPI_DartInitializeHeapSizes) {
   EXPECT(Dart_Cleanup() == nullptr);
 }
 
+static RelaxedAtomic<intptr_t> pending_isolate_groups = 0;
+static Dart_Isolate CreateCallback(const char* script_uri,
+                                   const char* main,
+                                   const char* package_root,
+                                   const char* package_config,
+                                   Dart_IsolateFlags* flags,
+                                   void* isolate_data,
+                                   char** error) {
+  pending_isolate_groups++;
+  return TesterState::create_callback(script_uri, main, package_root,
+                                      package_config, flags, isolate_data,
+                                      error);
+}
+static void CleanupCallback(void* isolate_group_data) {
+  TesterState::group_cleanup_callback(isolate_group_data);
+  OS::Sleep(3000);
+  pending_isolate_groups--;
+}
+
+UNIT_TEST_CASE(DartAPI_DartCleanupWaitsForGroupCleanupCallbacks) {
+  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == nullptr);
+
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create_group = CreateCallback;
+  params.shutdown_isolate = TesterState::shutdown_callback;
+  params.cleanup_group = CleanupCallback;
+  params.start_kernel_isolate = true;
+  EXPECT(Dart_Initialize(&params) == nullptr);
+
+  Monitor monitor;
+  bool shutting_down = false;
+  std::thread thread(
+      [](Monitor* monitor, bool* shutting_down) {
+        TestIsolateScope scope;
+        const char* kScriptChars =
+            "@pragma('vm:entry-point', 'call')\n"
+            "int testMain() {\n"
+            "  return 42;\n"
+            "}\n";
+        Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+        EXPECT_VALID(lib);
+        Dart_Handle result =
+            Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
+        EXPECT_VALID(result);
+        int64_t value = 0;
+        EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+        EXPECT_EQ(42, value);
+
+        MonitorLocker ml(monitor);
+        *shutting_down = true;
+        ml.Notify();
+      },
+      &monitor, &shutting_down);
+
+  {
+    MonitorLocker ml(&monitor);
+    while (!shutting_down) {
+      ml.Wait();
+    }
+  }
+
+  EXPECT(Dart_Cleanup() == nullptr);
+  EXPECT_EQ(0, pending_isolate_groups);
+
+  thread.join();
+}
+
 TEST_CASE(Dart_KillIsolate) {
   const char* kScriptChars =
       "@pragma('vm:entry-point', 'call')\n"
@@ -450,7 +520,7 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   EXPECT_EQ(101, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(101 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(101 > StackTrace::kFixedOOMStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -528,7 +598,7 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
   intptr_t frame_count = 0;
   result = Dart_StackTraceLength(stacktrace, &frame_count);
   EXPECT_VALID(result);
-  EXPECT_EQ(StackTrace::kPreallocatedStackdepth - 1, frame_count);
+  EXPECT_EQ(StackTrace::kFixedOOMStackdepth - 1, frame_count);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -623,7 +693,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   EXPECT_EQ(102, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(102 > StackTrace::kPreallocatedStackdepth);
+  EXPECT(102 > StackTrace::kFixedOOMStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -2552,8 +2622,6 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
   EXPECT(byte_data_finalizer_run);
 }
 
-#ifndef PRODUCT
-
 static constexpr intptr_t kOptExtLength = 16;
 static int8_t opt_data[kOptExtLength] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
@@ -2581,6 +2649,8 @@ static Dart_NativeFunction OptExternalByteDataNativeResolver(
 }
 
 TEST_CASE(DartAPI_OptimizedExternalByteDataAccess) {
+  NoBackgroundCompilerScope no_background_compiler(thread);
+
   const char* kScriptChars = R"(
 import 'dart:typed_data';
 class Expect {
@@ -2616,14 +2686,12 @@ ByteData main() {
   EXPECT_VALID(result);
 
   // Invoke 'main' function.
-  int old_oct = FLAG_optimization_counter_threshold;
-  FLAG_optimization_counter_threshold = 5;
-  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  {
+    SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
+    result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  }
   EXPECT_VALID(result);
-  FLAG_optimization_counter_threshold = old_oct;
 }
-
-#endif  // !PRODUCT
 
 static void TestTypedDataDirectAccess() {
   Dart_Handle str = Dart_NewStringFromCString("junk");

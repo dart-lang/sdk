@@ -80,7 +80,7 @@ void lintStdIn(
   }
 }
 
-void lintPath(path,
+void lintPath(String path,
     {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
   var filesWithErrors = <String>[];
   if (FileSystemEntity.isFileSync(path)) {

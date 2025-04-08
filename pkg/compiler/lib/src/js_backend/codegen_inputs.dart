@@ -3,14 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../tracer.dart' show Tracer;
-import 'checked_mode_helpers.dart';
 import 'namer.dart';
 import 'runtime_types_codegen.dart';
 import 'runtime_types_new.dart';
 
 /// Holds resources only used during code generation.
 class CodegenInputs {
-  final CheckedModeHelpers checkedModeHelpers = CheckedModeHelpers();
   final RuntimeTypesSubstitutions rtiSubstitutions;
   final RecipeEncoder rtiRecipeEncoder;
   final Tracer tracer;

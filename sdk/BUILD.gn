@@ -57,8 +57,7 @@ declare_args() {
 # ........frontend_server.dart.snapshot (JIT snapshot only on ia32)
 # ........gen_kernel_aot.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
-# ........kernel_worker_aot.dart.snapshot (JIT snapshot only on ia32)
-# ........kernel_worker.dart.snapshot (AOT snapshot, it not ia32)
+# ........kernel_worker_aot.dart.snapshot (AOT snapshot)
 # ......resources/
 # ........dartdoc/
 # ..........resources/
@@ -204,11 +203,6 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
           "dartdevc",
           "../utils/ddc:dartdevc",
           "dartdevc",
-        ],
-        [
-          "kernel_worker",
-          "../utils/bazel:kernel_worker",
-          "kernel_worker",
         ],
       ]
 } else {
@@ -860,6 +854,16 @@ group("create_full_sdk") {
     if (dart_include_wasm_opt) {
       public_deps += [ ":copy_wasm_opt" ]
     }
+  }
+
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
+      dart_target_arch != "arm") {
+    # Do not include gen_snapshot binaries for cross-compilation into
+    # SDK, but add them as a dependency, so that they are built.
+    public_deps += [
+      "../runtime/bin:gen_snapshot_product_linux_arm64",
+      "../runtime/bin:gen_snapshot_product_linux_x64",
+    ]
   }
 }
 

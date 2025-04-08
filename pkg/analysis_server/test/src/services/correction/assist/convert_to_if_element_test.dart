@@ -23,7 +23,7 @@ class ConvertToIfElementTest extends AssistProcessorTest {
   Future<void> test_conditional_list() async {
     await resolveTestCode('''
 f(bool b) {
-  return ['a', b /*caret*/? 'c' : 'd', 'e'];
+  return ['a', b ^? 'c' : 'd', 'e'];
 }
 ''');
     await assertHasAssist('''
@@ -36,7 +36,7 @@ f(bool b) {
   Future<void> test_conditional_list_caret_at_start_of_expression() async {
     await resolveTestCode('''
 f(bool b) {
-  return ['a', /*caret*/b ? 'c' : 'd', 'e'];
+  return ['a', ^b ? 'c' : 'd', 'e'];
 }
 ''');
     await assertHasAssist('''
@@ -53,7 +53,7 @@ f(bool b) {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 f(bool b) {
-  return ['a', b /*caret*/? 'c' : 'd', 'e'];
+  return ['a', b ^? 'c' : 'd', 'e'];
 }
 ''');
     await assertNoAssist();
@@ -62,7 +62,7 @@ f(bool b) {
   Future<void> test_conditional_list_withParentheses() async {
     await resolveTestCode('''
 f(bool b) {
-  return ['a', (b /*caret*/? 'c' : 'd'), 'e'];
+  return ['a', (b ^? 'c' : 'd'), 'e'];
 }
 ''');
     await assertHasAssist('''
@@ -75,7 +75,7 @@ f(bool b) {
   Future<void> test_conditional_map() async {
     await resolveTestCode('''
 f(bool b) {
-  return {'a' : 1, b /*caret*/? 'c' : 'd' : 2, 'e' : 3};
+  return {'a' : 1, b ^? 'c' : 'd' : 2, 'e' : 3};
 }
 ''');
     await assertNoAssist();
@@ -84,7 +84,7 @@ f(bool b) {
   Future<void> test_conditional_notConditional() async {
     await resolveTestCode('''
 f(bool b) {
-  return {'/*caret*/a', b ? 'c' : 'd', 'e'};
+  return {'^a', b ? 'c' : 'd', 'e'};
 }
 ''');
     await assertNoAssist();
@@ -93,7 +93,7 @@ f(bool b) {
   Future<void> test_conditional_notInLiteral() async {
     await resolveTestCode('''
 f(bool b) {
-  return b /*caret*/? 'c' : 'd';
+  return b ^? 'c' : 'd';
 }
 ''');
     await assertNoAssist();
@@ -102,7 +102,7 @@ f(bool b) {
   Future<void> test_conditional_set() async {
     await resolveTestCode('''
 f(bool b) {
-  return {'a', b /*caret*/? 'c' : 'd', 'e'};
+  return {'a', b ^? 'c' : 'd', 'e'};
 }
 ''');
     await assertHasAssist('''
@@ -115,7 +115,7 @@ f(bool b) {
   Future<void> test_conditional_set_withParentheses() async {
     await resolveTestCode('''
 f(bool b) {
-  return {'a', ((b /*caret*/? 'c' : 'd')), 'e'};
+  return {'a', ((b ^? 'c' : 'd')), 'e'};
 }
 ''');
     await assertHasAssist('''

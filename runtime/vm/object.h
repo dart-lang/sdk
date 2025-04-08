@@ -508,12 +508,14 @@ class Object {
   V(Smi, smi_illegal_cid)                                                      \
   V(Smi, smi_zero)                                                             \
   V(ApiError, no_callbacks_error)                                              \
+  V(UnwindError, unwind_error)                                                 \
   V(UnwindError, unwind_in_progress_error)                                     \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, background_compilation_error)                               \
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
+  V(UnhandledException, unhandled_oom_exception)                               \
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
@@ -1143,15 +1145,6 @@ enum class TypeEquality {
   kCanonical = 0,
   kSyntactical = 1,
   kInSubtypeTest = 2,
-};
-
-// The NNBDCompiledMode reflects the mode in which constants of the library were
-// compiled by CFE.
-enum class NNBDCompiledMode {
-  kStrong = 0,
-  kWeak = 1,
-  kAgnostic = 2,
-  kInvalid = 3,
 };
 
 class Class : public Object {
@@ -7112,7 +7105,7 @@ class Code : public Object {
     UNREACHABLE();
     return nullptr;
 #else
-    return untag()->var_descriptors();
+    return untag()->var_descriptors<std::memory_order_acquire>();
 #endif
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
@@ -7120,7 +7113,7 @@ class Code : public Object {
     UNREACHABLE();
 #else
     ASSERT(value.IsOld());
-    untag()->set_var_descriptors(value.ptr());
+    untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
 #endif
   }
 
@@ -8254,11 +8247,13 @@ class LanguageError : public Error {
 class UnhandledException : public Error {
  public:
   InstancePtr exception() const { return untag()->exception(); }
+  void set_exception(const Instance& exception) const;
   static intptr_t exception_offset() {
     return OFFSET_OF(UntaggedUnhandledException, exception_);
   }
 
   InstancePtr stacktrace() const { return untag()->stacktrace(); }
+  void set_stacktrace(const Instance& stacktrace) const;
   static intptr_t stacktrace_offset() {
     return OFFSET_OF(UntaggedUnhandledException, stacktrace_);
   }
@@ -8270,15 +8265,11 @@ class UnhandledException : public Error {
   static UnhandledExceptionPtr New(const Instance& exception,
                                    const Instance& stacktrace,
                                    Heap::Space space = Heap::kNew);
+  static UnhandledExceptionPtr New(Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
 
  private:
-  static UnhandledExceptionPtr New(Heap::Space space = Heap::kNew);
-
-  void set_exception(const Instance& exception) const;
-  void set_stacktrace(const Instance& stacktrace) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
   friend class ObjectStore;
@@ -12628,7 +12619,7 @@ class DebuggerStackTrace;
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
-  static constexpr int kPreallocatedStackdepth = 90;
+  static constexpr int kFixedOOMStackdepth = 90;
 
   intptr_t Length() const;
 

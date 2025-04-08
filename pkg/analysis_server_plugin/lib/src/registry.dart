@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/registry.dart';
+import 'package:analysis_server_plugin/src/correction/assist_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -14,7 +16,30 @@ final class PluginRegistryImpl implements PluginRegistry {
   Iterable<AnalysisRule> get registeredRules => Registry.ruleRegistry;
 
   @override
+  void registerAssist(ProducerGenerator generator) {
+    var producer = generator(context: StubCorrectionProducerContext.instance);
+    if (producer.assistKind == null) {
+      throw ArgumentError.value(
+        generator,
+        'generator',
+        "Assist producer '${producer.runtimeType}' must declare a non-null "
+            "'assistKind'.",
+      );
+    }
+    registeredAssistGenerators.registerGenerator(generator);
+  }
+
+  @override
   void registerFixForRule(LintCode code, ProducerGenerator generator) {
+    var producer = generator(context: StubCorrectionProducerContext.instance);
+    if (producer.fixKind == null) {
+      throw ArgumentError.value(
+        generator,
+        'generator',
+        "Fix producer '${producer.runtimeType}' must declare a non-null "
+            "'fixKind'.",
+      );
+    }
     registeredFixGenerators.registerFixForLint(code, generator);
   }
 

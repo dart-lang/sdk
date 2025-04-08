@@ -61,7 +61,7 @@ void _startMicrotaskLoop() {
 /// The microtask is called after all other currently scheduled
 /// microtasks, but as part of the current system event.
 void _scheduleAsyncCallback(_AsyncCallback callback) {
-  _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
+  _AsyncCallbackEntry newEntry = _AsyncCallbackEntry(callback);
   _AsyncCallbackEntry? lastCallback = _lastCallback;
   if (lastCallback == null) {
     _nextCallback = _lastCallback = newEntry;
@@ -86,7 +86,7 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
     _lastPriorityCallback = _lastCallback;
     return;
   }
-  _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
+  _AsyncCallbackEntry entry = _AsyncCallbackEntry(callback);
   _AsyncCallbackEntry? lastPriorityCallback = _lastPriorityCallback;
   if (lastPriorityCallback == null) {
     entry.next = _nextCallback;

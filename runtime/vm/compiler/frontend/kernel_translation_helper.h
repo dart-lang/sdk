@@ -874,15 +874,6 @@ class LibraryHelper {
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
-  NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
-    bool bit1 = (flags_ & kNonNullableByDefaultCompiledModeBit1) != 0;
-    bool bit2 = (flags_ & kNonNullableByDefaultCompiledModeBit2) != 0;
-    if (!bit1 && !bit2) return NNBDCompiledMode::kStrong;
-    if (bit1 && !bit2) return NNBDCompiledMode::kWeak;
-    if (bit1 && bit2) return NNBDCompiledMode::kAgnostic;
-    if (!bit1 && bit2) return NNBDCompiledMode::kInvalid;
-    UNREACHABLE();
-  }
 
   uint8_t flags_ = 0;
   NameIndex canonical_name_;

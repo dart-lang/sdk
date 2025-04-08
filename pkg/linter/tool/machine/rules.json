@@ -953,7 +953,7 @@
   },
   {
     "name": "discarded_futures",
-    "description": "Don't invoke asynchronous functions in non-`async` blocks.",
+    "description": "There should be no `Future`-returning calls in synchronous functions unless they are assigned or returned.",
     "categories": [
       "errorProne"
     ],
@@ -1091,7 +1091,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** use Flutter TODO format.\n\nFrom the [Flutter\ndocs](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#comments):\n\n> TODOs should include the string TODO in all caps, followed by the GitHub\nusername of the person with the best context about the problem referenced by the\nTODO in parenthesis. A TODO is not a commitment that the person referenced will\nfix the problem, it is intended to be the person with enough context to explain\nthe problem. Thus, when you create a TODO, it is almost always your username\nthat is given.\n\n**GOOD:**\n```dart\n// TODO(username): message.\n// TODO(username): message, https://URL-to-issue.\n```",
+    "details": "**DO** use Flutter TODO format.\n\nFrom the [Flutter\ndocs](https://github.com/flutter/flutter/blob/main/docs/contributing/Style-guide-for-Flutter-repo.md#comments):\n\n> TODOs should include the string TODO in all caps, followed by the GitHub\nusername of the person with the best context about the problem referenced by the\nTODO in parenthesis. A TODO is not a commitment that the person referenced will\nfix the problem, it is intended to be the person with enough context to explain\nthe problem. Thus, when you create a TODO, it is almost always your username\nthat is given.\n\n**GOOD:**\n```dart\n// TODO(username): message.\n// TODO(username): message, https://URL-to-issue.\n```",
     "sinceDartSdk": "2.1"
   },
   {
@@ -2673,7 +2673,7 @@
     "categories": [
       "style"
     ],
-    "state": "experimental",
+    "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
@@ -3142,6 +3142,20 @@
     "fixStatus": "hasFix",
     "details": "Where possible, use already defined const values.\n\n**BAD:**\n```dart\nconst Duration(seconds: 0);\n```\n\n**GOOD:**\n```dart\nDuration.zero;\n```",
     "sinceDartSdk": "2.13"
+  },
+  {
+    "name": "use_null_aware_elements",
+    "description": "If-elements testing for null can be replaced with null-aware elements.",
+    "categories": [
+      "brevity",
+      "style"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Where possible, use null-aware elements in collection literals.\n\n**BAD:**\n```dart\nf(String? key) => {if (key != null) key: \"value\"};\n```\n\n**GOOD:**\n```dart\nf(String? key) => {?key: \"value\"};\n```",
+    "sinceDartSdk": "3.8"
   },
   {
     "name": "use_raw_strings",

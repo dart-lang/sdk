@@ -12,28 +12,26 @@ abstract class ForwardingTypeMask extends TypeMask {
   const ForwardingTypeMask();
 
   @override
+  Bitset get powerset => forwardTo.powerset;
+  @override
   bool get isEmptyOrSpecial => forwardTo.isEmptyOrSpecial;
   @override
   bool get isEmpty => forwardTo.isEmpty;
   @override
-  bool get isNullable => forwardTo.isNullable;
-  @override
   bool get isNull => forwardTo.isNull;
-  @override
-  bool get hasLateSentinel => forwardTo.hasLateSentinel;
   @override
   AbstractBool get isLateSentinel => forwardTo.isLateSentinel;
   @override
   bool get isExact => forwardTo.isExact;
 
   @override
-  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
-    return forwardTo.isInMask(other, closedWorld);
+  bool isInMask(TypeMask other, CommonMasks domain) {
+    return forwardTo.isInMask(other, domain);
   }
 
   @override
-  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
-    return forwardTo.containsMask(other, closedWorld);
+  bool containsMask(TypeMask other, CommonMasks domain) {
+    return forwardTo.containsMask(other, domain);
   }
 
   @override
@@ -86,35 +84,22 @@ abstract class ForwardingTypeMask extends TypeMask {
     if (this == other) {
       return this;
     }
-    bool isNullable = this.isNullable || other.isNullable;
-    bool hasLateSentinel = this.hasLateSentinel || other.hasLateSentinel;
+    final powerset = this.powerset.union(other.powerset);
     if (isEmptyOrSpecial) {
-      return other.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return other.withPowerset(powerset, domain);
     }
     if (other.isEmptyOrSpecial) {
-      return withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return withPowerset(powerset, domain);
     }
-    return _unionSpecialCases(
-          other,
-          domain,
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        ) ??
+    return _unionSpecialCases(other, domain, powerset) ??
         forwardTo.union(other, domain);
   }
 
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) => null;
+    CommonMasks domain,
+    Bitset powerset,
+  ) => null;
 
   @override
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
@@ -125,10 +110,7 @@ abstract class ForwardingTypeMask extends TypeMask {
   TypeMask intersection(TypeMask other, CommonMasks domain) {
     TypeMask forwardIntersection = forwardTo.intersection(other, domain);
     if (forwardIntersection.isEmptyOrSpecial) return forwardIntersection;
-    return withSpecialValues(
-      isNullable: forwardIntersection.isNullable,
-      hasLateSentinel: forwardIntersection.hasLateSentinel,
-    );
+    return withPowerset(forwardIntersection.powerset, domain);
   }
 
   @override
@@ -140,8 +122,8 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
-  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
-    return forwardTo.canHit(element, name, closedWorld);
+  bool canHit(MemberEntity element, Name name, CommonMasks domain) {
+    return forwardTo.canHit(element, name, domain);
   }
 
   @override

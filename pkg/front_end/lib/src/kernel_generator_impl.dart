@@ -186,14 +186,8 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     trimmedSummaryComponent.metadata.addAll(summaryComponent.metadata);
     trimmedSummaryComponent.uriToSource.addAll(summaryComponent.uriToSource);
 
-    NonNullableByDefaultCompiledMode compiledMode =
-        NonNullableByDefaultCompiledMode.Strong;
-    if (kernelTarget.loader.hasInvalidNnbdModeLibrary) {
-      compiledMode = NonNullableByDefaultCompiledMode.Invalid;
-    }
-
     trimmedSummaryComponent.setMainMethodAndMode(
-        trimmedSummaryComponent.mainMethodName, false, compiledMode);
+        trimmedSummaryComponent.mainMethodName, false);
 
     // As documented, we only run outline transformations when we are building
     // summaries without building a full component (at this time, that's

@@ -20,6 +20,7 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
+import '../source/source_type_parameter_builder.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'inferable_type_builder.dart';
@@ -315,9 +316,9 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         if (bound != null) {
           newTypeParameters ??= typeParameters.toList();
           StructuralParameterBuilder newTypeParameterBuilder =
-              newTypeParameters[i] = new StructuralParameterBuilder(
-                  variable.name, variable.fileOffset, variable.fileUri,
-                  bound: bound);
+              newTypeParameters[i] = new SourceStructuralParameterBuilder(
+                  new SyntheticStructuralParameterDeclaration(variable))
+                ..bound = bound;
           unboundTypeParameters.add(newTypeParameterBuilder);
           if (functionTypeUpperSubstitution == null) {
             functionTypeUpperSubstitution = {...upperSubstitution};

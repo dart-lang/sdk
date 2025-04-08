@@ -76,17 +76,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -101,17 +98,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -120,15 +114,15 @@ CompilationUnit
           resolvedUri: DirectiveUriWithSource
             source: package:test/a_io.dart
       semicolon: ;
-      element: DirectiveUriWithUnit
-        uri: package:test/a.dart
+      partInclude: PartInclude
+        uri: DirectiveUriWithUnit
+          uri: package:test/a.dart
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
           name: A
           question: ?
-          element: <testLibrary>::@fragment::package:test/a.dart::@class::A
           element2: <testLibrary>::@class::A
           type: A?
         variables
@@ -185,17 +179,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -210,17 +201,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -229,15 +217,15 @@ CompilationUnit
           resolvedUri: DirectiveUriWithSource
             source: package:test/a_io.dart
       semicolon: ;
-      element: DirectiveUriWithUnit
-        uri: package:test/a_html.dart
+      partInclude: PartInclude
+        uri: DirectiveUriWithUnit
+          uri: package:test/a_html.dart
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
           name: A
           question: ?
-          element: <testLibrary>::@fragment::package:test/a_html.dart::@class::A
           element2: <testLibrary>::@class::A
           type: A?
         variables
@@ -270,7 +258,6 @@ Configuration
     components
       SimpleIdentifier
         token: x
-        staticElement: <null>
         element: <null>
         staticType: null
   rightParenthesis: )
@@ -302,7 +289,6 @@ Configuration
     components
       SimpleIdentifier
         token: x
-        staticElement: <null>
         element: <null>
         staticType: null
   rightParenthesis: )
@@ -344,7 +330,6 @@ Configuration
     components
       SimpleIdentifier
         token: x
-        staticElement: <null>
         element: <null>
         staticType: null
   rightParenthesis: )
@@ -400,17 +385,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -425,17 +407,14 @@ CompilationUnit
             components
               SimpleIdentifier
                 token: dart
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
-                staticElement: <null>
                 element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
-                staticElement: <null>
                 element: <null>
                 staticType: null
           rightParenthesis: )
@@ -444,15 +423,15 @@ CompilationUnit
           resolvedUri: DirectiveUriWithSource
             source: package:test/a_io.dart
       semicolon: ;
-      element: DirectiveUriWithUnit
-        uri: package:test/a_io.dart
+      partInclude: PartInclude
+        uri: DirectiveUriWithUnit
+          uri: package:test/a_io.dart
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
           name: A
           question: ?
-          element: <testLibrary>::@fragment::package:test/a_io.dart::@class::A
           element2: <testLibrary>::@class::A
           type: A?
         variables
@@ -478,8 +457,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/a.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/a.dart
 ''');
   }
 
@@ -505,8 +485,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: ':net'
   semicolon: ;
-  element: DirectiveUriWithRelativeUriString
-    relativeUriString: :net
+  partInclude: PartInclude
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
 ''');
   }
 
@@ -535,7 +516,8 @@ PartDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: DirectiveUri
+  partInclude: PartInclude
+    uri: DirectiveUri
 ''');
   }
 
@@ -553,8 +535,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'foo:bar'
   semicolon: ;
-  element: DirectiveUriWithRelativeUri
-    relativeUri: foo:bar
+  partInclude: PartInclude
+    uri: DirectiveUriWithRelativeUri
+      relativeUri: foo:bar
 ''');
   }
 
@@ -583,8 +566,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'b.dart'
   semicolon: ;
-  element: DirectiveUriWithUnit
-    uri: package:test/b.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithUnit
+      uri: package:test/b.dart
 ''');
   }
 
@@ -613,8 +597,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'b.dart'
   semicolon: ;
-  element: DirectiveUriWithUnit
-    uri: package:test/b.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithUnit
+      uri: package:test/b.dart
 ''');
   }
 
@@ -645,8 +630,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'b.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/b.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/b.dart
 ''');
   }
 
@@ -666,8 +652,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: DirectiveUriWithUnit
-    uri: package:test/a.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithUnit
+      uri: package:test/a.dart
 ''');
   }
 
@@ -689,8 +676,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/a.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/a.dart
 ''');
   }
 
@@ -718,8 +706,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'foo.g.dart'
   semicolon: ;
-  element: DirectiveUriWithUnit
-    uri: package:test/foo.g.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithUnit
+      uri: package:test/foo.g.dart
 ''');
   }
 
@@ -739,8 +728,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/a.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/a.dart
 ''');
   }
 
@@ -766,8 +756,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/c.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
 ''');
   }
 
@@ -793,8 +784,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: ':net'
   semicolon: ;
-  element: DirectiveUriWithRelativeUriString
-    relativeUriString: :net
+  partInclude: PartInclude
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
 ''');
   }
 
@@ -831,7 +823,8 @@ PartDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: DirectiveUri
+  partInclude: PartInclude
+    uri: DirectiveUri
 ''');
   }
 
@@ -857,8 +850,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'foo:bar'
   semicolon: ;
-  element: DirectiveUriWithRelativeUri
-    relativeUri: foo:bar
+  partInclude: PartInclude
+    uri: DirectiveUriWithRelativeUri
+      relativeUri: foo:bar
 ''');
   }
 
@@ -892,8 +886,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/c.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
 ''');
   }
 
@@ -921,8 +916,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: DirectiveUriWithUnit
-    uri: package:test/c.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithUnit
+      uri: package:test/c.dart
 ''');
   }
 
@@ -952,8 +948,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/c.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
 ''');
   }
 
@@ -981,8 +978,9 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/c.dart
+  partInclude: PartInclude
+    uri: DirectiveUriWithSource
+      source: package:test/c.dart
 ''');
   }
 }

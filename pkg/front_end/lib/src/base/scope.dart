@@ -19,12 +19,8 @@ import '../kernel/load_library_builder.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
-import '../source/source_extension_type_declaration_builder.dart';
-import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
-import '../source/source_method_builder.dart';
-import '../source/source_property_builder.dart';
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -416,7 +412,6 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class FixedLookupScope implements LookupScope {
   final LookupScope? _parent;
   @override
@@ -434,6 +429,7 @@ class FixedLookupScope implements LookupScope {
         this._parent = parent;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? getable = _getables?[name];
     Builder? setable = _setables?[name];
@@ -452,6 +448,7 @@ class FixedLookupScope implements LookupScope {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? getable = _getables?[name];
     Builder? setable = _setables?[name];
@@ -470,6 +467,7 @@ class FixedLookupScope implements LookupScope {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent?.forEachExtension(f);
   }
@@ -560,8 +558,8 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {
     if (_extensions == null) {
       Set<ExtensionBuilder> extensions = _extensions = {};
-      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator(
-          includeDuplicates: false, includeAugmentations: false);
+      Iterator<PrefixBuilder> iterator =
+          _nameSpace.filteredIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
         iterator.current.forEachExtension((e) {
           extensions.add(e);
@@ -905,11 +903,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
   }
-
-  @override
-  Iterable<Annotatable> get annotatables {
-    throw new UnsupportedError('$runtimeType.annotatables}');
-  }
 }
 
 class AmbiguousMemberBuilder extends AmbiguousBuilder
@@ -1123,22 +1116,15 @@ class ConstructorNameSpaceNameIterator extends ConstructorNameSpaceIterator
 /// Filtered builder [Iterator].
 class FilteredIterator<T extends Builder> implements Iterator<T> {
   final Iterator<Builder> _iterator;
-  final Builder? parent;
   final bool includeDuplicates;
-  final bool includeAugmentations;
 
-  FilteredIterator(this._iterator,
-      {required this.parent,
-      required this.includeDuplicates,
-      required this.includeAugmentations});
+  FilteredIterator(this._iterator, {required this.includeDuplicates});
 
   bool _include(Builder element) {
-    if (parent != null && element.parent != parent) return false;
     if (!includeDuplicates &&
         (element.isDuplicate || element.isConflictingAugmentationMember)) {
       return false;
     }
-    if (!includeAugmentations && element.isAugmenting) return false;
     return element is T;
   }
 
@@ -1163,22 +1149,15 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
 /// access to the name that the builders are mapped to.
 class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
   final NameIterator<Builder> _iterator;
-  final Builder? parent;
   final bool includeDuplicates;
-  final bool includeAugmentations;
 
-  FilteredNameIterator(this._iterator,
-      {required this.parent,
-      required this.includeDuplicates,
-      required this.includeAugmentations});
+  FilteredNameIterator(this._iterator, {required this.includeDuplicates});
 
   bool _include(Builder element) {
-    if (parent != null && element.parent != parent) return false;
     if (!includeDuplicates &&
         (element.isDuplicate || element.isConflictingAugmentationMember)) {
       return false;
     }
-    if (!includeAugmentations && element.isAugmenting) return false;
     return element is T;
   }
 
@@ -1228,376 +1207,7 @@ extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
   }
 }
 
-abstract class MergedScope<T extends Builder> {
-  final T _origin;
-  final NameSpace _originNameSpace;
-  Map<T, NameSpace> _augmentationNameSpaces = {};
-
-  MergedScope(this._origin, this._originNameSpace);
-
-  SourceLibraryBuilder get originLibrary;
-
-  // Coverage-ignore(suite): Not run.
-  void _addBuilderToMergedScope(
-      String name, Builder newBuilder, Builder? existingBuilder,
-      {required bool setter, required bool inPatchLibrary}) {
-    bool isAugmentationBuilder = inPatchLibrary
-        ? newBuilder.hasPatchAnnotation
-        : newBuilder.isAugmentation;
-    if (existingBuilder != null) {
-      if (isAugmentationBuilder) {
-        existingBuilder.applyAugmentation(newBuilder);
-      } else {
-        newBuilder.isConflictingAugmentationMember = true;
-        Message message;
-        Message context;
-        if (newBuilder is SourceMemberBuilder &&
-            existingBuilder is SourceMemberBuilder) {
-          if (_origin is SourceLibraryBuilder) {
-            message = inPatchLibrary
-                ? templateNonPatchLibraryMemberConflict.withArguments(name)
-                : templateNonAugmentationLibraryMemberConflict
-                    .withArguments(name);
-          } else {
-            message = inPatchLibrary
-                ? templateNonPatchClassMemberConflict.withArguments(name)
-                : templateNonAugmentationClassMemberConflict
-                    .withArguments(name);
-          }
-          context = messageNonAugmentationMemberConflictCause;
-        } else if (newBuilder is SourceClassBuilder &&
-            existingBuilder is SourceClassBuilder) {
-          message = inPatchLibrary
-              ? templateNonPatchClassConflict.withArguments(name)
-              : templateNonAugmentationClassConflict.withArguments(name);
-          context = messageNonAugmentationClassConflictCause;
-        } else {
-          if (_origin is SourceLibraryBuilder) {
-            message = inPatchLibrary
-                ? templateNonPatchLibraryConflict.withArguments(name)
-                : templateNonAugmentationLibraryConflict.withArguments(name);
-          } else {
-            message = inPatchLibrary
-                ? templateNonPatchClassMemberConflict.withArguments(name)
-                : templateNonAugmentationClassMemberConflict
-                    .withArguments(name);
-          }
-          context = messageNonAugmentationMemberConflictCause;
-        }
-        originLibrary.addProblem(
-            message, newBuilder.fileOffset, name.length, newBuilder.fileUri,
-            context: [
-              context.withLocation(existingBuilder.fileUri!,
-                  existingBuilder.fileOffset, name.length)
-            ]);
-      }
-    } else {
-      if (isAugmentationBuilder) {
-        Message message;
-        if (newBuilder is SourceMemberBuilder) {
-          if (_origin is SourceLibraryBuilder) {
-            message = inPatchLibrary
-                ? templateUnmatchedPatchLibraryMember.withArguments(name)
-                : templateUnmatchedAugmentationLibraryMember
-                    .withArguments(name);
-          } else {
-            message = inPatchLibrary
-                ? templateUnmatchedPatchClassMember.withArguments(name)
-                : templateUnmatchedAugmentationClassMember.withArguments(name);
-          }
-        } else if (newBuilder is SourceClassBuilder) {
-          message = inPatchLibrary
-              ? templateUnmatchedPatchClass.withArguments(name)
-              : templateUnmatchedAugmentationClass.withArguments(name);
-        } else {
-          message = inPatchLibrary
-              ? templateUnmatchedPatchDeclaration.withArguments(name)
-              : templateUnmatchedAugmentationDeclaration.withArguments(name);
-        }
-        originLibrary.addProblem(
-            message, newBuilder.fileOffset, name.length, newBuilder.fileUri);
-      } else {
-        if (inPatchLibrary &&
-            !name.startsWith('_') &&
-            !_allowInjectedPublicMember(newBuilder)) {
-          originLibrary.addProblem(
-              templatePatchInjectionFailed.withArguments(
-                  name, originLibrary.importUri),
-              newBuilder.fileOffset,
-              noLength,
-              newBuilder.fileUri);
-        }
-        _originNameSpace.addLocalMember(name, newBuilder, setter: setter);
-        if (newBuilder is ExtensionBuilder) {
-          _originNameSpace.addExtension(newBuilder);
-        }
-        for (NameSpace augmentationNameSpace
-            in _augmentationNameSpaces.values) {
-          _addBuilderToAugmentationNameSpace(
-              augmentationNameSpace, name, newBuilder,
-              setter: setter);
-        }
-      }
-    }
-  }
-
-  void _addBuilderToAugmentationNameSpace(
-      NameSpace augmentationNameSpace, String name, Builder member,
-      {required bool setter}) {
-    Builder? augmentationMember =
-        augmentationNameSpace.lookupLocalMember(name, setter: setter);
-    if (augmentationMember == null) {
-      augmentationNameSpace.addLocalMember(name, member, setter: setter);
-      if (member is ExtensionBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        augmentationNameSpace.addExtension(member);
-      }
-    }
-  }
-
-  void _addAugmentationScope(T parentBuilder, NameSpace nameSpace,
-      {required Map<String, List<Builder>>? augmentations,
-      required Map<String, List<Builder>>? setterAugmentations,
-      required bool inPatchLibrary}) {
-    // TODO(johnniwinther): Use `scope.filteredNameIterator` instead of
-    // `scope.forEachLocalMember`/`scope.forEachLocalSetter`.
-
-    // Include all augmentation scope members to the origin scope.
-    nameSpace.forEachLocalMember(
-        // Coverage-ignore(suite): Not run.
-        (String name, Builder member) {
-      // In case of duplicates we use the first declaration.
-      while (member.isDuplicate) {
-        member = member.next!;
-      }
-      _addBuilderToMergedScope(
-          name, member, _originNameSpace.lookupLocalMember(name, setter: false),
-          setter: false, inPatchLibrary: inPatchLibrary);
-    });
-    if (augmentations != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (String augmentedName in augmentations.keys) {
-        for (Builder augmentation in augmentations[augmentedName]!) {
-          _addBuilderToMergedScope(augmentedName, augmentation,
-              _originNameSpace.lookupLocalMember(augmentedName, setter: false),
-              setter: false, inPatchLibrary: inPatchLibrary);
-        }
-      }
-    }
-    nameSpace.forEachLocalSetter(
-        // Coverage-ignore(suite): Not run.
-        (String name, Builder member) {
-      // In case of duplicates we use the first declaration.
-      while (member.isDuplicate) {
-        member = member.next!;
-      }
-      _addBuilderToMergedScope(
-          name, member, _originNameSpace.lookupLocalMember(name, setter: true),
-          setter: true, inPatchLibrary: inPatchLibrary);
-    });
-    if (setterAugmentations != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (String augmentedName in setterAugmentations.keys) {
-        for (Builder augmentation in setterAugmentations[augmentedName]!) {
-          _addBuilderToMergedScope(augmentedName, augmentation,
-              _originNameSpace.lookupLocalMember(augmentedName, setter: true),
-              setter: true, inPatchLibrary: inPatchLibrary);
-        }
-      }
-    }
-    nameSpace.forEachLocalExtension(
-        // Coverage-ignore(suite): Not run.
-        (ExtensionBuilder extensionBuilder) {
-      if (extensionBuilder is SourceExtensionBuilder &&
-          extensionBuilder.isUnnamedExtension) {
-        _originNameSpace.addExtension(extensionBuilder);
-        for (NameSpace augmentationNameSpace
-            in _augmentationNameSpaces.values) {
-          augmentationNameSpace.addExtension(extensionBuilder);
-        }
-      }
-    });
-
-    // Include all origin scope members in the augmentation scope.
-    _originNameSpace.forEachLocalMember((String name, Builder originMember) {
-      _addBuilderToAugmentationNameSpace(nameSpace, name, originMember,
-          setter: false);
-    });
-    _originNameSpace.forEachLocalSetter((String name, Builder originMember) {
-      _addBuilderToAugmentationNameSpace(nameSpace, name, originMember,
-          setter: true);
-    });
-    _originNameSpace.forEachLocalExtension(
-        // Coverage-ignore(suite): Not run.
-        (ExtensionBuilder extensionBuilder) {
-      if (extensionBuilder is SourceExtensionBuilder &&
-          extensionBuilder.isUnnamedExtension) {
-        nameSpace.addExtension(extensionBuilder);
-      }
-    });
-
-    _augmentationNameSpaces[parentBuilder] = nameSpace;
-  }
-
-  bool _allowInjectedPublicMember(Builder newBuilder);
-}
-
-// Coverage-ignore(suite): Not run.
-class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
-  MergedLibraryScope(SourceLibraryBuilder origin)
-      : super(origin, origin.libraryNameSpace);
-
-  @override
-  SourceLibraryBuilder get originLibrary => _origin;
-
-  void addAugmentationScope(SourceLibraryBuilder builder) {
-    _addAugmentationScope(builder, builder.libraryNameSpace,
-        augmentations: builder.augmentations,
-        setterAugmentations: builder.setterAugmentations,
-        inPatchLibrary: builder.isPatchLibrary);
-  }
-
-  @override
-  bool _allowInjectedPublicMember(Builder newBuilder) {
-    return originLibrary.importUri.isScheme("dart") &&
-        originLibrary.importUri.path.startsWith("_");
-  }
-}
-
-class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
-  final DeclarationNameSpace _originConstructorNameSpace;
-  Map<SourceClassBuilder, DeclarationNameSpace>
-      _augmentationConstructorNameSpaces = {};
-
-  MergedClassMemberScope(SourceClassBuilder origin)
-      : _originConstructorNameSpace = origin.nameSpace,
-        super(origin, origin.nameSpace);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  SourceLibraryBuilder get originLibrary => _origin.libraryBuilder;
-
-  void _addAugmentationConstructorScope(DeclarationNameSpace nameSpace,
-      {required bool inPatchLibrary}) {
-    nameSpace.forEachConstructor(
-        // Coverage-ignore(suite): Not run.
-        (String name, MemberBuilder newConstructor) {
-      MemberBuilder? existingConstructor =
-          _originConstructorNameSpace.lookupConstructor(name);
-      bool isAugmentationBuilder = inPatchLibrary
-          ? newConstructor.hasPatchAnnotation
-          : newConstructor.isAugmentation;
-      if (existingConstructor != null) {
-        if (isAugmentationBuilder) {
-          existingConstructor.applyAugmentation(newConstructor);
-        } else {
-          newConstructor.isConflictingAugmentationMember = true;
-          originLibrary.addProblem(
-              inPatchLibrary
-                  ? templateNonPatchConstructorConflict
-                      .withArguments(newConstructor.fullNameForErrors)
-                  : templateNonAugmentationConstructorConflict
-                      .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.fileOffset,
-              noLength,
-              newConstructor.fileUri,
-              context: [
-                messageNonAugmentationConstructorConflictCause.withLocation(
-                    existingConstructor.fileUri!,
-                    existingConstructor.fileOffset,
-                    noLength)
-              ]);
-        }
-      } else {
-        if (isAugmentationBuilder) {
-          originLibrary.addProblem(
-              inPatchLibrary
-                  ? templateUnmatchedPatchConstructor
-                      .withArguments(newConstructor.fullNameForErrors)
-                  : templateUnmatchedAugmentationConstructor
-                      .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.fileOffset,
-              noLength,
-              newConstructor.fileUri);
-        } else {
-          _originConstructorNameSpace.addConstructor(name, newConstructor);
-          for (DeclarationNameSpace augmentationConstructorNameSpace
-              in _augmentationConstructorNameSpaces.values) {
-            _addConstructorToAugmentationScope(
-                augmentationConstructorNameSpace, name, newConstructor);
-          }
-        }
-        if (inPatchLibrary &&
-            !name.startsWith('_') &&
-            !_allowInjectedPublicMember(newConstructor)) {
-          originLibrary.addProblem(
-              templatePatchInjectionFailed.withArguments(
-                  name, originLibrary.importUri),
-              newConstructor.fileOffset,
-              noLength,
-              newConstructor.fileUri);
-        }
-      }
-    });
-    _originConstructorNameSpace
-        .forEachConstructor((String name, MemberBuilder originConstructor) {
-      _addConstructorToAugmentationScope(nameSpace, name, originConstructor);
-    });
-  }
-
-  void _addConstructorToAugmentationScope(
-      DeclarationNameSpace augmentationConstructorNameSpace,
-      String name,
-      MemberBuilder constructor) {
-    Builder? augmentationConstructor =
-        augmentationConstructorNameSpace.lookupConstructor(name);
-    if (augmentationConstructor == null) {
-      augmentationConstructorNameSpace.addConstructor(name, constructor);
-    }
-  }
-
-  // TODO(johnniwinther): Check for conflicts between constructors and class
-  //  members.
-  void addAugmentationScope(SourceClassBuilder builder) {
-    _addAugmentationScope(builder, builder.nameSpace,
-        augmentations: null,
-        setterAugmentations: null,
-        inPatchLibrary: builder.libraryBuilder.isPatchLibrary);
-    _addAugmentationConstructorScope(builder.nameSpace,
-        inPatchLibrary: builder.libraryBuilder.isPatchLibrary);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool _allowInjectedPublicMember(Builder newBuilder) {
-    if (originLibrary.importUri.isScheme("dart") &&
-        originLibrary.importUri.path.startsWith("_")) {
-      return true;
-    }
-    if (newBuilder.isStatic) {
-      return _origin.name.startsWith('_');
-    }
-    // TODO(johnniwinther): Restrict the use of injected public class members.
-    return true;
-  }
-}
-
 extension on Builder {
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation {
-    Builder self = this;
-    if (self is SourceLibraryBuilder) {
-      return self.isAugmentationLibrary;
-    } else if (self is SourceClassBuilder) {
-      return self.isAugmentation;
-    } else if (self is SourceMemberBuilder) {
-      return self.isAugmentation;
-    } else {
-      // TODO(johnniwinther): Handle all cases here.
-      return false;
-    }
-  }
-
   bool get isConflictingAugmentationMember {
     Builder self = this;
     if (self is SourceMemberBuilder) {
@@ -1606,49 +1216,6 @@ extension on Builder {
       return self.isConflictingAugmentationMember;
     }
     // TODO(johnniwinther): Handle all cases here.
-    return false;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void set isConflictingAugmentationMember(bool value) {
-    Builder self = this;
-    if (self is SourceMemberBuilder) {
-      self.isConflictingAugmentationMember = value;
-    } else if (self is SourceClassBuilder) {
-      self.isConflictingAugmentationMember = value;
-    }
-    // TODO(johnniwinther): Handle all cases here.
-  }
-
-  // Coverage-ignore(suite): Not run.
-  bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {
-    if (metadata == null) {
-      return false;
-    }
-    for (MetadataBuilder metadataBuilder in metadata) {
-      if (metadataBuilder.hasPatch) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  bool get hasPatchAnnotation {
-    Builder self = this;
-    if (self is SourceFunctionBuilder) {
-      return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceClassBuilder) {
-      return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceExtensionBuilder) {
-      return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourcePropertyBuilder) {
-      return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceMethodBuilder) {
-      return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceExtensionTypeDeclarationBuilder) {
-      return _hasPatchAnnotation(self.metadata);
-    }
     return false;
   }
 }

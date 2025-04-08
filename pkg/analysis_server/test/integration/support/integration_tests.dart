@@ -20,6 +20,7 @@ import 'package:test/test.dart';
 
 import '../../analysis_server_base.dart' show analysisOptionsContent;
 import '../../support/configuration_files.dart';
+import '../../support/sdk_paths.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
@@ -542,19 +543,6 @@ class Server {
     }
   }
 
-  /// Find the root directory of the analysis_server package by proceeding
-  /// upward to the 'test' dir, and then going up one more directory.
-  String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(path.basename(pathname))) {
-      var parent = path.dirname(pathname);
-      if (parent.length >= pathname.length) {
-        throw Exception("Can't find root directory");
-      }
-      pathname = parent;
-    }
-    return path.dirname(pathname);
-  }
-
   /// Return a future that will complete when all commands that have been sent
   /// to the server so far have been flushed to the OS buffer.
   Future<void> flushCommands() {
@@ -689,27 +677,7 @@ class Server {
     _time.start();
 
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
-
-    // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
-    // snapshot and run from source.
-    var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
-    String serverPath;
-
-    if (useSnapshot) {
-      serverPath = path.normalize(
-        path.join(
-          dartSdkPath,
-          'bin',
-          'snapshots',
-          'analysis_server.dart.snapshot',
-        ),
-      );
-    } else {
-      var rootDir = findRoot(
-        Platform.script.toFilePath(windows: Platform.isWindows),
-      );
-      serverPath = path.normalize(path.join(rootDir, 'bin', 'server.dart'));
-    }
+    var serverPath = getAnalysisServerPath(dartSdkPath);
 
     var arguments = <String>['--disable-dart-dev', '--no-dds'];
     //

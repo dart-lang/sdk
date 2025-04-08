@@ -526,7 +526,6 @@ class A {
     assertResolvedNodeText(findNode.simple('x {}'), r'''
 SimpleIdentifier
   token: x
-  staticElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x
   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
   staticType: int
 ''');
@@ -587,7 +586,6 @@ class C extends B with M1, M2 {
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  staticElement: <testLibraryFragment>::@mixin::M2::@getter::x
   element: <testLibraryFragment>::@mixin::M2::@getter::x#element
   staticType: dynamic
 ''');
@@ -615,7 +613,6 @@ void main() {
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  staticElement: <testLibraryFragment>::@mixin::M2::@getter::x
   element: <testLibraryFragment>::@mixin::M2::@getter::x#element
   staticType: dynamic
 ''');
@@ -881,10 +878,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -906,10 +901,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -929,10 +922,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -951,10 +942,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1005,10 +994,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1028,10 +1015,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1059,10 +1044,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1082,10 +1065,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1126,10 +1107,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1148,10 +1127,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1199,10 +1176,8 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    staticElement: <testLibraryFragment>::@getter::A
     element: <testLibraryFragment>::@getter::A#element
     staticType: null
-  element: <testLibraryFragment>::@getter::A
   element2: <testLibraryFragment>::@getter::A#element
 ''');
   }
@@ -1240,7 +1215,6 @@ void main() {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  staticElement: <testLibraryFragment>::@mixin::M2::@method::f
   element: <testLibraryFragment>::@mixin::M2::@method::f#element
   staticType: void Function()
 ''');
@@ -1265,7 +1239,6 @@ class C extends B with M1, M2 {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  staticElement: <testLibraryFragment>::@mixin::M2::@method::f
   element: <testLibraryFragment>::@mixin::M2::@method::f#element
   staticType: void Function()
 ''');
@@ -1289,7 +1262,6 @@ void main() {
     assertResolvedNodeText(findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
-  staticElement: <testLibraryFragment>::@mixin::M2::@method::f
   element: <testLibraryFragment>::@mixin::M2::@method::f#element
   staticType: void Function()
 ''');

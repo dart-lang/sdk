@@ -15,22 +15,18 @@ void constructorClassTest() {
   ConstructorClass notNullable = .new(1) ?? ctor;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   ConstructorClass notNullableRegular = .regular(1) ?? ctor;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   ConstructorClass notNullableNamed = .named(x: 1) ?? ctor;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   ConstructorClass notNullableOptional = .optional(1) ?? ctor;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 }
 
 void constructorExtTest() {
@@ -40,20 +36,16 @@ void constructorExtTest() {
   ConstructorExt notNullableExt = .new(1) ?? ctorExt;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   ConstructorExt notNullableRegularExt = .regular(1) ?? ctorExt;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   ConstructorExt notNullableNamedExt = .named(x: 1) ?? ctorExt;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   ConstructorExt notNullableOptionalExt = .optional(1) ?? ctorExt;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 }

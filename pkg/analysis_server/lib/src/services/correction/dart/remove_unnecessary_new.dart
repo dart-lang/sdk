@@ -35,9 +35,8 @@ class _RemoveNew extends ParsedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

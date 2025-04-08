@@ -115,7 +115,7 @@ export 'bar.dart';
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 export 'bar.dart';
 class C { }
-''', adjustValidUnitBeforeComparison: _updateBeginToken);
+''');
   }
 
   void test_declarationBeforeDirective_import() {
@@ -125,7 +125,7 @@ import 'bar.dart';
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 import 'bar.dart';
 class C { }
-''', adjustValidUnitBeforeComparison: _updateBeginToken);
+''');
   }
 
   void test_declarationBeforeDirective_part() {
@@ -135,7 +135,7 @@ part 'bar.dart';
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 part 'bar.dart';
 class C { }
-''', adjustValidUnitBeforeComparison: _updateBeginToken);
+''');
   }
 
   void test_declarationBeforeDirective_part_of() {
@@ -145,7 +145,7 @@ part of foo;
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 part of foo;
 class C { }
-''', adjustValidUnitBeforeComparison: _updateBeginToken);
+''');
   }
 
   void test_exportBeforeLibrary() {
@@ -193,11 +193,6 @@ part 'foo.dart';
       lineInfo: unit.lineInfo,
       invalidNodes: [],
     );
-  }
-
-  CompilationUnitImpl _updateBeginToken(CompilationUnitImpl unit) {
-    unit.beginToken = unit.declarations[0].beginToken;
-    return unit;
   }
 }
 

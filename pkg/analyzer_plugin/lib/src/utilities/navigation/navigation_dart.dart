@@ -149,7 +149,7 @@ class _DartNavigationCollector {
       fragment = fragment.element.nonSynthetic2.firstFragment;
     }
 
-    if (fragment.element == DynamicElementImpl.instance) {
+    if (fragment.element == DynamicElementImpl2.instance) {
       return;
     }
     if (fragment.element is MultiplyDefinedElement2) {
@@ -376,7 +376,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    computer._addRegionForElement(node.name, node.declaredElement2);
+    if (node.declaredElement2 case BindPatternVariableElement2(:var join2?)) {
+      for (var variable in join2.variables2) {
+        computer._addRegionForElement(node.name, variable);
+      }
+    } else {
+      computer._addRegionForElement(node.name, node.declaredElement2);
+    }
     super.visitDeclaredVariablePattern(node);
   }
 
@@ -580,6 +586,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           name3?.length,
           fragment,
         );
+      }
+    } else if (element case JoinPatternVariableElement2(:var variables2)) {
+      for (var variable in variables2) {
+        computer._addRegionForElement(node, variable);
       }
     } else {
       computer._addRegionForElement(node, element);

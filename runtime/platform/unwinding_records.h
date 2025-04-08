@@ -20,10 +20,25 @@ class UnwindingRecordsPlatform : public AllStatic {
   static void UnregisterDynamicTable(void* p_dynamic_table);
 };
 
-#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
-    defined(TARGET_ARCH_X64)
+// These definitions are only needed if targeting 64-bit Windows, or if the
+// ELF loader may be used on 64-bit Windows.
+//
+// More specifically, a 64-bit Windows gen_snapshot that does not target
+// 64-bit Windows does not need these definitions, as the generated snapshot
+// should not contain Windows-specific unwinding records and gen_snapshot
+// does not uses the ELF loader.
+#if (defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)) ||     \
+    (defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&               \
+     (!defined(DART_PRECOMPILER) || defined(TESTING)))
 
 #pragma pack(push, 1)
+
+#if !defined(DART_HOST_OS_WINDOWS) || !defined(HOST_ARCH_X64)
+typedef uint32_t ULONG;
+typedef uint32_t DWORD;
+#endif
+
+#if defined(TARGET_ARCH_X64)
 //
 // Refer to https://learn.microsoft.com/en-us/cpp/build/exception-handling-x64
 //
@@ -49,7 +64,6 @@ typedef struct _UNWIND_INFO {
 } UNWIND_INFO, *PUNWIND_INFO;
 
 #if !defined(DART_HOST_OS_WINDOWS)
-typedef uint32_t ULONG;
 typedef struct _RUNTIME_FUNCTION {
   ULONG BeginAddress;
   ULONG EndAddress;
@@ -97,12 +111,7 @@ struct CodeRangeUnwindingRecord {
   RUNTIME_FUNCTION runtime_function[1];
 };
 
-#pragma pack(pop)
-
-#elif defined(TARGET_ARCH_ARM64) &&                                            \
-    (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
-
-#pragma pack(push, 1)
+#elif defined(TARGET_ARCH_ARM64)
 
 // ARM64 unwind codes are defined in below doc.
 // https://docs.microsoft.com/en-us/cpp/build/arm64-exception-handling#unwind-codes
@@ -139,12 +148,9 @@ struct UNWIND_INFO {
   uint32_t CodeWords : 5;
 };
 
-#if !defined(DART_HOST_OS_WINDOWS)
-typedef uint32_t ULONG;
-typedef uint32_t DWORD;
+#if !defined(DART_HOST_OS_WINDOWS) || !defined(HOST_ARCH_ARM64)
 typedef struct _RUNTIME_FUNCTION {
   ULONG BeginAddress;
-  ULONG EndAddress;
   ULONG UnwindData;
 } RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
 #endif
@@ -231,9 +237,13 @@ struct CodeRangeUnwindingRecord {
   RUNTIME_FUNCTION runtime_function[kDefaultRuntimeFunctionCount];
 };
 
+#else
+#error Unhandled Windows architecture.
+#endif
+
 #pragma pack(pop)
 
-#endif  // (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
+#endif  // (defined(DART_TARGET_OS_WINDOWS) || ...
 
 }  // namespace dart
 

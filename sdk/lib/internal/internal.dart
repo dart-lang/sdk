@@ -57,7 +57,7 @@ external T unsafeCast<T>(dynamic value);
 // Powers of 10 up to 10^22 are representable as doubles.
 // Powers of 10 above that are only approximate due to lack of precision.
 // Used by double-parsing.
-const POWERS_OF_TEN = const [
+const POWERS_OF_TEN = [
   1.0, // 0
   10.0,
   100.0,
@@ -742,7 +742,7 @@ class SentinelValue {
 }
 
 /// A default value to use when only one sentinel is needed.
-const Object sentinelValue = const SentinelValue(0);
+const Object sentinelValue = SentinelValue(0);
 
 /// Given an [instance] of some generic type [T], and [extract], a first-class
 /// generic function that takes the same number of type parameters as [T],

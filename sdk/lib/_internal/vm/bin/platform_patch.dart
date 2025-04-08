@@ -60,7 +60,7 @@ class _Platform {
           path.startsWith('file:')) {
         return Uri.parse(path);
       } else {
-        return Uri.base.resolveUri(new Uri.file(path));
+        return Uri.base.resolveUri(Uri.file(path));
       }
     });
   }

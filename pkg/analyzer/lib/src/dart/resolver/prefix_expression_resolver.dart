@@ -48,11 +48,6 @@ class PrefixExpressionResolver {
       return;
     }
 
-    if (node.operand case AugmentedExpressionImpl operand) {
-      _resolveAugmented(node, operand);
-      return;
-    }
-
     var operand = node.operand;
     if (operator.isIncrementOperator) {
       var operandResolution = _resolver.resolveForWrite(
@@ -245,57 +240,6 @@ class PrefixExpressionResolver {
       node.recordStaticType(staticType, resolver: _resolver);
     }
     _resolver.nullShortingTermination(node);
-  }
-
-  void _resolveAugmented(
-    PrefixExpressionImpl node,
-    AugmentedExpressionImpl operand,
-  ) {
-    var methodName = _getPrefixOperator(node);
-    var augmentation = _resolver.enclosingAugmentation!;
-    var augmentationTarget = augmentation.augmentationTarget;
-
-    // Unresolved by default.
-    operand.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-
-    switch (augmentationTarget) {
-      case MethodFragment fragment:
-        operand.fragment = fragment;
-        operand.setPseudoExpressionStaticType(
-            _resolver.thisType ?? InvalidTypeImpl.instance);
-        if (fragment.element.lookupName == methodName) {
-          node.element = fragment.element;
-          node.recordStaticType(fragment.element.returnType,
-              resolver: _resolver);
-        } else {
-          _errorReporter.atToken(
-            operand.augmentedKeyword,
-            CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR,
-            arguments: [
-              methodName,
-            ],
-          );
-          node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-        }
-      case PropertyAccessorFragment fragment:
-        operand.fragment = fragment;
-        if (fragment.element is GetterElement) {
-          operand.setPseudoExpressionStaticType(fragment.element.returnType);
-          _resolve1(node);
-          _resolve2(node);
-        } else {
-          _errorReporter.atToken(
-            operand.augmentedKeyword,
-            CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
-          );
-          node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-        }
-      case PropertyInducingFragment fragment:
-        operand.fragment = fragment;
-        operand.setPseudoExpressionStaticType(fragment.element.type);
-        _resolve1(node);
-        _resolve2(node);
-    }
   }
 
   void _resolveNegation(PrefixExpressionImpl node) {

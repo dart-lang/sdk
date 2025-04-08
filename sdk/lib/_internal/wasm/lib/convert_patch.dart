@@ -9,7 +9,7 @@ import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
 import "dart:_js_string_convert";
 import "dart:_js_types";
-import "dart:_js_helper" show JS, jsStringToDartString, jsStringFromDartString;
+import "dart:_js_helper" show JS, jsStringFromDartString;
 import "dart:_list"
     show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
@@ -298,7 +298,7 @@ class _NumberBuffer {
   // not only working on strings, but also on char-code lists, without losing
   // performance.
   num parseNum() => num.parse(getString());
-  double parseDouble() => _jsParseFloat(getString());
+  double parseDouble() => _jsParseValidFloat(getString());
 }
 
 /**
@@ -697,7 +697,9 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * built exactly during parsing.
    */
   double parseDouble(int start, int end) {
-    return _jsParseFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
+    return _jsParseValidFloat(
+      getString(start, end, 0x7f, _emptyCodeUnitsCache),
+    );
   }
 
   /**
@@ -1752,7 +1754,9 @@ class _JSStringImplParser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    return _jsParseFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
+    return _jsParseValidFloat(
+      getString(start, end, 0x7f, _emptyCodeUnitsCache),
+    );
   }
 
   void close() {
@@ -2038,7 +2042,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
       chunk.offsetInElements + start,
       chunk.offsetInElements + end,
     );
-    return _jsParseFloat(result);
+    return _jsParseValidFloat(result);
   }
 }
 
@@ -2603,7 +2607,7 @@ class _Utf8Decoder {
 
   // This table is the Wasm array version of `_Utf8Decoder.transitionTable`,
   // refer to the original type for documentation of the values.
-  static const _transitionTable = const ImmutableWasmArray<WasmI8>.literal([
+  static const _transitionTable = ImmutableWasmArray<WasmI8>.literal([
     32, 0, 48, 58, 88, 69, 67, 67, 67, 67, 67, 78, 58, 108, 68, 98, 32, 0, //
     48, 58, 88, 69, 67, 67, 67, 67, 67, 78, 118, 108, 68, 98, 32, 0, 48, 58, //
     88, 69, 67, 67, 67, 67, 67, 78, 58, 108, 68, 98, 32, 65, 65, 65, 65, 65, //
@@ -2616,7 +2620,7 @@ class _Utf8Decoder {
 
   // This table is the Wasm array version of `_Utf8Decoder.typeTable`,
   // refer to the original type for documentation of the values.
-  static const _typeTable = const ImmutableWasmArray<WasmI8>.literal([
+  static const _typeTable = ImmutableWasmArray<WasmI8>.literal([
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, //
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, //
     65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, //
@@ -2862,10 +2866,10 @@ WasmArray<WasmI8> _makeI8ArrayFromWasmI8ArrayBase(
   return bytes;
 }
 
-double _jsParseFloat(String string) => JS<double>(
-  '(s) => parseFloat(s)',
-  jsStringFromDartString(string).toExternRef,
-);
+// Assumes the given [string] is a valid float, so it can rely on the implicit
+// string to number conversion in JS using `+<string-of-number>`.
+double _jsParseValidFloat(String string) =>
+    JS<double>('(s) => +s', jsStringFromDartString(string).toExternRef);
 
 const ImmutableWasmArray<BoxedInt> _intBoxes256 = ImmutableWasmArray.literal([
   0, 1, 2, 3, 4, 5, 6, 7, //

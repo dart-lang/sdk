@@ -461,6 +461,19 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       node.expression.accept(this)!;
 
   @override
+  bool visitPatternAssignment(PatternAssignment node) =>
+      _nodeExits(node.expression);
+
+  @override
+  bool visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
+      _nodeExits(node.expression);
+
+  @override
+  bool visitPatternVariableDeclarationStatement(
+          PatternVariableDeclarationStatement node) =>
+      _nodeExits(node.declaration);
+
+  @override
   bool visitPostfixExpression(PostfixExpression node) => false;
 
   @override

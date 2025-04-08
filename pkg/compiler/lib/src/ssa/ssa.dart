@@ -250,7 +250,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
   /// added as a function parameter to the rewritten code.
   // TODO(sra): We could also return an empty list if the generator takes no
   // type (e.g. due to rtiNeed optimization).
-  List<js.Expression>? _fetchItemTypeNewRti(
+  List<js.Expression>? _fetchItemType(
     CommonElements commonElements,
     CodegenRegistry registry,
     DartType? type,
@@ -277,7 +277,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     FunctionEntity startFunction = commonElements.asyncHelperStartSync;
     FunctionEntity completerFactory = commonElements.asyncAwaitCompleterFactory;
 
-    final itemTypeExpression = _fetchItemTypeNewRti(
+    final itemTypeExpression = _fetchItemType(
       commonElements,
       registry,
       elementType,
@@ -353,7 +353,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     DartType? asyncTypeParameter,
     js.Name name,
   ) {
-    final itemTypeExpression = _fetchItemTypeNewRti(
+    final itemTypeExpression = _fetchItemType(
       commonElements,
       registry,
       asyncTypeParameter,

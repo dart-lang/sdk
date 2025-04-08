@@ -4,7 +4,7 @@
 
 import "dart:_internal" show patch;
 
-import 'dart:_js_helper' show JS, jsStringToDartString;
+import 'dart:_js_helper' show JS;
 import 'dart:_string';
 import 'dart:_wasm';
 
@@ -16,9 +16,8 @@ class DateTime {
 
   @patch
   static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
-      jsStringToDartString(
-        JSStringImpl(
-          JS<WasmExternRef>(r"""secondsSinceEpoch => {
+      JSStringImpl(
+        JS<WasmExternRef>(r"""secondsSinceEpoch => {
         const date = new Date(secondsSinceEpoch * 1000);
         const match = /\((.*)\)/.exec(date.toString());
         if (match == null) {
@@ -27,7 +26,6 @@ class DateTime {
         }
         return match[1];
       }""", secondsSinceEpoch.toDouble()),
-        ),
       );
 
   // In Dart, the offset is the difference between local time and UTC,

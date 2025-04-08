@@ -2,36 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/server/performance.dart';
-
-/// Compute a string representing a code completion operation at the
-/// given source and location.
-///
-/// This string is useful for displaying to users in a diagnostic context.
-String _computeCompletionSnippet(String contents, int offset) {
-  if (offset < 0 || contents.length < offset) {
-    return '???';
-  }
-  var start = offset;
-  while (start > 0) {
-    var ch = contents[start - 1];
-    if (ch == '\r' || ch == '\n') {
-      break;
-    }
-    --start;
-  }
-  var end = offset;
-  while (end < contents.length) {
-    var ch = contents[end];
-    if (ch == '\r' || ch == '\n') {
-      break;
-    }
-    ++end;
-  }
-  var prefix = contents.substring(start, offset);
-  var suffix = contents.substring(offset, end);
-  return '$prefix^$suffix';
-}
+import 'package:analysis_server_plugin/src/correction/performance.dart';
+import 'package:analysis_server_plugin/src/utilities/string_extensions.dart';
 
 /// Overall performance of a code completion operation.
 class CompletionPerformance extends RequestPerformance {
@@ -46,7 +18,7 @@ class CompletionPerformance extends RequestPerformance {
     super.requestLatency,
     required String content,
     required int offset,
-  }) : snippet = _computeCompletionSnippet(content, offset),
+  }) : snippet = content.withCaretAt(offset),
        super(operation: 'Completion');
 
   String get computedSuggestionCountStr {

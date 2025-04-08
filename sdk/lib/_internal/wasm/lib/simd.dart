@@ -110,7 +110,7 @@ final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List {
 
   @override
   void operator []=(int index, Int32x4 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   @override
@@ -216,7 +216,7 @@ final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List {
 
   @override
   void operator []=(int index, Float32x4 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   @override
@@ -316,7 +316,7 @@ final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List {
 
   @override
   void operator []=(int index, Float64x2 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   @override
@@ -343,19 +343,19 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
       this.z = _truncate(z),
       this.w = _truncate(w);
 
-  NaiveFloat32x4.splat(double v) : this(v, v, v, v);
+  NaiveFloat32x4.splat(double value) : this(value, value, value, value);
   NaiveFloat32x4.zero() : this._truncated(0.0, 0.0, 0.0, 0.0);
 
-  factory NaiveFloat32x4.fromInt32x4Bits(Int32x4 i) {
-    _uint32view[0] = i.x;
-    _uint32view[1] = i.y;
-    _uint32view[2] = i.z;
-    _uint32view[3] = i.w;
+  factory NaiveFloat32x4.fromInt32x4Bits(Int32x4 bits) {
+    _uint32view[0] = bits.x;
+    _uint32view[1] = bits.y;
+    _uint32view[2] = bits.z;
+    _uint32view[3] = bits.w;
     return NaiveFloat32x4._truncated(_list[0], _list[1], _list[2], _list[3]);
   }
 
-  NaiveFloat32x4.fromFloat64x2(Float64x2 v)
-    : this._truncated(_truncate(v.x), _truncate(v.y), 0.0, 0.0);
+  NaiveFloat32x4.fromFloat64x2(Float64x2 xy)
+    : this._truncated(_truncate(xy.x), _truncate(xy.y), 0.0, 0.0);
 
   NaiveFloat32x4._doubles(double x, double y, double z, double w)
     : this.x = _truncate(x),
@@ -487,11 +487,11 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
     );
   }
 
-  Float32x4 scale(double s) {
-    double _x = s * x;
-    double _y = s * y;
-    double _z = s * z;
-    double _w = s * w;
+  Float32x4 scale(double scale) {
+    double _x = scale * x;
+    double _y = scale * y;
+    double _z = scale * z;
+    double _w = scale * w;
     return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 

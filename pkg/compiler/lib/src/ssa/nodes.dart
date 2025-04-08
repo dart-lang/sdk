@@ -113,7 +113,6 @@ abstract class HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitPrimitiveCheck(HPrimitiveCheck node);
-  R visitBoolConversion(HBoolConversion node);
   R visitNullCheck(HNullCheck node);
   R visitLateReadCheck(HLateReadCheck node);
   R visitLateWriteOnceCheck(HLateWriteOnceCheck node);
@@ -631,8 +630,6 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   @override
   R visitLateValue(HLateValue node) => visitInstruction(node);
   @override
-  R visitBoolConversion(HBoolConversion node) => visitCheck(node);
-  @override
   R visitNullCheck(HNullCheck node) => visitCheck(node);
   R visitLateCheck(HLateCheck node) => visitCheck(node);
   @override
@@ -1121,7 +1118,6 @@ enum _GvnType {
   remainder,
   getLength,
   abs,
-  boolConversion,
   nullCheck,
   primitiveCheck,
   isTest,
@@ -2727,8 +2723,13 @@ class HForeignCode extends HForeign {
   bool typeEquals(other) => other is HForeignCode;
   @override
   bool dataEquals(HForeignCode other) {
-    return codeTemplate.source != null &&
-        codeTemplate.source == other.codeTemplate.source;
+    if (codeTemplate.source == null) {
+      return other.codeTemplate.source == null &&
+          // The ASTs will be equal if identical, and in some limited other
+          // cases, like a ModularExpression.
+          codeTemplate.ast == other.codeTemplate.ast;
+    }
+    return codeTemplate.source == other.codeTemplate.source;
   }
 
   @override
@@ -3860,44 +3861,6 @@ class HPrimitiveCheck extends HCheck {
       'checkedInput=$checkedInput)';
 }
 
-/// A check that the input to a condition (if, ?:, while, etc) is non-null. The
-/// front-end generates 'as bool' checks, but until the transition to null
-/// safety is complete, this allows `null` to be passed to the condition.
-///
-// TODO(sra): Once NNDB is far enough along that the front-end can generate `as
-// bool!` checks and the backend checks them correctly, this instruction will
-// become unnecessary and should be removed.
-class HBoolConversion extends HCheck {
-  HBoolConversion(super.input, super.type) : super._oneInput();
-
-  @override
-  bool isJsStatement() => false;
-
-  @override
-  bool isCodeMotionInvariant() => false;
-
-  @override
-  R accept<R>(HVisitor<R> visitor) => visitor.visitBoolConversion(this);
-
-  @override
-  _GvnType get _gvnType => _GvnType.boolConversion;
-  @override
-  bool typeEquals(HInstruction other) => other is HBoolConversion;
-  @override
-  bool dataEquals(HBoolConversion other) => true;
-
-  bool isRedundant(JClosedWorld closedWorld) {
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain
-        .isIn(inputType, instructionType)
-        .isDefinitelyTrue;
-  }
-
-  @override
-  String toString() => 'HBoolConversion($checkedInput)';
-}
-
 /// A check that the input is not null. This corresponds to the postfix
 /// null-check operator '!'.
 ///
@@ -4082,7 +4045,7 @@ class HLateInitializeOnceCheck extends HLateCheck {
 
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
-  AbstractValue knownType;
+  final AbstractValue knownType;
   final bool _isMovable;
 
   HTypeKnown.pinned(this.knownType, HInstruction input)
@@ -4599,10 +4562,6 @@ AbstractBool _typeTest(
   CompilerOptions options, {
   required bool isCast,
 }) {
-  // The null safety mode may affect the result of a type test, so defer to
-  // runtime.
-  if (options.experimentNullSafetyChecks) return AbstractBool.maybe;
-
   JCommonElements commonElements = closedWorld.commonElements;
   DartTypes dartTypes = closedWorld.dartTypes;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
@@ -4611,11 +4570,7 @@ AbstractBool _typeTest(
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
   bool nullIs(DartType type) =>
-      dartTypes.isStrongTopType(type) ||
-      type is LegacyType &&
-          (type.baseType.isObject ||
-              type.baseType is NeverType ||
-              nullIs(type.baseType)) ||
+      dartTypes.isTopType(type) ||
       type is NullableType ||
       type is FutureOrType && nullIs(type.typeArgument) ||
       type.isNull;
@@ -4680,10 +4635,7 @@ AbstractBool _typeTest(
     return AbstractBool.maybe;
   }
 
-  AbstractBool isNullAsCheck =
-      !options.useLegacySubtyping && isCast
-          ? expressionIsNull
-          : AbstractBool.false_;
+  AbstractBool isNullAsCheck = isCast ? expressionIsNull : AbstractBool.false_;
   AbstractBool isNullIsTest = !isCast ? expressionIsNull : AbstractBool.false_;
 
   AbstractBool unwrapAndCheck(DartType type) {
@@ -4692,10 +4644,6 @@ AbstractBool _typeTest(
     if (type is InterfaceType) {
       if (type.isNull) return expressionIsNull;
       return ~(isNullAsCheck | isNullIsTest) & checkInterface(type);
-    }
-    if (type is LegacyType) {
-      assert(!type.baseType.isObject);
-      return ~isNullIsTest & unwrapAndCheck(type.baseType);
     }
     if (type is NullableType) {
       return unwrapAndCheck(type.baseType);

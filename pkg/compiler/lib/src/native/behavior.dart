@@ -654,6 +654,10 @@ class NativeBehavior {
       behavior.sideEffects.setTo(newEffects);
     }
 
+    void setUseGvn(bool useGvn) {
+      behavior.useGvn = useGvn;
+    }
+
     processSpecString(
       commonElements.dartTypes,
       reporter,
@@ -662,6 +666,7 @@ class NativeBehavior {
       validTags: validTags,
       lookupType: lookupType,
       setSideEffects: setSideEffects,
+      setUseGvn: setUseGvn,
       typesReturned: behavior.typesReturned,
       typesInstantiated: behavior.typesInstantiated,
       objectType: commonElements.objectType,
@@ -709,7 +714,7 @@ class NativeBehavior {
       lookupType,
       reporter,
       commonElements,
-      validTags: ['returns', 'creates'],
+      validTags: ['returns', 'creates', 'depends', 'effects', 'gvn'],
     );
     return behavior;
   }
@@ -886,14 +891,7 @@ class BehaviorBuilder {
     _behavior.typesReturned.add(type.withoutNullability);
 
     // Breakdown nullable type into TypeWithoutNullability|Null.
-    // Unsound declared types are nullable, so we also add null in that case.
-    // TODO(41960): Remove check for legacy subtyping. This was added as a
-    // temporary workaround to unblock the null-safe unfork. At this time some
-    // native APIs are typed unsoundly because they don't consider browser
-    // compatibility or conditional support by context.
-    if (type is NullableType ||
-        type is LegacyType ||
-        (options.useLegacySubtyping && type is! VoidType)) {
+    if (type is NullableType) {
       _behavior.typesReturned.add(commonElements.nullType);
     }
   }

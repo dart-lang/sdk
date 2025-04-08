@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -621,7 +620,7 @@ class _MockSdkElementsBuilder {
     var objectElement = _objectElement;
     if (objectElement != null) return objectElement;
 
-    _objectElement = objectElement = ElementFactory.object;
+    _objectElement = objectElement = _class(name: 'Object', unit: _coreUnit);
     _coreUnit.encloseElement(objectElement);
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
@@ -942,15 +941,7 @@ class _MockSdkElementsBuilder {
     return _asyncLibrary;
   }
 
-  void _buildClassElement(ClassElementImpl fragment) {
-    var element = fragment.element;
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
-    element.fields = fragment.fields;
-    element.constructors = fragment.constructors;
-    element.accessors = fragment.accessors;
-    element.methods = fragment.methods;
-  }
+  void _buildClassElement(ClassElementImpl fragment) {}
 
   LibraryElementImpl _buildCore() {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
@@ -1012,16 +1003,26 @@ class _MockSdkElementsBuilder {
     bool isFinal = false,
     bool isStatic = false,
   }) {
-    return ElementFactory.fieldElement(name, isStatic, isFinal, isConst, type);
+    var fragment =
+        isConst ? ConstFieldElementImpl(name, 0) : FieldElementImpl(name, 0);
+    fragment.isConst = isConst;
+    fragment.isFinal = isFinal;
+    fragment.isStatic = isStatic;
+    fragment.type = type;
+    PropertyAccessorElementImpl_ImplicitGetter(fragment);
+    if (!isConst && !isFinal) {
+      PropertyAccessorElementImpl_ImplicitSetter(fragment);
+    }
+    return fragment;
   }
 
-  FunctionElementImpl _function(
+  TopLevelFunctionFragmentImpl _function(
     String name,
     DartType returnType, {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
-    var fragment = FunctionElementImpl(name, 0)
+    var fragment = TopLevelFunctionFragmentImpl(name, 0)
       ..parameters = parameters
           .map((p) => p.firstFragment as ParameterElementImpl)
           .toList()
@@ -1087,7 +1088,6 @@ class _MockSdkElementsBuilder {
           .toList()
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    MethodElementImpl2(Reference.root(), name, fragment);
     return fragment;
   }
 
@@ -1141,7 +1141,7 @@ class _MockSdkElementsBuilder {
       typeElement,
     ];
 
-    _coreUnit.functions = <FunctionElementImpl>[
+    _coreUnit.functions = <TopLevelFunctionFragmentImpl>[
       _function('identical', boolType, parameters: [
         _requiredParameter('a', objectType),
         _requiredParameter('b', objectType),
@@ -1229,9 +1229,9 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  TypeParameterTypeImpl _typeParameterType(TypeParameterElement2 element) {
-    return TypeParameterTypeImpl.v2(
-      element: element,
+  TypeParameterTypeImpl _typeParameterType(TypeParameterElementImpl2 element) {
+    return TypeParameterTypeImpl(
+      element3: element,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -1242,9 +1242,8 @@ class _MockSdkElementsBuilder {
   ) {
     library.classes = fragment.classes.map((f) => f.element).toList();
 
-    library.topLevelFunctions = fragment.functions.map((f) {
-      return f.element as TopLevelFunctionElementImpl;
-    }).toList();
+    library.topLevelFunctions =
+        fragment.functions.map((f) => f.element).toList();
 
     library.topLevelVariables =
         fragment.topLevelVariables.map((f) => f.element).toList();

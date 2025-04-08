@@ -23,7 +23,7 @@ class TestController {
   static int numCompletedTests = 0;
 
   // Used as TestCase.completedCallback.
-  static processCompletedTest(TestCase testCase) {
+  static void processCompletedTest(TestCase testCase) {
     final passed = testCase.result.canBeOutcomeOf(testCase.realExpected);
     numCompletedTests++;
 

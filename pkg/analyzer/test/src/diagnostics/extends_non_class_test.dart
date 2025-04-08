@@ -28,7 +28,6 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: dynamic
-    element: dynamic@-1
     element2: dynamic
     type: dynamic
 ''');
@@ -48,7 +47,6 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: E
-    element: <testLibraryFragment>::@enum::E
     element2: <testLibrary>::@enum::E
     type: E
 ''');
@@ -68,7 +66,6 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: A
-    element: <testLibraryFragment>::@extensionType::A
     element2: <testLibrary>::@extensionType::A
     type: A
 ''');
@@ -88,7 +85,6 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: M
-    element: <testLibraryFragment>::@mixin::M
     element2: <testLibrary>::@mixin::M
     type: M
 ''');
@@ -108,7 +104,6 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: v
-    element: <testLibraryFragment>::@getter::v
     element2: <testLibraryFragment>::@getter::v#element
     type: InvalidType
 ''');
@@ -133,11 +128,9 @@ ExtendsClause
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@getter::v
     element2: <testLibraryFragment>::@getter::v#element
     type: InvalidType
 ''');
@@ -156,7 +149,6 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: Never
-    element: Never@-1
     element2: Never
     type: Never
 ''');
@@ -175,7 +167,6 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: A
-    element: <null>
     element2: <null>
     type: InvalidType
 ''');
@@ -198,10 +189,8 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix::p
       element2: <testLibraryFragment>::@prefix2::p
     name: A
-    element: <null>
     element2: <null>
     type: InvalidType
 ''');
@@ -226,10 +215,8 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: package:test/a.dart::<fragment>::@prefix::p
       element2: package:test/a.dart::<fragment>::@prefix2::p
     name: A
-    element: <null>
     element2: <null>
     type: InvalidType
 ''');
@@ -256,10 +243,8 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: package:test/a.dart::@fragment::package:test/test.dart::@prefix::p
       element2: package:test/a.dart::@fragment::package:test/test.dart::@prefix2::p
     name: A
-    element: <null>
     element2: <null>
     type: InvalidType
 ''');
@@ -424,10 +409,8 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix::p
       element2: <testLibraryFragment>::@prefix2::p
     name: A
-    element: <null>
     element2: <null>
     type: InvalidType
 ''');

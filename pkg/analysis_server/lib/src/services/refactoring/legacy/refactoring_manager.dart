@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Many variables here are mostly camelcase, with an occasional underscore to
+// separate phrases.
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
 
 import 'package:analysis_server/src/collections.dart';
@@ -330,7 +334,7 @@ class RefactoringManager {
             refactoring = RenameRefactoring.create(
               refactoringWorkspace,
               resolvedUnit,
-              renameElement.element2,
+              renameElement.element,
             );
             feedback = RenameFeedback(
               renameElement.offset,

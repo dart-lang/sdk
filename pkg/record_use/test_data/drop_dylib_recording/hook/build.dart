@@ -13,8 +13,10 @@ void main(List<String> arguments) async {
       ..onRecord.listen((record) {
         print('${record.level.name}: ${record.time}: ${record.message}');
       });
-    final linkInPackage =
-        input.config.linkingEnabled ? input.packageName : null;
+    final routing =
+        input.config.linkingEnabled
+        ? [ToLinkHook(input.packageName)]
+        : const [ToAppBundle()];
     await CBuilder.library(
       name: 'add',
       assetName: 'dylib_add',
@@ -26,7 +28,7 @@ void main(List<String> arguments) async {
       input: input,
       output: output,
       logger: logger,
-      linkInPackage: linkInPackage,
+      routing: routing,
     );
 
     await CBuilder.library(
@@ -40,7 +42,7 @@ void main(List<String> arguments) async {
       input: input,
       output: output,
       logger: logger,
-      linkInPackage: linkInPackage,
+      routing: routing,
     );
   });
 }

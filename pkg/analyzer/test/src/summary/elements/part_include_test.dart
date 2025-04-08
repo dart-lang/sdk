@@ -50,31 +50,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/foo.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/foo.dart
-      classes
-        class B @102
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-            element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
-            element: <testLibrary>::@class::A
-    <testLibrary>::@fragment::package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class A @27
-          reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/foo.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -96,7 +71,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -139,31 +113,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/foo_io.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/foo_io.dart
-      classes
-        class B @102
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-            element: <testLibrary>::@class::A
-    <testLibrary>::@fragment::package:test/foo_io.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class A @27
-          reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/foo_io.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -185,7 +134,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -228,31 +176,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/foo_io.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/foo_io.dart
-      classes
-        class B @122
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-            element: <testLibrary>::@class::A
-    <testLibrary>::@fragment::package:test/foo_io.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class A @27
-          reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/foo_io.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -274,7 +197,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -317,31 +239,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/foo_html.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/foo_html.dart
-      classes
-        class B @102
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-            element: <testLibrary>::@class::A
-    <testLibrary>::@fragment::package:test/foo_html.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class A @27
-          reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/foo_html.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -363,7 +260,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -406,31 +302,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/foo_html.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/foo_html.dart
-      classes
-        class B @122
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-            element: <testLibrary>::@class::A
-    <testLibrary>::@fragment::package:test/foo_html.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class A @27
-          reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/foo_html.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -452,7 +323,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -466,28 +336,6 @@ library
     var library =
         await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
     checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-----------------------------------------
 library
   reference: <testLibrary>
   name: my.lib
@@ -549,76 +397,6 @@ class Z {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class Z @36
-          reference: <testLibraryFragment>::@class::Z
-          enclosingElement3: <testLibraryFragment>
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_2
-          uri: package:test/a11.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a11.dart
-        part_3
-          uri: package:test/a12.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a12.dart
-      classes
-        class A @61
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A11 @24
-          reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-          enclosingElement3: <testLibrary>::@fragment::package:test/a11.dart
-    <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A12 @24
-          reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-          enclosingElement3: <testLibrary>::@fragment::package:test/a12.dart
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_4
-          uri: package:test/b11.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          unit: <testLibrary>::@fragment::package:test/b11.dart
-        part_5
-          uri: package:test/b12.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          unit: <testLibrary>::@fragment::package:test/b12.dart
-    <testLibrary>::@fragment::package:test/b11.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B11 @24
-          reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-          enclosingElement3: <testLibrary>::@fragment::package:test/b11.dart
-    <testLibrary>::@fragment::package:test/b12.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B12 @24
-          reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-          enclosingElement3: <testLibrary>::@fragment::package:test/b12.dart
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -707,17 +485,6 @@ part '${'foo'}.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: noRelativeUriString
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -735,38 +502,6 @@ part 'a.dart';
 class A {}
 ''');
     checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @37
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class B @22
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::B
-----------------------------------------
 library
   reference: <testLibrary>
   name: my.lib
@@ -824,36 +559,6 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class B @27
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::B
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -903,17 +608,6 @@ part 'foo:bar';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: relativeUri 'foo:bar'
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -925,17 +619,6 @@ library
 part '';
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: source 'package:test/test.dart'
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -952,17 +635,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: source 'package:test/a.dart'
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -976,17 +648,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: source 'package:test/a.dart'
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -998,17 +659,6 @@ library
 part ':';
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: relativeUriString ':'
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1032,26 +682,6 @@ part 'b.dart';
 ''');
 
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1112,76 +742,6 @@ class Z {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class Z @36
-          reference: <testLibraryFragment>::@class::Z
-          enclosingElement3: <testLibraryFragment>
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_2
-          uri: package:test/a11.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a11.dart
-        part_3
-          uri: package:test/a12.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          unit: <testLibrary>::@fragment::package:test/a12.dart
-      classes
-        class A @61
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A11 @24
-          reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-          enclosingElement3: <testLibrary>::@fragment::package:test/a11.dart
-    <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A12 @24
-          reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-          enclosingElement3: <testLibrary>::@fragment::package:test/a12.dart
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_4
-          uri: package:test/b11.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          unit: <testLibrary>::@fragment::package:test/b11.dart
-        part_5
-          uri: package:test/b12.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          unit: <testLibrary>::@fragment::package:test/b12.dart
-    <testLibrary>::@fragment::package:test/b11.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B11 @24
-          reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-          enclosingElement3: <testLibrary>::@fragment::package:test/b11.dart
-    <testLibrary>::@fragment::package:test/b12.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-      classes
-        class B12 @24
-          reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-          enclosingElement3: <testLibrary>::@fragment::package:test/b12.dart
-----------------------------------------
 library
   reference: <testLibrary>
   fragments

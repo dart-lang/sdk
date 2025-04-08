@@ -53,12 +53,6 @@ void main(List<String> args) async {
         help: 'Option to (compile|run|all). Default is all (compile and run).',
         allowed: ['compile', 'run', 'all'],
         defaultsTo: 'all')
-    ..addFlag('sound-null-safety',
-        help: 'Ignored and will be removed in a future version. '
-            'Sound null safety is always used.',
-        negatable: false,
-        defaultsTo: true,
-        hide: true)
     ..addFlag('emit-debug-symbols',
         help: 'Pass through flag for DDC, emits debug symbols file along with '
             'the compiled module.',

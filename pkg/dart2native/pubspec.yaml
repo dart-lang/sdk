@@ -5,15 +5,18 @@ publish_to: none
 environment:
   sdk: ^3.5.0
 
+resolution: workspace
+
 # Add the bin/dart2native.dart script to the scripts pub installs.
 executables:
   dart2native:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-   collection: any
-   kernel: any
-   path: any
+  collection: any
+  kernel: any
+  native_assets_cli: any
+  path: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

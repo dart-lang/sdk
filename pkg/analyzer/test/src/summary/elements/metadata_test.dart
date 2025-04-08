@@ -28,64 +28,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @20
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: SimpleIdentifier
-                token: A @1
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @2
-                arguments
-                  RecordLiteral
-                    leftParenthesis: ( @3
-                    fields
-                      IntegerLiteral
-                        literal: 2 @4
-                        staticType: int
-                      NamedExpression
-                        name: Label
-                          label: SimpleIdentifier
-                            token: a @7
-                            staticElement: <null>
-                            element: <null>
-                            staticType: null
-                          colon: : @8
-                        expression: IntegerLiteral
-                          literal: 3 @10
-                          staticType: int
-                    rightParenthesis: ) @11
-                    staticType: (int, {int a})
-                rightParenthesis: ) @12
-              element: <testLibraryFragment>::@class::A::@constructor::new
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class A @31
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @43
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional hasImplicitType o @45
-                  type: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -138,53 +80,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: SimpleIdentifier
-                token: A @1
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @2
-                arguments
-                  RecordLiteral
-                    constKeyword: const @3
-                    leftParenthesis: ( @9
-                    fields
-                      SimpleStringLiteral
-                        literal: '' @10
-                    rightParenthesis: ) @13
-                    staticType: (String,)
-                rightParenthesis: ) @14
-              element: <testLibraryFragment>::@class::A::@constructor::new
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class A @33
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @45
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional hasImplicitType o @47
-                  type: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -244,54 +139,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as a @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        a @19
-          reference: <testLibraryFragment>::@prefix::a
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @39
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @22
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: a @23
-                  staticElement: <testLibraryFragment>::@prefix::a
-                  element: <testLibraryFragment>::@prefix2::a
-                  staticType: null
-                period: . @24
-                identifier: SimpleIdentifier
-                  token: A @25
-                  staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::@class::A
-                  staticType: null
-                staticElement: package:test/a.dart::<fragment>::@class::A
-                element: package:test/a.dart::@class::A
-                staticType: null
-              period: . @26
-              constructorName: SimpleIdentifier
-                token: named @27
-                staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
-                element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
-                staticType: null
-              element: package:test/a.dart::<fragment>::@class::A::@constructor::named
-              element2: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -333,44 +180,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @32
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @17
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: A @18
-                  staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::@class::A
-                  staticType: null
-                period: . @19
-                identifier: SimpleIdentifier
-                  token: named @20
-                  staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
-                  element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
-                  staticType: null
-                staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::named
-                element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
-                staticType: null
-              element: package:test/a.dart::<fragment>::@class::A::@constructor::named
-              element2: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -408,64 +217,6 @@ class C {
     expect(x.metadata2.annotations, hasLength(1));
     // Check details.
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @19
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            x @34
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @25
-                  name: SimpleIdentifier
-                    token: a @26
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-              type: int
-              shouldUseTypeForInitializerInference: true
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-            synthetic set x= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _x @-1
-                  type: int
-              returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -561,89 +312,6 @@ class C<@foo T> {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @27
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @34
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @29
-                  name: SimpleIdentifier
-                    token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          fields
-            static const foo @54
-              reference: <testLibraryFragment>::@class::C::@field::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 1 @60
-                  staticType: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@class::C::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-          methods
-            bar @77
-              reference: <testLibraryFragment>::@class::C::@method::bar
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @65
-                  name: SimpleIdentifier
-                    token: foo @66
-                    staticElement: <testLibraryFragment>::@class::C::@getter::foo
-                    element: <testLibraryFragment>::@class::C::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@class::C::@getter::foo
-                  element2: <testLibraryFragment>::@class::C::@getter::foo#element
-              returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -653,16 +321,14 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
                   name: SimpleIdentifier
                     token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           fields
             hasInitializer foo @54
@@ -691,10 +357,8 @@ library
                   atSign: @ @65
                   name: SimpleIdentifier
                     token: foo @66
-                    staticElement: <testLibraryFragment>::@class::C::@getter::foo
                     element: <testLibraryFragment>::@class::C::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@class::C::@getter::foo
                   element2: <testLibraryFragment>::@class::C::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -720,10 +384,8 @@ library
               atSign: @ @29
               name: SimpleIdentifier
                 token: foo @30
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       fields
         static const hasInitializer foo
@@ -741,17 +403,14 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::foo
       methods
         bar
-          reference: <testLibrary>::@class::C::@method::bar
           firstFragment: <testLibraryFragment>::@class::C::@method::bar
           metadata
             Annotation
               atSign: @ @65
               name: SimpleIdentifier
                 token: foo @66
-                staticElement: <testLibraryFragment>::@class::C::@getter::foo
                 element: <testLibraryFragment>::@class::C::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@class::C::@getter::foo
               element2: <testLibraryFragment>::@class::C::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -776,68 +435,6 @@ const b = null;
 @b
 class C {}''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @44
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @32
-              name: SimpleIdentifier
-                token: a @33
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-            Annotation
-              atSign: @ @35
-              name: SimpleIdentifier
-                token: b @36
-                staticElement: <testLibraryFragment>::@getter::b
-                element: <testLibraryFragment>::@getter::b#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::b
-              element2: <testLibraryFragment>::@getter::b#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        static const b @22
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @26
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -914,72 +511,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class alias C @25
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          supertype: D
-          mixins
-            E
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::new
-                  element: <testLibraryFragment>::@class::D::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
-        class D @45
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-        class E @56
-          reference: <testLibraryFragment>::@class::E
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::E
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -992,15 +523,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::new
-                  element: <testLibraryFragment>::@class::D::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @45
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -1040,6 +562,13 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::D::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
     class D
       reference: <testLibrary>::@class::D
@@ -1077,60 +606,6 @@ class A {
 class C {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const named @20
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 19
-              nameEnd: 25
-              parameters
-                requiredPositional _ @30
-                  type: int
-        class C @54
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @36
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: A @37
-                  staticElement: <testLibraryFragment>::@class::A
-                  element: <testLibrary>::@class::A
-                  staticType: null
-                period: . @38
-                identifier: SimpleIdentifier
-                  token: named @39
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                  element: <testLibraryFragment>::@class::A::@constructor::named#element
-                  staticType: null
-                staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                element: <testLibraryFragment>::@class::A::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @44
-                arguments
-                  IntegerLiteral
-                    literal: 0 @45
-                    staticType: int
-                rightParenthesis: ) @46
-              element: <testLibraryFragment>::@class::A::@constructor::named
-              element2: <testLibraryFragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1189,69 +664,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const named @23
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 22
-              nameEnd: 28
-              parameters
-                requiredPositional _ @31
-                  type: T
-        class C @56
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @38
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: A @39
-                  staticElement: <testLibraryFragment>::@class::A
-                  element: <testLibrary>::@class::A
-                  staticType: null
-                period: . @40
-                identifier: SimpleIdentifier
-                  token: named @41
-                  staticElement: ConstructorMember
-                    base: <testLibraryFragment>::@class::A::@constructor::named
-                    substitution: {T: int}
-                  element: <testLibraryFragment>::@class::A::@constructor::named#element
-                  staticType: null
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::named
-                  substitution: {T: int}
-                element: <testLibraryFragment>::@class::A::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @46
-                arguments
-                  IntegerLiteral
-                    literal: 0 @47
-                    staticType: int
-                rightParenthesis: ) @48
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::named
-                substitution: {T: int}
-              element2: <testLibraryFragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1261,7 +673,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -1313,65 +725,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const named @23
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 22
-              nameEnd: 28
-        class C @57
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @35
-              name: SimpleIdentifier
-                token: A @36
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              typeArguments: TypeArgumentList
-                leftBracket: < @37
-                arguments
-                  NamedType
-                    name: int @38
-                    element: dart:core::<fragment>::@class::int
-                    element2: dart:core::@class::int
-                    type: int
-                rightBracket: > @41
-              period: . @42
-              constructorName: SimpleIdentifier
-                token: named @43
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::named
-                  substitution: {T: int}
-                element: <testLibraryFragment>::@class::A::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @48
-                rightParenthesis: ) @49
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::named
-                substitution: {T: int}
-              element2: <testLibraryFragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1381,7 +734,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -1427,65 +780,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const named @23
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 22
-              nameEnd: 28
-        class C @57
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @35
-              name: SimpleIdentifier
-                token: A @36
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              typeArguments: TypeArgumentList
-                leftBracket: < @37
-                arguments
-                  NamedType
-                    name: int @38
-                    element: dart:core::<fragment>::@class::int
-                    element2: dart:core::@class::int
-                    type: int
-                rightBracket: > @41
-              period: . @42
-              constructorName: SimpleIdentifier
-                token: named @43
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::named
-                  substitution: {T: int}
-                element: <testLibraryFragment>::@class::A::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @48
-                rightParenthesis: ) @49
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::named
-                substitution: {T: int}
-              element2: <testLibraryFragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1495,7 +789,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -1543,61 +837,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as foo @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @21
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @48
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @26
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @27
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @30
-                identifier: SimpleIdentifier
-                  token: A @31
-                  staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::@class::A
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::@class::A
-                staticType: null
-              period: . @32
-              constructorName: SimpleIdentifier
-                token: named @33
-                staticElement: package:test/foo.dart::<fragment>::@class::A::@constructor::named
-                element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @38
-                arguments
-                  IntegerLiteral
-                    literal: 0 @39
-                    staticType: int
-                rightParenthesis: ) @40
-              element: package:test/foo.dart::<fragment>::@class::A::@constructor::named
-              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1639,65 +878,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as foo @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @21
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @48
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @26
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @27
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @30
-                identifier: SimpleIdentifier
-                  token: A @31
-                  staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::@class::A
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::@class::A
-                staticType: null
-              period: . @32
-              constructorName: SimpleIdentifier
-                token: named @33
-                staticElement: ConstructorMember
-                  base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
-                  substitution: {T: int}
-                element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @38
-                arguments
-                  IntegerLiteral
-                    literal: 0 @39
-                    staticType: int
-                rightParenthesis: ) @40
-              element: ConstructorMember
-                base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
-                substitution: {T: int}
-              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1737,70 +917,6 @@ import "foo.dart" as foo;
 class C {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as foo @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @21
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @52
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @26
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @27
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @30
-                identifier: SimpleIdentifier
-                  token: A @31
-                  staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::@class::A
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::@class::A
-                staticType: null
-              typeArguments: TypeArgumentList
-                leftBracket: < @32
-                arguments
-                  NamedType
-                    name: int @33
-                    element: dart:core::<fragment>::@class::int
-                    element2: dart:core::@class::int
-                    type: int
-                rightBracket: > @36
-              period: . @37
-              constructorName: SimpleIdentifier
-                token: named @38
-                staticElement: ConstructorMember
-                  base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
-                  substitution: {T: int}
-                element: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @43
-                rightParenthesis: ) @44
-              element: ConstructorMember
-                base: package:test/foo.dart::<fragment>::@class::A::@constructor::named
-                substitution: {T: int}
-              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1846,93 +962,6 @@ class D {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const named @20
-              reference: <testLibraryFragment>::@class::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::A
-              periodOffset: 19
-              nameEnd: 25
-        class alias C @50
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @52
-              defaultType: dynamic
-          supertype: A
-          mixins
-            B
-          constructors
-            synthetic const named @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  period: . @0
-                  constructorName: SimpleIdentifier
-                    token: named @-1
-                    staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                    element: <testLibraryFragment>::@class::A::@constructor::named#element
-                    staticType: null
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                  element: <testLibraryFragment>::@class::A::@constructor::named#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::named
-        class D @85
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @68
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: C @69
-                  staticElement: <testLibraryFragment>::@class::C
-                  element: <testLibrary>::@class::C
-                  staticType: null
-                period: . @70
-                identifier: SimpleIdentifier
-                  token: named @71
-                  staticElement: ConstructorMember
-                    base: <testLibraryFragment>::@class::C::@constructor::named
-                    substitution: {T: dynamic}
-                  element: <testLibraryFragment>::@class::C::@constructor::named#element
-                  staticType: null
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::named
-                  substitution: {T: dynamic}
-                element: <testLibraryFragment>::@class::C::@constructor::named#element
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @76
-                rightParenthesis: ) @77
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::C::@constructor::named
-                substitution: {T: dynamic}
-              element2: <testLibraryFragment>::@class::C::@constructor::named#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      mixins
-        mixin B @38
-          reference: <testLibraryFragment>::@mixin::B
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1952,27 +981,12 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @52
-              element: <not-implemented>
+              element: T@52
           constructors
             synthetic const named
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  period: . @0
-                  constructorName: SimpleIdentifier
-                    token: named @-1
-                    staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                    element: <testLibraryFragment>::@class::A::@constructor::named#element
-                    staticType: null
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                  element: <testLibraryFragment>::@class::A::@constructor::named#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::named
         class D @85
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -2003,6 +1017,18 @@ library
       constructors
         synthetic const named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                element: <testLibraryFragment>::@class::A::@constructor::named#element
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::A::@constructor::named#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::named#element
     class D
       reference: <testLibrary>::@class::D
@@ -2028,48 +1054,6 @@ class A {
 class C {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @18
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @24
-                  type: int
-        class C @42
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @30
-              name: SimpleIdentifier
-                token: A @31
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @32
-                arguments
-                  IntegerLiteral
-                    literal: 0 @33
-                    staticType: int
-                rightParenthesis: ) @34
-              element: <testLibraryFragment>::@class::A::@constructor::new
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2127,53 +1111,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _ @25
-                  type: T
-        class C @44
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @32
-              name: SimpleIdentifier
-                token: A @33
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @34
-                arguments
-                  IntegerLiteral
-                    literal: 0 @35
-                    staticType: int
-                rightParenthesis: ) @36
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2183,7 +1120,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -2234,55 +1171,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class C @45
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @29
-              name: SimpleIdentifier
-                token: A @30
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              typeArguments: TypeArgumentList
-                leftBracket: < @31
-                arguments
-                  NamedType
-                    name: int @32
-                    element: dart:core::<fragment>::@class::int
-                    element2: dart:core::@class::int
-                    type: int
-                rightBracket: > @35
-              arguments: ArgumentList
-                leftParenthesis: ( @36
-                rightParenthesis: ) @37
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2292,7 +1180,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -2330,55 +1218,6 @@ library
     var library =
         await buildLibrary('import "foo.dart" as foo; @foo.A(0) class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as foo @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @21
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @42
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @26
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @27
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @30
-                identifier: SimpleIdentifier
-                  token: A @31
-                  staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::@class::A
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @32
-                arguments
-                  IntegerLiteral
-                    literal: 0 @33
-                    staticType: int
-                rightParenthesis: ) @34
-              element: package:test/foo.dart::<fragment>::@class::A::@constructor::new
-              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2422,57 +1261,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as foo @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @21
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @42
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @26
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @27
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @30
-                identifier: SimpleIdentifier
-                  token: A @31
-                  staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::@class::A
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @32
-                arguments
-                  IntegerLiteral
-                    literal: 0 @33
-                    staticType: int
-                rightParenthesis: ) @34
-              element: ConstructorMember
-                base: package:test/foo.dart::<fragment>::@class::A::@constructor::new
-                substitution: {T: int}
-              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2512,62 +1300,6 @@ import "foo.dart" as foo;
 class C {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as foo @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @21
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @46
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @26
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @27
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @30
-                identifier: SimpleIdentifier
-                  token: A @31
-                  staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::@class::A
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::@class::A
-                staticType: null
-              typeArguments: TypeArgumentList
-                leftBracket: < @32
-                arguments
-                  NamedType
-                    name: int @33
-                    element: dart:core::<fragment>::@class::int
-                    element2: dart:core::@class::int
-                    type: int
-                rightBracket: > @36
-              arguments: ArgumentList
-                leftParenthesis: ( @37
-                rightParenthesis: ) @38
-              element: ConstructorMember
-                base: package:test/foo.dart::<fragment>::@class::A::@constructor::new
-                substitution: {T: int}
-              element2: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2613,71 +1345,6 @@ class D {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @18
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class alias C @44
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @46
-              defaultType: dynamic
-          supertype: A
-          mixins
-            B
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
-        class D @73
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @62
-              name: SimpleIdentifier
-                token: C @63
-                staticElement: <testLibraryFragment>::@class::C
-                element: <testLibrary>::@class::C
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @64
-                rightParenthesis: ) @65
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::C::@constructor::new
-                substitution: {T: dynamic}
-              element2: <testLibraryFragment>::@class::C::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      mixins
-        mixin B @32
-          reference: <testLibraryFragment>::@mixin::B
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2696,21 +1363,12 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @46
-              element: <not-implemented>
+              element: T@46
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class D @73
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -2741,6 +1399,13 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class D
       reference: <testLibrary>::@class::D
@@ -2761,48 +1426,6 @@ library
     var library =
         await buildLibrary('class A { const A(x); } @A(null) class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @16
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional hasImplicitType x @18
-                  type: dynamic
-        class C @39
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @24
-              name: SimpleIdentifier
-                token: A @25
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @26
-                arguments
-                  NullLiteral
-                    literal: null @27
-                    staticType: Null
-                rightParenthesis: ) @31
-              element: <testLibraryFragment>::@class::A::@constructor::new
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2854,48 +1477,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            named @31
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @26
-                  name: SimpleIdentifier
-                    token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-              periodOffset: 30
-              nameEnd: 36
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2912,10 +1493,8 @@ library
                   atSign: @ @26
                   name: SimpleIdentifier
                     token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
               typeName: C
               typeNameOffset: 29
@@ -2945,10 +1524,8 @@ library
               atSign: @ @26
               name: SimpleIdentifier
                 token: a @27
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -2970,46 +1547,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            @29
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @26
-                  name: SimpleIdentifier
-                    token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3026,10 +1563,8 @@ library
                   atSign: @ @26
                   name: SimpleIdentifier
                     token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
               typeName: C
               typeNameOffset: 29
@@ -3058,10 +1593,8 @@ library
               atSign: @ @26
               name: SimpleIdentifier
                 token: a @27
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -3089,55 +1622,8 @@ library
       atSign: @ @0
       name: SimpleIdentifier
         token: a @1
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: null
-      element: <testLibraryFragment>::@getter::a
-      element2: <testLibraryFragment>::@getter::a#element
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/foo.dart
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: SimpleIdentifier
-                token: a @1
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-      topLevelVariables
-        static const a @28
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @32
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
-  metadata
-    Annotation
-      atSign: @ @0
-      name: SimpleIdentifier
-        token: a @1
-        staticElement: <testLibraryFragment>::@getter::a
-        element: <testLibraryFragment>::@getter::a#element
-        staticType: null
-      element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
@@ -3173,63 +1659,6 @@ library
   test_metadata_fieldDeclaration() async {
     var library = await buildLibrary('const a = null; class C { @a int x; }');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            x @33
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @26
-                  name: SimpleIdentifier
-                    token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-              type: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int
-            synthetic set x= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _x @-1
-                  type: int
-              returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3322,67 +1751,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            x @32
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            @37
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional final hasImplicitType this.x @47
-                  type: dynamic
-                  metadata
-                    Annotation
-                      atSign: @ @39
-                      name: SimpleIdentifier
-                        token: a @40
-                        staticElement: <testLibraryFragment>::@getter::a
-                        element: <testLibraryFragment>::@getter::a#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::a
-                      element2: <testLibraryFragment>::@getter::a#element
-                  field: <testLibraryFragment>::@class::C::@field::x
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-            synthetic set x= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _x @-1
-                  type: dynamic
-              returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3410,10 +1778,8 @@ library
                       atSign: @ @39
                       name: SimpleIdentifier
                         token: a @40
-                        staticElement: <testLibraryFragment>::@getter::a
                         element: <testLibraryFragment>::@getter::a#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
           getters
             synthetic get x
@@ -3460,10 +1826,8 @@ library
                   atSign: @ @39
                   name: SimpleIdentifier
                     token: a @40
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
       getters
         synthetic get x
@@ -3495,71 +1859,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            x @30
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            @33
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalPositional default final hasImplicitType this.x @44
-                  type: dynamic
-                  metadata
-                    Annotation
-                      atSign: @ @36
-                      name: SimpleIdentifier
-                        token: a @37
-                        staticElement: <testLibraryFragment>::@getter::a
-                        element: <testLibraryFragment>::@getter::a#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::a
-                      element2: <testLibraryFragment>::@getter::a#element
-                  constantInitializer
-                    NullLiteral
-                      literal: null @48
-                      staticType: Null
-                  field: <testLibraryFragment>::@class::C::@field::x
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-            synthetic set x= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _x @-1
-                  type: dynamic
-              returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3587,10 +1886,8 @@ library
                       atSign: @ @36
                       name: SimpleIdentifier
                         token: a @37
-                        staticElement: <testLibraryFragment>::@getter::a
                         element: <testLibraryFragment>::@getter::a#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
                   initializer: expression_0
                     NullLiteral
@@ -3641,10 +1938,8 @@ library
                   atSign: @ @36
                   name: SimpleIdentifier
                     token: a @37
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
               constantInitializer
                 expression: expression_0
@@ -3681,43 +1976,6 @@ f() {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-      functions
-        f @19
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3743,10 +2001,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -3769,10 +2025,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: a @17
-            staticElement: <testLibraryFragment>::@getter::a
             element: <testLibraryFragment>::@getter::a#element
             staticType: null
-          element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
@@ -3781,46 +2035,6 @@ library
   test_metadata_functionDeclaration_getter() async {
     var library = await buildLibrary('const a = null; @a get f => null;');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        synthetic static f @-1
-          reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        static get f @23
-          reference: <testLibraryFragment>::@getter::f
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3851,10 +2065,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -3880,10 +2092,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: a @17
-            staticElement: <testLibraryFragment>::@getter::a
             element: <testLibraryFragment>::@getter::a#element
             staticType: null
-          element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
 ''');
   }
@@ -3891,49 +2101,6 @@ library
   test_metadata_functionDeclaration_setter() async {
     var library = await buildLibrary('const a = null; @a set f(value) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        synthetic static f @-1
-          reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        static set f= @23
-          reference: <testLibraryFragment>::@setter::f
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          parameters
-            requiredPositional hasImplicitType value @25
-              type: dynamic
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3965,10 +2132,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           formalParameters
             value @25
@@ -3998,10 +2163,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: a @17
-            staticElement: <testLibraryFragment>::@getter::a
             element: <testLibraryFragment>::@getter::a#element
             staticType: null
-          element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
       formalParameters
         requiredPositional hasImplicitType value
@@ -4012,44 +2175,6 @@ library
   test_metadata_functionTypeAlias() async {
     var library = await buildLibrary('const a = null; @a typedef F();');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @27
-          reference: <testLibraryFragment>::@typeAlias::F
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -4064,10 +2189,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         hasInitializer a @6
@@ -4090,10 +2213,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: a @17
-            staticElement: <testLibraryFragment>::@getter::a
             element: <testLibraryFragment>::@getter::a#element
             staticType: null
-          element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
       aliasedType: dynamic Function()
   topLevelVariables
@@ -4114,46 +2235,6 @@ library
   test_metadata_functionTypedFormalParameter() async {
     var library = await buildLibrary('const a = null; f(@a g()) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-      functions
-        f @16
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional g @21
-              type: dynamic Function()
-              metadata
-                Annotation
-                  atSign: @ @18
-                  name: SimpleIdentifier
-                    token: a @19
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -4184,10 +2265,8 @@ library
                   atSign: @ @18
                   name: SimpleIdentifier
                     token: a @19
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -4213,10 +2292,8 @@ library
               atSign: @ @18
               name: SimpleIdentifier
                 token: a @19
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
@@ -4225,50 +2302,6 @@ library
   test_metadata_functionTypedFormalParameter_withDefault() async {
     var library = await buildLibrary('const a = null; f([@a g() = null]) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-      functions
-        f @16
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalPositional default g @22
-              type: dynamic Function()
-              metadata
-                Annotation
-                  atSign: @ @19
-                  name: SimpleIdentifier
-                    token: a @20
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-              constantInitializer
-                NullLiteral
-                  literal: null @28
-                  staticType: null
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -4299,10 +2332,8 @@ library
                   atSign: @ @19
                   name: SimpleIdentifier
                     token: a @20
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
               initializer: expression_1
                 NullLiteral
@@ -4332,10 +2363,8 @@ library
               atSign: @ @19
               name: SimpleIdentifier
                 token: a @20
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           constantInitializer
             expression: expression_1
@@ -4353,66 +2382,6 @@ typedef F = void Function();''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @46
-          reference: <testLibraryFragment>::@typeAlias::F
-          metadata
-            Annotation
-              atSign: @ @32
-              name: SimpleIdentifier
-                token: a @33
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-            Annotation
-              atSign: @ @35
-              name: SimpleIdentifier
-                token: b @36
-                staticElement: <testLibraryFragment>::@getter::b
-                element: <testLibraryFragment>::@getter::b#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::b
-              element2: <testLibraryFragment>::@getter::b#element
-          aliasedType: void Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        static const b @22
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @26
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4425,19 +2394,15 @@ library
               atSign: @ @32
               name: SimpleIdentifier
                 token: a @33
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @35
               name: SimpleIdentifier
                 token: b @36
-                staticElement: <testLibraryFragment>::@getter::b
                 element: <testLibraryFragment>::@getter::b#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::b
               element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
         hasInitializer a @6
@@ -4471,19 +2436,15 @@ library
           atSign: @ @32
           name: SimpleIdentifier
             token: a @33
-            staticElement: <testLibraryFragment>::@getter::a
             element: <testLibraryFragment>::@getter::a#element
             staticType: null
-          element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
         Annotation
           atSign: @ @35
           name: SimpleIdentifier
             token: b @36
-            staticElement: <testLibraryFragment>::@getter::b
             element: <testLibraryFragment>::@getter::b#element
             staticType: null
-          element: <testLibraryFragment>::@getter::b
           element2: <testLibraryFragment>::@getter::b#element
       aliasedType: void Function()
   topLevelVariables
@@ -4517,47 +2478,6 @@ const a = 42;
 typedef F = void Function(@a int first)
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @22
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional first @47
-                type: int
-                metadata
-                  Annotation
-                    atSign: @ @40
-                    name: SimpleIdentifier
-                      token: a @41
-                      staticElement: <testLibraryFragment>::@getter::a
-                      element: <testLibraryFragment>::@getter::a#element
-                      staticType: null
-                    element: <testLibraryFragment>::@getter::a
-                    element2: <testLibraryFragment>::@getter::a#element
-            returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 42 @10
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -4607,50 +2527,6 @@ typedef F = void Function(int foo(@a int bar))
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @22
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(int Function(int))
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional foo @44
-                type: int Function(int)
-                parameters
-                  requiredPositional bar @55
-                    type: int
-                    metadata
-                      Annotation
-                        atSign: @ @48
-                        name: SimpleIdentifier
-                          token: a @49
-                          staticElement: <testLibraryFragment>::@getter::a
-                          element: <testLibraryFragment>::@getter::a#element
-                          staticType: null
-                        element: <testLibraryFragment>::@getter::a
-                        element2: <testLibraryFragment>::@getter::a#element
-            returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 42 @10
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4698,49 +2574,6 @@ typedef F = void Function<@a T>(int first)
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @22
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function<T>(int)
-          aliasedElement: GenericFunctionTypeElement
-            typeParameters
-              covariant T @43
-                metadata
-                  Annotation
-                    atSign: @ @40
-                    name: SimpleIdentifier
-                      token: a @41
-                      staticElement: <testLibraryFragment>::@getter::a
-                      element: <testLibraryFragment>::@getter::a#element
-                      staticType: null
-                    element: <testLibraryFragment>::@getter::a
-                    element2: <testLibraryFragment>::@getter::a#element
-            parameters
-              requiredPositional first @50
-                type: int
-            returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 42 @10
-              staticType: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4783,46 +2616,6 @@ library
   test_metadata_invalid_classDeclaration() async {
     var library = await buildLibrary('f(_) {} @f(42) class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @21
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @8
-              name: SimpleIdentifier
-                token: f @9
-                staticElement: <testLibraryFragment>::@function::f
-                element: <testLibrary>::@function::f
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @10
-                arguments
-                  IntegerLiteral
-                    literal: 42 @11
-                    staticType: int
-                rightParenthesis: ) @13
-              element: <testLibraryFragment>::@function::f
-              element2: <testLibrary>::@function::f
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional hasImplicitType _ @2
-              type: dynamic
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -4873,30 +2666,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: SimpleIdentifier
-                token: deprecated @1
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4917,27 +2686,6 @@ part 'dart:math';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: source 'dart:math'
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: SimpleIdentifier
-                token: deprecated @1
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -4948,40 +2696,6 @@ library
     var library = await buildLibrary('@a library L; const a = null;');
     checkElementText(library, r'''
 library
-  name: L
-  nameOffset: 11
-  reference: <testLibrary>
-  metadata
-    Annotation
-      atSign: @ @0
-      name: SimpleIdentifier
-        token: a @1
-        staticElement: <testLibraryFragment>::@getter::a
-        element: <testLibraryFragment>::@getter::a#element
-        staticType: null
-      element: <testLibraryFragment>::@getter::a
-      element2: <testLibraryFragment>::@getter::a#element
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @20
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @24
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
   reference: <testLibrary>
   name: L
   metadata
@@ -4989,10 +2703,8 @@ library
       atSign: @ @0
       name: SimpleIdentifier
         token: a @1
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: null
-      element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
@@ -5031,56 +2743,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            synthetic m @-1
-              reference: <testLibraryFragment>::@class::C::@field::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            get m @33
-              reference: <testLibraryFragment>::@class::C::@getter::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @26
-                  name: SimpleIdentifier
-                    token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-              returnType: dynamic
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5107,10 +2769,8 @@ library
                   atSign: @ @26
                   name: SimpleIdentifier
                     token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         hasInitializer a @6
@@ -5145,10 +2805,8 @@ library
               atSign: @ @26
               name: SimpleIdentifier
                 token: a @27
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -5178,73 +2836,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @38
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            m @54
-              reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @44
-                  name: SimpleIdentifier
-                    token: a @45
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-                Annotation
-                  atSign: @ @49
-                  name: SimpleIdentifier
-                    token: b @50
-                    staticElement: <testLibraryFragment>::@getter::b
-                    element: <testLibraryFragment>::@getter::b#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::b
-                  element2: <testLibraryFragment>::@getter::b#element
-              returnType: dynamic
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        static const b @22
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @26
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5266,19 +2857,15 @@ library
                   atSign: @ @44
                   name: SimpleIdentifier
                     token: a @45
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
-                    staticElement: <testLibraryFragment>::@getter::b
                     element: <testLibraryFragment>::@getter::b#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::b
                   element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
         hasInitializer a @6
@@ -5313,26 +2900,21 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           metadata
             Annotation
               atSign: @ @44
               name: SimpleIdentifier
                 token: a @45
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @49
               name: SimpleIdentifier
                 token: b @50
-                staticElement: <testLibraryFragment>::@getter::b
                 element: <testLibraryFragment>::@getter::b#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::b
               element2: <testLibraryFragment>::@getter::b#element
   topLevelVariables
     const hasInitializer a
@@ -5372,71 +2954,6 @@ mixin M {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @38
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          methods
-            m @54
-              reference: <testLibraryFragment>::@mixin::M::@method::m
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              metadata
-                Annotation
-                  atSign: @ @44
-                  name: SimpleIdentifier
-                    token: a @45
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-                Annotation
-                  atSign: @ @49
-                  name: SimpleIdentifier
-                    token: b @50
-                    staticElement: <testLibraryFragment>::@getter::b
-                    element: <testLibraryFragment>::@getter::b#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::b
-                  element2: <testLibraryFragment>::@getter::b#element
-              returnType: dynamic
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        static const b @22
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @26
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5453,19 +2970,15 @@ library
                   atSign: @ @44
                   name: SimpleIdentifier
                     token: a @45
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
                 Annotation
                   atSign: @ @49
                   name: SimpleIdentifier
                     token: b @50
-                    staticElement: <testLibraryFragment>::@getter::b
                     element: <testLibraryFragment>::@getter::b#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::b
                   element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
         hasInitializer a @6
@@ -5499,26 +3012,21 @@ library
         Object
       methods
         m
-          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           metadata
             Annotation
               atSign: @ @44
               name: SimpleIdentifier
                 token: a @45
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
             Annotation
               atSign: @ @49
               name: SimpleIdentifier
                 token: b @50
-                staticElement: <testLibraryFragment>::@getter::b
                 element: <testLibraryFragment>::@getter::b#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::b
               element2: <testLibraryFragment>::@getter::b#element
   topLevelVariables
     const hasInitializer a
@@ -5556,59 +3064,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            synthetic m @-1
-              reference: <testLibraryFragment>::@class::C::@field::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          accessors
-            set m= @37
-              reference: <testLibraryFragment>::@class::C::@setter::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              metadata
-                Annotation
-                  atSign: @ @28
-                  name: SimpleIdentifier
-                    token: a @29
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-              parameters
-                requiredPositional hasImplicitType value @39
-                  type: dynamic
-              returnType: void
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5635,10 +3090,8 @@ library
                   atSign: @ @28
                   name: SimpleIdentifier
                     token: a @29
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
               formalParameters
                 value @39
@@ -5676,10 +3129,8 @@ library
               atSign: @ @28
               name: SimpleIdentifier
                 token: a @29
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           formalParameters
             requiredPositional hasImplicitType value
@@ -5713,87 +3164,6 @@ mixin M<@foo T> {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @27
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @34
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @29
-                  name: SimpleIdentifier
-                    token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          superclassConstraints
-            Object
-          fields
-            static const foo @54
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 1 @60
-                  staticType: int
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: int
-          methods
-            bar @77
-              reference: <testLibraryFragment>::@mixin::M::@method::bar
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              metadata
-                Annotation
-                  atSign: @ @65
-                  name: SimpleIdentifier
-                    token: foo @66
-                    staticElement: <testLibraryFragment>::@mixin::M::@getter::foo
-                    element: <testLibraryFragment>::@mixin::M::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@mixin::M::@getter::foo
-                  element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
-              returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -5803,16 +3173,14 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
                   name: SimpleIdentifier
                     token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           fields
             hasInitializer foo @54
@@ -5836,10 +3204,8 @@ library
                   atSign: @ @65
                   name: SimpleIdentifier
                     token: foo @66
-                    staticElement: <testLibraryFragment>::@mixin::M::@getter::foo
                     element: <testLibraryFragment>::@mixin::M::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@mixin::M::@getter::foo
                   element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -5865,10 +3231,8 @@ library
               atSign: @ @29
               name: SimpleIdentifier
                 token: foo @30
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       superclassConstraints
         Object
@@ -5885,17 +3249,14 @@ library
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
       methods
         bar
-          reference: <testLibrary>::@mixin::M::@method::bar
           firstFragment: <testLibraryFragment>::@mixin::M::@method::bar
           metadata
             Annotation
               atSign: @ @65
               name: SimpleIdentifier
                 token: foo @66
-                staticElement: <testLibraryFragment>::@mixin::M::@getter::foo
                 element: <testLibraryFragment>::@mixin::M::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@mixin::M::@getter::foo
               element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -5920,66 +3281,6 @@ const b = null;
 @b
 mixin M {}''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @44
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @32
-              name: SimpleIdentifier
-                token: a @33
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-            Annotation
-              atSign: @ @35
-              name: SimpleIdentifier
-                token: b @36
-                staticElement: <testLibraryFragment>::@getter::b
-                element: <testLibraryFragment>::@getter::b#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::b
-              element2: <testLibraryFragment>::@getter::b#element
-          superclassConstraints
-            Object
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        static const b @22
-          reference: <testLibraryFragment>::@topLevelVariable::b
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @26
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static get b @-1
-          reference: <testLibraryFragment>::@getter::b
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -6054,59 +3355,6 @@ class A<@foo T> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @27
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @34
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @29
-                  name: SimpleIdentifier
-                    token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6116,16 +3364,14 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
                   name: SimpleIdentifier
                     token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           constructors
             synthetic new
@@ -6156,10 +3402,8 @@ library
               atSign: @ @29
               name: SimpleIdentifier
                 token: foo @30
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       constructors
         synthetic new
@@ -6191,59 +3435,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            @35
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              metadata
-                Annotation
-                  atSign: @ @28
-                  name: SimpleIdentifier
-                    token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              parameters
-                requiredPositional a @46
-                  type: int
-                  metadata
-                    Annotation
-                      atSign: @ @37
-                      name: SimpleIdentifier
-                        token: foo @38
-                        staticElement: <testLibraryFragment>::@getter::foo
-                        element: <testLibraryFragment>::@getter::foo#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::foo
-                      element2: <testLibraryFragment>::@getter::foo#element
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6260,10 +3451,8 @@ library
                   atSign: @ @28
                   name: SimpleIdentifier
                     token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
               typeName: A
               typeNameOffset: 35
@@ -6275,10 +3464,8 @@ library
                       atSign: @ @37
                       name: SimpleIdentifier
                         token: foo @38
-                        staticElement: <testLibraryFragment>::@getter::foo
                         element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::foo
                       element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -6305,10 +3492,8 @@ library
               atSign: @ @28
               name: SimpleIdentifier
                 token: foo @29
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           formalParameters
             requiredPositional a
@@ -6318,10 +3503,8 @@ library
                   atSign: @ @37
                   name: SimpleIdentifier
                     token: foo @38
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -6350,56 +3533,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            synthetic getter @-1
-              reference: <testLibraryFragment>::@class::A::@field::getter
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            get getter @43
-              reference: <testLibraryFragment>::@class::A::@getter::getter
-              enclosingElement3: <testLibraryFragment>::@class::A
-              metadata
-                Annotation
-                  atSign: @ @28
-                  name: SimpleIdentifier
-                    token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              returnType: int
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6426,10 +3559,8 @@ library
                   atSign: @ @28
                   name: SimpleIdentifier
                     token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -6464,10 +3595,8 @@ library
               atSign: @ @28
               name: SimpleIdentifier
                 token: foo @29
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -6496,77 +3625,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            method @40
-              reference: <testLibraryFragment>::@class::A::@method::method
-              enclosingElement3: <testLibraryFragment>::@class::A
-              metadata
-                Annotation
-                  atSign: @ @28
-                  name: SimpleIdentifier
-                    token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              typeParameters
-                covariant T @52
-                  defaultType: dynamic
-                  metadata
-                    Annotation
-                      atSign: @ @47
-                      name: SimpleIdentifier
-                        token: foo @48
-                        staticElement: <testLibraryFragment>::@getter::foo
-                        element: <testLibraryFragment>::@getter::foo#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::foo
-                      element2: <testLibraryFragment>::@getter::foo#element
-              parameters
-                requiredPositional a @64
-                  type: int
-                  metadata
-                    Annotation
-                      atSign: @ @55
-                      name: SimpleIdentifier
-                        token: foo @56
-                        staticElement: <testLibraryFragment>::@getter::foo
-                        element: <testLibraryFragment>::@getter::foo#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::foo
-                      element2: <testLibraryFragment>::@getter::foo#element
-              returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6588,23 +3646,19 @@ library
                   atSign: @ @28
                   name: SimpleIdentifier
                     token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
               typeParameters
                 T @52
-                  element: <not-implemented>
+                  element: T@52
                   metadata
                     Annotation
                       atSign: @ @47
                       name: SimpleIdentifier
                         token: foo @48
-                        staticElement: <testLibraryFragment>::@getter::foo
                         element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::foo
                       element2: <testLibraryFragment>::@getter::foo#element
               formalParameters
                 a @64
@@ -6614,10 +3668,8 @@ library
                       atSign: @ @55
                       name: SimpleIdentifier
                         token: foo @56
-                        staticElement: <testLibraryFragment>::@getter::foo
                         element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::foo
                       element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -6641,17 +3693,14 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         method
-          reference: <testLibrary>::@class::A::@method::method
           firstFragment: <testLibraryFragment>::@class::A::@method::method
           metadata
             Annotation
               atSign: @ @28
               name: SimpleIdentifier
                 token: foo @29
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T
@@ -6660,10 +3709,8 @@ library
                   atSign: @ @47
                   name: SimpleIdentifier
                     token: foo @48
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           formalParameters
             requiredPositional a
@@ -6673,10 +3720,8 @@ library
                   atSign: @ @55
                   name: SimpleIdentifier
                     token: foo @56
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -6705,69 +3750,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            synthetic setter @-1
-              reference: <testLibraryFragment>::@class::A::@field::setter
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            set setter= @39
-              reference: <testLibraryFragment>::@class::A::@setter::setter
-              enclosingElement3: <testLibraryFragment>::@class::A
-              metadata
-                Annotation
-                  atSign: @ @28
-                  name: SimpleIdentifier
-                    token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              parameters
-                requiredPositional a @55
-                  type: int
-                  metadata
-                    Annotation
-                      atSign: @ @46
-                      name: SimpleIdentifier
-                        token: foo @47
-                        staticElement: <testLibraryFragment>::@getter::foo
-                        element: <testLibraryFragment>::@getter::foo#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::foo
-                      element2: <testLibraryFragment>::@getter::foo#element
-              returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6794,10 +3776,8 @@ library
                   atSign: @ @28
                   name: SimpleIdentifier
                     token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
               formalParameters
                 a @55
@@ -6807,10 +3787,8 @@ library
                       atSign: @ @46
                       name: SimpleIdentifier
                         token: foo @47
-                        staticElement: <testLibraryFragment>::@getter::foo
                         element: <testLibraryFragment>::@getter::foo#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::foo
                       element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -6845,10 +3823,8 @@ library
               atSign: @ @28
               name: SimpleIdentifier
                 token: foo @29
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           formalParameters
             requiredPositional a
@@ -6858,10 +3834,8 @@ library
                   atSign: @ @46
                   name: SimpleIdentifier
                     token: foo @47
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -6891,84 +3865,6 @@ class B<@foo T> = A with M;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class alias B @50
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @39
-              name: SimpleIdentifier
-                token: foo @40
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @57
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @52
-                  name: SimpleIdentifier
-                    token: foo @53
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          supertype: A
-          mixins
-            M
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
-      mixins
-        mixin M @33
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -6986,31 +3882,20 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @57
-              element: <not-implemented>
+              element: T@57
               metadata
                 Annotation
                   atSign: @ @52
                   name: SimpleIdentifier
                     token: foo @53
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       mixins
         mixin M @33
           reference: <testLibraryFragment>::@mixin::M
@@ -7045,10 +3930,8 @@ library
               atSign: @ @52
               name: SimpleIdentifier
                 token: foo @53
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       supertype: A
       mixins
@@ -7056,6 +3939,13 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   mixins
     mixin M
@@ -7092,167 +3982,6 @@ enum E {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      enums
-        enum E @26
-          reference: <testLibraryFragment>::@enum::E
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          supertype: Enum
-          fields
-            static const enumConstant e1 @37
-              reference: <testLibraryFragment>::@enum::E::@field::e1
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              metadata
-                Annotation
-                  atSign: @ @32
-                  name: SimpleIdentifier
-                    token: foo @33
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant e2 @43
-              reference: <testLibraryFragment>::@enum::E::@field::e2
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant e3 @54
-              reference: <testLibraryFragment>::@enum::E::@field::e3
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              metadata
-                Annotation
-                  atSign: @ @49
-                  name: SimpleIdentifier
-                    token: foo @50
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            synthetic static const values @-1
-              reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: List<E>
-              constantInitializer
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: e1 @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::e1
-                      element: <testLibraryFragment>::@enum::E::@getter::e1#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: e2 @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::e2
-                      element: <testLibraryFragment>::@enum::E::@getter::e2#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: e3 @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::e3
-                      element: <testLibraryFragment>::@enum::E::@getter::e3#element
-                      staticType: E
-                  rightBracket: ] @0
-                  staticType: List<E>
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@enum::E
-          accessors
-            synthetic static get e1 @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::e1
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get e2 @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::e2
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get e3 @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::e3
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get values @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: List<E>
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7269,10 +3998,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -7287,10 +4014,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -7305,10 +4030,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -7324,17 +4047,14 @@ library
                   elements
                     SimpleIdentifier
                       token: e1 @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::e1
                       element: <testLibraryFragment>::@enum::E::@getter::e1#element
                       staticType: E
                     SimpleIdentifier
                       token: e2 @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::e2
                       element: <testLibraryFragment>::@enum::E::@getter::e2#element
                       staticType: E
                     SimpleIdentifier
                       token: e3 @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::e3
                       element: <testLibraryFragment>::@enum::E::@getter::e3#element
                       staticType: E
                   rightBracket: ] @0
@@ -7442,56 +4162,6 @@ extension E<@foo T> on List<T> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @31
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @38
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @33
-                  name: SimpleIdentifier
-                    token: foo @34
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          extendedType: List<T>
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7501,16 +4171,14 @@ library
           element: <testLibrary>::@extension::E
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
               metadata
                 Annotation
                   atSign: @ @33
                   name: SimpleIdentifier
                     token: foo @34
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -7536,10 +4204,8 @@ library
               atSign: @ @33
               name: SimpleIdentifier
                 token: foo @34
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -7572,113 +4238,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static isStatic @42
-              reference: <testLibraryFragment>::@class::A::@field::isStatic
-              enclosingElement3: <testLibraryFragment>::@class::A
-              metadata
-                Annotation
-                  atSign: @ @28
-                  name: SimpleIdentifier
-                    token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              type: int
-              shouldUseTypeForInitializerInference: false
-            static const isStaticConst @79
-              reference: <testLibraryFragment>::@class::A::@field::isStaticConst
-              enclosingElement3: <testLibraryFragment>::@class::A
-              metadata
-                Annotation
-                  atSign: @ @59
-                  name: SimpleIdentifier
-                    token: foo @60
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 2 @95
-                  staticType: int
-            isInstance @112
-              reference: <testLibraryFragment>::@class::A::@field::isInstance
-              enclosingElement3: <testLibraryFragment>::@class::A
-              metadata
-                Annotation
-                  atSign: @ @101
-                  name: SimpleIdentifier
-                    token: foo @102
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              type: int
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic static get isStatic @-1
-              reference: <testLibraryFragment>::@class::A::@getter::isStatic
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-            synthetic static set isStatic= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::isStatic
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _isStatic @-1
-                  type: int
-              returnType: void
-            synthetic static get isStaticConst @-1
-              reference: <testLibraryFragment>::@class::A::@getter::isStaticConst
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-            synthetic get isInstance @-1
-              reference: <testLibraryFragment>::@class::A::@getter::isInstance
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-            synthetic set isInstance= @-1
-              reference: <testLibraryFragment>::@class::A::@setter::isInstance
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional _isInstance @-1
-                  type: int
-              returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -7816,41 +4375,6 @@ const foo = 0;
 ''');
     checkElementText(library, r'''
 library
-  name: my.lib
-  nameOffset: 37
-  reference: <testLibrary>
-  documentationComment: /// Some documentation.
-  metadata
-    Annotation
-      atSign: @ @24
-      name: SimpleIdentifier
-        token: foo @25
-        staticElement: <testLibraryFragment>::@getter::foo
-        element: <testLibraryFragment>::@getter::foo#element
-        staticType: null
-      element: <testLibraryFragment>::@getter::foo
-      element2: <testLibraryFragment>::@getter::foo#element
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const foo @52
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @58
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
   reference: <testLibrary>
   name: my.lib
   documentationComment: /// Some documentation.
@@ -7859,10 +4383,8 @@ library
       atSign: @ @24
       name: SimpleIdentifier
         token: foo @25
-        staticElement: <testLibraryFragment>::@getter::foo
         element: <testLibraryFragment>::@getter::foo#element
         staticType: null
-      element: <testLibraryFragment>::@getter::foo
       element2: <testLibraryFragment>::@getter::foo#element
   fragments
     <testLibraryFragment>
@@ -7905,57 +4427,6 @@ mixin A<@foo T> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin A @27
-          reference: <testLibraryFragment>::@mixin::A
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @34
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @29
-                  name: SimpleIdentifier
-                    token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          superclassConstraints
-            Object
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -7965,16 +4436,14 @@ library
           element: <testLibrary>::@mixin::A
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
                   name: SimpleIdentifier
                     token: foo @30
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -8000,10 +4469,8 @@ library
               atSign: @ @29
               name: SimpleIdentifier
                 token: foo @30
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       superclassConstraints
         Object
@@ -8032,70 +4499,6 @@ typedef void F<@foo T>(@foo int a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @34
-          reference: <testLibraryFragment>::@typeAlias::F
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            unrelated T @41
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @36
-                  name: SimpleIdentifier
-                    token: foo @37
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          aliasedType: void Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional a @53
-                type: int
-                metadata
-                  Annotation
-                    atSign: @ @44
-                    name: SimpleIdentifier
-                      token: foo @45
-                      staticElement: <testLibraryFragment>::@getter::foo
-                      element: <testLibraryFragment>::@getter::foo#element
-                      staticType: null
-                    element: <testLibraryFragment>::@getter::foo
-                    element2: <testLibraryFragment>::@getter::foo#element
-            returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8108,23 +4511,19 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @41
-              element: <not-implemented>
+              element: T@41
               metadata
                 Annotation
                   atSign: @ @36
                   name: SimpleIdentifier
                     token: foo @37
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -8147,10 +4546,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: foo @17
-            staticElement: <testLibraryFragment>::@getter::foo
             element: <testLibraryFragment>::@getter::foo#element
             staticType: null
-          element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
       typeParameters
         T
@@ -8159,10 +4556,8 @@ library
               atSign: @ @36
               name: SimpleIdentifier
                 token: foo @37
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       aliasedType: void Function(int)
   topLevelVariables
@@ -8190,82 +4585,6 @@ typedef A<@foo T> = void Function<@foo U>(@foo int a);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        A @29
-          reference: <testLibraryFragment>::@typeAlias::A
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            unrelated T @36
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @31
-                  name: SimpleIdentifier
-                    token: foo @32
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          aliasedType: void Function<U>(int)
-          aliasedElement: GenericFunctionTypeElement
-            typeParameters
-              covariant U @60
-                metadata
-                  Annotation
-                    atSign: @ @55
-                    name: SimpleIdentifier
-                      token: foo @56
-                      staticElement: <testLibraryFragment>::@getter::foo
-                      element: <testLibraryFragment>::@getter::foo#element
-                      staticType: null
-                    element: <testLibraryFragment>::@getter::foo
-                    element2: <testLibraryFragment>::@getter::foo#element
-            parameters
-              requiredPositional a @72
-                type: int
-                metadata
-                  Annotation
-                    atSign: @ @63
-                    name: SimpleIdentifier
-                      token: foo @64
-                      staticElement: <testLibraryFragment>::@getter::foo
-                      element: <testLibraryFragment>::@getter::foo#element
-                      staticType: null
-                    element: <testLibraryFragment>::@getter::foo
-                    element2: <testLibraryFragment>::@getter::foo#element
-            returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8278,23 +4597,19 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @36
-              element: <not-implemented>
+              element: T@36
               metadata
                 Annotation
                   atSign: @ @31
                   name: SimpleIdentifier
                     token: foo @32
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -8317,10 +4632,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: foo @17
-            staticElement: <testLibraryFragment>::@getter::foo
             element: <testLibraryFragment>::@getter::foo#element
             staticType: null
-          element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
       typeParameters
         T
@@ -8329,10 +4642,8 @@ library
               atSign: @ @31
               name: SimpleIdentifier
                 token: foo @32
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       aliasedType: void Function<U>(int)
   topLevelVariables
@@ -8371,63 +4682,6 @@ part 'b.dart';
 const foo = 0;
 ''');
     checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @17
-              name: SimpleIdentifier
-                token: foo @18
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          unit: <testLibrary>::@fragment::package:test/a.dart
-        part_1
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @38
-              name: SimpleIdentifier
-                token: foo @39
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          unit: <testLibrary>::@fragment::package:test/b.dart
-      topLevelVariables
-        static const foo @65
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @71
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-----------------------------------------
 library
   reference: <testLibrary>
   name: my.lib
@@ -8482,74 +4736,6 @@ void f<@foo T>({@foo int? a = 42}) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-      functions
-        f @26
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @33
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @28
-                  name: SimpleIdentifier
-                    token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          parameters
-            optionalNamed default a @47
-              reference: <testLibraryFragment>::@function::f::@parameter::a
-              type: int?
-              metadata
-                Annotation
-                  atSign: @ @37
-                  name: SimpleIdentifier
-                    token: foo @38
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-              constantInitializer
-                IntegerLiteral
-                  literal: 42 @51
-                  staticType: int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -8575,23 +4761,19 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @33
-              element: <not-implemented>
+              element: T@33
               metadata
                 Annotation
                   atSign: @ @28
                   name: SimpleIdentifier
                     token: foo @29
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           formalParameters
             default a @47
@@ -8602,10 +4784,8 @@ library
                   atSign: @ @37
                   name: SimpleIdentifier
                     token: foo @38
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
               initializer: expression_1
                 IntegerLiteral
@@ -8632,10 +4812,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: foo @17
-            staticElement: <testLibraryFragment>::@getter::foo
             element: <testLibraryFragment>::@getter::foo#element
             staticType: null
-          element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
       typeParameters
         T
@@ -8644,10 +4822,8 @@ library
               atSign: @ @28
               name: SimpleIdentifier
                 token: foo @29
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       formalParameters
         optionalNamed a
@@ -8658,10 +4834,8 @@ library
               atSign: @ @37
               name: SimpleIdentifier
                 token: foo @38
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           constantInitializer
             fragment: <testLibraryFragment>::@function::f::@parameter::a
@@ -8678,46 +4852,6 @@ const foo = 0;
 int get getter => 0;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-        synthetic static getter @-1
-          reference: <testLibraryFragment>::@topLevelVariable::getter
-          enclosingElement3: <testLibraryFragment>
-          type: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        static get getter @29
-          reference: <testLibraryFragment>::@getter::getter
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -8748,10 +4882,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -8777,10 +4909,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: foo @17
-            staticElement: <testLibraryFragment>::@getter::foo
             element: <testLibraryFragment>::@getter::foo#element
             staticType: null
-          element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
 ''');
   }
@@ -8793,59 +4923,6 @@ const foo = 0;
 set setter(@foo int a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-        synthetic static setter @-1
-          reference: <testLibraryFragment>::@topLevelVariable::setter
-          enclosingElement3: <testLibraryFragment>
-          type: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        static set setter= @25
-          reference: <testLibraryFragment>::@setter::setter
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          parameters
-            requiredPositional a @41
-              type: int
-              metadata
-                Annotation
-                  atSign: @ @32
-                  name: SimpleIdentifier
-                    token: foo @33
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -8877,10 +4954,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           formalParameters
             a @41
@@ -8890,10 +4965,8 @@ library
                   atSign: @ @32
                   name: SimpleIdentifier
                     token: foo @33
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     const hasInitializer foo
@@ -8920,10 +4993,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: foo @17
-            staticElement: <testLibraryFragment>::@getter::foo
             element: <testLibraryFragment>::@getter::foo#element
             staticType: null
-          element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
       formalParameters
         requiredPositional a
@@ -8933,10 +5004,8 @@ library
               atSign: @ @32
               name: SimpleIdentifier
                 token: foo @33
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
 ''');
   }
@@ -8952,77 +5021,6 @@ var isNotConst = 1;
 const isConst = 2;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-        static isNotConst @25
-          reference: <testLibraryFragment>::@topLevelVariable::isNotConst
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          type: int
-          shouldUseTypeForInitializerInference: false
-        static const isConst @53
-          reference: <testLibraryFragment>::@topLevelVariable::isConst
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @42
-              name: SimpleIdentifier
-                token: foo @43
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 2 @63
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get isNotConst @-1
-          reference: <testLibraryFragment>::@getter::isNotConst
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static set isNotConst= @-1
-          reference: <testLibraryFragment>::@setter::isNotConst
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _isNotConst @-1
-              type: int
-          returnType: void
-        synthetic static get isConst @-1
-          reference: <testLibraryFragment>::@getter::isConst
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -9045,10 +5043,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           getter2: <testLibraryFragment>::@getter::isNotConst
           setter2: <testLibraryFragment>::@setter::isNotConst
@@ -9060,10 +5056,8 @@ library
               atSign: @ @42
               name: SimpleIdentifier
                 token: foo @43
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
           initializer: expression_1
             IntegerLiteral
@@ -9104,10 +5098,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: foo @17
-            staticElement: <testLibraryFragment>::@getter::foo
             element: <testLibraryFragment>::@getter::foo#element
             staticType: null
-          element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
       type: int
       getter: <testLibraryFragment>::@getter::isNotConst#element
@@ -9120,10 +5112,8 @@ library
           atSign: @ @42
           name: SimpleIdentifier
             token: foo @43
-            staticElement: <testLibraryFragment>::@getter::foo
             element: <testLibraryFragment>::@getter::foo#element
             staticType: null
-          element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
       type: int
       constantInitializer
@@ -9154,47 +5144,6 @@ library L;
 part 'foo.dart';
 const a = null;''');
     checkElementText(library, r'''
-library
-  name: L
-  nameOffset: 8
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/foo.dart
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @11
-              name: SimpleIdentifier
-                token: a @12
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          unit: <testLibrary>::@fragment::package:test/foo.dart
-      topLevelVariables
-        static const a @37
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @41
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-    <testLibrary>::@fragment::package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
-----------------------------------------
 library
   reference: <testLibrary>
   name: L
@@ -9263,38 +5212,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        class A @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-          constructors
-            synthetic @-1
-              reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9334,33 +5251,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryExports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9384,33 +5274,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9426,10 +5289,8 @@ library
               atSign: @ @21
               name: SimpleIdentifier
                 token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
                 element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
               element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
@@ -9452,37 +5313,6 @@ part 'b.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/b.dart
-    <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-      parts
-        part_1
-          uri: package:test/a.dart
-          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9503,48 +5333,6 @@ library
     newFile('$testPackageLibPath/a.dart', 'const b = null;');
     var library = await buildLibrary('import "a.dart" as a; @a.b class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart as a @19
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        a @19
-          reference: <testLibraryFragment>::@prefix::a
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @33
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @22
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: a @23
-                  staticElement: <testLibraryFragment>::@prefix::a
-                  element: <testLibraryFragment>::@prefix2::a
-                  staticType: null
-                period: . @24
-                identifier: SimpleIdentifier
-                  token: b @25
-                  staticElement: package:test/a.dart::<fragment>::@getter::b
-                  element: package:test/a.dart::<fragment>::@getter::b#element
-                  staticType: null
-                staticElement: package:test/a.dart::<fragment>::@getter::b
-                element: package:test/a.dart::<fragment>::@getter::b#element
-                staticType: null
-              element: package:test/a.dart::<fragment>::@getter::b
-              element2: package:test/a.dart::<fragment>::@getter::b#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -9579,46 +5367,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-      functions
-        f @16
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional hasImplicitType x @21
-              type: dynamic
-              metadata
-                Annotation
-                  atSign: @ @18
-                  name: SimpleIdentifier
-                    token: a @19
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -9647,10 +5395,8 @@ library
                   atSign: @ @18
                   name: SimpleIdentifier
                     token: a @19
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -9676,10 +5422,8 @@ library
               atSign: @ @18
               name: SimpleIdentifier
                 token: a @19
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
@@ -9694,54 +5438,6 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @23
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            m @29
-              reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional hasImplicitType x @34
-                  type: dynamic
-                  metadata
-                    Annotation
-                      atSign: @ @31
-                      name: SimpleIdentifier
-                        token: a @32
-                        staticElement: <testLibraryFragment>::@getter::a
-                        element: <testLibraryFragment>::@getter::a#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::a
-                      element2: <testLibraryFragment>::@getter::a#element
-              returnType: dynamic
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -9768,10 +5464,8 @@ library
                       atSign: @ @31
                       name: SimpleIdentifier
                         token: a @32
-                        staticElement: <testLibraryFragment>::@getter::a
                         element: <testLibraryFragment>::@getter::a#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         hasInitializer a @6
@@ -9795,7 +5489,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType x
@@ -9805,10 +5498,8 @@ library
                   atSign: @ @31
                   name: SimpleIdentifier
                     token: a @32
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -9832,49 +5523,6 @@ const a = null;
 set foo(@a int x) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        static set foo= @21
-          reference: <testLibraryFragment>::@setter::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional x @32
-              type: int
-              metadata
-                Annotation
-                  atSign: @ @25
-                  name: SimpleIdentifier
-                    token: a @26
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -9909,10 +5557,8 @@ library
                   atSign: @ @25
                   name: SimpleIdentifier
                     token: a @26
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -9942,10 +5588,8 @@ library
               atSign: @ @25
               name: SimpleIdentifier
                 token: a @26
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
 ''');
   }
@@ -9953,50 +5597,6 @@ library
   test_metadata_simpleFormalParameter_withDefault() async {
     var library = await buildLibrary('const a = null; f([@a x = null]) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-      functions
-        f @16
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalPositional default hasImplicitType x @22
-              type: dynamic
-              metadata
-                Annotation
-                  atSign: @ @19
-                  name: SimpleIdentifier
-                    token: a @20
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-              constantInitializer
-                NullLiteral
-                  literal: null @26
-                  staticType: Null
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -10027,10 +5627,8 @@ library
                   atSign: @ @19
                   name: SimpleIdentifier
                     token: a @20
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
               initializer: expression_1
                 NullLiteral
@@ -10060,10 +5658,8 @@ library
               atSign: @ @19
               name: SimpleIdentifier
                 token: a @20
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           constantInitializer
             expression: expression_1
@@ -10084,62 +5680,6 @@ class B extends A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @23
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            @29
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional x @35
-                  type: int
-        class B @48
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-          constructors
-            @64
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              parameters
-                requiredPositional final hasImplicitType super.x @75
-                  type: int
-                  metadata
-                    Annotation
-                      atSign: @ @66
-                      name: SimpleIdentifier
-                        token: a @67
-                        staticElement: <testLibraryFragment>::@getter::a
-                        element: <testLibraryFragment>::@getter::a#element
-                        staticType: null
-                      element: <testLibraryFragment>::@getter::a
-                      element2: <testLibraryFragment>::@getter::a#element
-                  superConstructorParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -10175,12 +5715,9 @@ library
                       atSign: @ @66
                       name: SimpleIdentifier
                         token: a @67
-                        staticElement: <testLibraryFragment>::@getter::a
                         element: <testLibraryFragment>::@getter::a#element
                         staticType: null
-                      element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       topLevelVariables
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -10219,10 +5756,8 @@ library
                   atSign: @ @66
                   name: SimpleIdentifier
                     token: a @67
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   topLevelVariables
@@ -10245,53 +5780,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-        static v @23
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          type: int
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -10312,10 +5800,8 @@ library
               atSign: @ @16
               name: SimpleIdentifier
                 token: a @17
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
@@ -10350,10 +5836,8 @@ library
           atSign: @ @16
           name: SimpleIdentifier
             token: a @17
-            staticElement: <testLibraryFragment>::@getter::a
             element: <testLibraryFragment>::@getter::a#element
             staticType: null
-          element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
       type: int
       getter: <testLibraryFragment>::@getter::v#element
@@ -10377,49 +5861,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @27
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @24
-                  name: SimpleIdentifier
-                    token: a @25
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -10429,16 +5870,14 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @27
-              element: <not-implemented>
+              element: T@27
               metadata
                 Annotation
                   atSign: @ @24
                   name: SimpleIdentifier
                     token: a @25
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
           constructors
             synthetic new
@@ -10469,10 +5908,8 @@ library
               atSign: @ @24
               name: SimpleIdentifier
                 token: a @25
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       constructors
         synthetic new
@@ -10501,75 +5938,6 @@ class E {}''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class alias C @22
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @27
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @24
-                  name: SimpleIdentifier
-                    token: a @25
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-          supertype: D
-          mixins
-            E
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::new
-                  element: <testLibraryFragment>::@class::D::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
-        class D @48
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-        class E @59
-          reference: <testLibraryFragment>::@class::E
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::E
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -10579,31 +5947,20 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @27
-              element: <not-implemented>
+              element: T@27
               metadata
                 Annotation
                   atSign: @ @24
                   name: SimpleIdentifier
                     token: a @25
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::new
-                  element: <testLibraryFragment>::@class::D::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @48
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -10644,10 +6001,8 @@ library
               atSign: @ @24
               name: SimpleIdentifier
                 token: a @25
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       supertype: D
       mixins
@@ -10655,6 +6010,13 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::D::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
     class D
       reference: <testLibrary>::@class::D
@@ -10688,46 +6050,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-      functions
-        f @16
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @21
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @18
-                  name: SimpleIdentifier
-                    token: a @19
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -10750,16 +6072,14 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @21
-              element: <not-implemented>
+              element: T@21
               metadata
                 Annotation
                   atSign: @ @18
                   name: SimpleIdentifier
                     token: a @19
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const hasInitializer a
@@ -10784,10 +6104,8 @@ library
               atSign: @ @18
               name: SimpleIdentifier
                 token: a @19
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       returnType: dynamic
 ''');
@@ -10796,47 +6114,6 @@ library
   test_metadata_typeParameter_ofTypedef() async {
     var library = await buildLibrary('const a = null; typedef F<@a T>();');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased F @24
-          reference: <testLibraryFragment>::@typeAlias::F
-          typeParameters
-            unrelated T @29
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @26
-                  name: SimpleIdentifier
-                    token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
-                    element: <testLibraryFragment>::@getter::a#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::a
-                  element2: <testLibraryFragment>::@getter::a#element
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -10848,16 +6125,14 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @29
-              element: <not-implemented>
+              element: T@29
               metadata
                 Annotation
                   atSign: @ @26
                   name: SimpleIdentifier
                     token: a @27
-                    staticElement: <testLibraryFragment>::@getter::a
                     element: <testLibraryFragment>::@getter::a#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         hasInitializer a @6
@@ -10882,10 +6157,8 @@ library
               atSign: @ @26
               name: SimpleIdentifier
                 token: a @27
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       aliasedType: dynamic Function()
   topLevelVariables
@@ -10916,54 +6189,6 @@ int x = 0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @10
-              staticType: int
-        static x @20
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @13
-              name: SimpleIdentifier
-                token: a @14
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-          type: int
-          shouldUseTypeForInitializerInference: true
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static set x= @-1
-          reference: <testLibraryFragment>::@setter::x
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _x @-1
-              type: int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -10984,10 +6209,8 @@ library
               atSign: @ @13
               name: SimpleIdentifier
                 token: a @14
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
@@ -11022,10 +6245,8 @@ library
           atSign: @ @13
           name: SimpleIdentifier
             token: a @14
-            staticElement: <testLibraryFragment>::@getter::a
             element: <testLibraryFragment>::@getter::a#element
             staticType: null
-          element: <testLibraryFragment>::@getter::a
           element2: <testLibraryFragment>::@getter::a#element
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -11053,63 +6274,6 @@ class A {
 class C {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            static const x @25
-              reference: <testLibraryFragment>::@class::A::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @29
-                  staticType: int
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic static get x @-1
-              reference: <testLibraryFragment>::@class::A::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: int
-        class C @45
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @34
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: A @35
-                  staticElement: <testLibraryFragment>::@class::A
-                  element: <testLibrary>::@class::A
-                  staticType: null
-                period: . @36
-                identifier: SimpleIdentifier
-                  token: x @37
-                  staticElement: <testLibraryFragment>::@class::A::@getter::x
-                  element: <testLibraryFragment>::@class::A::@getter::x#element
-                  staticType: null
-                staticElement: <testLibraryFragment>::@class::A::@getter::x
-                element: <testLibraryFragment>::@class::A::@getter::x#element
-                staticType: null
-              element: <testLibraryFragment>::@class::A::@getter::x
-              element2: <testLibraryFragment>::@class::A::@getter::x#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -11181,150 +6345,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @28
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @17
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: E @18
-                  staticElement: <testLibraryFragment>::@enum::E
-                  element: <testLibrary>::@enum::E
-                  staticType: null
-                period: . @19
-                identifier: SimpleIdentifier
-                  token: b @20
-                  staticElement: <testLibraryFragment>::@enum::E::@getter::b
-                  element: <testLibraryFragment>::@enum::E::@getter::b#element
-                  staticType: null
-                staticElement: <testLibraryFragment>::@enum::E::@getter::b
-                element: <testLibraryFragment>::@enum::E::@getter::b#element
-                staticType: null
-              element: <testLibraryFragment>::@enum::E::@getter::b
-              element2: <testLibraryFragment>::@enum::E::@getter::b#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      enums
-        enum E @5
-          reference: <testLibraryFragment>::@enum::E
-          enclosingElement3: <testLibraryFragment>
-          supertype: Enum
-          fields
-            static const enumConstant a @8
-              reference: <testLibraryFragment>::@enum::E::@field::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant b @11
-              reference: <testLibraryFragment>::@enum::E::@field::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            static const enumConstant c @14
-              reference: <testLibraryFragment>::@enum::E::@field::c
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: E
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: E @-1
-                      element: <testLibraryFragment>::@enum::E
-                      element2: <testLibrary>::@enum::E
-                      type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: E
-            synthetic static const values @-1
-              reference: <testLibraryFragment>::@enum::E::@field::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: List<E>
-              constantInitializer
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: a @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
-                      element: <testLibraryFragment>::@enum::E::@getter::a#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: b @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::b
-                      element: <testLibraryFragment>::@enum::E::@getter::b#element
-                      staticType: E
-                    SimpleIdentifier
-                      token: c @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::c
-                      element: <testLibraryFragment>::@enum::E::@getter::c#element
-                      staticType: E
-                  rightBracket: ] @0
-                  staticType: List<E>
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@enum::E::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@enum::E
-          accessors
-            synthetic static get a @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::a
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get b @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::b
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get c @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::c
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: E
-            synthetic static get values @-1
-              reference: <testLibraryFragment>::@enum::E::@getter::values
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              returnType: List<E>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -11350,10 +6370,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -11368,10 +6386,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -11386,10 +6402,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -11405,17 +6419,14 @@ library
                   elements
                     SimpleIdentifier
                       token: a @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
                       element: <testLibraryFragment>::@enum::E::@getter::a#element
                       staticType: E
                     SimpleIdentifier
                       token: b @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::b
                       element: <testLibraryFragment>::@enum::E::@getter::b#element
                       staticType: E
                     SimpleIdentifier
                       token: c @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::c
                       element: <testLibraryFragment>::@enum::E::@getter::c#element
                       staticType: E
                   rightBracket: ] @0
@@ -11506,61 +6517,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @56
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @45
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: E @46
-                  staticElement: <testLibraryFragment>::@extension::E
-                  element: <testLibrary>::@extension::E
-                  staticType: null
-                period: . @47
-                identifier: SimpleIdentifier
-                  token: x @48
-                  staticElement: <testLibraryFragment>::@extension::E::@getter::x
-                  element: <testLibraryFragment>::@extension::E::@getter::x#element
-                  staticType: null
-                staticElement: <testLibraryFragment>::@extension::E::@getter::x
-                element: <testLibraryFragment>::@extension::E::@getter::x#element
-                staticType: null
-              element: <testLibraryFragment>::@extension::E::@getter::x
-              element2: <testLibraryFragment>::@extension::E::@getter::x#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-      extensions
-        E @10
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          fields
-            static const x @36
-              reference: <testLibraryFragment>::@extension::E::@field::x
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @40
-                  staticType: int
-          accessors
-            synthetic static get x @-1
-              reference: <testLibraryFragment>::@extension::E::@getter::x
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -11629,54 +6585,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/foo.dart as foo @21
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @21
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @41
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @26
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @27
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @30
-                identifier: SimpleIdentifier
-                  token: E @31
-                  staticElement: package:test/foo.dart::<fragment>::@extension::E
-                  element: package:test/foo.dart::@extension::E
-                  staticType: null
-                staticElement: package:test/foo.dart::<fragment>::@extension::E
-                element: package:test/foo.dart::@extension::E
-                staticType: null
-              period: . @32
-              constructorName: SimpleIdentifier
-                token: x @33
-                staticElement: package:test/foo.dart::<fragment>::@extension::E::@getter::x
-                element: package:test/foo.dart::<fragment>::@extension::E::@getter::x#element
-                staticType: null
-              element: package:test/foo.dart::<fragment>::@extension::E::@getter::x
-              element2: package:test/foo.dart::<fragment>::@extension::E::@getter::x#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -11714,48 +6622,6 @@ class A {
 class C {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @18
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional hasImplicitType _ @20
-                  type: dynamic
-        class C @43
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @27
-              name: SimpleIdentifier
-                token: A @28
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @29
-                arguments
-                  SuperExpression
-                    superKeyword: super @30
-                    staticType: InvalidType
-                rightParenthesis: ) @35
-              element: <testLibraryFragment>::@class::A::@constructor::new
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -11813,48 +6679,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            const @18
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional hasImplicitType _ @20
-                  type: dynamic
-        class C @42
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @27
-              name: SimpleIdentifier
-                token: A @28
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @29
-                arguments
-                  ThisExpression
-                    thisKeyword: this @30
-                    staticType: dynamic
-                rightParenthesis: ) @34
-              element: <testLibraryFragment>::@class::A::@constructor::new
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -11903,44 +6727,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @17
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @1
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                period: . @4
-                identifier: SimpleIdentifier
-                  token: bar @5
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @8
-                rightParenthesis: ) @9
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -11966,44 +6752,6 @@ library
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
     var library = await buildLibrary('@String.foo() class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @20
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: String @1
-                  staticElement: dart:core::<fragment>::@class::String
-                  element: dart:core::@class::String
-                  staticType: null
-                period: . @7
-                identifier: SimpleIdentifier
-                  token: foo @8
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @11
-                rightParenthesis: ) @12
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -12033,41 +6781,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @15
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @1
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                period: . @4
-                identifier: SimpleIdentifier
-                  token: bar @5
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12094,48 +6807,6 @@ library
     var library =
         await buildLibrary('import "dart:async" as foo; @foo.bar class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async as foo @23
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @23
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @43
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @28
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @29
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @32
-                identifier: SimpleIdentifier
-                  token: bar @33
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -12170,50 +6841,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @21
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @1
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                period: . @4
-                identifier: SimpleIdentifier
-                  token: bar @5
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              period: . @8
-              constructorName: SimpleIdentifier
-                token: baz @9
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @12
-                rightParenthesis: ) @13
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12240,57 +6867,6 @@ library
     var library = await buildLibrary(
         'import "dart:async" as foo; @foo.bar.baz() class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async as foo @23
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @23
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @49
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @28
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @29
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @32
-                identifier: SimpleIdentifier
-                  token: bar @33
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              period: . @36
-              constructorName: SimpleIdentifier
-                token: baz @37
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @40
-                rightParenthesis: ) @41
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -12326,57 +6902,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async as foo @23
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @23
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @52
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @28
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @29
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @32
-                identifier: SimpleIdentifier
-                  token: Future @33
-                  staticElement: dart:async::<fragment>::@class::Future
-                  element: dart:async::@class::Future
-                  staticType: null
-                staticElement: dart:async::<fragment>::@class::Future
-                element: dart:async::@class::Future
-                staticType: null
-              period: . @39
-              constructorName: SimpleIdentifier
-                token: bar @40
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @43
-                rightParenthesis: ) @44
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12409,44 +6934,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @17
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @1
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                period: . @4
-                identifier: SimpleIdentifier
-                  token: bar @5
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @8
-                rightParenthesis: ) @9
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12473,51 +6960,6 @@ library
     var library =
         await buildLibrary('import "dart:async" as foo; @foo.bar() class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async as foo @23
-          enclosingElement3: <testLibraryFragment>
-      libraryImportPrefixes
-        foo @23
-          reference: <testLibraryFragment>::@prefix::foo
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @45
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @28
-              name: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo @29
-                  staticElement: <testLibraryFragment>::@prefix::foo
-                  element: <testLibraryFragment>::@prefix2::foo
-                  staticType: null
-                period: . @32
-                identifier: SimpleIdentifier
-                  token: bar @33
-                  staticElement: <null>
-                  element: <null>
-                  staticType: null
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @36
-                rightParenthesis: ) @37
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -12550,31 +6992,6 @@ library
   test_unresolved_annotation_simpleIdentifier() async {
     var library = await buildLibrary('@foo class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @11
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: SimpleIdentifier
-                token: foo @1
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -12614,40 +7031,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-        package:test/b.dart
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class C @44
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @35
-              name: SimpleIdentifier
-                token: v @36
-                staticElement: <null>
-                element: multiplyDefinedElement
-                  package:test/a.dart::<fragment>::@getter::v#element
-                  package:test/b.dart::<fragment>::@getter::v#element
-                staticType: null
-              element: <null>
-              element2: multiplyDefinedElement
-                package:test/a.dart::<fragment>::@getter::v#element
-                package:test/b.dart::<fragment>::@getter::v#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -12676,34 +7059,6 @@ library
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
     var library = await buildLibrary('@foo() class C {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @13
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @0
-              name: SimpleIdentifier
-                token: foo @1
-                staticElement: <null>
-                element: <null>
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @4
-                rightParenthesis: ) @5
-              element: <null>
-              element2: <null>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments

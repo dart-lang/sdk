@@ -31,8 +31,7 @@ void test() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
-  parameter: <null>
-  staticElement: <testLibraryFragment>::@function::f
+  correspondingParameter: <null>
   element: <testLibrary>::@function::f
   staticType: T Function<T>(T)
 ''');
@@ -54,8 +53,7 @@ void test() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
-  parameter: <null>
-  staticElement: <testLibraryFragment>::@function::f
+  correspondingParameter: <null>
   element: <testLibrary>::@function::f
   staticType: int Function(int)
 ''');
@@ -81,10 +79,8 @@ FunctionReference
       constructorName: ConstructorName
         type: NamedType
           name: C
-          element: <testLibraryFragment>::@class::C
           element2: <testLibrary>::@class::C
           type: C
-        staticElement: <testLibraryFragment>::@class::C::@constructor::new
         element: <testLibraryFragment>::@class::C::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
@@ -93,7 +89,6 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      staticElement: <testLibraryFragment>::@class::C::@method::f
       element: <testLibraryFragment>::@class::C::@method::f#element
       staticType: T Function<T>(T)
     staticType: T Function<T>(T)
@@ -116,7 +111,6 @@ int Function(int) test() {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: f@31
     element: f@31
     staticType: T Function<T>(T)
   staticType: int Function(int)
@@ -142,16 +136,13 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
-      staticElement: <testLibraryFragment>::@class::C
       element: <testLibrary>::@class::C
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: f
-      staticElement: <testLibraryFragment>::@class::C::@method::f
       element: <testLibraryFragment>::@class::C::@method::f#element
       staticType: T Function<T>(T)
-    staticElement: <testLibraryFragment>::@class::C::@method::f
     element: <testLibraryFragment>::@class::C::@method::f#element
     staticType: T Function<T>(T)
   staticType: int Function(int)
@@ -183,7 +174,6 @@ FunctionReference
     operator: .
     propertyName: SimpleIdentifier
       token: f
-      staticElement: <testLibraryFragment>::@class::C::@method::f
       element: <testLibraryFragment>::@class::C::@method::f#element
       staticType: T Function<T>(T)
     staticType: T Function<T>(T)
@@ -207,7 +197,6 @@ int Function(int) test() {
 FunctionReference
   function: SimpleIdentifier
     token: f
-    staticElement: <testLibraryFragment>::@function::f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
   staticType: int Function(int)
@@ -230,7 +219,6 @@ void test() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: <testLibraryFragment>::@function::f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
@@ -238,8 +226,8 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: ParameterMember
-          base: <testLibraryFragment>::@function::f::@parameter::x
+        correspondingParameter: ParameterMember
+          baseElement: <testLibraryFragment>::@function::f::@parameter::x#element
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

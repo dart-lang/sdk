@@ -23,30 +23,6 @@ void Function() f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static f @16
-          reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingElement3: <testLibraryFragment>
-          type: void Function()
-      accessors
-        synthetic static get f @-1
-          reference: <testLibraryFragment>::@getter::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: void Function()
-        synthetic static set f= @-1
-          reference: <testLibraryFragment>::@setter::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _f @-1
-              type: void Function()
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -91,30 +67,6 @@ library
 void Function()? f;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static f @17
-          reference: <testLibraryFragment>::@topLevelVariable::f
-          enclosingElement3: <testLibraryFragment>
-          type: void Function()?
-      accessors
-        synthetic static get f @-1
-          reference: <testLibraryFragment>::@getter::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: void Function()?
-        synthetic static set f= @-1
-          reference: <testLibraryFragment>::@setter::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _f @-1
-              type: void Function()?
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -163,18 +115,6 @@ int Function(int a, String b) f() => null;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @30
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function(int, String)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -195,24 +135,6 @@ library
 void f(int Function(int a, String b) p(num c)) => null;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional p @37
-              type: int Function(int, String) Function(num)
-              parameters
-                requiredPositional c @43
-                  type: num
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -246,22 +168,6 @@ typedef F = void Function(String a) Function(int b);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F @8
-          reference: <testLibraryFragment>::@typeAlias::F
-          aliasedType: void Function(String) Function(int)
-          aliasedElement: GenericFunctionTypeElement
-            parameters
-              requiredPositional b @49
-                type: int
-            returnType: void Function(String)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -283,26 +189,6 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            m @42
-              reference: <testLibraryFragment>::@class::C::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: int Function(int, String)
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -330,7 +216,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -340,21 +225,6 @@ library
 void f(int Function(int a, String b) p) => null;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional p @37
-              type: int Function(int, String)
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -383,30 +253,6 @@ library
 int Function(int a, String b) v;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static v @30
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: int Function(int, String)
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int Function(int, String)
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: int Function(int, String)
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -460,77 +306,6 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @64
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @29
-              name: SimpleIdentifier
-                token: A @30
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              typeArguments: TypeArgumentList
-                leftBracket: < @31
-                arguments
-                  GenericFunctionType
-                    returnType: NamedType
-                      name: int @32
-                      element: dart:core::<fragment>::@class::int
-                      element2: dart:core::@class::int
-                      type: int
-                    functionKeyword: Function @36
-                    parameters: FormalParameterList
-                      leftParenthesis: ( @44
-                      parameter: SimpleFormalParameter
-                        type: NamedType
-                          name: String @45
-                          element: dart:core::<fragment>::@class::String
-                          element2: dart:core::@class::String
-                          type: String
-                        name: a @52
-                        declaredElement: a@52
-                          type: String
-                      rightParenthesis: ) @53
-                    declaredElement: GenericFunctionTypeElement
-                      parameters
-                        a
-                          kind: required positional
-                          type: String
-                      returnType: int
-                      type: int Function(String)
-                    type: int Function(String)
-                rightBracket: > @54
-              arguments: ArgumentList
-                leftParenthesis: ( @55
-                rightParenthesis: ) @56
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int Function(String)}
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -540,7 +315,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -585,88 +360,6 @@ var v = 0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      topLevelVariables
-        static v @62
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @29
-              name: SimpleIdentifier
-                token: A @30
-                staticElement: <testLibraryFragment>::@class::A
-                element: <testLibrary>::@class::A
-                staticType: null
-              typeArguments: TypeArgumentList
-                leftBracket: < @31
-                arguments
-                  GenericFunctionType
-                    returnType: NamedType
-                      name: int @32
-                      element: dart:core::<fragment>::@class::int
-                      element2: dart:core::@class::int
-                      type: int
-                    functionKeyword: Function @36
-                    parameters: FormalParameterList
-                      leftParenthesis: ( @44
-                      parameter: SimpleFormalParameter
-                        type: NamedType
-                          name: String @45
-                          element: dart:core::<fragment>::@class::String
-                          element2: dart:core::@class::String
-                          type: String
-                        name: a @52
-                        declaredElement: a@52
-                          type: String
-                      rightParenthesis: ) @53
-                    declaredElement: GenericFunctionTypeElement
-                      parameters
-                        a
-                          kind: required positional
-                          type: String
-                      returnType: int
-                      type: int Function(String)
-                    type: int Function(String)
-                rightBracket: > @54
-              arguments: ArgumentList
-                leftParenthesis: ( @55
-                rightParenthesis: ) @56
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int Function(String)}
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
-          type: int
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-        synthetic static set v= @-1
-          reference: <testLibraryFragment>::@setter::v
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _v @-1
-              type: int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -676,7 +369,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -692,7 +385,6 @@ library
               atSign: @ @29
               name: SimpleIdentifier
                 token: A @30
-                staticElement: <testLibraryFragment>::@class::A
                 element: <testLibrary>::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
@@ -701,7 +393,6 @@ library
                   GenericFunctionType
                     returnType: NamedType
                       name: int @32
-                      element: dart:core::<fragment>::@class::int
                       element2: dart:core::@class::int
                       type: int
                     functionKeyword: Function @36
@@ -710,7 +401,6 @@ library
                       parameter: SimpleFormalParameter
                         type: NamedType
                           name: String @45
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                         name: a @52
@@ -729,10 +419,9 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @55
                 rightParenthesis: ) @56
-              element: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
+              element2: ConstructorMember
+                baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
                 substitution: {T: int Function(String)}
-              element2: <testLibraryFragment>::@class::A::@constructor::new#element
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -764,7 +453,6 @@ library
           atSign: @ @29
           name: SimpleIdentifier
             token: A @30
-            staticElement: <testLibraryFragment>::@class::A
             element: <testLibrary>::@class::A
             staticType: null
           typeArguments: TypeArgumentList
@@ -773,7 +461,6 @@ library
               GenericFunctionType
                 returnType: NamedType
                   name: int @32
-                  element: dart:core::<fragment>::@class::int
                   element2: dart:core::@class::int
                   type: int
                 functionKeyword: Function @36
@@ -782,7 +469,6 @@ library
                   parameter: SimpleFormalParameter
                     type: NamedType
                       name: String @45
-                      element: dart:core::<fragment>::@class::String
                       element2: dart:core::@class::String
                       type: String
                     name: a @52
@@ -801,10 +487,9 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @55
             rightParenthesis: ) @56
-          element: ConstructorMember
-            base: <testLibraryFragment>::@class::A::@constructor::new
+          element2: ConstructorMember
+            baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
             substitution: {T: int Function(String)}
-          element2: <testLibraryFragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::v#element
       setter: <testLibraryFragment>::@setter::v#element
@@ -831,88 +516,6 @@ const v = A<String Function({int? a})>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      topLevelVariables
-        static const v @35
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: A<String Function({int? a})>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @39
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @40
-                    arguments
-                      GenericFunctionType
-                        returnType: NamedType
-                          name: String @41
-                          element: dart:core::<fragment>::@class::String
-                          element2: dart:core::@class::String
-                          type: String
-                        functionKeyword: Function @48
-                        parameters: FormalParameterList
-                          leftParenthesis: ( @56
-                          leftDelimiter: { @57
-                          parameter: DefaultFormalParameter
-                            parameter: SimpleFormalParameter
-                              type: NamedType
-                                name: int @58
-                                question: ? @61
-                                element: dart:core::<fragment>::@class::int
-                                element2: dart:core::@class::int
-                                type: int?
-                              name: a @63
-                              declaredElement: a@63
-                                type: int?
-                            declaredElement: a@63
-                              type: int?
-                          rightDelimiter: } @64
-                          rightParenthesis: ) @65
-                        declaredElement: GenericFunctionTypeElement
-                          parameters
-                            a
-                              kind: optional named
-                              type: int?
-                          returnType: String
-                          type: String Function({int? a})
-                        type: String Function({int? a})
-                    rightBracket: > @66
-                  element: <testLibraryFragment>::@class::A
-                  element2: <testLibrary>::@class::A
-                  type: A<String Function({int? a})>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
-                  substitution: {T: String Function({int? a})}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @67
-                rightParenthesis: ) @68
-              staticType: A<String Function({int? a})>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: A<String Function({int? a})>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -922,7 +525,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -944,7 +547,6 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
@@ -956,7 +558,6 @@ library
                               type: NamedType
                                 name: int @58
                                 question: ? @61
-                                element: dart:core::<fragment>::@class::int
                                 element2: dart:core::@class::int
                                 type: int?
                               name: a @63
@@ -975,13 +576,11 @@ library
                           type: String Function({int? a})
                         type: String Function({int? a})
                     rightBracket: > @66
-                  element: <testLibraryFragment>::@class::A
                   element2: <testLibrary>::@class::A
                   type: A<String Function({int? a})>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
                   substitution: {T: String Function({int? a})}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 rightParenthesis: ) @68
@@ -1026,88 +625,6 @@ const v = A<String Function([int? a])>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      topLevelVariables
-        static const v @35
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: A<String Function([int?])>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @39
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @40
-                    arguments
-                      GenericFunctionType
-                        returnType: NamedType
-                          name: String @41
-                          element: dart:core::<fragment>::@class::String
-                          element2: dart:core::@class::String
-                          type: String
-                        functionKeyword: Function @48
-                        parameters: FormalParameterList
-                          leftParenthesis: ( @56
-                          leftDelimiter: [ @57
-                          parameter: DefaultFormalParameter
-                            parameter: SimpleFormalParameter
-                              type: NamedType
-                                name: int @58
-                                question: ? @61
-                                element: dart:core::<fragment>::@class::int
-                                element2: dart:core::@class::int
-                                type: int?
-                              name: a @63
-                              declaredElement: a@63
-                                type: int?
-                            declaredElement: a@63
-                              type: int?
-                          rightDelimiter: ] @64
-                          rightParenthesis: ) @65
-                        declaredElement: GenericFunctionTypeElement
-                          parameters
-                            a
-                              kind: optional positional
-                              type: int?
-                          returnType: String
-                          type: String Function([int?])
-                        type: String Function([int?])
-                    rightBracket: > @66
-                  element: <testLibraryFragment>::@class::A
-                  element2: <testLibrary>::@class::A
-                  type: A<String Function([int?])>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
-                  substitution: {T: String Function([int?])}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @67
-                rightParenthesis: ) @68
-              staticType: A<String Function([int?])>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: A<String Function([int?])>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1117,7 +634,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1139,7 +656,6 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
@@ -1151,7 +667,6 @@ library
                               type: NamedType
                                 name: int @58
                                 question: ? @61
-                                element: dart:core::<fragment>::@class::int
                                 element2: dart:core::@class::int
                                 type: int?
                               name: a @63
@@ -1170,13 +685,11 @@ library
                           type: String Function([int?])
                         type: String Function([int?])
                     rightBracket: > @66
-                  element: <testLibraryFragment>::@class::A
                   element2: <testLibrary>::@class::A
                   type: A<String Function([int?])>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
                   substitution: {T: String Function([int?])}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 rightParenthesis: ) @68
@@ -1221,88 +734,6 @@ const v = A<String Function({required int a})>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      topLevelVariables
-        static const v @35
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: A<String Function({required int a})>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @39
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @40
-                    arguments
-                      GenericFunctionType
-                        returnType: NamedType
-                          name: String @41
-                          element: dart:core::<fragment>::@class::String
-                          element2: dart:core::@class::String
-                          type: String
-                        functionKeyword: Function @48
-                        parameters: FormalParameterList
-                          leftParenthesis: ( @56
-                          leftDelimiter: { @57
-                          parameter: DefaultFormalParameter
-                            parameter: SimpleFormalParameter
-                              requiredKeyword: required @58
-                              type: NamedType
-                                name: int @67
-                                element: dart:core::<fragment>::@class::int
-                                element2: dart:core::@class::int
-                                type: int
-                              name: a @71
-                              declaredElement: a@71
-                                type: int
-                            declaredElement: a@71
-                              type: int
-                          rightDelimiter: } @72
-                          rightParenthesis: ) @73
-                        declaredElement: GenericFunctionTypeElement
-                          parameters
-                            a
-                              kind: required named
-                              type: int
-                          returnType: String
-                          type: String Function({required int a})
-                        type: String Function({required int a})
-                    rightBracket: > @74
-                  element: <testLibraryFragment>::@class::A
-                  element2: <testLibrary>::@class::A
-                  type: A<String Function({required int a})>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
-                  substitution: {T: String Function({required int a})}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @75
-                rightParenthesis: ) @76
-              staticType: A<String Function({required int a})>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: A<String Function({required int a})>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1312,7 +743,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1334,7 +765,6 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
@@ -1346,7 +776,6 @@ library
                               requiredKeyword: required @58
                               type: NamedType
                                 name: int @67
-                                element: dart:core::<fragment>::@class::int
                                 element2: dart:core::@class::int
                                 type: int
                               name: a @71
@@ -1365,13 +794,11 @@ library
                           type: String Function({required int a})
                         type: String Function({required int a})
                     rightBracket: > @74
-                  element: <testLibraryFragment>::@class::A
                   element2: <testLibrary>::@class::A
                   type: A<String Function({required int a})>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
                   substitution: {T: String Function({required int a})}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @75
                 rightParenthesis: ) @76
@@ -1416,82 +843,6 @@ const v = A<String Function(int a)>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      topLevelVariables
-        static const v @35
-          reference: <testLibraryFragment>::@topLevelVariable::v
-          enclosingElement3: <testLibraryFragment>
-          type: A<String Function(int)>
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @39
-                  typeArguments: TypeArgumentList
-                    leftBracket: < @40
-                    arguments
-                      GenericFunctionType
-                        returnType: NamedType
-                          name: String @41
-                          element: dart:core::<fragment>::@class::String
-                          element2: dart:core::@class::String
-                          type: String
-                        functionKeyword: Function @48
-                        parameters: FormalParameterList
-                          leftParenthesis: ( @56
-                          parameter: SimpleFormalParameter
-                            type: NamedType
-                              name: int @57
-                              element: dart:core::<fragment>::@class::int
-                              element2: dart:core::@class::int
-                              type: int
-                            name: a @61
-                            declaredElement: a@61
-                              type: int
-                          rightParenthesis: ) @62
-                        declaredElement: GenericFunctionTypeElement
-                          parameters
-                            a
-                              kind: required positional
-                              type: int
-                          returnType: String
-                          type: String Function(int)
-                        type: String Function(int)
-                    rightBracket: > @63
-                  element: <testLibraryFragment>::@class::A
-                  element2: <testLibrary>::@class::A
-                  type: A<String Function(int)>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
-                  substitution: {T: String Function(int)}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
-              argumentList: ArgumentList
-                leftParenthesis: ( @64
-                rightParenthesis: ) @65
-              staticType: A<String Function(int)>
-      accessors
-        synthetic static get v @-1
-          reference: <testLibraryFragment>::@getter::v
-          enclosingElement3: <testLibraryFragment>
-          returnType: A<String Function(int)>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1501,7 +852,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1523,7 +874,6 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element: dart:core::<fragment>::@class::String
                           element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
@@ -1532,7 +882,6 @@ library
                           parameter: SimpleFormalParameter
                             type: NamedType
                               name: int @57
-                              element: dart:core::<fragment>::@class::int
                               element2: dart:core::@class::int
                               type: int
                             name: a @61
@@ -1548,13 +897,11 @@ library
                           type: String Function(int)
                         type: String Function(int)
                     rightBracket: > @63
-                  element: <testLibraryFragment>::@class::A
                   element2: <testLibrary>::@class::A
                   type: A<String Function(int)>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
                   substitution: {T: String Function(int)}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @64
                 rightParenthesis: ) @65
@@ -1595,23 +942,6 @@ mixin B<X extends void Function()> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin B @6
-          reference: <testLibraryFragment>::@mixin::B
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant X @8
-              bound: void Function()
-              defaultType: void Function()
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1621,7 +951,7 @@ library
           element: <testLibrary>::@mixin::B
           typeParameters
             X @8
-              element: <not-implemented>
+              element: X@8
   mixins
     mixin B
       reference: <testLibrary>::@mixin::B
@@ -1643,51 +973,6 @@ class B = A<void Function()> with M;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class alias B @31
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<void Function()>
-          mixins
-            M
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: void Function()}
-      mixins
-        mixin M @20
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1697,7 +982,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1711,17 +996,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: void Function()}
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
@@ -1744,6 +1018,13 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   mixins
     mixin M
@@ -1762,35 +1043,6 @@ typedef F2<V2> = V2 Function();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        F1 @8
-          reference: <testLibraryFragment>::@typeAlias::F1
-          aliasedType: dynamic Function<V1>(V1 Function())
-          aliasedElement: GenericFunctionTypeElement
-            typeParameters
-              covariant V1 @22
-            parameters
-              requiredPositional @-1
-                type: V1 Function()
-                  alias: <testLibraryFragment>::@typeAlias::F2
-                    typeArguments
-                      V1
-            returnType: dynamic
-        F2 @43
-          reference: <testLibraryFragment>::@typeAlias::F2
-          typeParameters
-            covariant V2 @46
-              defaultType: dynamic
-          aliasedType: V2 Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: V2
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1803,7 +1055,7 @@ library
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             V2 @46
-              element: <not-implemented>
+              element: V2@46
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1

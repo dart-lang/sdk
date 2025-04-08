@@ -33,10 +33,10 @@ template("aot_snapshot") {
   if (defined(invoker.inputs)) {
     extra_inputs += invoker.inputs
   }
-  if (defined(invoker.dot_packages)) {
-    dot_packages = invoker.dot_packages
+  if (defined(invoker.package_config)) {
+    package_config = invoker.package_config
   } else {
-    dot_packages = rebase_path("$_dart_root/.dart_tool/package_config.json")
+    package_config = rebase_path("$_dart_root/.dart_tool/package_config.json")
   }
   output = "$root_out_dir/$name.snapshot"
   if (defined(invoker.output)) {
@@ -65,7 +65,7 @@ template("aot_snapshot") {
                gen_kernel_kernel,
                platform_dill,
                main_dart,
-               dot_packages,
+               package_config,
              ]
     output = dill
     outputs = [ output ]
@@ -80,7 +80,7 @@ template("aot_snapshot") {
     script = gen_kernel_kernel
 
     args = [
-      "--packages=" + rebase_path(dot_packages, root_build_dir),
+      "--packages=" + rebase_path(package_config, root_build_dir),
       "--platform=" + rebase_path(platform_dill, root_build_dir),
       "--aot",
       "--output=" + rebase_path(output, root_build_dir),

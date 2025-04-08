@@ -26,7 +26,7 @@ f() {
     ]);
   }
 
-  test_localVariable_final_forEach() async {
+  test_localVariable_forEach() async {
     await assertErrorsInCode('''
 f() {
   final i;
@@ -48,29 +48,6 @@ f() {
   }
 }''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 28, 1),
-    ]);
-  }
-
-  test_localVariable_late() async {
-    await assertNoErrorsInCode('''
-void f() {
-  late final int a;
-  a = 1;
-  a;
-}
-''');
-  }
-
-  test_localVariable_lateFinal_forEach() async {
-    await assertErrorsInCode('''
-f() {
-  late final int i;
-  for (i in [1, 2, 3]) {
-    print(i);
-  }
-}
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 33, 1),
     ]);
   }
 

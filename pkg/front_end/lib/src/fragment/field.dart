@@ -298,7 +298,7 @@ class FieldFragment
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
+      buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
@@ -366,6 +366,7 @@ class FieldFragment
           nameLength: name.length,
           isAssignable: hasSetter);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       type.build(builder.libraryBuilder, TypeUse.fieldType,
           hierarchy: membersBuilder.hierarchyBuilder);
     }

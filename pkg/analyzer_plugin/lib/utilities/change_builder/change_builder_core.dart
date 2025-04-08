@@ -51,7 +51,8 @@ abstract class ChangeBuilder {
   /// produced to add `import` statements for any unimported types.
   Future<void> addDartFileEdit(String path,
       FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit,
-      {ImportPrefixGenerator importPrefixGenerator,
+      {@Deprecated('No longer supported')
+      ImportPrefixGenerator importPrefixGenerator,
       bool createEditsForImports = true});
 
   /// Use the [buildFileEdit] function to create a collection of edits to the

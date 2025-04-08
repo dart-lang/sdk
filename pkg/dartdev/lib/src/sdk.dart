@@ -20,11 +20,14 @@ class Sdk {
   /// The SDK's semantic versioning version (x.y.z-a.b.channel).
   final String version;
 
+  /// The SDK's git revision, if known.
+  final String? revision;
+
   final bool _runFromBuildRoot;
 
   factory Sdk() => _instance;
 
-  Sdk._(this.sdkPath, this.version, bool runFromBuildRoot)
+  Sdk._(this.sdkPath, this.version, this.revision, bool runFromBuildRoot)
       : _runFromBuildRoot = runFromBuildRoot;
 
   // Assume that we want to use the same Dart executable that we used to spawn
@@ -233,7 +236,19 @@ class Sdk {
     // Defer to [Runtime] for the version.
     var version = Runtime.runtime.version;
 
-    return Sdk._(sdkPath, version, runFromBuildRoot);
+    return Sdk._(sdkPath, version, getRevision(sdkPath), runFromBuildRoot);
+  }
+
+  /// Reads the contents of `revision` file at SDK root.
+  ///
+  /// Returns `null` if the file does not exist.
+  static String? getRevision(String sdkPath) {
+    String? revision;
+    final revisionFile = File(path.join(sdkPath, 'revision'));
+    if (revisionFile.existsSync()) {
+      revision = revisionFile.readAsStringSync().trim();
+    }
+    return revision;
   }
 }
 

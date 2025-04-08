@@ -540,6 +540,7 @@ class C extends B {
     assertNoInterfaceMembers();
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_super_method_overriddenFromAugmentation() async {
     var augmentation = newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';

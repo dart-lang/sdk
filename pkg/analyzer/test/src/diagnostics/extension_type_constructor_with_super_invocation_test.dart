@@ -35,13 +35,11 @@ SuperConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    staticElement: <null>
     element: <null>
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
 ''');
   }
@@ -79,7 +77,6 @@ SuperConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
 ''');
   }

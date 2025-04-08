@@ -446,6 +446,7 @@ class A {
     assertHasTarget('bar', targetFile: aFile);
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentation_within_augment() async {
     addTestFile(r'''
 part of 'a.dart';
@@ -473,6 +474,7 @@ void f() {
     assertHasFileTarget(convertPath(testFilePath), 76, 3);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_augmentation_constructor() async {
     var aFile = newFile(augmentFilePath, r'''
 part of 'test.dart';
@@ -495,6 +497,7 @@ void f() {
     assertHasTarget('named', targetFile: aFile);
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_augmentation_method() async {
     var aFile = newFile(augmentFilePath, r'''
 part of 'test.dart';

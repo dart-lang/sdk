@@ -22,7 +22,7 @@ class ReplaceWithVarTest extends AssistProcessorTest {
   Future<void> test_for() async {
     await resolveTestCode('''
 void f(List<int> list) {
-  for (/*caret*/int i = 0; i < list.length; i++) {
+  for (^int i = 0; i < list.length; i++) {
     print(i);
   }
 }
@@ -39,7 +39,7 @@ void f(List<int> list) {
   Future<void> test_forEach() async {
     await resolveTestCode('''
 void f(List<int> list) {
-  for (/*caret*/int i in list) {
+  for (^int i in list) {
     print(i);
   }
 }
@@ -56,7 +56,7 @@ void f(List<int> list) {
   Future<void> test_generic_instanceCreation_withArguments() async {
     await resolveTestCode('''
 C<int> f() {
-  /*caret*/C<int> c = C<int>();
+  ^C<int> c = C<int>();
   return c;
 }
 class C<T> {}
@@ -73,7 +73,7 @@ class C<T> {}
   Future<void> test_generic_instanceCreation_withoutArguments() async {
     await resolveTestCode('''
 C<int> f() {
-  /*caret*/C<int> c = C();
+  ^C<int> c = C();
   return c;
 }
 class C<T> {}
@@ -90,7 +90,7 @@ class C<T> {}
   Future<void> test_generic_listLiteral() async {
     await resolveTestCode('''
 List f() {
-  /*caret*/List<int> l = [];
+  ^List<int> l = [];
   return l;
 }
 ''');
@@ -105,7 +105,7 @@ List f() {
   Future<void> test_generic_mapLiteral() async {
     await resolveTestCode('''
 Map f() {
-  /*caret*/Map<String, int> m = {};
+  ^Map<String, int> m = {};
   return m;
 }
 ''');
@@ -120,7 +120,7 @@ Map f() {
   Future<void> test_generic_setLiteral() async {
     await resolveTestCode('''
 Set f() {
-  /*caret*/Set<int> s = {};
+  ^Set<int> s = {};
   return s;
 }
 ''');
@@ -135,7 +135,7 @@ Set f() {
   Future<void> test_generic_setLiteral_ambiguous() async {
     await resolveTestCode('''
 Set f() {
-  /*caret*/Set s = {};
+  ^Set s = {};
   return s;
 }
 ''');
@@ -145,7 +145,7 @@ Set f() {
   Future<void> test_moreGeneral() async {
     await resolveTestCode('''
 num f() {
-  /*caret*/num n = 0;
+  ^num n = 0;
   return n;
 }
 ''');
@@ -155,7 +155,7 @@ num f() {
   Future<void> test_noInitializer() async {
     await resolveTestCode('''
 String f() {
-  /*caret*/String s;
+  ^String s;
   s = '';
   return s;
 }
@@ -166,7 +166,7 @@ String f() {
   Future<void> test_noType() async {
     await resolveTestCode('''
 String f() {
-  /*caret*/var s = '';
+  ^var s = '';
   return s;
 }
 ''');
@@ -176,7 +176,7 @@ String f() {
   Future<void> test_simple() async {
     await resolveTestCode('''
 String f() {
-  /*caret*/String s = '';
+  ^String s = '';
   return s;
 }
 ''');

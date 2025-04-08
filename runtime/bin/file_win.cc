@@ -404,8 +404,15 @@ std::unique_ptr<wchar_t[]> ToWinAPIPath(const char* utf8_path) {
   return result;
 }
 
-File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
+File* File::Open(Namespace* namespc,
+                 const char* name,
+                 FileOpenMode mode,
+                 bool executable) {
   const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return nullptr;
+  }
   File* file = FileOpenW(path.get(), mode);
   return file;
 }
@@ -433,12 +440,15 @@ CStringUniquePtr File::UriToPath(const char* uri) {
   return utf8_path.release();
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+File* File::OpenUri(Namespace* namespc,
+                    const char* uri,
+                    FileOpenMode mode,
+                    bool executable) {
   auto path = UriToPath(uri);
   if (path == nullptr) {
     return nullptr;
   }
-  return Open(namespc, path.get(), mode);
+  return Open(namespc, path.get(), mode, executable);
 }
 
 File* File::OpenStdio(int fd) {
@@ -476,6 +486,9 @@ static bool FileExists(const wchar_t* path) {
 
 bool File::Exists(Namespace* namespc, const char* name) {
   const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr) {
+    return false;
+  }
   return FileExists(path.get());
 }
 
@@ -490,6 +503,9 @@ bool File::ExistsUri(Namespace* namespc, const char* uri) {
 
 bool File::Create(Namespace* namespc, const char* name, bool exclusive) {
   const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr) {
+    return false;
+  }
   int flags = O_RDONLY | O_CREAT;
   if (exclusive) {
     flags |= O_EXCL;
@@ -535,11 +551,19 @@ bool File::CreateLink(Namespace* namespc,
                       const char* utf8_name,
                       const char* utf8_target) {
   const auto name = ToWinAPIPath(utf8_name);
+  if (name.get() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return false;
+  }
 
   std::unique_ptr<wchar_t[]> target;
   bool target_is_directory;
   if (File::IsAbsolutePath(utf8_target)) {
     target = ToWinAPIPath(utf8_target);
+    if (target.get() == nullptr) {
+      SetLastError(ERROR_INVALID_NAME);
+      return false;
+    }
     target_is_directory =
         File::GetType(target.get(), /*follow_links=*/true) == kIsDirectory;
   } else {
@@ -625,6 +649,9 @@ bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
 
 bool File::Delete(Namespace* namespc, const char* name) {
   const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr) {
+    return false;
+  }
   int status = _wremove(path.get());
   return status != -1;
 }
@@ -650,6 +677,9 @@ static bool DeleteLinkHelper(const wchar_t* path) {
 
 bool File::DeleteLink(Namespace* namespc, const char* name) {
   const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr) {
+    return false;
+  }
   return DeleteLinkHelper(path.get());
 }
 
@@ -657,12 +687,20 @@ static bool RenameHelper(File::Type expected,
                          const char* old_name,
                          const char* new_name) {
   const auto old_path = ToWinAPIPath(old_name);
+  if (old_path.get() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return false;
+  }
   File::Type type = File::GetType(old_path.get(), /*follow_links=*/false);
   if (type != expected) {
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
   const auto new_path = ToWinAPIPath(new_name);
+  if (new_path.get() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return false;
+  }
   DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
 
   // Symbolic links (e.g. produced by Link.create) to directories on Windows
@@ -780,6 +818,10 @@ bool File::Copy(Namespace* namespc,
   // CopyIntoTempFile so we force long prefix no matter what.
   const auto old_path = ToWinAPIPath(old_name);
   const auto new_path = ToWinAPIPath(new_name);
+  if (new_path.get() == nullptr || old_path.get() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return false;
+  }
 
   File::Type type = GetType(old_path.get(), /*follow_links=*/false);
   if (type != kIsFile) {
@@ -812,7 +854,7 @@ bool File::Copy(Namespace* namespc,
 int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   struct __stat64 st;
   const auto path = ToWinAPIPath(name);
-  if (!StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
     return -1;
   }
   return st.st_size;
@@ -823,6 +865,9 @@ const char* File::LinkTarget(Namespace* namespc,
                              char* dest,
                              int dest_size) {
   const auto path = ToWinAPIPath(pathname);
+  if (path.get() == nullptr) {
+    return nullptr;
+  }
   HANDLE dir_handle = CreateFileW(
       path.get(), GENERIC_READ,
       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
@@ -910,6 +955,10 @@ const char* File::LinkTarget(Namespace* namespc,
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr) {
+    data[kType] = File::kDoesNotExist;
+    return;
+  }
   File::Type type = GetType(path.get(), /*follow_links=*/true);
   data[kType] = type;
   if (type != kDoesNotExist) {
@@ -930,7 +979,7 @@ void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
 time_t File::LastAccessed(Namespace* namespc, const char* name) {
   struct __stat64 st;
   const auto path = ToWinAPIPath(name);
-  if (!StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
     return -1;
   }
   return st.st_atime;
@@ -939,7 +988,7 @@ time_t File::LastAccessed(Namespace* namespc, const char* name) {
 time_t File::LastModified(Namespace* namespc, const char* name) {
   struct __stat64 st;
   const auto path = ToWinAPIPath(name);
-  if (!StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
     return -1;
   }
   return st.st_mtime;
@@ -950,7 +999,7 @@ bool File::SetLastAccessed(Namespace* namespc,
                            int64_t millis) {
   struct __stat64 st;
   const auto path = ToWinAPIPath(name);
-  if (!StatHelper(path.get(), &st)) {  // Checks that it is a file.
+  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
     return false;
   }
 
@@ -979,7 +1028,7 @@ bool File::SetLastModified(Namespace* namespc,
   // First get the current times.
   struct __stat64 st;
   const auto path = ToWinAPIPath(name);
-  if (!StatHelper(path.get(), &st)) {
+  if (path.get() == nullptr || !StatHelper(path.get(), &st)) {
     return false;
   }
 
@@ -1008,6 +1057,10 @@ const char* File::GetCanonicalPath(Namespace* namespc,
                                    char* dest,
                                    int dest_size) {
   const auto path = ToWinAPIPath(pathname);
+  if (path.get() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return nullptr;
+  }
   HANDLE file_handle =
       CreateFileW(path.get(), 0, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
                   FILE_FLAG_BACKUP_SEMANTICS, nullptr);
@@ -1110,6 +1163,9 @@ File::Type File::GetType(Namespace* namespc,
                          const char* name,
                          bool follow_links) {
   const auto path = ToWinAPIPath(name);
+  if (path.get() == nullptr) {
+    return File::kDoesNotExist;
+  }
   return GetType(path.get(), follow_links);
 }
 
@@ -1122,6 +1178,9 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
   BY_HANDLE_FILE_INFORMATION file_info[2];
   const std::unique_ptr<wchar_t[]> file_names[2] = {ToWinAPIPath(file_1),
                                                     ToWinAPIPath(file_2)};
+  if (file_names[0].get() == nullptr || file_names[1].get() == nullptr) {
+    return File::kError;
+  }
   for (int i = 0; i < 2; ++i) {
     HANDLE file_handle = CreateFileW(
         file_names[i].get(), 0,

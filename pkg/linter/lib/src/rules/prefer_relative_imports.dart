@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/utilities/extensions/uri.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
-import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
@@ -51,9 +51,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       var importUri = importedLibrary.relativeUri;
       if (!importUri.isScheme('package')) return false;
 
-      if (!samePackage(importUri, sourceUri)) return false;
+      if (!importUri.isSamePackageAs(sourceUri)) return false;
 
-      // TODO(pq): context.package.contains(source) should work (but does not)
+      // TODO(pq): `context.package.contains(source)` should work (but does
+      // not).
       var packageRoot = context.package?.root;
       return packageRoot != null &&
           path.isWithin(packageRoot, importedLibrary.source.fullName);

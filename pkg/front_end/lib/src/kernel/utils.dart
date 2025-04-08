@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
+import 'package:front_end/src/base/scope.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/clone.dart';
@@ -28,6 +29,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../source/builder_factory.dart';
+import '../source/source_type_parameter_builder.dart';
 import 'body_builder.dart';
 
 /// The name for the synthesized field used to store information of
@@ -153,9 +155,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
 
   Uri uri = new Uri(scheme: 'evaluate', path: 'source');
   Library fakeLibrary = new Library(uri, fileUri: uri)
-    ..setLanguageVersion(realLibrary.languageVersion)
-    ..nonNullableByDefaultCompiledMode =
-        realLibrary.nonNullableByDefaultCompiledMode;
+    ..setLanguageVersion(realLibrary.languageVersion);
 
   // Add deferred library dependencies. They are needed for serializing
   // references to deferred libraries. We can just claim ownership of the ones
@@ -209,8 +209,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
 
   // TODO(vegorov) find a way to preserve metadata.
   Component component = new Component(libraries: [fakeLibrary]);
-  component.setMainMethodAndMode(
-      null, false, fakeLibrary.nonNullableByDefaultCompiledMode);
+  component.setMainMethodAndMode(null, false);
   return component;
 }
 
@@ -270,25 +269,35 @@ final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,
         const ImplicitTypeBuilder(), '');
 final NominalParameterBuilder dummyNominalVariableBuilder =
-    new NominalParameterBuilder(
-        NominalParameterBuilder.noNameSentinel, -1, null,
-        kind: TypeParameterKind.function);
+    new SourceNominalParameterBuilder(new DirectNominalParameterDeclaration(
+        name: NominalParameterBuilder.noNameSentinel,
+        kind: TypeParameterKind.function,
+        isWildcard: false,
+        fileOffset: -1,
+        fileUri: dummyUri));
 final TypeParameterFragment dummyTypeParameterFragment =
     new TypeParameterFragment(
         metadata: null,
         name: '',
-        bound: null,
         nameOffset: -1,
         fileUri: dummyUri,
         kind: TypeParameterKind.function,
         isWildcard: false,
-        variableName: '');
-final StructuralParameterBuilder dummyStructuralVariableBuilder =
-    new StructuralParameterBuilder(
-        StructuralParameterBuilder.noNameSentinel, -1, null);
+        variableName: '',
+        typeParameterScope: dummyLookupScope);
+final SourceStructuralParameterBuilder dummyStructuralVariableBuilder =
+    new SourceStructuralParameterBuilder(
+        new RegularStructuralParameterDeclaration(
+            metadata: null,
+            name: StructuralParameterBuilder.noNameSentinel,
+            fileOffset: -1,
+            fileUri: dummyUri,
+            isWildcard: false));
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);
 final FieldInfo dummyFieldInfo =
     new FieldInfo(dummyIdentifier, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
+final LookupScope dummyLookupScope =
+    new FixedLookupScope(ScopeKind.library, 'dummy');

@@ -393,11 +393,48 @@ class NullAwareGuard {
     _inferrer.flowAnalysis.nullAwareAccess_end();
     Expression equalsNull = _inferrer.createEqualsNull(
         _nullAwareFileOffset, createVariableGet(_nullAwareVariable));
+
+    // In case null guards are applied to non-nullable receivers, we still
+    // generate a null-testing conditional expression; although, it is
+    // unnecessary. Moreover, those expressions appear to be not null safe,
+    // since their static type is not nullable, and one of their branches is the
+    // `null` literal. The following is an example of such lowering for the
+    // expression `s?..length`, where `s` is of static type `String`.
+    //
+    //     let final core::String #t1 = s in #t1 == null ?{core::String}
+    //         null :
+    //         block { #t1.{core::String::length}{core::int}; } =>#t1
+    //
+    // Note the static type of the condition expression being the non-nullable
+    // `core::String`, and the then-branch being `null`. In such cases, we
+    // implement the following workaround: replace the `null` literal with the
+    // expression tested for being `null`. With the workaround in place, the
+    // expression `s?..length` is lowered as follows:
+    //
+    //     let final core::String #t1 = s in #t1 == null ?{core::String}
+    //         #t1 :
+    //         block { #t1.{core::String::length}{core::int}; } =>#t1
+    //
+    // This achieves the following:
+    //
+    //   * The conditional expression becomes type-safe.
+    //   * Semantically the tested expression and the null literal evaluate to
+    //     the same result, to the `null` value, so the runtime properties of
+    //     the code don't change.
+    //   * In practice, the `null` literal is dead code for non-nullable
+    //     receivers anyway, so the altered part of the expression won't ever be
+    //     executed.
+    //
+    // TODO(johnniwinther,cstefantsova): Don't generate null-testing expressions
+    // for non-nullable receivers in cascades.
+    Expression typeSafeIfNullBranch =
+        inferredType.nullability == Nullability.nullable
+            ? new NullLiteral()
+            : createVariableGet(_nullAwareVariable);
+    typeSafeIfNullBranch.fileOffset = _nullAwareFileOffset;
+
     ConditionalExpression condition = new ConditionalExpression(
-        equalsNull,
-        new NullLiteral()..fileOffset = _nullAwareFileOffset,
-        nullAwareAction,
-        inferredType)
+        equalsNull, typeSafeIfNullBranch, nullAwareAction, inferredType)
       ..fileOffset = _nullAwareFileOffset;
     return new Let(_nullAwareVariable, condition)
       ..fileOffset = _nullAwareFileOffset;

@@ -9,7 +9,6 @@ import 'dart:_interceptors';
 import 'dart:_js_helper'
     show
         assertUnreachable,
-        boolConversionCheck,
         checkInt,
         Closure,
         ConstantMap,
@@ -83,14 +82,18 @@ class Null {
 @patch
 class Function {
   @patch
-  static apply(Function function, List<dynamic>? positionalArguments,
-      [Map<Symbol, dynamic>? namedArguments]) {
+  static apply(
+    Function function,
+    List<dynamic>? positionalArguments, [
+    Map<Symbol, dynamic>? namedArguments,
+  ]) {
     return Primitives.applyFunction(
-        function,
-        positionalArguments,
-        // Use this form so that if namedArguments is always null, we can
-        // tree-shake _symbolMapToStringMap.
-        namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
+      function,
+      positionalArguments,
+      // Use this form so that if namedArguments is always null, we can
+      // tree-shake _symbolMapToStringMap.
+      namedArguments == null ? null : _symbolMapToStringMap(namedArguments),
+    );
   }
 }
 
@@ -132,8 +135,11 @@ class Expando<T extends Object> {
   }
 
   static Never _badExpandoKey(object) {
-    throw ArgumentError.value(object, 'object',
-        "Expandos are not allowed on strings, numbers, bools, records or null");
+    throw ArgumentError.value(
+      object,
+      'object',
+      "Expandos are not allowed on strings, numbers, bools, records or null",
+    );
   }
 }
 
@@ -151,7 +157,7 @@ class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
   final Object _weakRef;
 
   _WeakReferenceWrapper(T object)
-      : _weakRef = JS('', 'new #(#)', _weakRefConstructor, object);
+    : _weakRef = JS('', 'new #(#)', _weakRefConstructor, object);
 
   T? get target => JS('', '#.deref()', _weakRef);
 
@@ -196,10 +202,15 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
   final Object? _registry;
 
   _FinalizationRegistryWrapper(void Function(T) callback)
-      : _registry = _finalizationRegistryConstructor == null
-            ? null
-            : JS('', 'new #(#)', _finalizationRegistryConstructor,
-                convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1));
+    : _registry =
+          _finalizationRegistryConstructor == null
+              ? null
+              : JS(
+                '',
+                'new #(#)',
+                _finalizationRegistryConstructor,
+                convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1),
+              );
 
   void attach(Object value, T token, {Object? detach}) {
     if (_registry != null) {
@@ -226,8 +237,11 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
 @patch
 class int {
   @patch
-  static int parse(String source,
-      {int? radix, @deprecated int onError(String source)?}) {
+  static int parse(
+    String source, {
+    int? radix,
+    @deprecated int onError(String source)?,
+  }) {
     int? value = tryParse(source, radix: radix);
     if (value != null) return value;
     if (onError != null) return onError(source);
@@ -243,8 +257,10 @@ class int {
 @patch
 class double {
   @patch
-  static double parse(String source,
-      [@deprecated double onError(String source)?]) {
+  static double parse(
+    String source, [
+    @deprecated double onError(String source)?,
+  ]) {
     double? value = tryParse(source);
     if (value != null) return value;
     if (onError != null) return onError(source);
@@ -344,19 +360,13 @@ class List<E> {
   }
 
   @patch
-  factory List.of(Iterable<E> elements, {bool growable = true}) {
-    if (growable == true) return List._of(elements);
-    if (growable == false) return List._fixedOf(elements);
-
-    // [growable] may be `null` in legacy mode. Fail with the same error as if
-    // [growable] was used in a condition position in spec mode.
-    boolConversionCheck(growable);
-    assertUnreachable();
-  }
+  factory List.of(Iterable<E> elements, {bool growable = true}) =>
+      growable ? List._of(elements) : List._fixedOf(elements);
 
   factory List._ofArray(Iterable<E> elements) {
     return JSArray<E>.markGrowable(
-        JS('effects:none;depends:no-static', '#.slice(0)', elements));
+      JS('effects:none;depends:no-static', '#.slice(0)', elements),
+    );
   }
 
   factory List._of(Iterable<E> elements) {
@@ -375,8 +385,11 @@ class List<E> {
   }
 
   @patch
-  factory List.generate(int length, E generator(int index),
-      {bool growable = true}) {
+  factory List.generate(
+    int length,
+    E generator(int index), {
+    bool growable = true,
+  }) {
     final result =
         growable ? JSArray<E>.growable(length) : JSArray<E>.fixed(length);
     for (int i = 0; i < length; i++) {
@@ -404,8 +417,11 @@ class Map<K, V> {
 @patch
 class String {
   @patch
-  factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]) {
+  factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]) {
     RangeError.checkNotNegative(start, "start");
     if (end != null) {
       var maxLength = end - start;
@@ -449,7 +465,10 @@ class String {
   }
 
   static String _stringFromUint8List(
-      NativeUint8List charCodes, int start, int? endOrNull) {
+    NativeUint8List charCodes,
+    int start,
+    int? endOrNull,
+  ) {
     int len = charCodes.length;
     if (start >= len) return "";
     int end = (endOrNull == null || endOrNull > len) ? len : endOrNull;
@@ -457,7 +476,10 @@ class String {
   }
 
   static String _stringFromIterable(
-      Iterable<int> charCodes, int start, int? end) {
+    Iterable<int> charCodes,
+    int start,
+    int? end,
+  ) {
     if (end != null) charCodes = charCodes.take(end);
     if (start > 0) charCodes = charCodes.skip(start);
     return Primitives.stringFromCharCodes(List<int>.of(charCodes));
@@ -484,16 +506,19 @@ class bool {
 class RegExp {
   @pragma('dart2js:noInline')
   @patch
-  factory RegExp(String source,
-          {bool multiLine = false,
-          bool caseSensitive = true,
-          bool unicode = false,
-          bool dotAll = false}) =>
-      JSSyntaxRegExp(source,
-          multiLine: multiLine,
-          caseSensitive: caseSensitive,
-          unicode: unicode,
-          dotAll: dotAll);
+  factory RegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  }) => JSSyntaxRegExp(
+    source,
+    multiLine: multiLine,
+    caseSensitive: caseSensitive,
+    unicode: unicode,
+    dotAll: dotAll,
+  );
 
   @patch
   static String escape(String text) => quoteStringForRegExp(text);
@@ -501,7 +526,8 @@ class RegExp {
 
 // Patch for 'identical' function.
 @pragma(
-    'dart2js:noInline') // No inlining since we recognize the call in optimizer.
+  'dart2js:noInline',
+) // No inlining since we recognize the call in optimizer.
 @patch
 bool identical(Object? a, Object? b) {
   return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
@@ -581,24 +607,40 @@ class NoSuchMethodError {
 
   @patch
   factory NoSuchMethodError.withInvocation(
-          Object? receiver, Invocation invocation) =>
-      NoSuchMethodError._(receiver, invocation.memberName,
-          invocation.positionalArguments, invocation.namedArguments);
+    Object? receiver,
+    Invocation invocation,
+  ) => NoSuchMethodError._(
+    receiver,
+    invocation.memberName,
+    invocation.positionalArguments,
+    invocation.namedArguments,
+  );
 
-  NoSuchMethodError(Object? receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
-      [List? existingArgumentNames = null])
-      : this._(receiver, memberName, positionalArguments, namedArguments,
-            existingArgumentNames);
+  NoSuchMethodError(
+    Object? receiver,
+    Symbol memberName,
+    List? positionalArguments,
+    Map<Symbol, dynamic>? namedArguments, [
+    List? existingArgumentNames = null,
+  ]) : this._(
+         receiver,
+         memberName,
+         positionalArguments,
+         namedArguments,
+         existingArgumentNames,
+       );
 
-  NoSuchMethodError._(Object? receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
-      [List? existingArgumentNames = null])
-      : _receiver = receiver,
-        _memberName = memberName,
-        _arguments = positionalArguments,
-        _namedArguments = namedArguments,
-        _existingArgumentNames = existingArgumentNames;
+  NoSuchMethodError._(
+    Object? receiver,
+    Symbol memberName,
+    List? positionalArguments,
+    Map<Symbol, dynamic>? namedArguments, [
+    List? existingArgumentNames = null,
+  ]) : _receiver = receiver,
+       _memberName = memberName,
+       _arguments = positionalArguments,
+       _namedArguments = namedArguments,
+       _existingArgumentNames = existingArgumentNames;
 
   @patch
   String toString() {
@@ -676,12 +718,12 @@ class _Uri {
   // compiled with `--server-mode` and running on Node or a similar platform.
   static final bool _isWindowsCached =
       !const bool.fromEnvironment('dart.library.html') &&
-          JS<bool>(
-            'bool',
-            'typeof process != "undefined" && '
-                'Object.prototype.toString.call(process) == "[object process]" && '
-                'process.platform == "win32"',
-          );
+      JS<bool>(
+        'bool',
+        'typeof process != "undefined" && '
+            'Object.prototype.toString.call(process) == "[object process]" && '
+            'process.platform == "win32"',
+      );
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that
@@ -693,7 +735,11 @@ class _Uri {
   /// that appear in [canonicalTable], and returns the escaped string.
   @patch
   static String _uriEncode(
-      int canonicalMask, String text, Encoding encoding, bool spaceToPlus) {
+    int canonicalMask,
+    String text,
+    Encoding encoding,
+    bool spaceToPlus,
+  ) {
     if (identical(encoding, utf8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
@@ -720,7 +766,8 @@ class _Uri {
 
   @patch
   static String _makeQueryFromParameters(
-      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    Map<String, dynamic /*String?|Iterable<String>*/> queryParameters,
+  ) {
     if (!_useURLSearchParams) {
       return _makeQueryFromParametersDefault(queryParameters);
     }
@@ -769,15 +816,18 @@ class _Uri {
 
     // Handle other cases with one RegExp.
     encoded = JS(
-        '',
-        r'#.replace(/=&|\*|%7E/g, (m) => m === "=&" ? "&" : m === "*" ? "%2A" : "~")',
-        encoded);
+      '',
+      r'#.replace(/=&|\*|%7E/g, (m) => m === "=&" ? "&" : m === "*" ? "%2A" : "~")',
+      encoded,
+    );
 
     return encoded;
   }
 
-  static final bool _useURLSearchParams =
-      JS('bool', 'typeof URLSearchParams == "function"');
+  static final bool _useURLSearchParams = JS(
+    'bool',
+    'typeof URLSearchParams == "function"',
+  );
 }
 
 @patch
@@ -805,8 +855,9 @@ class _DuplicatedFieldInitializerError extends Error {
 /// The signature is hardwired to the kernel nodes generated in the
 /// `Dart2jsTarget` and read in the `KernelSsaGraphBuilder`.
 external Invocation _createInvocationMirror(
-    String memberName,
-    List typeArguments,
-    List positionalArguments,
-    Map<String, dynamic> namedArguments,
-    int kind);
+  String memberName,
+  List typeArguments,
+  List positionalArguments,
+  Map<String, dynamic> namedArguments,
+  int kind,
+);

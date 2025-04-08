@@ -149,7 +149,7 @@ class Random {
   factory Random([int? seed]) {
     var state = _Random._setupSeed((seed == null) ? _Random._nextSeed() : seed);
     // Crank a couple of times to distribute the seed bits a bit further.
-    return new _Random._withState(state)
+    return _Random._withState(state)
       .._nextState()
       .._nextState()
       .._nextState()
@@ -225,7 +225,7 @@ class _Random implements Random {
   static const _POW2_27_D = 1.0 * (1 << 27);
 
   // Use a singleton Random object to get a new seed if no seed was passed.
-  static final _prng = new _Random._withState(_initialSeed());
+  static final _prng = _Random._withState(_initialSeed());
 
   static int _setupSeed(int seed) => mix64(seed);
 

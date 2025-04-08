@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -35,8 +32,8 @@ FreshTypeParameters getFreshTypeParameters2(
 
   var map = <TypeParameterElement2, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = TypeParameterTypeImpl.v2(
-      element: freshParameters[i],
+    map[typeParameters[i]] = TypeParameterTypeImpl(
+      element3: freshParameters[i],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -128,7 +125,7 @@ class FreshTypeParameters {
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
-  FunctionTypeImpl applyToFunctionType(FunctionType type) {
+  FunctionTypeImpl applyToFunctionType(FunctionTypeImpl type) {
     return FunctionTypeImpl.v2(
       typeParameters: freshTypeParameters,
       formalParameters: type.formalParameters.map((parameter) {
@@ -156,6 +153,10 @@ abstract class Substitution {
   const Substitution();
 
   DartType? getSubstitute(TypeParameterElement2 parameter, bool upperBound);
+
+  FunctionTypeImpl mapFunctionType(FunctionType type) {
+    return substituteType(type) as FunctionTypeImpl;
+  }
 
   InterfaceTypeImpl mapInterfaceType(InterfaceType type) {
     return substituteType(type) as InterfaceTypeImpl;
@@ -204,7 +205,7 @@ abstract class Substitution {
   /// Substitutes the Nth parameter in [parameters] with the Nth type in
   /// [types].
   static MapSubstitution fromPairs(
-    List<TypeParameterElement> parameters,
+    List<TypeParameterElementImpl> parameters,
     List<DartType> types,
   ) {
     return fromPairs2(parameters.map((p) => p.asElement2).toFixedList(), types);
@@ -310,8 +311,8 @@ class _NullSubstitution extends MapSubstitution {
 
   @override
   DartType getSubstitute(TypeParameterElement2 parameter, bool upperBound) {
-    return TypeParameterTypeImpl.v2(
-      element: parameter,
+    return TypeParameterTypeImpl(
+      element3: parameter as TypeParameterElementImpl2,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }

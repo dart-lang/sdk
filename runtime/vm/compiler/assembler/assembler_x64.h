@@ -319,14 +319,12 @@ class Assembler : public AssemblerBase {
   void setcc(Condition condition, ByteRegister dst);
 
   void EnterFullSafepoint();
-  void ExitFullSafepoint(bool ignore_unwind_in_progress);
+  void ExitFullSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false,
-                                   bool set_tag = true);
+  void TransitionNativeToGenerated(bool exit_safepoint, bool set_tag = true);
   void VerifyInGenerated(Register scratch);
   void VerifyNotInGenerated(Register scratch);
 

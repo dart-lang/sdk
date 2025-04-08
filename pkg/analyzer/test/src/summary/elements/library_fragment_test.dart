@@ -37,26 +37,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        dart:io
-          enclosingElement3: <testLibraryFragment>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryExports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -82,33 +62,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryExports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -132,26 +85,6 @@ part 'a.dart';
 ''');
 
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:io
-          enclosingElement3: <testLibraryFragment>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -183,33 +116,6 @@ part 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      libraryImports
-        dart:math
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          metadata
-            Annotation
-              atSign: @ @21
-              name: SimpleIdentifier
-                token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
-                element: dart:core::<fragment>::@getter::deprecated#element
-                staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
-              element2: dart:core::<fragment>::@getter::deprecated#element
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -225,10 +131,8 @@ library
               atSign: @ @21
               name: SimpleIdentifier
                 token: deprecated @22
-                staticElement: dart:core::<fragment>::@getter::deprecated
                 element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
-              element: dart:core::<fragment>::@getter::deprecated
               element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
@@ -1530,9 +1434,9 @@ package:test/a.dart
 
           void writeResult(ScopeLookupResult result) {
             sink.withIndent(() {
-              elementPrinter.writelnNamedElement2('getter', result.getter2);
+              elementPrinter.writeNamedElement2('getter', result.getter2);
               if (result.setter2 case var setter?) {
-                elementPrinter.writelnNamedElement2('setter', setter);
+                elementPrinter.writeNamedElement2('setter', setter);
               }
             });
           }
@@ -1547,12 +1451,12 @@ package:test/a.dart
             var importPrefix = prefixLookup.getter2;
             if (importPrefix == null) {
               sink.withIndent(() {
-                elementPrinter.writelnNamedElement2(prefixName, importPrefix);
+                elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });
             } else {
               importPrefix as PrefixElementImpl2;
               sink.withIndent(() {
-                elementPrinter.writelnNamedElement2(prefixName, importPrefix);
+                elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });
               var result = importPrefix.scope.lookup(rawName);
               writeResult(result);

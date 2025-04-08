@@ -320,15 +320,6 @@ class BinaryExpressionResolver {
       {required TypeImpl contextType}) {
     var left = node.leftOperand;
 
-    if (left is AugmentedExpressionImpl) {
-      _resolveUserDefinableAugmented(
-        node,
-        left: left,
-        contextType: contextType,
-      );
-      return;
-    }
-
     _resolver.analyzeExpression(
         node.leftOperand, SharedTypeSchemaView(UnknownInferredType.instance));
     left = _resolver.popRewrite()!;
@@ -347,56 +338,6 @@ class BinaryExpressionResolver {
 
     var operator = node.operator;
     _resolveUserDefinableElement(node, operator.lexeme);
-
-    _resolveRightOperand(node, contextType);
-  }
-
-  void _resolveUserDefinableAugmented(
-    BinaryExpressionImpl node, {
-    required AugmentedExpressionImpl left,
-    required TypeImpl contextType,
-  }) {
-    var methodName = node.operator.lexeme;
-
-    var augmentation = _resolver.enclosingAugmentation!;
-    var augmentationTarget = augmentation.augmentationTarget;
-
-    // Unresolved by default.
-    left.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-
-    switch (augmentationTarget) {
-      case MethodElementImpl fragment:
-        left.fragment = fragment;
-        left.setPseudoExpressionStaticType(
-            _resolver.thisType ?? InvalidTypeImpl.instance);
-        if (fragment.name2 == methodName) {
-          node.staticInvokeType = fragment.element.type;
-        } else {
-          _errorReporter.atToken(
-            left.augmentedKeyword,
-            CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR,
-            arguments: [
-              methodName,
-            ],
-          );
-        }
-      case PropertyAccessorFragment fragment:
-        left.fragment = fragment;
-        var element = fragment.element;
-        if (element is GetterElement) {
-          left.setPseudoExpressionStaticType(element.returnType);
-          _resolveUserDefinableElement(node, methodName);
-        } else {
-          _errorReporter.atToken(
-            left.augmentedKeyword,
-            CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
-          );
-        }
-      case PropertyInducingFragment fragment:
-        left.fragment = fragment;
-        left.setPseudoExpressionStaticType(fragment.element.type);
-        _resolveUserDefinableElement(node, methodName);
-    }
 
     _resolveRightOperand(node, contextType);
   }

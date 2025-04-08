@@ -11,13 +11,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/builder/builder.dart';
-import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/source/source_class_builder.dart';
-import 'package:front_end/src/source/source_constructor_builder.dart';
-import 'package:front_end/src/source/source_factory_builder.dart';
-import 'package:front_end/src/source/source_member_builder.dart';
-import 'package:front_end/src/source/source_method_builder.dart';
-import 'package:front_end/src/source/source_property_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -124,13 +118,12 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
       features.add(Tags.isAbstract);
     }
     clsBuilder.nameSpace
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: false)
+        .filteredNameIterator(includeDuplicates: false)
         .forEach((String name, Builder builder) {
       features.addElement(Tags.scope, name);
     });
 
-    for (Member m in clsBuilder.actualCls.members) {
+    for (Member m in clsBuilder.cls.members) {
       if (m is Procedure &&
           (m.isMemberSignature ||
               (m.isForwardingStub && !m.isForwardingSemiStub))) {
@@ -159,26 +152,6 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         features.addElement(Tags.initializers, desc);
       }
     }
-    SourceMemberBuilder? memberBuilder =
-        lookupMemberBuilder(compilerResult, member, required: false)
-            as SourceMemberBuilder?;
-    List<MemberBuilder>? patchMembers;
-    if (memberBuilder is SourceMethodBuilder) {
-      patchMembers = memberBuilder.augmentationsForTesting;
-    }
-    if (memberBuilder is SourcePropertyBuilder) {
-      patchMembers = memberBuilder.augmentationsForTesting;
-    }
-    if (memberBuilder is SourceConstructorBuilderImpl) {
-      patchMembers = memberBuilder.augmentationsForTesting;
-    }
-    if (memberBuilder is SourceFactoryBuilder) {
-      patchMembers = memberBuilder.augmentationsForTesting;
-    }
-    if (patchMembers != null) {
-      features.add(Tags.patch);
-    }
-
     return features;
   }
 }

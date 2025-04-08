@@ -934,13 +934,21 @@ class Forest {
   }
 
   DotShorthandInvocation createDotShorthandInvocation(
-      int fileOffset, Name name, Arguments arguments) {
-    return new DotShorthandInvocation(name, arguments)..fileOffset = fileOffset;
+      int fileOffset, Name name, Arguments arguments,
+      {required int nameOffset, required bool isConst}) {
+    return new DotShorthandInvocation(
+      name,
+      arguments,
+      nameOffset: nameOffset,
+      isConst: isConst,
+    )..fileOffset = fileOffset;
   }
 
   DotShorthandPropertyGet createDotShorthandPropertyGet(
-      int fileOffset, Name name) {
-    return new DotShorthandPropertyGet(name)..fileOffset = fileOffset;
+      int fileOffset, Name name,
+      {required int nameOffset}) {
+    return new DotShorthandPropertyGet(name, nameOffset: nameOffset)
+      ..fileOffset = fileOffset;
   }
 }
 

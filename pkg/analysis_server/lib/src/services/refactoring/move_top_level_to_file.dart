@@ -274,6 +274,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
         name = node.name.lexeme;
       } else if (node is ExtensionDeclaration && validSelection(node.name)) {
         name = node.name?.lexeme;
+      } else if (node is ExtensionTypeDeclaration &&
+          validSelection(node.name)) {
+        name = node.name.lexeme;
       } else if (node is FunctionDeclaration &&
           node.parent is CompilationUnit &&
           validSelection(node.name)) {

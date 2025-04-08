@@ -174,6 +174,11 @@ class EnumSetDomain<E extends Enum> {
   Bitset remove(Bitset bits, E enumValue) =>
       bits.setMinus(enumValue.mask(offset));
 
+  /// Returns a bitset containing all enum values in [bits] except for enum
+  /// values in [E].
+  @useResult
+  Bitset clear(Bitset bits) => bits.setMinus(allValues);
+
   /// Returns a copy of [bits] with the bit for [value] enabled or disabled
   /// depending on [state].
   @useResult

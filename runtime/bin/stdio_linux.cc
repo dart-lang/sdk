@@ -109,7 +109,8 @@ static bool TermIsKnownToSupportAnsi() {
   }
 
   return strstr(term, "xterm") != nullptr ||
-         strstr(term, "screen") != nullptr || strstr(term, "rxvt") != nullptr;
+         strstr(term, "screen") != nullptr || strstr(term, "rxvt") != nullptr ||
+         strstr(term, "tmux") != nullptr;
 }
 
 bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {

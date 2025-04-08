@@ -2505,7 +2505,8 @@ bool Debugger::FindBestFit(const Script& script,
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
           if (IsImplicitFunction(function) || function.is_synthetic() ||
-              !function.is_debuggable()) {
+              !function.token_pos().IsReal() ||
+              !function.end_token_pos().IsReal() || !function.is_debuggable()) {
             // We skip implicit functions and synthetic functions because they
             // do not have user specifiable source locations. We also skip
             // functions marked as undebuggable.

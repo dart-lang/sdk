@@ -24,7 +24,7 @@ class G3FixesTest with ResourceProviderMixin {
 
   void setUp() {
     registerLintRules();
-    registerBuiltInProducers();
+    registerBuiltInFixGenerators();
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
   }
 

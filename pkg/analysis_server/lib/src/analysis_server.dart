@@ -26,13 +26,13 @@ import 'package:analysis_server/src/protocol_server.dart'
     as legacy
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -49,12 +49,12 @@ import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
 import 'package:analysis_server/src/utilities/timing_byte_store.dart';
-import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -173,6 +173,10 @@ abstract class AnalysisServer {
   /// server.
   final DiagnosticServer? diagnosticServer;
 
+  /// Additional diagnostic info from the client editor to include in diagnostic
+  /// reports.
+  Object? clientDiagnosticInformation;
+
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
   final RecentBuffer<ServerException> exceptions = RecentBuffer(10);
@@ -252,10 +256,6 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
-  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
-  /// are associated (can fix).
-  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
-
   /// A completer for [lspUninitialized].
   final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
@@ -290,7 +290,6 @@ abstract class AnalysisServer {
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
        messageScheduler = MessageScheduler(
          testView: retainDataForTesting ? MessageSchedulerTestView() : null,
        ) {
@@ -794,6 +793,7 @@ abstract class AnalysisServer {
   Future<ResolvedUnitResult?>? getResolvedUnit(
     String path, {
     bool sendCachedToStream = false,
+    bool interactive = true,
   }) {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
@@ -805,7 +805,11 @@ abstract class AnalysisServer {
     }
 
     return driver
-        .getResolvedUnit(path, sendCachedToStream: sendCachedToStream)
+        .getResolvedUnit(
+          path,
+          sendCachedToStream: sendCachedToStream,
+          interactive: interactive,
+        )
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((Object e, StackTrace st) {
           instrumentationService.logException(e, st);
@@ -913,6 +917,9 @@ abstract class AnalysisServer {
   /// Report analytics data related to the number and size of files that were
   /// analyzed.
   void reportAnalysisAnalytics() {
+    if (!analyticsManager.needsAnslysisCompleteCall()) {
+      return;
+    }
     var packagesFileMap = <String, File?>{};
     var immediateFileCount = 0;
     var immediateFileLineCount = 0;
@@ -948,27 +955,9 @@ abstract class AnalysisServer {
 
     var rootPaths = packagesFileMap.keys.toList();
     rootPaths.sort((first, second) => first.length.compareTo(second.length));
-    var styleCounts = [
-      0, // neither
-      0, // only packages
-      0, // only options -- (No longer incremented. Options files do not imply unique contexts.)
-      0, // both -- (No longer incremented. Options files do not imply unique contexts.)
-    ];
-    var packagesFiles = <File>{};
-    for (var rootPath in rootPaths) {
-      var packagesFile = packagesFileMap[rootPath];
-      var hasUniquePackageFile =
-          packagesFile != null && packagesFiles.add(packagesFile);
-      var style = hasUniquePackageFile ? 1 : 0;
-      styleCounts[style]++;
-    }
 
     analyticsManager.analysisComplete(
       numberOfContexts: driverMap.length,
-      contextsWithoutFiles: styleCounts[0],
-      contextsFromPackagesFiles: styleCounts[1],
-      contextsFromOptionsFiles: styleCounts[2],
-      contextsFromBothFiles: styleCounts[3],
       immediateFileCount: immediateFileCount,
       immediateFileLineCount: immediateFileLineCount,
       transitiveFileCount: transitiveFileCount,
@@ -1218,6 +1207,21 @@ class ServerRecentPerformance {
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
       RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get fixes
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetAssistsPerformance> getAssists =
+      RecentBuffer<GetAssistsPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get fixes
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetFixesPerformance> getFixes =
+      RecentBuffer<GetFixesPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get refactorings
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetRefactoringsPerformance> getRefactorings =
+      RecentBuffer<GetRefactoringsPerformance>(performanceListMaxLength);
 
   /// A [RecentBuffer] for performance information about the most recent
   /// requests.

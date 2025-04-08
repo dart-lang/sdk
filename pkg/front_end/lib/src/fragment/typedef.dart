@@ -15,6 +15,7 @@ class TypedefFragment implements Fragment {
   final Uri fileUri;
   final int nameOffset;
   final LookupScope typeParameterScope;
+  final NominalParameterNameSpace nominalParameterNameSpace;
   final LookupScope enclosingScope;
   final LibraryFragment enclosingCompilationUnit;
 
@@ -28,6 +29,7 @@ class TypedefFragment implements Fragment {
       required this.fileUri,
       required this.nameOffset,
       required this.typeParameterScope,
+      required this.nominalParameterNameSpace,
       required this.enclosingScope,
       required this.enclosingCompilationUnit});
 

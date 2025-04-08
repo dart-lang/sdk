@@ -149,7 +149,8 @@ class MemoryMappable : public Mappable {
 };
 
 Mappable* Mappable::FromPath(const char* path) {
-  return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead));
+  return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead,
+                                     /*executable=*/true));
 }
 
 #if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
@@ -241,8 +242,7 @@ class LoadedElf {
   const dart::elf::Symbol* dynamic_symbol_table_ = nullptr;
   uword dynamic_symbol_count_ = 0;
 
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
+#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
   // Dynamic table for looking up unwinding exceptions info.
   // Initialized by LoadSegments as we load executable segment.
   MallocGrowableArray<void*> dynamic_runtime_function_tables_;
@@ -295,8 +295,7 @@ bool LoadedElf::Load() {
 }
 
 LoadedElf::~LoadedElf() {
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
+#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
   for (intptr_t i = 0; i < dynamic_runtime_function_tables_.length(); i++) {
     UnwindingRecordsPlatform::UnregisterDynamicTable(
         dynamic_runtime_function_tables_[i]);
@@ -465,8 +464,7 @@ bool LoadedElf::LoadSegments() {
     CHECK_ERROR(memory != nullptr, "Could not map segment.");
     CHECK_ERROR(memory->address() == memory_start,
                 "Mapping not at requested address.");
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
+#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
     // For executable pages register unwinding information that should be
     // present on the page.
     if (map_type == File::kReadExecute) {
@@ -586,7 +584,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
 }
 #endif
 
-#if !defined(DART_HOST_OS_FUCHSIA)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
                                          const char** error,
@@ -611,7 +608,6 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
 
   return reinterpret_cast<Dart_LoadedElf*>(elf.release());
 }
-#endif
 
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
     const uint8_t* snapshot,

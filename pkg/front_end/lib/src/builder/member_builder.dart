@@ -122,10 +122,6 @@ abstract class MemberBuilder implements Builder {
   /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder;
 
-  /// Returns the [Annotatable] nodes that hold the annotations declared on this
-  /// member.
-  Iterable<Annotatable> get annotatables;
-
   /// Returns `true` is this member is a property, i.e. a field, getter or
   /// setter.
   bool get isProperty;

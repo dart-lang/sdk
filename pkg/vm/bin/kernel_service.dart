@@ -23,9 +23,7 @@ library;
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
-import 'dart:io'
-    show Directory, File, Platform, stderr, stdout
-    hide FileSystemEntity;
+import 'dart:io' show Directory, File, Platform, stderr, stdout;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -35,8 +33,7 @@ import 'package:front_end/src/api_prototype/front_end.dart'
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:kernel/ast.dart'
-    show Component, Library, NonNullableByDefaultCompiledMode, Procedure;
+import 'package:kernel/ast.dart' show Component, Library, Procedure;
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -47,9 +44,9 @@ import 'package:vm/http_filesystem.dart';
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
     show createLoadedLibrariesSet, ErrorDetector;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import 'package:vm/native_assets/diagnostic_message.dart';
 import 'package:vm/native_assets/synthesizer.dart';
-import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');
@@ -1012,10 +1009,7 @@ Future _processLoadRequest(request) async {
             pragmaClass: compilerResult.coreTypes?.pragmaClass,
           );
       if (nativeAssetsLibrary != null) {
-        nativeAssetsComponent = Component(
-          libraries: [nativeAssetsLibrary],
-          mode: NonNullableByDefaultCompiledMode.Strong,
-        );
+        nativeAssetsComponent = Component(libraries: [nativeAssetsLibrary]);
       }
     }
 

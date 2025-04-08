@@ -81,11 +81,6 @@ abstract class Browser {
         var service = WebDriverService.fromRuntime(Runtime.safari);
         browser = Safari(service.port);
         break;
-      case Runtime.ie9:
-      case Runtime.ie10:
-      case Runtime.ie11:
-        browser = IE(configuration.browserLocation);
-        break;
       default:
         throw "unreachable";
     }
@@ -98,9 +93,6 @@ abstract class Browser {
     'ff',
     'firefox',
     'chrome',
-    'ie9',
-    'ie10',
-    'ie11'
   ];
 
   static bool requiresFocus(String browserName) {
@@ -425,87 +417,6 @@ class Chrome extends Browser {
   }
 }
 
-class IE extends Browser {
-  IE(this._binary);
-
-  final String _binary;
-
-  @override
-  Future<String> get version async {
-    var args = [
-      "query",
-      "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Internet Explorer",
-      "/v",
-      "svcVersion"
-    ];
-    final result = await Process.run("reg", args);
-    if (result.exitCode != 0) {
-      throw StateError("Could not get the version of internet explorer");
-    }
-    // The string we get back looks like this:
-    // HKEY_LOCAL_MACHINE\Software\Microsoft\Internet Explorer
-    //    version    REG_SZ    9.0.8112.16421
-    var findString = "REG_SZ";
-    var index = (result.stdout as String).indexOf(findString);
-    if (index > 0) {
-      return (result.stdout as String)
-          .substring(index + findString.length)
-          .trim();
-    }
-    throw StateError("Could not get the version of internet explorer");
-  }
-
-  // Clears the recovery cache and allows popups on localhost if the static
-  // resetBrowserConfiguration flag is set.
-  Future<bool> resetConfiguration() async {
-    if (!Browser.resetBrowserConfiguration) return true;
-    const ieKey = r"HKCU\Software\Microsoft\Internet Explorer";
-    // Turn off popup blocker
-    await _setRegistryKey("$ieKey\\New Windows", "PopupMgr",
-        data: "0", type: "REG_DWORD");
-    // Allow popups from localhost
-    await _setRegistryKey("$ieKey\\New Windows\\Allow", "127.0.0.1");
-    // Disable IE first run wizard
-    await _setRegistryKey("$ieKey\\Main", "DisableFirstRunCustomize",
-        data: "1", type: "REG_DWORD");
-
-    var localAppData = Platform.environment['LOCALAPPDATA'];
-    var dir = Directory("$localAppData\\Microsoft\\"
-        "Internet Explorer\\Recovery");
-    try {
-      dir.delete(recursive: true);
-      return true;
-    } catch (error) {
-      _logEvent("Deleting recovery dir failed with $error");
-      return false;
-    }
-  }
-
-  @override
-  Future<bool> start(String url) async {
-    _logEvent("Starting ie browser on: $url");
-    await resetConfiguration();
-    _logEvent("Got version: ${await version}");
-    return startBrowserProcess(_binary, [url]);
-  }
-
-  Future<void> _setRegistryKey(String key, String value,
-      {String? data, String? type}) async {
-    var args = <String>[
-      "add",
-      key,
-      "/v",
-      value,
-      "/f",
-      if (type != null) ...["/t", type]
-    ];
-    var result = await Process.run("reg", args);
-    if (result.exitCode != 0) {
-      _logEvent("Failed to set '$key' to '$value'");
-    }
-  }
-}
-
 class AndroidChrome extends Browser {
   static const String viewAction = 'android.intent.action.VIEW';
   static const String mainAction = 'android.intent.action.MAIN';
@@ -711,7 +622,6 @@ class BrowserTestOutput {
 class BrowserTestRunner {
   static const int _maxNextTestTimeouts = 10;
   static const Duration _nextTestTimeout = Duration(seconds: 120);
-  static const Duration _restartBrowserInterval = Duration(seconds: 60);
 
   /// If the queue was recently empty, don't start another browser.
   static const Duration _minNonemptyQueueTime = Duration(seconds: 1);
@@ -950,25 +860,6 @@ class BrowserTestRunner {
     // We are currently terminating this browser, don't start a new test.
     if (status.timeout) return null;
 
-    // Restart Internet Explorer if it has been
-    // running for longer than RESTART_BROWSER_INTERVAL. The tests have
-    // had flaky timeouts, and this may help.
-    if ((configuration.runtime == Runtime.ie10 ||
-            configuration.runtime == Runtime.ie11) &&
-        status.timeSinceRestart.elapsed > _restartBrowserInterval) {
-      var id = status.browser.id;
-      // Reset stopwatch so we don't trigger again before restarting.
-      status.timeout = true;
-      status.browser.close().then((_) {
-        // We don't want to start a new browser if we are terminating.
-        if (underTermination) return;
-        removeBrowser(id);
-        requestBrowser();
-      });
-      // Don't send a test to the browser we are restarting.
-      return null;
-    }
-
     var test = testQueue.removeLast();
     // If our queue isn't empty, try starting more browsers
     if (testQueue.isEmpty) {
@@ -1146,7 +1037,7 @@ class BrowserTestingServer {
     errorReportingServer.listen(errorReportingHandler, onError: errorHandler);
   }
 
-  void setupDispatchingServer(_) {
+  void setupDispatchingServer(HttpServer _) {
     var server = configuration.servers.server!;
     void noCache(HttpRequest request) {
       request.response.headers
@@ -1306,7 +1197,6 @@ body div {
       var number_div = document.getElementById('number');
       var executing_div = document.getElementById('currently_executing');
       var error_div = document.getElementById('unhandled_error');
-      var use_iframe = ${configuration.runtime.requiresIFrame};
       var start = new Date();
 
       function newTaskHandler() {
@@ -1369,21 +1259,10 @@ body div {
         number_of_tests++;
         number_div.textContent = number_of_tests;
         executing_div.textContent = url;
-        if (use_iframe) {
-          embedded_iframe.onload = null;
-          embedded_iframe_div.removeChild(embedded_iframe);
-          embedded_iframe = document.createElement('iframe');
-          embedded_iframe.id = "embedded_iframe";
-          embedded_iframe.width='800px';
-          embedded_iframe.height='600px';
-          embedded_iframe_div.appendChild(embedded_iframe);
-          embedded_iframe.src = url;
-        } else {
-          if (typeof testing_window != 'undefined') {
-            testing_window.close();
-          }
-          testing_window = window.open(url);
+        if (typeof testing_window != 'undefined') {
+          testing_window.close();
         }
+        testing_window = window.open(url);
         test_started = false;
         test_completed = false;
       }
@@ -1472,9 +1351,7 @@ body div {
       function messageHandler(e) {
         var msg = e.data;
         if (typeof msg != 'string') return;
-        var expectedSource =
-            use_iframe ? embedded_iframe.contentWindow : testing_window;
-        if (e.source != expectedSource) {
+        if (e.source != testing_window) {
             reportError("Message received from old test window: " + msg);
             return;
         }

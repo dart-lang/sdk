@@ -8,9 +8,9 @@ library;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -82,41 +82,21 @@ class FlowAnalysisHelper {
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
 
-  /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
-  /// always, and we need to be able to replicate the old behavior when
-  /// analyzing old language versions).
-  final bool respectImplicitlyTypedVarInitializers;
-
-  final bool fieldPromotionEnabled;
-
-  final bool inferenceUpdate4Enabled;
+  final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
       PromotableElementImpl2, SharedTypeView>? flow;
 
-  FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
-      {required TypeSystemOperations typeSystemOperations})
-      : this._(
-          typeSystemOperations,
-          retainDataForTesting ? FlowAnalysisDataForTesting() : null,
-          respectImplicitlyTypedVarInitializers:
-              featureSet.isEnabled(Feature.constructor_tearoffs),
-          fieldPromotionEnabled:
-              featureSet.isEnabled(Feature.inference_update_2),
-          inferenceUpdate4Enabled:
-              featureSet.isEnabled(Feature.inference_update_4),
-        );
+  FlowAnalysisHelper(bool retainDataForTesting,
+      {required TypeSystemOperations typeSystemOperations,
+      required TypeAnalyzerOptions typeAnalyzerOptions})
+      : this._(typeSystemOperations,
+            retainDataForTesting ? FlowAnalysisDataForTesting() : null,
+            typeAnalyzerOptions: typeAnalyzerOptions);
 
-  FlowAnalysisHelper._(
-    this.typeOperations,
-    this.dataForTesting, {
-    required this.respectImplicitlyTypedVarInitializers,
-    required this.fieldPromotionEnabled,
-    required this.inferenceUpdate4Enabled,
-  });
+  FlowAnalysisHelper._(this.typeOperations, this.dataForTesting,
+      {required this.typeAnalyzerOptions});
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -128,8 +108,9 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.asExpression_end(
-        expression, SharedTypeView(typeAnnotation.typeOrThrow));
+    flow!.asExpression_end(expression,
+        subExpressionType: SharedTypeView(expression.typeOrThrow),
+        castType: SharedTypeView(typeAnnotation.typeOrThrow));
   }
 
   void assignmentExpression(AssignmentExpressionImpl node) {
@@ -177,10 +158,7 @@ class FlowAnalysisHelper {
         PromotableElementImpl2, SharedTypeView>(
       typeOperations,
       assignedVariables!,
-      respectImplicitlyTypedVarInitializers:
-          respectImplicitlyTypedVarInitializers,
-      fieldPromotionEnabled: fieldPromotionEnabled,
-      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+      typeAnalyzerOptions: typeAnalyzerOptions,
     );
   }
 
@@ -297,7 +275,8 @@ class FlowAnalysisHelper {
       node,
       expression,
       node.notOperator != null,
-      SharedTypeView(typeAnnotation.typeOrThrow),
+      subExpressionType: SharedTypeView(expression.typeOrThrow),
+      checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
     );
   }
 
@@ -576,6 +555,11 @@ class TypeSystemOperations
   }
 
   @override
+  bool isBottomType(SharedTypeView type) {
+    return type.unwrapTypeView<TypeImpl>().isBottom;
+  }
+
+  @override
   bool isDartCoreFunctionInternal(TypeImpl type) {
     return type.nullabilitySuffix == NullabilitySuffix.none &&
         type.isDartCoreFunction;
@@ -606,11 +590,6 @@ class TypeSystemOperations
   }
 
   @override
-  bool isNever(SharedTypeView type) {
-    return type.unwrapTypeView<TypeImpl>().isBottom;
-  }
-
-  @override
   bool isNonNullableInternal(TypeImpl type) {
     return typeSystem.isNonNullable(type);
   }
@@ -623,7 +602,7 @@ class TypeSystemOperations
   @override
   bool isObject(SharedTypeView type) {
     return type.unwrapTypeView<TypeImpl>().isDartCoreObject &&
-        type.nullabilitySuffix == NullabilitySuffix.none;
+        !type.isQuestionType;
   }
 
   @override
@@ -714,23 +693,23 @@ class TypeSystemOperations
 
   @override
   TypeImpl? matchIterableTypeInternal(TypeImpl type) {
-    var iterableElement = typeSystem.typeProvider.iterableElement;
-    var listType = type.asInstanceOf(iterableElement);
+    var iterableElement = typeSystem.typeProvider.iterableElement2;
+    var listType = type.asInstanceOf2(iterableElement);
     return listType?.typeArguments[0];
   }
 
   @override
   SharedTypeView? matchListType(SharedTypeView type) {
-    var listElement = typeSystem.typeProvider.listElement;
-    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf(listElement);
+    var listElement = typeSystem.typeProvider.listElement2;
+    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(listElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 
   @override
   ({SharedTypeView keyType, SharedTypeView valueType})? matchMapType(
       SharedTypeView type) {
-    var mapElement = typeSystem.typeProvider.mapElement;
-    var mapType = type.unwrapTypeView<TypeImpl>().asInstanceOf(mapElement);
+    var mapElement = typeSystem.typeProvider.mapElement2;
+    var mapType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(mapElement);
     if (mapType != null) {
       return (
         keyType: SharedTypeView(mapType.typeArguments[0]),
@@ -742,8 +721,8 @@ class TypeSystemOperations
 
   @override
   SharedTypeView? matchStreamType(SharedTypeView type) {
-    var streamElement = typeSystem.typeProvider.streamElement;
-    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf(streamElement);
+    var streamElement = typeSystem.typeProvider.streamElement2;
+    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(streamElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 
@@ -853,12 +832,6 @@ class TypeSystemOperations
     // Non-promotion reason must be due to a conflict with some other
     // declaration, or because field promotion is disabled.
     return null;
-  }
-
-  @override
-  TypeImpl withNullabilitySuffixInternal(
-      TypeImpl type, NullabilitySuffix suffix) {
-    return type.withNullability(suffix);
   }
 }
 

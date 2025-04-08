@@ -227,7 +227,10 @@ File* File::OpenFD(int fd) {
   return new File(new FileHandle(fd));
 }
 
-File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
+File* File::Open(Namespace* namespc,
+                 const char* name,
+                 FileOpenMode mode,
+                 bool executable) {
   NamespaceScope ns(namespc, name);
   // Report errors for non-regular files.
   struct stat64 st;
@@ -276,12 +279,15 @@ CStringUniquePtr File::UriToPath(const char* uri) {
   return CStringUniquePtr(strdup(uri_decoder.decoded()));
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+File* File::OpenUri(Namespace* namespc,
+                    const char* uri,
+                    FileOpenMode mode,
+                    bool executable) {
   auto path = UriToPath(uri);
   if (path == nullptr) {
     return nullptr;
   }
-  return File::Open(namespc, path.get(), mode);
+  return File::Open(namespc, path.get(), mode, executable);
 }
 
 File* File::OpenStdio(int fd) {

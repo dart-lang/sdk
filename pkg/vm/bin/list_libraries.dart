@@ -13,7 +13,7 @@ Usage: list_libraries input.dill
 Lists libraries included in a kernel binary file.
 ''';
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   if (arguments.length != 1) {
     print(_usage);
     exit(1);

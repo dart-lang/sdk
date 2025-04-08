@@ -35,10 +35,9 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 5
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
   staticInvokeType: InvalidType
   staticType: InvalidType

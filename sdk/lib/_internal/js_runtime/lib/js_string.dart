@@ -67,8 +67,11 @@ final class JSString extends Interceptor
     return this.splitMapJoin(from, onMatch: convert);
   }
 
-  String splitMapJoin(Pattern from,
-      {String Function(Match)? onMatch, String Function(String)? onNonMatch}) {
+  String splitMapJoin(
+    Pattern from, {
+    String Function(Match)? onMatch,
+    String Function(String)? onNonMatch,
+  }) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
@@ -79,8 +82,11 @@ final class JSString extends Interceptor
     return stringReplaceFirstUnchecked(this, from, to, startIndex);
   }
 
-  String replaceFirstMapped(Pattern from, String replace(Match match),
-      [int startIndex = 0]) {
+  String replaceFirstMapped(
+    Pattern from,
+    String replace(Match match), [
+    int startIndex = 0,
+  ]) {
     checkNull(replace);
     checkInt(startIndex);
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
@@ -91,7 +97,7 @@ final class JSString extends Interceptor
     checkNull(pattern);
     if (pattern is String) {
       return stringSplitUnchecked(this, pattern);
-    } else if (pattern is JSSyntaxRegExp && regExpCaptureCount(pattern) == 0) {
+    } else if (pattern is JSSyntaxRegExp && !regExpHasCaptures(pattern)) {
       var re = regExpGetNative(pattern);
       return stringSplitUnchecked(this, re);
     } else {
@@ -158,13 +164,19 @@ final class JSString extends Interceptor
   }
 
   String toLowerCase() {
-    return JS('returns:String;effects:none;depends:none;throws:null(1)',
-        r'#.toLowerCase()', this);
+    return JS(
+      'returns:String;effects:none;depends:none;throws:null(1)',
+      r'#.toLowerCase()',
+      this,
+    );
   }
 
   String toUpperCase() {
-    return JS('returns:String;effects:none;depends:none;throws:null(1)',
-        r'#.toUpperCase()', this);
+    return JS(
+      'returns:String;effects:none;depends:none;throws:null(1)',
+      r'#.toUpperCase()',
+      this,
+    );
   }
 
   // Characters with Whitespace property (Unicode 6.3).
@@ -409,8 +421,8 @@ final class JSString extends Interceptor
     return this == other
         ? 0
         : JS('bool', r'# < #', this, other)
-            ? -1
-            : 1;
+        ? -1
+        : 1;
   }
 
   // Note: if you change this, also change the function [S].

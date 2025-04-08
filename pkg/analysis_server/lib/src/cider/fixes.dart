@@ -101,5 +101,5 @@ class _CiderDartFixContextImpl extends DartFixContext {
   }
 
   @override
-  Stream<LibraryElement2> librariesWithExtensions(String memberName) async* {}
+  Stream<LibraryElement2> librariesWithExtensions(Name memberName) async* {}
 }

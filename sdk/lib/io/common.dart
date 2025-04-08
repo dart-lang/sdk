@@ -92,7 +92,7 @@ class OSError implements Exception {
 
   /// Converts an OSError object to a string representation.
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write("OS Error");
     if (message.isNotEmpty) {
       sb
@@ -129,12 +129,12 @@ _BufferAndStart _ensureFastAndSerializableByteData(
     // Send typed data directly, unless it is a partial view, in which case we
     // would rather copy than drag in the potentially much large backing store.
     // See issue 50206.
-    return new _BufferAndStart(buffer, start);
+    return _BufferAndStart(buffer, start);
   }
   int length = end - start;
-  var newBuffer = new Uint8List(length);
+  var newBuffer = Uint8List(length);
   newBuffer.setRange(0, length, buffer, start);
-  return new _BufferAndStart(newBuffer, 0);
+  return _BufferAndStart(newBuffer, 0);
 }
 
 class _IOCrypto {

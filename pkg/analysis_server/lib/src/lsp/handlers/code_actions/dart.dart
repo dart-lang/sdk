@@ -10,12 +10,16 @@ import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_acti
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
-import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server_plugin/edit/assist/assist.dart';
+import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -23,6 +27,7 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -114,29 +119,50 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<CodeActionWithPriority>> getAssistActions() async {
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformanceImpl? performance,
+  }) async {
     // These assists are only provided as literal CodeActions.
     if (!supportsLiterals) {
-      return [];
+      return const [];
     }
 
     try {
-      var workspace = DartChangeWorkspace(await server.currentSessions);
-      var context = DartAssistContextImpl(
+      var context = DartAssistContext(
         server.instrumentationService,
-        workspace,
+        DartChangeWorkspace(await server.currentSessions),
         libraryResult,
         unitResult,
-        server.producerGeneratorsForLintRules,
         offset,
         length,
       );
-      var processor = AssistProcessor(context);
-      var assists = await processor.compute();
+
+      late List<Assist> assists;
+      if (performance != null) {
+        var performanceTracker = AssistPerformance();
+        assists = await computeAssists(
+          context,
+          performance: performanceTracker,
+        );
+
+        server.recentPerformance.getAssists.add(
+          GetAssistsPerformance(
+            performance: performance,
+            path: path,
+            content: unitResult.content,
+            offset: offset,
+            requestLatency: performanceTracker.computeTime!.inMilliseconds,
+            producerTimings: performanceTracker.producerTimings,
+          ),
+        );
+      } else {
+        assists = await computeAssists(context);
+      }
 
       return assists.map((assist) {
         var action = createAssistAction(
           assist.change,
+          assist.change.id,
           unitResult.path,
           unitResult.lineInfo,
         );
@@ -146,12 +172,14 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
       // just return an empty set.
-      return [];
+      return const [];
     }
   }
 
   @override
-  Future<List<CodeActionWithPriority>> getFixActions() async {
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  ) async {
     // These fixes are only provided as literal CodeActions.
     if (!supportsLiterals) {
       return [];
@@ -181,7 +209,26 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           unitResult: unitResult,
           error: error,
         );
-        var fixes = await computeFixes(context);
+
+        var performanceTracker = FixPerformance();
+        var fixes = await computeFixes(
+          context,
+          performance: performanceTracker,
+        );
+
+        if (performance != null) {
+          server.recentPerformance.getFixes.add(
+            GetFixesPerformance(
+              performance: performance,
+              path: path,
+              content: unitResult.content,
+              offset: offset,
+              requestLatency: performanceTracker.computeTime!.inMilliseconds,
+              producerTimings: performanceTracker.producerTimings,
+            ),
+          );
+        }
+
         if (fixes.isNotEmpty) {
           var diagnostic = toDiagnostic(
             server.uriConverter,
@@ -194,6 +241,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             fixes.map((fix) {
               var action = createFixAction(
                 fix.change,
+                fix.change.id,
                 diagnostic,
                 path,
                 lineInfo,
@@ -214,7 +262,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions() async {
+  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+    OperationPerformance? performance,
+  ) async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
     if (!supportsApplyEdit) {
@@ -222,6 +272,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     var refactorActions = <Either2<CodeAction, Command>>[];
+    var performanceTracker = RefactoringPerformance();
 
     try {
       // New interactive refactors.
@@ -236,12 +287,16 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         includeExperimental:
             server.lspClientConfiguration.global.experimentalRefactors,
       );
-      var processor = RefactoringProcessor(context);
+      var processor = RefactoringProcessor(
+        context,
+        performance: performanceTracker,
+      );
       var actions = await processor.compute();
       refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
+        var timer = Stopwatch()..start();
         // Extract Method
         if (ExtractMethodRefactoring(
           server.searchEngine,
@@ -257,6 +312,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ExtractMethodRefactoring',
+          timer: timer,
+        );
 
         // Extract Local Variable
         if (ExtractLocalRefactoring(unitResult, offset, length).isAvailable()) {
@@ -268,6 +327,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ExtractLocalRefactoring',
+          timer: timer,
+        );
 
         // Extract Widget
         if (ExtractWidgetRefactoring(
@@ -284,10 +347,16 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ExtractWidgetRefactoring',
+          timer: timer,
+        );
       }
 
+      var timer = Stopwatch();
       // Inlines
       if (shouldIncludeKind(CodeActionKind.RefactorInline)) {
+        timer.start();
         // Inline Local Variable
         if (InlineLocalRefactoring(
           server.searchEngine,
@@ -302,6 +371,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'InlineLocalRefactoring',
+          timer: timer,
+        );
 
         // Inline Method
         if (InlineMethodRefactoring(
@@ -317,10 +390,16 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'InlineMethodRefactoring',
+          timer: timer,
+        );
       }
 
       // Converts/Rewrites
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
+        timer.restart();
+
         var node = NodeLocator(offset).searchWithin(unitResult.unit);
         var element = server.getElementOfNode(node);
 
@@ -339,6 +418,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ConvertGetterToMethodRefactoring',
+          timer: timer,
+        );
 
         // Method to Getter
         if (element is ExecutableElement2 &&
@@ -355,6 +438,22 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ConvertMethodToGetterRefactoring',
+          timer: timer,
+        );
+      }
+      if (performance != null) {
+        server.recentPerformance.getRefactorings.add(
+          GetRefactoringsPerformance(
+            performance: performance,
+            path: path,
+            content: unitResult.content,
+            offset: offset,
+            requestLatency: performanceTracker.computeTime!.inMilliseconds,
+            producerTimings: performanceTracker.producerTimings,
+          ),
+        );
       }
 
       return refactorActions;
@@ -405,5 +504,22 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           CodeAction(title: command.title, kind: kind, command: command),
         )
         : Either2<CodeAction, Command>.t2(command);
+  }
+}
+
+extension on Stopwatch {
+  void restart() {
+    reset();
+    start();
+  }
+}
+
+extension on RefactoringPerformance {
+  void addTiming({required String className, required Stopwatch timer}) {
+    producerTimings.add((
+      className: 'InlineMethodRefactoring',
+      elapsedTime: timer.elapsedMilliseconds,
+    ));
+    timer.restart();
   }
 }

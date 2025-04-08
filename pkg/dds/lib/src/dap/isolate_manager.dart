@@ -645,7 +645,12 @@ class IsolateManager {
     // after a hot restart.
     if (eventKind == vm.EventKind.kPausePostRequest) {
       await _configureIsolate(thread);
-      await handleThreadStartup(thread, sendStoppedOnEntry: false);
+
+      // We always want to resume here regardless of whether startupHandled was
+      // already `true` (because that might be from before the reload).
+      // Therefore set the flag and resume always.
+      thread.startupHandled = true;
+      await readyToResumeThread(thread.threadId);
     } else if (eventKind == vm.EventKind.kPauseStart) {
       handleThreadStartup(thread, sendStoppedOnEntry: true);
     } else {

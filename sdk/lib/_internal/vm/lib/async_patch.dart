@@ -22,6 +22,7 @@ external _fatal(msg);
 external void _trySetStackTrace(Object error, StackTrace stackTrace);
 
 // This function is used when lowering `await for` statements.
+@pragma('dyn-module:language-impl:callable')
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {
     return;
@@ -140,7 +141,7 @@ class _AsyncStarStreamController<T> {
     controller.close();
   }
 
-  _AsyncStarStreamController() : controller = new StreamController(sync: true) {
+  _AsyncStarStreamController() : controller = StreamController(sync: true) {
     controller.onListen = this.onListen;
     controller.onResume = this.onResume;
     controller.onCancel = this.onCancel;
@@ -163,7 +164,7 @@ class _AsyncStarStreamController<T> {
       return null;
     }
     if (cancellationFuture == null) {
-      cancellationFuture = new _Future();
+      cancellationFuture = _Future();
       // Only resume the generator if it is suspended at a yield.
       // Cancellation does not affect an async generator that is
       // suspended at an await.
@@ -480,6 +481,7 @@ class _SuspendState {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:language-impl:callable')
   external Object get _functionData;
 
   @pragma("vm:recognized", "other")

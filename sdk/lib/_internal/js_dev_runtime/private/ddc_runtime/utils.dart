@@ -78,18 +78,19 @@ copyTheseProperties(
   from,
   namesAndSymbols, {
   bool Function(Object)? copyWhen,
+  Object Function(Object)? transform,
 }) {
   for (int i = 0, n = JS('!', '#.length', namesAndSymbols); i < n; ++i) {
     var nameOrSymbol = JS<Object>('!', '#[#]', namesAndSymbols, i);
     if ('constructor' == nameOrSymbol) continue;
     if ('prototype' == nameOrSymbol) continue;
     if (copyWhen != null && !copyWhen(nameOrSymbol)) continue;
-    copyProperty(to, from, nameOrSymbol);
+    copyProperty(to, from, nameOrSymbol, transform: transform);
   }
   return to;
 }
 
-copyProperty(to, from, name) {
+copyProperty(to, from, name, {Object Function(Object)? transform}) {
   var desc = getOwnPropertyDescriptor(from, name);
   if (JS('!', '# == Symbol.iterator', name)) {
     // On native types, Symbol.iterator may already be present.
@@ -104,6 +105,9 @@ copyProperty(to, from, name) {
       return;
     }
   }
+  if (transform != null) {
+    desc = JS<Object>('', '#(#)', transform, desc);
+  }
   defineProperty(to, name, desc);
 }
 
@@ -114,11 +118,18 @@ exportProperty(to, from, name) => copyProperty(to, from, name);
 /// This operation is commonly called `mixin` in JS.
 ///
 /// [copyWhen] allows you to specify when a JS property will be copied.
-copyProperties(to, from, {bool Function(Object)? copyWhen}) {
+/// [transform] allows you to specify a value based on a property descriptor.
+copyProperties(
+  to,
+  from, {
+  bool Function(Object)? copyWhen,
+  Object Function(Object)? transform,
+}) {
   return copyTheseProperties(
     to,
     from,
     getOwnNamesAndSymbols(from),
     copyWhen: copyWhen,
+    transform: transform,
   );
 }

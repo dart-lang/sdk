@@ -9,7 +9,7 @@ import 'shared/shared.dart' show Base, SuperBase;
 
 /// A dynamic module is allowed to extend a class in the dynamic interface and
 /// override its members.
-main() async {
+void main() async {
   final o = (await helper.load('entry1.dart')) as Base;
   if (o is SuperBase<num, String>) {
     Expect.equals(3, o.method1());

@@ -161,13 +161,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
   }
 
   @override
-  ChildEntities get _childEntities {
-    return ChildEntities()
-      ..addNode('documentationComment', documentationComment)
-      ..addNodeList('metadata', metadata);
-  }
-
-  @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
   }
@@ -1282,6 +1275,10 @@ abstract class AstVisitor<R> {
   R? visitDefaultFormalParameter(DefaultFormalParameter node);
 
   R? visitDoStatement(DoStatement node);
+
+  R? visitDotShorthandInvocation(DotShorthandInvocation node);
+
+  R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
 
   R? visitDottedName(DottedName node);
 
@@ -3472,7 +3469,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     with AstNodeWithNameScopeMixin
     implements CompilationUnit {
   @override
-  Token beginToken;
+  final Token beginToken;
 
   ScriptTagImpl? _scriptTag;
 
@@ -5110,7 +5107,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
         context,
         this,
         declaredElement2!,
-        declaredFragment!.name3!,
+        declaredFragment!.name,
         type?.typeOrThrow.wrapSharedTypeView());
     declaredElement2!.type = result.staticType.unwrapTypeView();
 
@@ -5389,6 +5386,150 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   void visitChildren(AstVisitor visitor) {
     _body.accept(visitor);
     _condition.accept(visitor);
+  }
+}
+
+/// A node that represents a dot shorthand static method or constructor
+/// invocation.
+///
+/// For example, `.parse('42')`.
+///
+///    dotShorthandHead ::=
+///        '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandInvocation extends InvocationExpression {
+  /// The name of the constructor or static method invocation.
+  SimpleIdentifier get memberName;
+
+  /// The token representing the period.
+  Token get period;
+}
+
+final class DotShorthandInvocationImpl extends InvocationExpressionImpl
+    implements DotShorthandInvocation {
+  @override
+  final Token period;
+
+  SimpleIdentifierImpl _memberName;
+
+  /// Initializes a newly created dot shorthand invocation.
+  DotShorthandInvocationImpl({
+    required this.period,
+    required SimpleIdentifierImpl memberName,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _memberName = memberName {
+    _becomeParentOf(_memberName);
+  }
+
+  @override
+  Token get beginToken => period;
+
+  @override
+  Token get endToken => argumentList.endToken;
+
+  @override
+  ExpressionImpl get function => memberName;
+
+  @override
+  SimpleIdentifierImpl get memberName => _memberName;
+
+  set memberName(SimpleIdentifierImpl identifier) {
+    _memberName = _becomeParentOf(identifier);
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('memberName', memberName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandInvocation(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitDotShorthandInvocation(this, contextType: contextType);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    memberName.accept(visitor);
+    typeArguments?.accept(visitor);
+    argumentList.accept(visitor);
+  }
+}
+
+/// A node that represents a dot shorthand property access of a field or a
+/// static getter.
+///
+/// For example, `.zero`.
+///
+///    dotShorthandHead ::= '.' [SimpleIdentifier]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandPropertyAccess extends Expression {
+  /// The token representing the period.
+  Token get period;
+
+  /// The name of the property being accessed.
+  SimpleIdentifier get propertyName;
+}
+
+final class DotShorthandPropertyAccessImpl extends ExpressionImpl
+    implements DotShorthandPropertyAccess {
+  @override
+  final Token period;
+
+  SimpleIdentifierImpl _propertyName;
+
+  /// Initializes a newly created dot shorthand property access.
+  DotShorthandPropertyAccessImpl({
+    required this.period,
+    required SimpleIdentifierImpl propertyName,
+  }) : _propertyName = propertyName {
+    _becomeParentOf(_propertyName);
+  }
+
+  @override
+  Token get beginToken => period;
+
+  @override
+  Token get endToken => propertyName.endToken;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  SimpleIdentifierImpl get propertyName => _propertyName;
+
+  set propertyName(SimpleIdentifierImpl identifier) {
+    _propertyName = _becomeParentOf(identifier);
+  }
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('propertyName', propertyName);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandPropertyAccess(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitDotShorthandPropertyAccess(this, contextType: contextType);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    propertyName.accept(visitor);
   }
 }
 
@@ -6303,11 +6444,12 @@ sealed class ExpressionImpl extends AstNodeImpl
           return null;
         case ArgumentList():
         case Expression():
-        case IfElement():
         case ForElement():
+        case IfElement():
+        case InterpolationExpression():
         case MapLiteralEntry():
-        case SpreadElement():
         case NullAwareElement():
+        case SpreadElement():
         case VariableDeclaration():
           break;
         default:
@@ -6598,7 +6740,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
+  ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('name', name)
@@ -9313,8 +9455,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNodeList('metadata', metadata)
+  ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addToken('name', name)
@@ -10837,8 +10978,8 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
 /// The invocation of a function or method.
 ///
-/// This will either be a [FunctionExpressionInvocation] or a
-/// [MethodInvocation].
+/// This will either be a [FunctionExpressionInvocation], [MethodInvocation],
+/// or a [DotShorthandInvocation].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvocationExpression implements Expression {
   /// The list of arguments to the method.
@@ -11497,8 +11638,11 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 ///      | [IntegerLiteral]
 ///      | [ListLiteral]
 ///      | [NullLiteral]
+///      | [RecordLiteral]
 ///      | [SetOrMapLiteral]
 ///      | [StringLiteral]
+///      | [SymbolLiteral]
+///      | [TypedLiteral]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Literal implements Expression {}
 
@@ -13185,9 +13329,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   ChildEntities get _childEntities {
-    return ChildEntities()
-      ..addNode('documentationComment', documentationComment)
-      ..addNodeList('metadata', metadata)
+    return super._childEntities
       ..addToken('requiredKeyword', requiredKeyword)
       ..addToken('covariantKeyword', covariantKeyword);
   }
@@ -15264,7 +15406,7 @@ final class RedirectingConstructorInvocationImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElementMixin? staticElement;
+  ConstructorElementImpl? staticElement;
 
   /// Initializes a newly created redirecting invocation to invoke the
   /// constructor with the given name with the given arguments.
@@ -15301,9 +15443,9 @@ final class RedirectingConstructorInvocationImpl
 
   @experimental
   @override
-  ConstructorElementMixin2? get element => staticElement?.asElement2;
+  ConstructorElementImpl2? get element => staticElement?.asElement2;
 
-  set element(ConstructorElementMixin2? value) {
+  set element(ConstructorElementImpl2? value) {
     staticElement = value?.asElement;
   }
 
@@ -18681,15 +18823,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
     return parent is VariableDeclarationList && parent.isLate;
   }
 
-  DartType get type {
-    if (declaredElement2 case var declaredElement?) {
-      return declaredElement.type;
-    }
-    // SAFETY: The variable declaration is either a local variable,
-    // of a fragment of: top-level, field, formal parameter.
-    return declaredFragment!.element.type;
-  }
-
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('name', name)
@@ -19311,6 +19444,14 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
       if (comment != null) comment,
       ..._metadata,
     ]..sort(AstNode.LEXICAL_ORDER);
+  }
+
+  @override
+  @mustCallSuper
+  ChildEntities get _childEntities {
+    return ChildEntities()
+      ..addNode('documentationComment', documentationComment)
+      ..addNodeList('metadata', metadata);
   }
 
   /// Returns `true` if there are no annotations before the comment.

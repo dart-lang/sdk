@@ -634,9 +634,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register tmp1,
-                                  Register tmp2,
-                                  bool ignore_unwind_in_progress) {
+void Assembler::ExitFullSafepoint(Register tmp1, Register tmp2) {
   Register addr = tmp1;
   Register state = tmp2;
 
@@ -664,14 +662,7 @@ void Assembler::ExitFullSafepoint(Register tmp1,
   }
 
   Bind(&slow_path);
-  if (ignore_unwind_in_progress) {
-    ldr(TMP,
-        Address(THR,
-                target::Thread::
-                    exit_safepoint_ignore_unwind_in_progress_stub_offset()));
-  } else {
-    ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  }
+  ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
   blx(TMP);
 
@@ -681,13 +672,10 @@ void Assembler::ExitFullSafepoint(Register tmp1,
 void Assembler::TransitionNativeToGenerated(Register addr,
                                             Register state,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress,
                                             bool set_tag) {
   if (exit_safepoint) {
-    ExitFullSafepoint(addr, state, ignore_unwind_in_progress);
+    ExitFullSafepoint(addr, state);
   } else {
-    // flag only makes sense if we are leaving safepoint
-    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     ASSERT(target::Thread::native_safepoint_state_acquired() != 0);

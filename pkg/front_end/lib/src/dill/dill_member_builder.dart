@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart'
     show
-        Annotatable,
         Constructor,
         Field,
         FunctionNode,
@@ -116,10 +115,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
       _localSetters ??= isSetter || member is Field && member.hasSetter
           ? <ClassMember>[new DillClassMember(this, ClassMemberKind.Setter)]
           : const <ClassMember>[];
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Annotatable> get annotatables => [member];
 }
 
 class DillFieldBuilder extends DillMemberBuilder implements PropertyBuilder {
@@ -509,7 +504,8 @@ class DillClassMember extends BuilderClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
     // Do nothing; this is only for source members.
   }
 

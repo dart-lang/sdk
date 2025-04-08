@@ -17,9 +17,8 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_className];
@@ -29,28 +28,32 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    Expression? target;
-    Element2? invokedElement;
     var identifier = node;
-    if (identifier is SimpleIdentifier) {
-      var parent = identifier.parent;
-      if (parent is MethodInvocation) {
-        if (parent.methodName == identifier) {
-          target = parent.target;
-          invokedElement = identifier.element;
-        }
-      } else if (parent is PrefixedIdentifier) {
-        if (parent.identifier == identifier) {
-          target = parent.prefix;
-          invokedElement = identifier.element;
-        }
-      }
-    }
-    if (target == null || invokedElement is! ExecutableElement2) {
+    if (identifier is! SimpleIdentifier) {
       return;
     }
 
-    var target_final = target;
+    Expression target;
+    var parent = identifier.parent;
+    if (parent case MethodInvocation(target: var parentTarget?)) {
+      if (parent.methodName != identifier) {
+        return;
+      }
+      target = parentTarget;
+    } else if (parent is PrefixedIdentifier) {
+      if (parent.identifier != identifier) {
+        return;
+      }
+      target = parent.prefix;
+    } else {
+      return;
+    }
+
+    var invokedElement = identifier.element;
+    if (invokedElement is! ExecutableElement2) {
+      return;
+    }
+
     var declaringElement = invokedElement.enclosingElement2;
 
     if (declaringElement is InterfaceElement2) {
@@ -58,7 +61,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
       if (declaringElementName != null) {
         _className = declaringElementName;
         await builder.addDartFileEdit(file, (builder) {
-          builder.addReplacement(range.node(target_final), (builder) {
+          builder.addReplacement(range.node(target), (builder) {
             builder.writeReference(declaringElement);
           });
         });
@@ -68,7 +71,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
       if (extensionName != null) {
         _className = extensionName;
         await builder.addDartFileEdit(file, (builder) {
-          builder.addReplacement(range.node(target_final), (builder) {
+          builder.addReplacement(range.node(target), (builder) {
             builder.writeReference(declaringElement);
           });
         });

@@ -210,7 +210,7 @@ abstract final class DartFixKind {
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
     'dart.fix.add.missingRequiredArgument',
     70,
-    "Add required argument '{0}'",
+    'Add {0} required argument{1}',
   );
   static const ADD_MISSING_SWITCH_CASES = FixKind(
     'dart.fix.add.missingSwitchCases',
@@ -1020,7 +1020,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Make final',
   );
-
   // TODO(pq): consider parameterizing: 'Make {fields} final...'
   static const MAKE_FINAL_MULTI = FixKind(
     'dart.fix.makeFinal.multi',
@@ -1071,6 +1070,38 @@ abstract final class DartFixKind {
     'dart.fix.matchEmptyMap',
     DartFixKindPriority.standard,
     'Match an empty map',
+  );
+
+  /// Used when the user has at least one `show` combinator to suggest merging
+  /// using `show`.
+  static const MERGE_COMBINATORS_SHOW_SHOW = FixKind(
+    'dart.fix.mergeCombinatorsShow.show',
+    DartFixKindPriority.standard + 1,
+    "Merge combinators into a single 'show'",
+  );
+
+  /// Used when the user has only `hide` combinators to suggest merging using
+  /// `show`.
+  static const MERGE_COMBINATORS_SHOW_HIDE = FixKind(
+    'dart.fix.mergeCombinatorsShow.hide',
+    DartFixKindPriority.standard,
+    "Merge combinators into a single 'show'",
+  );
+
+  /// Used when the user has only `hide` combinators to suggest merging using
+  /// `hide`.
+  static const MERGE_COMBINATORS_HIDE_HIDE = FixKind(
+    'dart.fix.mergeCombinatorsHide.hide',
+    DartFixKindPriority.standard + 1,
+    "Merge combinators into a single 'hide'",
+  );
+
+  /// Used when the user has at least one `show` combinator to suggest merging
+  /// using `hide`.
+  static const MERGE_COMBINATORS_HIDE_SHOW = FixKind(
+    'dart.fix.mergeCombinatorsHide.show',
+    DartFixKindPriority.standard,
+    "Merge combinators into a single 'hide'",
   );
   static const MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE = FixKind(
     'dart.fix.moveAnnotationToLibraryDirective',
@@ -1143,22 +1174,22 @@ abstract final class DartFixKind {
   static const REMOVE_AWAIT = FixKind(
     'dart.fix.remove.await',
     DartFixKindPriority.standard,
-    'Remove await',
+    "Remove 'await'",
   );
   static const REMOVE_AWAIT_MULTI = FixKind(
     'dart.fix.remove.await.multi',
     DartFixKindPriority.inFile,
-    'Remove awaits in file',
+    "Remove 'await's in file",
   );
   static const REMOVE_BREAK = FixKind(
     'dart.fix.remove.break',
     DartFixKindPriority.standard,
-    'Remove break',
+    "Remove 'break'",
   );
   static const REMOVE_BREAK_MULTI = FixKind(
     'dart.fix.remove.break.multi',
     DartFixKindPriority.inFile,
-    'Remove unnecessary breaks in file',
+    "Remove unnecessary 'break's in file",
   );
   static const REMOVE_CHARACTER = FixKind(
     'dart.fix.remove.character',
@@ -1193,7 +1224,7 @@ abstract final class DartFixKind {
   static const REMOVE_CONST = FixKind(
     'dart.fix.remove.const',
     DartFixKindPriority.standard,
-    'Remove const',
+    "Remove 'const'",
   );
   static const REMOVE_CONSTRUCTOR = FixKind(
     'dart.fix.remove.constructor',
@@ -1223,12 +1254,12 @@ abstract final class DartFixKind {
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference',
     DartFixKindPriority.standard,
-    'Remove deprecated new keyword',
+    "Remove deprecated 'new' keyword",
   );
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE_MULTI = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference.multi',
     DartFixKindPriority.inFile,
-    'Remove deprecated new keyword in file',
+    "Remove deprecated 'new' keyword in file",
   );
   static const REMOVE_DUPLICATE_CASE = FixKind(
     'dart.fix.remove.duplicateCase',
@@ -1547,7 +1578,7 @@ abstract final class DartFixKind {
   static const REMOVE_UNNECESSARY_CONST = FixKind(
     'dart.fix.remove.unnecessaryConst',
     DartFixKindPriority.standard,
-    'Remove unnecessary const keyword',
+    "Remove unnecessary 'const' keyword",
   );
   static const REMOVE_UNNECESSARY_CONST_MULTI = FixKind(
     'dart.fix.remove.unnecessaryConst.multi',

@@ -7,15 +7,21 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart2native/generate.dart';
+import 'package:dartdev/src/unified_analytics.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
+import 'package:http/http.dart' as http;
+import 'package:native_assets_cli/code_assets_builder.dart'
+    show Architecture, OS, Target;
 import 'package:path/path.dart' as path;
-import 'package:vm/target_os.dart'; // For possible --target-os values.
+import 'package:vm/target_os.dart';
+import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
 import '../native_assets.dart';
 import '../sdk.dart';
+import '../sdk_cache.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
 
@@ -450,6 +456,10 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 class CompileNativeCommand extends CompileSubcommandCommand {
   static const String exeCmdName = 'exe';
   static const String aotSnapshotCmdName = 'aot-snapshot';
+  static final supportedTargetPlatforms = <Target>{
+    Target.linuxArm64,
+    Target.linuxX64
+  };
 
   final String commandName;
   final Kind format;
@@ -526,6 +536,11 @@ Remove debugging information from the output and save it separately to the speci
       ..addOption('target-os',
           help: 'Compile to a specific target operating system.',
           allowed: TargetOS.names)
+      ..addOption('target-arch',
+          help: 'Compile to a specific target architecture.',
+          allowed: Architecture.values.map((v) => v.name).toList())
+      ..addFlag('experimental-cross-compilation',
+          hide: true, help: 'Pass to enable cross-compilation.')
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -541,8 +556,7 @@ Remove debugging information from the output and save it separately to the speci
           "'dart compile $commandName' is not supported on x86 architectures.\n");
       return 64;
     }
-    if (!Sdk.checkArtifactExists(genKernel) ||
-        !Sdk.checkArtifactExists(genSnapshot)) {
+    if (!Sdk.checkArtifactExists(genKernel)) {
       return 255;
     }
     final args = argResults!;
@@ -563,6 +577,50 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
+    var genSnapshotBinary = genSnapshotHost;
+    var dartAotRuntimeBinary = hostDartAotRuntime;
+
+    final target = crossCompilationTarget(args);
+
+    if (target != null) {
+      if (!args.flag('experimental-cross-compilation')) {
+        stderr.writeln('Target platform ($target) '
+            'does not match host platform (${Target.current}).');
+        stderr.writeln('Native cross-compilation support is experimental. '
+            'Pass the `--experimental-cross-compilation` flag to enable it.');
+        return 128;
+      }
+
+      if (!supportedTargetPlatforms.contains(target)) {
+        stderr.writeln('Unsupported target platform $target.');
+        stderr.writeln('Supported target platforms: '
+            '${supportedTargetPlatforms.join(', ')}');
+        return 128;
+      }
+
+      var cacheDir = getDartStorageDirectory();
+      if (cacheDir == null) {
+        cacheDir = Directory.systemTemp.createTempSync();
+        log.stdout('Cannot get dart storage directory. '
+            'Using temp dir ${cacheDir.path}');
+      }
+      final httpClient = http.Client();
+      try {
+        final cache = SdkCache(
+            directory: cacheDir.path, verbose: verbose, httpClient: httpClient);
+        final archiveFolder = await cache.resolveVersion(
+            version: Runtime.runtime.version,
+            revision: sdk.revision ?? '',
+            channelName: Runtime.runtime.channel ?? 'unknown');
+        genSnapshotBinary = await cache.ensureGenSnapshot(
+            archiveFolder: archiveFolder, target: target);
+        dartAotRuntimeBinary = await cache.ensureDartAotRuntime(
+            archiveFolder: archiveFolder, target: target);
+      } finally {
+        httpClient.close();
+      }
+    }
+
     final packageConfig = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
@@ -571,11 +629,29 @@ Remove debugging information from the output and save it separately to the speci
         Directory.current.uri,
       );
       if (runPackageName != null) {
+        final pubspecUri =
+            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+        final Map? pubspec;
+        if (pubspecUri == null) {
+          pubspec = null;
+        } else {
+          pubspec =
+              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
+          final pubspecErrors =
+              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
+                  pubspec);
+          if (pubspecErrors.isNotEmpty) {
+            log.stderr('Errors in pubspec:');
+            pubspecErrors.forEach(log.stderr);
+            return 255;
+          }
+        }
         final builder = DartNativeAssetsBuilder(
-          packageConfigUri: packageConfig,
-          runPackageName: runPackageName,
-          verbose: verbose,
-        );
+            pubspec: pubspec,
+            packageConfigUri: packageConfig,
+            runPackageName: runPackageName,
+            verbose: verbose,
+            target: target);
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {
             return 255;
@@ -595,24 +671,11 @@ Remove debugging information from the output and save it separately to the speci
       }
     }
 
-    String? targetOS = args.option('target-os');
-    if (format != Kind.exe) {
-      assert(format == Kind.aot);
-      // If we're generating an AOT snapshot and not an executable, then
-      // targetOS is allowed to be null for a platform-independent snapshot
-      // or a different platform than the host.
-    } else if (targetOS == null) {
-      targetOS = Platform.operatingSystem;
-    } else if (targetOS != Platform.operatingSystem) {
-      stderr.writeln(
-          "'dart compile $commandName' does not support cross-OS compilation.");
-      stderr.writeln('Host OS: ${Platform.operatingSystem}');
-      stderr.writeln('Target OS: $targetOS');
-      return 128;
-    }
     final tempDir = Directory.systemTemp.createTempSync();
     try {
       final kernelGenerator = KernelGenerator(
+        genSnapshot: genSnapshotBinary,
+        targetDartAotRuntime: dartAotRuntimeBinary,
         kind: format,
         sourceFile: sourcePath,
         outputFile: args.option('output'),
@@ -623,7 +686,7 @@ Remove debugging information from the output and save it separately to the speci
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
-        targetOS: targetOS,
+        targetOS: target?.os ?? OS.current,
         tempDir: tempDir,
         depFile: args.option('depfile'),
       );
@@ -644,6 +707,35 @@ Remove debugging information from the output and save it separately to the speci
     } finally {
       await tempDir.delete(recursive: true);
     }
+  }
+
+  /// Returns target platform for cross compilation.
+  ///
+  /// If cross compilation is not needed, returns null.
+  Target? crossCompilationTarget(ArgResults args) {
+    final String? targetOS = args.option('target-os');
+    final String? targetArch = args.option('target-arch');
+
+    if (targetOS == null && targetArch == null) {
+      return null;
+    }
+
+    // If one of the target options is explicitly specified,
+    // resolving full host and target platforms to check for
+    // cross compilation.
+    final host = Target.current;
+    final target = Target.fromArchitectureAndOS(
+      targetArch == null
+          ? host.architecture
+          : Architecture.fromString(targetArch),
+      targetOS == null ? host.os : OS.fromString(targetOS),
+    );
+
+    // Platforms match, no need to cross compile.
+    if (host == target) {
+      return null;
+    }
+    return target;
   }
 }
 
@@ -764,6 +856,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         abbr: 'E',
         help: 'An extra option to pass to the dart2wasm compiler.',
         hide: !verbose,
+        splitCommas: false,
       )
       ..addOption(
         'optimization-level',
@@ -799,6 +892,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: defineOption.help,
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
+        splitCommas: false,
       )
       ..addExperimentalFlags(verbose: verbose);
   }

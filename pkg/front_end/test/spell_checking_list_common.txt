@@ -52,6 +52,7 @@ accurate
 accurately
 achieve
 achieved
+achieves
 act
 acting
 action
@@ -655,6 +656,7 @@ constuctor
 consume
 consumed
 consumer
+consumes
 consuming
 contain
 contained
@@ -813,6 +815,7 @@ delegates
 delegation
 delete
 deleted
+deletes
 deliberately
 delimited
 delimiter
@@ -1379,6 +1382,7 @@ gleaned
 global
 glorified
 go
+goal
 goes
 going
 gone
@@ -1387,6 +1391,7 @@ got
 gotten
 governed
 gracefully
+grain
 grammar
 granular
 graph
@@ -2261,6 +2266,7 @@ patches
 patching
 paths
 pattern
+paying
 peek
 peel
 peeled
@@ -3248,6 +3254,9 @@ trigger
 triggered
 trim
 trimmed
+trimmer
+trimming
+trims
 trip
 triple
 triples

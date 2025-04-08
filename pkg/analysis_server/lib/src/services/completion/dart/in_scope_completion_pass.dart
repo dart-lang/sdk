@@ -792,9 +792,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (element is InterfaceElement2) {
         declarationHelper(
           preferNonInvocation: true,
-        ).addConstructorNamesForElement(element: element);
-        declarationHelper(
-          preferNonInvocation: true,
         ).addStaticMembersOfElement(element);
       }
     } else {
@@ -2268,8 +2265,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             var helper = declarationHelper(
               mustBeAssignable: mustBeAssignable,
               preferNonInvocation:
-                  element is InterfaceElement2 &&
-                  state.request.shouldSuggestTearOff(element),
+                  node.parent is CommentReference ||
+                  (element is InterfaceElement2 &&
+                      state.request.shouldSuggestTearOff(element)),
             );
             if (node.parent is CommentReference) {
               if (element is InterfaceElement2) {

@@ -23,9 +23,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_variableName];
@@ -229,7 +228,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    var oldType = parent.type;
+    var oldType = parent.declaredFragment!.element.type;
     if (oldType is! InterfaceTypeImpl && oldType is! RecordTypeImpl) {
       return;
     }

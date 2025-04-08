@@ -411,7 +411,7 @@ void f() {
   Future<void> test_const_inList_inPrefixExpression() async {
     await indexTestUnit('''
 void f() {
-  const [!true, 2];
+  const [ !true, 2];
 }
 ''');
     _createRefactoringForString('true');
@@ -419,7 +419,7 @@ void f() {
     return _assertSuccessfulRefactoring('''
 void f() {
   const res = true;
-  const [!res, 2];
+  const [ !res, 2];
 }
 ''');
   }

@@ -28,25 +28,22 @@ class MoreTypedStreamController<T, ListenData, PauseData> {
         if (pauseData != null) {
           throw StateError('Already paused');
         }
-        var local_onPause = onPause;
-        if (local_onPause != null) {
-          pauseData = local_onPause(listenData as ListenData);
+        if (onPause != null) {
+          pauseData = onPause(listenData as ListenData);
         }
       },
       onResume: () {
-        var local_onResume = onResume;
-        if (local_onResume != null) {
-          var local_pauseData = pauseData as PauseData;
+        if (onResume != null) {
+          var currentPauseData = pauseData as PauseData;
           pauseData = null;
-          local_onResume(listenData as ListenData, local_pauseData);
+          onResume(listenData as ListenData, currentPauseData);
         }
       },
       onCancel: () {
-        var local_onCancel = onCancel;
-        if (local_onCancel != null) {
-          var local_listenData = listenData as ListenData;
+        if (onCancel != null) {
+          var currentListenData = listenData as ListenData;
           listenData = null;
-          local_onCancel(local_listenData);
+          onCancel(currentListenData);
         }
       },
       sync: sync,

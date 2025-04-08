@@ -1023,8 +1023,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     if (mask != null) return mask;
     // TODO(sigmund): ensure that this is only called once per node.
     DartType staticType = _getStaticType(receiver);
-    bool includeNull =
-        _dartTypes.useLegacySubtyping || staticType is NullableType;
+    bool includeNull = staticType is NullableType;
     staticType = staticType.withoutNullability;
     if (staticType is InterfaceType) {
       ClassEntity cls = staticType.element;

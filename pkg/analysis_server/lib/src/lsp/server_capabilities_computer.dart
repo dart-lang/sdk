@@ -216,15 +216,24 @@ class ServerCapabilitiesComputer {
                 : null,
       ),
       experimental: {
+        // 'experimental' is a field we can put any arbitrary data that is not
+        // part of the spec without fear of clashing with future LSP changes.
+        //
+        // We use this to signal some custom protocol that we support.
+        //
+        // Some of these fields are objects where bools could be sufficient to
+        // allow for future expansion without potentially breaking clients by
+        // changing the data type.
         if (clientCapabilities
             .supportsDartExperimentalTextDocumentContentProvider)
           'dartTextDocumentContentProvider':
               features.dartTextDocumentContentProvider.staticRegistration,
+        // Indicate that we support the 'updateDiagnosticInformation'
+        // custom request.
+        'updateDiagnosticInformation': {},
         'textDocument': {
           // These properties can be used by the client to know that we support
           // custom methods like `dart/textDocument/augmented`.
-          //
-          // These fields are objects to allow for future expansion.
           'super': {},
           'augmented': {},
           'augmentation': {},

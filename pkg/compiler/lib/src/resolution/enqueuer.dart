@@ -256,8 +256,8 @@ class ResolutionEnqueuer extends Enqueuer {
       case TypeUseKind.typeArgument:
       case TypeUseKind.constructorReference:
         failedAt(currentElementSpannable, "Unexpected type use: $typeUse.");
-      case TypeUseKind.namedTypeVariableNewRti:
-        _registerNamedTypeVariableNewRti(type as TypeVariableType);
+      case TypeUseKind.namedTypeVariable:
+        _registerNamedTypeVariable(type as TypeVariableType);
         break;
     }
   }
@@ -270,8 +270,8 @@ class ResolutionEnqueuer extends Enqueuer {
     worldBuilder.registerIsCheck(type);
   }
 
-  void _registerNamedTypeVariableNewRti(TypeVariableType type) {
-    worldBuilder.registerNamedTypeVariableNewRti(type);
+  void _registerNamedTypeVariable(TypeVariableType type) {
+    worldBuilder.registerNamedTypeVariable(type);
   }
 
   void _registerClosurizedMember(FunctionEntity element) {

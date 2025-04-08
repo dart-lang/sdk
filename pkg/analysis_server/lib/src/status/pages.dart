@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/src/server/performance.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:collection/collection.dart';
 
 String escape(String? text) => text == null ? '' : htmlEscape.convert(text);

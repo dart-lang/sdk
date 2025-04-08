@@ -32,7 +32,6 @@ void f(Object o) {
 ObjectPattern
   type: NamedType
     name: B
-    element: <testLibraryFragment>::@class::B
     element2: <testLibrary>::@class::B
     type: B<B<Object?>>
   leftParenthesis: (
@@ -57,7 +56,6 @@ void f(A<int> x) {
 ObjectPattern
   type: NamedType
     name: B
-    element: <testLibraryFragment>::@class::B
     element2: <testLibrary>::@class::B
     type: B<int>
   leftParenthesis: (
@@ -83,7 +81,6 @@ void f(B<int> b) {
 ObjectPattern
   type: NamedType
     name: C
-    element: <testLibraryFragment>::@class::C
     element2: <testLibrary>::@class::C
     type: C<int, Set<int>>
   leftParenthesis: (
@@ -108,7 +105,6 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A<num>
   leftParenthesis: (
@@ -134,10 +130,9 @@ void f(A<int, String> x) {
 ObjectPattern
   type: NamedType
     name: L
-    element: <testLibraryFragment>::@typeAlias::L
     element2: <testLibrary>::@typeAlias::L
     type: B<int, String>
-      alias: <testLibraryFragment>::@typeAlias::L
+      alias: <testLibrary>::@typeAlias::L
         typeArguments
           int
   leftParenthesis: (
@@ -171,11 +166,9 @@ ObjectPattern
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A<int>
   leftParenthesis: (
@@ -190,10 +183,9 @@ ObjectPattern
         declaredElement: hasImplicitType foo2@90
           type: int
         matchedValueType: int
-      element: GetterMember
-        base: <testLibraryFragment>::@class::A::@getter::foo
+      element2: GetterMember
+        baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
         substitution: {T: int}
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -217,7 +209,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -231,7 +222,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element: <testLibraryFragment>::@class::A::@getter::foo
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -258,7 +248,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -272,7 +261,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element: <testLibraryFragment>::@extension::E::@getter::foo
       element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -299,7 +287,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -314,7 +301,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@83
           type: void Function()
         matchedValueType: void Function()
-      element: <testLibraryFragment>::@class::A::@method::foo
       element2: <testLibraryFragment>::@class::A::@method::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -343,7 +329,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -358,7 +343,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@97
           type: void Function()
         matchedValueType: void Function()
-      element: <testLibraryFragment>::@extension::E::@method::foo
       element2: <testLibraryFragment>::@extension::E::@method::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -385,7 +369,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -400,7 +383,6 @@ ObjectPattern
         declaredElement: hasImplicitType foo2@84
           type: int
         matchedValueType: int
-      element: <testLibraryFragment>::@class::A::@getter::foo
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -427,7 +409,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -440,7 +421,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -467,7 +447,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -481,7 +460,6 @@ ObjectPattern
         declaredElement: hasImplicitType foo@81
           type: int
         matchedValueType: int
-      element: <testLibraryFragment>::@class::A::@getter::foo
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -508,7 +486,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -526,11 +503,9 @@ ObjectPattern
         asToken: as
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         matchedValueType: int?
-      element: <testLibraryFragment>::@class::A::@getter::foo
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -557,7 +532,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -574,7 +548,6 @@ ObjectPattern
           matchedValueType: int
         operator: !
         matchedValueType: int?
-      element: <testLibraryFragment>::@class::A::@getter::foo
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -601,7 +574,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -618,7 +590,6 @@ ObjectPattern
           matchedValueType: int
         operator: ?
         matchedValueType: int?
-      element: <testLibraryFragment>::@class::A::@getter::foo
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -645,7 +616,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -663,7 +633,6 @@ ObjectPattern
           matchedValueType: int
         rightParenthesis: )
         matchedValueType: int
-      element: <testLibraryFragment>::@class::A::@getter::foo
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -683,7 +652,6 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: Object
-    element: dart:core::<fragment>::@class::Object
     element2: dart:core::@class::Object
     type: Object
   leftParenthesis: (
@@ -694,7 +662,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -719,7 +686,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -733,7 +699,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -759,7 +724,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
@@ -773,7 +737,6 @@ ObjectPattern
         declaredElement: hasImplicitType foo@65
           type: dynamic
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -798,7 +761,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@extensionType::A
     element2: <testLibrary>::@extensionType::A
     type: A
   leftParenthesis: (
@@ -812,7 +774,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element: <testLibraryFragment>::@extensionType::A::@getter::foo
       element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -839,7 +800,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@extensionType::A
     element2: <testLibrary>::@extensionType::A
     type: A
   leftParenthesis: (
@@ -853,7 +813,6 @@ ObjectPattern
         declaredElement: hasImplicitType isFinal foo@96
           type: int
         matchedValueType: int
-      element: <testLibraryFragment>::@extensionType::A::@getter::foo
       element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
@@ -878,7 +837,6 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@extensionType::A
     element2: <testLibrary>::@extensionType::A
     type: A
   leftParenthesis: (
@@ -892,7 +850,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -918,10 +875,9 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: int?
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -933,7 +889,6 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -958,7 +913,6 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: dynamic
   leftParenthesis: (
@@ -973,7 +927,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@77
           type: dynamic
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -1007,14 +960,12 @@ ObjectPattern
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: int Function()
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
         typeArguments
           int
   leftParenthesis: (
@@ -1029,7 +980,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@145
           type: int
         matchedValueType: int
-      element: <testLibraryFragment>::@extension::E::@getter::foo
       element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   rightParenthesis: )
   matchedValueType: Object?
@@ -1058,10 +1008,9 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: void Function()
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1074,7 +1023,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@141
           type: int
         matchedValueType: int
-      element: <testLibraryFragment>::@extension::E::@getter::foo
       element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   rightParenthesis: )
   matchedValueType: Object?
@@ -1099,10 +1047,9 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: void Function()
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1115,7 +1062,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@90
           type: int
         matchedValueType: int
-      element: dart:core::<fragment>::@class::Object::@getter::hashCode
       element2: dart:core::<fragment>::@class::Object::@getter::hashCode#element
   rightParenthesis: )
   matchedValueType: Object?
@@ -1141,10 +1087,9 @@ void f(Object? x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: void Function()
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1157,7 +1102,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@85
           type: dynamic
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -1182,10 +1126,9 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: ({int foo})
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1198,7 +1141,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@73
           type: int
         matchedValueType: int
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -1223,10 +1165,9 @@ void f(x) {
 ObjectPattern
   type: NamedType
     name: A
-    element: <testLibraryFragment>::@typeAlias::A
     element2: <testLibrary>::@typeAlias::A
     type: (int,)
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -1239,7 +1180,6 @@ ObjectPattern
         declaredElement: hasImplicitType y@71
           type: int
         matchedValueType: int
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -1265,7 +1205,6 @@ PatternVariableDeclaration
   pattern: ObjectPattern
     type: NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A<int>
     leftParenthesis: (
@@ -1279,16 +1218,14 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType a@32
             type: int
           matchedValueType: int
-        element: GetterMember
-          base: <testLibraryFragment>::@class::A::@getter::foo
+        element2: GetterMember
+          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
           substitution: {T: int}
-        element2: <testLibraryFragment>::@class::A::@getter::foo#element
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: A<int>
   patternTypeSchema: A<dynamic>
@@ -1320,11 +1257,9 @@ PatternVariableDeclaration
         arguments
           NamedType
             name: int
-            element: dart:core::<fragment>::@class::int
             element2: dart:core::@class::int
             type: int
         rightBracket: >
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A<int>
     leftParenthesis: (
@@ -1338,10 +1273,9 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType a@29
             type: int
           matchedValueType: int
-        element: GetterMember
-          base: <testLibraryFragment>::@class::A::@getter::foo
+        element2: GetterMember
+          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
           substitution: {T: int}
-        element2: <testLibraryFragment>::@class::A::@getter::foo#element
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
@@ -1350,13 +1284,11 @@ PatternVariableDeclaration
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: <testLibraryFragment>::@class::A
         element2: <testLibrary>::@class::A
         type: A<int>
-      staticElement: ConstructorMember
-        base: <testLibraryFragment>::@class::A::@constructor::new
+      element: ConstructorMember
+        baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
         substitution: {T: int}
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1385,7 +1317,6 @@ PatternVariableDeclaration
   pattern: ObjectPattern
     type: NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A<dynamic>
     leftParenthesis: (
@@ -1397,17 +1328,15 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::<fragment>::@class::int
             element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@28
             type: int
           matchedValueType: dynamic
-        element: GetterMember
-          base: <testLibraryFragment>::@class::A::@getter::foo
+        element2: GetterMember
+          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
           substitution: {T: dynamic}
-        element2: <testLibraryFragment>::@class::A::@getter::foo#element
     rightParenthesis: )
     matchedValueType: A<dynamic>
   equals: =
@@ -1416,13 +1345,11 @@ PatternVariableDeclaration
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: <testLibraryFragment>::@class::A
         element2: <testLibrary>::@class::A
         type: A<dynamic>
-      staticElement: ConstructorMember
-        base: <testLibraryFragment>::@class::A::@constructor::new
+      element: ConstructorMember
+        baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
         substitution: {T: dynamic}
-      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )

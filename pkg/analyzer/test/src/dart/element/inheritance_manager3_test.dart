@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -48,7 +46,7 @@ class X extends B {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'B.foo: void Function()',
@@ -69,7 +67,7 @@ class X implements I, J {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'I.foo: void Function()',
@@ -90,7 +88,7 @@ class X extends A with M {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'M.foo: void Function()',
@@ -111,7 +109,7 @@ class X extends A implements I {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'A.foo: void Function()',
@@ -126,7 +124,7 @@ class A {
 
 class B extends A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: int Function()
 ''');
   }
@@ -139,7 +137,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_accessor_with() async {
@@ -150,7 +148,7 @@ mixin A {
 
 class B extends Object with A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: int Function()
 ''');
   }
@@ -163,14 +161,14 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_implicitExtends() async {
     await resolveTestCode('''
 class A {}
 ''');
-    _assertInheritedConcreteMap2('A', '');
+    _assertInheritedConcreteMap('A', '');
   }
 
   test_getInheritedConcreteMap_method_extends() async {
@@ -181,7 +179,7 @@ class A {
 
 class B extends A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: void Function()
 ''');
   }
@@ -194,7 +192,7 @@ abstract class A {
 
 class B extends A {}
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_method_extends_invalidForImplements() async {
@@ -210,7 +208,7 @@ class A {
 
 class C extends A implements I {}
 ''');
-    _assertInheritedConcreteMap2('C', r'''
+    _assertInheritedConcreteMap('C', r'''
 A.foo: void Function(int)
 ''');
   }
@@ -223,7 +221,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_method_with() async {
@@ -234,7 +232,7 @@ mixin A {
 
 class B extends Object with A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: void Function()
 ''');
   }
@@ -251,7 +249,7 @@ mixin B {
 
 class C extends Object with A, B {}
 ''');
-    _assertInheritedConcreteMap2('C', r'''
+    _assertInheritedConcreteMap('C', r'''
 A.foo: void Function()
 B.bar: void Function()
 ''');
@@ -267,7 +265,7 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedConcreteMap2('B', '''
+    _assertInheritedConcreteMap('B', '''
 A.f: void Function()
 ''');
   }
@@ -280,7 +278,7 @@ class A {
 
 class B extends A {}
 ''');
-    _assertInheritedMap2('B', r'''
+    _assertInheritedMap('B', r'''
 A.foo: int Function()
 ''');
   }
@@ -378,7 +376,7 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedMap2('B', '');
+    _assertInheritedMap('B', '');
   }
 
   test_getInheritedMap_implicitExtendsObject() async {
@@ -456,7 +454,7 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedMap2('B', '''
+    _assertInheritedMap('B', '''
 A.f: void Function()
 ''');
   }
@@ -723,7 +721,7 @@ abstract class I2 {
 
 abstract class C implements I1, I2 {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'f',
       expected: 'I2.f: void Function(Object)',
@@ -736,7 +734,7 @@ class A {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'A',
       name: 'foo',
       concrete: true,
@@ -750,7 +748,7 @@ abstract class A {
   void foo();
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'A',
       name: 'foo',
       concrete: true,
@@ -765,7 +763,7 @@ class A {
 
 class X with A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       concrete: true,
@@ -783,7 +781,7 @@ class B = Object with A;
 
 class X with B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       concrete: true,
@@ -801,7 +799,7 @@ class B {}
 
 class X extends A with B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'toString',
       concrete: true,
@@ -817,7 +815,7 @@ mixin M {
 
 class X with M {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       concrete: true,
@@ -835,14 +833,14 @@ class B extends A {}
 
 abstract class C extends B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       concrete: true,
       expected: 'A.foo: void Function()',
     );
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
@@ -854,7 +852,7 @@ abstract class C extends B {}
     await resolveTestCode('''
 abstract class A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'A',
       name: 'foo',
       concrete: true,
@@ -873,14 +871,14 @@ class B implements A {
 
 abstract class C extends B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       concrete: true,
       expected: 'A.foo: void Function()',
     );
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
@@ -900,7 +898,7 @@ abstract class B extends Object with A {}
 ''');
 // noSuchMethod forwarders are not mixed-in.
     // https://github.com/dart-lang/sdk/issues/33553#issuecomment-424638320
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       concrete: true,
@@ -921,7 +919,7 @@ class C extends B {
   void foo([int a]);
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
@@ -935,7 +933,7 @@ abstract class B<E> {
   T foo<T>();
 }
 ''');
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var foo = manager.getMember4(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
@@ -956,9 +954,9 @@ abstract class A<XA> {
 }
 abstract class B<XB> extends A<XB> {}
 ''');
-    var XB = findElement.typeParameter('XB');
+    var XB = findElement2.typeParameter('XB');
     var typeXB = XB.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var typeB = B.instantiate(
         typeArguments: [typeXB], nullabilitySuffix: NullabilitySuffix.none);
     var foo = manager.getMember3(typeB, Name(null, 'foo'))!;
@@ -985,9 +983,9 @@ abstract class B<X> extends A<X> {}
 typedef C<V> = B<List<V>>;
 abstract class D<XD> extends C<XD> {}
 ''');
-    var XD = findElement.typeParameter('XD');
+    var XD = findElement2.typeParameter('XD');
     var typeXD = XD.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-    var D = (findElement.classOrMixin('D') as InterfaceFragment).element;
+    var D = findElement2.classOrMixin('D');
     var typeD = D.instantiate(
         typeArguments: [typeXD], nullabilitySuffix: NullabilitySuffix.none);
     var foo = manager.getMember3(typeD, Name(null, 'foo'))!;
@@ -1006,7 +1004,7 @@ abstract class A<E> {
 
 abstract class B<E> extends A<E> {}
 ''');
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var foo = manager.getMember4(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
@@ -1022,7 +1020,7 @@ abstract class A {
 
 abstract class B extends A {}
 ''');
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var foo = manager.getMember4(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
@@ -1040,7 +1038,7 @@ abstract class B extends A {
 }
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('B') as InterfaceFragment).element,
+      findElement2.classOrMixin('B'),
       Name(null, 'foo'),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
@@ -1065,12 +1063,12 @@ class B {
 class C extends B implements A {}
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('C') as InterfaceFragment).element,
+      findElement2.classOrMixin('C'),
       Name(null, 'foo'),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement, same(findElement.method('foo', of: 'B')));
+    expect(member.baseElement, same(findElement2.method('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
@@ -1087,12 +1085,12 @@ mixin M<T> {
 class X extends A<dynamic> with M<Object?> {}
 class Y extends A<Object?> with M<dynamic> {}
 ''');
-    _assertGetMember5(
+    _assertGetMember2(
       className: 'X',
       name: 'foo',
       expected: 'M.foo: Object? Function()',
     );
-    _assertGetMember5(
+    _assertGetMember2(
       className: 'Y',
       name: 'foo',
       expected: 'M.foo: dynamic Function()',
@@ -1111,12 +1109,12 @@ class B extends A {
   int? bar(int a) => 0;
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       expected: 'A.foo: int Function(int, int?)',
     );
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'bar',
       expected: 'B.bar: int? Function(int)',
@@ -1136,7 +1134,7 @@ class B {
 class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'B.foo: Object? Function()',
@@ -1156,7 +1154,7 @@ abstract class B {
 abstract class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'X.foo: Future<Object?> Function()',
@@ -1176,7 +1174,7 @@ class B {
 class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'X.foo: Object? Function(Object?)',
@@ -1196,10 +1194,10 @@ class B {
 class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo=',
-      expected: 'B.foo: void Function(Object?)',
+      expected: 'B.foo=: void Function(Object?)',
     );
   }
 
@@ -1216,10 +1214,10 @@ abstract class B {
 abstract class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo=',
-      expected: 'X.foo: void Function(Future<Object?>)',
+      expected: 'X.foo=: void Function(Future<Object?>)',
     );
   }
 
@@ -1243,7 +1241,7 @@ abstract class I {
 
 class X extends A with M1, M2 implements I {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'M2.foo: void Function()',
@@ -1266,7 +1264,7 @@ abstract class I {
 
 class X extends B implements I {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'B.foo: void Function()',
@@ -1287,7 +1285,7 @@ class X extends A implements I {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'X.foo: void Function()',
@@ -1305,7 +1303,7 @@ abstract class B extends A {
 }
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('B') as InterfaceFragment).element,
+      findElement2.classOrMixin('B'),
       Name(null, 'foo='),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
@@ -1330,12 +1328,12 @@ class B {
 class C extends B implements A {}
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('C') as InterfaceFragment).element,
+      findElement2.classOrMixin('C'),
       Name(null, 'foo='),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement, same(findElement.setter('foo', of: 'B')));
+    expect(member.baseElement, same(findElement2.setter('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
@@ -1349,7 +1347,7 @@ class B extends A {
   noSuchMethod(_) {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -1364,7 +1362,7 @@ abstract class A {
 
 mixin M implements A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'M',
       name: 'foo',
       forSuper: true,
@@ -1379,7 +1377,7 @@ abstract class A {
 
 mixin M on A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'M',
       name: 'foo',
       forSuper: true,
@@ -1409,7 +1407,7 @@ class X extends Object with M {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       forSuper: true,
@@ -1427,7 +1425,7 @@ class B extends A {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -1441,7 +1439,7 @@ class A {}
 
 class B extends A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -1459,7 +1457,7 @@ class B extends A {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -2395,11 +2393,11 @@ abstract class B<E> {
   T foo<T>();
 }
 ''');
-    var B = findElement.classOrMixin('B');
-    var foo = manager.getMember2(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters.single;
+    var B = findElement2.classOrMixin('B');
+    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
-    expect(returnType.element, same(T));
+    expect(returnType.element3, same(T));
   }
 
   test_getMember_fromGenericSuper_method_bound() async {
@@ -2466,12 +2464,12 @@ abstract class A<E> {
 
 abstract class B<E> extends A<E> {}
 ''');
-    var B = findElement.classOrMixin('B');
-    var foo = manager.getMember2(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters.single;
+    var B = findElement2.classOrMixin('B');
+    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
     // Check that the return type uses the same `T` as `<T>`.
-    expect(returnType.element, same(T));
+    expect(returnType.element3, same(T));
   }
 
   test_getMember_fromNotGenericSuper_method_returnType() async {
@@ -2482,11 +2480,11 @@ abstract class A {
 
 abstract class B extends A {}
 ''');
-    var B = findElement.classOrMixin('B');
-    var foo = manager.getMember2(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters.single;
+    var B = findElement2.classOrMixin('B');
+    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
-    expect(returnType.element, same(T));
+    expect(returnType.element3, same(T));
   }
 
   test_getMember_method_covariantAfterSubstitutedParameter_merged() async {
@@ -2501,14 +2499,14 @@ class C {
   void foo<U>(Object a, U b, covariant Object c) {}
 }
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('B'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('B'),
       Name(null, 'foo'),
       concrete: true,
     )!;
-    expect(member.parameters[0].isCovariant, isTrue);
-    expect(member.parameters[1].isCovariant, isFalse);
-    expect(member.parameters[2].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[1].isCovariant, isFalse);
+    expect(member.formalParameters[2].isCovariant, isTrue);
   }
 
   test_getMember_method_covariantByDeclaration_inherited() async {
@@ -2521,14 +2519,14 @@ abstract class B extends A {
   void foo(int a);
 }
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('B'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('B'),
       Name(null, 'foo'),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_method_covariantByDeclaration_merged() async {
@@ -2543,13 +2541,13 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('C'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('C'),
       Name(null, 'foo'),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_mixin_notMerge_replace() async {
@@ -2782,14 +2780,14 @@ abstract class B extends A {
   set foo(int a);
 }
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('B'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('B'),
       Name(null, 'foo='),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_setter_covariantByDeclaration_merged() async {
@@ -2804,13 +2802,13 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('C'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('C'),
       Name(null, 'foo='),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_super_abstract() async {
@@ -2865,8 +2863,8 @@ mixin M on A {}
     await resolveTestCode('''
 class A {}
 ''');
-    var member = manager.getMember2(
-      typeProvider.objectType.element,
+    var member = manager.getMember4(
+      typeProvider.objectType.element3,
       Name(null, 'hashCode'),
       forSuper: true,
     );
@@ -2961,16 +2959,17 @@ abstract class C extends Object with A implements B {}
     assertInterfaceText(element, r'''
 overridden
   foo
-    <testLibraryFragment>::@mixin::A::@method::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@mixin::A::@method::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 superImplemented
 conflicts
   CandidatesConflict
-    <testLibraryFragment>::@mixin::A::@method::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@mixin::A::@method::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_interface_candidatesConflict_interfaceInAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -3025,13 +3024,13 @@ abstract class C implements A, B {}
     assertInterfaceText(element, r'''
 overridden
   foo
-    <testLibraryFragment>::@class::A::@getter::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@class::A::@getter::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 superImplemented
 conflicts
   GetterMethodConflict
-    getter: <testLibraryFragment>::@class::A::@getter::foo
-    method: <testLibraryFragment>::@class::B::@method::foo
+    getter: <testLibraryFragment>::@class::A::@getter::foo#element
+    method: <testLibraryFragment>::@class::B::@method::foo#element
 ''');
   }
 
@@ -3053,20 +3052,20 @@ abstract class C implements A, B {
     var element = library.class_('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@class::C::@method::foo
+  foo: <testLibraryFragment>::@class::C::@method::foo#element
 declared
-  foo: <testLibraryFragment>::@class::C::@method::foo
+  foo: <testLibraryFragment>::@class::C::@method::foo#element
 implemented
-  foo: <testLibraryFragment>::@class::C::@method::foo
+  foo: <testLibraryFragment>::@class::C::@method::foo#element
 overridden
   foo
-    <testLibraryFragment>::@class::A::@getter::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@class::A::@getter::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 superImplemented
 conflicts
   GetterMethodConflict
-    getter: <testLibraryFragment>::@class::A::@getter::foo
-    method: <testLibraryFragment>::@class::B::@method::foo
+    getter: <testLibraryFragment>::@class::A::@getter::foo#element
+    method: <testLibraryFragment>::@class::B::@method::foo#element
 ''');
   }
 }
@@ -3089,11 +3088,11 @@ extension type A(int it) {
     var element = library.extensionType('A');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::A::@getter::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::A::@getter::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3113,16 +3112,16 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@getter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@getter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@getter::foo
+    <testLibraryFragment>::@class::A::@getter::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@getter::foo
+  foo: <testLibraryFragment>::@class::A::@getter::foo#element
 ''');
   }
 
@@ -3142,16 +3141,16 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@getter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@getter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@method::foo
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
 ''');
   }
 
@@ -3171,17 +3170,17 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@getter::foo
-  foo=: <testLibraryFragment>::@class::A::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@getter::foo#element
+  foo=: <testLibraryFragment>::@class::A::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@getter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@class::A::@setter::foo
+    <testLibraryFragment>::@class::A::@setter::foo#element
 inheritedMap
-  foo=: <testLibraryFragment>::@class::A::@setter::foo
+  foo=: <testLibraryFragment>::@class::A::@setter::foo#element
 ''');
   }
 
@@ -3195,9 +3194,9 @@ extension type A(int it) {
     var element = library.extensionType('A');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3211,11 +3210,11 @@ extension type A(int it) {
     var element = library.extensionType('A');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3237,20 +3236,20 @@ extension type C(A it) implements A, B {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::B::@method::foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@extensionType::B::@method::foo#element
+    <testLibraryFragment>::@class::A::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::B::@getter::it
+    <testLibraryFragment>::@extensionType::B::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 ''');
   }
 
@@ -3272,15 +3271,15 @@ extension type C(Object it) implements A, B {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 ''');
   }
 
@@ -3300,11 +3299,11 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 ''');
   }
 
@@ -3326,16 +3325,16 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@getter::foo
+    <testLibraryFragment>::@class::A::@getter::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@getter::foo
+  foo: <testLibraryFragment>::@class::A::@getter::foo#element
 ''');
   }
 
@@ -3357,16 +3356,16 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@method::foo
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
 ''');
   }
 
@@ -3386,16 +3385,16 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@class::A::@setter::foo
+    <testLibraryFragment>::@class::A::@setter::foo#element
 inheritedMap
-  foo=: <testLibraryFragment>::@class::A::@setter::foo
+  foo=: <testLibraryFragment>::@class::A::@setter::foo#element
 ''');
   }
 
@@ -3417,21 +3416,21 @@ extension type B(int it) implements A1, A2 {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A1::@method::foo
-    <testLibraryFragment>::@extensionType::A2::@method::foo
+    <testLibraryFragment>::@extensionType::A1::@method::foo#element
+    <testLibraryFragment>::@extensionType::A2::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::A1::@getter::it
-    <testLibraryFragment>::@extensionType::A2::@getter::it
+    <testLibraryFragment>::@extensionType::A1::@getter::it#element
+    <testLibraryFragment>::@extensionType::A2::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A1::@method::foo
-  it: <testLibraryFragment>::@extensionType::A1::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A1::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A1::@getter::it#element
 ''');
   }
 
@@ -3449,19 +3448,19 @@ extension type B(int it) implements A {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A::@getter::foo
+    <testLibraryFragment>::@extensionType::A::@getter::foo#element
   it
-    <testLibraryFragment>::@extensionType::A::@getter::it
+    <testLibraryFragment>::@extensionType::A::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A::@getter::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3479,19 +3478,19 @@ extension type B(int it) implements A {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A::@method::foo
+    <testLibraryFragment>::@extensionType::A::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::A::@getter::it
+    <testLibraryFragment>::@extensionType::A::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3509,19 +3508,19 @@ extension type B(int it) implements A {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@extensionType::A::@setter::foo
+    <testLibraryFragment>::@extensionType::A::@setter::foo#element
   it
-    <testLibraryFragment>::@extensionType::A::@getter::it
+    <testLibraryFragment>::@extensionType::A::@getter::it#element
 inheritedMap
-  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3535,9 +3534,9 @@ extension type A(int it) {
     var element = library.extensionType('A');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3551,11 +3550,11 @@ extension type A(int it) {
     var element = library.extensionType('A');
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 declared
-  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3575,17 +3574,17 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@class::A::@getter::foo
-  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@class::A::@getter::foo#element
+  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@getter::foo
+    <testLibraryFragment>::@class::A::@getter::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@getter::foo
+  foo: <testLibraryFragment>::@class::A::@getter::foo#element
 ''');
   }
 
@@ -3605,16 +3604,16 @@ extension type C(B it) implements A {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@method::foo
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
 ''');
   }
 
@@ -3632,20 +3631,20 @@ extension type B(int it) implements A {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::A::@getter::foo
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A::@getter::foo
+    <testLibraryFragment>::@extensionType::A::@getter::foo#element
   it
-    <testLibraryFragment>::@extensionType::A::@getter::it
+    <testLibraryFragment>::@extensionType::A::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A::@getter::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3663,19 +3662,19 @@ extension type B(int it) implements A {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A::@method::foo
+    <testLibraryFragment>::@extensionType::A::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::A::@getter::it
+    <testLibraryFragment>::@extensionType::A::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3689,9 +3688,9 @@ extension type A(int it) {
     var element = library.extensionType('A');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -3710,19 +3709,19 @@ extension type C(B it) implements A<int> {}
     assertInterfaceText(element, r'''
 map
   foo: MethodMember
-    base: <testLibraryFragment>::@class::A::@method::foo
+    baseElement: <testLibraryFragment>::@class::A::@method::foo#element
     substitution: {T: int}
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
     MethodMember
-      base: <testLibraryFragment>::@class::A::@method::foo
+      baseElement: <testLibraryFragment>::@class::A::@method::foo#element
       substitution: {T: int}
 inheritedMap
   foo: MethodMember
-    base: <testLibraryFragment>::@class::A::@method::foo
+    baseElement: <testLibraryFragment>::@class::A::@method::foo#element
     substitution: {T: int}
 ''');
   }
@@ -3743,24 +3742,24 @@ extension type C(A it) implements A, B {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::B::@method::foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@extensionType::B::@method::foo#element
+    <testLibraryFragment>::@class::A::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::B::@getter::it
+    <testLibraryFragment>::@extensionType::B::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 conflicts
   HasNonExtensionAndExtensionMemberConflict
     nonExtension
-      <testLibraryFragment>::@class::A::@method::foo
+      <testLibraryFragment>::@class::A::@method::foo#element
     extension
-      <testLibraryFragment>::@extensionType::B::@method::foo
+      <testLibraryFragment>::@extensionType::B::@method::foo#element
 ''');
   }
 
@@ -3780,24 +3779,24 @@ extension type C(A it) implements A, B {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@extensionType::B::@setter::foo
-    <testLibraryFragment>::@class::A::@setter::foo
+    <testLibraryFragment>::@extensionType::B::@setter::foo#element
+    <testLibraryFragment>::@class::A::@setter::foo#element
   it
-    <testLibraryFragment>::@extensionType::B::@getter::it
+    <testLibraryFragment>::@extensionType::B::@getter::it#element
 inheritedMap
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 conflicts
   HasNonExtensionAndExtensionMemberConflict
     nonExtension
-      <testLibraryFragment>::@class::A::@setter::foo
+      <testLibraryFragment>::@class::A::@setter::foo#element
     extension
-      <testLibraryFragment>::@extensionType::B::@setter::foo
+      <testLibraryFragment>::@extensionType::B::@setter::foo#element
 ''');
   }
 
@@ -3819,20 +3818,20 @@ extension type C(A it) implements A, B {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::C::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::C::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@extensionType::B::@setter::foo
-    <testLibraryFragment>::@class::A::@setter::foo
+    <testLibraryFragment>::@extensionType::B::@setter::foo#element
+    <testLibraryFragment>::@class::A::@setter::foo#element
   it
-    <testLibraryFragment>::@extensionType::B::@getter::it
+    <testLibraryFragment>::@extensionType::B::@getter::it#element
 inheritedMap
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 ''');
   }
 
@@ -3854,20 +3853,20 @@ extension type C(A it) implements A, B {
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::C::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::B::@method::foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@extensionType::B::@method::foo#element
+    <testLibraryFragment>::@class::A::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::B::@getter::it
+    <testLibraryFragment>::@extensionType::B::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 ''');
   }
 
@@ -3885,15 +3884,15 @@ extension type C(B it) implements A {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@class::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@method::foo
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
 ''');
   }
 
@@ -3913,17 +3912,17 @@ extension type C(Object it) implements A, B {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 conflicts
   CandidatesConflict
-    <testLibraryFragment>::@class::A::@method::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 ''');
   }
 
@@ -3943,16 +3942,16 @@ extension type C(Object it) implements A, B {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@class::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
-    <testLibraryFragment>::@class::B::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
+    <testLibraryFragment>::@class::B::@method::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@method::foo
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
 ''');
   }
 
@@ -3974,15 +3973,15 @@ extension type D(C it) implements B1, B2 {}
     var element = library.extensionType('D');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@class::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::D::@getter::it
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::D::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::D::@getter::it
+  it: <testLibraryFragment>::@extensionType::D::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo
+    <testLibraryFragment>::@class::A::@method::foo#element
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@method::foo
+  foo: <testLibraryFragment>::@class::A::@method::foo#element
 ''');
   }
 
@@ -4000,15 +3999,15 @@ extension type C(B it) implements A {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibraryFragment>::@class::A::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo=: <testLibraryFragment>::@class::A::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@class::A::@setter::foo
+    <testLibraryFragment>::@class::A::@setter::foo#element
 inheritedMap
-  foo=: <testLibraryFragment>::@class::A::@setter::foo
+  foo=: <testLibraryFragment>::@class::A::@setter::foo#element
 ''');
   }
 
@@ -4025,26 +4024,26 @@ extension type B(int it) implements A<int> {}
     assertInterfaceText(element, r'''
 map
   foo: MethodMember
-    base: <testLibraryFragment>::@extensionType::A::@method::foo
+    baseElement: <testLibraryFragment>::@extensionType::A::@method::foo#element
     substitution: {T: int}
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
     MethodMember
-      base: <testLibraryFragment>::@extensionType::A::@method::foo
+      baseElement: <testLibraryFragment>::@extensionType::A::@method::foo#element
       substitution: {T: int}
   it
     GetterMember
-      base: <testLibraryFragment>::@extensionType::A::@getter::it
+      baseElement: <testLibraryFragment>::@extensionType::A::@getter::it#element
       substitution: {T: int}
 inheritedMap
   foo: MethodMember
-    base: <testLibraryFragment>::@extensionType::A::@method::foo
+    baseElement: <testLibraryFragment>::@extensionType::A::@method::foo#element
     substitution: {T: int}
   it: GetterMember
-    base: <testLibraryFragment>::@extensionType::A::@getter::it
+    baseElement: <testLibraryFragment>::@extensionType::A::@getter::it#element
     substitution: {T: int}
 ''');
   }
@@ -4061,18 +4060,18 @@ extension type B(int it) implements A {}
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A::@method::foo
+    <testLibraryFragment>::@extensionType::A::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::A::@getter::it
+    <testLibraryFragment>::@extensionType::A::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 
@@ -4092,23 +4091,23 @@ extension type B(int it) implements A1, A2 {}
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A1::@method::foo
-    <testLibraryFragment>::@extensionType::A2::@method::foo
+    <testLibraryFragment>::@extensionType::A1::@method::foo#element
+    <testLibraryFragment>::@extensionType::A2::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::A1::@getter::it
-    <testLibraryFragment>::@extensionType::A2::@getter::it
+    <testLibraryFragment>::@extensionType::A1::@getter::it#element
+    <testLibraryFragment>::@extensionType::A2::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A1::@method::foo
-  it: <testLibraryFragment>::@extensionType::A1::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A1::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A1::@getter::it#element
 conflicts
   NotUniqueExtensionMemberConflict
-    <testLibraryFragment>::@extensionType::A1::@method::foo
-    <testLibraryFragment>::@extensionType::A2::@method::foo
+    <testLibraryFragment>::@extensionType::A1::@method::foo#element
+    <testLibraryFragment>::@extensionType::A2::@method::foo#element
 ''');
   }
 
@@ -4130,21 +4129,21 @@ extension type B(int it) implements A1, A2 {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::B::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A1::@method::foo
-    <testLibraryFragment>::@extensionType::A2::@method::foo
+    <testLibraryFragment>::@extensionType::A1::@method::foo#element
+    <testLibraryFragment>::@extensionType::A2::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::A1::@getter::it
-    <testLibraryFragment>::@extensionType::A2::@getter::it
+    <testLibraryFragment>::@extensionType::A1::@getter::it#element
+    <testLibraryFragment>::@extensionType::A2::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A1::@method::foo
-  it: <testLibraryFragment>::@extensionType::A1::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A1::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::A1::@getter::it#element
 ''');
   }
 
@@ -4164,19 +4163,19 @@ extension type C(int it) implements B1, B2 {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A::@method::foo
+    <testLibraryFragment>::@extensionType::A::@method::foo#element
   it
-    <testLibraryFragment>::@extensionType::B1::@getter::it
-    <testLibraryFragment>::@extensionType::B2::@getter::it
+    <testLibraryFragment>::@extensionType::B1::@getter::it#element
+    <testLibraryFragment>::@extensionType::B2::@getter::it#element
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo
-  it: <testLibraryFragment>::@extensionType::B1::@getter::it
+  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B1::@getter::it#element
 ''');
   }
 
@@ -4196,23 +4195,23 @@ extension type B(int it) implements A1, A2 {}
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@extensionType::A1::@setter::foo
-    <testLibraryFragment>::@extensionType::A2::@setter::foo
+    <testLibraryFragment>::@extensionType::A1::@setter::foo#element
+    <testLibraryFragment>::@extensionType::A2::@setter::foo#element
   it
-    <testLibraryFragment>::@extensionType::A1::@getter::it
-    <testLibraryFragment>::@extensionType::A2::@getter::it
+    <testLibraryFragment>::@extensionType::A1::@getter::it#element
+    <testLibraryFragment>::@extensionType::A2::@getter::it#element
 inheritedMap
-  foo=: <testLibraryFragment>::@extensionType::A1::@setter::foo
-  it: <testLibraryFragment>::@extensionType::A1::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::A1::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::A1::@getter::it#element
 conflicts
   NotUniqueExtensionMemberConflict
-    <testLibraryFragment>::@extensionType::A1::@setter::foo
-    <testLibraryFragment>::@extensionType::A2::@setter::foo
+    <testLibraryFragment>::@extensionType::A1::@setter::foo#element
+    <testLibraryFragment>::@extensionType::A2::@setter::foo#element
 ''');
   }
 
@@ -4234,21 +4233,21 @@ extension type B(int it) implements A1, A2 {
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
-  foo: <testLibraryFragment>::@extensionType::B::@method::foo
-  it: <testLibraryFragment>::@extensionType::B::@getter::it
+  foo: <testLibraryFragment>::@extensionType::B::@method::foo#element
+  it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@extensionType::A1::@setter::foo
-    <testLibraryFragment>::@extensionType::A2::@setter::foo
+    <testLibraryFragment>::@extensionType::A1::@setter::foo#element
+    <testLibraryFragment>::@extensionType::A2::@setter::foo#element
   it
-    <testLibraryFragment>::@extensionType::A1::@getter::it
-    <testLibraryFragment>::@extensionType::A2::@getter::it
+    <testLibraryFragment>::@extensionType::A1::@getter::it#element
+    <testLibraryFragment>::@extensionType::A2::@getter::it#element
 inheritedMap
-  foo=: <testLibraryFragment>::@extensionType::A1::@setter::foo
-  it: <testLibraryFragment>::@extensionType::A1::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::A1::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::A1::@getter::it#element
 ''');
   }
 
@@ -4268,19 +4267,19 @@ extension type C(int it) implements B1, B2 {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::C::@getter::it
+  it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo=
-    <testLibraryFragment>::@extensionType::A::@setter::foo
+    <testLibraryFragment>::@extensionType::A::@setter::foo#element
   it
-    <testLibraryFragment>::@extensionType::B1::@getter::it
-    <testLibraryFragment>::@extensionType::B2::@getter::it
+    <testLibraryFragment>::@extensionType::B1::@getter::it#element
+    <testLibraryFragment>::@extensionType::B2::@getter::it#element
 inheritedMap
-  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo
-  it: <testLibraryFragment>::@extensionType::B1::@getter::it
+  foo=: <testLibraryFragment>::@extensionType::A::@setter::foo#element
+  it: <testLibraryFragment>::@extensionType::B1::@getter::it#element
 ''');
   }
 
@@ -4293,9 +4292,9 @@ extension type A(int it) {}
     printerConfiguration.withObjectMembers = true;
     assertInterfaceText(element, r'''
 map
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 declared
-  it: <testLibraryFragment>::@extensionType::A::@getter::it
+  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
 ''');
   }
 }
@@ -4309,39 +4308,14 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     manager = InheritanceManager3();
   }
 
-  void _assertExecutable(ExecutableElement? element, String? expected) {
-    if (expected != null && element != null) {
-      var enclosingElement = element.enclosingElement3;
-
-      var type = element.type;
-      var typeStr = typeString(type);
-
-      var actual = '${enclosingElement.name}.${element.name}: $typeStr';
-      expect(actual, expected);
-
-      if (element is PropertyAccessorElement) {
-        var variable = element.variable2!;
-        expect(variable.enclosingElement3, same(element.enclosingElement3));
-        expect(variable.name, element.displayName);
-        if (element.isGetter) {
-          expect(variable.type, element.returnType);
-        } else {
-          expect(variable.type, element.parameters[0].type);
-        }
-      }
-    } else {
-      expect(element, isNull);
-    }
-  }
-
-  void _assertExecutable2(ExecutableElement2? element, String? expected) {
+  void _assertExecutable(ExecutableElement2? element, String? expected) {
     if (expected != null && element != null) {
       var enclosingElement = element.enclosingElement2;
 
       var type = element.type;
       var typeStr = typeString(type);
 
-      var actual = '${enclosingElement?.name3}.${element.name3}: $typeStr';
+      var actual = '${enclosingElement?.name3}.${element.lookupName}: $typeStr';
       expect(actual, expected);
 
       if (element is GetterElement) {
@@ -4360,13 +4334,13 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     }
   }
 
-  void _assertExecutable2List(
+  void _assertExecutableList(
       List<ExecutableElement2>? elements, String? expected) {
     var elementsString = elements == null
         ? null
         : [
             for (var element in elements)
-              '${element.enclosingElement2?.name3}.${element.name3}: '
+              '${element.enclosingElement2?.name3}.${element.lookupName}: '
                   '${typeString(element.type)}\n'
           ].sorted().join();
     expect(elementsString, expected);
@@ -4377,25 +4351,12 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     required String name,
     String? expected,
   }) {
-    var member = manager.getInherited2(
-      findElement.classOrMixin(className),
+    var member = manager.getInherited4(
+      findElement2.classOrMixin(className),
       Name(null, name),
     );
 
     _assertExecutable(member, expected);
-  }
-
-  void _assertGetInherited4({
-    required String className,
-    required String name,
-    String? expected,
-  }) {
-    var member = manager.getInherited4(
-      (findElement.classOrMixin(className) as InterfaceFragment).element,
-      Name(null, name),
-    );
-
-    _assertExecutable2(member, expected);
   }
 
   void _assertGetMember({
@@ -4405,8 +4366,8 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     bool concrete = false,
     bool forSuper = false,
   }) {
-    var member = manager.getMember2(
-      findElement.classOrMixin(className),
+    var member = manager.getMember4(
+      findElement2.classOrMixin(className),
       Name(null, name),
       concrete: concrete,
       forSuper: forSuper,
@@ -4434,81 +4395,32 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     );
   }
 
-  void _assertGetMember4({
-    required String className,
-    required String name,
-    String? expected,
-    bool concrete = false,
-    bool forSuper = false,
-  }) {
-    var member = manager.getMember4(
-      (findElement.classOrMixin(className) as InterfaceFragment).element,
-      Name(null, name),
-      concrete: concrete,
-      forSuper: forSuper,
-    );
-
-    _assertExecutable2(member, expected);
-  }
-
-  void _assertGetMember5({
-    required String className,
-    required String name,
-    String? expected,
-  }) {
-    _assertGetMember4(
-      className: className,
-      name: name,
-      expected: expected,
-    );
-
-    _assertGetMember4(
-      className: className,
-      name: name,
-      expected: expected,
-      concrete: true,
-    );
-  }
-
   void _assertGetOverridden4({
     required String className,
     required String name,
     String? expected,
   }) {
     var members = manager.getOverridden4(
-      (findElement.classOrMixin(className) as InterfaceFragment).element,
+      findElement2.classOrMixin(className),
       Name(null, name),
     );
 
-    _assertExecutable2List(members, expected);
+    _assertExecutableList(members, expected);
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map = manager.getInheritedConcreteMap2(element);
+    var element = findElement2.classOrMixin(className);
+    var map = manager.getInheritedConcreteMap(element);
     _assertNameToExecutableMap(map, expected);
-  }
-
-  void _assertInheritedConcreteMap2(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map =
-        manager.getInheritedConcreteMap((element as InterfaceFragment).element);
-    _assertNameToExecutable2Map(map, expected);
   }
 
   void _assertInheritedMap(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map = manager.getInheritedMap2(element);
+    var element = findElement2.classOrMixin(className);
+    var map = manager.getInheritedMap(element);
     _assertNameToExecutableMap(map, expected);
   }
 
-  void _assertInheritedMap2(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map = manager.getInheritedMap((element as InterfaceFragment).element);
-    _assertNameToExecutable2Map(map, expected);
-  }
-
-  void _assertNameToExecutable2Map(
+  void _assertNameToExecutableMap(
       Map<Name, ExecutableElement2> map, String expected) {
     var lines = <String>[];
     for (var entry in map.entries) {
@@ -4519,30 +4431,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       if (enclosingElement?.name3 == 'Object') continue;
 
       var typeStr = type.getDisplayString();
-      lines.add('${enclosingElement?.name3}.${element.name3}: $typeStr');
-    }
-
-    lines.sort();
-    var actual = lines.isNotEmpty ? '${lines.join('\n')}\n' : '';
-
-    if (actual != expected) {
-      print(actual);
-    }
-    expect(actual, expected);
-  }
-
-  void _assertNameToExecutableMap(
-      Map<Name, ExecutableElement> map, String expected) {
-    var lines = <String>[];
-    for (var entry in map.entries) {
-      var element = entry.value;
-      var type = element.type;
-
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement.name == 'Object') continue;
-
-      var typeStr = type.getDisplayString();
-      lines.add('${enclosingElement.name}.${element.name}: $typeStr');
+      lines.add('${enclosingElement?.name3}.${element.lookupName}: $typeStr');
     }
 
     lines.sort();
@@ -4577,7 +4466,7 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
     var interface = inheritance.getInterface(element);
 
     // Should not throw.
-    inheritance.getInheritedConcreteMap2(element);
+    inheritance.getInheritedConcreteMap(element.asElement2);
 
     // Ensure that `inheritedMap` field is initialized.
     inheritance.getInheritedMap2(element);
@@ -4621,19 +4510,19 @@ class _InterfacePrinter {
         _configuration = configuration;
 
   void write(Interface interface) {
-    _writeNameToMap('map', interface.map);
-    _writeNameToMap('declared', interface.declared);
+    _writeNameToMap('map', interface.map2);
+    _writeNameToMap('declared', interface.declared2);
 
     if (_configuration.withoutIdenticalImplemented) {
       expect(interface.implemented, same(interface.map));
     } else {
-      _writeNameToMap('implemented', interface.implemented);
+      _writeNameToMap('implemented', interface.implemented2);
     }
 
-    _writeNameToListMap('overridden', interface.overridden);
-    _writeNameToListMap('redeclared', interface.redeclared);
-    _writeListOfMaps('superImplemented', interface.superImplemented);
-    _writeNameToMap('inheritedMap', interface.inheritedMap ?? {});
+    _writeNameToListMap('overridden', interface.overridden2);
+    _writeNameToListMap('redeclared', interface.redeclared2);
+    _writeListOfMaps('superImplemented', interface.superImplemented2);
+    _writeNameToMap('inheritedMap', interface.inheritedMap2 ?? {});
     _writeConflicts(interface.conflicts);
   }
 
@@ -4641,7 +4530,7 @@ class _InterfacePrinter {
     return nameObj.name;
   }
 
-  bool _shouldWrite(ExecutableElement element) {
+  bool _shouldWrite(ExecutableElement2 element) {
     return _configuration.withObjectMembers || !element.isObjectMember;
   }
 
@@ -4653,7 +4542,7 @@ class _InterfacePrinter {
     );
   }
 
-  List<ExecutableElement> _withoutObject(List<ExecutableElement> elements) {
+  List<ExecutableElement2> _withoutObject(List<ExecutableElement2> elements) {
     return elements.where(_shouldWrite).toList();
   }
 
@@ -4665,34 +4554,34 @@ class _InterfacePrinter {
       for (var conflict in conflicts) {
         switch (conflict) {
           case CandidatesConflict _:
-            _elementPrinter.writeElementList(
+            _elementPrinter.writeElementList2(
               'CandidatesConflict',
-              conflict.candidates,
+              conflict.candidates2,
             );
           case GetterMethodConflict _:
             _sink.writelnWithIndent('GetterMethodConflict');
             _sink.withIndent(() {
-              _elementPrinter.writeNamedElement('getter', conflict.getter);
-              _elementPrinter.writeNamedElement('method', conflict.method);
+              _elementPrinter.writeNamedElement2('getter', conflict.getter2);
+              _elementPrinter.writeNamedElement2('method', conflict.method2);
             });
           case HasNonExtensionAndExtensionMemberConflict _:
             _sink.writelnWithIndent(
               'HasNonExtensionAndExtensionMemberConflict',
             );
             _sink.withIndent(() {
-              _elementPrinter.writeElementList(
+              _elementPrinter.writeElementList2(
                 'nonExtension',
-                conflict.nonExtension,
+                conflict.nonExtension2,
               );
-              _elementPrinter.writeElementList(
+              _elementPrinter.writeElementList2(
                 'extension',
-                conflict.extension,
+                conflict.extension2,
               );
             });
           case NotUniqueExtensionMemberConflict _:
-            _elementPrinter.writeElementList(
+            _elementPrinter.writeElementList2(
               'NotUniqueExtensionMemberConflict',
-              conflict.candidates,
+              conflict.candidates2,
             );
           default:
             fail('Not implemented: ${conflict.runtimeType}');
@@ -4703,7 +4592,7 @@ class _InterfacePrinter {
 
   void _writeListOfMaps(
     String name,
-    List<Map<Name, ExecutableElement>> listOfMaps,
+    List<Map<Name, ExecutableElement2>> listOfMaps,
   ) {
     if (listOfMaps.isEmpty) return;
 
@@ -4717,7 +4606,7 @@ class _InterfacePrinter {
 
   void _writeNameToListMap(
     String name,
-    Map<Name, List<ExecutableElement>> map,
+    Map<Name, List<ExecutableElement2>> map,
   ) {
     var isEmpty = map.values.flattenedToList.where((element) {
       if (_configuration.withObjectMembers) return true;
@@ -4730,12 +4619,12 @@ class _InterfacePrinter {
       for (var entry in _sortedEntries(map.entries)) {
         var name = _nameObjStr(entry.key);
         var elements = _withoutObject(entry.value);
-        _elementPrinter.writeElementList(name, elements);
+        _elementPrinter.writeElementList2(name, elements);
       }
     });
   }
 
-  void _writeNameToMap(String name, Map<Name, ExecutableElement> map) {
+  void _writeNameToMap(String name, Map<Name, ExecutableElement2> map) {
     var isEmpty = map.values.none(_shouldWrite);
     if (isEmpty) return;
 
@@ -4745,7 +4634,7 @@ class _InterfacePrinter {
         var name = _nameObjStr(entry.key);
         var element = entry.value;
         if (_shouldWrite(element)) {
-          _elementPrinter.writeNamedElement(name, element);
+          _elementPrinter.writeNamedElement2(name, element);
         }
       }
     });
@@ -4754,15 +4643,10 @@ class _InterfacePrinter {
 
 extension on LibraryElementImpl {
   ClassElementImpl class_(String name) {
-    return topLevelElements
-        .whereType<ClassElementImpl>()
-        .where((element) => !element.isAugmentation)
-        .singleWhere((e) => e.name == name);
+    return classes.singleWhere((e) => e.name3 == name).firstFragment;
   }
 
   ExtensionTypeElementImpl extensionType(String name) {
-    return topLevelElements
-        .whereType<ExtensionTypeElementImpl>()
-        .singleWhere((e) => e.name == name);
+    return extensionTypes.singleWhere((e) => e.name3 == name).firstFragment;
   }
 }

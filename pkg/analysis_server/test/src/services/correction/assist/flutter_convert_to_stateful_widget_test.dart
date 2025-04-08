@@ -29,7 +29,7 @@ class FlutterConvertToStatefulWidgetTest extends AssistProcessorTest {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatelessWidget {
+class ^MyWidget extends StatelessWidget {
   // something for a
   final bool a = false;
 
@@ -74,7 +74,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatelessWidget {
+class ^MyWidget extends StatelessWidget {
   /// something for a
   final bool a = false;
 
@@ -119,7 +119,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatelessWidget {
+class ^MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container();
@@ -147,7 +147,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget<T> extends StatelessWidget {
+class ^MyWidget<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container();
@@ -175,7 +175,7 @@ class _MyWidgetState<T> extends State<MyWidget<T>> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatelessWidget {
+class ^MyWidget extends StatelessWidget {
   static String staticField1 = '';
   final String instanceField1;
   final String instanceField2;
@@ -255,7 +255,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatelessWidget {
+class ^MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -313,7 +313,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatelessWidget {
+class ^MyWidget extends StatelessWidget {
   static String staticField = '';
   final String instanceField1;
   String instanceField2 = '';
@@ -402,7 +402,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/_MyWidget extends StatelessWidget {
+class ^_MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container();
@@ -429,7 +429,7 @@ class _MyWidgetState extends State<_MyWidget> {
   Future<void> test_notClass() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-/*caret*/void f() {}
+^void f() {}
 ''');
     await assertNoAssist();
   }
@@ -437,7 +437,7 @@ import 'package:flutter/material.dart';
   Future<void> test_notStatelessWidget() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-class /*caret*/MyWidget extends Text {
+class ^MyWidget extends Text {
   MyWidget() : super('');
 }
 ''');
@@ -447,7 +447,7 @@ class /*caret*/MyWidget extends Text {
   Future<void> test_notWidget() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-class /*caret*/MyWidget {}
+class ^MyWidget {}
 ''');
     await assertNoAssist();
   }
@@ -456,7 +456,7 @@ class /*caret*/MyWidget {}
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatelessWidget {
+class ^MyWidget extends StatelessWidget {
   final String aaa;
   final String bbb;
 

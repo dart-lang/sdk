@@ -9,7 +9,7 @@ part of dart._internal;
 abstract class _CastIterableBase<S, T> extends Iterable<T> {
   Iterable<S> get _source;
 
-  Iterator<T> get iterator => new CastIterator<S, T>(_source.iterator);
+  Iterator<T> get iterator => CastIterator<S, T>(_source.iterator);
 
   // The following members use the default implementation on the
   // throwing iterator. These are all operations that have no more efficient
@@ -36,8 +36,8 @@ abstract class _CastIterableBase<S, T> extends Iterable<T> {
   bool get isEmpty => _source.isEmpty;
   bool get isNotEmpty => _source.isNotEmpty;
 
-  Iterable<T> skip(int count) => new CastIterable<S, T>(_source.skip(count));
-  Iterable<T> take(int count) => new CastIterable<S, T>(_source.take(count));
+  Iterable<T> skip(int count) => CastIterable<S, T>(_source.skip(count));
+  Iterable<T> take(int count) => CastIterable<S, T>(_source.take(count));
 
   T elementAt(int index) => _source.elementAt(index) as T;
   T get first => _source.first as T;
@@ -72,12 +72,12 @@ class CastIterable<S, T> extends _CastIterableBase<S, T> {
 
   factory CastIterable(Iterable<S> source) {
     if (source is EfficientLengthIterable<S>) {
-      return new _EfficientLengthCastIterable<S, T>(source);
+      return _EfficientLengthCastIterable<S, T>(source);
     }
-    return new CastIterable<S, T>._(source);
+    return CastIterable<S, T>._(source);
   }
 
-  Iterable<R> cast<R>() => new CastIterable<S, R>(_source);
+  Iterable<R> cast<R>() => CastIterable<S, R>(_source);
 }
 
 class _EfficientLengthCastIterable<S, T> extends CastIterable<S, T>
@@ -114,7 +114,7 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
   }
 
   void addAll(Iterable<T> values) {
-    _source.addAll(new CastIterable<T, S>(values));
+    _source.addAll(CastIterable<T, S>(values));
   }
 
   void sort([int Function(T v1, T v2)? compare]) {
@@ -132,11 +132,11 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
   }
 
   void insertAll(int index, Iterable<T> elements) {
-    _source.insertAll(index, new CastIterable<T, S>(elements));
+    _source.insertAll(index, CastIterable<T, S>(elements));
   }
 
   void setAll(int index, Iterable<T> elements) {
-    _source.setAll(index, new CastIterable<T, S>(elements));
+    _source.setAll(index, CastIterable<T, S>(elements));
   }
 
   bool remove(Object? value) => _source.remove(value);
@@ -154,10 +154,10 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
   }
 
   Iterable<T> getRange(int start, int end) =>
-      new CastIterable<S, T>(_source.getRange(start, end));
+      CastIterable<S, T>(_source.getRange(start, end));
 
   void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
-    _source.setRange(start, end, new CastIterable<T, S>(iterable), skipCount);
+    _source.setRange(start, end, CastIterable<T, S>(iterable), skipCount);
   }
 
   void removeRange(int start, int end) {
@@ -169,7 +169,7 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
   }
 
   void replaceRange(int start, int end, Iterable<T> replacement) {
-    _source.replaceRange(start, end, new CastIterable<T, S>(replacement));
+    _source.replaceRange(start, end, CastIterable<T, S>(replacement));
   }
 }
 
@@ -177,7 +177,7 @@ class CastList<S, T> extends _CastListBase<S, T> {
   final List<S> _source;
   CastList(this._source);
 
-  List<R> cast<R>() => new CastList<S, R>(_source);
+  List<R> cast<R>() => CastList<S, R>(_source);
 }
 
 class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
@@ -190,11 +190,11 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   CastSet(this._source, this._emptySet);
 
-  Set<R> cast<R>() => new CastSet<S, R>(_source, _emptySet);
+  Set<R> cast<R>() => CastSet<S, R>(_source, _emptySet);
   bool add(T value) => _source.add(value as S);
 
   void addAll(Iterable<T> elements) {
-    _source.addAll(new CastIterable<T, S>(elements));
+    _source.addAll(CastIterable<T, S>(elements));
   }
 
   bool remove(Object? object) => _source.remove(object);
@@ -219,17 +219,17 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   Set<T> intersection(Set<Object?> other) {
     if (_emptySet != null) return _conditionalAdd(other, true);
-    return new CastSet<S, T>(_source.intersection(other), null);
+    return CastSet<S, T>(_source.intersection(other), null);
   }
 
   Set<T> difference(Set<Object?> other) {
     if (_emptySet != null) return _conditionalAdd(other, false);
-    return new CastSet<S, T>(_source.difference(other), null);
+    return CastSet<S, T>(_source.difference(other), null);
   }
 
   Set<T> _conditionalAdd(Set<Object?> other, bool otherContains) {
     var emptySet = _emptySet;
-    Set<T> result = (emptySet == null) ? new Set<T>() : emptySet<T>();
+    Set<T> result = (emptySet == null) ? Set<T>() : emptySet<T>();
     for (var element in _source) {
       T castElement = element as T;
       if (otherContains == other.contains(castElement)) result.add(castElement);
@@ -245,7 +245,7 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   Set<T> _clone() {
     var emptySet = _emptySet;
-    Set<T> result = (emptySet == null) ? new Set<T>() : emptySet<T>();
+    Set<T> result = (emptySet == null) ? Set<T>() : emptySet<T>();
     result.addAll(this);
     return result;
   }
@@ -260,7 +260,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 
   CastMap(this._source);
 
-  Map<RK, RV> cast<RK, RV>() => new CastMap<SK, SV, RK, RV>(_source);
+  Map<RK, RV> cast<RK, RV>() => CastMap<SK, SV, RK, RV>(_source);
 
   bool containsValue(Object? value) => _source.containsValue(value);
 
@@ -276,7 +276,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
       _source.putIfAbsent(key as SK, () => ifAbsent() as SV) as V;
 
   void addAll(Map<K, V> other) {
-    _source.addAll(new CastMap<K, V, SK, SV>(other));
+    _source.addAll(CastMap<K, V, SK, SV>(other));
   }
 
   V? remove(Object? key) => _source.remove(key) as V?;
@@ -291,9 +291,9 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
     });
   }
 
-  Iterable<K> get keys => new CastIterable<SK, K>(_source.keys);
+  Iterable<K> get keys => CastIterable<SK, K>(_source.keys);
 
-  Iterable<V> get values => new CastIterable<SV, V>(_source.values);
+  Iterable<V> get values => CastIterable<SV, V>(_source.values);
 
   int get length => _source.length;
 
@@ -316,7 +316,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 
   Iterable<MapEntry<K, V>> get entries {
     return _source.entries.map<MapEntry<K, V>>(
-      (MapEntry<SK, SV> e) => new MapEntry<K, V>(e.key as K, e.value as V),
+      (MapEntry<SK, SV> e) => MapEntry<K, V>(e.key as K, e.value as V),
     );
   }
 
@@ -334,7 +334,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 class CastQueue<S, T> extends _CastIterableBase<S, T> implements Queue<T> {
   final Queue<S> _source;
   CastQueue(this._source);
-  Queue<R> cast<R>() => new CastQueue<S, R>(_source);
+  Queue<R> cast<R>() => CastQueue<S, R>(_source);
 
   T removeFirst() => _source.removeFirst() as T;
   T removeLast() => _source.removeLast() as T;
@@ -353,7 +353,7 @@ class CastQueue<S, T> extends _CastIterableBase<S, T> implements Queue<T> {
 
   bool remove(Object? other) => _source.remove(other);
   void addAll(Iterable<T> elements) {
-    _source.addAll(new CastIterable<T, S>(elements));
+    _source.addAll(CastIterable<T, S>(elements));
   }
 
   void removeWhere(bool test(T element)) {

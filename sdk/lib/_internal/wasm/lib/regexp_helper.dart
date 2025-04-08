@@ -13,15 +13,13 @@ String quoteStringForRegExp(String string) =>
 // This method is optimized to test before replacement, which should be
 // much faster. This might be worth measuring in real world use cases
 // though.
-jsStringToDartString(
-  JSStringImpl(
-    JS<WasmExternRef>(r"""s => {
+JSStringImpl(
+  JS<WasmExternRef>(r"""s => {
       if (/[[\]{}()*+?.\\^$|]/.test(s)) {
           s = s.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
       }
       return s;
     }""", jsStringFromDartString(string).toExternRef),
-  ),
 );
 
 // TODO(srujzs): Add this to `JSObject`.
@@ -134,13 +132,13 @@ class JSSyntaxRegExp implements RegExp {
     if (isJSRegExp(result)) return JSValue(result!) as JSNativeRegExp;
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.
-    String errorMessage = jsStringToDartString(JSStringImpl(result!));
-    throw new FormatException('Illegal RegExp pattern ($errorMessage)', source);
+    String errorMessage = JSStringImpl(result!);
+    throw FormatException('Illegal RegExp pattern ($errorMessage)', source);
   }
 
   RegExpMatch? firstMatch(String string) {
     JSNativeMatch? m = _nativeRegExp.exec(string.toJS);
-    return m == null ? null : new _MatchImplementation(this, m);
+    return m == null ? null : _MatchImplementation(this, m);
   }
 
   bool hasMatch(String string) {
@@ -163,7 +161,7 @@ class JSSyntaxRegExp implements RegExp {
     JSNativeRegExp regexp = _nativeGlobalVersion;
     regexp.lastIndex = start.toJS;
     JSNativeMatch? match = regexp.exec(string);
-    return match == null ? null : new _MatchImplementation(this, match);
+    return match == null ? null : _MatchImplementation(this, match);
   }
 
   RegExpMatch? _execAnchored(String string, int start) {
@@ -174,7 +172,7 @@ class JSSyntaxRegExp implements RegExp {
     // If the last capture group participated, the original regexp did not
     // match at the start position.
     if (match.pop() != null) return null;
-    return new _MatchImplementation(this, match);
+    return _MatchImplementation(this, match);
   }
 
   RegExpMatch? matchAsPrefix(String string, [int start = 0]) {
@@ -248,7 +246,7 @@ class _AllMatchesIterable extends Iterable<RegExpMatch> {
   _AllMatchesIterable(this._re, this._string, this._start);
 
   Iterator<RegExpMatch> get iterator =>
-      new _AllMatchesIterator(_re, _string, _start);
+      _AllMatchesIterator(_re, _string, _start);
 }
 
 class _AllMatchesIterator implements Iterator<RegExpMatch> {

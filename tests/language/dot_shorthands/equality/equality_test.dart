@@ -30,7 +30,7 @@ class ConstConstructorAssert {
   const ConstConstructorAssert.oneMixin(IntegerMixin integer)
       : assert(integer == .mixinConstOne);
 
-  const ConstConstructorAssert.notOneMixin(IntegerExt integer)
+  const ConstConstructorAssert.notOneMixin(IntegerMixin integer)
       : assert(integer != .mixinConstOne);
 }
 
@@ -50,7 +50,7 @@ void main() {
 
   // Class
   Integer integer = .one;
-  const Integer constInteger = .one;
+  const Integer constInteger = .constOne;
 
   const bool constIntegerEq = constInteger == .constOne;
   const bool constIntegerNeq = constInteger != .constOne;
@@ -95,6 +95,6 @@ void main() {
   const ConstConstructorAssert.notOne(Integer.constTwo);
   const ConstConstructorAssert.oneExt(IntegerExt.constOne);
   const ConstConstructorAssert.notOneExt(IntegerExt.constTwo);
-  const ConstConstructorAssert.oneMixin(IntegerMixin.constOne);
-  const ConstConstructorAssert.notOneMixin(IntegerMixin.constTwo);
+  const ConstConstructorAssert.oneMixin(IntegerMixin.mixinConstOne);
+  const ConstConstructorAssert.notOneMixin(IntegerMixin.mixinConstTwo);
 }

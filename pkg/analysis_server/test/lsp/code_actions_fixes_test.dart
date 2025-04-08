@@ -97,6 +97,10 @@ bar
       expectedContent,
       kind: CodeActionKind('quickfix.fooToBar'),
       title: "Change 'foo' to 'bar'",
+      command: 'dart.logAction',
+      commandArgs: [
+        {'action': 'fix from plugin'},
+      ],
     );
   }
 

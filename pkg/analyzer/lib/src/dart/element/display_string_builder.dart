@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -392,14 +389,14 @@ class ElementDisplayStringBuilder {
       if (hasSuffix) {
         _write('(');
       }
-      _write(type.element.displayName);
+      _write(type.element3.displayName);
       _write(' & ');
       _writeType(promotedBound);
       if (hasSuffix) {
         _write(')');
       }
     } else {
-      _write(type.element.displayName);
+      _write(type.element3.displayName);
     }
     _writeNullability(type.nullabilitySuffix);
   }
@@ -409,12 +406,6 @@ class ElementDisplayStringBuilder {
   }
 
   void writeVariableElement(VariableElementOrMember element) {
-    switch (element) {
-      case FieldElement(isAugmentation: true):
-      case TopLevelVariableElement(isAugmentation: true):
-        _write('augment ');
-    }
-
     _writeType(element.type);
     _write(' ');
     _write(element.displayName);
@@ -547,7 +538,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeTypeParameters(List<TypeParameterElement> elements) {
+  void _writeTypeParameters(List<TypeParameterElementImpl> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -555,7 +546,7 @@ class ElementDisplayStringBuilder {
       if (i != 0) {
         _write(', ');
       }
-      (elements[i] as TypeParameterElementImpl).appendTo(this);
+      elements[i].appendTo(this);
     }
     _write('>');
   }
@@ -672,7 +663,7 @@ class ElementDisplayStringBuilder {
 
 enum _WriteFormalParameterKind { requiredPositional, optionalPositional, named }
 
-extension on LibraryImportElement {
+extension on LibraryImportElementImpl {
   String get libraryName {
     if (uri case DirectiveUriWithRelativeUriString uri) {
       return uri.relativeUriString;

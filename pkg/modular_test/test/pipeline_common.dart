@@ -91,7 +91,8 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
   FutureOr<void> cleanup(Pipeline<S> pipeline);
 }
 
-runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
+void runPipelineTest<S extends ModularStep>(
+    PipelineTestStrategy<S> testStrategy) {
   var sources = {
     testStrategy.testRootUri.resolve("a1.dart"): 'A1',
     testStrategy.testRootUri.resolve("a2.dart"): 'A2',

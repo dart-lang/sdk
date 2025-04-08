@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -412,84 +409,62 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     // Build the 'values' field.
-    if (fragment.augmentationTarget == null) {
-      var valuesField = ConstFieldElementImpl('values', -1)
-        ..isConst = true
-        ..isStatic = true
-        ..isSynthetic = true
-        ..name2 = 'values';
-      var initializer = ListLiteralImpl(
-        constKeyword: null,
-        typeArguments: null,
-        leftBracket: Tokens.openSquareBracket(),
-        elements: valuesElements,
-        rightBracket: Tokens.closeSquareBracket(),
-      );
-      valuesField.constantInitializer = initializer;
+    var valuesField = ConstFieldElementImpl('values', -1)
+      ..isConst = true
+      ..isStatic = true
+      ..isSynthetic = true
+      ..name2 = 'values';
+    var initializer = ListLiteralImpl(
+      constKeyword: null,
+      typeArguments: null,
+      leftBracket: Tokens.openSquareBracket(),
+      elements: valuesElements,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    valuesField.constantInitializer = initializer;
 
-      var variableDeclaration = VariableDeclarationImpl(
-        name: StringToken(TokenType.STRING, 'values', -1),
-        equals: Tokens.eq(),
-        initializer: initializer,
-      );
-      var valuesTypeNode = NamedTypeImpl(
-        importPrefix: null,
-        name2: StringToken(TokenType.STRING, 'List', -1),
-        typeArguments: TypeArgumentListImpl(
-          leftBracket: Tokens.lt(),
-          arguments: [
-            NamedTypeImpl(
-              importPrefix: null,
-              name2: StringToken(TokenType.STRING, fragment.name, -1),
-              typeArguments: null,
-              question: null,
-            )..element2 = fragment.asElement2,
-          ],
-          rightBracket: Tokens.gt(),
-        ),
-        question: null,
-      );
-      VariableDeclarationListImpl(
-        comment: null,
-        metadata: null,
-        lateKeyword: null,
-        keyword: Tokens.const_(),
-        variables: [variableDeclaration],
-        type: valuesTypeNode,
-      );
-      _linker.elementNodes[valuesField] = variableDeclaration;
+    var variableDeclaration = VariableDeclarationImpl(
+      name: StringToken(TokenType.STRING, 'values', -1),
+      equals: Tokens.eq(),
+      initializer: initializer,
+    );
+    var valuesTypeNode = NamedTypeImpl(
+      importPrefix: null,
+      name2: StringToken(TokenType.STRING, 'List', -1),
+      typeArguments: TypeArgumentListImpl(
+        leftBracket: Tokens.lt(),
+        arguments: [
+          NamedTypeImpl(
+            importPrefix: null,
+            name2: StringToken(TokenType.STRING, fragment.name, -1),
+            typeArguments: null,
+            question: null,
+          )..element2 = fragment.asElement2,
+        ],
+        rightBracket: Tokens.gt(),
+      ),
+      question: null,
+    );
+    VariableDeclarationListImpl(
+      comment: null,
+      metadata: null,
+      lateKeyword: null,
+      keyword: Tokens.const_(),
+      variables: [variableDeclaration],
+      type: valuesTypeNode,
+    );
+    _linker.elementNodes[valuesField] = variableDeclaration;
 
-      holder.addNonSyntheticField('values', valuesField);
+    holder.addNonSyntheticField('values', valuesField);
 
-      _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
-        element: fragment,
-        valuesTypeNode: valuesTypeNode,
-        valuesNode: variableDeclaration,
-        valuesElement: valuesField,
-        valuesNames: valuesNames,
-        valuesInitializer: initializer,
-      );
-    } else {
-      var declaration = elementBuilder.firstFragment;
-      var implicitNodes = _libraryBuilder.implicitEnumNodes[declaration];
-      if (implicitNodes != null) {
-        var mergedValuesElements = [
-          ...implicitNodes.valuesInitializer.elements,
-          for (var value in valuesElements)
-            if (implicitNodes.valuesNames.add(value.name)) value,
-        ];
-        var initializer = ListLiteralImpl(
-          constKeyword: null,
-          typeArguments: null,
-          leftBracket: Tokens.openSquareBracket(),
-          elements: mergedValuesElements,
-          rightBracket: Tokens.closeSquareBracket(),
-        );
-        implicitNodes.valuesElement.constantInitializer = initializer;
-        implicitNodes.valuesNode.initializer = initializer;
-        implicitNodes.valuesInitializer = initializer;
-      }
-    }
+    _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
+      element: fragment,
+      valuesTypeNode: valuesTypeNode,
+      valuesNode: variableDeclaration,
+      valuesElement: valuesField,
+      valuesNames: valuesNames,
+      valuesInitializer: initializer,
+    );
 
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -638,7 +613,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element: element,
       );
 
-      fragment.isAugmentationChainStart = true;
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
@@ -881,7 +855,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _libraryBuilder.elementBuilderSetters[name] = elementBuilder;
       }
     } else {
-      var fragment = FunctionElementImpl(name, nameOffset);
+      var fragment = TopLevelFunctionFragmentImpl(name, nameOffset);
       fragment.name2 = _getFragmentName(nameToken);
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.isAugmentation = node.augmentKeyword != null;
@@ -1236,29 +1210,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       reference = _enclosingContext.addMethod(refName, fragment);
       executableFragment = fragment;
-
-      {
-        var enclosingBuilder = _enclosingContext.instanceElementBuilder!;
-
-        var lastFragment = enclosingBuilder.replaceGetter(fragment);
-        if (fragment.isAugmentation) {
-          fragment.augmentationTargetAny = lastFragment;
-        }
-
-        if (fragment.isAugmentation && lastFragment is MethodElementImpl) {
-          lastFragment.augmentation = fragment;
-          fragment.element = lastFragment.element;
-        } else {
-          var element = MethodElementImpl2(
-            enclosingBuilder.element.reference!
-                .getChild('@method')
-                .addChild(refName),
-            fragment.name2,
-            fragment,
-          );
-          enclosingBuilder.element.internal_methods2.add(element);
-        }
-      }
     }
     executableFragment.hasImplicitReturnType = node.returnType == null;
     executableFragment.invokesSuperSelf = node.invokesSuperSelf;
@@ -1670,13 +1621,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var enclosingRef = _enclosingContext.fragmentReference;
     var enclosingElement = _enclosingContext.fragment;
 
-    bool canUseExisting(PropertyInducingElement property) {
+    bool canUseExisting(PropertyInducingElementImpl property) {
       return property.isSynthetic ||
           accessorElement.isSetter && property.setter == null;
     }
 
     PropertyInducingElementImpl? property;
-    if (enclosingElement is CompilationUnitElement) {
+    if (enclosingElement is CompilationUnitElementImpl) {
       // Try to find the variable to attach the accessor.
       var containerRef = enclosingRef.getChild('@topLevelVariable');
       for (var reference in containerRef.getChildrenByName(name)) {
@@ -1749,10 +1700,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     required ExtensionTypeDeclarationImpl extensionNode,
     required RepresentationDeclarationImpl representation,
   }) {
-    if (extensionFragment.augmentationTarget != null) {
-      return;
-    }
-
     var fieldNameToken = representation.fieldName;
     var fieldName = fieldNameToken.lexeme.ifNotEmptyOrElse('<empty>');
 
@@ -1793,8 +1740,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fieldCodeRangeLength,
     );
 
-    extensionFragment.element.representation = fieldFragment;
-
     {
       String name;
       int? periodOffset;
@@ -1832,8 +1777,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       representation.constructorFragment = constructorFragment;
       _linker.elementNodes[constructorFragment] = representation;
       _enclosingContext.addConstructor(constructorFragment);
-
-      extensionFragment.element.primaryConstructor = constructorFragment;
     }
 
     representation.fieldType.accept(this);
@@ -1934,7 +1877,7 @@ class _EnclosingContext {
   final List<ExtensionElementImpl> _extensions = [];
   final List<ExtensionTypeElementImpl> _extensionTypes = [];
   final List<FieldElementImpl> _fields = [];
-  final List<FunctionElementImpl> _functions = [];
+  final List<TopLevelFunctionFragmentImpl> _functions = [];
   final List<MethodElementImpl> _methods = [];
   final List<MixinElementImpl> _mixins = [];
   final List<ParameterElementImpl> _parameters = [];
@@ -1988,7 +1931,7 @@ class _EnclosingContext {
     return fragment.reference!;
   }
 
-  List<FunctionElementImpl> get functions {
+  List<TopLevelFunctionFragmentImpl> get functions {
     return _functions.toFixedList();
   }
 
@@ -2074,7 +2017,7 @@ class _EnclosingContext {
     _bindReference(reference, element);
   }
 
-  Reference addFunction(String name, FunctionElementImpl element) {
+  Reference addFunction(String name, TopLevelFunctionFragmentImpl element) {
     _functions.add(element);
     var containerName =
         element.isAugmentation ? '@functionAugmentation' : '@function';

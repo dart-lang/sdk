@@ -31,6 +31,7 @@ augment class a {}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationEnum_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -49,6 +50,7 @@ augment enum e {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

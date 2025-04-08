@@ -37,102 +37,6 @@ mixin M<T extends num, U> on A, B implements C, D {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @17
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-        class C @28
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class D @39
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-      mixins
-        mixin M @51
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @53
-              bound: num
-              defaultType: num
-            covariant U @68
-              defaultType: dynamic
-          superclassConstraints
-            A
-            B
-          interfaces
-            C
-            D
-          fields
-            f @101
-              reference: <testLibraryFragment>::@mixin::M::@field::f
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: T
-            synthetic g @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::g
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: U
-            synthetic s @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::s
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-          accessors
-            synthetic get f @-1
-              reference: <testLibraryFragment>::@mixin::M::@getter::f
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: T
-            synthetic set f= @-1
-              reference: <testLibraryFragment>::@mixin::M::@setter::f
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              parameters
-                requiredPositional _f @-1
-                  type: T
-              returnType: void
-            get g @112
-              reference: <testLibraryFragment>::@mixin::M::@getter::g
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: U
-            set s= @126
-              reference: <testLibraryFragment>::@mixin::M::@setter::s
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              parameters
-                requiredPositional v @132
-                  type: int
-              returnType: void
-          methods
-            m @144
-              reference: <testLibraryFragment>::@mixin::M::@method::m
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              parameters
-                requiredPositional v @153
-                  type: double
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -175,9 +79,9 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @53
-              element: <not-implemented>
+              element: T@53
             U @68
-              element: <not-implemented>
+              element: U@68
           fields
             f @101
               reference: <testLibraryFragment>::@mixin::M::@field::f
@@ -290,7 +194,6 @@ library
               type: int
       methods
         m
-          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           formalParameters
             requiredPositional v
@@ -303,19 +206,6 @@ library
 base mixin M on A {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        base mixin M @11
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -340,30 +230,6 @@ mixin M {
   final x = 0;
 }''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            final x @18
-              reference: <testLibraryFragment>::@mixin::M::@field::x
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-              shouldUseTypeForInitializerInference: false
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@mixin::M::@getter::x
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -422,29 +288,6 @@ mixin M on A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-          accessors
-            get foo @25 invokesSuperSelf
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -487,29 +330,6 @@ mixin M on A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-          accessors
-            get foo @25 invokesSuperSelf
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -556,29 +376,6 @@ mixin M on A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-          accessors
-            get foo @25
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -619,19 +416,6 @@ mixin M {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -657,46 +441,6 @@ class B extends A<int> with M {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class B @42
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<int>
-          mixins
-            M<int>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
-      mixins
-        mixin M @20
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant U @22
-              defaultType: dynamic
-          superclassConstraints
-            A<U>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -706,7 +450,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -720,16 +464,13 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           typeParameters
             U @22
-              element: <not-implemented>
+              element: U@22
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -773,66 +514,6 @@ class C = A<int> with B;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class alias B @20
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @22
-              defaultType: dynamic
-          supertype: Object
-          mixins
-            A<T>
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
-        class alias C @51
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<int>
-          mixins
-            B<dynamic>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -842,7 +523,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -853,20 +534,12 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @22
-              element: <not-implemented>
+              element: T@22
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class C @51
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -875,17 +548,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -906,6 +568,13 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -915,6 +584,13 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
@@ -935,84 +611,6 @@ class C = Base with B;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A1 @6
-          reference: <testLibraryFragment>::@class::A1
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @9
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A1::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A1
-        class A2 @21
-          reference: <testLibraryFragment>::@class::A2
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @24
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A2::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A2
-        class alias B @36
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @38
-              defaultType: dynamic
-          supertype: Object
-          mixins
-            A1<T>
-            A2<T>
-          constructors
-            synthetic const @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
-        class Base @75
-          reference: <testLibraryFragment>::@class::Base
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            A1<int>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::Base::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::Base
-        class alias C @108
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          supertype: Base
-          mixins
-            B<int>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::Base::@constructor::new
-                  element: <testLibraryFragment>::@class::Base::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::Base::@constructor::new
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1022,7 +620,7 @@ library
           element: <testLibrary>::@class::A1
           typeParameters
             T @9
-              element: <not-implemented>
+              element: T@9
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A1::@constructor::new
@@ -1033,7 +631,7 @@ library
           element: <testLibrary>::@class::A2
           typeParameters
             T @24
-              element: <not-implemented>
+              element: T@24
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A2::@constructor::new
@@ -1044,20 +642,12 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class Base @75
           reference: <testLibraryFragment>::@class::Base
           element: <testLibrary>::@class::Base
@@ -1074,15 +664,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::Base::@constructor::new
-                  element: <testLibraryFragment>::@class::Base::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::Base::@constructor::new
   classes
     class A1
       reference: <testLibrary>::@class::A1
@@ -1112,6 +693,13 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class Base
       reference: <testLibrary>::@class::Base
       firstFragment: <testLibraryFragment>::@class::Base
@@ -1129,6 +717,13 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::Base::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::Base::@constructor::new#element
 ''');
   }
@@ -1142,48 +737,6 @@ class C extends A<int Function(String)> with M {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class C @57
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<int Function(String)>
-          mixins
-            M<int, String>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int Function(String)}
-      mixins
-        mixin M @20
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @22
-              defaultType: dynamic
-            covariant U @25
-              defaultType: dynamic
-          superclassConstraints
-            A<T Function(U)>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1193,7 +746,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1207,18 +760,15 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int Function(String)}
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           typeParameters
             T @22
-              element: <not-implemented>
+              element: T@22
             U @25
-              element: <not-implemented>
+              element: U@25
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1259,46 +809,6 @@ class C extends A<List<int>> with M {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        abstract class A @15
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @17
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-        class C @57
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          supertype: A<List<int>>
-          mixins
-            M<int>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: List<int>}
-      mixins
-        mixin M @29
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @31
-              defaultType: dynamic
-          superclassConstraints
-            A<List<T>>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1308,7 +818,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1322,16 +832,13 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: List<int>}
       mixins
         mixin M @29
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           typeParameters
             T @31
-              element: <not-implemented>
+              element: T@31
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -1373,63 +880,6 @@ class A = I<int> with M1, M2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class I @6
-          reference: <testLibraryFragment>::@class::I
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant X @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::I::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::I
-        class alias A @66
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          supertype: I<int>
-          mixins
-            M1<int>
-            M2<int>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::I::@constructor::new
-                  element: <testLibraryFragment>::@class::I::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::I::@constructor::new
-                substitution: {X: int}
-      mixins
-        mixin M1 @20
-          reference: <testLibraryFragment>::@mixin::M1
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @23
-              defaultType: dynamic
-          superclassConstraints
-            I<T>
-        mixin M2 @43
-          reference: <testLibraryFragment>::@mixin::M2
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @46
-              defaultType: dynamic
-          superclassConstraints
-            I<T>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1439,7 +889,7 @@ library
           element: <testLibrary>::@class::I
           typeParameters
             X @8
-              element: <not-implemented>
+              element: X@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
@@ -1453,30 +903,19 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::I::@constructor::new
-                  element: <testLibraryFragment>::@class::I::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::I::@constructor::new
-                substitution: {X: int}
       mixins
         mixin M1 @20
           reference: <testLibraryFragment>::@mixin::M1
           element: <testLibrary>::@mixin::M1
           typeParameters
             T @23
-              element: <not-implemented>
+              element: T@23
         mixin M2 @43
           reference: <testLibraryFragment>::@mixin::M2
           element: <testLibrary>::@mixin::M2
           typeParameters
             T @46
-              element: <not-implemented>
+              element: T@46
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -1496,6 +935,13 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: <testLibraryFragment>::@class::I::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::I::@constructor::new#element
   mixins
     mixin M1
@@ -1528,58 +974,6 @@ class X extends S<String> with M2 {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class S @62
-          reference: <testLibraryFragment>::@class::S
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T3 @64
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::S::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::S
-        class X @78
-          reference: <testLibraryFragment>::@class::X
-          enclosingElement3: <testLibraryFragment>
-          supertype: S<String>
-          mixins
-            M<String, int>
-              alias: <testLibraryFragment>::@typeAlias::M2
-                typeArguments
-                  String
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::X
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::S::@constructor::new
-                substitution: {T3: String}
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-            covariant U @11
-              defaultType: dynamic
-          superclassConstraints
-            S<T>
-      typeAliases
-        M2 @34
-          reference: <testLibraryFragment>::@typeAlias::M2
-          typeParameters
-            covariant T2 @37
-              defaultType: dynamic
-          aliasedType: M<T2, int>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1589,7 +983,7 @@ library
           element: <testLibrary>::@class::S
           typeParameters
             T3 @64
-              element: <not-implemented>
+              element: T3@64
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
@@ -1603,25 +997,22 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
               typeName: X
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::S::@constructor::new
-                substitution: {T3: String}
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
           element: <testLibrary>::@typeAlias::M2
           typeParameters
             T2 @37
-              element: <not-implemented>
+              element: T2@37
   classes
     class S
       reference: <testLibrary>::@class::S
@@ -1637,7 +1028,7 @@ library
       supertype: S<String>
       mixins
         M<String, int>
-          alias: <testLibraryFragment>::@typeAlias::M2
+          alias: <testLibrary>::@typeAlias::M2
             typeArguments
               String
       constructors
@@ -1677,67 +1068,6 @@ class X extends S<String> with M3 {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class S @88
-          reference: <testLibraryFragment>::@class::S
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T4 @90
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::S::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::S
-        class X @104
-          reference: <testLibraryFragment>::@class::X
-          enclosingElement3: <testLibraryFragment>
-          supertype: S<String>
-          mixins
-            M<String, int>
-              alias: <testLibraryFragment>::@typeAlias::M3
-                typeArguments
-                  String
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::X
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::S::@constructor::new
-                substitution: {T4: String}
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-            covariant U @11
-              defaultType: dynamic
-          superclassConstraints
-            S<T>
-      typeAliases
-        M2 @34
-          reference: <testLibraryFragment>::@typeAlias::M2
-          typeParameters
-            covariant T2 @37
-              defaultType: dynamic
-          aliasedType: M<T2, int>
-        M3 @64
-          reference: <testLibraryFragment>::@typeAlias::M3
-          typeParameters
-            covariant T3 @67
-              defaultType: dynamic
-          aliasedType: M<T3, int>
-            alias: <testLibraryFragment>::@typeAlias::M2
-              typeArguments
-                T3
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1747,7 +1077,7 @@ library
           element: <testLibrary>::@class::S
           typeParameters
             T4 @90
-              element: <not-implemented>
+              element: T4@90
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
@@ -1761,31 +1091,28 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
               typeName: X
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::S::@constructor::new
-                substitution: {T4: String}
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
           element: <testLibrary>::@typeAlias::M2
           typeParameters
             T2 @37
-              element: <not-implemented>
+              element: T2@37
         M3 @64
           reference: <testLibraryFragment>::@typeAlias::M3
           element: <testLibrary>::@typeAlias::M3
           typeParameters
             T3 @67
-              element: <not-implemented>
+              element: T3@67
   classes
     class S
       reference: <testLibrary>::@class::S
@@ -1801,7 +1128,7 @@ library
       supertype: S<String>
       mixins
         M<String, int>
-          alias: <testLibraryFragment>::@typeAlias::M3
+          alias: <testLibrary>::@typeAlias::M3
             typeArguments
               String
       constructors
@@ -1828,7 +1155,7 @@ library
       typeParameters
         T3
       aliasedType: M<T3, int>
-        alias: <testLibraryFragment>::@typeAlias::M2
+        alias: <testLibrary>::@typeAlias::M2
           typeArguments
             T3
 ''');
@@ -1843,46 +1170,6 @@ mixin M implements A, B, C {}
 ''');
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-        class C @45
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-      extensionTypes
-        B @26
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: int
-          fields
-            final it @32
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: int
-      mixins
-        mixin M @56
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          interfaces
-            A
-            C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1957,24 +1244,6 @@ mixin M on A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          methods
-            foo @22 invokesSuperSelf
-              reference: <testLibraryFragment>::@mixin::M::@method::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1994,7 +1263,6 @@ library
         Object
       methods
         foo
-          reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
 ''');
   }
@@ -2007,32 +1275,6 @@ mixin B on A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      mixins
-        mixin B @17
-          reference: <testLibraryFragment>::@mixin::B
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            A
-          methods
-            A @33
-              reference: <testLibraryFragment>::@mixin::B::@method::A
-              enclosingElement3: <testLibraryFragment>::@mixin::B
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2070,7 +1312,6 @@ library
         A
       methods
         A
-          reference: <testLibrary>::@mixin::B::@method::A
           firstFragment: <testLibraryFragment>::@mixin::B::@method::A
 ''');
   }
@@ -2080,19 +1321,6 @@ library
 mixin {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin @6
-          reference: <testLibraryFragment>::@mixin::0
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2120,32 +1348,6 @@ mixin M on A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-          accessors
-            set foo= @21
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              parameters
-                requiredPositional _ @29
-                  type: int
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2198,32 +1400,6 @@ mixin M on A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int
-          accessors
-            set foo= @21 invokesSuperSelf
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              parameters
-                requiredPositional _ @29
-                  type: int
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2272,44 +1448,6 @@ mixin M on A, B, C {}
 ''');
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-        class C @45
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-      extensionTypes
-        B @26
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: int
-          fields
-            final it @32
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: int
-      mixins
-        mixin M @56
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            A
-            C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2376,22 +1514,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            contravariant T @11
-              defaultType: dynamic
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2401,7 +1523,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -2418,22 +1540,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @12
-              defaultType: dynamic
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2443,7 +1549,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -2460,22 +1566,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            invariant T @14
-              defaultType: dynamic
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2485,7 +1575,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @14
-              element: <not-implemented>
+              element: T@14
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -2502,26 +1592,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            invariant T @14
-              defaultType: dynamic
-            contravariant U @20
-              defaultType: dynamic
-            covariant V @27
-              defaultType: dynamic
-          superclassConstraints
-            Object
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2531,11 +1601,11 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @14
-              element: <not-implemented>
+              element: T@14
             U @20
-              element: <not-implemented>
+              element: U@20
             V @27
-              element: <not-implemented>
+              element: V@27
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M

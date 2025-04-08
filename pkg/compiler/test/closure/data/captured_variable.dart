@@ -22,7 +22,8 @@ readParameterInAnonymousClosure(/**/ parameter) {
 
 /*member: readParameterInClosure:*/
 readParameterInClosure(/**/ parameter) {
-  /*fields=[parameter],free=[parameter]*/ func() => parameter;
+  /*fields=[parameter],free=[parameter]*/
+  func() => parameter;
   return func;
 }
 
@@ -35,7 +36,8 @@ writeParameterInAnonymousClosure(/*boxed*/ parameter) {
 
 /*member: writeParameterInClosure:box=(box0 which holds [parameter])*/
 writeParameterInClosure(/*boxed*/ parameter) {
-  /*fields=[box0],free=[box0,parameter]*/ func() {
+  /*fields=[box0],free=[box0,parameter]*/
+  func() {
     parameter = 43;
   }
 
@@ -51,7 +53,8 @@ readLocalInAnonymousClosure(/**/ parameter) {
 /*member: readLocalInClosure:*/
 readLocalInClosure(/**/ parameter) {
   var /**/ local = parameter;
-  /*fields=[local],free=[local]*/ func() => local;
+  /*fields=[local],free=[local]*/
+  func() => local;
   return func;
 }
 
@@ -68,7 +71,8 @@ writeLocalInAnonymousClosure(/**/ parameter) {
 writeLocalInClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
-  /*fields=[box0],free=[box0,local]*/ func() {
+  /*fields=[box0],free=[box0,local]*/
+  func() {
     local = 45;
   }
 
@@ -79,21 +83,26 @@ writeLocalInClosure(/**/ parameter) {
 class Foo {
   int /*member: Foo.bar:hasThis*/ bar = 4;
 
-  /*member: Foo.baz:hasThis*/ baz() {
-    /*fields=[this],free=[this],hasThis*/ func() => bar;
+  /*member: Foo.baz:hasThis*/
+  baz() {
+    /*fields=[this],free=[this],hasThis*/
+    func() => bar;
     return func;
   }
 }
 
 /*member: Repro.:hasThis*/
 class Repro {
-  /*member: Repro.qux:hasThis*/ qux() {
-    /*fields=[this],free=[this],hasThis*/ threeNested(foo) =>
+  /*member: Repro.qux:hasThis*/
+  qux() {
+    /*fields=[this],free=[this],hasThis*/
+    threeNested(foo) =>
         /*fields=[this],free=[this],hasThis*/ (bar) => someFunction();
     return threeNested;
   }
 
-  /*member: Repro.someFunction:hasThis*/ someFunction() => 3;
+  /*member: Repro.someFunction:hasThis*/
+  someFunction() => 3;
 }
 
 main() {

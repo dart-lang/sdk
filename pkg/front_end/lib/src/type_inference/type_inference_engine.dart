@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     hide Variance;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
@@ -27,7 +26,6 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import 'factor_type.dart';
@@ -162,20 +160,18 @@ abstract class TypeInferenceEngine {
   late TypeSchemaEnvironment typeSchemaEnvironment;
 
   /// A map containing constructors with initializing formals whose types
-  /// need to be inferred.
-  ///
-  /// This is represented as a map from a constructor to its library
-  /// builder because the builder is used to report errors due to cyclic
-  /// inference dependencies.
-  final Map<Member, SourceConstructorBuilder> toBeInferred = {};
+  /// need to be inferred and redirecting factories whose target needs to be
+  /// inferred.
+  final Map<Member, InferableMember> toBeInferred = {};
 
-  /// A map containing constructors in the process of being inferred.
+  /// A map containing constructors and redirecting factories in the process of
+  /// being inferred.
   ///
-  /// This is used to detect cyclic inference dependencies.  It is represented
-  /// as a map from a constructor to its library builder because the builder
-  /// is used to report errors.
-  final Map<Member, SourceConstructorBuilder> beingInferred = {};
+  /// This is used to detect cyclic inference dependencies.
+  final Map<Member, InferableMember> beingInferred = {};
 
+  // TODO(johnniwinther): Unify [toBeInferred] and [typeDependencies] and
+  // ensure that these are called for all member accesses.
   final Map<Member, TypeDependency> typeDependencies = {};
 
   final Instrumentation? instrumentation;
@@ -204,8 +200,8 @@ abstract class TypeInferenceEngine {
   void finishTopLevelInitializingFormals() {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
-    for (SourceConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes(hierarchyBuilder);
+    for (InferableMember inferableMember in toBeInferred.values.toList()) {
+      inferableMember.inferMemberTypes(hierarchyBuilder);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {
@@ -217,9 +213,11 @@ abstract class TypeInferenceEngine {
   /// Gets ready to do top level type inference for the component having the
   /// given [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
+    assert(!isTypeInferencePrepared, "Top level inference already prepared.");
     this.coreTypes = coreTypes;
     this.typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, hierarchy);
+    isTypeInferencePrepared = true;
   }
 
   static Member? resolveInferenceNode(
@@ -596,7 +594,7 @@ class OperationsCfe
   }
 
   @override
-  bool isNever(SharedTypeView type) {
+  bool isBottomType(SharedTypeView type) {
     return typeEnvironment.coreTypes.isBottom(type.unwrapTypeView());
   }
 
@@ -913,21 +911,6 @@ class OperationsCfe
   }
 
   @override
-  DartType withNullabilitySuffixInternal(
-      DartType type, NullabilitySuffix modifier) {
-    switch (modifier) {
-      case NullabilitySuffix.none:
-        return computeTypeWithoutNullabilityMarker(type);
-      // Coverage-ignore(suite): Not run.
-      case NullabilitySuffix.question:
-        return type.withDeclaredNullability(Nullability.nullable);
-      // Coverage-ignore(suite): Not run.
-      case NullabilitySuffix.star:
-        return type.withDeclaredNullability(Nullability.legacy);
-    }
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   TypeDeclarationKind? getTypeDeclarationKindInternal(DartType type) {
     if (type is TypeDeclarationType) {
@@ -1017,7 +1000,7 @@ class OperationsCfe
 
   @override
   DartType? matchTypeParameterBoundInternal(DartType type) {
-    if (type.nullabilitySuffix != NullabilitySuffix.none) {
+    if (type.isQuestionType) {
       return null;
     }
     if (type is TypeParameterType) {
@@ -1067,4 +1050,12 @@ class TypeInferenceResultForTesting extends shared
     .TypeConstraintGenerationDataForTesting<VariableDeclaration, TreeNode> {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
   final Map<TreeNode, DartType> inferredVariableTypes = {};
+}
+
+abstract class InferableMember {
+  Member get member;
+
+  void inferMemberTypes(ClassHierarchyBase classHierarchy);
+
+  void reportCyclicDependency();
 }

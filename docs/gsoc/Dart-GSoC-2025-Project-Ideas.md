@@ -1,6 +1,9 @@
-> [!warning]
-> **Google Summer of Code 2025 is not accepting applications yet**.
+> [!info]
+> **Google Summer of Code 2025 is currently accepting applications until April 8, 2025.**
 
+The list of accepted projects will be announced on [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/organizations/).
+
+📌 See the [official timeline](https://developers.google.com/open-source/gsoc/timeline) for more details.
 ------
 
 A list of Google Summer of Code project ideas for Dart.
@@ -14,6 +17,8 @@ For GSoC related discussions please use the [dart-gsoc group](https://groups.goo
  * Liam Appelbe ([liamappelbe](https://github.com/liamappelbe)) `liama@google.com`
  * Huan Lin  ([hellohuanlin](https://github.com/hellohuanlin)) `huanlin@google.com`
  * Justin McCandless ([justinmc](https://github.com/justinmc)) `jmccandless@google.com`
+ * Mudit Somani ([TheComputerM](https://github.com/TheComputerM)) `mudit.somani00@gmail.com`
+ * Hamdaan Ali ([HamdaanAliQuatil](https://github.com/HamdaanAliQuatil)) `hamdaan.quatil@gmail.com`
  * More to come!
 
 ## Project Application Process
@@ -30,11 +35,11 @@ mentors available, and will only be able to accept a few applicants.
 
 Applications can be submitted through the [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/) website. Applicants are encouraged to submit draft proposals, linking to Google Docs with permission for mentors to comment. See also the [contributor guide](https://google.github.io/gsocguides/student/writing-a-proposal) on writing a proposal.
 
-**IMPORTANT**: Remember to submit _final proposals_ before [the April 2nd deadline](https://developers.google.com/open-source/gsoc/timeline).
+**IMPORTANT**: Remember to submit _final proposals_ before [the April 8th deadline](https://developers.google.com/open-source/gsoc/timeline).
 
 ## **Idea:** Exception testing for `package:webcrypto`
 
- - **Possible Mentor(s)**: `jonasfj@google.com`,
+ - **Possible Mentor(s)**: `jonasfj@google.com`, `hamdaan.quatil@gmail.com`
  - **Difficulty**: Hard
  - **Project size**: Large (350 hours)
  - **Skills**: Dart, FFI, JS
@@ -100,8 +105,8 @@ Inspired by this issue: https://github.com/dart-lang/native/issues/1240
 ## **Idea:** Secure Paste Custom Actions on iOS
 
  - **Possible Mentor(s)**: `huanlin@google.com`, `jmccandless@google.com`
- - **Difficulty**: Medium
- - **Project size**:  Medium (175 hours)
+ - **Difficulty**: Hard
+ - **Project size**:  Large (350 hours)
  - **Skills**: Dart, Objective-C
 
 **Description**: Support custom action items for native edit menu on iOS. It's a pretty impactful project requested by many developers (main issue here: https://github.com/flutter/flutter/issues/103163). This project is one of the key milestones: https://github.com/flutter/flutter/issues/140184.
@@ -121,6 +126,60 @@ Project:
 
 **Expected outcome**: A PR merged in Flutter
 
+## **Idea:** TUI framework for dart
+
+ - **Possible Mentor(s)**: `mudit.somani00@gmail.com`
+ - **Difficulty**: Medium
+ - **Project size**: Large (350 hours)
+ - **Skills**: Dart, CLIs
+
+**Description**: Dart is already used to create GUI applications through Flutter, it would be great if it can also be used to develop good looking TUI applications. Currently the language of choice for TUI development would be either Golang or Python due to their developed package ecosystems (like [charm](https://charm.sh/) or [textual](https://www.textualize.io/)) so a package that makes TUI development easier and faster on dart would increase its adoption in that space.
+
+Project:
+* Design composable methods to render components and text on the terminal
+* Include popular components like inputs, checkboxes and tables by default
+* Intuitive way to create your own custom components for the terminal
+* Ensure library works with popular state management libraries in dart
+
+**Good Sample Project**:
+
+* Composable methods to style text on the terminal (kinda like [libgloss](https://github.com/charmbracelet/lipgloss)).
+* Component based model to render and interact with terminal based text inputs and checkboxes (kinda like [bubbles](https://github.com/charmbracelet/bubbles)).
+* Functions to detect terminal width/height and enter fullscreen mode (alternate screen buffer).
+* Handle pointer events in the terminal (like clicking buttons).
+
+**Expected outcome**: A package on pub.dev with terminal primitives like text styling, inputs, checkboxes, tables, layouts, spinners etc.
+
+## **Idea:** Generate JS Interop Bindings for TypeScript Declaration Files
+
+ - **Possible Mentor(s)**: `srujzs@google.com`
+ - **Difficulty**: Hard
+ - **Project size**: Large (350 hours)
+ - **Skills**: Dart, JS/TS
+
+**Description**: Generate modern Dart JS interop declarations for `.d.ts` files.
+
+[`package:web_generator`](https://github.com/dart-lang/web/tree/main/web_generator) is used to generate the JS interop bindings for the DOM and various browser APIs in [`package:web`](https://github.com/dart-lang/web).
+It uses [`webidl2`](https://www.npmjs.com/package/webidl2) to parse the definitions that are supplied by [`webref`](https://www.npmjs.com/package/@webref/idl).
+Using JS interop, it takes the resulting JS AST nodes and create an intermediate representation.
+Lastly, with that intermediate representation, it uses [`package:code_builder`](https://github.com/dart-lang/tools/tree/main/pkgs/code_builder) to emit valid JS interop code.
+
+This project would entail doing something similar but instead of translating IDL files, it would translate `.d.ts` files to JS interop interfaces, reusing and refactoring the intermediate representation so that it can be used for both purposes.
+
+There is some history in [`js_facade_gen`](https://github.com/dart-archive/js_facade_gen), which is now archived.
+This project will be a lighterweight version of that that will emit [modern JS interop](https://dart.dev/interop/js-interop) instead.
+
+Project:
+* Find a parser for `.d.ts` files that outputs JS/TS AST nodes and add a script in `web_generator/bin` to use it.
+* Refactor the `package:web_generator` intermediate representation so it can be used as the translation target.
+* Use JS interop to translate the AST nodes to the intermediate representation.
+* Add tests for TS->JS interop code generation.
+
+**Good Sample Project**:
+
+* Modify or add a binary to `package:web_generator` to provide an option to generate bindings for specific IDL files instead of all of `webref`.
+
+**Expected outcome**: A published `package:web_generator` that includes a `bin/` script that consumes `.d.ts` files and outputs JS interop interfaces.
 
 ## TODO: More ideas as they come!
 

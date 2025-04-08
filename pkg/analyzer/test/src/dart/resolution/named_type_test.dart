@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -16,10 +18,6 @@ main() {
 
 @reflectiveTest
 class NamedTypeResolutionTest extends PubPackageResolutionTest {
-  ImportFindElement get import_a {
-    return findElement.importFind('package:test/a.dart');
-  }
-
   test_class() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -31,7 +29,6 @@ f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A
 ''');
@@ -48,7 +45,6 @@ f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A<num>
 ''');
@@ -65,7 +61,6 @@ f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A<dynamic>
 ''');
@@ -87,11 +82,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A<int>
 ''');
@@ -108,7 +101,6 @@ dynamic a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
-  element: dynamic@-1
   element2: dynamic
   type: dynamic
 ''');
@@ -127,10 +119,8 @@ NamedType
   importPrefix: ImportPrefixReference
     name: myCore
     period: .
-    element: <testLibraryFragment>::@prefix::myCore
     element2: <testLibraryFragment>::@prefix2::myCore
   name: dynamic
-  element: dynamic@-1
   element2: dynamic
   type: dynamic
 ''');
@@ -149,7 +139,6 @@ dynamic a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -164,7 +153,6 @@ dynamic a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
-  element: dynamic@-1
   element2: dynamic
   type: dynamic
 ''');
@@ -186,11 +174,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A<int>
 ''');
@@ -214,11 +200,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A<InvalidType, InvalidType>
 ''');
@@ -242,16 +226,13 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
     rightBracket: >
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A<InvalidType>
 ''');
@@ -274,12 +255,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: T@8
-  element2: <not-implemented>
+  element2: T@8
   type: T
 ''');
   }
@@ -294,7 +273,6 @@ void f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <testLibraryFragment>::@extensionType::A
   element2: <testLibrary>::@extensionType::A
   type: A<num>
 ''');
@@ -310,7 +288,6 @@ void f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <testLibraryFragment>::@extensionType::A
   element2: <testLibrary>::@extensionType::A
   type: A<dynamic>
 ''');
@@ -331,11 +308,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@extensionType::A
   element2: <testLibrary>::@extensionType::A
   type: A<int>
 ''');
@@ -352,10 +327,9 @@ f(F a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
-  element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: int Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -370,10 +344,9 @@ f(F a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
-  element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: num Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
       typeArguments
         num
 ''');
@@ -390,10 +363,9 @@ f(F a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
-  element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: dynamic Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
       typeArguments
         dynamic
 ''');
@@ -415,14 +387,12 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: int Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
       typeArguments
         int
 ''');
@@ -441,7 +411,6 @@ NamedType
   importPrefix: ImportPrefixReference
     name: async
     period: .
-    element: <testLibraryFragment>::@prefix::async
     element2: <testLibraryFragment>::@prefix2::async
   name: Future
   typeArguments: TypeArgumentList
@@ -449,11 +418,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: dart:async::<fragment>::@class::Future
   element2: dart:async::@class::Future
   type: Future<int>
 ''');
@@ -474,7 +441,6 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <testLibraryFragment>::@prefix::math
     element2: <testLibraryFragment>::@prefix2::math
   name: Unresolved
   typeArguments: TypeArgumentList
@@ -482,11 +448,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -509,10 +473,8 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <testLibraryFragment>::@prefix::math
     element2: <testLibraryFragment>::@prefix2::math
   name: A
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -531,7 +493,6 @@ main() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <testLibraryFragment>::@class::A
   element2: <testLibrary>::@class::A
   type: A
 ''');
@@ -550,7 +511,6 @@ main() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -574,7 +534,6 @@ NamedType
   importPrefix: ImportPrefixReference
     name: async
     period: .
-    element: <testLibraryFragment>::@prefix::async
     element2: <testLibraryFragment>::@prefix2::async
   name: Future
   typeArguments: TypeArgumentList
@@ -582,11 +541,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: dart:async::<fragment>::@class::Future
   element2: dart:async::@class::Future
   type: Future<int>
 ''');
@@ -605,7 +562,6 @@ void f(prefix a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
-  element: <testLibraryFragment>::@prefix::prefix
   element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
@@ -629,11 +585,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@prefix::prefix
   element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
@@ -654,10 +608,8 @@ NamedType
   importPrefix: ImportPrefixReference
     name: int
     period: .
-    element: dart:core::<fragment>::@class::int
     element2: dart:core::@class::int
   name: double
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -678,10 +630,8 @@ NamedType
   importPrefix: ImportPrefixReference
     name: int
     period: .
-    element: dart:core::<fragment>::@class::int
     element2: dart:core::@class::int
   name: double
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -700,7 +650,6 @@ void T() {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
-  element: <testLibraryFragment>::@function::T
   element2: <testLibrary>::@function::T
   type: InvalidType
 ''');
@@ -724,11 +673,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@function::T
   element2: <testLibrary>::@function::T
   type: InvalidType
 ''');
@@ -747,19 +694,16 @@ NamedType
   importPrefix: ImportPrefixReference
     name: T
     period: .
-    element: T@7
-    element2: <not-implemented>
+    element2: T@7
   name: name
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -787,12 +731,15 @@ void f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <null>
   element2: multiplyDefinedElement
     package:test/a.dart::@class::A
     package:test/b.dart::@class::A
   type: InvalidType
 ''');
+
+    // TODO(scheglov): Should not crash. Remove it after migration.
+    // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
+    expect(node.element2.asElement, isA<MultiplyDefinedElementImpl>());
   }
 
   test_never() async {
@@ -804,7 +751,6 @@ f(Never a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: Never
-  element: Never@-1
   element2: Never
   type: Never
 ''');
@@ -830,11 +776,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
@@ -855,7 +799,6 @@ void f() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
@@ -881,11 +824,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
@@ -906,14 +847,12 @@ NamedType
     arguments
       NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         String
 ''');
@@ -928,14 +867,12 @@ NamedType
       NamedType
         name: String
         question: ?
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String?
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Map<int, String?>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         String?
 ''');
@@ -956,14 +893,12 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: List<int?>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         int
 ''');
@@ -978,14 +913,12 @@ NamedType
       NamedType
         name: int
         question: ?
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int?
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: List<int?>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         int?
 ''');
@@ -1001,7 +934,6 @@ void f(X a, X? b) {}
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Never
 ''');
@@ -1011,7 +943,6 @@ NamedType
 NamedType
   name: X
   question: ?
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
@@ -1027,7 +958,6 @@ void f(X a, X? b) {}
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
@@ -1037,7 +967,6 @@ NamedType
 NamedType
   name: X
   question: ?
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
@@ -1058,14 +987,12 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: int?
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         int
 ''');
@@ -1086,14 +1013,12 @@ NamedType
     arguments
       NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
     rightBracket: >
-  element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         String
 ''');
@@ -1109,7 +1034,6 @@ Nothing f() {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: Nothing
-  element: <testLibraryFragment>::@typeAlias::Nothing
   element2: <testLibrary>::@typeAlias::Nothing
   type: void
 ''');
@@ -1131,11 +1055,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');
@@ -1154,7 +1076,6 @@ NamedType
   importPrefix: ImportPrefixReference
     name: unresolved
     period: .
-    element: <null>
     element2: <null>
   name: List
   typeArguments: TypeArgumentList
@@ -1162,11 +1083,9 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <null>
   element2: <null>
   type: InvalidType
 ''');

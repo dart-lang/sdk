@@ -42,27 +42,34 @@ class Isolate {
   }
 
   @patch
-  static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
-      {bool paused = false,
-      bool errorsAreFatal = true,
-      SendPort? onExit,
-      SendPort? onError,
-      String? debugName}) {
+  static Future<Isolate> spawn<T>(
+    void entryPoint(T message),
+    T message, {
+    bool paused = false,
+    bool errorsAreFatal = true,
+    SendPort? onExit,
+    SendPort? onError,
+    String? debugName,
+  }) {
     throw UnsupportedError("Isolate.spawn");
   }
 
   @patch
-  static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
-      {bool paused = false,
-      SendPort? onExit,
-      SendPort? onError,
-      bool errorsAreFatal = true,
-      bool? checked,
-      Map<String, String>? environment,
-      Uri? packageRoot,
-      Uri? packageConfig,
-      bool automaticPackageResolution = false,
-      String? debugName}) {
+  static Future<Isolate> spawnUri(
+    Uri uri,
+    List<String> args,
+    var message, {
+    bool paused = false,
+    SendPort? onExit,
+    SendPort? onError,
+    bool errorsAreFatal = true,
+    bool? checked,
+    Map<String, String>? environment,
+    Uri? packageRoot,
+    Uri? packageConfig,
+    bool automaticPackageResolution = false,
+    String? debugName,
+  }) {
     throw UnsupportedError("Isolate.spawnUri");
   }
 
@@ -97,8 +104,11 @@ class Isolate {
   }
 
   @patch
-  void ping(SendPort responsePort,
-      {Object? response, int priority = immediate}) {
+  void ping(
+    SendPort responsePort, {
+    Object? response,
+    int priority = immediate,
+  }) {
     throw UnsupportedError("Isolate.ping");
   }
 
@@ -132,10 +142,12 @@ class ReceivePort {
 class _ReceivePortImpl extends Stream implements ReceivePort {
   _ReceivePortImpl([String debugName = '']);
 
-  StreamSubscription listen(void Function(dynamic)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError = true}) {
+  StreamSubscription listen(
+    void Function(dynamic)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError = true,
+  }) {
     throw UnsupportedError("ReceivePort.listen");
   }
 

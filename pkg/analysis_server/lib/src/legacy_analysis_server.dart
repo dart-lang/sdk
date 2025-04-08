@@ -84,14 +84,13 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/debounce_requests.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
@@ -99,6 +98,7 @@ import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
 import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1190,7 +1190,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (file_paths.isDart(resourceProvider.pathContext, file)) {
-        getResolvedUnit(file, sendCachedToStream: true);
+        getResolvedUnit(file, sendCachedToStream: true, interactive: false);
       }
     }
   }

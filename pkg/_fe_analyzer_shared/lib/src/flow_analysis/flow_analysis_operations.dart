@@ -71,13 +71,13 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// consideration by an instance check.
   Type factor(Type from, Type what);
 
-  /// Determines whether the given [type] is equivalent to the `Never` type.
+  /// Determines whether the given [type] is a bottom type.
   ///
-  /// A type is equivalent to `Never` if it:
+  /// A type is a bottom type if it:
   /// (a) is the `Never` type itself.
   /// (b) is a type variable that extends `Never`, OR
   /// (c) is a type variable that has been promoted to `Never`
-  bool isNever(Type type);
+  bool isBottomType(Type type);
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool isSubtypeOf(Type leftType, Type rightType);

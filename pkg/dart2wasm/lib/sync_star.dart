@@ -168,13 +168,16 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
     Context? localContext = context;
     while (localContext != null) {
       if (!localContext.isEmpty) {
-        localContext.currentLocal =
-            b.addLocal(w.RefType.def(localContext.struct, nullable: true));
+        localContext.currentLocal = b.addLocal(
+            w.RefType.def(localContext.struct, nullable: true),
+            name: "context");
         if (localContext.containsThis) {
           assert(thisLocal == null);
-          thisLocal = b.addLocal(localContext
-              .struct.fields[localContext.thisFieldIndex].type.unpacked
-              .withNullability(false));
+          thisLocal = b.addLocal(
+              localContext
+                  .struct.fields[localContext.thisFieldIndex].type.unpacked
+                  .withNullability(false),
+              name: "this");
           translator
               .getDummyValuesCollectorForModule(b.module)
               .instantiateDummyValue(b, thisLocal!.type);
@@ -187,7 +190,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
     }
 
     // Read target index from the suspend state.
-    targetIndexLocal = addLocal(w.NumType.i32);
+    targetIndexLocal = addLocal(w.NumType.i32, name: "targetIndex");
     b.local_get(_suspendStateLocal);
     b.struct_get(suspendStateInfo.struct, FieldIndex.suspendStateTargetIndex);
     b.local_set(targetIndexLocal);
@@ -195,11 +198,16 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
     // Switch on the target index.
     masterLoop = b.loop(const [], const [w.NumType.i32]);
     labels = List.generate(targets.length, (_) => b.block()).reversed.toList();
-    w.Label defaultLabel = b.block();
+
+    // There should be at least two states: inner and after targets for the
+    // [FunctionNode].
+    assert(labels.length >= 2);
+
+    // Use the last target label as the default `br_table` target.
+    final brTableLabels = labels.sublist(0, labels.length - 1);
+    final brTableDefaultLabel = labels.last;
     b.local_get(targetIndexLocal);
-    b.br_table(labels, defaultLabel);
-    b.end(); // defaultLabel
-    b.unreachable();
+    b.br_table(brTableLabels, brTableDefaultLabel);
 
     // Initial state, executed on first [moveNext] on the iterator.
     StateTarget initialTarget = targets.first;

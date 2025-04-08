@@ -8,7 +8,7 @@ import '../../common/testing.dart' as helper;
 import 'package:expect/expect.dart';
 
 /// Dynamic module can be loaded from unmodifiable view.
-main() async {
+void main() async {
   final result = await helper.load('entry1.dart',
       transformBytes: (Uint8List bytes) => bytes.buffer
           .asUint8List(0, bytes.lengthInBytes)

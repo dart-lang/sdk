@@ -31,7 +31,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      child: /*caret*/GestureDetector(
+      child: ^GestureDetector(
         onTap: () => startResize(),
         child: Container(
           width: 200.0,
@@ -77,7 +77,7 @@ class _State extends State<Foo> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      child: /*caret*/Expanded(
+      child: ^Expanded(
         child: Text(
           'foo',
         ),
@@ -124,7 +124,7 @@ void f() {
         children: [
           Padding(
             padding: EdgeInsets.all(16.0),
-            child: /*caret*/Center(
+            child: ^Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[],
@@ -168,7 +168,7 @@ build() {
   return Scaffold(
     body: Column(
       children: [
-        /*caret*/Padding(
+        ^Padding(
           padding: const EdgeInsets.all(8),
           child: Text('Hello'),
         ),
@@ -203,7 +203,7 @@ build() {
   return Scaffold(
     body: Column(
       children: [
-        /*caret*/Padding(
+        ^Padding(
           padding: const EdgeInsets.all(8),
           child: Text('Hello'),
         ),

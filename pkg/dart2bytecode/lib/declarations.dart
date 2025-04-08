@@ -19,7 +19,12 @@ import 'disassembler.dart' show BytecodeDisassembler;
 import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'object_table.dart'
-    show ObjectTable, ObjectHandle, NameAndType, TypeParameterDeclaration;
+    show
+        ObjectTable,
+        ObjectHandle,
+        NameAndType,
+        ParameterFlags,
+        TypeParameterDeclaration;
 import 'source_positions.dart' show LineStarts, SourcePositions;
 
 class LibraryDeclaration extends BytecodeDeclaration {
@@ -505,7 +510,7 @@ class FunctionDeclaration {
   final TypeParametersDeclaration? typeParameters;
   final int numRequiredParameters;
   final List<ParameterDeclaration> parameters;
-  // Only contains the required flag for parameters when present.
+  // Only contains the required flag for named parameters when present.
   final List<int>? parameterFlags;
   final ObjectHandle returnType;
   final ObjectHandle? nativeName;
@@ -745,12 +750,6 @@ class TypeParametersDeclaration {
 }
 
 class ParameterDeclaration {
-  // Parameter flags are written separately (in Code).
-  static const isCovariantFlag = 1 << 0;
-  static const isCovariantByClassFlag = 1 << 1;
-  static const isFinalFlag = 1 << 2;
-  static const isRequiredFlag = 1 << 3;
-
   final ObjectHandle name;
   final ObjectHandle type;
 
@@ -788,8 +787,7 @@ class Code extends BytecodeDeclaration {
   final LocalVariableTable? localVariables;
   final List<ObjectHandle> nullableFields;
   final List<ClosureDeclaration> closures;
-  // Contains all parameter flags except for the required flags, which are
-  // kept instead in the FunctionDeclaration and ClosureDeclaration.
+  // Covariant and CovariantByClass flags for all parameters.
   final List<int>? parameterFlags;
   final int? forwardingStubTargetCpIndex;
   final int? defaultFunctionTypeArgsCpIndex;
@@ -953,7 +951,7 @@ class ClosureDeclaration {
   final int numRequiredParams;
   final int numNamedParams;
   final List<NameAndType> parameters;
-  // Only contains the required flag for parameters when present.
+  // Only contains the required flag for named parameters when present.
   final List<int>? parameterFlags;
   final ObjectHandle returnType;
   ClosureCode? code;
@@ -1061,7 +1059,7 @@ class ClosureDeclaration {
         sb.write(', ');
       }
       // We only store the required flag for ClosureDeclarations.
-      if (flags != null && flags[i] != 0) {
+      if (flags != null && (flags[i] & ParameterFlags.isRequiredFlag) != 0) {
         sb.write('required ');
       }
       sb.write(params[i]);
@@ -1088,21 +1086,14 @@ class ClosureDeclaration {
       sb.write(' type-params $typeParameters');
     }
     sb.write(' (');
-    final requiredFlags = (flags & hasParameterFlagsFlag) != 0
-        ? parameterFlags!.sublist(0, numRequiredParams)
-        : null;
-    _writeParamsToBuffer(
-        sb, parameters.sublist(0, numRequiredParams), requiredFlags);
+    _writeParamsToBuffer(sb, parameters.sublist(0, numRequiredParams), null);
     if (numRequiredParams != parameters.length) {
       if (numRequiredParams > 0) {
         sb.write(', ');
       }
       sb.write(numNamedParams > 0 ? '{ ' : '[ ');
-      final optionalFlags = (flags & hasParameterFlagsFlag) != 0
-          ? parameterFlags!.sublist(numRequiredParams)
-          : null;
       _writeParamsToBuffer(
-          sb, parameters.sublist(numRequiredParams), optionalFlags);
+          sb, parameters.sublist(numRequiredParams), parameterFlags);
       sb.write(numNamedParams > 0 ? ' }' : ' ]');
     }
     sb.write(') -> ');

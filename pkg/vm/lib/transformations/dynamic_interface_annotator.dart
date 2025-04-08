@@ -7,15 +7,20 @@ import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/targets.dart' show Target;
 
 import 'pragma.dart'
     show
+        ConstantPragmaAnnotationParser,
         kDynModuleCanBeOverriddenPragmaName,
         kDynModuleCallablePragmaName,
         kDynModuleExtendablePragmaName,
         kDynModuleImplicitlyCallablePragmaName,
         kDynModuleImplicitlyExtendablePragmaName,
-        kDynModuleCanBeOverriddenImplicitlyPragmaName;
+        kDynModuleCanBeOverriddenImplicitlyPragmaName,
+        ParsedDynModuleLanguageImplCanBeOverriddenPragma,
+        ParsedDynModuleLanguageImplCallablePragma,
+        ParsedDynModuleLanguageImplExtendablePragma;
 
 const bool _debug = false;
 
@@ -29,11 +34,19 @@ void annotateComponent(
   Uri baseUri,
   Component component,
   CoreTypes coreTypes,
+  Target target,
 ) {
   final spec = DynamicInterfaceSpecification(
     dynamicInterfaceSpecification,
     baseUri,
     component,
+  );
+
+  discoverLanguageImplPragmasInCoreLibraries(
+    spec,
+    component,
+    coreTypes,
+    target,
   );
 
   final extendableAnnotator = annotateNodes(
@@ -64,7 +77,6 @@ void annotateComponent(
   );
 
   final hierarchy = ClassHierarchy(component, coreTypes);
-  pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName);
   _ImplicitOverridesAnnotator(
     pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName),
     hierarchy,
@@ -152,6 +164,16 @@ class _Annotator extends RecursiveVisitor {
         c.accept(this);
       }
     }
+    for (final ext in node.extensions) {
+      if (ext.name[0] != '_') {
+        ext.accept(this);
+      }
+    }
+    for (final extensionType in node.extensionTypeDeclarations) {
+      if (extensionType.name[0] != '_') {
+        extensionType.accept(this);
+      }
+    }
     for (final exportRef in node.additionalExports) {
       exportRef.node!.accept(this);
     }
@@ -205,6 +227,34 @@ class _Annotator extends RecursiveVisitor {
         annotatedMembers.add(node)) {
       debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
+    }
+  }
+
+  @override
+  void visitExtension(Extension node) {
+    for (final md in node.memberDescriptors) {
+      final member = md.memberReference?.node;
+      if (member != null) {
+        annotateMember(member as Member);
+      }
+      final tearOff = md.tearOffReference?.node;
+      if (tearOff != null) {
+        annotateMember(tearOff as Member);
+      }
+    }
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    for (final md in node.memberDescriptors) {
+      final member = md.memberReference?.node;
+      if (member != null) {
+        annotateMember(member as Member);
+      }
+      final tearOff = md.tearOffReference?.node;
+      if (tearOff != null) {
+        annotateMember(tearOff as Member);
+      }
     }
   }
 }
@@ -542,4 +592,56 @@ class _ClassInfo {
   }
 
   static bool _isSetter(Member m) => m is Procedure && m.isSetter;
+}
+
+void discoverLanguageImplPragmasInCoreLibraries(
+  DynamicInterfaceSpecification spec,
+  Component component,
+  CoreTypes coreTypes,
+  Target target,
+) {
+  final pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
+  final visitor = _DiscoverLanguageImplPragmasVisitor(spec, pragmaParser);
+  for (final lib in component.libraries) {
+    if (lib.importUri.isScheme('dart')) {
+      visitor.visitLibrary(lib);
+    }
+  }
+}
+
+class _DiscoverLanguageImplPragmasVisitor extends RecursiveVisitor {
+  final DynamicInterfaceSpecification spec;
+  final ConstantPragmaAnnotationParser parser;
+
+  _DiscoverLanguageImplPragmasVisitor(this.spec, this.parser);
+
+  @override
+  void visitClass(Class node) {
+    for (final annotation in node.annotations) {
+      final pragma = parser.parsePragma(annotation);
+      switch (pragma) {
+        case ParsedDynModuleLanguageImplExtendablePragma():
+          spec.extendable.add(node);
+        case ParsedDynModuleLanguageImplCallablePragma():
+          spec.callable.add(node);
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  void defaultMember(Member node) {
+    for (final annotation in node.annotations) {
+      final pragma = parser.parsePragma(annotation);
+      switch (pragma) {
+        case ParsedDynModuleLanguageImplCallablePragma():
+          spec.callable.add(node);
+        case ParsedDynModuleLanguageImplCanBeOverriddenPragma():
+          if (!node.isInstanceMember) {
+            throw 'Expected instance member $node';
+          }
+          spec.canBeOverridden.add(node);
+      }
+    }
+  }
 }

@@ -107,6 +107,12 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
   /// Use [coveringNode] to access this field.
   AstNode? _coveringNode;
 
+  /// Whether the [_coveringNode] field has been set.
+  ///
+  /// The field may be set to `null`, so it's nullity is not a signal of whether
+  /// it needs to be computed.
+  bool _coveringNodeIsSet = false;
+
   CorrectionProducer({required super.context});
 
   /// The applicability of this producer.
@@ -154,18 +160,20 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
   AstNode? get coveringNode {
-    if (_coveringNode == null) {
-      var diagnostic = this.diagnostic;
-      if (diagnostic == null) {
-        return null;
-      }
-      var errorOffset = diagnostic.problemMessage.offset;
-      var errorLength = diagnostic.problemMessage.length;
-      _coveringNode =
-          NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
-              .searchWithin(unit);
+    if (_coveringNodeIsSet) {
+      return _coveringNode;
     }
-    return _coveringNode;
+
+    _coveringNodeIsSet = true;
+    var diagnostic = this.diagnostic;
+    if (diagnostic == null) {
+      return null;
+    }
+    var errorOffset = diagnostic.problemMessage.offset;
+    var errorLength = diagnostic.problemMessage.length;
+    var endOffset = math.max(errorOffset + errorLength - 1, 0);
+    return _coveringNode =
+        NodeLocator2(errorOffset, endOffset).searchWithin(unit);
   }
 
   /// The length of the source range associated with the error message being
@@ -503,11 +511,17 @@ abstract class ResolvedCorrectionProducer
     }
     // `=> myFunction();`.
     if (parent is ExpressionFunctionBody) {
+      if (_closureReturnType(expression) case var returnType?) {
+        return returnType;
+      }
       var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
     // `return myFunction();`.
     if (parent is ReturnStatement) {
+      if (_closureReturnType(expression) case var returnType?) {
+        return returnType;
+      }
       var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
@@ -631,8 +645,30 @@ abstract class ResolvedCorrectionProducer
 
   bool isEnabled(Feature feature) =>
       libraryElement2.featureSet.isEnabled(feature);
+
+  /// Looks if the [expression] is directly inside a closure and returns the
+  /// return type of the closure.
+  DartType? _closureReturnType(Expression expression) {
+    if (expression.enclosingClosure
+        case FunctionExpression(:var correspondingParameter, :var staticType)) {
+      if (correspondingParameter?.type ?? staticType
+          case FunctionType(:var returnType)) {
+        return returnType;
+      }
+    }
+    return null;
+  }
 }
 
+/// A stub implementation of [CorrectionProducerContext], which can be used to
+/// instantiate a correction producer for the purpose of examining fixed
+/// properties on it.
+///
+/// This has several acceptable use cases:
+/// * checking the applicability of a correction producer,
+/// * testing purposes,
+/// * short-circuiting logic in a correction producer factory constructor that
+///   relies on the context's `node` property.
 final class StubCorrectionProducerContext implements CorrectionProducerContext {
   static final instance = StubCorrectionProducerContext._();
 
@@ -752,7 +788,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(String memberName) {
+  Stream<LibraryElement2> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
   }
 }

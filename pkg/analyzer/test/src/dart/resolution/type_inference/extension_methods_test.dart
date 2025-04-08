@@ -33,21 +33,18 @@ void f(A<int> a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<int>
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: GetterMember
-      base: <testLibraryFragment>::@extension::E::@getter::foo
+    element: GetterMember
+      baseElement: <testLibraryFragment>::@extension::E::@getter::foo#element
       substitution: {T: int}
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: List<int>
-  staticElement: GetterMember
-    base: <testLibraryFragment>::@extension::E::@getter::foo
+  element: GetterMember
+    baseElement: <testLibraryFragment>::@extension::E::@getter::foo#element
     substitution: {T: int}
-  element: <testLibraryFragment>::@extension::E::@getter::foo#element
   staticType: List<int>
 ''');
   }
@@ -70,24 +67,22 @@ void f(A<int> a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<int>
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: int, U: U}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       DoubleLiteral
         literal: 1.0
-        parameter: ParameterMember
-          base: root::@parameter::u
+        correspondingParameter: ParameterMember
+          baseElement: root::@parameter::u#element
           substitution: {U: double}
         staticType: double
     rightParenthesis: )
@@ -111,16 +106,14 @@ extension E<T> on List<T> {
 MethodInvocation
   target: SimpleIdentifier
     token: other
-    staticElement: <testLibraryFragment>::@extension::E::@method::bar::@parameter::other
     element: <testLibraryFragment>::@extension::E::@method::bar::@parameter::other#element
     staticType: List<T>
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: T}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: List<T> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -146,24 +139,22 @@ void f(String a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: String
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: String, U: U}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: Map<String, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: ParameterMember
-          base: root::@parameter::value
+        correspondingParameter: ParameterMember
+          baseElement: root::@parameter::value#element
           substitution: {U: int}
         staticType: int
     rightParenthesis: )
@@ -192,21 +183,18 @@ void f(A<int> a) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<int>
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: int, U: U}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: Map<int, U> Function<U>(U)
-  staticElement: MethodMember
-    base: <testLibraryFragment>::@extension::E::@method::foo
+  element: MethodMember
+    baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
     substitution: {T: int, U: U}
-  element: <testLibraryFragment>::@extension::E::@method::foo#element
   staticType: Map<int, U> Function<U>(U)
 ''');
   }
@@ -229,34 +217,28 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<int>
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: ParameterMember
-      base: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
+    correspondingParameter: ParameterMember
+      baseElement: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value#element
       substitution: {T: int}
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: SetterMember
-    base: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: SetterMember
+    baseElement: <testLibraryFragment>::@extension::E::@setter::foo#element
     substitution: {T: int}
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: int
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -278,16 +260,14 @@ void f<S extends num>(S x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: S
   operator: .
   methodName: SimpleIdentifier
     token: test
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::Test::@method::test
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::Test::@method::test#element
       substitution: {T: S}
-    element: <testLibraryFragment>::@extension::Test::@method::test#element
     staticType: S Function(S) Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -315,7 +295,6 @@ PropertyAccess
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: S
     rightParenthesis: )
@@ -323,10 +302,9 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: test
-    staticElement: GetterMember
-      base: <testLibraryFragment>::@extension::Test::@getter::test
+    element: GetterMember
+      baseElement: <testLibraryFragment>::@extension::Test::@getter::test#element
       substitution: {T: S}
-    element: <testLibraryFragment>::@extension::Test::@getter::test#element
     staticType: S Function(S)
   staticType: S Function(S)
 ''');
@@ -353,7 +331,6 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: x
-        staticElement: <testLibraryFragment>::@function::f::@parameter::x
         element: <testLibraryFragment>::@function::f::@parameter::x#element
         staticType: S
       rightParenthesis: )
@@ -361,7 +338,6 @@ AssignmentExpression
     operator: .
     propertyName: SimpleIdentifier
       token: test
-      staticElement: <null>
       element: <null>
       staticType: null
     staticType: null
@@ -369,28 +345,24 @@ AssignmentExpression
   rightHandSide: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: <testLibraryFragment>::@function::g
       element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    parameter: ParameterMember
-      base: <testLibraryFragment>::@extension::Test::@setter::test::@parameter::_
+    correspondingParameter: ParameterMember
+      baseElement: <testLibraryFragment>::@extension::Test::@setter::test::@parameter::_#element
       substitution: {T: S}
     staticInvokeType: S Function()
     staticType: S
     typeArgumentTypes
       S
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: SetterMember
-    base: <testLibraryFragment>::@extension::Test::@setter::test
+  writeElement2: SetterMember
+    baseElement: <testLibraryFragment>::@extension::Test::@setter::test#element
     substitution: {T: S}
-  writeElement2: <testLibraryFragment>::@extension::Test::@setter::test#element
   writeType: S
-  staticElement: <null>
   element: <null>
   staticType: S
 ''');
@@ -464,7 +436,6 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
       rightBracket: >
@@ -473,12 +444,10 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          parameter: <null>
-          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: <null>
           element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
@@ -487,10 +456,9 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: GetterMember
-      base: <testLibraryFragment>::@extension::E::@getter::foo
+    element: GetterMember
+      baseElement: <testLibraryFragment>::@extension::E::@getter::foo#element
       substitution: {T: num}
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: List<num>
   staticType: List<num>
 ''');
@@ -519,7 +487,6 @@ MethodInvocation
       arguments
         NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
       rightBracket: >
@@ -528,12 +495,10 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          parameter: <null>
-          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: <null>
           element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
@@ -542,18 +507,17 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: num, U: U}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: Map<num, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       DoubleLiteral
         literal: 1.0
-        parameter: ParameterMember
-          base: root::@parameter::u
+        correspondingParameter: ParameterMember
+          baseElement: root::@parameter::u#element
           substitution: {U: double}
         staticType: double
     rightParenthesis: )
@@ -587,7 +551,6 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
       rightBracket: >
@@ -596,12 +559,10 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          parameter: <null>
-          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: <null>
           element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
@@ -610,10 +571,9 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: num, U: U}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: Map<num, U> Function<U>(U)
   staticType: Map<num, U> Function<U>(U)
 ''');
@@ -643,7 +603,6 @@ AssignmentExpression
         arguments
           NamedType
             name: num
-            element: dart:core::<fragment>::@class::num
             element2: dart:core::@class::num
             type: num
         rightBracket: >
@@ -652,12 +611,10 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            parameter: <null>
-            staticElement: <testLibraryFragment>::@function::f::@parameter::a
+            correspondingParameter: <null>
             element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A<int>
         rightParenthesis: )
-      element: <testLibraryFragment>::@extension::E
       element2: <testLibrary>::@extension::E
       extendedType: A<num>
       staticType: null
@@ -666,26 +623,22 @@ AssignmentExpression
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    parameter: ParameterMember
-      base: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
+    correspondingParameter: ParameterMember
+      baseElement: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value#element
       substitution: {T: num}
     staticType: double
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: SetterMember
-    base: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: SetterMember
+    baseElement: <testLibraryFragment>::@extension::E::@setter::foo#element
     substitution: {T: num}
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: num
-  staticElement: <null>
   element: <null>
   staticType: double
 ''');
@@ -732,12 +685,10 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          parameter: <null>
-          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: <null>
           element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
@@ -746,10 +697,9 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: GetterMember
-      base: <testLibraryFragment>::@extension::E::@getter::foo
+    element: GetterMember
+      baseElement: <testLibraryFragment>::@extension::E::@getter::foo#element
       substitution: {T: int}
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: List<int>
   staticType: List<int>
 ''');
@@ -778,12 +728,10 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          parameter: <null>
-          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: <null>
           element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
@@ -792,18 +740,17 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: int, U: U}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       DoubleLiteral
         literal: 1.0
-        parameter: ParameterMember
-          base: root::@parameter::u
+        correspondingParameter: ParameterMember
+          baseElement: root::@parameter::u#element
           substitution: {U: double}
         staticType: double
     rightParenthesis: )
@@ -837,12 +784,10 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          parameter: <null>
-          staticElement: <testLibraryFragment>::@function::f::@parameter::a
+          correspondingParameter: <null>
           element: <testLibraryFragment>::@function::f::@parameter::a#element
           staticType: A<int>
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
@@ -851,10 +796,9 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: MethodMember
-      base: <testLibraryFragment>::@extension::E::@method::foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
       substitution: {T: int, U: U}
-    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: Map<int, U> Function<U>(U)
   staticType: Map<int, U> Function<U>(U)
 ''');
@@ -883,12 +827,10 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            parameter: <null>
-            staticElement: <testLibraryFragment>::@function::f::@parameter::a
+            correspondingParameter: <null>
             element: <testLibraryFragment>::@function::f::@parameter::a#element
             staticType: A<int>
         rightParenthesis: )
-      element: <testLibraryFragment>::@extension::E
       element2: <testLibrary>::@extension::E
       extendedType: A<int>
       staticType: null
@@ -897,26 +839,22 @@ AssignmentExpression
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: ParameterMember
-      base: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
+    correspondingParameter: ParameterMember
+      baseElement: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value#element
       substitution: {T: int}
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: SetterMember
-    base: <testLibraryFragment>::@extension::E::@setter::foo
+  writeElement2: SetterMember
+    baseElement: <testLibraryFragment>::@extension::E::@setter::foo#element
     substitution: {T: int}
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
   writeType: int
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');

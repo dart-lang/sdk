@@ -14,6 +14,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:kernel/ast.dart' show clearDummyTreeNodesParentPointer;
+import 'package:shell_arg_splitter/shell_arg_splitter.dart';
 
 import 'src/command/arguments.dart';
 import 'src/command/command.dart';
@@ -129,7 +130,7 @@ class _BatchHelper {
 
   Future<void> _doIteration(ParsedArguments batchArgs, String line) async {
     totalTests++;
-    var args = batchArgs.merge(line.split(RegExp(r'\s+')));
+    var args = batchArgs.merge(splitLine(line, windows: Platform.isWindows));
 
     String outcome;
     try {

@@ -16,3 +16,11 @@ class Class<@pragma('patch-class-type-variable') T> {
   @pragma('patch-procedure')
   external void method<@pragma('patch-method-type-variable') S>();
 }
+
+@patch
+@pragma('patch-extension')
+extension Extension<@pragma('patch-extension-type-variable') T> on int {
+  @patch
+  @pragma('patch-extension-method')
+  external void method<@pragma('patch-extension-method-type-variable') S>();
+}

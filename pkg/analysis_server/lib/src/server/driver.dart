@@ -24,6 +24,7 @@ import 'package:analysis_server/src/server/isolate_analysis_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -383,7 +384,8 @@ class Driver implements ServerStarter {
       }
     }
     linter.registerLintRules();
-    registerBuiltInProducers();
+    registerBuiltInAssistGenerators();
+    registerBuiltInFixGenerators();
 
     var diagnosticServer = _DiagnosticServerImpl();
 
@@ -491,7 +493,8 @@ class Driver implements ServerStarter {
             : _captureExceptions;
 
     linter.registerLintRules();
-    registerBuiltInProducers();
+    registerBuiltInAssistGenerators();
+    registerBuiltInFixGenerators();
 
     var diagnosticServer = _DiagnosticServerImpl();
 

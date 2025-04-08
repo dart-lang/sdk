@@ -32,3 +32,8 @@ class Class2 {
   @patch
   Class2(this.field) : injectedField = field;
 }
+
+@patch
+class Class3 {
+  const Class3._();
+}

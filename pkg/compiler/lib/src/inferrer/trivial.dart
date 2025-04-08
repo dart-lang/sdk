@@ -384,10 +384,7 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  }) {
+  AbstractValueWithPrecision createFromStaticType(DartType type) {
     return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
 
@@ -483,16 +480,19 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   AbstractValue get typeType => const TrivialAbstractValue();
 }
 
-class TrivialAbstractValueStrategy implements AbstractValueStrategy {
+class TrivialAbstractValueStrategy
+    implements AbstractValueStrategy<TrivialAbstractValueDomain> {
   const TrivialAbstractValueStrategy();
 
   @override
-  AbstractValueDomain createDomain(JClosedWorld closedWorld) {
+  TrivialAbstractValueDomain createDomain(JClosedWorld closedWorld) {
     return const TrivialAbstractValueDomain();
   }
 
   @override
-  SelectorConstraintsStrategy createSelectorStrategy() {
+  SelectorConstraintsStrategy createSelectorStrategy(
+    TrivialAbstractValueDomain domain,
+  ) {
     return const TrivialSelectorStrategy();
   }
 }

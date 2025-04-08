@@ -105,6 +105,11 @@ abstract class CompilerConfiguration {
         return NoneCompilerConfiguration(configuration);
 
       case Compiler.dartkp:
+        // TODO(b/399714829): Test packages should be created at test-time, not
+        // build time.
+        if (configuration.system == System.fuchsia) {
+          return NoneCompilerConfiguration(configuration);
+        }
         return PrecompilerCompilerConfiguration(configuration);
 
       case Compiler.specParser:
@@ -472,17 +477,11 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     var inputFile = arguments.last;
     var inputFilename = Uri.file(inputFile).pathSegments.last;
     var out = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
-    var babel = _configuration.babel;
-    var babelOut = out;
-    if (babel.isNotEmpty) {
-      out = out.replaceAll('.js', '.raw.js');
-    }
     var commands = [
       computeCompilationCommand(out, compilerArguments, environmentOverrides),
-      if (babel.isNotEmpty) computeBabelCommand(out, babelOut, babel)
     ];
 
-    return CommandArtifact(commands, babelOut, 'application/javascript');
+    return CommandArtifact(commands, out, 'application/javascript');
   }
 
   @override
@@ -498,22 +497,6 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact!.filename);
-  }
-
-  Command computeBabelCommand(String input, String output, String options) {
-    var uri = Repository.uri;
-    var babelTransform =
-        uri.resolve('pkg/test_runner/lib/src/babel_transform.js').toFilePath();
-    var babelStandalone =
-        uri.resolve('third_party/babel/babel.min.js').toFilePath();
-    return CompilationCommand(
-        'babel',
-        output,
-        [],
-        _configuration.runtimeConfiguration.d8FileName,
-        [babelTransform, "--", babelStandalone, options, input],
-        {},
-        alwaysCompile: true); // TODO(athom): ensure dependency tracking works.
   }
 }
 

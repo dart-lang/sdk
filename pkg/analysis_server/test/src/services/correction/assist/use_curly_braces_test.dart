@@ -23,7 +23,7 @@ class UseCurlyBracesTest extends AssistProcessorTest {
   Future<void> test_comment() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/while (true)
+  ^while (true)
     print(0); // something
 }
 ''');
@@ -39,7 +39,7 @@ void f() {
   Future<void> test_comment_body1() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/while (true)
+  ^while (true)
     // something
     print(0);
 }
@@ -57,7 +57,7 @@ void f() {
   Future<void> test_comment_body2() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/while (true) // something
+  ^while (true) // something
     print(0);
 }
 ''');
@@ -74,7 +74,7 @@ void f() {
   Future<void> test_comment_outside() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/while (true)
+  ^while (true)
     print(0);
   // something
 }
@@ -92,7 +92,7 @@ void f() {
   Future<void> test_do_block() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/do {
+  ^do {
     print(0);
   } while (true);
 }
@@ -103,7 +103,7 @@ void f() {
   Future<void> test_do_body_middle() async {
     await resolveTestCode('''
 void f() {
-  do print/*caret*/(0); while (true);
+  do print^(0); while (true);
 }
 ''');
     await assertHasAssist('''
@@ -118,7 +118,7 @@ void f() {
   Future<void> test_do_body_start() async {
     await resolveTestCode('''
 void f() {
-  do /*caret*/print(0); while (true);
+  do ^print(0); while (true);
 }
 ''');
     await assertHasAssist('''
@@ -133,7 +133,7 @@ void f() {
   Future<void> test_do_comment() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/do print(0); // something
+  ^do print(0); // something
     while (true);
 }
 ''');
@@ -149,7 +149,7 @@ void f() {
   Future<void> test_do_condition() async {
     await resolveTestCode('''
 void f() {
-  do print(0); while (/*caret*/true);
+  do print(0); while (^true);
 }
 ''');
     await assertHasAssist('''
@@ -164,7 +164,7 @@ void f() {
   Future<void> test_do_end() async {
     await resolveTestCode('''
 void f() {
-  do print(0); while (true);/*caret*/
+  do print(0); while (true);^
 }
 ''');
     await assertHasAssist('''
@@ -179,7 +179,7 @@ void f() {
   Future<void> test_do_keyword_do() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/do print(0); while (true);
+  ^do print(0); while (true);
 }
 ''');
     await assertHasAssist('''
@@ -194,7 +194,7 @@ void f() {
   Future<void> test_do_keyword_while() async {
     await resolveTestCode('''
 void f() {
-  do print(0); /*caret*/while (true);
+  do print(0); ^while (true);
 }
 ''');
     await assertHasAssist('''
@@ -209,7 +209,7 @@ void f() {
   Future<void> test_for_body_end() async {
     await resolveTestCode('''
 void f() {
-  for (;;) print(0);/*caret*/
+  for (;;) print(0);^
 }
 ''');
     await assertHasAssist('''
@@ -224,7 +224,7 @@ void f() {
   Future<void> test_for_body_middle() async {
     await resolveTestCode('''
 void f() {
-  for (;;) print/*caret*/(0);
+  for (;;) print^(0);
 }
 ''');
     await assertHasAssist('''
@@ -239,7 +239,7 @@ void f() {
   Future<void> test_for_body_start() async {
     await resolveTestCode('''
 void f() {
-  for (;;) /*caret*/print(0);
+  for (;;) ^print(0);
 }
 ''');
     await assertHasAssist('''
@@ -254,7 +254,7 @@ void f() {
   Future<void> test_for_condition() async {
     await resolveTestCode('''
 void f() {
-  for (/*caret*/;;) print(0);
+  for (^;;) print(0);
 }
 ''');
     await assertHasAssist('''
@@ -269,7 +269,7 @@ void f() {
   Future<void> test_for_keyword() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/for (;;) print(0);
+  ^for (;;) print(0);
 }
 ''');
     await assertHasAssist('''
@@ -284,7 +284,7 @@ void f() {
   Future<void> test_for_keyword_block() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/for (;;) {
+  ^for (;;) {
     print(0);
   }
 }
@@ -297,7 +297,7 @@ void f() {
 void f(int a) {
   if (a == 0) {
     print(0);
-  } /*caret*/else if (a == 1) {
+  } ^else if (a == 1) {
     print(1);
   }
 }
@@ -310,7 +310,7 @@ void f(int a) {
 void f(int a) {
   if (a == 0) {
     print(0);
-  } else /*caret*/if (a == 1) {
+  } else ^if (a == 1) {
     print(1);
   }
 }
@@ -323,7 +323,7 @@ void f(int a) {
 void f(int a) {
   if (a == 0)
     print(0);
-  /*caret*/else print(1);
+  ^else print(1);
 }
 ''');
     await assertHasAssist('''
@@ -342,7 +342,7 @@ void f(int a) {
 void f(int a) {
   if (a == 0)
     print(0);
-  else /*caret*/print(1);
+  else ^print(1);
 }
 ''');
     await assertHasAssist('''
@@ -359,7 +359,7 @@ void f(int a) {
   Future<void> test_if_keyword_blockBoth() async {
     await resolveTestCode('''
 void f(int a) {
-  /*caret*/if (a == 0) {
+  ^if (a == 0) {
     print(0);
   } else {
     print(1);
@@ -372,7 +372,7 @@ void f(int a) {
   Future<void> test_if_keyword_blockElse() async {
     await resolveTestCode('''
 void f(int a) {
-  /*caret*/if (a == 0) print(0);
+  ^if (a == 0) print(0);
   else {
     print(1);
   }
@@ -392,7 +392,7 @@ void f(int a) {
   Future<void> test_if_keyword_blockThen() async {
     await resolveTestCode('''
 void f(int a) {
-  /*caret*/if (a == 0) {
+  ^if (a == 0) {
     print(0);
   }
 }
@@ -403,7 +403,7 @@ void f(int a) {
   Future<void> test_if_keyword_withElse() async {
     await resolveTestCode('''
 void f(int a) {
-  /*caret*/if (a == 0)
+  ^if (a == 0)
     print(0);
   else print(1);
 }
@@ -422,7 +422,7 @@ void f(int a) {
   Future<void> test_if_keyword_withElse_comment() async {
     await resolveTestCode('''
 void f(int a) {
-  /*caret*/if (a == 0)
+  ^if (a == 0)
     print(0); // something
   else print(1);
 }
@@ -441,7 +441,7 @@ void f(int a) {
   Future<void> test_if_keyword_withElseIf() async {
     await resolveTestCode('''
 void f(int a) {
-  /*caret*/if (a == 0) {
+  ^if (a == 0) {
     print(0);
   } else if (a == 1) {
     print(1);
@@ -454,7 +454,7 @@ void f(int a) {
   Future<void> test_if_keyword_withoutElse() async {
     await resolveTestCode('''
 void f(int a) {
-  /*caret*/if (a == 0)
+  ^if (a == 0)
     print(0);
 }
 ''');
@@ -471,7 +471,7 @@ void f(int a) {
     await resolveTestCode('''
 void f(int a) {
   if (a == 0)
-    /*caret*/print(0);
+    ^print(0);
   else print(1);
 }
 ''');
@@ -487,7 +487,7 @@ void f(int a) {
   Future<void> test_if_then_withoutElse() async {
     await resolveTestCode('''
 void f(int a) {
-  if (a == 0) /*caret*/print(0);
+  if (a == 0) ^print(0);
 }
 ''');
     await assertHasAssist('''
@@ -506,7 +506,7 @@ void f(int a) {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f() {
-  do print/*caret*/(0); while (true);
+  do print^(0); while (true);
 }
 ''');
     await assertNoAssist();
@@ -515,7 +515,7 @@ void f() {
   Future<void> test_while_body_end() async {
     await resolveTestCode('''
 void f() {
-  while (true) print(0);/*caret*/
+  while (true) print(0);^
 }
 ''');
     await assertHasAssist('''
@@ -530,7 +530,7 @@ void f() {
   Future<void> test_while_body_middle() async {
     await resolveTestCode('''
 void f() {
-  while (true) print/*caret*/(0);
+  while (true) print^(0);
 }
 ''');
     await assertHasAssist('''
@@ -545,7 +545,7 @@ void f() {
   Future<void> test_while_body_start() async {
     await resolveTestCode('''
 void f() {
-  while (true) /*caret*/print(0);
+  while (true) ^print(0);
 }
 ''');
     await assertHasAssist('''
@@ -560,7 +560,7 @@ void f() {
   Future<void> test_while_condition() async {
     await resolveTestCode('''
 void f() {
-  while (/*caret*/true) print(0);
+  while (^true) print(0);
 }
 ''');
     await assertHasAssist('''
@@ -575,7 +575,7 @@ void f() {
   Future<void> test_while_keyword() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/while (true) print(0);
+  ^while (true) print(0);
 }
 ''');
     await assertHasAssist('''
@@ -590,7 +590,7 @@ void f() {
   Future<void> test_while_keyword_block() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/while (true) {
+  ^while (true) {
     print(0);
   }
 }

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   var visitor = DartUnitOccurrencesComputerVisitor();
@@ -101,7 +100,11 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    _addOccurrence(node.declaredElement2!, node.name);
+    if (node.declaredElement2 case BindPatternVariableElement2(:var join2?)) {
+      _addOccurrence(join2.baseElement, node.name);
+    } else {
+      _addOccurrence(node.declaredElement2!, node.name);
+    }
 
     super.visitDeclaredVariablePattern(node);
   }
@@ -118,6 +121,22 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     _addOccurrence(node.declaredFragment!.element, node.name);
 
     super.visitEnumDeclaration(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (node case ExtensionDeclaration(:var declaredFragment?, :var name?)) {
+      _addOccurrence(declaredFragment.element, name);
+    }
+
+    super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _addOccurrence(node.element2, node.name);
+
+    super.visitExtensionOverride(node);
   }
 
   @override
@@ -143,6 +162,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _addOccurrence(node.declaredFragment!.element, node.name);
+
     super.visitFunctionDeclaration(node);
   }
 
@@ -170,6 +190,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _addOccurrence(node.declaredFragment!.element, node.name);
+
     super.visitMethodDeclaration(node);
   }
 
@@ -250,6 +271,15 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitTypeParameter(TypeParameter node) {
+    if (node case TypeParameter(:var declaredFragment?)) {
+      _addOccurrence(declaredFragment.element, node.name);
+    }
+
+    super.visitTypeParameter(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _addOccurrence(node.declaredFragment!.element, node.name);
     super.visitVariableDeclaration(node);
@@ -261,7 +291,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   void _addOccurrenceAt(Element2 element, int offset, int length) {
     var canonicalElement = _canonicalizeElement(element);
-    if (canonicalElement == null || element == DynamicElementImpl.instance) {
+    if (canonicalElement == null) {
       return;
     }
     var offsetLengths = elementsOffsetLengths[canonicalElement];

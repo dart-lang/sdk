@@ -49,7 +49,6 @@ E a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: E
-  element: <testLibraryFragment>::@extension::E
   element2: <testLibrary>::@extension::E
   type: InvalidType
 ''');

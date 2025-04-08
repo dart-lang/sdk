@@ -109,7 +109,7 @@ class double {
   static double parse(String source) {
     var result = _parse(source);
     if (result == null) {
-      throw new FormatException("Invalid double", source);
+      throw FormatException("Invalid double", source);
     }
     return result;
   }

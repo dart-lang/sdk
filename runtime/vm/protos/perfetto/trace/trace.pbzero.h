@@ -58,14 +58,7 @@ class Trace : public ::protozero::Message {
       TracePacket,
       Trace>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_Packet kPacket() { return {}; }
+  static constexpr FieldMetadata_Packet kPacket{};
   template <typename T = TracePacket>
   T* add_packet() {
     return BeginNestedMessage<T>(1);

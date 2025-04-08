@@ -274,7 +274,7 @@ final class BoxedInt implements int {
     }
     // Generic case involving doubles, and invalid integer ranges.
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw ArgumentError(lowerLimit);
     }
     if (lowerLimit.isNaN) return lowerLimit;
     // Note that we don't need to care for -0.0 for the lower limit.
@@ -394,7 +394,7 @@ final class BoxedInt implements int {
     } while (u != 0);
     if (!inv) return v << s;
     if (v != 1) {
-      throw new Exception("Not coprime");
+      throw Exception("Not coprime");
     }
     if (d < 0) {
       d += x;
@@ -415,7 +415,7 @@ final class BoxedInt implements int {
     if (t.geU(m)) t %= m;
     if (t == 1) return 1;
     if ((t == 0) || (t.isEven && m.isEven)) {
-      throw new Exception("Not coprime");
+      throw Exception("Not coprime");
     }
     return _binaryGcd(m, t, true);
   }

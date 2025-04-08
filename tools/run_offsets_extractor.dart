@@ -39,15 +39,14 @@ void main(List<String> args) async {
     print('Building $buildDir - done');
   });
 
-  final (jit, aot) =
-      await (
-        forAllConfigurationsMode((String buildDir, _, _) async {
-          return await run(['$buildDir/offsets_extractor']);
-        }).then<String>((lines) => lines.join('\n')),
-        forAllConfigurationsMode((String buildDir, _, _) async {
-          return await run(['$buildDir/offsets_extractor_aotruntime']);
-        }).then<String>((lines) => lines.join('\n')),
-      ).wait;
+  final (jit, aot) = await (
+    forAllConfigurationsMode((String buildDir, _, __) async {
+      return await run(['$buildDir/offsets_extractor']);
+    }).then<String>((lines) => lines.join('\n')),
+    forAllConfigurationsMode((String buildDir, _, __) async {
+      return await run(['$buildDir/offsets_extractor_aotruntime']);
+    }).then<String>((lines) => lines.join('\n')),
+  ).wait;
 
   if (exitCode == 0) {
     final output = StringBuffer();

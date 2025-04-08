@@ -16,7 +16,7 @@ import "dart:_internal";
 @#C5
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C6
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C8
-class Class<@#C10 @#C12 T extends core::Object? = dynamic> extends core::Object {
+class Class<@#C10 @/* from org-dartlang-testcase:///patch_lib.dart */ #C12 T extends core::Object? = dynamic> extends core::Object {
   @/* from org-dartlang-testcase:///origin_lib.dart */ #C14
   @#C6
   @#C16
@@ -26,6 +26,19 @@ class Class<@#C10 @#C12 T extends core::Object? = dynamic> extends core::Object 
   @#C20
   external method /* from org-dartlang-testcase:///patch_lib.dart */ method<@#C22 S extends core::Object? = dynamic>() → void;
 }
+@#C24
+@#C6
+@#C26
+extension Extension<@#C28 @/* from org-dartlang-testcase:///patch_lib.dart */ #C30 T extends core::Object? = dynamic> on core::int {
+  method method = self2::Extension|method;
+  method tearoff method = self2::Extension|get#method;
+}
+@/* from org-dartlang-testcase:///origin_lib.dart */ #C32
+@#C6
+@#C34
+external static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|method<T extends core::Object? = dynamic, @#C36 S extends core::Object? = dynamic>(lowered final core::int #this) → void;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#method<T extends core::Object? = dynamic>(lowered final core::int #this) → <S extends core::Object? = dynamic>() → void
+  return <S extends core::Object? = dynamic>() → void => self2::Extension|method<self2::Extension|get#method::T%, S%>(#this);
 
 constants  {
   #C1 = "origin-library"
@@ -50,6 +63,20 @@ constants  {
   #C20 = core::pragma {name:#C19, options:#C2}
   #C21 = "patch-method-type-variable"
   #C22 = core::pragma {name:#C21, options:#C2}
+  #C23 = "origin-extension"
+  #C24 = core::pragma {name:#C23, options:#C2}
+  #C25 = "patch-extension"
+  #C26 = core::pragma {name:#C25, options:#C2}
+  #C27 = "origin-extension-type-variable"
+  #C28 = core::pragma {name:#C27, options:#C2}
+  #C29 = "patch-extension-type-variable"
+  #C30 = core::pragma {name:#C29, options:#C2}
+  #C31 = "origin-extension-method"
+  #C32 = core::pragma {name:#C31, options:#C2}
+  #C33 = "patch-extension-method"
+  #C34 = core::pragma {name:#C33, options:#C2}
+  #C35 = "patch-extension-method-type-variable"
+  #C36 = core::pragma {name:#C35, options:#C2}
 }
 
 

@@ -770,7 +770,6 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool visitFutureOrType(FutureOrType type, CoreTypes coreTypes) {
     return type.typeArgument.accept1(this, coreTypes);
   }

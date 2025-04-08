@@ -25,12 +25,15 @@ namespace protos {
 namespace pbzero {
 
 class Callstack;
+class DebugAnnotationName;
+class EventCategory;
+class EventName;
 class Frame;
 class InternedString;
 class Mapping;
 
 class InternedData_Decoder : public ::protozero::TypedProtoDecoder<
-                                 /*MAX_FIELD_ID=*/19,
+                                 /*MAX_FIELD_ID=*/29,
                                  /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   InternedData_Decoder(const uint8_t* data, size_t len)
@@ -40,6 +43,21 @@ class InternedData_Decoder : public ::protozero::TypedProtoDecoder<
                           raw.size()) {}
   explicit InternedData_Decoder(const ::protozero::ConstBytes& raw)
       : TypedProtoDecoder(raw.data, raw.size) {}
+  bool has_event_categories() const { return at<1>().valid(); }
+  ::protozero::RepeatedFieldIterator<::protozero::ConstBytes> event_categories()
+      const {
+    return GetRepeated<::protozero::ConstBytes>(1);
+  }
+  bool has_event_names() const { return at<2>().valid(); }
+  ::protozero::RepeatedFieldIterator<::protozero::ConstBytes> event_names()
+      const {
+    return GetRepeated<::protozero::ConstBytes>(2);
+  }
+  bool has_debug_annotation_names() const { return at<3>().valid(); }
+  ::protozero::RepeatedFieldIterator<::protozero::ConstBytes>
+  debug_annotation_names() const {
+    return GetRepeated<::protozero::ConstBytes>(3);
+  }
   bool has_mapping_paths() const { return at<17>().valid(); }
   ::protozero::RepeatedFieldIterator<::protozero::ConstBytes> mapping_paths()
       const {
@@ -63,20 +81,69 @@ class InternedData_Decoder : public ::protozero::TypedProtoDecoder<
       const {
     return GetRepeated<::protozero::ConstBytes>(7);
   }
+  bool has_debug_annotation_string_values() const { return at<29>().valid(); }
+  ::protozero::RepeatedFieldIterator<::protozero::ConstBytes>
+  debug_annotation_string_values() const {
+    return GetRepeated<::protozero::ConstBytes>(29);
+  }
 };
 
 class InternedData : public ::protozero::Message {
  public:
   using Decoder = InternedData_Decoder;
   enum : int32_t {
+    kEventCategoriesFieldNumber = 1,
+    kEventNamesFieldNumber = 2,
+    kDebugAnnotationNamesFieldNumber = 3,
     kMappingPathsFieldNumber = 17,
     kFunctionNamesFieldNumber = 5,
     kMappingsFieldNumber = 19,
     kFramesFieldNumber = 6,
     kCallstacksFieldNumber = 7,
+    kDebugAnnotationStringValuesFieldNumber = 29,
   };
   static constexpr const char* GetName() {
     return ".perfetto.protos.InternedData";
+  }
+
+  using FieldMetadata_EventCategories = ::protozero::proto_utils::FieldMetadata<
+      1,
+      ::protozero::proto_utils::RepetitionType::kRepeatedNotPacked,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      EventCategory,
+      InternedData>;
+
+  static constexpr FieldMetadata_EventCategories kEventCategories{};
+  template <typename T = EventCategory>
+  T* add_event_categories() {
+    return BeginNestedMessage<T>(1);
+  }
+
+  using FieldMetadata_EventNames = ::protozero::proto_utils::FieldMetadata<
+      2,
+      ::protozero::proto_utils::RepetitionType::kRepeatedNotPacked,
+      ::protozero::proto_utils::ProtoSchemaType::kMessage,
+      EventName,
+      InternedData>;
+
+  static constexpr FieldMetadata_EventNames kEventNames{};
+  template <typename T = EventName>
+  T* add_event_names() {
+    return BeginNestedMessage<T>(2);
+  }
+
+  using FieldMetadata_DebugAnnotationNames =
+      ::protozero::proto_utils::FieldMetadata<
+          3,
+          ::protozero::proto_utils::RepetitionType::kRepeatedNotPacked,
+          ::protozero::proto_utils::ProtoSchemaType::kMessage,
+          DebugAnnotationName,
+          InternedData>;
+
+  static constexpr FieldMetadata_DebugAnnotationNames kDebugAnnotationNames{};
+  template <typename T = DebugAnnotationName>
+  T* add_debug_annotation_names() {
+    return BeginNestedMessage<T>(3);
   }
 
   using FieldMetadata_MappingPaths = ::protozero::proto_utils::FieldMetadata<
@@ -86,14 +153,7 @@ class InternedData : public ::protozero::Message {
       InternedString,
       InternedData>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_MappingPaths kMappingPaths() { return {}; }
+  static constexpr FieldMetadata_MappingPaths kMappingPaths{};
   template <typename T = InternedString>
   T* add_mapping_paths() {
     return BeginNestedMessage<T>(17);
@@ -106,14 +166,7 @@ class InternedData : public ::protozero::Message {
       InternedString,
       InternedData>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_FunctionNames kFunctionNames() { return {}; }
+  static constexpr FieldMetadata_FunctionNames kFunctionNames{};
   template <typename T = InternedString>
   T* add_function_names() {
     return BeginNestedMessage<T>(5);
@@ -126,14 +179,7 @@ class InternedData : public ::protozero::Message {
       Mapping,
       InternedData>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_Mappings kMappings() { return {}; }
+  static constexpr FieldMetadata_Mappings kMappings{};
   template <typename T = Mapping>
   T* add_mappings() {
     return BeginNestedMessage<T>(19);
@@ -146,14 +192,7 @@ class InternedData : public ::protozero::Message {
       Frame,
       InternedData>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_Frames kFrames() { return {}; }
+  static constexpr FieldMetadata_Frames kFrames{};
   template <typename T = Frame>
   T* add_frames() {
     return BeginNestedMessage<T>(6);
@@ -166,17 +205,25 @@ class InternedData : public ::protozero::Message {
       Callstack,
       InternedData>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_Callstacks kCallstacks() { return {}; }
+  static constexpr FieldMetadata_Callstacks kCallstacks{};
   template <typename T = Callstack>
   T* add_callstacks() {
     return BeginNestedMessage<T>(7);
+  }
+
+  using FieldMetadata_DebugAnnotationStringValues =
+      ::protozero::proto_utils::FieldMetadata<
+          29,
+          ::protozero::proto_utils::RepetitionType::kRepeatedNotPacked,
+          ::protozero::proto_utils::ProtoSchemaType::kMessage,
+          InternedString,
+          InternedData>;
+
+  static constexpr FieldMetadata_DebugAnnotationStringValues
+      kDebugAnnotationStringValues{};
+  template <typename T = InternedString>
+  T* add_debug_annotation_string_values() {
+    return BeginNestedMessage<T>(29);
   }
 };
 

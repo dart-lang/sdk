@@ -369,7 +369,7 @@ Future<CompilerResult> _compile(List<String> args,
       if (rejectionReasons.isNotEmpty) {
         throw StateError(
             'Hot reload rejected due to:\n${rejectionReasons.join('\n')}\n'
-            'Use hot restart instead.');
+            'Try performing a hot restart instead.');
       }
     }
     var sink = File(reloadDeltaKernel).openWrite();
@@ -839,13 +839,8 @@ ModuleSymbols _emitSymbols(Compiler compiler, String moduleName,
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
     String sourceMapUri, String moduleUri, String? fullDillUri) {
-  var metadata = ModuleMetadata(
-      program.name!,
-      loadFunctionName(program.name!),
-      sourceMapUri,
-      moduleUri,
-      fullDillUri,
-      component.mode == NonNullableByDefaultCompiledMode.Strong);
+  var metadata = ModuleMetadata(program.name!, loadFunctionName(program.name!),
+      sourceMapUri, moduleUri, fullDillUri);
 
   for (var lib in component.libraries) {
     metadata.addLibrary(LibraryMetadata(

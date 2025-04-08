@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 
 /// A dynamic module is allowed to extend a class in the dynamic interface and
 /// override its members.
-main() async {
+void main() async {
   final o = (await helper.load('entry1.dart')) as int;
   Expect.equals(1, o);
   helper.done();

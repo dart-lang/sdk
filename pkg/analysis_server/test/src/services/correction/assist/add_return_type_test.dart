@@ -24,7 +24,7 @@ class AddReturnTypeTest extends AssistProcessorTest {
     await resolveTestCode('''
 class A {
   void m() {
-    /*caret*/f() {
+    ^f() {
       return '';
     }
   }
@@ -45,7 +45,7 @@ class A {
     await resolveTestCode('''
 class A {
   void m() {
-    /*caret*/f() => '';
+    ^f() => '';
   }
 }
 ''');
@@ -61,7 +61,7 @@ class A {
   Future<void> test_method_block_noReturn() async {
     await resolveTestCode('''
 class A {
-  /*caret*/m() {}
+  ^m() {}
 }
 ''');
     await assertHasAssist('''
@@ -74,7 +74,7 @@ class A {
   Future<void> test_method_block_returnDynamic() async {
     await resolveTestCode('''
 class A {
-  /*caret*/m(p) {
+  ^m(p) {
     return p;
   }
 }
@@ -91,7 +91,7 @@ class A {
   Future<void> test_method_block_returnNoValue() async {
     await resolveTestCode('''
 class A {
-  /*caret*/m() {
+  ^m() {
     return;
   }
 }
@@ -108,7 +108,7 @@ class A {
   Future<void> test_method_block_singleReturn() async {
     await resolveTestCode('''
 class A {
-  /*caret*/m() {
+  ^m() {
     return '';
   }
 }
@@ -125,7 +125,7 @@ class A {
   Future<void> test_method_expression() async {
     await resolveTestCode('''
 class A {
-  /*caret*/m() => '';
+  ^m() => '';
 }
 ''');
     await assertHasAssist('''
@@ -138,7 +138,7 @@ class A {
   Future<void> test_method_getter() async {
     await resolveTestCode('''
 class A {
-  get /*caret*/foo => 0;
+  get ^foo => 0;
 }
 ''');
     await assertHasAssist('''
@@ -151,7 +151,7 @@ class A {
   Future<void> test_method_setter() async {
     await resolveTestCode('''
 class A {
-  set /*caret*/foo(int a) {
+  set ^foo(int a) {
     if (a == 0) return;
   }
 }
@@ -163,7 +163,7 @@ class A {
     createAnalysisOptionsFile(lints: [LintNames.avoid_return_types_on_setters]);
     await resolveTestCode('''
 class A {
-  set /*caret*/foo(int a) {
+  set ^foo(int a) {
     if (a == 0) return;
   }
 }
@@ -173,7 +173,7 @@ class A {
 
   Future<void> test_topLevelFunction_block() async {
     await resolveTestCode('''
-/*caret*/f() {
+^f() {
   return '';
 }
 ''');
@@ -186,7 +186,7 @@ String f() {
 
   Future<void> test_topLevelFunction_expression() async {
     await resolveTestCode('''
-/*caret*/f() => '';
+^f() => '';
 ''');
     await assertHasAssist('''
 String f() => '';
@@ -197,14 +197,14 @@ String f() => '';
     createAnalysisOptionsFile(lints: [LintNames.always_declare_return_types]);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-/*caret*/f() => '';
+^f() => '';
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_topLevelFunction_getter() async {
     await resolveTestCode('''
-get /*caret*/foo => 0;
+get ^foo => 0;
 ''');
     await assertHasAssist('''
 int get foo => 0;
@@ -213,7 +213,7 @@ int get foo => 0;
 
   Future<void> test_topLevelFunction_setter() async {
     await resolveTestCode('''
-set /*caret*/foo(int a) {
+set ^foo(int a) {
   if (a == 0) return;
 }
 ''');
@@ -224,7 +224,7 @@ set /*caret*/foo(int a) {
   test_topLevelFunction_setter_lint_avoidReturnTypesOnSetters() async {
     createAnalysisOptionsFile(lints: [LintNames.avoid_return_types_on_setters]);
     await resolveTestCode('''
-set /*caret*/foo(int a) {
+set ^foo(int a) {
   if (a == 0) return;
 }
 ''');

@@ -1196,25 +1196,25 @@ CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY:
-  status: needsFix
+  status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
-  status: needsFix
+  status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
   status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
-  status: needsFix
+  status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD:
@@ -1228,7 +1228,7 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
   notes: |-
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
-  status: noFix
+  status: hasFix
 ? CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE
 : status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
@@ -1436,7 +1436,7 @@ CompileTimeErrorCode.RETURN_WITHOUT_VALUE:
 CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
   status: noFix
 CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
-  status: needsFix
+  status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
@@ -1446,7 +1446,7 @@ CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
 CompileTimeErrorCode.SHARED_DEFERRED_PREFIX:
   status: noFix
 CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
-  status: needsFix
+  status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
@@ -3656,6 +3656,8 @@ WarningCode.MIXIN_ON_SEALED_CLASS:
   notes: |-
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
+WarningCode.MULTIPLE_COMBINATORS:
+  status: hasFix
 WarningCode.MUST_BE_IMMUTABLE:
   status: noFix
 WarningCode.MUST_CALL_SUPER:

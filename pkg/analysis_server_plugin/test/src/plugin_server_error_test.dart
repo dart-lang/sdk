@@ -158,6 +158,26 @@ plugins:
           .having((e) => e.stackTrace, 'stackTrace', isNotNull),
     );
   }
+
+  Future<void> test_registerAssistWithoutAssistKind() async {
+    expect(
+      () => pluginServer = PluginServer(
+        resourceProvider: resourceProvider,
+        plugins: [_PluginWithAssistWithNoAssistKind()],
+      ),
+      throwsArgumentError,
+    );
+  }
+
+  Future<void> test_registerFixWithoutFixKind() async {
+    expect(
+      () => pluginServer = PluginServer(
+        resourceProvider: resourceProvider,
+        plugins: [_PluginWithFixWithNoFixKind()],
+      ),
+      throwsArgumentError,
+    );
+  }
 }
 
 class _FixThrowsAsyncErrorPlugin extends Plugin {
@@ -173,6 +193,33 @@ class _FixThrowsSyncErrorPlugin extends Plugin {
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
     registry.registerFixForRule(NoBoolsRule.code, _ThrowsSyncErrorFix.new);
+  }
+}
+
+/// A correction producer with a `null` `fixKind`.
+class _MissingFixKindFix extends ResolvedCorrectionProducer {
+  _MissingFixKindFix({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.acrossFiles;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {}
+}
+
+class _PluginWithAssistWithNoAssistKind extends Plugin {
+  @override
+  void register(PluginRegistry registry) {
+    registry.registerAssist(_ThrowsSyncErrorFix.new);
+  }
+}
+
+class _PluginWithFixWithNoFixKind extends Plugin {
+  @override
+  void register(PluginRegistry registry) {
+    registry.registerWarningRule(NoBoolsRule());
+    registry.registerFixForRule(NoBoolsRule.code, _MissingFixKindFix.new);
   }
 }
 

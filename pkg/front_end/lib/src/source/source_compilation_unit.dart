@@ -43,10 +43,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   SourceLibraryBuilder? _libraryBuilder;
 
-  /// The object used as the root for creating augmentation libraries.
-  // TODO(johnniwinther): Remove this once parts support augmentations.
-  final SourceCompilationUnit? _augmentationRoot;
-
   // TODO(johnniwinther): Can we avoid this?
   final bool? _referenceIsPartOwner;
 
@@ -191,7 +187,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace,
         _prefixNameSpace = prefixNameSpace,
-        _augmentationRoot = augmentationRoot,
         _nameOrigin = nameOrigin,
         _parentScope = parentScope,
         _referenceIsPartOwner = referenceIsPartOwner,
@@ -477,8 +472,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         "the compilation unit is finalized.");
     assert(_libraryBuilder == null,
         "Source library builder as already been created for $this.");
-    SourceLibraryBuilder libraryBuilder =
-        _libraryBuilder = new SourceLibraryBuilder(
+    SourceLibraryBuilder libraryBuilder = _libraryBuilder =
+        new SourceLibraryBuilder(
             compilationUnit: this,
             importUri: importUri,
             fileUri: fileUri,
@@ -487,9 +482,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             packageLanguageVersion: packageLanguageVersion,
             loader: loader,
             nameOrigin: _nameOrigin,
-            origin: _augmentationRoot
-                // Coverage-ignore(suite): Not run.
-                ?.libraryBuilder,
             target: library,
             indexedLibrary: indexedLibrary,
             referenceIsPartOwner: _referenceIsPartOwner,
@@ -551,7 +543,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           import.prefixFragment?.builder.dependency != null) {
         libraryDependency = import.prefixFragment!.builder.dependency!;
       } else {
-        LibraryBuilder imported = import.importedLibraryBuilder!.origin;
+        LibraryBuilder imported = import.importedLibraryBuilder!;
         Library targetLibrary = imported.library;
         libraryDependency = new LibraryDependency.import(targetLibrary,
             name: import.prefix, combinators: toCombinators(import.combinators))
@@ -955,8 +947,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // TODO(johnniwinther): Can we create the core import as a parent scope
       //  instead of copying it everywhere?
       NameIterator<Builder> iterator = loader.coreLibrary.exportNameSpace
-          .filteredNameIterator(
-              includeDuplicates: false, includeAugmentations: false);
+          .filteredNameIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
         addImportedBuilderToScope(
             name: iterator.name, builder: iterator.current, charOffset: -1);
@@ -992,8 +983,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   void buildOutlineNode(Library library) {
-    library.nonNullableByDefaultCompiledMode =
-        NonNullableByDefaultCompiledMode.Strong;
     for (LibraryPart libraryPart in _builderFactoryResult.libraryParts) {
       library.addPart(libraryPart);
     }

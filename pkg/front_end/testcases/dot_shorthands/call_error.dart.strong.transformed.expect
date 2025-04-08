@@ -1,0 +1,49 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/call_error.dart:13:10: Error: The method 'call' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   C c1 = .id1();
+//          ^
+//
+// pkg/front_end/testcases/dot_shorthands/call_error.dart:14:10: Error: The method 'call' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   C c2 = .id2();
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  static field self::C id2 = #C1;
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static get id1() → self::C
+    return #C1;
+}
+static method test() → void {
+  self::C c1 = invalid-expression "pkg/front_end/testcases/dot_shorthands/call_error.dart:13:10: Error: The method 'call' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  C c1 = .id1();
+         ^" in self::C::id1{<unresolved>}.call() as{TypeError,ForDynamic,Unchecked} self::C;
+  self::C c2 = invalid-expression "pkg/front_end/testcases/dot_shorthands/call_error.dart:14:10: Error: The method 'call' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/dot_shorthands/call_error.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  C c2 = .id2();
+         ^" in self::C::id2{<unresolved>}.call() as{TypeError,ForDynamic,Unchecked} self::C;
+}
+
+constants  {
+  #C1 = self::C {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///call_error.dart:
+- C. (from org-dartlang-testcase:///call_error.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

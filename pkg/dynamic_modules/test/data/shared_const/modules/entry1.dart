@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../main.dart';
+import '../shared/shared.dart';
 
 @pragma('dyn-module:entry-point')
 Object? dynamicModuleEntrypoint() => const B(1);

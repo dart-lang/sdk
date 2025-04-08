@@ -11,7 +11,7 @@ import 'package:modular_test/src/memory_pipeline.dart';
 
 import 'pipeline_common.dart';
 
-main() {
+void main() {
   runPipelineTest(MemoryPipelineTestStrategy());
 }
 

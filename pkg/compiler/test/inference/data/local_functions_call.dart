@@ -6,7 +6,7 @@
 // with a different expectancy because the closed world contains less '.call'
 // methods.
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   closureCallToString();
 }
@@ -15,12 +15,12 @@ main() {
 // Explicit .call on a local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: closureCallToString:[exact=JSString]*/
+/*member: closureCallToString:[exact=JSString|powerset=0]*/
 closureCallToString() {
-  var local = /*[null]*/ () {};
+  var local = /*[null|powerset=1]*/ () {};
   local.call();
   return local
       .
-      /*invoke: [subclass=Closure]*/
+      /*invoke: [subclass=Closure|powerset=0]*/
       toString();
 }

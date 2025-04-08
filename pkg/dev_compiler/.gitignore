@@ -2,7 +2,6 @@
 .pub
 build/
 packages
-.packages
 
 # Ignore files created by tools.
 *.dart.precompiled.js

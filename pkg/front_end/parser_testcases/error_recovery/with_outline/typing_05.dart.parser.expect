@@ -1,0 +1,55 @@
+NOTICE: Stream was rewritten by parser!
+
+class Foo {
+void foo_method1() {
+if (1 + 1 == 2) {
+if (1 + 1 == 2) {
+if (1 + 1 == 2) {
+var x = const {1: 2, 3: 4
+};}
+}
+}
+}
+
+void foo_method2() {
+
+}
+}
+
+class Bar {
+void bar_method1() {
+
+}
+
+void bar_method2() {
+
+}
+}
+
+
+[UnmatchedToken]class[KeywordToken] Foo[StringToken] {[BeginToken]
+void[KeywordToken] foo_method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]1[StringToken] +[SimpleToken] 1[StringToken] ==[SimpleToken] 2[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]1[StringToken] +[SimpleToken] 1[StringToken] ==[SimpleToken] 2[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]1[StringToken] +[SimpleToken] 1[StringToken] ==[SimpleToken] 2[StringToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] x[StringToken] =[SimpleToken] const[KeywordToken] {[BeginToken]1[StringToken]:[SimpleToken] 2[StringToken],[SimpleToken] 3[StringToken]:[SimpleToken] 4[StringToken]
+}[SyntheticToken];[SyntheticToken]}[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] foo_method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Bar[StringToken] {[BeginToken]
+void[KeywordToken] bar_method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+
+void[KeywordToken] bar_method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

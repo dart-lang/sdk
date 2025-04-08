@@ -310,13 +310,12 @@ class Compiler {
       irLibraries.add(irLibraryMap[library]!);
     }
     var mainMethod = component.mainMethodName;
-    var componentMode = component.mode;
     final trimmedComponent = ir.Component(
       libraries: irLibraries,
       uriToSource: component.uriToSource,
       nameRoot: component.root,
     );
-    trimmedComponent.setMainMethodAndMode(mainMethod, true, componentMode);
+    trimmedComponent.setMainMethodAndMode(mainMethod, true);
     return trimmedComponent;
   }
 

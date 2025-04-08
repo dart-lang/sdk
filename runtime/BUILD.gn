@@ -121,11 +121,24 @@ config("dart_os_config") {
   }
 }
 
-# We need to build gen_snapshot targeting Fuchsia during a build of the SDK
-# targeting Mac and Linux. This configuration is used to unconditionally target
-# Fuchsia. It should not be combined with dart_os_config.
-config("dart_os_fuchsia_config") {
-  defines = [ "DART_TARGET_OS_FUCHSIA" ]
+# We need to build gen_snapshot targeting Linux ARM64 during a build
+# of the SDK. This configuration is used to unconditionally target
+# Linux ARM64. It should not be combined with dart_os_config and dart_arch_config.
+config("dart_linux_arm64_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_ARM64",
+  ]
+}
+
+# We need to build gen_snapshot targeting Linux ARM64 during a build
+# of the SDK. This configuration is used to unconditionally target
+# Linux ARM64. It should not be combined with dart_os_config and dart_arch_config.
+config("dart_linux_x64_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_X64",
+  ]
 }
 
 config("dart_arch_config") {
@@ -236,6 +249,7 @@ config("dart_config") {
     ]
     if (is_clang) {
       cflags += [
+        "-Wnewline-eof",  # Flutter compiles with this (to match Fuchsia).
         "-Wimplicit-fallthrough",
         "-fno-strict-vtable-pointers",  # Handle assignment updates vtable
                                         # pointers.

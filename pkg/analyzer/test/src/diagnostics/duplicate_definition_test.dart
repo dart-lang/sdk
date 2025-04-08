@@ -3102,6 +3102,16 @@ void f() {
     ]);
   }
 
+  test_topLevel_field_field() async {
+    await assertErrorsInCode(r'''
+var f = 1;
+var f = 2;
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 15, 1,
+          contextMessages: [message(testFile, 4, 1)]),
+    ]);
+  }
+
   test_topLevel_field_getter() async {
     await assertErrorsInCode(r'''
 int f = 1;
@@ -3120,6 +3130,13 @@ set f(int value) {}
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 15, 1,
           contextMessages: [message(testFile, 4, 1)]),
     ]);
+  }
+
+  test_topLevel_fieldConst_setter() async {
+    await assertNoErrorsInCode(r'''
+const f = 0;
+set f(_) {}
+''');
   }
 
   test_topLevel_fieldFinal_setter() async {
@@ -3143,6 +3160,33 @@ set f(int value) {}
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 18, 1,
           contextMessages: [message(testFile, 11, 1)]),
+    ]);
+  }
+
+  test_topLevel_setter_setter() async {
+    await assertErrorsInCode(r'''
+set f(int value) {}
+set f(int value) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1,
+          contextMessages: [message(testFile, 4, 1)]),
+    ]);
+  }
+
+  test_topLevel_setter_setter_inPart() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+set f(int value) {}
+''');
+
+    await assertNoErrorsInCode(r'''
+part 'a.dart';
+set f(int value) {}
+''');
+
+    await assertErrorsInFile2(a, [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 25, 1,
+          contextMessages: [message(testFile, 19, 1)]),
     ]);
   }
 

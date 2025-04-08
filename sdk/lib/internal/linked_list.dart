@@ -75,7 +75,7 @@ class LinkedList<T extends LinkedListEntry<T>> extends Iterable<T> {
     node._list = null;
   }
 
-  Iterator<T> get iterator => new _LinkedListIterator<T>(this);
+  Iterator<T> get iterator => _LinkedListIterator<T>(this);
 }
 
 class LinkedListEntry<T extends LinkedListEntry<T>> {

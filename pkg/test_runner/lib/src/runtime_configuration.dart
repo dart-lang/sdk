@@ -24,9 +24,6 @@ abstract class RuntimeConfiguration {
       case Runtime.chrome:
       case Runtime.chromeOnAndroid:
       case Runtime.firefox:
-      case Runtime.ie11:
-      case Runtime.ie10:
-      case Runtime.ie9:
       case Runtime.safari:
         // TODO(ahe): Replace this with one or more browser runtimes.
         return DummyRuntimeConfiguration();
@@ -47,7 +44,7 @@ abstract class RuntimeConfiguration {
         if (configuration.system == System.android) {
           return DartkAdbRuntimeConfiguration();
         } else if (configuration.system == System.fuchsia) {
-          return DartkFuchsiaEmulatorRuntimeConfiguration();
+          return DartkFuchsiaEmulatorRuntimeConfiguration(false);
         }
         return StandaloneDartRuntimeConfiguration();
 
@@ -56,11 +53,12 @@ abstract class RuntimeConfiguration {
           return DartPrecompiledAdbRuntimeConfiguration(
             configuration.useElf,
           );
-        } else {
-          return DartPrecompiledRuntimeConfiguration(
+        } else if (configuration.system == System.fuchsia) {
+          return DartkFuchsiaEmulatorRuntimeConfiguration(true);
+        }
+        return DartPrecompiledRuntimeConfiguration(
             configuration.useElf,
           );
-        }
     }
     throw "unreachable";
   }
@@ -516,6 +514,9 @@ class DartPrecompiledAdbRuntimeConfiguration
 
 class DartkFuchsiaEmulatorRuntimeConfiguration
     extends DartVmRuntimeConfiguration {
+  final bool aot;
+  DartkFuchsiaEmulatorRuntimeConfiguration(this.aot);
+
   @override
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
@@ -542,12 +543,20 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
             argument.replaceAll(Directory.current.path, "pkg/data"))
         .toList();
 
+    var component = "dart_test_component.cm";
+    if (aot) {
+      component = "dartaotruntime_test_component.cm";
+      arguments[arguments.length - 1] =
+          arguments[arguments.length - 1].replaceAll(".dart", ".dart.elf");
+    }
+
     arguments.insert(arguments.length - 1, '--disable-dart-dev');
     return [
       FuchsiaEmulator.instance().getTestCommand(
           _configuration.buildDirectory,
           _configuration.mode.name,
           _configuration.architecture.name,
+          component,
           arguments,
           environmentOverrides)
     ];

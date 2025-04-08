@@ -373,7 +373,7 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
   E? _current;
 
   LinkedHashMapKeyIterator(this._map, this._modifications)
-      : _cell = _map._first;
+    : _cell = _map._first;
 
   @pragma('dart2js:as:trust')
   E get current => _current as E;
@@ -426,7 +426,7 @@ class LinkedHashMapValueIterator<E> implements Iterator<E> {
   E? _current;
 
   LinkedHashMapValueIterator(this._map, this._modifications)
-      : _cell = _map._first;
+    : _cell = _map._first;
 
   @pragma('dart2js:as:trust')
   E get current => _current as E;
@@ -468,7 +468,7 @@ class LinkedHashMapEntryIterator<K, V> implements Iterator<MapEntry<K, V>> {
   MapEntry<K, V>? _current;
 
   LinkedHashMapEntryIterator(this._map, this._modifications)
-      : _cell = _map._first;
+    : _cell = _map._first;
 
   MapEntry<K, V> get current => _current!;
 

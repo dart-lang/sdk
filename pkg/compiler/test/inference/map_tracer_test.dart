@@ -258,7 +258,7 @@ doTest(
       compiler.globalInference.resultsForTesting!;
   JClosedWorld closedWorld = results.closedWorld;
   final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
-  TypeMask emptyType = TypeMask.nonNullEmpty();
+  TypeMask emptyType = TypeMask.nonNullEmpty(commonMasks);
   MemberEntity aKey = findMember(closedWorld, 'aKey');
   var aKeyType = results.resultOfMember(aKey).type as TypeMask;
   if (keyElementName != null) {
@@ -281,8 +281,10 @@ doTest(
 
   K(TypeMask other) =>
       simplify(keyType!.union(other, commonMasks), commonMasks);
-  V(TypeMask other) =>
-      simplify(valueType!.union(other, commonMasks).nullable(), commonMasks);
+  V(TypeMask other) => simplify(
+    valueType!.union(other, commonMasks).nullable(commonMasks),
+    commonMasks,
+  );
 
   checkType('mapInField', K(aKeyType), V(commonMasks.numType));
   checkType('mapPassedToMethod', K(aKeyType), V(commonMasks.numType));

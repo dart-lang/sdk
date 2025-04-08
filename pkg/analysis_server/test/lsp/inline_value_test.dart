@@ -25,11 +25,46 @@ class InlineValueTest extends AbstractLspAnalysisServerTest {
   /// client configuration passed during initialization.
   bool experimentalInlineValuesProperties = false;
 
+  Future<void> test_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    // There are no marked ranges, because none of these should produce values.
+    code = TestCode.parse(r'''
+import 'dart:async';
+
+void f(
+  Iterable<int> p1,
+  Future<int> p2,
+  FutureOr<int> p3,
+  Stream<int> p4,
+) {
+  ^
+}
+''');
+
+    await verify_values(code);
+  }
+
   Future<void> test_parameter_declaration() async {
     code = TestCode.parse(r'''
 void f(int /*[0*/aaa/*0]*/, int /*[1*/bbb/*1]*/) {
   ^
   aaa + bbb;
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  /// Lists are included, iterables are not.
+  Future<void> test_parameter_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f(List list1, List<int> /*[0*/list2/*0]*/, Iterable iterable1, Iterable iterable2) {
+  print(/*[1*/list1/*1]*/);
+  print(iterable1);
+  ^
 }
 ''');
 
@@ -114,6 +149,69 @@ void f(String /*[0*/s/*0]*/) {
     );
   }
 
+  Future<void> test_property_getter_enum_value_excluded() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+enum MyEnum {
+  one,
+}
+
+void f(MyEnum x) {
+  print(/*[0*/x/*0]*/ == MyEnum.one); // MyEnum.one excluded
+  print(/*[1*/MyEnum.one.index/*1]*/);
+  ^
+}
+''');
+
+    await verify_values(
+      code,
+      ofTypes: {
+        0: InlineValueVariableLookup,
+        1: InlineValueEvaluatableExpression,
+      },
+    );
+  }
+
+  Future<void> test_property_getter_enum_values_excluded() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+enum MyEnum {
+  one,
+}
+
+void f() {
+  print(MyEnum.values); // MyEnum.values excluded
+  print(/*[0*/MyEnum.values.length/*0]*/);
+  ^
+}
+''');
+
+    await verify_values(code, ofType: InlineValueEvaluatableExpression);
+  }
+
+  /// Lists are included, iterables are not.
+  Future<void> test_property_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f(List<int> /*[0*/list/*0]*/, Iterable<int> iterable) {
+  print(/*[1*/list.length/*1]*/);
+  print(iterable.length);
+  ^
+}
+''');
+
+    await verify_values(
+      code,
+      ofTypes: {
+        0: InlineValueVariableLookup,
+        1: InlineValueEvaluatableExpression,
+      },
+    );
+  }
+
   Future<void> test_property_method() async {
     experimentalInlineValuesProperties = true;
 
@@ -145,6 +243,23 @@ void f(A /*[0*/a/*0]*/, int b) {
   // method call.
   a.x(/*[1*/b/*1]*/).length.isEven;
   ^
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  /// Unlike variables, which we include for the line of the execution pointer
+  /// (to aid with reviewing conditional statements), getters are only evaluated
+  /// if they are before the execution pointer to reduce the chance of
+  /// triggering side-effects before the code would have.
+  Future<void> test_property_range_onlyBeforePointer() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f(String /*[0*/s/*0]*/) {
+  ^if (s.isNotEmpty) {
+  }
 }
 ''');
 
@@ -235,6 +350,24 @@ void f() {
   ^
   aaa + bbb;
   ccc;
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
+  /// Lists are included, iterables are not.
+  Future<void> test_variable_iterables() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f() {
+  var list = [1,];
+  var iterable = list as Iterable<int>;
+
+  print(/*[0*/list/*0]*/);
+  print(iterable);
+  ^
 }
 ''');
 

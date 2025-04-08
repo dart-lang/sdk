@@ -8,8 +8,6 @@ part of '../../ast.dart';
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-enum NonNullableByDefaultCompiledMode { Strong, Weak, Invalid }
-
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
   /// An import path to this library.
@@ -31,10 +29,7 @@ class Library extends NamedNode
   }
 
   static const int SyntheticFlag = 1 << 0;
-
-  static const int NonNullableByDefaultModeBit1 = 1 << 1;
-  static const int NonNullableByDefaultModeBit2 = 1 << 2;
-  static const int IsUnsupportedFlag = 1 << 3;
+  static const int IsUnsupportedFlag = 1 << 1;
 
   int flags = 0;
 
@@ -43,33 +38,6 @@ class Library extends NamedNode
   bool get isSynthetic => flags & SyntheticFlag != 0;
   void set isSynthetic(bool value) {
     flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
-  }
-
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode {
-    bool bit1 = (flags & NonNullableByDefaultModeBit1) != 0;
-    bool bit2 = (flags & NonNullableByDefaultModeBit2) != 0;
-    if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
-    if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
-    if (!bit1 && bit2) return NonNullableByDefaultCompiledMode.Invalid;
-    throw new StateError("Unused bit-pattern for compilation mode");
-  }
-
-  void set nonNullableByDefaultCompiledMode(
-      NonNullableByDefaultCompiledMode mode) {
-    switch (mode) {
-      case NonNullableByDefaultCompiledMode.Strong:
-        flags = (flags & ~NonNullableByDefaultModeBit1) &
-            ~NonNullableByDefaultModeBit2;
-        break;
-      case NonNullableByDefaultCompiledMode.Weak:
-        flags = (flags | NonNullableByDefaultModeBit1) &
-            ~NonNullableByDefaultModeBit2;
-        break;
-      case NonNullableByDefaultCompiledMode.Invalid:
-        flags = (flags & ~NonNullableByDefaultModeBit1) |
-            NonNullableByDefaultModeBit2;
-        break;
-    }
   }
 
   /// If true, the library is not supported through the 'dart.library.*' value

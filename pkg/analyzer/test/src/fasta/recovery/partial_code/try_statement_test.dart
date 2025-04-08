@@ -60,7 +60,7 @@ class TryStatementTest extends PartialCodeTest {
                 ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY
               ],
-              "try {} catch (e) {}",
+              "try {} catch (_s_) {}",
               failing: ['block']),
           TestDescriptor(
               'catch_leftParen',
@@ -70,7 +70,7 @@ class TryStatementTest extends PartialCodeTest {
                 ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY
               ],
-              "try {} catch (e) {}",
+              "try {} catch (_s_) {}",
               failing: ['block', 'labeled', 'localFunctionNonVoid']),
           TestDescriptor(
               'catch_identifier',
@@ -120,7 +120,7 @@ class TryStatementTest extends PartialCodeTest {
                 ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY
               ],
-              "try {} on A catch (e) {}",
+              "try {} on A catch (_s_) {}",
               failing: ['block']),
           TestDescriptor(
               'on_catch_leftParen',
@@ -130,7 +130,7 @@ class TryStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
-              "try {} on A catch (e) {}",
+              "try {} on A catch (_s_) {}",
               failing: ['block', 'labeled', 'localFunctionNonVoid']),
           TestDescriptor(
               'on_catch_identifier',

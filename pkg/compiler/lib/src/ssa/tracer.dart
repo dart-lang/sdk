@@ -162,7 +162,11 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    if (instruction is HControlFlow) {
+    if (!instruction.block!.isLive) {
+      // Instruction in unreachable block, usually just a HGoto at end of block
+      // instead of 'c'.
+      prefix = 'X';
+    } else if (instruction is HControlFlow) {
       prefix = 'c';
     } else if (instruction.isNull(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'u';
@@ -671,12 +675,6 @@ class HInstructionStringifier implements HVisitor<String> {
     PrimitiveCheckKind.receiverType => 'RECEIVER',
     PrimitiveCheckKind.argumentType => 'ARGUMENT',
   };
-
-  @override
-  String visitBoolConversion(HBoolConversion node) {
-    String checkedInput = temporaryId(node.checkedInput);
-    return "BoolConversion: $checkedInput";
-  }
 
   @override
   String visitNullCheck(HNullCheck node) {

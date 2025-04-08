@@ -161,7 +161,7 @@ class CodegenWorldBuilder extends WorldBuilder {
 
   final Set<DartType> _constTypeLiterals = {};
   final Set<DartType> _liveTypeArguments = {};
-  final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
+  final Set<TypeVariableType> _namedTypeVariables = {};
   final Set<ClassEntity> _constructorReferences = {};
 
   final Map<FunctionEntity, List<JParameterStub>> _parameterStubs = {};
@@ -362,8 +362,8 @@ class CodegenWorldBuilder extends WorldBuilder {
     _isChecks.add(type);
   }
 
-  void registerNamedTypeVariableNewRti(TypeVariableType type) {
-    _namedTypeVariablesNewRti.add(type);
+  void registerNamedTypeVariable(TypeVariableType type) {
+    _namedTypeVariables.add(type);
   }
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
@@ -884,7 +884,7 @@ class CodegenWorldBuilder extends WorldBuilder {
       typeVariableTypeLiterals: typeVariableTypeLiterals,
       instantiatedClasses: instantiatedClasses,
       isChecks: _isChecks,
-      namedTypeVariablesNewRti: _namedTypeVariablesNewRti,
+      namedTypeVariables: _namedTypeVariables,
       instantiatedTypes: _instantiatedTypes,
       liveTypeArguments: _liveTypeArguments,
       compiledConstants: _compiledConstants,
@@ -924,7 +924,7 @@ class CodegenWorldImpl implements CodegenWorld {
   final Iterable<DartType> isChecks;
 
   @override
-  final Set<TypeVariableType> namedTypeVariablesNewRti;
+  final Set<TypeVariableType> namedTypeVariables;
 
   @override
   final Iterable<InterfaceType> instantiatedTypes;
@@ -959,7 +959,7 @@ class CodegenWorldImpl implements CodegenWorld {
     required this.typeVariableTypeLiterals,
     required this.instantiatedClasses,
     required this.isChecks,
-    required this.namedTypeVariablesNewRti,
+    required this.namedTypeVariables,
     required this.instantiatedTypes,
     required this.liveTypeArguments,
     required Map<FunctionEntity, List<JParameterStub>> parameterStubs,

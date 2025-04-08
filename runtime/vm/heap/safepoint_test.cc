@@ -279,6 +279,7 @@ ISOLATE_UNIT_TEST_CASE(
     // progress.
     deopt->MarkAndNotify(LongDeoptTask::kFinishDeoptOperation);
     gc->WaitUntil(WaiterTask::kExitedSafepoint);
+    deopt->WaitUntil(LongDeoptTask::kFinishedDeoptOperation);
 
     // Make both threads exit the isolate group.
     deopt->MarkAndNotify(LongDeoptTask::kPleaseExit);
@@ -325,7 +326,7 @@ class CheckinTask : public StateMachineTask {
   virtual void RunInternal() {
     data_->WaitUntil(kStartLoop);
 
-    uword last_sync = OS::GetCurrentTimeMillis();
+    uword last_sync = OS::GetCurrentMonotonicMicros();
     while (!data()->IsIn(kPleaseExit)) {
       OS::SleepMicros(100);  // Make test avoid consuming 100% CPU x kTaskCount.
       switch (data()->level) {
@@ -334,14 +335,14 @@ class CheckinTask : public StateMachineTask {
           RuntimeCallDeoptScope no_deopt(
               Thread::Current(), RuntimeCallDeoptAbility::kCannotLazyDeopt);
           if (SafepointIfRequested(thread_, data()->gc_only_checkins)) {
-            last_sync = OS::GetCurrentTimeMillis();
+            last_sync = OS::GetCurrentMonotonicMicros();
           }
           break;
         }
         case SafepointLevel::kGCAndDeopt: {
           // This thread should join only GC and Deopt safepoint operations.
           if (SafepointIfRequested(thread_, data()->deopt_checkin)) {
-            last_sync = OS::GetCurrentTimeMillis();
+            last_sync = OS::GetCurrentMonotonicMicros();
           }
           break;
         }
@@ -349,7 +350,7 @@ class CheckinTask : public StateMachineTask {
           // This thread should join any safepoint operations.
           ReloadParticipationScope allow_reload(thread_);
           if (SafepointIfRequested(thread_, data()->reload_checkin)) {
-            last_sync = OS::GetCurrentTimeMillis();
+            last_sync = OS::GetCurrentMonotonicMicros();
           }
           break;
         }
@@ -366,8 +367,8 @@ class CheckinTask : public StateMachineTask {
       // After being quite sure to not have joined deopt safepoint if we only
       // support GC safepoints, we will eventually comply here to make main
       // thread continue.
-      const auto now = OS::GetCurrentTimeMillis();
-      if ((now - last_sync) > 1000) {
+      const auto now = OS::GetCurrentMonotonicMicros();
+      if ((now - last_sync) > 1000000) {
         ReloadParticipationScope allow_reload(thread_);
         if (SafepointIfRequested(thread_, data()->timeout_checkin)) {
           last_sync = now;
@@ -493,25 +494,27 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
     for (intptr_t i = 0; i < kTaskCount; i++) {
       threads[i]->WaitUntil(CheckinTask::kExited);
     }
+    // Unlucky scheduling may result in more timeout checkins than intended, but
+    // never checkins of otherwise the wrong type.
     for (intptr_t i = 0; i < kTaskCount; ++i) {
       switch (task_to_level(i)) {
         case SafepointLevel::kGC:
-          EXPECT_EQ(2, gc_only_checkins[i]);
-          EXPECT_EQ(0, deopt_checkins[i]);
-          EXPECT_EQ(0, reload_checkins[i]);
-          EXPECT_EQ(4, timeout_checkins[i]);
+          EXPECT_LE(gc_only_checkins[i], 2);
+          EXPECT_EQ(deopt_checkins[i], 0);
+          EXPECT_EQ(reload_checkins[i], 0);
+          EXPECT_GE(timeout_checkins[i], 4);
           break;
         case SafepointLevel::kGCAndDeopt:
-          EXPECT_EQ(0, gc_only_checkins[i]);
-          EXPECT_EQ(4, deopt_checkins[i]);
-          EXPECT_EQ(0, reload_checkins[i]);
-          EXPECT_EQ(2, timeout_checkins[i]);
+          EXPECT_EQ(gc_only_checkins[i], 0);
+          EXPECT_LE(deopt_checkins[i], 4);
+          EXPECT_EQ(reload_checkins[i], 0);
+          EXPECT_GE(timeout_checkins[i], 2);
           break;
         case SafepointLevel::kGCAndDeoptAndReload:
-          EXPECT_EQ(0, gc_only_checkins[i]);
-          EXPECT_EQ(0, deopt_checkins[i]);
-          EXPECT_EQ(6, reload_checkins[i]);
-          EXPECT_EQ(0, timeout_checkins[i]);
+          EXPECT_EQ(gc_only_checkins[i], 0);
+          EXPECT_EQ(deopt_checkins[i], 0);
+          EXPECT_LE(reload_checkins[i], 6);
+          EXPECT_GE(timeout_checkins[i], 0);
           break;
         case SafepointLevel::kNumLevels:
         case SafepointLevel::kNoSafepoint:
@@ -669,38 +672,40 @@ ISOLATE_UNIT_TEST_CASE(ReloadScopes_Test) {
   {
     TransitionVMToNative transition(thread);
     IsolateExitScope isolate_leave_scope;
+#if !defined(PRODUCT)
     EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#else
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#endif
   }
 
   // Unscheduling an isolate with active [NoReloadScope] will enter a safepoint
   // that is not reloadable.
   {
-    // [NoReloadScope] only works if reload is supported.
-#if !defined(PRODUCT)
     NoReloadScope no_reload_scope(thread);
     TransitionVMToNative transition(thread);
     IsolateExitScope isolate_leave_scope;
-    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
-    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
-#endif  // !defined(PRODUCT)
-  }
-
-  // Transitioning to native doesn't mean we enter a safepoint that is
-  // reloadable.
-  // => We may want to allow this in the future (so e.g. isolates that perform
-  // blocking FFI call can be reloaded while being blocked).
-  {
-    TransitionVMToNative transition(thread);
-    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
     EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   }
 
-  // Transitioning to native with explicit [ReloadParticipationScope] will
-  // enter a safepoint that is reloadable.
+  // Native/FFI calls are generally reloadable.
   {
-    ReloadParticipationScope enable_reload(thread);
     TransitionVMToNative transition(thread);
+#if !defined(PRODUCT)
     EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#else
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#endif
+  }
+
+  // But in some contexts like compiling should not be reloadable.
+  {
+    NoReloadScope no_reload_scope(thread);
+    TransitionVMToNative transition(thread);
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
   }
 }
 

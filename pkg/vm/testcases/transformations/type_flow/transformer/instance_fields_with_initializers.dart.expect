@@ -23,13 +23,13 @@ class A extends core::Object {
   [@vm.unboxing-info.metadata=(i)->i]
   field core::int f7;
   constructor •() → self::A
-    : dynamic #t1 = self::sideEffect(1), dynamic #t2 = self::sideEffect(2), self::A::f7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] self::sideEffect(7), dynamic #t3 = self::sideEffect(8), dynamic #t4 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 100)] self::sideEffect(100), dynamic #t5 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 200)] self::sideEffect(200), super core::Object::•()
+    : dynamic #t1 = self::sideEffect(1), dynamic #t2 = self::sideEffect(2), self::A::f7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] self::sideEffect(7), dynamic #t3 = self::sideEffect(8), core::int #t4 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 100)] self::sideEffect(100), core::int #t5 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 200)] self::sideEffect(200), super core::Object::•()
     ;
   constructor foo() → self::A
     : this self::A::•()
     ;
   constructor bar() → self::A
-    : dynamic #t6 = self::sideEffect(1), dynamic #t7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] self::sideEffect(2), self::A::f7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] self::sideEffect(7), dynamic #t8 = self::sideEffect(8), dynamic #t9 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 801)] self::sideEffect(801), super core::Object::•()
+    : dynamic #t6 = self::sideEffect(1), core::int #t7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] self::sideEffect(2), self::A::f7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] self::sideEffect(7), dynamic #t8 = self::sideEffect(8), core::int #t9 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 801)] self::sideEffect(801), super core::Object::•()
     ;
 }
 

@@ -35,7 +35,7 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 void f() {
-  /*caret*/Builder(
+  ^Builder(
     builder: (context) {
       return Text('');
     }
@@ -54,7 +54,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 void f() {
-  /*caret*/Builder(
+  ^Builder(
     builder: (context) {
       var i = 1;
       return Text('');
@@ -69,7 +69,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 void f() {
-  /*caret*/Builder(
+  ^Builder(
     builder: (context) => Text('')
   );
 }
@@ -86,7 +86,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 void f() {
-  /*caret*/Builder(
+  ^Builder(
     builder: (context) => context.widget
   );
 }
@@ -101,7 +101,7 @@ void f() {
   Column(
     children: [
       Center(
-        child: /*caret*/Padding(
+        child: ^Padding(
           padding: const EdgeInsets.all(8.0),
           child: Center(
             heightFactor: 0.5,
@@ -136,7 +136,7 @@ import 'package:flutter/material.dart';
 void f() {
   Padding(
     padding: const EdgeInsets.all(8.0),
-    child: /*caret*/Center(
+    child: ^Center(
       heightFactor: 0.5,
       child: Text('foo'),
     ),
@@ -161,7 +161,7 @@ void f() {
   Column(
     children: [
       Text('foo'),
-      /*caret*/Center(
+      ^Center(
         heightFactor: 0.5,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -195,7 +195,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Center(
-    child: /*caret*/Row(
+    child: ^Row(
       children: [
         Text('aaa'),
         Text('bbb'),
@@ -212,7 +212,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Center(
-    child: /*caret*/Column(
+    child: ^Column(
       children: [
         Text('foo'),
       ],
@@ -234,7 +234,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 Widget f() {
-  return /*caret*/Column(
+  return ^Column(
     children: [
       Text('foo'),
     ],
@@ -260,7 +260,7 @@ class NotAWidget {
 }
 
 void f() {
-  /*caret*/NotAWidget(
+  ^NotAWidget(
     child: 42,
   );
 }
@@ -279,7 +279,7 @@ class NotAWidget {
 }
 
 void f() {
-  /*caret*/NotAWidget(
+  ^NotAWidget(
     children: [42],
   );
 }
@@ -298,7 +298,7 @@ class NotAWidget {
 }
 
 void f() {
-  /*caret*/NotAWidget(
+  ^NotAWidget(
     sliver: 42,
   );
 }
@@ -317,7 +317,7 @@ class NotAWidget {
 }
 
 void f() {
-  /*caret*/NotAWidget(
+  ^NotAWidget(
     slivers: [42],
   );
 }
@@ -329,7 +329,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 void f() {
-  /*caret*/Container();
+  ^Container();
 }
 ''');
     await assertNoAssist();
@@ -342,7 +342,7 @@ void f() {
   Column(
     children: [
       Text('aaa'),
-      /*caret*/Column(
+      ^Column(
         children: [
           Row(
             children: [
@@ -394,7 +394,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as m;
 void f() {
   Center(
-    child: m./*caret*/Center(
+    child: m.^Center(
       child: Text(''),
     ),
   );
@@ -417,7 +417,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as m;
 void f() {
   Center(
-    child: /*caret*/m.Center(
+    child: ^m.Center(
       child: Text(''),
     ),
   );
@@ -440,7 +440,7 @@ import 'package:flutter/material.dart';
 void f() {
   Column(
     children: [
-      /*caret*/Container(),
+      ^Container(),
     ],
   );
 }
@@ -450,7 +450,7 @@ import 'package:flutter/material.dart';
 void f() {
   Column(
     children: [
-      
+      ^
     ],
   );
 }
@@ -463,7 +463,7 @@ import 'package:flutter/material.dart';
 void f() {
   CustomScrollView(
     slivers: [
-      /*caret*/SliverToBoxAdapter(),
+      ^SliverToBoxAdapter(),
     ],
   );
 }
@@ -473,7 +473,7 @@ import 'package:flutter/material.dart';
 void f() {
   CustomScrollView(
     slivers: [
-      
+      ^
     ],
   );
 }
@@ -488,7 +488,7 @@ void f() {
     slivers: [
       SliverPadding(
         padding: const EdgeInsets.all(8.0),
-        sliver: /*caret*/DecoratedSliver(
+        sliver: ^DecoratedSliver(
           decoration: BoxDecoration(),
           sliver: SliverToBoxAdapter(
             child: Text('foo'),
@@ -523,7 +523,7 @@ void f() {
   CustomScrollView(
     slivers: [
       SliverToBoxAdapter(child: Text('foo')),
-      /*caret*/DecoratedSliver(
+      ^DecoratedSliver(
         decoration: BoxDecoration(),
         sliver: SliverPadding(
           padding: const EdgeInsets.all(8.0),
@@ -557,7 +557,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Center(
-    child: /*caret*/CustomScrollView(
+    child: ^CustomScrollView(
       slivers: [
         SliverToBoxAdapter(child: Text('aaa')),
         SliverToBoxAdapter(child: Text('bbb')),
@@ -574,7 +574,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Center(
-    child: /*caret*/CustomScrollView(
+    child: ^CustomScrollView(
       slivers: [
         SliverToBoxAdapter(child: Text('foo')),
       ],
@@ -596,7 +596,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 Widget f() {
-  return /*caret*/CustomScrollView(
+  return ^CustomScrollView(
     slivers: [
       SliverToBoxAdapter(child: Text('foo')),
     ],
@@ -618,7 +618,7 @@ void f() {
   CustomScrollView(
     slivers: [
       SliverToBoxAdapter(child: Text('aaa')),
-      /*caret*/SliverList.list(
+      ^SliverList.list(
         children: [
           Row(
             children: [
@@ -671,7 +671,7 @@ import 'package:flutter/material.dart' as m;
 void f() {
   SliverPadding(
     padding: const EdgeInsets.all(8.0),
-    sliver: m./*caret*/SliverToBoxAdapter(
+    sliver: m.^SliverToBoxAdapter(
       child: Text(''),
     ),
   );
@@ -696,7 +696,7 @@ import 'package:flutter/material.dart' as m;
 void f() {
   SliverPadding(
     padding: const EdgeInsets.all(8.0),
-    sliver: /*caret*/m.SliverPadding(
+    sliver: ^m.SliverPadding(
       padding: const EdgeInsets.all(16.0),
       sliver: SliverToBoxAdapter(),
     ),
@@ -743,7 +743,7 @@ Widget buildRow() {
                  Text('...'),
               ],
             ),
-          )  
+          )
         ],
       )
   );

@@ -857,9 +857,6 @@ abstract class CommonElements {
   FunctionEntity get loadDeferredLibrary =>
       _findHelperFunction("loadDeferredLibrary");
 
-  FunctionEntity get boolConversionCheck =>
-      _findHelperFunction('boolConversionCheck');
-
   FunctionEntity get traceHelper => _findHelperFunction('traceHelper');
 
   FunctionEntity get closureFromTearOff =>
@@ -923,9 +920,6 @@ abstract class CommonElements {
 
   FunctionEntity get createUnmangledInvocationMirror =>
       _findHelperFunction('createUnmangledInvocationMirror');
-
-  FunctionEntity get cyclicThrowHelper =>
-      _findHelperFunction("throwCyclicInit");
 
   FunctionEntity get throwUnsupportedOperation =>
       _findHelperFunction('throwUnsupportedOperation');
@@ -1083,14 +1077,9 @@ abstract class CommonElements {
 
   FunctionEntity get specializedAsBool => _findRtiFunction('_asBool');
 
-  FunctionEntity get specializedAsBoolLegacy => _findRtiFunction('_asBoolS');
-
   FunctionEntity get specializedAsBoolNullable => _findRtiFunction('_asBoolQ');
 
   FunctionEntity get specializedAsDouble => _findRtiFunction('_asDouble');
-
-  FunctionEntity get specializedAsDoubleLegacy =>
-      _findRtiFunction('_asDoubleS');
 
   FunctionEntity get specializedAsDoubleNullable =>
       _findRtiFunction('_asDoubleQ');
@@ -1099,15 +1088,11 @@ abstract class CommonElements {
 
   FunctionEntity get specializedAsInt => _findRtiFunction('_asInt');
 
-  FunctionEntity get specializedAsIntLegacy => _findRtiFunction('_asIntS');
-
   FunctionEntity get specializedAsIntNullable => _findRtiFunction('_asIntQ');
 
   FunctionEntity get specializedIsNum => _findRtiFunction('_isNum');
 
   FunctionEntity get specializedAsNum => _findRtiFunction('_asNum');
-
-  FunctionEntity get specializedAsNumLegacy => _findRtiFunction('_asNumS');
 
   FunctionEntity get specializedAsNumNullable => _findRtiFunction('_asNumQ');
 
@@ -1115,13 +1100,10 @@ abstract class CommonElements {
 
   FunctionEntity get specializedAsString => _findRtiFunction('_asString');
 
-  FunctionEntity get specializedAsStringLegacy =>
-      _findRtiFunction('_asStringS');
-
   FunctionEntity get specializedAsStringNullable =>
       _findRtiFunction('_asStringQ');
 
-  FunctionEntity get instantiatedGenericFunctionTypeNewRti =>
+  FunctionEntity get instantiatedGenericFunctionType =>
       _findRtiFunction('instantiatedGenericFunctionType');
 
   FunctionEntity get closureFunctionType =>

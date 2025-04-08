@@ -16,7 +16,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
-  final MemoryByteStore byteStore;
+  final ByteStore byteStore;
   final UnlinkedUnitStoreImpl unlinkedUnitStore;
   final IdProvider idProvider;
   final LibraryContext libraryContext;
@@ -98,14 +98,19 @@ class AnalyzerStatePrinter {
   void _writeByteStore() {
     sink.writelnWithIndent('byteStore');
     sink.withIndent(() {
-      var groups = byteStore.map.entries.groupListsBy((element) {
-        return element.value.refCount;
-      });
+      switch (byteStore) {
+        case CiderByteStore byteStore:
+          var groups = byteStore.map.entries.groupListsBy((element) {
+            return element.value.refCount;
+          });
 
-      for (var groupEntry in groups.entries) {
-        var keys = groupEntry.value.map((e) => e.key).toList();
-        var shortKeys = idProvider.shortKeys(keys)..sort();
-        sink.writelnWithIndent('${groupEntry.key}: $shortKeys');
+          for (var groupEntry in groups.entries) {
+            var keys = groupEntry.value.map((e) => e.key).toList();
+            var shortKeys = idProvider.shortKeys(keys)..sort();
+            sink.writelnWithIndent('${groupEntry.key}: $shortKeys');
+          }
+        default:
+          throw UnimplementedError('${byteStore.runtimeType}');
       }
     });
   }
@@ -386,6 +391,16 @@ class AnalyzerStatePrinter {
         });
       }
     });
+
+    if (testData.instance case var libraryContext?) {
+      var bundleProvider = libraryContext.linkedBundleProvider;
+      var bundleKeys = bundleProvider.map.entries
+          .map((entry) => idProvider.shortKey(entry.key))
+          .sorted();
+      if (bundleKeys.isNotEmpty) {
+        sink.writelnWithIndent('linkedBundleProvider: $bundleKeys');
+      }
+    }
   }
 
   void _writeLibraryCycle(LibraryFileKind library) {

@@ -42,13 +42,6 @@ library;
 //     var x = T<T>() {};
 //             ^
 //
-// pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
-//     var x = T<T>() {};
-//             ^
-// pkg/front_end/testcases/general/named_function_scope.dart:52:15: Context: Previous declaration of 'T'.
-//     var x = T<T>() {};
-//               ^
-//
 // pkg/front_end/testcases/general/named_function_scope.dart:55:5: Error: Local variable 'T' can't be referenced before it is declared.
 //     T t;
 //     ^
@@ -155,12 +148,7 @@ static method test() → dynamic {
   }
   {
     invalid-type x = block {
-      {
-        invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
-    var x = T<T>() {};
-            ^";
-        function T<T extends core::Object? = dynamic>() → Null {}
-      }
+      function T<T extends core::Object? = dynamic>() → Null {}
     } =>invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: A function expression can't have a name.
     var x = T<T>() {};
             ^";

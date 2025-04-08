@@ -90,8 +90,9 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
   List<FormalParameterElement>? _storeResult(
       List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
     if (invokeType != null) {
+      var elementOrMember = node.element2 as ConstructorElementMixin2;
       var constructorElement = ConstructorMember.from2(
-        node.element2 as ConstructorElementMixin2,
+        elementOrMember.baseElement,
         invokeType.returnType as InterfaceType,
       );
       constructorName?.element = constructorElement;
@@ -393,7 +394,7 @@ class InstanceCreationInferrer
       var constructedType = invokeType.returnType;
       node.constructorName.type.type = constructedType;
       var constructorElement = ConstructorMember.from2(
-        node.constructorName.element!,
+        node.constructorName.element!.baseElement,
         constructedType as InterfaceType,
       );
       node.constructorName.element = constructorElement;

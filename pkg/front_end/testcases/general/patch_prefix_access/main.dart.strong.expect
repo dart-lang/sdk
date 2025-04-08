@@ -37,7 +37,7 @@ static field core::int Extension|_field = #C2 /* from org-dartlang-testcase:///p
 @#C1
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|method(lowered final core::int #this) → core::int
   return #C2;
-static extension-member method Extension|get#method(lowered final core::int #this) → () → core::int
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#method(lowered final core::int #this) → () → core::int
   return () → core::int => test::Extension|method(#this);
 
 library;

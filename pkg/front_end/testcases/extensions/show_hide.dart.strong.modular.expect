@@ -1,0 +1,55 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/show_hide.dart:10:3: Error: Undefined name 'HiddenExtension1'.
+//   HiddenExtension1.staticMethod(); // Error
+//   ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/show_hide.dart:12:3: Error: Undefined name 'HiddenExtension2'.
+//   HiddenExtension2.staticMethod(); // Error
+//   ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "show_hide_lib1.dart" as sho;
+import "show_hide_lib2.dart" as sho2;
+
+import "org-dartlang-testcase:///show_hide_lib1.dart" show ShownExtension1;
+import "org-dartlang-testcase:///show_hide_lib2.dart" hide HiddenExtension2;
+
+static method test() → dynamic {
+  sho::ShownExtension1|staticMethod();
+  invalid-expression "pkg/front_end/testcases/extensions/show_hide.dart:10:3: Error: Undefined name 'HiddenExtension1'.
+  HiddenExtension1.staticMethod(); // Error
+  ^^^^^^^^^^^^^^^^"{dynamic}.staticMethod();
+  sho2::ShownExtension2|staticMethod();
+  invalid-expression "pkg/front_end/testcases/extensions/show_hide.dart:12:3: Error: Undefined name 'HiddenExtension2'.
+  HiddenExtension2.staticMethod(); // Error
+  ^^^^^^^^^^^^^^^^"{dynamic}.staticMethod();
+}
+
+library;
+import self as sho;
+import "dart:core" as core;
+
+extension ShownExtension1 on core::String {
+  static method staticMethod = sho::ShownExtension1|staticMethod;
+}
+extension HiddenExtension1 on core::String {
+  static method staticMethod = sho::HiddenExtension1|staticMethod;
+}
+static extension-member method ShownExtension1|staticMethod() → void {}
+static extension-member method HiddenExtension1|staticMethod() → void {}
+
+library;
+import self as sho2;
+import "dart:core" as core;
+
+extension HiddenExtension2 on core::String {
+  static method staticMethod = sho2::HiddenExtension2|staticMethod;
+}
+extension ShownExtension2 on core::String {
+  static method staticMethod = sho2::ShownExtension2|staticMethod;
+}
+static extension-member method HiddenExtension2|staticMethod() → void {}
+static extension-member method ShownExtension2|staticMethod() → void {}

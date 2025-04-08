@@ -89,7 +89,9 @@ main() {
 
           if (type == " ") {
             Expect.isFalse(isExact || isSubclass || isSubtype);
-            return isNullable ? TypeMask.empty() : TypeMask.nonNullEmpty();
+            return isNullable
+                ? TypeMask.empty(commonMasks)
+                : TypeMask.nonNullEmpty(commonMasks);
           }
 
           Expect.isTrue(isExact || isSubclass || isSubtype);
@@ -107,11 +109,11 @@ main() {
 
           var mask =
               isExact
-                  ? TypeMask.nonNullExact(element, world)
+                  ? TypeMask.nonNullExact(element, commonMasks)
                   : (isSubclass
-                      ? TypeMask.nonNullSubclass(element, world)
-                      : TypeMask.nonNullSubtype(element, world));
-          return isNullable ? mask.nullable() : mask;
+                      ? TypeMask.nonNullSubclass(element, commonMasks)
+                      : TypeMask.nonNullSubtype(element, commonMasks));
+          return isNullable ? mask.nullable(commonMasks) : mask;
         });
 
     /// Checks the expectation of `isDisjoint` for two mask descriptors (see

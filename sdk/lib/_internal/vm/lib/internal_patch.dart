@@ -206,22 +206,22 @@ bool isSentinel(dynamic value) => throw UnsupportedError('isSentinel');
 class LateError {
   @pragma("vm:entry-point")
   static Never _throwFieldAlreadyInitialized(String fieldName) {
-    throw new LateError.fieldAI(fieldName);
+    throw LateError.fieldAI(fieldName);
   }
 
   @pragma("vm:entry-point")
   static Never _throwLocalNotInitialized(String localName) {
-    throw new LateError.localNI(localName);
+    throw LateError.localNI(localName);
   }
 
   @pragma("vm:entry-point")
   static Never _throwLocalAlreadyInitialized(String localName) {
-    throw new LateError.localAI(localName);
+    throw LateError.localAI(localName);
   }
 
   @pragma("vm:entry-point")
   static Never _throwLocalAssignedDuringInitialization(String localName) {
-    throw new LateError.localADI(localName);
+    throw LateError.localADI(localName);
   }
 }
 
@@ -234,7 +234,7 @@ void checkValidWeakTarget(object, name) {
       (object is Pointer) ||
       (object is Struct) ||
       (object is Union)) {
-    throw new ArgumentError.value(
+    throw ArgumentError.value(
       object,
       name,
       "Cannot be a string, number, boolean, record, null, Pointer, Struct or Union",

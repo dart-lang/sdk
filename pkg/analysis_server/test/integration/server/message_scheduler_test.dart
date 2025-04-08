@@ -8,7 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
@@ -68,6 +68,8 @@ Exit process messages loop
   }
 
   Future<void> test_multipleRequests() async {
+    if (MessageScheduler.allowOverlappingHandlers) return;
+
     var futures = <Future<void>>[];
     futures.add(setRoots(included: [workspaceRootPath], excluded: []));
     var request = ExecutionCreateContextParams(
@@ -105,6 +107,8 @@ class LspServerMessageSchedulerTest extends RefactorCodeActionsTest {
   }
 
   Future<void> test_documentChange() async {
+    if (MessageScheduler.allowOverlappingHandlers) return;
+
     const content = '''
 void f() {
   print('Test!');
@@ -178,6 +182,8 @@ Exit process messages loop
   }
 
   Future<void> test_duplicateRequests() async {
+    if (MessageScheduler.allowOverlappingHandlers) return;
+
     const content = '''
 class B {
   @^
@@ -254,6 +260,8 @@ Exit process messages loop
   }
 
   Future<void> test_multipleRequests() async {
+    if (MessageScheduler.allowOverlappingHandlers) return;
+
     const content = '''
 void main() {
   print('Hello world!!');
@@ -290,6 +298,8 @@ Exit process messages loop
   }
 
   Future<void> test_response() async {
+    if (MessageScheduler.allowOverlappingHandlers) return;
+
     const content = '''
 void f() {
   print('Test!');

@@ -150,7 +150,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/incremental_compiler.dart": (
-    hitCount: 846,
+    hitCount: 829,
     missCount: 0,
   ),
   // 100.0%.
@@ -175,7 +175,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/local_scope.dart": (
-    hitCount: 60,
+    hitCount: 59,
     missCount: 0,
   ),
   // 100.0%.
@@ -190,7 +190,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/name_space.dart": (
-    hitCount: 153,
+    hitCount: 137,
     missCount: 0,
   ),
   // 100.0%.
@@ -205,12 +205,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/processed_options.dart": (
-    hitCount: 251,
+    hitCount: 245,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 455,
+    hitCount: 401,
     missCount: 0,
   ),
   // 100.0%.
@@ -240,12 +240,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/builder.dart": (
-    hitCount: 30,
+    hitCount: 26,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/builder/builder_mixins.dart": (
-    hitCount: 45,
+    hitCount: 43,
     missCount: 0,
   ),
   // 100.0%.
@@ -255,7 +255,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/class_builder.dart": (
-    hitCount: 135,
+    hitCount: 131,
     missCount: 0,
   ),
   // 100.0%.
@@ -265,7 +265,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/declaration_builder.dart": (
-    hitCount: 26,
+    hitCount: 22,
     missCount: 0,
   ),
   // 100.0%.
@@ -295,7 +295,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/function_type_builder.dart": (
-    hitCount: 195,
+    hitCount: 194,
     missCount: 0,
   ),
   // 100.0%.
@@ -335,7 +335,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/named_type_builder.dart": (
-    hitCount: 611,
+    hitCount: 610,
     missCount: 0,
   ),
   // 100.0%.
@@ -385,12 +385,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/type_declaration_builder.dart": (
-    hitCount: 6,
+    hitCount: 5,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/builder/type_parameter_builder.dart": (
-    hitCount: 298,
+    hitCount: 233,
     missCount: 0,
   ),
   // 100.0%.
@@ -415,7 +415,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_class_builder.dart": (
-    hitCount: 173,
+    hitCount: 172,
     missCount: 0,
   ),
   // 100.0%.
@@ -440,7 +440,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_library_builder.dart": (
-    hitCount: 334,
+    hitCount: 331,
     missCount: 0,
   ),
   // 100.0%.
@@ -464,28 +464,38 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
+  "package:front_end/src/dill/dill_type_parameter_builder.dart": (
+    hitCount: 26,
+    missCount: 0,
+  ),
+  // 100.0%.
   "package:front_end/src/fragment/class.dart": (
     hitCount: 11,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/class/declaration.dart": (
-    hitCount: 168,
+    hitCount: 178,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/constructor.dart": (
-    hitCount: 50,
+    hitCount: 58,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/constructor/body_builder_context.dart": (
+    hitCount: 84,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/constructor/declaration.dart": (
-    hitCount: 312,
+    hitCount: 673,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/constructor/encoding.dart": (
-    hitCount: 318,
+    hitCount: 373,
     missCount: 0,
   ),
   // 100.0%.
@@ -510,12 +520,27 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/factory.dart": (
+    hitCount: 51,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/factory/body_builder_context.dart": (
     hitCount: 49,
     missCount: 0,
   ),
   // 100.0%.
+  "package:front_end/src/fragment/factory/declaration.dart": (
+    hitCount: 126,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/factory/encoding.dart": (
+    hitCount: 539,
+    missCount: 0,
+  ),
+  // 100.0%.
   "package:front_end/src/fragment/field.dart": (
-    hitCount: 301,
+    hitCount: 296,
     missCount: 0,
   ),
   // 100.0%.
@@ -535,12 +560,42 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/getter.dart": (
-    hitCount: 530,
+    hitCount: 48,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/getter/body_builder_context.dart": (
+    hitCount: 50,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/getter/declaration.dart": (
+    hitCount: 112,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/getter/encoding.dart": (
+    hitCount: 368,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/method.dart": (
-    hitCount: 781,
+    hitCount: 48,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/method/body_builder_context.dart": (
+    hitCount: 54,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/method/declaration.dart": (
+    hitCount: 103,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/method/encoding.dart": (
+    hitCount: 642,
     missCount: 0,
   ),
   // 100.0%.
@@ -555,17 +610,32 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/primary_constructor.dart": (
-    hitCount: 47,
+    hitCount: 55,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/setter.dart": (
-    hitCount: 550,
+    hitCount: 48,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/setter/body_builder_context.dart": (
+    hitCount: 48,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/setter/declaration.dart": (
+    hitCount: 109,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/setter/encoding.dart": (
+    hitCount: 393,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/type_parameter.dart": (
-    hitCount: 10,
+    hitCount: 12,
     missCount: 0,
   ),
   // 100.0%.
@@ -579,23 +649,18 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/kernel/augmentation_lowering.dart": (
-    hitCount: 0,
-    missCount: 0,
-  ),
-  // 100.0%.
   "package:front_end/src/kernel/benchmarker.dart": (
     hitCount: 0,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 7213,
+    hitCount: 7243,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder_context.dart": (
-    hitCount: 281,
+    hitCount: 182,
     missCount: 0,
   ),
   // 100.0%.
@@ -645,12 +710,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/exhaustiveness.dart": (
-    hitCount: 478,
+    hitCount: 481,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/expression_generator.dart": (
-    hitCount: 2480,
+    hitCount: 2489,
     missCount: 0,
   ),
   // 100.0%.
@@ -685,17 +750,17 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/hierarchy_builder.dart": (
-    hitCount: 98,
+    hitCount: 94,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/hierarchy_node.dart": (
-    hitCount: 388,
+    hitCount: 381,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/members_builder.dart": (
-    hitCount: 136,
+    hitCount: 132,
     missCount: 0,
   ),
   // 100.0%.
@@ -735,12 +800,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_helper.dart": (
-    hitCount: 285,
+    hitCount: 245,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_target.dart": (
-    hitCount: 1017,
+    hitCount: 1004,
     missCount: 0,
   ),
   // 100.0%.
@@ -795,7 +860,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/utils.dart": (
-    hitCount: 78,
+    hitCount: 85,
     missCount: 0,
   ),
   // 100.0%.
@@ -810,17 +875,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/builder_factory.dart": (
-    hitCount: 69,
-    missCount: 0,
-  ),
-  // 100.0%.
-  "package:front_end/src/source/class_declaration.dart": (
-    hitCount: 110,
+    hitCount: 68,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/diet_listener.dart": (
-    hitCount: 646,
+    hitCount: 645,
     missCount: 0,
   ),
   // 100.0%.
@@ -840,7 +900,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2109,
+    hitCount: 2107,
     missCount: 0,
   ),
   // 100.0%.
@@ -850,83 +910,88 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1190,
+    hitCount: 1156,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_mixins.dart": (
-    hitCount: 131,
+    hitCount: 113,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1398,
+    hitCount: 1354,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_compilation_unit.dart": (
-    hitCount: 669,
+    hitCount: 666,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_constructor_builder.dart": (
-    hitCount: 704,
+    hitCount: 429,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_enum_builder.dart": (
-    hitCount: 397,
+    hitCount: 420,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_extension_builder.dart": (
-    hitCount: 158,
+    hitCount: 132,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_extension_type_declaration_builder.dart":
       (
-    hitCount: 514,
+    hitCount: 539,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_factory_builder.dart": (
-    hitCount: 1016,
+    hitCount: 144,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_function_builder.dart": (
-    hitCount: 46,
+    hitCount: 44,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1120,
+    hitCount: 1069,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_loader.dart": (
-    hitCount: 1792,
+    hitCount: 1769,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_member_builder.dart": (
-    hitCount: 10,
+    hitCount: 11,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_method_builder.dart": (
-    hitCount: 235,
+    hitCount: 200,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_property_builder.dart": (
-    hitCount: 688,
+    hitCount: 664,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_type_alias_builder.dart": (
-    hitCount: 349,
+    hitCount: 347,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/source/source_type_parameter_builder.dart": (
+    hitCount: 111,
     missCount: 0,
   ),
   // 100.0%.
@@ -935,13 +1000,8 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/source/synthetic_method_builder.dart": (
-    hitCount: 59,
-    missCount: 0,
-  ),
-  // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1496,
+    hitCount: 1760,
     missCount: 0,
   ),
   // 100.0%.
@@ -976,12 +1036,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 8208,
+    hitCount: 8312,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor_base.dart": (
-    hitCount: 2477,
+    hitCount: 2463,
     missCount: 0,
   ),
   // 100.0%.

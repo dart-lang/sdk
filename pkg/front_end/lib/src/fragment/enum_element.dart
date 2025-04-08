@@ -133,7 +133,7 @@ class EnumElementFragment
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
+      buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
@@ -317,6 +317,7 @@ class EnumElementFragment
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
       Set<ClassMember>? getterOverrideDependencies,
@@ -434,7 +435,7 @@ class _EnumElementClassMember implements ClassMember {
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    inferType(membersBuilder);
     return forSetter
         ?
         // Coverage-ignore(suite): Not run.
@@ -458,9 +459,8 @@ class _EnumElementClassMember implements ClassMember {
   bool get hasDeclarations => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void inferType(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    _builder.inferFieldType(membersBuilder.hierarchyBuilder);
   }
 
   @override
@@ -531,8 +531,10 @@ class _EnumElementClassMember implements ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
-    _builder.registerGetterOverrideDependency(overriddenMembers);
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    _builder.registerGetterOverrideDependency(
+        membersBuilder, overriddenMembers);
   }
 
   @override

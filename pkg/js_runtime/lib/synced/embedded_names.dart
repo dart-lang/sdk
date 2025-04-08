@@ -183,6 +183,10 @@ const STARTUP_METRICS = 'sm';
 // TODO(51016): This might be moved to improve deferred loading.
 const RECORD_TYPE_TEST_COMBINATORS_PROPERTY = 'rttc';
 
+/// An embedded global that contains the value of `globalThis`.  Unlike many
+/// embedded globals, this one has many references, so we choose short name.
+const CACHED_GLOBAL_THIS = 'G';
+
 /// Names of fields of collected tear-off parameters object.
 ///
 /// Tear-off getters are created before the Dart classes are initialized, so a

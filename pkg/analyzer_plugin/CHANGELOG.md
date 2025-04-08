@@ -1,3 +1,6 @@
+## 0.13.1
+- Updated SDK constraint to `^3.5.0`.
+
 ## 0.13.0
 - Remove `elementName()` from `RangeFactory`. Use `fragmentName()` instead.
 - Breaking changes to `DartFileEditBuilder` and `DartEditBuilder`.

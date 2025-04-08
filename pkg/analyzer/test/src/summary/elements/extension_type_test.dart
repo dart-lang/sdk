@@ -31,54 +31,6 @@ extension type B(int it) implements A, num {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int?
-          fields
-            final it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int?
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int?
-        B @44
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: int
-          interfaces
-            A
-            num
-          allSupertypes
-            A
-            Comparable<num>
-            Object
-            num
-          fields
-            final it @50
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -155,38 +107,6 @@ extension type const A(int it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @21
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @27
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          constructors
-            const @21
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @27
-                  type: int
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -243,48 +163,6 @@ extension type A.named(int it) {}
 
     configuration.withCodeRanges = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          codeOffset: 0
-          codeLength: 33
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::named
-          typeErasure: int
-          fields
-            final it @27
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              codeOffset: 23
-              codeLength: 6
-              type: int
-          constructors
-            named @17
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              codeOffset: 16
-              codeLength: 14
-              periodOffset: 16
-              nameEnd: 22
-              parameters
-                requiredPositional final hasImplicitType this.it @27
-                  type: int
-                  codeOffset: 23
-                  codeLength: 6
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -347,47 +225,6 @@ extension type A(num it) {
 ''');
 
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: num
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: num
-          constructors
-            @15
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @21
-                  type: num
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-            named @31
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              periodOffset: 30
-              nameEnd: 36
-              parameters
-                requiredPositional final hasImplicitType this.it @42
-                  type: num
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: num
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -463,47 +300,6 @@ extension type A(num it) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: num
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: num
-          constructors
-            @15
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @21
-                  type: num
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-            named @31
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              periodOffset: 30
-              nameEnd: 36
-              parameters
-                requiredPositional final this.it @46
-                  type: int
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: num
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -577,59 +373,6 @@ extension type A(num it) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: num
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: num
-          constructors
-            @15
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @21
-                  type: num
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-            const named @37
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              periodOffset: 36
-              nameEnd: 42
-              parameters
-                requiredPositional a @47
-                  type: int
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: it @52
-                    staticElement: <testLibraryFragment>::@extensionType::A::@field::it
-                    element: <testLibraryFragment>::@extensionType::A::@field::it#element
-                    staticType: null
-                  equals: = @55
-                  expression: SimpleIdentifier
-                    token: a @57
-                    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
-                    element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
-                    staticType: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: num
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -660,19 +403,6 @@ library
               formalParameters
                 a @47
                   element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: it @52
-                    staticElement: <testLibraryFragment>::@extensionType::A::@field::it
-                    element: <testLibraryFragment>::@extensionType::A::@field::it#element
-                    staticType: null
-                  equals: = @55
-                  expression: SimpleIdentifier
-                    token: a @57
-                    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
-                    element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
-                    staticType: int
           getters
             synthetic get it
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -700,6 +430,17 @@ library
           formalParameters
             requiredPositional a
               type: int
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: it @52
+                element: <testLibraryFragment>::@extensionType::A::@field::it#element
+                staticType: null
+              equals: = @55
+              expression: SimpleIdentifier
+                token: a @57
+                element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
+                staticType: int
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -713,46 +454,6 @@ extension type A(int it) {}
 
     configuration.withCodeRanges = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          codeOffset: 0
-          codeLength: 27
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              codeOffset: 17
-              codeLength: 6
-              type: int
-          constructors
-            @15
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              codeOffset: 16
-              codeLength: 8
-              parameters
-                requiredPositional final hasImplicitType this.it @21
-                  type: int
-                  codeOffset: 17
-                  codeLength: 6
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -816,39 +517,6 @@ extension type A(int it) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @24
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          documentationComment: /// Docs
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @30
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          constructors
-            @24
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @30
-                  type: int
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -908,43 +576,6 @@ extension type A(int it) {
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-            static const foo @46
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-              shouldUseTypeForInitializerInference: true
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @52
-                  staticType: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1012,43 +643,6 @@ extension type A(int it) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-            static const foo @42
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @48
-                  staticType: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1114,39 +708,6 @@ extension type A(int it) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-            final foo @35
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-              shouldUseTypeForInitializerInference: false
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-            synthetic get foo @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1205,51 +766,6 @@ extension type A(@foo int it) {}
 ''');
 
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      extensionTypes
-        A @32
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @43
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              metadata
-                Annotation
-                  atSign: @ @34
-                  name: SimpleIdentifier
-                    token: foo @35
-                    staticElement: package:test/a.dart::<fragment>::@getter::foo
-                    element: package:test/a.dart::<fragment>::@getter::foo#element
-                    staticType: null
-                  element: package:test/a.dart::<fragment>::@getter::foo
-                  element2: package:test/a.dart::<fragment>::@getter::foo#element
-              type: int
-          constructors
-            @32
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @43
-                  type: int
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1314,38 +830,6 @@ extension type A(int it) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-            get foo @37
-              reference: <testLibraryFragment>::@extensionType::A::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1403,46 +887,6 @@ extension type X(C it) implements A, B {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-        class B @17
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-        class C @28
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          interfaces
-            A
-            B
-      extensionTypes
-        X @64
-          reference: <testLibraryFragment>::@extensionType::X
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::X::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::X::@constructor::new
-          typeErasure: C
-          interfaces
-            A
-            B
-          fields
-            final it @68
-              reference: <testLibraryFragment>::@extensionType::X::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::X
-              type: C
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::X
-              returnType: C
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1513,50 +957,6 @@ extension type B(int it) implements A {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        hasImplementsSelfReference A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          interfaces
-            B
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-        hasImplementsSelfReference B @56
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: int
-          interfaces
-            A
-          fields
-            final it @62
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1632,32 +1032,6 @@ extension type A(int it) implements A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        hasImplementsSelfReference A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          interfaces
-            A
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1702,48 +1076,6 @@ extension type B(int it) implements A {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: num
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: num
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: num
-        B @43
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: int
-          interfaces
-            A
-          fields
-            final it @49
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1817,32 +1149,6 @@ extension type A(int it) implements num, FutureOr<int> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          interfaces
-            num
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1888,30 +1194,6 @@ extension type X(int? it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        X @15
-          reference: <testLibraryFragment>::@extensionType::X
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::X::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::X::@constructor::new
-          typeErasure: int?
-          fields
-            final it @22
-              reference: <testLibraryFragment>::@extensionType::X::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::X
-              type: int?
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::X
-              returnType: int?
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1955,33 +1237,6 @@ extension type A<T>(T it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @17
-              defaultType: dynamic
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: T
-          fields
-            final it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: T
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: T
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1991,7 +1246,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2029,36 +1284,6 @@ extension type X(int it) implements A, num {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        X @33
-          reference: <testLibraryFragment>::@extensionType::X
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::X::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::X::@constructor::new
-          typeErasure: int
-          interfaces
-            num
-          fields
-            final it @39
-              reference: <testLibraryFragment>::@extensionType::X::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::X
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::X::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::X
-              returnType: int
-      typeAliases
-        A @8
-          reference: <testLibraryFragment>::@typeAlias::A
-          aliasedType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2124,73 +1349,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::_it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int?
-          fields
-            final promotable _it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::_it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _it
-      conflictingFields
-        <testLibraryFragment>::@class::B::@field::_it#element
-      conflictingGetters
-        <testLibraryFragment>::@class::C::@getter::_it#element
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibrary>::@extensionType::A
-          fields
-            _it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::_it
-              element: <testLibraryFragment>::@extensionType::A::@field::_it#element
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::_it
-  classes
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        hasInitializer _it
-          firstFragment: <testLibraryFragment>::@class::B::@field::_it
-          type: int
-          getter: <testLibraryFragment>::@class::B::@getter::_it#element
-          setter: <testLibraryFragment>::@class::B::@setter::_it#element
-      getters
-        synthetic get _it
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_it
-      setters
-        synthetic set _it
-          firstFragment: <testLibraryFragment>::@class::B::@setter::_it
-          formalParameters
-            requiredPositional __it
-              type: int
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      fields
-        synthetic _it
-          firstFragment: <testLibraryFragment>::@class::C::@field::_it
-          type: int
-          getter: <testLibraryFragment>::@class::C::@getter::_it#element
-      getters
-        get _it
-          firstFragment: <testLibraryFragment>::@class::C::@getter::_it
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2203,9 +1361,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::_it
           type: int?
           getter: <testLibraryFragment>::@extensionType::A::@getter::_it#element
-      getters
-        synthetic get _it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::_it
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
@@ -2227,51 +1382,6 @@ extension type A(int it) {}
 ''');
 
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      extensionTypes
-        A @37
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @17
-              name: SimpleIdentifier
-                token: foo @18
-                staticElement: package:test/a.dart::<fragment>::@getter::foo
-                element: package:test/a.dart::<fragment>::@getter::foo#element
-                staticType: null
-              element: package:test/a.dart::<fragment>::@getter::foo
-              element2: package:test/a.dart::<fragment>::@getter::foo#element
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @43
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          constructors
-            @37
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @43
-                  type: int
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2336,38 +1446,6 @@ extension type A(int it) {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-          methods
-            foo @34
-              reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional a @42
-                  type: int
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2408,7 +1486,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
-          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             requiredPositional a
@@ -2425,43 +1502,6 @@ extension type A(int it) {
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-          methods
-            foo @34
-              reference: <testLibraryFragment>::@extensionType::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                optionalNamed default a @43
-                  reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
-                  type: int
-                  constantInitializer
-                    IntegerLiteral
-                      literal: 0 @47
-                      staticType: int
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2509,7 +1549,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
-          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             optionalNamed a
@@ -2528,30 +1567,6 @@ extension type (int it) {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        @15
-          reference: <testLibraryFragment>::@extensionType::0
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::0::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::0::@constructor::new
-          typeErasure: int
-          fields
-            final it @20
-              reference: <testLibraryFragment>::@extensionType::0::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::0
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::0::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::0
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2595,46 +1610,6 @@ extension type A() {}
 
     configuration.withCodeRanges = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          codeOffset: 0
-          codeLength: 21
-          representation: <testLibraryFragment>::@extensionType::A::@field::<empty>
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: InvalidType
-          fields
-            final <empty> @17
-              reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              codeOffset: 17
-              codeLength: 0
-              type: InvalidType
-          constructors
-            @15
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              codeOffset: 16
-              codeLength: 2
-              parameters
-                requiredPositional final hasImplicitType this.<empty> @17
-                  type: InvalidType
-                  codeOffset: 17
-                  codeLength: 0
-                  field: <testLibraryFragment>::@extensionType::A::@field::<empty>
-          accessors
-            synthetic get <empty> @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: InvalidType
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2697,34 +1672,6 @@ extension type A<T extends A>(int it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        notSimplyBounded A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @17
-              bound: A<dynamic>
-              defaultType: dynamic
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @34
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -2734,7 +1681,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @34
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2774,41 +1721,6 @@ extension type A(int it) {
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@extensionType::A::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: double
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-            set foo= @33
-              reference: <testLibraryFragment>::@extensionType::A::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional _ @44
-                  type: double
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2875,46 +1787,6 @@ extension type B(A it) {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        hasRepresentationSelfReference A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: InvalidType
-          fields
-            final it @19
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: InvalidType
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: InvalidType
-        hasRepresentationSelfReference B @42
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: InvalidType
-          fields
-            final it @46
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: InvalidType
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: InvalidType
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -2988,46 +1860,6 @@ extension type B(List<B> it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: InvalidType
-          fields
-            final it @19
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: B
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: B
-        hasRepresentationSelfReference B @42
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: InvalidType
-          fields
-            final it @52
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: InvalidType
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3097,30 +1929,6 @@ extension type A(A it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        hasRepresentationSelfReference A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: InvalidType
-          fields
-            final it @19
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: InvalidType
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3164,46 +1972,6 @@ extension type B(A Function(A a) it) {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-        B @44
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: int Function(int)
-          fields
-            final it @62
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: A Function(A)
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: A Function(A)
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3277,49 +2045,6 @@ extension type B(A<double> it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @17
-              defaultType: dynamic
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: T
-          fields
-            final it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: T
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: T
-        B @45
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: double
-          fields
-            final it @57
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: A<double>
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: A<double>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3329,7 +2054,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -3394,46 +2119,6 @@ extension type B(List<A> it) {}
 
     configuration.withConstructors = false;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-        B @44
-          reference: <testLibraryFragment>::@extensionType::B
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::B::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
-          typeErasure: List<int>
-          fields
-            final it @54
-              reference: <testLibraryFragment>::@extensionType::B::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              type: List<A>
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::B::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::B
-              returnType: List<A>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -3505,30 +2190,6 @@ extension type A(int it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int
-          fields
-            final it @21
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3571,44 +2232,6 @@ extension type A<T extends num, U>(Map<T, U> it) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @17
-              bound: num
-              defaultType: num
-            covariant U @32
-              defaultType: dynamic
-          representation: <testLibraryFragment>::@extensionType::A::@field::it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: Map<T, U>
-          fields
-            final it @45
-              reference: <testLibraryFragment>::@extensionType::A::@field::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: Map<T, U>
-          constructors
-            @15
-              reference: <testLibraryFragment>::@extensionType::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              parameters
-                requiredPositional final hasImplicitType this.it @45
-                  type: Map<T, U>
-                  field: <testLibraryFragment>::@extensionType::A::@field::it
-          accessors
-            synthetic get it @-1
-              reference: <testLibraryFragment>::@extensionType::A::@getter::it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              returnType: Map<T, U>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -3618,9 +2241,9 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
             U @32
-              element: <not-implemented>
+              element: U@32
           fields
             it @45
               reference: <testLibraryFragment>::@extensionType::A::@field::it

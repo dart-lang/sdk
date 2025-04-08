@@ -18,6 +18,7 @@
 /// [meta package on pub.dev](https://pub.dev/packages/meta). To learn more
 /// about using annotations, check out the
 /// [Metadata](https://dart.dev/language/metadata) documentation.
+// ignore: unnecessary_library_name
 library meta;
 
 import 'meta_meta.dart';

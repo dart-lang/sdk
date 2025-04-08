@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -124,15 +123,15 @@ class NamedTypeBuilder extends TypeBuilder {
       var parameters = element3.typeParameters2;
       var arguments = _buildArguments(parameters);
       element3.aliasedType = aliasedType;
-      _type = element3.instantiate(
+      _type = element3.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (element3 is NeverElementImpl2) {
       _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (element3 is TypeParameterElement2) {
-      _type = TypeParameterTypeImpl.v2(
-        element: element3,
+    } else if (element3 is TypeParameterElementImpl2) {
+      _type = TypeParameterTypeImpl(
+        element3: element3,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -209,7 +208,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  DartType _buildFormalParameterType(FormalParameter node) {
+  TypeImpl _buildFormalParameterType(FormalParameter node) {
     if (node is DefaultFormalParameter) {
       return _buildFormalParameterType(node.parameter);
     } else if (node is FunctionTypedFormalParameterImpl) {

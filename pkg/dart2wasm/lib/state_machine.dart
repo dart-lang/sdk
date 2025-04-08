@@ -358,7 +358,7 @@ class ExceptionHandlerStack {
         codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      b.catch_(codeGen.translator.getExceptionTag(b.module));
+      b.catch_legacy(codeGen.translator.getExceptionTag(b.module));
       b.local_set(stackTraceLocal);
       b.local_set(exceptionLocal);
 
@@ -375,7 +375,7 @@ class ExceptionHandlerStack {
       }
 
       if (canHandleJSExceptions) {
-        b.catch_all();
+        b.catch_all_legacy();
 
         // We can't inspect the thrown object in a `catch_all` and get a stack
         // trace, so we just attach the current stack trace.

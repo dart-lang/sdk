@@ -262,13 +262,15 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kHasLocalVariablesFlag = 1 << 2;
   };
 
-  // Parameter flags, must be in sync with ParameterDeclaration constants in
-  // pkg/dart2bytecode/lib/declarations.dart.
+  // Parameter flags, must be in sync with ParameterFlags constants in
+  // pkg/dart2bytecode/lib/object_table.dart.
   struct Parameter {
+    // Parameter flags in FunctionDeclaration, ClosureDeclaration and
+    // FunctionType.
+    static const int kIsRequiredFlag = 1 << 0;
+    // Parameter flags in Code.
     static const int kIsCovariantFlag = 1 << 0;
     static const int kIsCovariantByClassFlag = 1 << 1;
-    static const int kIsFinalFlag = 1 << 2;
-    static const int kIsRequiredFlag = 1 << 3;
   };
 
   class FunctionTypeScope : public ValueObject {

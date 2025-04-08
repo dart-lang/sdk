@@ -30,12 +30,10 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
 ''');
@@ -79,15 +77,13 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element: <testLibraryFragment>::@typeAlias::B
       element2: <testLibrary>::@typeAlias::B
       type: A
-        alias: <testLibraryFragment>::@typeAlias::B
+        alias: <testLibrary>::@typeAlias::B
 ''');
   }
 
@@ -119,12 +115,10 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
 ''');
@@ -170,15 +164,13 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element: <testLibraryFragment>::@typeAlias::B
       element2: <testLibrary>::@typeAlias::B
       type: A
-        alias: <testLibraryFragment>::@typeAlias::B
+        alias: <testLibrary>::@typeAlias::B
 ''');
   }
 
@@ -209,12 +201,10 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
 ''');
@@ -256,15 +246,13 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     NamedType
       name: A
-      element: <testLibraryFragment>::@typeAlias::A
       element2: <testLibrary>::@typeAlias::A
       type: int
-        alias: <testLibraryFragment>::@typeAlias::A
+        alias: <testLibrary>::@typeAlias::A
 ''');
   }
 

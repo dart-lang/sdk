@@ -218,6 +218,13 @@ void Thread::InitVMConstants() {
   LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
+#if defined(SIMULATOR_FFI)
+  // FfiCallInstr calls this through the CallNativeThroughSafepoint stub instead
+  // of like a normal leaf runtime call.
+  PropagateError_entry_point_ =
+      kPropagateErrorRuntimeEntry.GetEntryPointNoRedirect();
+#endif
+
 // Setup the thread specific reusable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
   this->object##_handle_ = this->AllocateReusableHandle<object>();
@@ -1366,9 +1373,68 @@ void Thread::UnwindScopes(uword stack_marker) {
 }
 
 void Thread::HandleStolen() {
+  {
+    // To make sure we're sequenced after MarkWorkerAsBlocked.
+    MonitorLocker ml(isolate_group()->thread_registry()->threads_lock());
+  }
   isolate_group()->IncreaseMutatorCount(this, /*is_nested_reenter=*/false,
                                         /*was_stolen=*/true);
 }
+
+#ifndef PRODUCT
+namespace {
+
+// This visitor simply dereferences every non-Smi |ObjectPtr| it visits and
+// checks that its class id is valid.
+//
+// It is used for fast validation of pointers on the stack: if a pointer is
+// invalid it is likely to either cause a crash when dereferenced or have
+// a garbage class id.
+class FastPointerValidator : public ObjectPointerVisitor {
+ public:
+  explicit FastPointerValidator(IsolateGroup* isolate_group)
+      : ObjectPointerVisitor(isolate_group) {}
+
+  void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
+    for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+      const auto cid = (*ptr)->GetClassId();
+      RELEASE_ASSERT(class_table()->IsValidIndex(cid));
+    }
+  }
+
+#if defined(DART_COMPRESSED_POINTERS)
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) override {
+    // We are not expecting compressed pointers on the stack.
+    UNREACHABLE();
+  }
+#endif
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FastPointerValidator);
+};
+
+}  // namespace
+
+void Thread::ValidateExitFrameState() {
+  if (top_exit_frame_info() == 0) {
+    return;
+  }
+
+  FastPointerValidator fast_pointers_validator(isolate_group());
+
+  StackFrameIterator frames_iterator(
+      top_exit_frame_info(), ValidationPolicy::kValidateFrames, this,
+      StackFrameIterator::kNoCrossThreadIteration);
+
+  StackFrame* frame = frames_iterator.NextFrame();
+  while (frame != nullptr) {
+    frame->VisitObjectPointers(&fast_pointers_validator);
+    frame = frames_iterator.NextFrame();
+  }
+}
+#endif
 
 void Thread::EnterSafepointUsingLock() {
   isolate_group()->safepoint_handler()->EnterSafepointUsingLock(this);
@@ -1529,6 +1595,9 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
 
 NoReloadScope::NoReloadScope(Thread* thread) : ThreadStackResource(thread) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (thread->no_reload_scope_depth_ == 0) {
+    thread->SetNoReloadScope(true);
+  }
   thread->no_reload_scope_depth_++;
   ASSERT(thread->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1542,6 +1611,8 @@ NoReloadScope::~NoReloadScope() {
   const intptr_t state = thread()->safepoint_state();
 
   if (thread()->no_reload_scope_depth_ == 0) {
+    thread()->SetNoReloadScope(false);
+
     // If we were asked to go to a reload safepoint & block for a reload
     // safepoint operation on another thread - *while* being inside
     // [NoReloadScope] - we may have handled & ignored the OOB message telling

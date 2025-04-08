@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart'
@@ -69,9 +72,20 @@ class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
   final Map<Constant, ConstantInfo> dynamicModuleConstantInfo = {};
-  w.DataSegmentBuilder? oneByteStringSegment;
-  w.DataSegmentBuilder? twoByteStringSegment;
+  w.DataSegmentBuilder? int32Segment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
+
+  final Map<String, int> symbolOrdinals = {};
+
+  String minifySymbol(String originalValue) {
+    if (translator.options.minify) {
+      int symbolOrdinal = symbolOrdinals.putIfAbsent(
+          originalValue, () => symbolOrdinals.length);
+      return _intToBase64(symbolOrdinal);
+    } else {
+      return originalValue;
+    }
+  }
 
   final Map<DartType, InstanceConstant> _loweredTypeConstants = {};
   late final BoolConstant _cachedTrueConstant = BoolConstant(true);
@@ -129,7 +143,7 @@ class Constants {
   InstanceConstant makeNamedParameterConstant(NamedType n) =>
       InstanceConstant(translator.namedParameterClass.reference, const [], {
         translator.namedParameterNameField.fieldReference:
-            StringConstant(n.name),
+            SymbolConstant(n.name, null),
         translator.namedParameterTypeField.fieldReference:
             _lowerTypeConstant(n.type),
         translator.namedParameterIsRequiredField.fieldReference:
@@ -359,7 +373,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
     if (translator.needsConversion(resultType, expectedType)) {
       if (expectedType == const w.RefType.extern(nullable: true)) {
         assert(resultType.isSubtypeOf(w.RefType.any(nullable: true)));
-        b.extern_externalize();
+        b.extern_convert_any();
       } else {
         // This only happens in invalid but unreachable code produced by the
         // TFA dead-code elimination.
@@ -594,6 +608,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     if (cls == Constants._relativeInterfaceTypeIndicator) {
       cls = translator.interfaceTypeClass;
+      constant = InstanceConstant(
+          cls.reference, constant.typeArguments, constant.fieldValues);
       isRelativeInterfaceType = true;
     }
 
@@ -673,6 +689,37 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     return createConstant(constant, w.RefType.def(arrayType, nullable: false),
         lazy: lazy, (b) {
       if (tooLargeForArrayNewFixed) {
+        // We use WasmArray<WasmI32> for some RTT data structures. Those arrays
+        // can get rather large and cross the 10k limit.
+        //
+        // If so, we prefer to initialize the array from data section over
+        // emitting a *lot* of code to store individual array elements.
+        //
+        // This can be a little bit larger than individual array stores, but the
+        // data section will compress better, so for app.wasm.gz it'a a win and
+        // will cause much faster validation & faster initialization.
+        if (arrayType.elementType.type == w.NumType.i32) {
+          // Initialize array contents from passive data segment.
+          final w.DataSegmentBuilder segment =
+              constants.int32Segment ??= targetModule.dataSegments.define();
+
+          final field = translator.wasmI32Value.fieldReference;
+
+          final list = Uint32List(elements.length);
+          for (int i = 0; i < list.length; ++i) {
+            // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
+            final constant = elements[i] as InstanceConstant;
+            assert(constant.classNode == translator.wasmI32Class);
+            list[i] = (constant.fieldValues[field] as IntConstant).value;
+          }
+          final offset = segment.length;
+          segment.append(list.buffer.asUint8List());
+          b.i32_const(offset);
+          b.i32_const(elements.length);
+          b.array_new_data(arrayType, segment);
+          return;
+        }
+
         // We will initialize the array with one of the elements (using
         // `array.new`) and update the fields.
         //
@@ -1063,7 +1110,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     translator.functions.recordClassAllocation(info.classId);
     w.RefType stringType = translator
         .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
-    StringConstant nameConstant = StringConstant(constant.name);
+    final String symbolStringValue = constants.minifySymbol(constant.name);
+    StringConstant nameConstant = StringConstant(symbolStringValue);
     bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
     return createConstant(constant, info.nonNullableType, lazy: lazy, (b) {
       b.pushObjectHeaderFields(translator, info);
@@ -1097,3 +1145,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     });
   }
 }
+
+List<int> _intToLittleEndianBytes(int i) {
+  List<int> bytes = [];
+  bytes.add(i & 0xFF);
+  i >>>= 8;
+  while (i != 0) {
+    bytes.add(i & 0xFF);
+    i >>>= 8;
+  }
+  return bytes;
+}
+
+String _intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));

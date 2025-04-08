@@ -581,19 +581,13 @@ class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor<void>
     node.block!.rewrite(node, node.checkedInput);
     node.block!.remove(node);
   }
-
-  @override
-  void visitBoolConversion(HBoolConversion node) {
-    node.block!.rewrite(node, node.checkedInput);
-    node.block!.remove(node);
-  }
 }
 
 /// Remove trusted late variable checks.
 class SsaTrustedLateCheckRemover extends HBaseVisitor<void>
     implements CodegenPhase {
   @override
-  String get name => 'SsaInstructionSelection';
+  String get name => 'SsaTrustedLateCheckRemover';
 
   final AbstractValueDomain _abstractValueDomain;
 

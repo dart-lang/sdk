@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
@@ -12,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -32,13 +28,13 @@ class ElementPrinter {
     } else if (uri is DirectiveUriWithLibrary) {
       _sink.writeln('DirectiveUriWithLibrary');
       _sink.withIndent(() {
-        var uriStr = _stringOfSource(uri.library.source);
+        var uriStr = uri.library2.uri;
         _sink.writelnWithIndent('uri: $uriStr');
       });
     } else if (uri is DirectiveUriWithUnit) {
       _sink.writeln('DirectiveUriWithUnit');
       _sink.withIndent(() {
-        var uriStr = _stringOfSource(uri.unit.source);
+        var uriStr = _stringOfSource(uri.libraryFragment.source);
         _sink.writelnWithIndent('uri: $uriStr');
       });
     } else if (uri is DirectiveUriWithSource) {
@@ -62,156 +58,146 @@ class ElementPrinter {
     }
   }
 
-  void writeElement(Element? element) {
-    switch (element) {
-      case null:
-        _sink.writeln('<null>');
-      case Member():
-        _writeMember(element);
-      case MultiplyDefinedElement():
-        _sink.writeln('<null>');
-      case LibraryExportElement():
-        _writeLibraryExportElement(element);
-      case LibraryImportElement():
-        _writeLibraryImportElement(element);
-      case PartElement():
-        _writePartElement(element);
-      default:
-        var referenceStr = _elementToReferenceString(element);
-        _sink.writeln(referenceStr);
-    }
-  }
-
   void writeElement2(Element2? element) {
     switch (element) {
       case null:
-        _sink.write('<null>');
+        _sink.writeln('<null>');
+      case Member member:
+        _writeMember(member);
       case TypeAliasElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case TopLevelVariableElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case TypeParameterElementImpl2():
-        // TODO(scheglov): update when implemented
-        _sink.write('<not-implemented>');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case ConstructorElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case DynamicElementImpl2():
-        _sink.write('dynamic');
+        _sink.writeln('dynamic');
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
-        var referenceStr = _elementToReferenceString(firstFragment as Element);
+        var referenceStr = _elementToReferenceString(firstFragment);
         _sink.write(referenceStr);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case TopLevelFunctionElementImpl element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference!;
         writeReference(reference);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case GetterElement element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case LabelElementImpl():
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LabelElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
-        writeReference(e.reference!);
+        writelnReference(e.reference!);
       case LocalFunctionElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl():
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case NeverElementImpl2():
-        _sink.write('Never');
+        _sink.writeln('Never');
       case ClassElementImpl2 element:
         writeReference(element.reference);
+        _sink.writeln();
       case EnumElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case ExtensionElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case ExtensionTypeElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case MixinElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case MethodElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case MultiplyDefinedElementImpl2 multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {
-          for (var (i, element) in multiElement.conflictingElements2.indexed) {
-            if (i != 0) {
-              _sink.writeln();
-            }
+          for (var element in multiElement.conflictingElements2) {
             _sink.writeIndent();
             writeElement2(element);
           }
         });
       case NeverElementImpl():
-        _sink.write('Never@-1');
-      case ParameterMember():
-        var firstFragment = element.firstFragment;
-        var referenceStr = _elementToReferenceString(firstFragment as Element);
-        _sink.write(referenceStr);
-        _sink.write('#element');
+        _sink.writeln('Never@-1');
       case PrefixElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case SetterElement element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
   }
 
-  void writeElementList(String name, List<Element> elements) {
-    _sink.writeElements(name, elements, (element) {
-      _sink.writeIndent();
-      writeElement(element);
-    });
-  }
-
   void writeElementList2(String name, List<Element2> elements) {
     _sink.writeElements(name, elements, (element) {
-      _sink.writeIndentedLine(() {
-        writeElement2(element);
-      });
-    });
-  }
-
-  void writeFragmentReference(Fragment fragment) {
-    var referenceStr = _fragmentToReferenceString(fragment);
-    _sink.write(referenceStr);
-  }
-
-  void writelnFragmentReference(Fragment fragment) {
-    writeFragmentReference(fragment);
-    _sink.writeln();
-  }
-
-  void writelnNamedElement2(String name, Element2? element) {
-    _sink.writeIndentedLine(() {
-      _sink.write('$name: ');
+      _sink.writeIndent();
       writeElement2(element);
     });
   }
 
-  void writelnNamedFragment(String name, Fragment? fragment) {
+  void writeLibraryExport(String name, LibraryExport? element) {
+    if (element != null) {
+      _sink.writelnWithIndent('$name: LibraryExport');
+      _sink.withIndent(() {
+        _sink.writeWithIndent('uri: ');
+        writeDirectiveUri(element.uri);
+      });
+    } else {
+      _sink.writelnWithIndent('$name: <null>');
+    }
+  }
+
+  void writeLibraryImport(String name, LibraryImport? element) {
+    if (element != null) {
+      _sink.writelnWithIndent('$name: LibraryImport');
+      _sink.withIndent(() {
+        _sink.writeWithIndent('uri: ');
+        writeDirectiveUri(element.uri);
+      });
+    } else {
+      _sink.writelnWithIndent('$name: <null>');
+    }
+  }
+
+  void writelnFragmentReference(Fragment fragment) {
+    var referenceStr = _fragmentToReferenceString(fragment);
+    _sink.write(referenceStr);
+    _sink.writeln();
+  }
+
+  void writelnReference(Reference reference) {
+    writeReference(reference);
+    _sink.writeln();
+  }
+
+  void writeNamedElement2(String name, Element2? element) {
+    _sink.writeIndent();
+    _sink.write('$name: ');
+    writeElement2(element);
+  }
+
+  void writeNamedFragment(String name, Fragment? fragment) {
     _sink.writeWithIndent('$name: ');
     if (fragment != null) {
       writelnFragmentReference(fragment);
@@ -220,19 +206,21 @@ class ElementPrinter {
     }
   }
 
-  void writeNamedElement(String name, Element? element) {
-    _sink.writeWithIndent('$name: ');
-    writeElement(element);
-  }
-
-  void writeNamedElement2(String name, Element2? element) {
-    _sink.writeWithIndent('$name: ');
-    writeElement2(element);
-  }
-
   void writeNamedType(String name, DartType? type) {
     _sink.writeWithIndent('$name: ');
     writeType(type);
+  }
+
+  void writePartInclude(String name, PartInclude? element) {
+    if (element != null) {
+      _sink.writelnWithIndent('$name: PartInclude');
+      _sink.withIndent(() {
+        _sink.writeWithIndent('uri: ');
+        writeDirectiveUri(element.uri);
+      });
+    } else {
+      _sink.writelnWithIndent('$name: <null>');
+    }
   }
 
   void writeReference(Reference reference) {
@@ -248,8 +236,7 @@ class ElementPrinter {
       if (type is InterfaceType) {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
-            writeNamedElement('element', type.element3.asElement);
-            writelnNamedElement2('element', type.element3);
+            writeNamedElement2('element', type.element3);
           });
         }
       }
@@ -257,7 +244,7 @@ class ElementPrinter {
       var alias = type.alias;
       if (alias != null) {
         _sink.withIndent(() {
-          writeNamedElement('alias', alias.element2.asElement);
+          writeNamedElement2('alias', alias.element2);
           _sink.withIndent(() {
             writeTypeList('typeArguments', alias.typeArguments);
           });
@@ -280,13 +267,13 @@ class ElementPrinter {
     }
   }
 
-  String _elementToReferenceString(Element element) {
+  String _elementToReferenceString(ElementImpl element) {
     var enclosingElement = element.enclosingElement3;
-    var reference = (element as ElementImpl).reference;
+    var reference = element.reference;
     if (reference != null) {
       return _referenceToString(reference);
-    } else if (element is ParameterElement &&
-        enclosingElement is! GenericFunctionTypeElement) {
+    } else if (element is ParameterElementImpl &&
+        enclosingElement is! GenericFunctionTypeElementImpl) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.
       var enclosingStr = enclosingElement != null
@@ -388,26 +375,10 @@ class ElementPrinter {
     return type.getDisplayString();
   }
 
-  void _writeLibraryExportElement(LibraryExportElement element) {
-    _sink.writeln('LibraryExportElement');
-    _sink.withIndent(() {
-      _sink.writeWithIndent('uri: ');
-      writeDirectiveUri(element.uri);
-    });
-  }
-
-  void _writeLibraryImportElement(LibraryImportElement element) {
-    _sink.writeln('LibraryImportElement');
-    _sink.withIndent(() {
-      _sink.writeWithIndent('uri: ');
-      writeDirectiveUri(element.uri);
-    });
-  }
-
   void _writeMember(Member element) {
     _sink.writeln(_nameOfMemberClass(element));
     _sink.withIndent(() {
-      writeNamedElement('base', element.declaration);
+      writeNamedElement2('baseElement', element.baseElement);
 
       void writeSubstitution(String name, MapSubstitution substitution) {
         var map = substitution.map;
@@ -417,24 +388,23 @@ class ElementPrinter {
         }
       }
 
-      writeSubstitution(
-        'augmentationSubstitution',
-        element.augmentationSubstitution,
-      );
-
       writeSubstitution('substitution', element.substitution);
 
-      if (_configuration.withRedirectedConstructors) {
-        if (element is ConstructorMember) {
-          var redirected = element.redirectedConstructor;
-          writeNamedElement('redirectedConstructor', redirected);
+      if (element is ConstructorMember) {
+        if (_configuration.withRedirectedConstructors) {
+          writeNamedElement2(
+            'redirectedConstructor',
+            element.redirectedConstructor2,
+          );
+        }
+        if (_configuration.withSuperConstructors) {
+          writeNamedElement2(
+            'superConstructor',
+            element.superConstructor2,
+          );
         }
       }
     });
-  }
-
-  void _writePartElement(PartElement element) {
-    writeDirectiveUri(element.uri);
   }
 
   static String _nameOfMemberClass(Member member) {
@@ -445,4 +415,5 @@ class ElementPrinter {
 class ElementPrinterConfiguration {
   bool withInterfaceTypeElements = false;
   bool withRedirectedConstructors = false;
+  bool withSuperConstructors = false;
 }

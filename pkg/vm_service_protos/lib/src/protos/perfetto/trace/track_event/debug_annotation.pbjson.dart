@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/track_event/debug_annotation.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -25,8 +25,8 @@ import 'dart:typed_data' as $typed_data;
 const DebugAnnotation$json = {
   '1': 'DebugAnnotation',
   '2': [
+    {'1': 'name_iid', '3': 1, '4': 1, '5': 4, '9': 0, '10': 'nameIid'},
     {'1': 'name', '3': 10, '4': 1, '5': 9, '9': 0, '10': 'name'},
-    {'1': 'string_value', '3': 6, '4': 1, '5': 9, '9': 1, '10': 'stringValue'},
     {
       '1': 'legacy_json_value',
       '3': 9,
@@ -34,6 +34,15 @@ const DebugAnnotation$json = {
       '5': 9,
       '9': 1,
       '10': 'legacyJsonValue'
+    },
+    {'1': 'string_value', '3': 6, '4': 1, '5': 9, '9': 1, '10': 'stringValue'},
+    {
+      '1': 'string_value_iid',
+      '3': 17,
+      '4': 1,
+      '5': 4,
+      '9': 1,
+      '10': 'stringValueIid'
     },
   ],
   '8': [
@@ -44,6 +53,21 @@ const DebugAnnotation$json = {
 
 /// Descriptor for `DebugAnnotation`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List debugAnnotationDescriptor = $convert.base64Decode(
-    'Cg9EZWJ1Z0Fubm90YXRpb24SFAoEbmFtZRgKIAEoCUgAUgRuYW1lEiMKDHN0cmluZ192YWx1ZR'
-    'gGIAEoCUgBUgtzdHJpbmdWYWx1ZRIsChFsZWdhY3lfanNvbl92YWx1ZRgJIAEoCUgBUg9sZWdh'
-    'Y3lKc29uVmFsdWVCDAoKbmFtZV9maWVsZEIHCgV2YWx1ZQ==');
+    'Cg9EZWJ1Z0Fubm90YXRpb24SGwoIbmFtZV9paWQYASABKARIAFIHbmFtZUlpZBIUCgRuYW1lGA'
+    'ogASgJSABSBG5hbWUSLAoRbGVnYWN5X2pzb25fdmFsdWUYCSABKAlIAVIPbGVnYWN5SnNvblZh'
+    'bHVlEiMKDHN0cmluZ192YWx1ZRgGIAEoCUgBUgtzdHJpbmdWYWx1ZRIqChBzdHJpbmdfdmFsdW'
+    'VfaWlkGBEgASgESAFSDnN0cmluZ1ZhbHVlSWlkQgwKCm5hbWVfZmllbGRCBwoFdmFsdWU=');
+
+@$core.Deprecated('Use debugAnnotationNameDescriptor instead')
+const DebugAnnotationName$json = {
+  '1': 'DebugAnnotationName',
+  '2': [
+    {'1': 'iid', '3': 1, '4': 1, '5': 4, '10': 'iid'},
+    {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
+  ],
+};
+
+/// Descriptor for `DebugAnnotationName`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List debugAnnotationNameDescriptor = $convert.base64Decode(
+    'ChNEZWJ1Z0Fubm90YXRpb25OYW1lEhAKA2lpZBgBIAEoBFIDaWlkEhIKBG5hbWUYAiABKAlSBG'
+    '5hbWU=');

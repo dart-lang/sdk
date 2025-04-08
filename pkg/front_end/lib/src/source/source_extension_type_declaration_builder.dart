@@ -13,7 +13,6 @@ import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
-import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -38,11 +37,12 @@ import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
+import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with SourceDeclarationBuilderMixin, ClassDeclarationBuilderMixin
+    with SourceDeclarationBuilderMixin
     implements
         Comparable<SourceExtensionTypeDeclarationBuilder>,
         ClassDeclarationBuilder {
@@ -60,24 +60,16 @@ class SourceExtensionTypeDeclarationBuilder
 
   final Modifiers _modifiers;
 
-  @override
   final List<ConstructorReferenceBuilder> constructorReferences;
 
   late final ExtensionTypeDeclaration _extensionTypeDeclaration;
-
-  SourceExtensionTypeDeclarationBuilder? _origin;
-
-  MergedClassMemberScope? _mergedScope;
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
   late final DeclarationNameSpace _nameSpace;
 
   @override
-  final List<NominalParameterBuilder>? typeParameters;
-
-  @override
-  final LookupScope typeParameterScope;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   @override
   List<TypeBuilder>? interfaceBuilders;
@@ -89,8 +81,6 @@ class SourceExtensionTypeDeclarationBuilder
   final IndexedContainer? indexedContainer;
 
   Nullability? _nullability;
-
-  SourceExtensionTypeDeclarationBuilder? _augmentation;
 
   SourceExtensionTypeDeclarationBuilder(
       {required this.name,
@@ -108,7 +98,6 @@ class SourceExtensionTypeDeclarationBuilder
         _modifiers = fragment.modifiers,
         typeParameters = fragment.typeParameters?.builders,
         interfaceBuilders = fragment.interfaces,
-        typeParameterScope = fragment.typeParameterScope,
         _introductory = fragment,
         _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder(),
         _representationFieldFragment = representationFieldFragment {
@@ -120,31 +109,38 @@ class SourceExtensionTypeDeclarationBuilder
     _extensionTypeDeclaration = new ExtensionTypeDeclaration(
         name: name,
         fileUri: fileUri,
-        typeParameters: NominalParameterBuilder.typeParametersFromBuilders(
-            fragment.typeParameters?.builders),
+        typeParameters:
+            SourceNominalParameterBuilder.typeParametersFromBuilders(
+                fragment.typeParameters?.builders),
         reference: indexedContainer?.reference)
       ..fileOffset = nameOffset;
   }
 
-  // TODO(johnniwinther): Remove this when augmentations are handled through
-  //  fragments.
   @override
-  List<SourceExtensionTypeDeclarationBuilder>? get augmentations =>
-      _augmentation != null
-          ?
-          // Coverage-ignore(suite): Not run.
-          [_augmentation!]
-          : const [];
-
-  // TODO(johnniwinther): Remove this when augmentations are handled through
-  //  fragments.
-  @override
-  LookupScope get bodyScope => _introductory.bodyScope;
-
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
-  //  patches should be computing from within the builder.
-  List<MetadataBuilder>? get metadata => _introductory.metadata;
+  int resolveConstructors(SourceLibraryBuilder library) {
+    int count = 0;
+    if (constructorReferences.isNotEmpty) {
+      for (ConstructorReferenceBuilder ref in constructorReferences) {
+        ref.resolveIn(_introductory.bodyScope, library);
+      }
+      count += constructorReferences.length;
+    }
+    if (count > 0) {
+      Iterator<MemberBuilder> iterator =
+          nameSpace.filteredConstructorIterator(includeDuplicates: true);
+      while (iterator.moveNext()) {
+        MemberBuilder declaration = iterator.current;
+        if (declaration.declarationBuilder != this) {
+          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
+              fileOffset, fileUri);
+        }
+        if (declaration is SourceFactoryBuilder) {
+          declaration.resolveRedirectingFactory();
+        }
+      }
+    }
+    return count;
+  }
 
   @override
   DeclarationNameSpace get nameSpace => _nameSpace;
@@ -174,11 +170,6 @@ class SourceExtensionTypeDeclarationBuilder
         indexedContainer: indexedContainer,
         containerType: ContainerType.ExtensionType,
         containerName: new ClassName(name));
-    SourceExtensionTypeDeclarationBuilder? augmentation = _augmentation;
-    if (augmentation != null) {
-      // Coverage-ignore-block(suite): Not run.
-      _applyAugmentation(augmentation);
-    }
   }
 
   @override
@@ -190,24 +181,8 @@ class SourceExtensionTypeDeclarationBuilder
       _representationFieldFragment?.type;
 
   @override
-  SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
-
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Add merged scope for extension type declarations.
-  MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
-      ? origin.mergedScope
-      : throw new UnimplementedError(
-          "SourceExtensionTypeDeclarationBuilder.mergedScope");
-
-  @override
-  ExtensionTypeDeclaration get extensionTypeDeclaration => isAugmenting
-      ?
-      // Coverage-ignore(suite): Not run.
-      origin._extensionTypeDeclaration
-      : _extensionTypeDeclaration;
-
-  @override
-  Annotatable get annotatable => extensionTypeDeclaration;
+  ExtensionTypeDeclaration get extensionTypeDeclaration =>
+      _extensionTypeDeclaration;
 
   @override
   int compareTo(SourceExtensionTypeDeclarationBuilder other) {
@@ -727,30 +702,40 @@ class SourceExtensionTypeDeclarationBuilder
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
         nameSpace.filteredConstructorIterator<SourceFactoryBuilder>(
-            parent: this, includeDuplicates: true, includeAugmentations: true);
+            includeDuplicates: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
   }
 
-  @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
-        annotatable,
+        extensionTypeDeclaration,
         _introductory.metadata,
         createBodyBuilderContext(),
         libraryBuilder,
         _introductory.fileUri,
         _introductory.enclosingScope);
 
-    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+    if (_introductory.typeParameters != null) {
+      for (int i = 0; i < _introductory.typeParameters!.length; i++) {
+        _introductory.typeParameters![i].builder.buildOutlineExpressions(
+            libraryBuilder, createBodyBuilderContext(), classHierarchy);
+      }
+    }
 
     Iterator<SourceMemberBuilder> iterator =
-        nameSpace.filteredConstructorIterator(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+        nameSpace.filteredIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
+          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+    }
+
+    Iterator<SourceMemberBuilder> constructorIterator =
+        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+    while (constructorIterator.moveNext()) {
+      constructorIterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
   }
@@ -850,60 +835,6 @@ class SourceExtensionTypeDeclarationBuilder
             kind: kind));
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  void addAugmentation(Builder augmentation) {
-    _addAugmentation(augmentation);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  SourceExtensionTypeDeclarationBuilder? _addAugmentation(
-      Builder augmentation) {
-    if (augmentation is SourceExtensionTypeDeclarationBuilder) {
-      augmentation._origin = this;
-      _augmentation = augmentation;
-      return augmentation;
-    } else {
-      libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          augmentation.fileOffset, noLength, augmentation.fileUri, context: [
-        messagePatchDeclarationOrigin.withLocation(
-            fileUri, fileOffset, noLength)
-      ]);
-      return null;
-    }
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void _applyAugmentation(SourceExtensionTypeDeclarationBuilder augmentation) {
-    nameSpace.forEachLocalMember((String name, Builder member) {
-      Builder? memberAugmentation =
-          augmentation.nameSpace.lookupLocalMember(name, setter: false);
-      if (memberAugmentation != null) {
-        member.applyAugmentation(memberAugmentation);
-      }
-    });
-    nameSpace.forEachLocalSetter((String name, Builder member) {
-      Builder? memberAugmentation =
-          augmentation.nameSpace.lookupLocalMember(name, setter: true);
-      if (memberAugmentation != null) {
-        member.applyAugmentation(memberAugmentation);
-      }
-    });
-
-    // TODO(johnniwinther): Check that type parameters and on-type match
-    // with origin declaration.
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void applyAugmentation(Builder augmentation) {
-    SourceExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder =
-        _addAugmentation(augmentation);
-    if (extensionTypeDeclarationBuilder != null) {
-      _applyAugmentation(extensionTypeDeclarationBuilder);
-    }
-  }
-
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
   SourceConstructorBuilderImpl? lookupConstructor(Name name) {
@@ -925,42 +856,21 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
-              T>.full(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
+      nameSpace.filteredIterator<T>(includeDuplicates: false);
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      new ClassDeclarationMemberNameIterator<
-              SourceExtensionTypeDeclarationBuilder, T>(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
+      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<
-              SourceExtensionTypeDeclarationBuilder, T>.full(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
+      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorNameIterator<
-              SourceExtensionTypeDeclarationBuilder, T>(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
+      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isMixinDeclaration => false;
-
-  @override
   BodyBuilderContext createBodyBuilderContext() {
     return new ExtensionTypeBodyBuilderContext(this);
   }
@@ -989,46 +899,14 @@ class SourceExtensionTypeDeclarationBuilder
     return result;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> localMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
-          T>.local(this, includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<
-          SourceExtensionTypeDeclarationBuilder,
-          T>.local(this, includeDuplicates: false);
-
   // Coverage-ignore(suite): Not run.
   /// Returns an iterator the origin extension type declaration and all
   /// augmentations in application order.
   Iterator<SourceExtensionTypeDeclarationBuilder> get declarationIterator =>
       new AugmentationIterator<SourceExtensionTypeDeclarationBuilder>(
-          // TODO(johnniwinther): Support augmentations.
-          origin,
-          null);
+          this, null);
 
   @override
   // Coverage-ignore(suite): Not run.
   Reference get reference => _extensionTypeDeclaration.reference;
-}
-
-class _SourceExtensionTypeDeclarationBuilderAugmentationAccess
-    implements
-        ClassDeclarationAugmentationAccess<
-            SourceExtensionTypeDeclarationBuilder> {
-  const _SourceExtensionTypeDeclarationBuilderAugmentationAccess();
-
-  @override
-  SourceExtensionTypeDeclarationBuilder getOrigin(
-          SourceExtensionTypeDeclarationBuilder classDeclaration) =>
-      classDeclaration.origin;
-
-  @override
-  Iterable<SourceExtensionTypeDeclarationBuilder>? getAugmentations(
-          SourceExtensionTypeDeclarationBuilder classDeclaration) =>
-      null;
 }

@@ -38,7 +38,6 @@ ExtensionOverride
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -47,10 +46,9 @@ ExtensionOverride
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E
   element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
@@ -80,7 +78,6 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element: dart:core::<fragment>::@class::bool
         element2: dart:core::@class::bool
         type: bool
     rightBracket: >
@@ -89,10 +86,9 @@ ExtensionOverride
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E
   element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
@@ -125,12 +121,10 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element: dart:core::<fragment>::@class::bool
         element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -139,10 +133,9 @@ ExtensionOverride
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element: <testLibraryFragment>::@extension::E
   element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null

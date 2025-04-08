@@ -765,7 +765,34 @@ LintCode:
       experimental: "2.12"
       stable: "2.14"
     categories: [binarySize, errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a member of a class is accessed
+      on an expression whose type is `dynamic`.
+
+      #### Example
+
+      The following code produces this diagnostic because the getter `length` is
+      being invoked on `s`, which has the type `dynamic`:
+
+      ```dart
+      void f(dynamic s) {
+        [!s!].length;
+      }
+      ```
+
+      #### Common fixes
+
+      Provide enough type information that the expression has a type other than
+      `dynamic`:
+
+      ```dart
+      void f(String s) {
+        s.length;
+      }
+      ```
     deprecatedDetails: |-
       **DO** avoid method calls or accessing properties on an object that is either
       explicitly or implicitly statically typed `dynamic`. Dynamic calls are treated
@@ -3843,7 +3870,61 @@ LintCode:
     state:
       stable: "2.3"
     categories: [errorProne, flutter]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class that implements
+      `Diagnosticable` has a public property that isn't added as a property in
+      either a `debugFillProperties` or `debugDescribeChildren` method.
+
+      #### Example
+
+      The following code produces this diagnostic because the property `p2`
+      isn't added in the `debugFillProperties` method:
+
+      ```dart
+      import 'package:flutter/foundation.dart';
+      import 'package:flutter/material.dart';
+
+      class C extends Widget {
+        bool get p1 => true;
+
+        bool get [!p2!] => false;
+
+        @override
+        void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+          super.debugFillProperties(properties);
+          properties.add(DiagnosticsProperty<bool>('p1', p1));
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If there isn't on override of either the `debugFillProperties` or
+      `debugDescribeChildren` method, then add one.
+
+      Add a description of the property in the `debugFillProperties` or
+      `debugDescribeChildren` method:
+
+      ```dart
+      import 'package:flutter/foundation.dart';
+      import 'package:flutter/material.dart';
+
+      class C extends Widget {
+        bool get p1 => true;
+
+        bool get p2 => false;
+
+        @override
+        void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+          super.debugFillProperties(properties);
+          properties.add(DiagnosticsProperty<bool>('p1', p1));
+          properties.add(DiagnosticsProperty<bool>('p2', p2));
+        }
+      }
+      ```
     deprecatedDetails: |-
       **DO** reference all public properties in `debug` method implementations.
 
@@ -4015,7 +4096,7 @@ LintCode:
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
   discarded_futures:
-    problemMessage: "Asynchronous function invoked in a non-'async' function."
+    problemMessage: "'Future'-returning calls in a non-'async' function."
     correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future."
     state:
       stable: "2.18"
@@ -4527,7 +4608,7 @@ LintCode:
       **DO** use Flutter TODO format.
 
       From the [Flutter
-      docs](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#comments):
+      docs](https://github.com/flutter/flutter/blob/main/docs/contributing/Style-guide-for-Flutter-repo.md#comments):
 
       > TODOs should include the string TODO in all caps, followed by the GitHub
       username of the person with the best context about the problem referenced by the
@@ -6118,7 +6199,36 @@ LintCode:
     state:
       stable: "2.8"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic for a pair of adjacent string
+      literals unless either the left-hand string ends in whitespace or the
+      right-hand string begins with whitespace.
+
+      #### Example
+
+      The following code produces this diagnostic because neither the left nor
+      the right string literal includes a space to separate the words that will
+      be joined:
+
+      ```dart
+      var s =
+        [!'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed'!]
+        'do eiusmod tempor incididunt ut labore et dolore magna';
+      ```
+
+      #### Common fixes
+
+      Add whitespace at the end of the left-hand literal or at the beginning of
+      the right-hand literal:
+
+      ```dart
+      var s =
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed '
+        'do eiusmod tempor incididunt ut labore et dolore magna';
+      ```
     deprecatedDetails: |-
       Add a trailing whitespace to prevent missing whitespace between adjacent
       strings.
@@ -7255,7 +7365,30 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value being thrown isn't a
+      subclass of either `Exception` or `Error`.
+
+      #### Example
+
+      The following code produces this diagnostic because the string `'f'` is
+      being thrown:
+
+      ```dart
+      void f() => throw [!'f'!];
+      ```
+
+      #### Common fixes
+
+      Replace the value with an instance of a subclass of either `Exception` or
+      `Error`:
+
+      ```dart
+      void f() => throw ArgumentError('f');
+      ```
     deprecatedDetails: |-
       **DO** throw only instances of classes that extend `dart.core.Error` or
       `dart.core.Exception`.
@@ -7697,7 +7830,36 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the body of a constructor
+      begins with one or more assert statements.
+
+      #### Example
+
+      The following code produces this diagnostic because the body of the
+      constructor begins with an assert statement:
+
+      ```dart
+      class C {
+        C(int i) {
+          [!assert!](i != 0);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Move the assert to the initializer list, removing the body if there are
+      only assert statements in it:
+
+      ```dart
+      class C {
+        C(int i) : assert(i != 0);
+      }
+      ```
     deprecatedDetails: |-
       **DO** put asserts in initializer lists.
 
@@ -7722,7 +7884,33 @@ LintCode:
     state:
       stable: "2.3"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an assert statement doesn't
+      have a message.
+
+      #### Example
+
+      The following code produces this diagnostic because there's no message
+      in the assert statement:
+
+      ```dart
+      void f(String s) {
+        [!assert(s.isNotEmpty);!]
+      }
+      ```
+
+      #### Common fixes
+
+      Add a message to the assert statement:
+
+      ```dart
+      void f(String s) {
+        assert(s.isNotEmpty, 'The argument must not be empty.');
+      }
+      ```
     deprecatedDetails: |-
       When assertions fail it's not always simple to understand why. Adding a message
       to the `assert` helps the developer to understand why the AssertionError occurs.
@@ -8256,7 +8444,37 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a static method returns a newly
+      created instance of the class and could, therefore, be a constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the static method
+      `all` could be a constructor:
+
+      ```dart
+      class C {
+        final int a, b, c;
+        C(this.a, this.b, this.c);
+        static C [!all!](int i) => C(i, i, i);
+      }
+      ```
+
+      #### Common fixes
+
+      Convert the static method to a named constructor:
+
+      ```dart
+      class C {
+        final int a, b, c;
+        C(this.a, this.b, this.c);
+        C.all(int i) : a = i, b = i, c = i;
+      }
+      ```
     deprecatedDetails: |-
       **PREFER** defining constructors instead of static methods to create instances.
 
@@ -8443,7 +8661,33 @@ LintCode:
     state:
       stable: "2.0"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the body of a function consists
+      of a single return statement with an expression.
+
+      #### Example
+
+      The following code produces this diagnostic because the body of `f` has a
+      single return statement:
+
+      ```dart
+      int f() [!{
+        return 0;
+      }!]
+      ```
+
+      #### Common fixes
+
+      If the body is complete, then replace the body with an expression body:
+
+      ```dart
+      int f() => 0;
+      ```
+
+      If the body isn't complete, then add the missing statements.
     deprecatedDetails: |-
       **CONSIDER** using => for short members whose body is a single return statement.
 
@@ -8596,7 +8840,38 @@ LintCode:
     state:
       stable: "2.1"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the loop variable in a for-each
+      statement isn't marked as being `final`.
+
+      #### Example
+
+      The following code produces this diagnostic because the loop variable `e`
+      isn't marked as being `final`:
+
+      ```dart
+      void f(List<int> l) {
+        for (var [!e!] in l) {
+          print(e);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Add the modifier `final` to the loop variable, removing the `var` if there
+      is one:
+
+      ```dart
+      void f(List<int> l) {
+        for (final e in l) {
+          print(e);
+        }
+      }
+      ```
     deprecatedDetails: |-
       **DO** prefer declaring for-each loop variables as final if they are not
       reassigned later in the code.
@@ -8637,7 +8912,36 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable isn't marked
+      as being `final`.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `s` isn't
+      marked as being `final`:
+
+      ```dart
+      int f(int i) {
+        [!var!] s = i + 1;
+        return s;
+      }
+      ```
+
+      #### Common fixes
+
+      Add the modifier `final` to the variable, removing the `var` if there is
+      one:
+
+      ```dart
+      int f(int i) {
+        final s = i + 1;
+        return s;
+      }
+      ```
     deprecatedDetails: |-
       **DO** prefer declaring variables as final if they are not reassigned later in
       the code.
@@ -8676,7 +8980,29 @@ LintCode:
     state:
       stable: "2.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter of a constructor,
+      method, function, or closure isn't marked as being `final`.
+
+      #### Example
+
+      The following code produces this diagnostic because the parameter `s`
+      isn't a `final` parameter:
+
+      ```dart
+      String f([!String s!]) => s;
+      ```
+
+      #### Common fixes
+
+      Add the modifier `final` to the parameter:
+
+      ```dart
+      String f(final String s) => s;
+      ```
     deprecatedDetails: |-
       **DO** prefer declaring parameters as final if they are not reassigned in
       the function body.
@@ -8811,7 +9137,36 @@ LintCode:
       experimental: "2.0"
       stable: "2.2"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `for` loop is used to operate
+      on every member of a collection and the method `forEach` could be used
+      instead.
+
+      #### Example
+
+      The following code produces this diagnostic because a `for` loop is being
+      used to invoke a single function for each key in `m`:
+
+      ```dart
+      void f(Map<String, int> m) {
+        [!for (final key in m.keys) {
+          print(key);
+        }!]
+      }
+      ```
+
+      #### Common fixes
+
+      Replace the for loop with an invocation of `forEach`:
+
+      ```dart
+      void f(Map<String, int> m) {
+        m.keys.forEach(print);
+      }
+      ```
     deprecatedDetails: |-
       **DO** use `forEach` if you are only going to apply a function or a method
       to all the elements of an iterable.
@@ -9980,7 +10335,30 @@ LintCode:
     state:
       stable: "2.0"
     categories: [publicInterface, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the declaration of part of the
+      public API of a package doesn't have a documentation comment.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `C` doesn't
+      have a documentation comment:
+
+      ```dart
+      class [!C!] {}
+      ```
+
+      #### Common fixes
+
+      Add a documentation comment.
+
+      ```dart
+      /// Documentation comment.
+      class C {}
+      ```
     deprecatedDetails: |-
       **DO** document all public members.
 
@@ -11143,7 +11521,39 @@ LintCode:
     state:
       stable: "2.12"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `assert` is being used in
+      the initializer list of a constructor to ensure that only a non-`null`
+      value is being used to initialize a field.
+
+      #### Example
+
+      The following code produces this diagnostic because an `assert` is being
+      used to catch an error that could be caught by the type system:
+
+      ```dart
+      class C {
+        final String? s;
+
+        C([!this.s!]) : assert(s != null);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `assert` and add the non-nullable type before the initializing
+      formal:
+
+      ```dart
+      class C {
+        final String? s;
+
+        C(String this.s);
+      }
+      ```
     deprecatedDetails: |-
       Tighten the type of an initializing formal if a non-null assert exists. This
       allows the type system to catch problems rather than have them only be caught at
@@ -11181,7 +11591,30 @@ LintCode:
     state:
       stable: "2.0"
     categories: [effectiveDart, publicInterface]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the declaration of part of the
+      public API of a package doesn't have explicit type annotations.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      doesn't have an explicit return type and the parameters `x` and `y` don't
+      have explicit types:
+
+      ```dart
+      [!f!](x, y) => '';
+      ```
+
+      #### Common fixes
+
+      Add type annotations to the API:
+
+      ```dart
+      String f(int x, int y) => '';
+      ```
     deprecatedDetails: |-
       From [Effective Dart](https://dart.dev/effective-dart/design#do-type-annotate-fields-and-top-level-variables-if-the-type-isnt-obvious):
 
@@ -11438,10 +11871,18 @@ LintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an instance of `Future` is
-      returned from an invocation within an `async` (or `async*`) method or
-      function and the future is neither awaited nor passed to the `unawaited`
-      function.
+      The analyzer produces this diagnostic on an expression with a `Future`
+      type, only in a few specific cases:
+
+      * when the expression is itself a statement (like `f();`),
+      * when the expression is part of a cascade (like `C()..f()`),
+      * when the expression is a String interpolation (like `'${f()}'`).
+
+      The analyzer only produces this diagnostic on expressions inside an
+      `async` or `async*` function.
+
+      The two common corrections are to 'await' the expression, or to wrap the
+      expression in a call to `unawaited()`.
 
       #### Example
 
@@ -12426,7 +12867,38 @@ LintCode:
     state:
       stable: "2.18"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a null-aware operator is used
+      to invoke an extension method on an extension whose type is nullable.
+
+      #### Example
+
+      The following code produces this diagnostic because the extension method
+      `m` is invoked using `?.` when it doesn't need to be:
+
+      ```dart
+      extension E on int? {
+        int m() => 1;
+      }
+
+      int? f(int? i) => i[!?.!]m();
+      ```
+
+      #### Common fixes
+
+      If it isn't a requirement not invoke the method when the receiver is
+      `null`, then remove the question mark from the invocation:
+
+      ```dart
+      extension E on int? {
+        int m() => 1;
+      }
+
+      int? f(int? i) => i.m();
+      ```
     deprecatedDetails: |-
       Avoid null aware operators for members defined in an extension on a nullable
       type.
@@ -12454,7 +12926,33 @@ LintCode:
     state:
       experimental: "2.12"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a null check operator (`!`) is
+      used in a context where a nullable value is acceptable.
+
+      #### Example
+
+      The following code produces this diagnostic because a null check is being
+      used even though `null` is a valid value to return:
+
+      ```dart
+      int? f(int? i) {
+        return i[!!!];
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the null check operator:
+
+      ```dart
+      int? f(int? i) {
+        return i;
+      }
+      ```
     deprecatedDetails: |-
       **DON'T** apply a `null` check where a nullable value is accepted.
 
@@ -14226,7 +14724,7 @@ LintCode:
     state:
       stable: "3.8"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

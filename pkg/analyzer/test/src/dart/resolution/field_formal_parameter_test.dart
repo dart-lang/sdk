@@ -27,7 +27,6 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: void
-    element: <null>
     element2: <null>
     type: void
   thisKeyword: this
@@ -38,14 +37,13 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
+      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f::@formalParameter::a
         type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
+  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f
     type: void Function(int)
 ''');
   }
@@ -65,8 +63,7 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: U
-    element: U@45
-    element2: <not-implemented>
+    element2: U@45
     type: U
   thisKeyword: this
   period: .
@@ -83,14 +80,13 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element: U@45
-        element2: <not-implemented>
+        element2: U@45
         type: U
       name: a
-      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
+      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f::@formalParameter::a
         type: U
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
+  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f
     type: U Function<U>(U)
 ''');
   }
@@ -108,8 +104,7 @@ class A<V> {
 FieldFormalParameter
   type: NamedType
     name: T
-    element: T@54
-    element2: <not-implemented>
+    element2: T@54
     type: T
   thisKeyword: this
   period: .
@@ -129,23 +124,21 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element: U@57
-        element2: <not-implemented>
+        element2: U@57
         type: U
       name: a
-      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
+      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f::@formalParameter::a
         type: U
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
-        element: V@8
-        element2: <not-implemented>
+        element2: V@8
         type: V
       name: b
-      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::b
+      declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f::@formalParameter::b
         type: V
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
+  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f
     type: T Function<T, U>(U, V)
 ''');
   }
@@ -164,7 +157,7 @@ FieldFormalParameter
   thisKeyword: this
   period: .
   name: f
-  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
+  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f
     type: int
 ''');
   }
@@ -182,13 +175,12 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: int
-    element: dart:core::<fragment>::@class::int
     element2: dart:core::@class::int
     type: int
   thisKeyword: this
   period: .
   name: f
-  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f
+  declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@formalParameter::f
     type: int
 ''');
   }
@@ -208,7 +200,7 @@ FieldFormalParameter
   thisKeyword: this
   period: .
   name: f
-  declaredElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::f
+  declaredElement: <testLibraryFragment>::@enum::E::@constructor::new::@formalParameter::f
     type: int
 ''');
   }

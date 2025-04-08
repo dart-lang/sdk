@@ -50,11 +50,11 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     if (statements.length != 1) {
       return;
     }
-    var onlyStatement = statements.first;
-    // prepare returned expression
-    Expression? returnExpression;
-    if (onlyStatement is ReturnStatement) {
-      returnExpression = onlyStatement.expression;
+    var onlyStatement = statements.single;
+    // Prepare the returned expression.
+    Expression returnExpression;
+    if (onlyStatement case ReturnStatement(:var expression?)) {
+      returnExpression = expression;
       if (onlyStatement.returnKeyword.precedingComments != null) {
         // TODO(srawlins): Include comments in fixed output.
         // https://github.com/dart-lang/sdk/issues/29313
@@ -82,25 +82,23 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
         // https://github.com/dart-lang/sdk/issues/29313
         return;
       }
-    }
-    if (returnExpression == null) {
+    } else {
       return;
     }
 
-    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // Return expressions can be quite large, e.g. Flutter `build()` methods.
     // It is surprising to see this Quick Assist deep in the function body.
     if (selectionOffset >= returnExpression.offset) {
       return;
     }
 
-    var returnExpression_final = returnExpression;
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {
           builder.write('async ');
         }
         builder.write('=> ');
-        builder.write(utils.getNodeText(returnExpression_final));
+        builder.write(utils.getNodeText(returnExpression));
         var parent = body.parent;
         if (parent is! FunctionExpression ||
             parent.parent is FunctionDeclaration) {

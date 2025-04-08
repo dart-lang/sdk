@@ -16,8 +16,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class X#1#0 extends core::Object /*hasConstConstructor*/  {
-  const constructor foo() → self::X#1#0
+class X#1 extends core::Object /*hasConstConstructor*/  {
+  const constructor foo() → self::X#1
     : super core::Object::•()
     ;
 }

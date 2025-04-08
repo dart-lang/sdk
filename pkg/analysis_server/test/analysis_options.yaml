@@ -7,4 +7,6 @@ analyzer:
     # We have some long test class names which include one or more underscores
     # to improve readability.
     camel_case_types: ignore
-
+    # There are just over 100 violations of this, which can likely be ignored
+    # on a case-by-case or file-by-file basis.
+    non_constant_identifier_names: ignore

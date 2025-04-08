@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Color extends core::Object {
+  final field core::int x;
+  constructor •(core::int x) → self::Color
+    : self::Color::x = x, super core::Object::•()
+    ;
+  static get red() → self::Color
+    return new self::Color::•(1);
+  static get blue() → self::Color
+    return new self::Color::•(2);
+}
+static method main() → void {
+  self::Color c = self::Color::red;
+  core::bool b = c =={core::Object::==}{(core::Object) → core::bool} self::Color::blue;
+}

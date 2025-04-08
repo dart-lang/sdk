@@ -31,9 +31,9 @@ Object? specToJson(Object? obj) {
   }
 }
 
-void _alwaysNull(_, [__]) {}
+void _alwaysNull(dynamic _, [dynamic __]) {}
 
-bool _alwaysTrue(_, [__]) => true;
+bool _alwaysTrue(dynamic _, [dynamic __]) => true;
 
 typedef DocumentChanges
     = List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>;
@@ -71,7 +71,7 @@ class Either2<T1, T2> implements ToJsonable {
   String toString() => map((t) => t.toString(), (t) => t.toString());
 
   /// Checks whether the value of the union equals the supplied value.
-  bool valueEquals(o) => map((t) => t == o, (t) => t == o);
+  bool valueEquals(Object o) => map((t) => t == o, (t) => t == o);
 }
 
 class Either3<T1, T2, T3> implements ToJsonable {
@@ -125,7 +125,8 @@ class Either3<T1, T2, T3> implements ToJsonable {
       );
 
   /// Checks whether the value of the union equals the supplied value.
-  bool valueEquals(o) => map((t) => t == o, (t) => t == o, (t) => t == o);
+  bool valueEquals(Object o) =>
+      map((t) => t == o, (t) => t == o, (t) => t == o);
 }
 
 class Either4<T1, T2, T3, T4> implements ToJsonable {
@@ -193,7 +194,7 @@ class Either4<T1, T2, T3, T4> implements ToJsonable {
       );
 
   /// Checks whether the value of the union equals the supplied value.
-  bool valueEquals(o) =>
+  bool valueEquals(Object o) =>
       map((t) => t == o, (t) => t == o, (t) => t == o, (t) => t == o);
 }
 

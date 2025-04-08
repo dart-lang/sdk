@@ -13,15 +13,12 @@ void test() {
   Color colorLocal = .blue ?? Color.red;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   Integer integerLocal = .one ?? Integer.two;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   IntegerMixin integerMixinLocal = .mixinOne ?? IntegerMixin.mixinTwo;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 }

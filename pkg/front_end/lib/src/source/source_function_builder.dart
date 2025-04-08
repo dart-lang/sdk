@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/identifiers.dart';
 import '../base/messages.dart'
     show
         messagePatchDeclarationMismatch,
@@ -14,78 +13,13 @@ import '../base/messages.dart'
         noLength,
         templateRequiredNamedParameterHasDefaultValueError;
 import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import 'source_library_builder.dart';
-import 'source_loader.dart' show SourceLoader;
-import 'source_member_builder.dart';
-
-abstract class SourceFunctionBuilder
-    implements FunctionBuilder, SourceMemberBuilder {
-  List<MetadataBuilder>? get metadata;
-
-  TypeBuilder get returnType;
-
-  List<NominalParameterBuilder>? get typeParameters;
-
-  List<FormalParameterBuilder>? get formals;
-
-  @override
-  bool get isAbstract;
-
-  @override
-  bool get isConstructor;
-
-  @override
-  bool get isRegularMethod;
-
-  @override
-  bool get isGetter;
-
-  @override
-  bool get isSetter;
-
-  @override
-  bool get isOperator;
-
-  @override
-  bool get isFactory;
-
-  FormalParameterBuilder? getFormal(Identifier identifier);
-
-  bool get isNative;
-
-  /// Returns the [index]th parameter of this function.
-  ///
-  /// The index is the syntactical index, including both positional and named
-  /// parameter in the order they are declared, and excluding the synthesized
-  /// this parameter on extension instance members.
-  VariableDeclaration getFormalParameter(int index);
-
-  /// If this is an extension instance method or constructor with lowering
-  /// enabled, the tear off parameter corresponding to the [index]th parameter
-  /// on the instance method or constructor is returned.
-  ///
-  /// This is used to update the default value for the closure parameter when
-  /// it has been computed for the original parameter.
-  VariableDeclaration? getTearOffParameter(int index);
-
-  /// Returns the parameter for 'this' synthetically added to extension
-  /// instance members.
-  VariableDeclaration? get thisVariable;
-
-  /// Returns a list of synthetic type parameters added to extension instance
-  /// members.
-  List<TypeParameter>? get thisTypeParameters;
-
-  void becomeNative(SourceLoader loader);
-}
+import 'source_type_parameter_builder.dart';
 
 /// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter
 /// [VariableDeclaration]s for [declaredFormals] and adds them to [function].
@@ -100,7 +34,7 @@ abstract class SourceFunctionBuilder
 void buildTypeParametersAndFormals(
     SourceLibraryBuilder libraryBuilder,
     FunctionNode function,
-    List<NominalParameterBuilder>? declaredTypeParameters,
+    List<SourceNominalParameterBuilder>? declaredTypeParameters,
     List<FormalParameterBuilder>? declaredFormals,
     {required List<TypeParameter>? classTypeParameters,
     required bool supportsTypeParameters}) {
@@ -113,7 +47,7 @@ void buildTypeParametersAndFormals(
             initialVariance: Variance.contravariant);
   }
   if (declaredTypeParameters != null) {
-    for (NominalParameterBuilder t in declaredTypeParameters) {
+    for (SourceNominalParameterBuilder t in declaredTypeParameters) {
       TypeParameter parameter = t.parameter;
       if (supportsTypeParameters) {
         function.typeParameters.add(parameter);
@@ -157,16 +91,14 @@ void buildTypeParametersAndFormals(
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Reports an error if [augmentation] is from a patch library and [origin] is
 /// not external.
 bool checkAugmentation(
     {required SourceLibraryBuilder augmentationLibraryBuilder,
     required Builder origin,
     required Builder augmentation}) {
-  if (!origin.isExternal &&
-      // Coverage-ignore(suite): Not run.
-      !augmentationLibraryBuilder.isAugmentationLibrary) {
-    // Coverage-ignore-block(suite): Not run.
+  if (!origin.isExternal && !augmentationLibraryBuilder.isAugmentationLibrary) {
     augmentationLibraryBuilder.addProblem(messagePatchNonExternal,
         augmentation.fileOffset, noLength, augmentation.fileUri!,
         context: [

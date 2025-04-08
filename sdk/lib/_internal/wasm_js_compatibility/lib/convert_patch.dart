@@ -16,8 +16,8 @@ dynamic _parseJson(
   String source,
   Object? Function(Object? key, Object? value)? reviver,
 ) {
-  _JsonListener listener = new _JsonListener(reviver);
-  var parser = new _JsonStringParser(listener);
+  _JsonListener listener = _JsonListener(reviver);
+  var parser = _JsonStringParser(listener);
   parser.chunk = source;
   parser.chunkEnd = source.length;
   parser.parse(0);
@@ -171,7 +171,7 @@ class _NumberBuffer {
   Uint8List list;
   int length = 0;
   _NumberBuffer(int initialCapacity)
-    : list = new Uint8List(_initialCapacity(initialCapacity));
+    : list = Uint8List(_initialCapacity(initialCapacity));
 
   int get capacity => list.length;
 
@@ -194,13 +194,13 @@ class _NumberBuffer {
   void ensureCapacity(int newCapacity) {
     Uint8List list = this.list;
     if (newCapacity <= list.length) return;
-    Uint8List newList = new Uint8List(newCapacity);
+    Uint8List newList = Uint8List(newCapacity);
     newList.setRange(0, list.length, list, 0);
     this.list = newList;
   }
 
   String getString() {
-    String result = new String.fromCharCodes(list, 0, length);
+    String result = String.fromCharCodes(list, 0, length);
     return result;
   }
 
@@ -1128,7 +1128,7 @@ abstract class _ChunkedJsonParser<T> {
   int beginChunkNumber(int state, int start) {
     int end = chunkEnd;
     int length = end - start;
-    var buffer = new _NumberBuffer(length);
+    var buffer = _NumberBuffer(length);
     copyCharsToList(start, end, buffer.list, 0);
     buffer.length = length;
     this.buffer = buffer;
@@ -1337,7 +1337,7 @@ abstract class _ChunkedJsonParser<T> {
       message = "Unexpected character";
       if (position == chunkEnd) message = "Unexpected end of input";
     }
-    throw new FormatException(message, chunk, position);
+    throw FormatException(message, chunk, position);
   }
 }
 
@@ -1357,7 +1357,7 @@ class _JsonStringParser extends _ChunkedJsonParser<String> {
   }
 
   void beginString() {
-    this.buffer = new StringBuffer();
+    this.buffer = StringBuffer();
   }
 
   void addSliceToString(int start, int end) {
@@ -1441,7 +1441,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   String getString(int start, int end, int bits) {
     const int maxAsciiChar = 0x7f;
     if (bits <= maxAsciiChar) {
-      return new String.fromCharCodes(chunk, start, end);
+      return String.fromCharCodes(chunk, start, end);
     }
     beginString();
     if (start < end) addSliceToString(start, end);
@@ -1450,7 +1450,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   }
 
   void beginString() {
-    this.buffer = new StringBuffer();
+    this.buffer = StringBuffer();
   }
 
   void addSliceToString(int start, int end) {

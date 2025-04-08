@@ -122,6 +122,7 @@ import 'package:analysis_server/src/services/correction/dart/make_return_type_nu
 import 'package:analysis_server/src/services/correction/dart/make_super_invocation_last.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
+import 'package:analysis_server/src/services/correction/dart/merge_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_doc_comment_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
@@ -260,20 +261,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:linter/src/lint_codes.dart';
 
-final _builtInLintMultiProducers = {
-  LinterLintCode.comment_references: [
-    ImportLibrary.forType,
-    ImportLibrary.forExtension,
-  ],
-  LinterLintCode.deprecated_member_use_from_same_package_without_message: [
-    DataDriven.new,
-  ],
-  LinterLintCode.deprecated_member_use_from_same_package_with_message: [
-    DataDriven.new,
-  ],
-};
-
-final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
+final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.always_declare_return_types_of_functions: [AddReturnType.new],
   LinterLintCode.always_declare_return_types_of_methods: [AddReturnType.new],
   LinterLintCode.always_put_control_body_on_new_line: [UseCurlyBraces.nonBulk],
@@ -356,7 +344,10 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.directives_ordering_package_before_relative: [
     OrganizeImports.new,
   ],
-  LinterLintCode.discarded_futures: [AddAsync.new, WrapInUnawaited.new],
+  LinterLintCode.discarded_futures: [
+    AddAsync.discardedFutures,
+    WrapInUnawaited.new,
+  ],
   LinterLintCode.empty_catches: [RemoveEmptyCatch.new],
   LinterLintCode.empty_constructor_bodies: [RemoveEmptyConstructorBody.new],
   LinterLintCode.empty_statements: [
@@ -559,141 +550,20 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.use_truncating_division: [UseEffectiveIntegerDivision.new],
 };
 
-final _builtInNonLintMultiProducers = {
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
-    AddExtensionOverride.new,
-  ],
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
-    AddExtensionOverride.new,
-  ],
-  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [AmbiguousImportFix.new],
-  CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
-  CompileTimeErrorCode.CAST_TO_NON_TYPE: [
-    DataDriven.new,
+final _builtInLintMultiGenerators = {
+  LinterLintCode.comment_references: [
     ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.CONST_WITH_NON_TYPE: [ImportLibrary.forType],
-  CompileTimeErrorCode.EXTENDS_NON_CLASS: [
-    DataDriven.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
-    AddMissingParameter.new,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
-    AddMissingParameter.new,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
-    DataDriven.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
-    AddSuperConstructorInvocation.new,
-  ],
-  CompileTimeErrorCode.INVALID_ANNOTATION: [
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.INVALID_OVERRIDE: [DataDriven.new],
-  CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [DataDriven.new],
-  CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
-  CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
-    DataDriven.new,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.NEW_WITH_NON_TYPE: [ImportLibrary.forType],
-  CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [DataDriven.new],
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
-    AddSuperConstructorInvocation.new,
-  ],
-  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
-    AddSuperConstructorInvocation.new,
-    CreateConstructorSuper.new,
-  ],
-  CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [ImportLibrary.forType],
-  CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-    ImportLibrary.forType,
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.NOT_A_TYPE: [ImportLibrary.forType],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [DataDriven.new],
-  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [ImportLibrary.forType],
-  CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_CLASS: [DataDriven.new, ImportLibrary.forType],
-  CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
-    AddSuperConstructorInvocation.new,
-  ],
-  CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [DataDriven.new],
-  CompileTimeErrorCode.UNDEFINED_FUNCTION: [
-    DataDriven.new,
     ImportLibrary.forExtension,
-    ImportLibrary.forExtensionType,
-    ImportLibrary.forFunction,
-    ImportLibrary.forType,
   ],
-  CompileTimeErrorCode.UNDEFINED_GETTER: [
-    DataDriven.new,
-    ImportLibrary.forExtensionMember,
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
-    DataDriven.new,
-    ImportLibrary.forExtension,
-    ImportLibrary.forExtensionMember,
-    ImportLibrary.forFunction,
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_METHOD: [
-    DataDriven.new,
-    ImportLibrary.forExtensionMember,
-    ImportLibrary.forFunction,
-    ImportLibrary.forType,
-  ],
-  CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
-    ChangeArgumentName.new,
+  LinterLintCode.deprecated_member_use_from_same_package_without_message: [
     DataDriven.new,
   ],
-  CompileTimeErrorCode.UNDEFINED_OPERATOR: [
-    ImportLibrary.forExtensionMember,
-    UseDifferentDivisionOperator.new,
-  ],
-  CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [DataDriven.new],
-  CompileTimeErrorCode.UNDEFINED_SETTER: [
-    DataDriven.new,
-    // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
-    ImportLibrary.forExtensionMember,
-  ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [DataDriven.new],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+  LinterLintCode.deprecated_member_use_from_same_package_with_message: [
     DataDriven.new,
   ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-    DataDriven.new,
-  ],
-  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [DataDriven.new],
-  HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
-  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
-  WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
-  WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
 };
 
-final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
+final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
     RemoveAbstract.new,
     RemoveInitializer.new,
@@ -956,10 +826,24 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.NON_BOOL_CONDITION: [AddNeNull.new, AddAwait.nonBool],
   CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [AddConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY: [AddConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION: [
     AddConst.new,
   ],
+  CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT: [RemoveConst.new],
   CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION: [
     AddMissingSwitchCases.new,
   ],
@@ -1006,8 +890,12 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
+  CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY: [RemoveConst.new],
   CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
     ConvertToNullAwareSetElement.new,
+  ],
+  CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
   ],
   CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
     AddClassModifier.baseModifier,
@@ -1417,7 +1305,142 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
 };
 
-final _builtInParseLintProducers = <LintCode, List<ProducerGenerator>>{
+final _builtInNonLintMultiGenerators = {
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
+    AddExtensionOverride.new,
+  ],
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
+    AddExtensionOverride.new,
+  ],
+  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [AmbiguousImportFix.new],
+  CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
+  CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.CONST_WITH_NON_TYPE: [ImportLibrary.forType],
+  CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
+    AddMissingParameter.new,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
+    AddMissingParameter.new,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
+    AddSuperConstructorInvocation.new,
+  ],
+  CompileTimeErrorCode.INVALID_ANNOTATION: [
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.INVALID_OVERRIDE: [DataDriven.new],
+  CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [DataDriven.new],
+  CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
+  CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
+    DataDriven.new,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.NEW_WITH_NON_TYPE: [ImportLibrary.forType],
+  CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [DataDriven.new],
+  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
+    AddSuperConstructorInvocation.new,
+  ],
+  CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
+    AddSuperConstructorInvocation.new,
+    CreateConstructorSuper.new,
+  ],
+  CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [ImportLibrary.forType],
+  CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+    ImportLibrary.forType,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.NOT_A_TYPE: [ImportLibrary.forType],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [DataDriven.new],
+  CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [ImportLibrary.forType],
+  CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_CLASS: [DataDriven.new, ImportLibrary.forType],
+  CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
+    AddSuperConstructorInvocation.new,
+  ],
+  CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [DataDriven.new],
+  CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+    DataDriven.new,
+    ImportLibrary.forExtension,
+    ImportLibrary.forExtensionType,
+    ImportLibrary.forFunction,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_GETTER: [
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+    DataDriven.new,
+    ImportLibrary.forExtension,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_METHOD: [
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+    ChangeArgumentName.new,
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.UNDEFINED_OPERATOR: [
+    ImportLibrary.forExtensionMember,
+    UseDifferentDivisionOperator.new,
+  ],
+  CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [DataDriven.new],
+  CompileTimeErrorCode.UNDEFINED_SETTER: [
+    DataDriven.new,
+    // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
+    ImportLibrary.forExtensionMember,
+  ],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [DataDriven.new],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+    DataDriven.new,
+  ],
+  CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [DataDriven.new],
+  HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
+  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
+  WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
+  WarningCode.MULTIPLE_COMBINATORS: [MergeCombinators.new],
+  WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
+};
+
+final _builtInParseLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.prefer_generic_function_type_aliases: [
     ConvertToGenericFunctionSyntax.new,
   ],
@@ -1432,19 +1455,24 @@ final _builtInParseLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
 };
 
-/// Registers each mapping of diagnostic -> list-of-producers with
+/// Registers each mapping of diagnostic -> list-of-producer-generators with
 /// [FixProcessor].
-void registerBuiltInProducers() {
+void registerBuiltInFixGenerators() {
   // This function can be called many times during test runs so these statements
   // should not result in duplicate producers (i.e. they should only add to maps
   // or sets or otherwise ensure producers that already exist are not added).
-  registeredFixGenerators.lintMultiProducers.addAll(_builtInLintMultiProducers);
-  registeredFixGenerators.lintProducers.addAll(_builtInLintProducers);
-  registeredFixGenerators.nonLintMultiProducers.addAll(
-    _builtInNonLintMultiProducers,
+
+  registeredFixGenerators.lintMultiProducers.addAll(
+    _builtInLintMultiGenerators,
   );
-  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintProducers);
-  registeredFixGenerators.parseLintProducers.addAll(_builtInParseLintProducers);
+  registeredFixGenerators.lintProducers.addAll(_builtInLintGenerators);
+  registeredFixGenerators.nonLintMultiProducers.addAll(
+    _builtInNonLintMultiGenerators,
+  );
+  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintGenerators);
+  registeredFixGenerators.parseLintProducers.addAll(
+    _builtInParseLintGenerators,
+  );
   registeredFixGenerators.ignoreProducerGenerators.addAll([
     IgnoreDiagnosticOnLine.new,
     IgnoreDiagnosticInFile.new,

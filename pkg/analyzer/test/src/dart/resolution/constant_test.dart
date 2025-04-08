@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,7 +31,7 @@ const a = const A();
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 27, 9),
     ]);
 
-    var aLib = findElement.import('package:test/a.dart').importedLibrary!;
+    var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
     var aConstructor = aLib.getClass('A')!.constructors.single;
     var p = aConstructor.parameters.single as DefaultParameterElementImpl;
 
@@ -176,7 +173,7 @@ import 'a.dart';
 const v = a;
 ''');
 
-    var v = findElement.topVar('v') as ConstVariableElement;
+    var v = findElement2.topVar('v');
     var value = v.computeConstantValue()!;
 
     dartObjectPrinterConfiguration.withTypeArguments = true;
@@ -185,10 +182,10 @@ const v = a;
 C<double Function(int)>
   typeArguments
     double Function(int)
-      alias: package:test/a.dart::<fragment>::@typeAlias::F
+      alias: package:test/a.dart::@typeAlias::F
         typeArguments
           double
-  variable: <testLibraryFragment>::@topLevelVariable::v
+  variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -204,8 +201,8 @@ class C {
 import 'a.dart';
 ''');
 
-    var import_ = findElement.importFind('package:test/a.dart');
-    var a = import_.topVar('a') as ConstVariableElement;
+    var import_ = findElement2.importFind('package:test/a.dart');
+    var a = import_.topVar('a');
     expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 
@@ -221,8 +218,8 @@ extension E on int {
 import 'a.dart';
 ''');
 
-    var import_ = findElement.importFind('package:test/a.dart');
-    var a = import_.topVar('a') as ConstVariableElement;
+    var import_ = findElement2.importFind('package:test/a.dart');
+    var a = import_.topVar('a');
     expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 
@@ -240,8 +237,8 @@ mixin M on C {
 import 'a.dart';
 ''');
 
-    var import_ = findElement.importFind('package:test/a.dart');
-    var a = import_.topVar('a') as ConstVariableElement;
+    var import_ = findElement2.importFind('package:test/a.dart');
+    var a = import_.topVar('a');
     expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 
@@ -267,11 +264,12 @@ class B extends A {
 }
 ''');
 
-    result = await resolveFile(a);
+    await resolveFile2(a);
     assertErrorsInResolvedUnit(result, []);
 
-    var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
-    var bValue = bElement.evaluationResult as DartObjectImpl;
+    var bElement = findElement2.field('b');
+    var bFragment = bElement.firstFragment as ConstVariableElement;
+    var bValue = bFragment.evaluationResult as DartObjectImpl;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
     expect(superFields!.getField('f1')!.toBoolValue(), false);
   }
@@ -284,7 +282,7 @@ extension E on int {
   static const int f = 42;
 }
 ''');
-    var a = findElement.topVar('a') as ConstVariableElement;
+    var a = findElement2.topVar('a');
     expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 }

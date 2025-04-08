@@ -37,7 +37,7 @@ import 'dart:_js_helper'
         initNativeDispatch,
         initNativeDispatchFlag,
         regExpGetNative,
-        regExpCaptureCount,
+        regExpHasCaptures,
         stringContainsUnchecked,
         stringIndexOfStringUnchecked,
         stringLastIndexOfUnchecked,
@@ -74,17 +74,25 @@ part 'js_array.dart';
 part 'js_number.dart';
 part 'js_string.dart';
 
-final String DART_CLOSURE_PROPERTY_NAME =
-    getIsolateAffinityTag(r'_$dart_dartClosure');
+final String DART_CLOSURE_PROPERTY_NAME = getIsolateAffinityTag(
+  r'_$dart_dartClosure',
+);
 
 getDispatchProperty(object) {
   return JS(
-      '', '#[#]', object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME));
+    '',
+    '#[#]',
+    object,
+    JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME),
+  );
 }
 
 setDispatchProperty(object, value) {
   defineProperty(
-      object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME), value);
+    object,
+    JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME),
+    value,
+  );
 }
 
 // Avoid inlining this method because inlining gives us multiple allocation
@@ -119,8 +127,14 @@ makeDispatchRecord(interceptor, proto, extension, indexability) {
   //     P      I                     if object's prototype is P, use I
   //     F      -           P         if object's prototype is P, call F
 
-  return JS('', '{i: #, p: #, e: #, x: #}', interceptor, proto, extension,
-      indexability);
+  return JS(
+    '',
+    '{i: #, p: #, e: #, x: #}',
+    interceptor,
+    proto,
+    extension,
+    indexability,
+  );
 }
 
 dispatchRecordInterceptor(record) => JS('', '#.i', record);
@@ -215,8 +229,10 @@ void cacheInterceptorOnConstructor(constructor, interceptor) {
   defineProperty(constructor, JS_INTEROP_INTERCEPTOR_TAG, interceptor);
 }
 
-var constructorToInterceptor =
-    JS('', 'typeof(self.WeakMap) == "undefined" ? new Map() : new WeakMap()');
+var constructorToInterceptor = JS(
+  '',
+  'typeof(self.WeakMap) == "undefined" ? new Map() : new WeakMap()',
+);
 
 XlookupInterceptorByConstructor(constructor) {
   return JS('', '#.get(#)', constructorToInterceptor, constructor);

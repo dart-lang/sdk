@@ -310,11 +310,11 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     }
     return nullptr;
 
-  } else if (strcmp(command, "is-mutator-in-native") == 0) {
+  } else if (strcmp(command, "is-mutator-blocked-at-safepoint") == 0) {
     Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
     CHECK_ISOLATE(isolate);
-    if (isolate->mutator_thread()->execution_state_cross_thread_for_testing() ==
-        Thread::kThreadInNative) {
+    if (isolate->mutator_thread()
+            ->IsBlockedForSafepointCrossThreadForTesting()) {
       return arg;
     } else {
       return nullptr;
@@ -331,6 +331,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
                                       kBypassSafepoint);
     Thread* const thread = Thread::Current();
     {
+      NoReloadScope no_reload(thread);  // Reload can flip code protection.
       GcSafepointOperationScope scope(thread);
       isolate_group->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();

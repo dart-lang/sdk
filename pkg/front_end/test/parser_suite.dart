@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
+    show ErrorToken, ScannerConfiguration, ScannerResult, Token, scan;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken;
 import 'package:front_end/src/base/command_line_reporting.dart'
@@ -23,8 +23,8 @@ import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/source/stack_listener_impl.dart'
     show offsetForToken;
-import 'package:front_end/src/util/parser_ast.dart' show getAST;
-import 'package:front_end/src/util/parser_ast_helper.dart' show ParserAstNode;
+import 'package:front_end/src/util/parser_ast.dart';
+import 'package:front_end/src/util/parser_ast_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
@@ -104,6 +104,7 @@ class Context extends ChainContext with MatchContext {
   final List<Step> steps = const <Step>[
     const TokenStep(true, ".scanner.expect"),
     const TokenStep(false, ".parser.expect"),
+    const ParserAstStep(true),
     const ListenerStep(true),
     const IntertwinedStep(),
   ];
@@ -119,7 +120,7 @@ class ContextChecksOnly extends Context {
   @override
   final List<Step> steps = const <Step>[
     const ListenerStep(false),
-    const ParserAstStep(),
+    const ParserAstStep(false),
   ];
 
   @override
@@ -128,7 +129,8 @@ class ContextChecksOnly extends Context {
 }
 
 class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
-  const ParserAstStep();
+  final bool enablePossibleExpectFile;
+  const ParserAstStep(this.enablePossibleExpectFile);
 
   @override
   String get name => "ParserAst";
@@ -144,7 +146,38 @@ class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
       throw "Expected a single element for 'CompilationUnit' "
           "but got ${ast.what}";
     }
+    if (enablePossibleExpectFile && shouldDoOutline(description.shortName)) {
+      ExtractSomeMembers indexer = new ExtractSomeMembers();
+      ast.accept(indexer);
+      return context.match<TestDescription>(".outline.expect",
+          indexer.sb.toString(), description.uri, description);
+    }
     return new Future.value(new Result<TestDescription>.pass(description));
+  }
+}
+
+class ExtractSomeMembers extends RecursiveParserAstVisitor {
+  StringBuffer sb = new StringBuffer();
+  String? currentContainerName;
+
+  @override
+  void visitClassDeclarationEnd(ClassDeclarationEnd node) {
+    currentContainerName = node.getClassIdentifier().token.lexeme;
+    sb.writeln("Class: $currentContainerName");
+    super.visitClassDeclarationEnd(node);
+    currentContainerName = null;
+  }
+
+  @override
+  void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
+    String name = node.getNameIdentifier().token.lexeme;
+    sb.writeln("Top-level method: $name");
+  }
+
+  @override
+  void visitClassMethodEnd(ClassMethodEnd node) {
+    sb.writeln(
+        "Class method: $currentContainerName.${node.getNameIdentifier()}");
   }
 }
 
@@ -391,6 +424,12 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
 }
 
 Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
+  File f = new File.fromUri(uri);
+  Uint8List rawBytes = f.readAsBytesSync();
+  return scanRawBytes(rawBytes, _getConfig(shortName), lineStarts);
+}
+
+ScannerConfiguration _getConfig(String shortName) {
   ScannerConfiguration config;
 
   String firstDir = shortName.split("/")[0];
@@ -403,11 +442,12 @@ Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   } else {
     config = scannerConfiguration;
   }
+  return config;
+}
 
-  File f = new File.fromUri(uri);
-  Uint8List rawBytes = f.readAsBytesSync();
-
-  return scanRawBytes(rawBytes, config, lineStarts);
+bool shouldDoOutline(String shortName) {
+  List<String> split = shortName.split("/");
+  return (split.length > 1 && split[split.length - 2] == "with_outline");
 }
 
 bool shouldAllowPatterns(String shortName) {
@@ -422,11 +462,11 @@ bool shouldAllowEnhancedParts(String shortName) {
 
 Token scanRawBytes(
     Uint8List rawBytes, ScannerConfiguration config, List<int>? lineStarts) {
-  Utf8BytesScanner scanner = new Utf8BytesScanner(rawBytes,
-      includeComments: true, configuration: config);
-  Token firstToken = scanner.tokenize();
+  ScannerResult scanResult =
+      scan(rawBytes, configuration: config, includeComments: true);
+  Token firstToken = scanResult.tokens;
   if (lineStarts != null) {
-    lineStarts.addAll(scanner.lineStarts);
+    lineStarts.addAll(scanResult.lineStarts);
   }
   return firstToken;
 }

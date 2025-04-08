@@ -1738,9 +1738,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return accepts_messages_;
   }
 
-  // This monitor protects [creation_enabled_].
+  // This monitor protects [creation_enabled_] and [pending_shutdowns_].
   static Monitor* isolate_creation_monitor_;
   static bool creation_enabled_;
+  static intptr_t pending_shutdowns_;
 
   ArrayPtr loaded_prefixes_set_storage_;
 

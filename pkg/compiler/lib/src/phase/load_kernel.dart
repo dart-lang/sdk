@@ -20,7 +20,6 @@ import 'package:kernel/type_environment.dart' as ir;
 import 'package:kernel/verifier.dart';
 
 import '../../compiler_api.dart' as api;
-import '../commandline_options.dart';
 import '../common.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
@@ -121,10 +120,7 @@ ir.Reference _findMainMethod(Library entryLibrary) {
   return mainMethodReference;
 }
 
-String _getPlatformFilename(CompilerOptions options, String targetName) {
-  String unsoundMarker = options.useLegacySubtyping ? "_unsound" : "";
-  return "${targetName}_platform$unsoundMarker.dill";
-}
+String _getPlatformFilename(String targetName) => "${targetName}_platform.dill";
 
 class _LoadFromKernelResult {
   final ir.Component? component;
@@ -229,7 +225,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   if (options.platformBinaries != null &&
       options.stage.shouldReadPlatformBinaries) {
     var platformUri = options.platformBinaries?.resolve(
-      _getPlatformFilename(options, targetName),
+      _getPlatformFilename(targetName),
     );
     // TODO(joshualitt): Change how we detect this case so it is less
     // brittle.
@@ -246,7 +242,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   if (options.entryUri != null) {
     entryLibrary = _findEntryLibrary(component, options.entryUri!);
     var mainMethod = _findMainMethod(entryLibrary);
-    component.setMainMethodAndMode(mainMethod, true, component.mode);
+    component.setMainMethodAndMode(mainMethod, true);
   }
 
   _doTransformsOnKernelLoad(component, options, reporter);
@@ -287,44 +283,10 @@ Future<_LoadFromSourceResult> _loadFromSource(
 
   List<Uri> sources = [options.compilationTarget];
 
-  fe.CompilerOptions feOptions =
-      fe.CompilerOptions()
-        ..target = target
-        ..librariesSpecificationUri = options.librariesSpecificationUri
-        ..packagesFileUri = options.packageConfig
-        ..explicitExperimentalFlags = options.explicitExperimentalFlags
-        ..environmentDefines = environment
-        ..verbose = verbose
-        ..fileSystem = fileSystem
-        ..onDiagnostic = onDiagnostic
-        ..verbosity = verbosity;
-  Uri resolvedUri = options.compilationTarget;
-  bool isLegacy = await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
-  if (isLegacy && options.experimentNullSafetyChecks) {
-    reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
-      'text':
-          'The ${Flags.experimentNullSafetyChecks} option may be used '
-          'only after all libraries have been migrated to null safety. Some '
-          'libraries reached from $resolvedUri are still opted out of null '
-          'safety. Please migrate these libraries before passing '
-          '${Flags.experimentNullSafetyChecks}.',
-    });
-  }
-  if (isLegacy) {
-    reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
-      'text':
-          "Starting with Dart 3.0, `dart compile js` expects programs to "
-          "be null-safe by default. Some libraries reached from $resolvedUri "
-          "are opted out of null safety.",
-    });
-  }
-
   List<Uri> dependencies = [];
   if (options.platformBinaries != null) {
     dependencies.add(
-      options.platformBinaries!.resolve(
-        _getPlatformFilename(options, targetName),
-      ),
+      options.platformBinaries!.resolve(_getPlatformFilename(targetName)),
     );
   }
   if (options.dillDependencies != null) {

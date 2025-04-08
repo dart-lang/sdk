@@ -19,6 +19,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 import 'core.dart';
 
 class DartNativeAssetsBuilder {
+  final Map<Object?, Object?>? pubspec;
   final Uri packageConfigUri;
   final String runPackageName;
   final bool verbose;
@@ -50,20 +51,34 @@ class DartNativeAssetsBuilder {
 
   late final Future<NativeAssetsBuildRunner> _nativeAssetsBuildRunner =
       () async {
+    final Map<String, Map<String, Object?>?> userDefines;
+    if (pubspec == null) {
+      userDefines = {};
+    } else {
+      userDefines =
+          NativeAssetsBuildRunner.readHooksUserDefinesFromPubspec(pubspec!);
+    }
     return NativeAssetsBuildRunner(
       // This always runs in JIT mode.
       dartExecutable: Uri.file(sdk.dart),
       logger: _logger,
       fileSystem: const LocalFileSystem(),
       packageLayout: await _packageLayout,
+      userDefines: userDefines,
     );
   }();
 
+  static List<String> validateHooksUserDefinesFromPubspec(
+          Map<Object?, Object?> pubspec) =>
+      NativeAssetsBuildRunner.validateHooksUserDefinesFromPubspec(pubspec);
+
   DartNativeAssetsBuilder({
+    this.pubspec,
     required this.packageConfigUri,
     required this.runPackageName,
     required this.verbose,
-  });
+    Target? target,
+  }) : target = target ?? Target.current;
 
   /// Compiles all native assets for host OS in JIT mode.
   ///
@@ -92,7 +107,7 @@ class DartNativeAssetsBuilder {
 
     final kernelAssets = await bundleNativeAssets(
       assets,
-      Target.current,
+      target,
       outputUri,
       relocatable: false,
     );
@@ -130,34 +145,26 @@ class DartNativeAssetsBuilder {
     }
   }
 
+  late final _extensions = [
+    CodeAssetExtension(
+      targetOS: target.os,
+      linkModePreference: LinkModePreference.dynamic,
+      targetArchitecture: target.architecture,
+      macOS: _macOSConfig,
+      cCompiler: _cCompilerConfig,
+    ),
+    // TODO(dacoharkes,mosum): This should be gated behind a data-assets
+    // experiment flag.
+    DataAssetsExtension(),
+  ];
+
   Future<BuildResult?> _buildNativeAssetsShared({
     required bool linkingEnabled,
   }) async {
     final builder = await _nativeAssetsBuildRunner;
     final buildResult = await builder.build(
-      inputCreator: () => BuildInputBuilder()
-        ..config.setupCode(
-          targetOS: target.os,
-          linkModePreference: LinkModePreference.dynamic,
-          targetArchitecture: target.architecture,
-          macOS: _macOSConfig,
-          cCompiler: _cCompilerConfig,
-        ),
-      inputValidator: (config) async => [
-        ...await validateDataAssetBuildInput(config),
-        ...await validateCodeAssetBuildInput(config),
-      ],
+      extensions: _extensions,
       linkingEnabled: linkingEnabled,
-      buildAssetTypes: [
-        CodeAsset.type,
-      ],
-      buildValidator: (config, output) async => [
-        ...await validateDataAssetBuildOutput(config, output),
-        ...await validateCodeAssetBuildOutput(config, output),
-      ],
-      applicationAssetValidator: (assets) async => [
-        ...await validateCodeAssetInApplication(assets),
-      ],
     );
     return buildResult;
   }
@@ -172,37 +179,15 @@ class DartNativeAssetsBuilder {
   }) async {
     final builder = await _nativeAssetsBuildRunner;
     final linkResult = await builder.link(
-      inputCreator: () => LinkInputBuilder()
-        ..config.setupCode(
-          targetOS: target.os,
-          targetArchitecture: target.architecture,
-          linkModePreference: LinkModePreference.dynamic,
-          macOS: _macOSConfig,
-          cCompiler: _cCompilerConfig,
-        ),
-      inputValidator: (config) async => [
-        ...await validateDataAssetLinkInput(config),
-        ...await validateCodeAssetLinkInput(config),
-      ],
+      extensions: _extensions,
       resourceIdentifiers:
           recordedUsagesPath != null ? Uri.file(recordedUsagesPath) : null,
       buildResult: buildResult,
-      buildAssetTypes: [
-        CodeAsset.type,
-      ],
-      linkValidator: (config, output) async => [
-        ...await validateDataAssetLinkOutput(config, output),
-        ...await validateCodeAssetLinkOutput(config, output),
-      ],
-      applicationAssetValidator: (assets) async => [
-        ...await validateCodeAssetInApplication(assets),
-      ],
     );
     return linkResult;
   }
 
-  /// Dart does not do cross compilation. Target is always host.
-  late final target = Target.current;
+  final Target target;
 
   late final _macOSConfig = target.os == OS.macOS
       ? MacOSCodeConfig(targetVersion: minimumSupportedMacOSVersion)
@@ -252,7 +237,7 @@ class DartNativeAssetsBuilder {
     // TODO(https://github.com/dart-lang/package_config/issues/126): Use
     // package config resolution from package:package_config.
     if (packageConfig == null) {
-      final pubspecMaybe = await _findPubspec(uri);
+      final pubspecMaybe = await findPubspec(uri);
       if (pubspecMaybe != null) {
         // Silently run `pub get`, this is what would happen in
         // `getExecutableForCommand` later.
@@ -288,7 +273,7 @@ class DartNativeAssetsBuilder {
     }
   }
 
-  static Future<Uri?> _findPubspec(Uri uri) async {
+  static Future<Uri?> findPubspec(Uri uri) async {
     while (true) {
       final candidate = uri.resolve('pubspec.yaml');
       if (await File.fromUri(candidate).exists()) {
@@ -306,7 +291,7 @@ class DartNativeAssetsBuilder {
   ///
   /// Returns `null` if package cannnot be determined.
   static Future<String?> findRootPackageName(Uri uri) async {
-    final pubspecUri = await _findPubspec(uri);
+    final pubspecUri = await findPubspec(uri);
     if (pubspecUri == null) {
       return null;
     }

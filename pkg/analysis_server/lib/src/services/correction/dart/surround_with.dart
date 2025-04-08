@@ -151,9 +151,8 @@ abstract class _SurroundWith extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 }
 
 /// A correction processor that can make one of the possible changes computed by

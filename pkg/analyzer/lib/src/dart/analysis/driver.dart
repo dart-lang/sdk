@@ -100,7 +100,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 434;
+  static const int DATA_VERSION = 450;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -181,6 +181,12 @@ class AnalysisDriver {
   /// The mapping from the files for which analysis was requested using
   /// [getResolvedUnit] to the [Completer]s to report the result.
   final _requestedFiles = <String, List<Completer<SomeResolvedUnitResult>>>{};
+
+  /// The mapping from the files for which analysis was requested using
+  /// [getResolvedUnit] which are not interactive to the [Completer]s to report
+  /// the result.
+  final _requestedFilesNonInteractive =
+      <String, List<Completer<SomeResolvedUnitResult>>>{};
 
   /// The mapping from the files for which analysis was requested using
   /// [getResolvedLibrary] to the [Completer]s to report the result.
@@ -494,6 +500,10 @@ class AnalysisDriver {
         }
       }
     }
+
+    if (_requestedFilesNonInteractive.isNotEmpty) {
+      return AnalysisDriverPriority.general;
+    }
     if (_pendingFileChanges.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
@@ -525,6 +535,7 @@ class AnalysisDriver {
         _fileTracker.hasChangedFiles ||
         _requestedLibraries.isNotEmpty ||
         _requestedFiles.isNotEmpty ||
+        _requestedFilesNonInteractive.isNotEmpty ||
         _errorsRequestedFiles.isNotEmpty ||
         _definingClassMemberNameRequests.isNotEmpty ||
         _referencingNameRequests.isNotEmpty ||
@@ -735,6 +746,13 @@ class AnalysisDriver {
       }
     }
     _requestedFiles.clear();
+
+    for (var completerList in _requestedFilesNonInteractive.values) {
+      for (var completer in completerList) {
+        completer.complete(DisposedAnalysisContextResult());
+      }
+    }
+    _requestedFilesNonInteractive.clear();
 
     for (var completerList in _unitElementRequestedFiles.values) {
       for (var completer in completerList) {
@@ -1059,7 +1077,7 @@ class AnalysisDriver {
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
   Future<SomeResolvedUnitResult> getResolvedUnit(String path,
-      {bool sendCachedToStream = false}) {
+      {bool sendCachedToStream = false, bool interactive = true}) {
     if (!_isAbsolutePath(path)) {
       return Future.value(
         InvalidPathResult(),
@@ -1091,7 +1109,11 @@ class AnalysisDriver {
 
     // Schedule analysis.
     var completer = Completer<SomeResolvedUnitResult>();
-    _requestedFiles.add(path, completer);
+    if (interactive) {
+      _requestedFiles.add(path, completer);
+    } else {
+      _requestedFilesNonInteractive.add(path, completer);
+    }
     _scheduler.notify();
     return completer.future;
   }
@@ -1243,6 +1265,12 @@ class AnalysisDriver {
     // Analyze a general file.
     if (_fileTracker.anyPendingFile case var path?) {
       _produceErrors(path);
+      return;
+    }
+
+    // Analyze a requested - but not interactivly requested - file.
+    if (_requestedFilesNonInteractive.firstKey case var path?) {
+      _analyzeFile(path);
       return;
     }
   }
@@ -1412,6 +1440,8 @@ class AnalysisDriver {
 
           // getResolvedUnit()
           _requestedFiles.completeAll(unitFile.path, resolvedUnit);
+          _requestedFilesNonInteractive.completeAll(
+              unitFile.path, resolvedUnit);
 
           // getErrors()
           _errorsRequestedFiles.completeAll(
@@ -1451,24 +1481,23 @@ class AnalysisDriver {
 
         if (withFineDependencies && libraryRequirements != null) {
           performance.run('writeResolvedLibrary', (_) {
-            var mapSink = BufferedSink(ByteSink());
+            var mapSink = BufferedSink();
             mapSink.writeMap(
               fileResultBytesMap,
               writeKey: (uri) => mapSink.writeUri(uri),
               writeValue: (bytes) => mapSink.writeUint8List(bytes),
             );
-            var mapBytes = mapSink.flushAndTake();
+            var mapBytes = mapSink.takeBytes();
 
             library.lastResolutionResult = LibraryResolutionResult(
               requirements: libraryRequirements!,
               bytes: mapBytes,
             );
 
-            var byteSink = ByteSink();
-            var sink = BufferedSink(byteSink);
+            var sink = BufferedSink();
             libraryRequirements.write(sink);
             sink.writeUint8List(mapBytes);
-            var allBytes = sink.flushAndTake();
+            var allBytes = sink.takeBytes();
 
             var key = library.resolvedKey;
             _byteStore.putGet(key, allBytes);
@@ -1517,6 +1546,9 @@ class AnalysisDriver {
           // getResolvedUnit()
           completeWithError(
             _requestedFiles.remove(file.path),
+          );
+          completeWithError(
+            _requestedFilesNonInteractive.remove(file.path),
           );
           // getErrors()
           completeWithError(

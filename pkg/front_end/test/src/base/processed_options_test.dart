@@ -12,12 +12,7 @@ import 'package:front_end/src/codes/cfe_codes.dart';
 import 'package:front_end/src/util/bytes_sink.dart' show BytesSink;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
-    show
-        CanonicalName,
-        Library,
-        Component,
-        loadComponentFromBytes,
-        NonNullableByDefaultCompiledMode;
+    show CanonicalName, Library, Component, loadComponentFromBytes;
 import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -75,8 +70,7 @@ class ProcessedOptionsTest {
         new Library(Uri.parse('org-dartlang-test:///a/b.dart'),
             fileUri: Uri.parse('org-dartlang-test:///a/b.dart'))
       ])
-        ..setMainMethodAndMode(
-            null, false, NonNullableByDefaultCompiledMode.Strong);
+        ..setMainMethodAndMode(null, false);
 
   void test_compileSdk_false() {
     for (var value in [false, true]) {

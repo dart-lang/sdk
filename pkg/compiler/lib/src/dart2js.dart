@@ -11,6 +11,7 @@ import 'dart:isolate' show Isolate;
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import 'package:shell_arg_splitter/shell_arg_splitter.dart';
 
 import '../compiler_api.dart' as api;
 import 'commandline_options.dart';
@@ -20,7 +21,6 @@ import 'io/mapped_file.dart';
 import 'options.dart'
     show CompilerOptions, CompilerStage, DumpInfoFormat, FeatureOptions;
 import 'source_file_provider.dart';
-import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 
 const String _defaultSpecificationUri = '../../../../sdk/lib/libraries.json';
@@ -450,7 +450,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.omitLateNames, passThrough),
     _OneOption(Flags.noOmitLateNames, passThrough),
     _OneOption(Flags.preserveUris, ignoreOption),
-    _OneOption(Flags.printLegacyStars, passThrough),
     _OneOption('--force-strip=.*', setStrip),
     _OneOption(Flags.disableDiagnosticColors, (_) {
       enableColors = false;
@@ -514,6 +513,7 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.omitAsCasts, passThrough),
     _OneOption(Flags.laxRuntimeTypeToString, passThrough),
     _OneOption(Flags.enableProtoShaking, passThrough),
+    _OneOption(Flags.enableProtoMixinShaking, passThrough),
     _OneOption(Flags.benchmarkingProduction, passThrough),
     _OneOption(Flags.benchmarkingExperiment, passThrough),
     _OneOption(Flags.soundNullSafety, passThrough),
@@ -531,7 +531,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.generateCodeWithCompileTimeErrors, ignoreOption),
     _OneOption(Flags.useMultiSourceInfo, passThrough),
     _OneOption(Flags.useNewSourceInfo, passThrough),
-    _OneOption(Flags.useOldRti, passThrough),
     _OneOption(Flags.useSimpleLoadIds, passThrough),
     _OneOption(Flags.testMode, passThrough),
     _OneOption('${Flags.dumpSsa}=.+', passThrough),
@@ -552,8 +551,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.experimentToBoolean, passThrough),
     _OneOption(Flags.experimentUnreachableMethodsThrow, passThrough),
     _OneOption(Flags.experimentCallInstrumentation, passThrough),
-    _OneOption(Flags.experimentNullSafetyChecks, passThrough),
-    _OneOption(Flags.experimentNewRti, ignoreOption),
     _OneOption('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // Wire up feature flags.
@@ -1124,8 +1121,7 @@ Usage: dart compile js [arguments] <dart entry point>
 
   --native-null-assertions
     Add assertions to web library APIs to ensure that non-nullable APIs do not
-    return null. This is by default set to true in sound null-safety, unless
-    -O3 or higher is passed.
+    return null. This is set to true by default unless -O3 or higher is passed.
 
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve

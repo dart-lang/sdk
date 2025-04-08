@@ -6,6 +6,7 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
+        CACHED_GLOBAL_THIS,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -64,7 +65,8 @@ import 'dart:_native_typed_data';
 
 import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
-import 'dart:_rti' as newRti
+import 'dart:_rti'
+    as rti
     show
         createRuntimeType,
         evalInInstance,
@@ -111,7 +113,10 @@ String unminifyOrTag(String rawClassName) {
 @pragma('dart2js:tryInline')
 getMetadata(int index) {
   return JS_BUILTIN(
-      'returns:var;effects:none;depends:none', JsBuiltin.getMetadata, index);
+    'returns:var;effects:none;depends:none',
+    JsBuiltin.getMetadata,
+    index,
+  );
 }
 
 /// Returns the type of the given [index].
@@ -119,7 +124,10 @@ getMetadata(int index) {
 @pragma('dart2js:tryInline')
 getType(int index) {
   return JS_BUILTIN(
-      'returns:var;effects:none;depends:none', JsBuiltin.getType, index);
+    'returns:var;effects:none;depends:none',
+    JsBuiltin.getType,
+    index,
+  );
 }
 
 /// No-op method that is called to inform the compiler that preambles might
@@ -152,24 +160,51 @@ String S(value) {
   var result = value.toString();
   if (result is! String) {
     throw ArgumentError.value(
-        value, 'object', "toString method returned 'null'");
+      value,
+      'object',
+      "toString method returned 'null'",
+    );
   }
   return result;
 }
 
 // Called from generated code.
 createInvocationMirror(
-    String name, internalName, kind, arguments, argumentNames, types) {
+  String name,
+  internalName,
+  kind,
+  arguments,
+  argumentNames,
+  types,
+) {
   // TODO(sra): [types] (the number of type arguments) could be omitted in the
   // generated stub code to save an argument. Then we would use `types ?? 0`.
   return JSInvocationMirror(
-      name, internalName, kind, arguments, argumentNames, types);
+    name,
+    internalName,
+    kind,
+    arguments,
+    argumentNames,
+    types,
+  );
 }
 
 createUnmangledInvocationMirror(
-    Symbol symbol, internalName, kind, arguments, argumentNames, types) {
+  Symbol symbol,
+  internalName,
+  kind,
+  arguments,
+  argumentNames,
+  types,
+) {
   return JSInvocationMirror(
-      symbol, internalName, kind, arguments, argumentNames, types);
+    symbol,
+    internalName,
+    kind,
+    arguments,
+    argumentNames,
+    types,
+  );
 }
 
 void throwInvalidReflectionError(String memberName) {
@@ -194,8 +229,8 @@ void traceHelper(dynamic /*int*/ id, dynamic /*String*/ qualifiedName) {
   // overflow. This approach here is simpler than making the compiler smart
   // about how to generate traceHelper calls more carefully.
   JS(
-      '',
-      r'''
+    '',
+    r'''
       (function (id, name) {
         var hook = self.dartCallInstrumentation;
         if (typeof hook === "function") {
@@ -210,8 +245,9 @@ void traceHelper(dynamic /*int*/ id, dynamic /*String*/ qualifiedName) {
           this.callInstrumentationCache[id] = true;
         }
       })(#, #)''',
-      id,
-      qualifiedName);
+    id,
+    qualifiedName,
+  );
 }
 
 class JSInvocationMirror implements Invocation {
@@ -224,8 +260,14 @@ class JSInvocationMirror implements Invocation {
   final List _namedArgumentNames;
   final int _typeArgumentCount;
 
-  JSInvocationMirror(this._memberName, this._internalName, this._kind,
-      this._arguments, this._namedArgumentNames, this._typeArgumentCount);
+  JSInvocationMirror(
+    this._memberName,
+    this._internalName,
+    this._kind,
+    this._arguments,
+    this._namedArgumentNames,
+    this._typeArgumentCount,
+  );
 
   Symbol get memberName {
     if (_memberName is Symbol) return _memberName;
@@ -242,7 +284,7 @@ class JSInvocationMirror implements Invocation {
     int start = _arguments.length - _typeArgumentCount;
     var list = <Type>[];
     for (int index = 0; index < _typeArgumentCount; index++) {
-      list.add(newRti.createRuntimeType(_arguments[start + index]));
+      list.add(rti.createRuntimeType(_arguments[start + index]));
     }
     return JSArray.markUnmodifiableList(list);
   }
@@ -372,10 +414,11 @@ class Primitives {
     // - a Dart double literal
     // We do allow leading or trailing whitespace.
     if (!JS(
-        'bool',
-        r'/^\s*[+-]?(?:Infinity|NaN|'
-            r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
-        source)) {
+      'bool',
+      r'/^\s*[+-]?(?:Infinity|NaN|'
+          r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
+      source,
+    )) {
       return null;
     }
     double result = JS('double', r'parseFloat(#)', source);
@@ -396,14 +439,14 @@ class Primitives {
       return source == "true"
           ? true
           : source == "false"
-              ? false
-              : null;
+          ? false
+          : null;
     }
     return _compareIgnoreCase(source, "true")
         ? true
         : _compareIgnoreCase(source, "false")
-            ? false
-            : null;
+        ? false
+        : null;
   }
 
   static bool _compareIgnoreCase(String input, String lowerCaseTarget) {
@@ -426,19 +469,12 @@ class Primitives {
   /// them with 'minified:'.
   @pragma('dart2js:noInline')
   static String objectTypeName(Object? object) {
-    return _objectTypeNameNewRti(object);
-  }
-
-  /// Returns the type of [object] as a string (including type arguments).
-  /// Tries to return a sensible name for non-Dart objects.
-  ///
-  /// In minified mode, uses the unminified names if available, otherwise tags
-  /// them with 'minified:'.
-  static String _objectTypeNameNewRti(Object? object) {
     var dartObjectConstructor = JS_BUILTIN(
-        'depends:none;effects:none;', JsBuiltin.dartObjectConstructor);
+      'depends:none;effects:none;',
+      JsBuiltin.dartObjectConstructor,
+    );
     if (JS('bool', '# instanceof #', object, dartObjectConstructor)) {
-      return newRti.instanceTypeName(object);
+      return rti.instanceTypeName(object);
     }
 
     var interceptor = getInterceptor(object);
@@ -473,7 +509,7 @@ class Primitives {
       }
     }
 
-    return newRti.instanceTypeName(object);
+    return rti.instanceTypeName(object);
   }
 
   static bool _saneNativeClassName(name) =>
@@ -558,12 +594,13 @@ class Primitives {
     for (int i = 0; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
       result = JS(
-          'String',
-          r'# + String.fromCharCode.apply(null, #.slice(#, #))',
-          result,
-          array,
-          i,
-          chunkEnd);
+        'String',
+        r'# + String.fromCharCode.apply(null, #.slice(#, #))',
+        result,
+        array,
+        i,
+        chunkEnd,
+      );
     }
     return result;
   }
@@ -595,7 +632,10 @@ class Primitives {
 
   // [start] and [end] are validated.
   static String stringFromNativeUint8List(
-      NativeUint8List charCodes, int start, int end) {
+    NativeUint8List charCodes,
+    int start,
+    int end,
+  ) {
     const kMaxApply = 500;
     if (end <= kMaxApply && start == 0 && end == charCodes.length) {
       return JS('String', r'String.fromCharCode.apply(null, #)', charCodes);
@@ -604,12 +644,13 @@ class Primitives {
     for (int i = start; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
       result = JS(
-          'String',
-          r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
-          result,
-          charCodes,
-          i,
-          chunkEnd);
+        'String',
+        r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
+        result,
+        charCodes,
+        i,
+        chunkEnd,
+      );
     }
     return result;
   }
@@ -617,15 +658,22 @@ class Primitives {
   static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
-        return JS('returns:String;effects:none;depends:none',
-            'String.fromCharCode(#)', charCode);
+        return JS(
+          'returns:String;effects:none;depends:none',
+          'String.fromCharCode(#)',
+          charCode,
+        );
       }
       if (charCode <= 0x10ffff) {
         var bits = charCode - 0x10000;
         var low = 0xDC00 | (bits & 0x3ff);
         var high = 0xD800 | (bits >> 10);
-        return JS('returns:String;effects:none;depends:none',
-            'String.fromCharCode(#, #)', high, low);
+        return JS(
+          'returns:String;effects:none;depends:none',
+          'String.fromCharCode(#, #)',
+          high,
+          low,
+        );
       }
     }
     throw RangeError.range(charCode, 0, 0x10ffff);
@@ -636,8 +684,13 @@ class Primitives {
   }
 
   static String flattenString(String str) {
-    return JS('returns:String;depends:none;effects:none;throws:never;gvn:true',
-        '#.charCodeAt(0) == 0 ? # : #', str, str, str);
+    return JS(
+      'returns:String;depends:none;effects:none;throws:never;gvn:true',
+      '#.charCodeAt(0) == 0 ? # : #',
+      str,
+      str,
+      str,
+    );
   }
 
   static String getTimeZoneName(DateTime receiver) {
@@ -651,19 +704,20 @@ class Primitives {
     // Internet Explorer 10+ emits the zone name without parenthesis:
     // Example: Thu Oct 31 14:07:44 PDT 2013
     match = JS(
-        'JSArray|Null',
-        // Thu followed by a space.
-        r'/^[A-Z,a-z]{3}\s'
-            // Oct 31 followed by space.
-            r'[A-Z,a-z]{3}\s\d+\s'
-            // Time followed by a space.
-            r'\d{2}:\d{2}:\d{2}\s'
-            // The time zone name followed by a space.
-            r'([A-Z]{3,5})\s'
-            // The year.
-            r'\d{4}$/'
-            '.exec(#.toString())',
-        d);
+      'JSArray|Null',
+      // Thu followed by a space.
+      r'/^[A-Z,a-z]{3}\s'
+          // Oct 31 followed by space.
+          r'[A-Z,a-z]{3}\s\d+\s'
+          // Time followed by a space.
+          r'\d{2}:\d{2}:\d{2}\s'
+          // The time zone name followed by a space.
+          r'([A-Z]{3,5})\s'
+          // The year.
+          r'\d{4}$/'
+          '.exec(#.toString())',
+      d,
+    );
     if (match != null) return match[1];
 
     // IE 9 and Opera don't provide the zone name. We fall back to emitting the
@@ -679,21 +733,25 @@ class Primitives {
     // Note that JavaScript's Date and and Dart's DateTime disagree on the sign
     // of the offset. Subtract to avoid -0.0. The offset in minutes could
     // contain 'seconds' as fractional minutes.
-    num offsetInMinutes =
-        JS('num', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    num offsetInMinutes = JS(
+      'num',
+      r'#.getTimezoneOffset()',
+      lazyAsJsDate(receiver),
+    );
     return (0 - offsetInMinutes * 60).toInt();
   }
 
   static int? valueFromDecomposedDate(
-      int years,
-      int month,
-      int day,
-      int hours,
-      int minutes,
-      int seconds,
-      int milliseconds,
-      int microseconds,
-      bool isUtc) {
+    int years,
+    int month,
+    int day,
+    int hours,
+    int minutes,
+    int seconds,
+    int milliseconds,
+    int microseconds,
+    bool isUtc,
+  ) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -720,11 +778,29 @@ class Primitives {
     microseconds = remainder;
     num value;
     if (isUtc) {
-      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
-          hours, minutes, seconds, milliseconds);
+      value = JS(
+        'num',
+        r'Date.UTC(#, #, #, #, #, #, #)',
+        years,
+        jsMonth,
+        day,
+        hours,
+        minutes,
+        seconds,
+        milliseconds,
+      );
     } else {
-      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
-          jsMonth, day, hours, minutes, seconds, milliseconds);
+      value = JS(
+        'num',
+        r'new Date(#, #, #, #, #, #, #).valueOf()',
+        years,
+        jsMonth,
+        day,
+        hours,
+        minutes,
+        seconds,
+        milliseconds,
+      );
     }
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
@@ -738,8 +814,12 @@ class Primitives {
   // Lazily keep a JS Date stored in the JS object.
   static lazyAsJsDate(DateTime receiver) {
     if (JS('bool', r'#.date === (void 0)', receiver)) {
-      JS('void', r'#.date = new Date(#)', receiver,
-          receiver.millisecondsSinceEpoch);
+      JS(
+        'void',
+        r'#.date = new Date(#)',
+        receiver,
+        receiver.millisecondsSinceEpoch,
+      );
     }
     return JS('var', r'#.date', receiver);
   }
@@ -818,7 +898,10 @@ class Primitives {
   static int getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS(
-            'JSUInt31', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
+          'JSUInt31',
+          r'(#.getUTCMilliseconds() + 0)',
+          lazyAsJsDate(receiver),
+        )
         : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
@@ -826,9 +909,10 @@ class Primitives {
   @pragma('dart2js:noThrows')
   @pragma('dart2js:noInline')
   static int getWeekday(DateTime receiver) {
-    int weekday = (receiver.isUtc)
-        ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
-        : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
+    int weekday =
+        (receiver.isUtc)
+            ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+            : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
@@ -847,8 +931,11 @@ class Primitives {
     JS('void', '#[#] = #', object, key, value);
   }
 
-  static functionNoSuchMethod(function, List? positionalArguments,
-      Map<String, dynamic>? namedArguments) {
+  static functionNoSuchMethod(
+    function,
+    List? positionalArguments,
+    Map<String, dynamic>? namedArguments,
+  ) {
     int argumentCount = 0;
     List arguments = [];
     List namedArgumentList = [];
@@ -871,8 +958,16 @@ class Primitives {
     String selectorName =
         '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount$names';
 
-    return function.noSuchMethod(createUnmangledInvocationMirror(
-        #call, selectorName, mirrors.method, arguments, namedArgumentList, 0));
+    return function.noSuchMethod(
+      createUnmangledInvocationMirror(
+        #call,
+        selectorName,
+        mirrors.method,
+        arguments,
+        namedArgumentList,
+        0,
+      ),
+    );
   }
 
   /// Implements [Function.apply] for the lazy and startup emitters.
@@ -906,8 +1001,11 @@ class Primitives {
   /// instead. For example, if the catch-all property contains the string
   /// "call$4", then the object's "call$4" property should be used as if it was
   /// the value of the catch-all property.
-  static applyFunction(Function function, List? positionalArguments,
-      Map<String, dynamic>? namedArguments) {
+  static applyFunction(
+    Function function,
+    List? positionalArguments,
+    Map<String, dynamic>? namedArguments,
+  ) {
     // Fast path for common cases.
     if (positionalArguments is JSArray &&
         (namedArguments == null || namedArguments.isEmpty)) {
@@ -926,34 +1024,56 @@ class Primitives {
       } else if (argumentCount == 2) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX2);
         if (JS('bool', '!!#[#]', function, selectorName)) {
-          return JS('', '#[#](#[0],#[1])', function, selectorName, arguments,
-              arguments);
+          return JS(
+            '',
+            '#[#](#[0],#[1])',
+            function,
+            selectorName,
+            arguments,
+            arguments,
+          );
         }
       } else if (argumentCount == 3) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX3);
         if (JS('bool', '!!#[#]', function, selectorName)) {
-          return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
-              arguments, arguments, arguments);
+          return JS(
+            '',
+            '#[#](#[0],#[1],#[2])',
+            function,
+            selectorName,
+            arguments,
+            arguments,
+            arguments,
+          );
         }
       } else if (argumentCount == 4) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX4);
         if (JS('bool', '!!#[#]', function, selectorName)) {
-          return JS('', '#[#](#[0],#[1],#[2],#[3])', function, selectorName,
-              arguments, arguments, arguments, arguments);
+          return JS(
+            '',
+            '#[#](#[0],#[1],#[2],#[3])',
+            function,
+            selectorName,
+            arguments,
+            arguments,
+            arguments,
+            arguments,
+          );
         }
       } else if (argumentCount == 5) {
         String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX5);
         if (JS('bool', '!!#[#]', function, selectorName)) {
           return JS(
-              '',
-              '#[#](#[0],#[1],#[2],#[3],#[4])',
-              function,
-              selectorName,
-              arguments,
-              arguments,
-              arguments,
-              arguments,
-              arguments);
+            '',
+            '#[#](#[0],#[1],#[2],#[3],#[4])',
+            function,
+            selectorName,
+            arguments,
+            arguments,
+            arguments,
+            arguments,
+            arguments,
+          );
         }
       }
       String selectorName =
@@ -967,8 +1087,11 @@ class Primitives {
     return _generalApplyFunction(function, positionalArguments, namedArguments);
   }
 
-  static _generalApplyFunction(Function function, List? positionalArguments,
-      Map<String, dynamic>? namedArguments) {
+  static _generalApplyFunction(
+    Function function,
+    List? positionalArguments,
+    Map<String, dynamic>? namedArguments,
+  ) {
     List arguments;
     if (positionalArguments != null) {
       if (positionalArguments is JSArray) {
@@ -982,15 +1105,23 @@ class Primitives {
 
     int argumentCount = arguments.length;
 
-    int requiredParameterCount = JS('int', r'#[#]', function,
-        JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY));
+    int requiredParameterCount = JS(
+      'int',
+      r'#[#]',
+      function,
+      JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY),
+    );
 
     if (argumentCount < requiredParameterCount) {
       return functionNoSuchMethod(function, arguments, namedArguments);
     }
 
-    var defaultValuesClosure = JS('var', r'#[#]', function,
-        JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY));
+    var defaultValuesClosure = JS(
+      'var',
+      r'#[#]',
+      function,
+      JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY),
+    );
 
     bool acceptsOptionalArguments = defaultValuesClosure != null;
 
@@ -1000,8 +1131,12 @@ class Primitives {
         acceptsOptionalArguments ? JS('', '#()', defaultValuesClosure) : null;
 
     var interceptor = getInterceptor(function);
-    var jsFunction =
-        JS('', '#[#]', interceptor, JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
+    var jsFunction = JS(
+      '',
+      '#[#]',
+      interceptor,
+      JS_GET_NAME(JsGetName.CALL_CATCH_ALL),
+    );
     if (jsFunction is String) {
       // Anonymous closures redirect to the catch-all property instead of
       // storing the catch-all method directly in the catch-all property.
@@ -1036,8 +1171,12 @@ class Primitives {
         return functionNoSuchMethod(function, arguments, null);
       }
       if (argumentCount < maxArguments) {
-        List missingDefaults = JS('JSArray', '#.slice(#)', defaultValues,
-            argumentCount - requiredParameterCount);
+        List missingDefaults = JS(
+          'JSArray',
+          '#.slice(#)',
+          defaultValues,
+          argumentCount - requiredParameterCount,
+        );
         if (identical(arguments, positionalArguments)) {
           // Defensive copy to avoid modifying passed-in List.
           arguments = List.of(arguments);
@@ -1137,8 +1276,12 @@ Error diagnoseIndexError(indexable, index) {
   // [IndexError.check] with no optional parameters
   // provided.
   if (index < 0 || index >= length) {
-    return IndexError.withLength(index, length,
-        indexable: indexable, name: 'index');
+    return IndexError.withLength(
+      index,
+      length,
+      indexable: indexable,
+      name: 'index',
+    );
   }
   // The above should always match, but if it does not, use the following.
   return RangeError.value(index, 'index');
@@ -1227,8 +1370,12 @@ initializeExceptionWrapper(ex, wrapper) {
     // (https://code.google.com/p/v8/issues/detail?id=2519).  The default
     // toString on Error returns the value of 'message' if 'name' is
     // empty. Setting toString directly doesn't work, see the bug.
-    JS('void', 'Object.defineProperty(#, "message", { get: # })', wrapper,
-        DART_CLOSURE_TO_JS(toStringWrapper));
+    JS(
+      'void',
+      'Object.defineProperty(#, "message", { get: # })',
+      wrapper,
+      DART_CLOSURE_TO_JS(toStringWrapper),
+    );
     JS('void', '#.name = ""', wrapper);
   } else {
     // In the unlikely event the browser doesn't support Object.defineProperty,
@@ -1279,7 +1426,10 @@ Never throwUnsupportedOperation(Object o, [Object? operation, Object? verb]) {
 
 @pragma('dart2js:never-inline')
 Error _diagnoseUnsupportedOperation(
-    Object o, Object encodedOperation, Object encodedVerb) {
+  Object o,
+  Object encodedOperation,
+  Object encodedVerb,
+) {
   String operation;
   String verb;
 
@@ -1387,56 +1537,71 @@ class TypeErrorDecoder {
 
   /// Pattern used to recognize a NoSuchMethodError error (and
   /// possibly extract the method name).
-  static final TypeErrorDecoder noSuchMethodPattern =
-      extractPattern(provokeCallErrorOn(buildJavaScriptObject()));
+  static final TypeErrorDecoder noSuchMethodPattern = extractPattern(
+    provokeCallErrorOn(buildJavaScriptObject()),
+  );
 
   /// Pattern used to recognize an "object not a closure" error (and
   /// possibly extract the method name).
-  static final TypeErrorDecoder notClosurePattern =
-      extractPattern(provokeCallErrorOn(buildJavaScriptObjectWithNonClosure()));
+  static final TypeErrorDecoder notClosurePattern = extractPattern(
+    provokeCallErrorOn(buildJavaScriptObjectWithNonClosure()),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript null
   /// call.
-  static final TypeErrorDecoder nullCallPattern =
-      extractPattern(provokeCallErrorOn(JS('', 'null')));
+  static final TypeErrorDecoder nullCallPattern = extractPattern(
+    provokeCallErrorOn(JS('', 'null')),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript literal null
   /// call.
-  static final TypeErrorDecoder nullLiteralCallPattern =
-      extractPattern(provokeCallErrorOnNull());
+  static final TypeErrorDecoder nullLiteralCallPattern = extractPattern(
+    provokeCallErrorOnNull(),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript
   /// undefined call.
-  static final TypeErrorDecoder undefinedCallPattern =
-      extractPattern(provokeCallErrorOn(JS('', 'void 0')));
+  static final TypeErrorDecoder undefinedCallPattern = extractPattern(
+    provokeCallErrorOn(JS('', 'void 0')),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript literal
   /// undefined call.
-  static final TypeErrorDecoder undefinedLiteralCallPattern =
-      extractPattern(provokeCallErrorOnUndefined());
+  static final TypeErrorDecoder undefinedLiteralCallPattern = extractPattern(
+    provokeCallErrorOnUndefined(),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript null
   /// property access.
-  static final TypeErrorDecoder nullPropertyPattern =
-      extractPattern(provokePropertyErrorOn(JS('', 'null')));
+  static final TypeErrorDecoder nullPropertyPattern = extractPattern(
+    provokePropertyErrorOn(JS('', 'null')),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript literal null
   /// property access.
-  static final TypeErrorDecoder nullLiteralPropertyPattern =
-      extractPattern(provokePropertyErrorOnNull());
+  static final TypeErrorDecoder nullLiteralPropertyPattern = extractPattern(
+    provokePropertyErrorOnNull(),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript
   /// undefined property access.
-  static final TypeErrorDecoder undefinedPropertyPattern =
-      extractPattern(provokePropertyErrorOn(JS('', 'void 0')));
+  static final TypeErrorDecoder undefinedPropertyPattern = extractPattern(
+    provokePropertyErrorOn(JS('', 'void 0')),
+  );
 
   /// Pattern used to recognize a NoSuchMethodError on JavaScript literal
   /// undefined property access.
   static final TypeErrorDecoder undefinedLiteralPropertyPattern =
       extractPattern(provokePropertyErrorOnUndefined());
 
-  TypeErrorDecoder(this._arguments, this._argumentsExpr, this._expr,
-      this._method, this._receiver, this._pattern);
+  TypeErrorDecoder(
+    this._arguments,
+    this._argumentsExpr,
+    this._expr,
+    this._method,
+    this._receiver,
+    this._pattern,
+  );
 
   /// Returns a JavaScript object literal (map) with at most the
   /// following keys:
@@ -1461,7 +1626,11 @@ class TypeErrorDecoder {
   ///   "[object Object]" in recent versions.
   matchTypeError(message) {
     var match = JS(
-        'JSExtendableArray|Null', 'new RegExp(#).exec(#)', _pattern, message);
+      'JSExtendableArray|Null',
+      'new RegExp(#).exec(#)',
+      _pattern,
+      message,
+    );
     if (match == null) return null;
     var result = JS('', 'Object.create(null)');
     if (_arguments != -1) {
@@ -1493,9 +1662,10 @@ class TypeErrorDecoder {
   /// r"$receiver$". The property "$method" is defined, but is not a function.
   static buildJavaScriptObjectWithNonClosure() {
     return JS(
-        '',
-        r'{ $method$: null, '
-            r'toString: function() { return "$receiver$"; } }');
+      '',
+      r'{ $method$: null, '
+          r'toString: function() { return "$receiver$"; } }',
+    );
   }
 
   /// Extract a pattern from a JavaScript TypeError message.
@@ -1524,8 +1694,11 @@ class TypeErrorDecoder {
     // Look for the special pattern \$camelCase\$ (all the $ symbols
     // have been escaped already), as we will soon be inserting
     // regular expression syntax that we want interpreted by RegExp.
-    List<String>? match =
-        JS('JSExtendableArray|Null', r'#.match(/\\\$[a-zA-Z]+\\\$/g)', message);
+    List<String>? match = JS(
+      'JSExtendableArray|Null',
+      r'#.match(/\\\$[a-zA-Z]+\\\$/g)',
+      message,
+    );
     if (match == null) match = [];
 
     // Find the positions within the substring matches of the error message
@@ -1541,19 +1714,26 @@ class TypeErrorDecoder {
     // Note: in a perfect world, one would use "(.*)", but not in
     // JavaScript, "." does not match newlines.
     String pattern = JS(
-        'String',
-        r'#.replace(new RegExp("\\\\\\$arguments\\\\\\$", "g"), '
-            r'"((?:x|[^x])*)")'
-            r'.replace(new RegExp("\\\\\\$argumentsExpr\\\\\\$", "g"),  '
-            r'"((?:x|[^x])*)")'
-            r'.replace(new RegExp("\\\\\\$expr\\\\\\$", "g"),  "((?:x|[^x])*)")'
-            r'.replace(new RegExp("\\\\\\$method\\\\\\$", "g"),  "((?:x|[^x])*)")'
-            r'.replace(new RegExp("\\\\\\$receiver\\\\\\$", "g"),  '
-            r'"((?:x|[^x])*)")',
-        message);
+      'String',
+      r'#.replace(new RegExp("\\\\\\$arguments\\\\\\$", "g"), '
+          r'"((?:x|[^x])*)")'
+          r'.replace(new RegExp("\\\\\\$argumentsExpr\\\\\\$", "g"),  '
+          r'"((?:x|[^x])*)")'
+          r'.replace(new RegExp("\\\\\\$expr\\\\\\$", "g"),  "((?:x|[^x])*)")'
+          r'.replace(new RegExp("\\\\\\$method\\\\\\$", "g"),  "((?:x|[^x])*)")'
+          r'.replace(new RegExp("\\\\\\$receiver\\\\\\$", "g"),  '
+          r'"((?:x|[^x])*)")',
+      message,
+    );
 
     return TypeErrorDecoder(
-        arguments, argumentsExpr, expr, method, receiver, pattern);
+      arguments,
+      argumentsExpr,
+      expr,
+      method,
+      receiver,
+      pattern,
+    );
   }
 
   /// Provokes a TypeError and returns its message.
@@ -1703,9 +1883,8 @@ class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String? _receiver;
 
   JsNoSuchMethodError(this._message, match)
-      : _method = match == null ? null : JS('String|Null', '#.method', match),
-        _receiver =
-            match == null ? null : JS('String|Null', '#.receiver', match);
+    : _method = match == null ? null : JS('String|Null', '#.method', match),
+      _receiver = match == null ? null : JS('String|Null', '#.receiver', match);
 
   String toString() {
     if (_method == null) return 'NoSuchMethodError: $_message';
@@ -1811,7 +1990,9 @@ Object _unwrapNonDartException(Object ex) {
       switch (ieErrorCode) {
         case 438:
           return saveStackTrace(
-              ex, JsNoSuchMethodError('$message (Error $ieErrorCode)', null));
+            ex,
+            JsNoSuchMethodError('$message (Error $ieErrorCode)', null),
+          );
         case 445:
         case 5007:
           return saveStackTrace(ex, NullError('$message (Error $ieErrorCode)'));
@@ -1855,7 +2036,9 @@ Object _unwrapNonDartException(Object ex) {
     // to reporting this as a generic error. It's probably better than
     // nothing.
     return saveStackTrace(
-        ex, UnknownJsTypeError(message is String ? message : ''));
+      ex,
+      UnknownJsTypeError(message is String ? message : ''),
+    );
   }
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
@@ -1876,9 +2059,10 @@ Object _unwrapNonDartException(Object ex) {
 
   // Check for the Firefox specific stack overflow signal.
   if (JS(
-      'bool',
-      r'typeof InternalError == "function" && # instanceof InternalError',
-      ex)) {
+    'bool',
+    r'typeof InternalError == "function" && # instanceof InternalError',
+    ex,
+  )) {
     if (message is String && message == 'too much recursion') {
       return StackOverflowError();
     }
@@ -1894,17 +2078,14 @@ String? tryStringifyException(ex) {
   // Since this function is called from [unwrapException] which is called from
   // code injected into a catch-clause, use JavaScript try-catch to avoid a
   // potential loop if stringifying crashes.
-  return JS(
-      'String|Null',
-      r'''
+  return JS('String|Null', r'''
     (function(ex) {
       try {
         return String(ex);
       } catch (e) {}
       return null;
     })(#)
-    ''',
-      ex);
+    ''', ex);
 }
 
 /// Called by generated code to fetch the stack trace from an
@@ -2032,8 +2213,14 @@ int getLength(var array) {
   return JS('int', r'#.length', array);
 }
 
-_invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,
-    var arg3, var arg4) {
+_invokeClosure(
+  Function closure,
+  int numberOfArguments,
+  var arg1,
+  var arg2,
+  var arg3,
+  var arg4,
+) {
   switch (numberOfArguments) {
     case 0:
       return closure();
@@ -2097,16 +2284,17 @@ convertDartClosureToJSUncached(Object closure, int arity) {
   // call sites in `_invokeClosure` to retain the entry points).
 
   return JS(
-      'var',
-      r'''
+    'var',
+    r'''
         (function(closure, arity, invoke) {
           return function(a1, a2, a3, a4) {
             return invoke(closure, arity, a1, a2, a3, a4);
           };
         })(#,#,#)''',
-      closure,
-      arity,
-      DART_CLOSURE_TO_JS(_invokeClosure));
+    closure,
+    arity,
+    DART_CLOSURE_TO_JS(_invokeClosure),
+  );
 }
 
 /// Superclass for Dart closures.
@@ -2148,22 +2336,50 @@ abstract final class Closure implements Function {
       getType(JS('int', '0'));
     });
 
-    Object? container =
-        JS('', '#.#', parameters, TearOffParametersPropertyNames.container);
+    Object? container = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.container,
+    );
 
-    bool isStatic =
-        JS('', '#.#', parameters, TearOffParametersPropertyNames.isStatic);
-    bool isIntercepted =
-        JS('', '#.#', parameters, TearOffParametersPropertyNames.isIntercepted);
-    bool needsDirectAccess = JS('', '#.#', parameters,
-        TearOffParametersPropertyNames.needsDirectAccess);
-    int applyTrampolineIndex =
-        JS('', '#.#', parameters, TearOffParametersPropertyNames.applyIndex);
+    bool isStatic = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.isStatic,
+    );
+    bool isIntercepted = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.isIntercepted,
+    );
+    bool needsDirectAccess = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.needsDirectAccess,
+    );
+    int applyTrampolineIndex = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.applyIndex,
+    );
 
-    JSArray funsOrNames =
-        JS('', '#.#', parameters, TearOffParametersPropertyNames.funsOrNames);
-    JSArray callNames =
-        JS('', '#.#', parameters, TearOffParametersPropertyNames.callNames);
+    JSArray funsOrNames = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.funsOrNames,
+    );
+    JSArray callNames = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.callNames,
+    );
 
     // The first function is the primary entry point. It is always a string, the
     // property name of the first function within the container.
@@ -2205,27 +2421,36 @@ abstract final class Closure implements Function {
     // Object.create to create the desired prototype.
     //
     // TODO(sra): Cache the prototype to avoid the allocation.
-    var prototype = isStatic
-        ? JS('StaticClosure', 'Object.create(#.constructor.prototype)',
-            StaticClosure())
-        : JS('BoundClosure', 'Object.create(#.constructor.prototype)',
-            BoundClosure(null, null));
+    var prototype =
+        isStatic
+            ? JS(
+              'StaticClosure',
+              'Object.create(#.constructor.prototype)',
+              StaticClosure(),
+            )
+            : JS(
+              'BoundClosure',
+              'Object.create(#.constructor.prototype)',
+              BoundClosure(null, null),
+            );
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
 
     // The constructor functions have names to prevent the JavaScript
     // implementation from inventing a name that might have special meaning
     // (e.g. clashing with minified 'Object' or 'Interceptor').
-    var constructor = isStatic
-        ? JS('', 'function static_tear_off(){this.\$initialize()}')
-        : isCsp
+    var constructor =
+        isStatic
+            ? JS('', 'function static_tear_off(){this.\$initialize()}')
+            : isCsp
             ? JS('', 'function tear_off(a,b) {this.\$initialize(a,b)}')
             : JS(
-                '',
-                'new Function("a,b" + #,'
-                    ' "this.\$initialize(a,b" + # + ")")',
-                functionCounter,
-                functionCounter++);
+              '',
+              'new Function("a,b" + #,'
+                  ' "this.\$initialize(a,b" + # + ")")',
+              functionCounter,
+              functionCounter++,
+            );
 
     // It is necessary to set the constructor property, otherwise it will be
     // "Object".
@@ -2239,18 +2464,30 @@ abstract final class Closure implements Function {
     // Create a closure and "monkey" patch it with call stubs.
     var trampoline = function;
     if (!isStatic) {
-      trampoline =
-          forwardCallTo(name, function, isIntercepted, needsDirectAccess);
+      trampoline = forwardCallTo(
+        name,
+        function,
+        isIntercepted,
+        needsDirectAccess,
+      );
     } else {
       // TODO(sra): Can this be removed?
       JS('', '#[#] = #', prototype, STATIC_FUNCTION_NAME_PROPERTY_NAME, name);
     }
 
-    var signatureFunction =
-        _computeSignatureFunctionNewRti(functionType, isStatic, isIntercepted);
+    var signatureFunction = _computeSignatureFunction(
+      functionType,
+      isStatic,
+      isIntercepted,
+    );
 
-    JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
-        signatureFunction);
+    JS(
+      '',
+      '#[#] = #',
+      prototype,
+      JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+      signatureFunction,
+    );
     var applyTrampoline = trampoline;
     JS('', '#[#] = #', prototype, callName, trampoline);
 
@@ -2268,8 +2505,12 @@ abstract final class Closure implements Function {
       // otherwise unused, e.g. `foo<T>({bool strange = true})...`
       if (stubCallName != null) {
         if (!isStatic) {
-          stub =
-              forwardCallTo(stubName, stub, isIntercepted, needsDirectAccess);
+          stub = forwardCallTo(
+            stubName,
+            stub,
+            isIntercepted,
+            needsDirectAccess,
+          );
         }
         JS('', '#[#] = #', prototype, stubCallName, stub);
       }
@@ -2278,25 +2519,46 @@ abstract final class Closure implements Function {
       }
     }
 
-    JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.CALL_CATCH_ALL),
-        applyTrampoline);
+    JS(
+      '',
+      '#[#] = #',
+      prototype,
+      JS_GET_NAME(JsGetName.CALL_CATCH_ALL),
+      applyTrampoline,
+    );
 
     String reqArgProperty = JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY);
-    Object? requiredParameterCount = JS('', '#.#', parameters,
-        TearOffParametersPropertyNames.requiredParameterCount);
+    Object? requiredParameterCount = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.requiredParameterCount,
+    );
     JS('', '#.# = #', prototype, reqArgProperty, requiredParameterCount);
 
     String defValProperty = JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY);
-    Object? optionalParameterDefaultValues = JS('', '#.#', parameters,
-        TearOffParametersPropertyNames.optionalParameterDefaultValues);
-    JS('', '#.# = #', prototype, defValProperty,
-        optionalParameterDefaultValues);
+    Object? optionalParameterDefaultValues = JS(
+      '',
+      '#.#',
+      parameters,
+      TearOffParametersPropertyNames.optionalParameterDefaultValues,
+    );
+    JS(
+      '',
+      '#.# = #',
+      prototype,
+      defValProperty,
+      optionalParameterDefaultValues,
+    );
 
     return constructor;
   }
 
-  static _computeSignatureFunctionNewRti(
-      Object functionType, bool isStatic, bool isIntercepted) {
+  static _computeSignatureFunction(
+    Object functionType,
+    bool isStatic,
+    bool isIntercepted,
+  ) {
     if (JS('bool', 'typeof # == "number"', functionType)) {
       // Index into types table. Handled in rti.dart.
       return functionType;
@@ -2309,20 +2571,25 @@ abstract final class Closure implements Function {
       }
       final typeEvalMethod = RAW_DART_FUNCTION_REF(BoundClosure.evalRecipe);
       return JS(
-          '',
-          '    function(recipe, evalOnReceiver) {'
-              '  return function() {'
-              '    return evalOnReceiver(this, recipe);'
-              '  };'
-              '}(#,#)',
-          functionType,
-          typeEvalMethod);
+        '',
+        '    function(recipe, evalOnReceiver) {'
+            '  return function() {'
+            '    return evalOnReceiver(this, recipe);'
+            '  };'
+            '}(#,#)',
+        functionType,
+        typeEvalMethod,
+      );
     }
     throw 'Error in functionType of tearoff';
   }
 
   static cspForwardCall(
-      int arity, bool needsDirectAccess, String? stubName, function) {
+    int arity,
+    bool needsDirectAccess,
+    String? stubName,
+    function,
+  ) {
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
 
     // We have the target method (or an arity stub for the method) in
@@ -2341,82 +2608,93 @@ abstract final class Closure implements Function {
     switch (arity) {
       case 0:
         return JS(
-            '',
-            'function(entry, receiverOf){'
-                'return function(){'
-                'return receiverOf(this)[entry]()'
-                '}'
-                '}(#,#)',
-            stubName,
-            getReceiver);
+          '',
+          'function(entry, receiverOf){'
+              'return function(){'
+              'return receiverOf(this)[entry]()'
+              '}'
+              '}(#,#)',
+          stubName,
+          getReceiver,
+        );
       case 1:
         return JS(
-            '',
-            'function(entry, receiverOf){'
-                'return function(a){'
-                'return receiverOf(this)[entry](a)'
-                '}'
-                '}(#,#)',
-            stubName,
-            getReceiver);
+          '',
+          'function(entry, receiverOf){'
+              'return function(a){'
+              'return receiverOf(this)[entry](a)'
+              '}'
+              '}(#,#)',
+          stubName,
+          getReceiver,
+        );
       case 2:
         return JS(
-            '',
-            'function(entry, receiverOf){'
-                'return function(a, b){'
-                'return receiverOf(this)[entry](a, b)'
-                '}'
-                '}(#,#)',
-            stubName,
-            getReceiver);
+          '',
+          'function(entry, receiverOf){'
+              'return function(a, b){'
+              'return receiverOf(this)[entry](a, b)'
+              '}'
+              '}(#,#)',
+          stubName,
+          getReceiver,
+        );
       case 3:
         return JS(
-            '',
-            'function(entry, receiverOf){'
-                'return function(a, b, c){'
-                'return receiverOf(this)[entry](a, b, c)'
-                '}'
-                '}(#,#)',
-            stubName,
-            getReceiver);
+          '',
+          'function(entry, receiverOf){'
+              'return function(a, b, c){'
+              'return receiverOf(this)[entry](a, b, c)'
+              '}'
+              '}(#,#)',
+          stubName,
+          getReceiver,
+        );
       case 4:
         return JS(
-            '',
-            'function(entry, receiverOf){'
-                'return function(a, b, c, d){'
-                'return receiverOf(this)[entry](a, b, c, d)'
-                '}'
-                '}(#,#)',
-            stubName,
-            getReceiver);
+          '',
+          'function(entry, receiverOf){'
+              'return function(a, b, c, d){'
+              'return receiverOf(this)[entry](a, b, c, d)'
+              '}'
+              '}(#,#)',
+          stubName,
+          getReceiver,
+        );
       case 5:
         return JS(
-            '',
-            'function(entry, receiverOf){'
-                'return function(a, b, c, d, e){'
-                'return receiverOf(this)[entry](a, b, c, d, e)'
-                '}'
-                '}(#,#)',
-            stubName,
-            getReceiver);
+          '',
+          'function(entry, receiverOf){'
+              'return function(a, b, c, d, e){'
+              'return receiverOf(this)[entry](a, b, c, d, e)'
+              '}'
+              '}(#,#)',
+          stubName,
+          getReceiver,
+        );
       default:
         // Here we use `Function.prototype.apply`.
         return JS(
-            '',
-            'function(f, receiverOf){'
-                'return function(){'
-                'return f.apply(receiverOf(this), arguments)'
-                '}'
-                '}(#,#)',
-            function,
-            getReceiver);
+          '',
+          'function(f, receiverOf){'
+              'return function(){'
+              'return f.apply(receiverOf(this), arguments)'
+              '}'
+              '}(#,#)',
+          function,
+          getReceiver,
+        );
     }
   }
 
   static bool get isCsp => JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
 
   static forwardCallTo(
-      String stubName, function, bool isIntercepted, bool needsDirectAccess) {
+    String stubName,
+    function,
+    bool isIntercepted,
+    bool needsDirectAccess,
+  ) {
     if (isIntercepted)
       return forwardInterceptedCallTo(stubName, function, needsDirectAccess);
     int arity = JS('int', '#.length', function);
@@ -2429,27 +2707,36 @@ abstract final class Closure implements Function {
       // Incorporate functionCounter into a local.
       String selfName = 'self${functionCounter++}';
       return JS(
-          '',
-          '(new Function(#))()',
-          'return function(){'
-              'var $selfName = this.${BoundClosure.receiverFieldName()};'
-              'return $selfName.$stubName();'
-              '}');
-    }
-    assert(1 <= arity && arity < 27);
-    String arguments = JS('String',
-        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")', arity);
-    arguments += '${functionCounter++}';
-    return JS(
         '',
         '(new Function(#))()',
-        'return function($arguments){'
-            'return this.${BoundClosure.receiverFieldName()}.$stubName($arguments);'
-            '}');
+        'return function(){'
+            'var $selfName = this.${BoundClosure.receiverFieldName()};'
+            'return $selfName.$stubName();'
+            '}',
+      );
+    }
+    assert(1 <= arity && arity < 27);
+    String arguments = JS(
+      'String',
+      '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+      arity,
+    );
+    arguments += '${functionCounter++}';
+    return JS(
+      '',
+      '(new Function(#))()',
+      'return function($arguments){'
+          'return this.${BoundClosure.receiverFieldName()}.$stubName($arguments);'
+          '}',
+    );
   }
 
   static cspForwardInterceptedCall(
-      int arity, bool needsDirectAccess, String? stubName, function) {
+    int arity,
+    bool needsDirectAccess,
+    String? stubName,
+    function,
+  ) {
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
     var getInterceptor = RAW_DART_FUNCTION_REF(BoundClosure.interceptorOf);
     // Handle intercepted stub-names with the default slow case.
@@ -2461,88 +2748,98 @@ abstract final class Closure implements Function {
         throw RuntimeError('Intercepted function with no arguments.');
       case 1:
         return JS(
-            '',
-            'function(entry, interceptorOf, receiverOf){'
-                'return function(){'
-                'return interceptorOf(this)[entry](receiverOf(this))'
-                '}'
-                '}(#,#,#)',
-            stubName,
-            getInterceptor,
-            getReceiver);
+          '',
+          'function(entry, interceptorOf, receiverOf){'
+              'return function(){'
+              'return interceptorOf(this)[entry](receiverOf(this))'
+              '}'
+              '}(#,#,#)',
+          stubName,
+          getInterceptor,
+          getReceiver,
+        );
       case 2:
         return JS(
-            '',
-            'function(entry, interceptorOf, receiverOf){'
-                'return function(a){'
-                'return interceptorOf(this)[entry](receiverOf(this), a)'
-                '}'
-                '}(#,#,#)',
-            stubName,
-            getInterceptor,
-            getReceiver);
+          '',
+          'function(entry, interceptorOf, receiverOf){'
+              'return function(a){'
+              'return interceptorOf(this)[entry](receiverOf(this), a)'
+              '}'
+              '}(#,#,#)',
+          stubName,
+          getInterceptor,
+          getReceiver,
+        );
       case 3:
         return JS(
-            '',
-            'function(entry, interceptorOf, receiverOf){'
-                'return function(a, b){'
-                'return interceptorOf(this)[entry](receiverOf(this), a, b)'
-                '}'
-                '}(#,#,#)',
-            stubName,
-            getInterceptor,
-            getReceiver);
+          '',
+          'function(entry, interceptorOf, receiverOf){'
+              'return function(a, b){'
+              'return interceptorOf(this)[entry](receiverOf(this), a, b)'
+              '}'
+              '}(#,#,#)',
+          stubName,
+          getInterceptor,
+          getReceiver,
+        );
       case 4:
         return JS(
-            '',
-            'function(entry, interceptorOf, receiverOf){'
-                'return function(a, b, c){'
-                'return interceptorOf(this)[entry](receiverOf(this), a, b, c)'
-                '}'
-                '}(#,#,#)',
-            stubName,
-            getInterceptor,
-            getReceiver);
+          '',
+          'function(entry, interceptorOf, receiverOf){'
+              'return function(a, b, c){'
+              'return interceptorOf(this)[entry](receiverOf(this), a, b, c)'
+              '}'
+              '}(#,#,#)',
+          stubName,
+          getInterceptor,
+          getReceiver,
+        );
       case 5:
         return JS(
-            '',
-            'function(entry, interceptorOf, receiverOf){'
-                'return function(a, b, c, d){'
-                'return interceptorOf(this)[entry](receiverOf(this), a, b, c, d)'
-                '}'
-                '}(#,#,#)',
-            stubName,
-            getInterceptor,
-            getReceiver);
+          '',
+          'function(entry, interceptorOf, receiverOf){'
+              'return function(a, b, c, d){'
+              'return interceptorOf(this)[entry](receiverOf(this), a, b, c, d)'
+              '}'
+              '}(#,#,#)',
+          stubName,
+          getInterceptor,
+          getReceiver,
+        );
       case 6:
         return JS(
-            '',
-            'function(entry, interceptorOf, receiverOf){'
-                'return function(a, b, c, d, e){'
-                'return interceptorOf(this)[entry](receiverOf(this), a, b, c, d, e)'
-                '}'
-                '}(#,#,#)',
-            stubName,
-            getInterceptor,
-            getReceiver);
+          '',
+          'function(entry, interceptorOf, receiverOf){'
+              'return function(a, b, c, d, e){'
+              'return interceptorOf(this)[entry](receiverOf(this), a, b, c, d, e)'
+              '}'
+              '}(#,#,#)',
+          stubName,
+          getInterceptor,
+          getReceiver,
+        );
       default:
         return JS(
-            '',
-            'function(f, interceptorOf, receiverOf){'
-                'return function(){'
-                'var a = [receiverOf(this)];'
-                'Array.prototype.push.apply(a, arguments);'
-                'return f.apply(interceptorOf(this), a)'
-                '}'
-                '}(#,#,#)',
-            function,
-            getInterceptor,
-            getReceiver);
+          '',
+          'function(f, interceptorOf, receiverOf){'
+              'return function(){'
+              'var a = [receiverOf(this)];'
+              'Array.prototype.push.apply(a, arguments);'
+              'return f.apply(interceptorOf(this), a)'
+              '}'
+              '}(#,#,#)',
+          function,
+          getInterceptor,
+          getReceiver,
+        );
     }
   }
 
   static forwardInterceptedCallTo(
-      String stubName, function, bool needsDirectAccess) {
+    String stubName,
+    function,
+    bool needsDirectAccess,
+  ) {
     String interceptorField = BoundClosure.interceptorFieldName();
     String receiverField = BoundClosure.receiverFieldName();
     int arity = JS('int', '#.length', function);
@@ -2550,29 +2847,36 @@ abstract final class Closure implements Function {
 
     if (isCsp || needsDirectAccess || arity >= 28) {
       return cspForwardInterceptedCall(
-          arity, needsDirectAccess, stubName, function);
+        arity,
+        needsDirectAccess,
+        stubName,
+        function,
+      );
     }
     if (arity == 1) {
       return JS(
-          '',
-          '(new Function(#))()',
-          'return function(){'
-              'return this.$interceptorField.$stubName(this.$receiverField);'
-              '${functionCounter++}'
-              '}');
+        '',
+        '(new Function(#))()',
+        'return function(){'
+            'return this.$interceptorField.$stubName(this.$receiverField);'
+            '${functionCounter++}'
+            '}',
+      );
     }
     assert(1 < arity && arity < 28);
     String arguments = JS(
-        'String',
-        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
-        arity - 1);
+      'String',
+      '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+      arity - 1,
+    );
     return JS(
-        '',
-        '(new Function(#))()',
-        'return function($arguments){'
-            'return this.$interceptorField.$stubName(this.$receiverField, $arguments);'
-            '${functionCounter++}'
-            '}');
+      '',
+      '(new Function(#))()',
+      'return function($arguments){'
+          'return this.$interceptorField.$stubName(this.$receiverField, $arguments);'
+          '${functionCounter++}'
+          '}',
+    );
   }
 
   // The backend adds a special getter of the form
@@ -2592,7 +2896,7 @@ abstract final class Closure implements Function {
     return "Closure '${unminifyOrTag(name)}'";
   }
 
-  Type get runtimeType => newRti.getRuntimeTypeOfClosure(this);
+  Type get runtimeType => rti.getRuntimeTypeOfClosure(this);
 }
 
 /// This is called by the fragment emitter.
@@ -2612,8 +2916,12 @@ abstract final class TearOffClosure extends Closure {}
 
 final class StaticClosure extends TearOffClosure {
   String toString() {
-    String? name =
-        JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
+    String? name = JS(
+      'String|Null',
+      '#[#]',
+      this,
+      STATIC_FUNCTION_NAME_PROPERTY_NAME,
+    );
     if (name == null) return 'Closure of unknown static method';
     return "Closure '${unminifyOrTag(name)}'";
   }
@@ -2668,7 +2976,7 @@ final class BoundClosure extends TearOffClosure {
 
   @pragma('dart2js:parameter:trust')
   static evalRecipe(BoundClosure closure, String recipe) {
-    return newRti.evalInInstance(closure._receiver, recipe);
+    return rti.evalInInstance(closure._receiver, recipe);
   }
 
   @pragma('dart2js:noInline')
@@ -2692,7 +3000,8 @@ final class BoundClosure extends TearOffClosure {
   static String _computeFieldNamed(String fieldName) {
     var template = BoundClosure('receiver', 'interceptor');
     var names = JSArray.markFixedList(
-        JS('', 'Object.getOwnPropertyNames(#)', template));
+      JS('', 'Object.getOwnPropertyNames(#)', template),
+    );
     for (int i = 0; i < names.length; i++) {
       var name = names[i];
       if (JS('bool', '#[#] === #', template, name, fieldName)) {
@@ -2789,15 +3098,6 @@ class JSName {
   const JSName(this.name);
 }
 
-/// The following methods are called by the runtime to implement checked mode
-/// and casts. We specialize each primitive type (eg int, bool), and use the
-/// compiler's convention to do is-checks on regular objects.
-bool boolConversionCheck(value) {
-  // The value from kernel should always be true, false, or null.
-  if (value == null) assertThrow('boolean expression must not be null');
-  return JS('bool', '#', value);
-}
-
 @pragma('dart2js:noInline')
 void checkDeferredIsLoaded(String loadId) {
   if (!_loadedLibraries.contains(loadId)) {
@@ -2820,7 +3120,7 @@ bool assertTest(condition) {
   if (false == condition) return true;
   bool checked = condition as bool;
   if (null == condition) {
-    newRti.throwTypeError('assert condition must not be null');
+    rti.throwTypeError('assert condition must not be null');
   }
   return !checked;
 }
@@ -2836,31 +3136,6 @@ void assertThrow(Object message) {
 @pragma('dart2js:noInline')
 void assertHelper(condition) {
   if (assertTest(condition)) throw AssertionError();
-}
-
-/// Called by generated code when a static field's initializer references the
-/// field that is currently being initialized.
-void throwCyclicInit(String staticName) {
-  throw _CyclicInitializationError(staticName);
-}
-
-/// Error thrown when a lazily initialized variable cannot be initialized.
-///
-/// Cyclic dependencies are no longer detected at runtime in null safe code.
-/// Such code will fail in other ways instead,
-/// possibly with a [StackOverflowError].
-///
-/// Will be removed when support for non-null-safe code is discontinued.
-@Deprecated("Remove when no longer supporting non-null-safe code.")
-class _CyclicInitializationError extends Error {
-  final String? variableName;
-  _CyclicInitializationError([this.variableName]);
-  String toString() {
-    var variableName = this.variableName;
-    return variableName == null
-        ? "Reading static variable during its initialization"
-        : "Reading static variable '$variableName' during its initialization";
-  }
 }
 
 /// Error thrown when a runtime error occurs.
@@ -2924,11 +3199,12 @@ typedef DeferredLoadCallback = void Function();
 DeferredLoadCallback? deferredLoadHook;
 
 /// Add events to global initialization event log.
-void _addEvent(
-    {required String part,
-    required String event,
-    String? loadId,
-    String? hash}) {
+void _addEvent({
+  required String part,
+  required String event,
+  String? loadId,
+  String? hash,
+}) {
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   var dataObj = JS('=Object', '{p: #, e: #}', part, event);
   if (hash != null) JS('', '#.h = #', dataObj, hash);
@@ -2945,14 +3221,15 @@ String _getEventLog() {
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
   final o = JS('', 'Array.from(#).reverse()', initializationEventLog);
   JS(
-      '',
-      '#.reduce((p, e, i, a) => {e.i = a.length - i; '
-          'if (p == null) return e.s; '
-          'if (e.s == null) return p; '
-          'if (e.s === p) { delete e.s; return p; }'
-          'return e.s;}'
-          ', null)',
-      o);
+    '',
+    '#.reduce((p, e, i, a) => {e.i = a.length - i; '
+        'if (p == null) return e.s; '
+        'if (e.s == null) return p; '
+        'if (e.s === p) { delete e.s; return p; }'
+        'return e.s;}'
+        ', null)',
+    o,
+  );
   return JS('String', '#.map((e) => JSON.stringify(e)).join("\\n")', o);
 }
 
@@ -3002,7 +3279,11 @@ Future<Null> loadDeferredLibrary(String loadId, String priority) {
       var hash = hashes[i];
       if (JS('bool', '#(#)', isHunkInitialized, hash)) {
         _addEvent(
-            part: uri, hash: hash, event: 'alreadyInitialized', loadId: loadId);
+          part: uri,
+          hash: hash,
+          event: 'alreadyInitialized',
+          loadId: loadId,
+        );
         continue;
       }
       // This check is just an extra precaution, `isHunkLoaded(hash)` should
@@ -3014,9 +3295,11 @@ Future<Null> loadDeferredLibrary(String loadId, String priority) {
       } else {
         _addEvent(part: uri, hash: hash, event: 'missing', loadId: loadId);
 
-        throw DeferredLoadException("Loading ${uris[i]} failed: "
-            "the code with hash '${hash}' was not loaded.\n"
-            "event log:\n${_getEventLog()}\n");
+        throw DeferredLoadException(
+          "Loading ${uris[i]} failed: "
+          "the code with hash '${hash}' was not loaded.\n"
+          "event log:\n${_getEventLog()}\n",
+        );
       }
     }
   }
@@ -3032,13 +3315,20 @@ Future<Null> loadDeferredLibrary(String loadId, String priority) {
     }
   }
 
-  var deferredLibraryMultiLoader =
-      JS('', 'self.dartDeferredLibraryMultiLoader');
+  var deferredLibraryMultiLoader = JS(
+    '',
+    'self.dartDeferredLibraryMultiLoader',
+  );
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryMultiLoader)) {
     return _loadAllHunks(
-            deferredLibraryMultiLoader, uris, hashes, loadId, priority, 0)
-        .then((_) {
+      deferredLibraryMultiLoader,
+      uris,
+      hashes,
+      loadId,
+      priority,
+      0,
+    ).then((_) {
       waitingForLoad = List.filled(total, false);
       finalizeLoad();
     });
@@ -3105,7 +3395,7 @@ String _computeBaseUrl() {
 /// [1]: https://w3c.github.io/webappsec-trusted-types/dist/spec/#trusted-type-policy
 final Object _deferredLoadingTrustedTypesPolicy = _computePolicy();
 
-const _deferredLoadingTrustedTypesPolicyName = 'dart:deferred-loading';
+const _deferredLoadingTrustedTypesPolicyName = 'dart.deferred-loading';
 
 Object _computePolicy() {
   // There is no actual validation, since the URLs for deferred loading are safe
@@ -3119,8 +3409,13 @@ Object _computePolicy() {
 
   final Object? policyFactory = JS('', 'self.trustedTypes');
   if (policyFactory == null) return fallbackPolicy;
-  final Object? newPolicy = JS('', '#.createPolicy(#, #)', policyFactory,
-      _deferredLoadingTrustedTypesPolicyName, policyOptions);
+  final Object? newPolicy = JS(
+    '',
+    '#.createPolicy(#, #)',
+    policyFactory,
+    _deferredLoadingTrustedTypesPolicyName,
+    policyOptions,
+  );
   return newPolicy ?? fallbackPolicy;
 }
 
@@ -3172,10 +3467,11 @@ String _computeThisScriptFromTrace() {
     // property is not set until the exception is thrown. The stack
     // property was not provided until IE10.
     stack = JS(
-        'String|Null',
-        '(function() {'
-            'try { throw new Error() } catch(e) { return e.stack }'
-            '})()');
+      'String|Null',
+      '(function() {'
+          'try { throw new Error() } catch(e) { return e.stack }'
+          '})()',
+    );
     if (stack == null) throw UnsupportedError('No stack trace');
   }
   var pattern, matches;
@@ -3201,11 +3497,19 @@ String _computeThisScriptFromTrace() {
 
 Object _buildTrustedScriptUriWithRetry(String hunkName, int retryCount) {
   return _getBasedScriptUrl(
-      hunkName, retryCount > 0 ? '?dart2jsRetry=$retryCount' : '');
+    hunkName,
+    retryCount > 0 ? '?dart2jsRetry=$retryCount' : '',
+  );
 }
 
-Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
-    String loadId, String priority, int retryCount) {
+Future _loadAllHunks(
+  Object loader,
+  List<String> hunkNames,
+  List<String> hashes,
+  String loadId,
+  String priority,
+  int retryCount,
+) {
   const int maxRetries = 3;
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
 
@@ -3226,8 +3530,10 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
       } else {
         hunksToLoad.add(hunkName);
         hashesToLoad.add(hash);
-        Object trustedScriptUri =
-            _buildTrustedScriptUriWithRetry(hunkName, retryCount);
+        Object trustedScriptUri = _buildTrustedScriptUriWithRetry(
+          hunkName,
+          retryCount,
+        );
         // [trustedScriptUri] is either a String, in which case `toString()` is
         // an identity function, or it is a TrustedScriptURL and `toString()`
         // returns the sanitized URL.
@@ -3247,30 +3553,46 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
   hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = completer);
   _addEvent(part: loadedHunksString, event: 'downloadMulti', loadId: loadId);
 
-  void failure(error, String context, StackTrace? stackTrace,
-      List<String>? hunksToRetry, List<String>? hashesToRetry) {
+  void failure(
+    error,
+    String context,
+    StackTrace? stackTrace,
+    List<String>? hunksToRetry,
+    List<String>? hashesToRetry,
+  ) {
     if (retryCount < maxRetries && hunksToRetry != null) {
       _addEvent(
-          part: hunksToRetry.join(';'),
-          event: 'retry$retryCount',
-          loadId: loadId);
+        part: hunksToRetry.join(';'),
+        event: 'retry$retryCount',
+        loadId: loadId,
+      );
       for (var i = 0; i < hunksToRetry.length; i++) {
         _loadingLibraries[hunksToRetry[i]] = null;
       }
-      _loadAllHunks(loader, hunksToRetry, hashesToRetry!, loadId, priority,
-              retryCount + 1)
-          .then((_) => completer.complete(null),
-              onError: completer.completeError);
+      _loadAllHunks(
+        loader,
+        hunksToRetry,
+        hashesToRetry!,
+        loadId,
+        priority,
+        retryCount + 1,
+      ).then((_) => completer.complete(null), onError: completer.completeError);
     } else {
       _addEvent(
-          part: loadedHunksString, event: 'downloadFailure', loadId: loadId);
+        part: loadedHunksString,
+        event: 'downloadFailure',
+        loadId: loadId,
+      );
       hunksToLoad.forEach((hunkName) => _loadingLibraries[hunkName] = null);
       stackTrace ??= StackTrace.current;
       completer.completeError(
-          DeferredLoadException('Loading $loadedHunksString failed: $error\n'
-              'Context: $context\n'
-              'event log:\n${_getEventLog()}\n'),
-          stackTrace);
+        DeferredLoadException(
+          'Loading $loadedHunksString failed: $error\n'
+          'Context: $context\n'
+          'event log:\n${_getEventLog()}\n',
+        ),
+        stackTrace,
+      );
     }
   }
 
@@ -3286,7 +3608,10 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
     }
     if (hunksToRetry.isEmpty) {
       _addEvent(
-          part: loadedHunksString, event: 'downloadSuccess', loadId: loadId);
+        part: loadedHunksString,
+        event: 'downloadSuccess',
+        loadId: loadId,
+      );
       completer.complete(null);
     } else {
       failure(
@@ -3312,18 +3637,36 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
   }, 1);
 
   try {
-    JS('void', '#(#, #, #, #, #)', loader, urisToLoad, jsSuccess, jsFailure,
-        loadId, priority);
+    JS(
+      'void',
+      '#(#, #, #, #, #)',
+      loader,
+      urisToLoad,
+      jsSuccess,
+      jsFailure,
+      loadId,
+      priority,
+    );
   } catch (error, stackTrace) {
-    failure(error, "invoking dartDeferredLibraryMultiLoader hook", stackTrace,
-        hunksToLoad, hashesToLoad);
+    failure(
+      error,
+      "invoking dartDeferredLibraryMultiLoader hook",
+      stackTrace,
+      hunksToLoad,
+      hashesToLoad,
+    );
   }
 
   return Future.wait([...pendingLoads, completer.future]);
 }
 
-Future<Null> _loadHunk(String hunkName, String loadId, String priority,
-    String hash, int retryCount) {
+Future<Null> _loadHunk(
+  String hunkName,
+  String loadId,
+  String priority,
+  String hash,
+  int retryCount,
+) {
   const int maxRetries = 3;
 
   var completer = _loadingLibraries[hunkName];
@@ -3334,8 +3677,10 @@ Future<Null> _loadHunk(String hunkName, String loadId, String priority,
   }
   completer ??= _loadingLibraries[hunkName] = Completer();
 
-  Object trustedScriptUri =
-      _buildTrustedScriptUriWithRetry(hunkName, retryCount);
+  Object trustedScriptUri = _buildTrustedScriptUriWithRetry(
+    hunkName,
+    retryCount,
+  );
   String uriAsString = JS('', '#.toString()', trustedScriptUri);
 
   _addEvent(part: hunkName, event: 'download', loadId: loadId);
@@ -3351,10 +3696,13 @@ Future<Null> _loadHunk(String hunkName, String loadId, String priority,
       _loadingLibraries[hunkName] = null;
       stackTrace ??= StackTrace.current;
       completer!.completeError(
-          DeferredLoadException('Loading $uriAsString failed: $error\n'
-              'Context: $context\n'
-              'event log:\n${_getEventLog()}\n'),
-          stackTrace);
+        DeferredLoadException(
+          'Loading $uriAsString failed: $error\n'
+          'Context: $context\n'
+          'event log:\n${_getEventLog()}\n',
+        ),
+        stackTrace,
+      );
     }
   }
 
@@ -3366,22 +3714,36 @@ Future<Null> _loadHunk(String hunkName, String loadId, String priority,
       completer!.complete(null);
     } else {
       failure(
-          'Success callback invoked but part $hunkName not loaded.', '', null);
+        'Success callback invoked but part $hunkName not loaded.',
+        '',
+        null,
+      );
     }
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
   var jsFailure = convertDartClosureToJS((error) {
-    failure(unwrapException(error), 'js-failure-wrapper',
-        getTraceFromException(error));
+    failure(
+      unwrapException(error),
+      'js-failure-wrapper',
+      getTraceFromException(error),
+    );
   }, 1);
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryLoader)) {
     try {
       // Share the loadId that hunk belongs to, this will allow for any
       // additional loadId based bundling optimizations.
-      JS('void', '#(#, #, #, #, #)', deferredLibraryLoader, uriAsString,
-          jsSuccess, jsFailure, loadId, priority);
+      JS(
+        'void',
+        '#(#, #, #, #, #)',
+        deferredLibraryLoader,
+        uriAsString,
+        jsSuccess,
+        jsFailure,
+        loadId,
+        priority,
+      );
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
@@ -3390,24 +3752,25 @@ Future<Null> _loadHunk(String hunkName, String loadId, String priority,
     var xhr = JS('var', 'new XMLHttpRequest()');
     JS('void', '#.open("GET", #)', xhr, uriAsString);
     JS(
-        'void',
-        '#.addEventListener("load", #, false)',
-        xhr,
-        convertDartClosureToJS((event) {
-          int status = JS('int', '#.status', xhr);
-          if (status != 200) {
-            failure('Request status: $status', 'worker xhr', null);
-          }
-          String code = JS('String', '#.responseText', xhr);
-          try {
-            // Create a new function to avoid getting access to current function
-            // context.
-            JS('void', '(new Function(#))()', code);
-            success();
-          } catch (error, stackTrace) {
-            failure(error, 'evaluating the code in worker xhr', stackTrace);
-          }
-        }, 1));
+      'void',
+      '#.addEventListener("load", #, false)',
+      xhr,
+      convertDartClosureToJS((event) {
+        int status = JS('int', '#.status', xhr);
+        if (status != 200) {
+          failure('Request status: $status', 'worker xhr', null);
+        }
+        String code = JS('String', '#.responseText', xhr);
+        try {
+          // Create a new function to avoid getting access to current function
+          // context.
+          JS('void', '(new Function(#))()', code);
+          success();
+        } catch (error, stackTrace) {
+          failure(error, 'evaluating the code in worker xhr', stackTrace);
+        }
+      }, 1),
+    );
 
     JS('void', '#.addEventListener("error", #, false)', xhr, (e) {
       failure(e, 'xhr error handler', null);
@@ -3485,8 +3848,9 @@ void applyTestExtensions(List<String> names) {}
 
 // See tests/web/platform_environment_variable1_test.dart
 const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
-    'dart2js.test.platform.environment.variable',
-    defaultValue: 'not-specified');
+  'dart2js.test.platform.environment.variable',
+  defaultValue: 'not-specified',
+);
 
 String testingGetPlatformEnvironmentVariable() {
   return testPlatformEnvironmentVariableValue;
@@ -3510,8 +3874,10 @@ bool isJSFunction(Function f) => JS('bool', 'typeof(#) == "function"', f);
 ///
 /// This function does not recurse if [value] is a collection.
 void assertInterop(Object? value) {
-  assert(value is! Function || isJSFunction(value),
-      'Dart function requires `allowInterop` to be passed to JavaScript.');
+  assert(
+    value is! Function || isJSFunction(value),
+    'Dart function requires `allowInterop` to be passed to JavaScript.',
+  );
 }
 
 /// Like [assertInterop], except iterates over a list of arguments
@@ -3520,8 +3886,10 @@ void assertInterop(Object? value) {
 /// This function intentionally avoids using [assertInterop] so that this
 /// function can become a no-op if assertions are disabled.
 void assertInteropArgs(List<Object?> args) {
-  assert(args.every((arg) => arg is! Function || isJSFunction(arg)),
-      'Dart function requires `allowInterop` to be passed to JavaScript.');
+  assert(
+    args.every((arg) => arg is! Function || isJSFunction(arg)),
+    'Dart function requires `allowInterop` to be passed to JavaScript.',
+  );
 }
 
 Object? rawStartupMetrics() {
@@ -3586,8 +3954,17 @@ abstract class TrustedGetRuntimeType {}
 /// `pkg/_js_interop_checks/lib/src/js_util_optimizer.dart`.
 ///
 /// This should match the global context that non-static interop members use.
+@pragma('dart2js:prefer-inline')
+// Unlike `JS<T>(...)`, `JS_EMBEDDED_GLOBAL` is not generic. So we need to cast
+// the dynamic result to the desired type. We know the result is some kind of
+// non-null, non-Dart object.
+@pragma('dart2js:as:trust')
 Object get staticInteropGlobalContext =>
-    JS('creates:;returns:Object;depends:none;effects:none;gvn:true', 'self');
+    JS_EMBEDDED_GLOBAL(
+          'creates:;returns:JSObject;depends:none;effects:none;gvn:true',
+          CACHED_GLOBAL_THIS,
+        )
+        as Object;
 
 /// Return a fresh object literal.
 T createObjectLiteral<T>() => JS('PlainJavaScriptObject', '{}');

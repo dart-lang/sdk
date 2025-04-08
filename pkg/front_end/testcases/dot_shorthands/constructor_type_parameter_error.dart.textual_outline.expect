@@ -1,0 +1,8 @@
+class C {
+  C();
+  C.named();
+}
+
+extension type ET<T>(T v) {}
+
+void test() {}

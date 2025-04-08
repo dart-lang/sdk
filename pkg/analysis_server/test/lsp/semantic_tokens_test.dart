@@ -271,6 +271,7 @@ class A {
     await _initializeAndVerifyTokensInRange(content, expected);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentations() async {
     var mainContent = '''
 part 'main_augmentation.dart';

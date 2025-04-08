@@ -11,11 +11,11 @@ import 'package:logging/logging.dart';
 import 'input_converter.dart';
 import 'operation.dart';
 
-final int COLON = ':'.codeUnitAt(0);
-
 /// [InstrumentationInputConverter] converts an instrumentation stream
 /// into a series of operations to be sent to the analysis server.
 class InstrumentationInputConverter extends CommonInputConverter {
+  static final _colon = ':'.codeUnitAt(0);
+
   final Set<String> codesSeen = <String>{};
 
   /// [readBuffer] holds the contents of the file being read from disk
@@ -109,10 +109,10 @@ class InstrumentationInputConverter extends CommonInputConverter {
     var sb = StringBuffer();
     while (index < line.length) {
       var code = line.codeUnitAt(index);
-      if (code == COLON) {
+      if (code == _colon) {
         // Embedded colons are doubled
         var next = index + 1;
-        if (next < line.length && line.codeUnitAt(next) == COLON) {
+        if (next < line.length && line.codeUnitAt(next) == _colon) {
           sb.write(':');
           ++index;
         } else {

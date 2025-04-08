@@ -894,12 +894,12 @@ mixin LspRequestHelpersMixin {
     return outboundRequest;
   }
 
-  RequestMessage makeRequest(Method method, ToJsonable? params) {
+  RequestMessage makeRequest(Method method, Object? params) {
     var id = Either2<int, String>.t1(_id++);
     return RequestMessage(
       id: id,
       method: method,
-      params: params,
+      params: params is ToJsonable ? params.toJson() : params,
       jsonrpc: jsonRpcVersion,
       clientRequestTime:
           includeClientRequestTime
@@ -1008,6 +1008,14 @@ mixin LspRequestHelpersMixin {
       request,
       _fromJsonList(TypeHierarchyItem.fromJson),
     );
+  }
+
+  Future<void> updateDiagnosticInformation(Map<String, Object?>? params) {
+    var request = makeRequest(
+      CustomMethods.updateDiagnosticInformation,
+      params,
+    );
+    return expectSuccessfulResponseTo(request, (Null n) => n);
   }
 
   /// A helper that performs some checks on a completion sent back during

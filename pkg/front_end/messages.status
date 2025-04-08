@@ -200,6 +200,10 @@ DirectiveAfterDeclaration/part_wrapped_script1: Fail
 DirectiveAfterDeclaration/part_wrapped_script2: Fail
 DirectiveAfterDeclaration/script1: Fail
 DirectiveAfterDeclaration/script2: Fail
+DotShorthandsConstructorInvocationWithTypeArguments/analyzerCode: Fail # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+DotShorthandsInvalidContext/analyzerCode: Fail # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+DotShorthandsUndefinedGetter/analyzerCode: Fail # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+DotShorthandsUndefinedInvocation/analyzerCode: Fail # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
 DuplicateDeferred/example: Fail
 DuplicatePrefix/example: Fail
 DuplicatedDeclarationUse/analyzerCode: Fail # No corresponding analyzer code.

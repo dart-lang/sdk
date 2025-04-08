@@ -75,7 +75,6 @@ import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
@@ -333,8 +332,6 @@ class SourceLoader extends Loader {
 
   void registerLoadedDillLibraryBuilder(DillLibraryBuilder libraryBuilder) {
     assert(!libraryBuilder.isPart, "Unexpected part $libraryBuilder.");
-    assert(!libraryBuilder.isAugmenting,
-        "Unexpected augmenting library $libraryBuilder.");
     Uri uri = libraryBuilder.importUri;
     _markDartLibraries(uri, libraryBuilder.mainCompilationUnit);
     _compilationUnits[uri] = libraryBuilder.mainCompilationUnit;
@@ -603,26 +600,9 @@ class SourceLoader extends Loader {
     DillLibraryBuilder? libraryBuilder =
         target.dillTarget.loader.lookupLibraryBuilder(uri);
     if (libraryBuilder != null) {
-      _checkDillLibraryBuilderNnbdMode(libraryBuilder);
       _checkForDartCore(uri, libraryBuilder.mainCompilationUnit);
     }
     return libraryBuilder;
-  }
-
-  void _checkDillLibraryBuilderNnbdMode(DillLibraryBuilder libraryBuilder) {
-    NonNullableByDefaultCompiledMode libraryMode =
-        libraryBuilder.library.nonNullableByDefaultCompiledMode;
-    if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
-      // Coverage-ignore-block(suite): Not run.
-      registerNnbdMismatchLibrary(
-          libraryBuilder, messageInvalidNnbdDillLibrary);
-    } else {
-      if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
-        // Coverage-ignore-block(suite): Not run.
-        registerNnbdMismatchLibrary(
-            libraryBuilder, messageStrongWithWeakDillLibrary);
-      }
-    }
   }
 
   void _markDartLibraries(Uri uri, CompilationUnit compilationUnit) {
@@ -1095,21 +1075,9 @@ severity: $severity
     });
   }
 
-  bool hasInvalidNnbdModeLibrary = false;
-
-  Map<LibraryBuilder, Message>? _nnbdMismatchLibraries;
-
-  // Coverage-ignore(suite): Not run.
-  void registerNnbdMismatchLibrary(
-      LibraryBuilder libraryBuilder, Message message) {
-    _nnbdMismatchLibraries ??= {};
-    _nnbdMismatchLibraries![libraryBuilder] = message;
-    hasInvalidNnbdModeLibrary = true;
-  }
-
-  void registerConstructorToBeInferred(
-      Member member, SourceConstructorBuilder builder) {
-    _typeInferenceEngine!.toBeInferred[member] = builder;
+  void registerConstructorToBeInferred(InferableMember inferableMember) {
+    _typeInferenceEngine!.toBeInferred[inferableMember.member] =
+        inferableMember;
   }
 
   void registerTypeDependency(Member member, TypeDependency typeDependency) {
@@ -1137,14 +1105,6 @@ severity: $severity
     }
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
-    if (_nnbdMismatchLibraries != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (MapEntry<LibraryBuilder, Message> entry
-          in _nnbdMismatchLibraries!.entries) {
-        addProblem(entry.value, -1, noLength, entry.key.fileUri);
-      }
-      _nnbdMismatchLibraries = null;
-    }
     if (_unavailableDartLibraries.isNotEmpty) {
       CompilationUnit? rootLibrary = rootCompilationUnit;
       LoadedLibraries? loadedLibraries;
@@ -1231,14 +1191,6 @@ severity: $severity
     // [library] is only nullable so we can call this a "dummy-time" to get rid
     // of a semi-leak.
     if (library == null) return;
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        library.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        await buildBody(augmentationLibrary);
-      }
-    }
 
     // We tokenize source files twice to keep memory usage low. This is the
     // second time, and the first time was in [buildOutline] above. So this
@@ -1484,8 +1436,7 @@ severity: $severity
       }
       for (Export export in exported.exporters) {
         exported.exportNameSpace
-            .filteredNameIterator(
-                includeDuplicates: false, includeAugmentations: false)
+            .filteredNameIterator(includeDuplicates: false)
             .forEach(export.addToExportScope);
       }
     }
@@ -1495,8 +1446,7 @@ severity: $severity
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
           NameIterator<Builder> iterator = exported.exportNameSpace
-              .filteredNameIterator(
-                  includeDuplicates: false, includeAugmentations: false);
+              .filteredNameIterator(includeDuplicates: false);
           while (iterator.moveNext()) {
             if (export.addToExportScope(iterator.name, iterator.current)) {
               wasChanged = true;
@@ -1765,9 +1715,8 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    Iterator<MemberBuilder> iterator = builder.nameSpace
-        .filteredConstructorIterator(
-            includeDuplicates: false, includeAugmentations: true);
+    Iterator<MemberBuilder> iterator =
+        builder.nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder constructor = iterator.current;
       if (constructor.isConstructor && !constructor.isSynthetic) {
@@ -2010,8 +1959,7 @@ severity: $severity
 
       if (implementsBuilder != null &&
           superclass.isSealed &&
-          baseOrFinalSuperClass.libraryBuilder.origin !=
-              cls.libraryBuilder.origin) {
+          baseOrFinalSuperClass.libraryBuilder != cls.libraryBuilder) {
         // This error is reported at the call site.
         // TODO(johnniwinther): Merge supertype checking with class hierarchy
         //  computation to better support transitive checking.
@@ -2051,8 +1999,7 @@ severity: $severity
         if (baseOrFinalSuperClass.isFinal) {
           // Don't check base and final subtyping restriction if the supertype
           // is a final type used outside of its library.
-          if (cls.libraryBuilder.origin !=
-              baseOrFinalSuperClass.libraryBuilder.origin) {
+          if (cls.libraryBuilder != baseOrFinalSuperClass.libraryBuilder) {
             // In the special case where the 'baseOrFinalSuperClass' is a core
             // library class and we are indirectly subtyping from a superclass
             // that's from a pre-feature library, we want to produce a final
@@ -2063,8 +2010,8 @@ severity: $severity
             // [FinalClassImplementedOutsideOfLibrary] error.
             //
             // TODO(kallentu): Avoid over-reporting for with clauses.
-            if (baseOrFinalSuperClass.libraryBuilder.origin ==
-                    superclass.libraryBuilder.origin ||
+            if (baseOrFinalSuperClass.libraryBuilder ==
+                    superclass.libraryBuilder ||
                 !baseOrFinalSuperClass.libraryBuilder.importUri
                     .isScheme("dart") ||
                 implementsBuilder != null) {
@@ -2102,8 +2049,7 @@ severity: $severity
         checkForBaseFinalRestriction(supertypeDeclaration);
 
         if (isClassModifiersEnabled(supertypeDeclaration)) {
-          if (cls.libraryBuilder.origin !=
-                  supertypeDeclaration.libraryBuilder.origin &&
+          if (cls.libraryBuilder != supertypeDeclaration.libraryBuilder &&
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
               cls.addProblem(
@@ -2132,8 +2078,7 @@ severity: $severity
         // Report error for extending a sealed class outside of its library.
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
-            cls.libraryBuilder.origin !=
-                supertypeDeclaration.libraryBuilder.origin) {
+            cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
           cls.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
                   .withArguments(supertypeDeclaration.fullNameForErrors),
@@ -2168,8 +2113,7 @@ severity: $severity
         // Report error for mixing in a sealed mixin outside of its library.
         if (isSealedClassEnabled(mixedInTypeDeclaration) &&
             mixedInTypeDeclaration.isSealed &&
-            cls.libraryBuilder.origin !=
-                mixedInTypeDeclaration.libraryBuilder.origin) {
+            cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
           cls.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
                   .withArguments(mixedInTypeDeclaration.fullNameForErrors),
@@ -2190,8 +2134,7 @@ severity: $severity
 
           ClassBuilder? checkedClass = interfaceDeclaration;
           while (checkedClass != null) {
-            if (cls.libraryBuilder.origin !=
-                    checkedClass.libraryBuilder.origin &&
+            if (cls.libraryBuilder != checkedClass.libraryBuilder &&
                 !mayIgnoreClassModifiers(checkedClass)) {
               final List<LocatedMessage> context = [
                 if (checkedClass != interfaceDeclaration)
@@ -2240,8 +2183,7 @@ severity: $severity
           // outside of its library.
           if (isSealedClassEnabled(interfaceDeclaration) &&
               interfaceDeclaration.isSealed &&
-              cls.libraryBuilder.origin !=
-                  interfaceDeclaration.libraryBuilder.origin) {
+              cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
             cls.addProblem(
                 templateSealedClassSubtypeOutsideOfLibrary
                     .withArguments(interfaceDeclaration.fullNameForErrors),
@@ -2277,8 +2219,6 @@ severity: $severity
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     for (LibraryBuilder libraryBuilder in loadedLibraryBuilders) {
-      assert(!libraryBuilder.isAugmenting,
-          "Unexpected augmentation library $libraryBuilder.");
       if ((libraryBuilder.loader == this ||
           libraryBuilder.importUri.isScheme("dart") ||
           roots.contains(libraryBuilder.importUri))) {
@@ -2353,13 +2293,13 @@ severity: $severity
       Class enumClass,
       Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
-      assert(builder.libraryBuilder.loader == this && !builder.isAugmenting);
+      assert(builder.libraryBuilder.loader == this);
       builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
           enumClass, underscoreEnumClass);
     }
     for (SourceExtensionTypeDeclarationBuilder builder
         in sourceExtensionTypeDeclarations) {
-      assert(builder.libraryBuilder.loader == this && !builder.isAugmenting);
+      assert(builder.libraryBuilder.loader == this);
       builder.checkSupertypes(coreTypes, hierarchyBuilder);
     }
     ticker.logMs("Checked supertypes");
@@ -2462,14 +2402,14 @@ severity: $severity
           sourceExtensionTypeDeclarationBuilders) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isAugmenting) {
+      if (builder.libraryBuilder.loader == this) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
       }
     }
     for (SourceExtensionTypeDeclarationBuilder builder
         in sourceExtensionTypeDeclarationBuilders) {
-      if (builder.libraryBuilder.loader == this && !builder.isAugmenting) {
+      if (builder.libraryBuilder.loader == this) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
       }
@@ -2482,7 +2422,7 @@ severity: $severity
   void computeFieldPromotability() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       // TODO(paulberry): what should we do for augmentation libraries?
-      if (library.loader == this && !library.isAugmenting) {
+      if (library.loader == this) {
         library.computeFieldPromotability();
       }
     }
@@ -2491,11 +2431,9 @@ severity: $severity
 
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (!builder.isAugmenting) {
-        Class? mixedInClass = builder.cls.mixedInClass;
-        if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
-          builder.checkMixinApplication(hierarchy, coreTypes);
-        }
+      Class? mixedInClass = builder.cls.mixedInClass;
+      if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
+        builder.checkMixinApplication(hierarchy, coreTypes);
       }
     }
     ticker.logMs("Checked mixin declaration applications");
@@ -2513,33 +2451,31 @@ severity: $severity
       for (MapEntry<SourceClassBuilder, TypeBuilder> entry
           in mixinApplications.entries) {
         SourceClassBuilder mixinApplication = entry.key;
-        if (!mixinApplication.isAugmenting) {
-          ClassHierarchyNode node =
-              hierarchyBuilder.getNodeFromClassBuilder(mixinApplication);
-          ClassHierarchyNode? mixedInNode = node.mixedInNode;
-          if (mixedInNode != null) {
-            Class mixedInClass = mixedInNode.classBuilder.cls;
-            List<Supertype> onClause = mixedInClass.onClause;
-            if (onClause.isNotEmpty) {
-              for (Procedure procedure in mixedInClass.procedures) {
-                if (procedure.containsSuperCalls) {
-                  procedure.function.body?.accept(new _CheckSuperAccess(
-                      libraryBuilder,
-                      mixinApplication.cls,
-                      entry.value,
-                      procedure,
-                      superMemberCache));
-                }
+        ClassHierarchyNode node =
+            hierarchyBuilder.getNodeFromClassBuilder(mixinApplication);
+        ClassHierarchyNode? mixedInNode = node.mixedInNode;
+        if (mixedInNode != null) {
+          Class mixedInClass = mixedInNode.classBuilder.cls;
+          List<Supertype> onClause = mixedInClass.onClause;
+          if (onClause.isNotEmpty) {
+            for (Procedure procedure in mixedInClass.procedures) {
+              if (procedure.containsSuperCalls) {
+                procedure.function.body?.accept(new _CheckSuperAccess(
+                    libraryBuilder,
+                    mixinApplication.cls,
+                    entry.value,
+                    procedure,
+                    superMemberCache));
               }
-              for (Field field in mixedInClass.fields) {
-                if (field.containsSuperCalls) {
-                  field.initializer?.accept(new _CheckSuperAccess(
-                      libraryBuilder,
-                      mixinApplication.cls,
-                      entry.value,
-                      field,
-                      superMemberCache));
-                }
+            }
+            for (Field field in mixedInClass.fields) {
+              if (field.containsSuperCalls) {
+                field.initializer?.accept(new _CheckSuperAccess(
+                    libraryBuilder,
+                    mixinApplication.cls,
+                    entry.value,
+                    field,
+                    superMemberCache));
               }
             }
           }
@@ -2582,8 +2518,7 @@ severity: $severity
         new TypeInferenceEngineImpl(instrumentation, target.benchmarker);
   }
 
-  void inferRedirectingFactories(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void prepareTopLevelInference() {
     /// Inferring redirecting factories partially overlaps with top-level
     /// inference, since the formal parameters of the redirection targets should
     /// be inferred, and they can be formal initializing parameters requiring
@@ -2596,16 +2531,15 @@ severity: $severity
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
-    membersBuilder.computeTypes();
 
-    // TODO(cstefantsova): Put the redirecting factory inference into a separate
-    // step.
+    ticker.logMs("Prepared for top level inference");
+  }
 
-    // Redirecting factory invocations can occur in outline expressions and
-    // should be processed before them. The outline expressions within
-    // redirecting factory invocations themselves are minimal, containing only
-    // the target and possibly some type arguments, and don't depend on other
-    // kinds of outline expressions themselves.
+  void inferRedirectingFactories(
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    assert(typeInferenceEngine.isTypeInferencePrepared,
+        "Top level inference has not been prepared.");
+
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       List<SourceFactoryBuilder>? redirectingFactoryBuilders =
           library.redirectingFactoryBuilders;
@@ -2619,8 +2553,10 @@ severity: $severity
             // likely be removed.
             continue;
           }
-          redirectingFactoryBuilder.buildOutlineExpressions(
-              classHierarchy, delayedDefaultValueCloners);
+          registerConstructorToBeInferred(new InferableRedirectingFactory(
+              redirectingFactoryBuilder,
+              hierarchy,
+              delayedDefaultValueCloners));
         }
       }
     }
@@ -2628,24 +2564,24 @@ severity: $severity
     ticker.logMs("Performed redirecting factory inference");
   }
 
+  void computeMemberTypes() {
+    assert(typeInferenceEngine.isTypeInferencePrepared,
+        "Top level inference has not been prepared.");
+    membersBuilder.computeTypes();
+
+    ticker.logMs("Computed member types");
+  }
+
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+    assert(typeInferenceEngine.isTypeInferencePrepared,
+        "Top level inference has not been prepared.");
     inferableTypes.inferTypes(typeInferenceEngine.hierarchyBuilder);
-    typeInferenceEngine.isTypeInferencePrepared = true;
 
     ticker.logMs("Performed top level inference");
   }
 
   void _checkMainMethods(
       SourceLibraryBuilder libraryBuilder, DartType listOfString) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        libraryBuilder.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        _checkMainMethods(augmentationLibrary, listOfString);
-      }
-    }
-
     Builder? mainBuilder =
         libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: false);
     mainBuilder ??=

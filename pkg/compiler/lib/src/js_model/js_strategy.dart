@@ -291,7 +291,9 @@ class JsBackendStrategy {
     final worldBuilder = CodegenWorldBuilder(
       closedWorld,
       inferredData,
-      _compiler.abstractValueStrategy.createSelectorStrategy(),
+      _compiler.abstractValueStrategy.createSelectorStrategy(
+        closedWorld.abstractValueDomain,
+      ),
       _codegenImpactTransformer.oneShotInterceptorData,
     );
     return CodegenEnqueuer(

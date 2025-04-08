@@ -60,6 +60,12 @@ class SnippetTester {
   }
 
   Future<void> verifyFile(File file) async {
+    if (file.path
+            .endsWith('/pkg/analyzer/doc/element_model_migration_guide.md') ||
+        file.path
+            .endsWith(r'\pkg\analyzer\doc\element_model_migration_guide.md')) {
+      return;
+    }
     String content = file.readAsStringSync();
     List<String> lines = const LineSplitter().convert(content);
     List<String> codeLines = [];

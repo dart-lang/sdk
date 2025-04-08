@@ -31,7 +31,6 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@34
   element: v@34
   staticType: InvalidType
 ''');
@@ -137,7 +136,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@75
   element: v@75
   staticType: void Function()
 ''');
@@ -164,7 +162,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@91
   element: v@91
   staticType: void Function()
 ''');
@@ -190,7 +187,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@74
   element: v@74
   staticType: dynamic
 ''');
@@ -217,7 +213,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@90
   element: v@90
   staticType: dynamic
 ''');
@@ -243,7 +238,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@76
   element: v@76
   staticType: void Function()
 ''');
@@ -270,7 +264,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@92
   element: v@92
   staticType: void Function()
 ''');
@@ -296,7 +289,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@75
   element: v@75
   staticType: dynamic
 ''');
@@ -323,7 +315,6 @@ void f(int a) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@91
   element: v@91
   staticType: dynamic
 ''');
@@ -364,7 +355,6 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@50
   element: v@50
   staticType: void Function()
 ''');
@@ -383,7 +373,6 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@49
   element: v@49
   staticType: int
 ''');

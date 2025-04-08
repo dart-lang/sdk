@@ -564,7 +564,7 @@ main() {
       h.thisType = 'C';
       h.addSuperInterfaces('C', (_) => [Type('Object')]);
       h.run([
-        if_(this_.is_('Null'), [
+        if_(this_.is_('Null', isInverted: true), [
           if_(this_.eq(nullLiteral), [
             checkReachable(true),
           ], [
@@ -637,9 +637,7 @@ main() {
       var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>(
           h.typeOperations, AssignedVariables<Node, Var>(),
-          respectImplicitlyTypedVarInitializers: true,
-          fieldPromotionEnabled: true,
-          inferenceUpdate4Enabled: true);
+          typeAnalyzerOptions: h.computeTypeAnalyzerOptions());
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
@@ -1693,27 +1691,6 @@ main() {
     test('isExpression_end does not promote to an unrelated type, inverted',
         () {
       _checkIs('int', 'String', null, null, inverted: true);
-    });
-
-    test('isExpression_end does nothing if applied to a non-variable', () {
-      h.run([
-        if_(expr('Null').is_('int'), [
-          checkReachable(true),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
-    });
-
-    test('isExpression_end does nothing if applied to a non-variable, inverted',
-        () {
-      h.run([
-        if_(expr('Null').isNot('int'), [
-          checkReachable(true),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
     });
 
     test('isExpression_end() does not promote write-captured vars', () {
@@ -4207,27 +4184,29 @@ main() {
           test('; no promotion', () {
             var s1 = FlowModel<SharedTypeView>(Reachability.initial)
                 ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+                ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
                 .ifFalse
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num*')
+                ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
                 .ifFalse;
             expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(objectQVar):
                   _matchVariableModel(
-                chain: ['Object'],
-                ofInterest: ['num?', 'num*'],
+                ofInterest: ['List<Object?>', 'List<dynamic>'],
               ),
             });
-            var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('int')),
+            var s2 = s1._write(
+                h,
+                null,
+                objectQVar,
+                SharedTypeView(Type('List<int>')),
                 new SsaNode<SharedTypeView>(null));
-            // It's ambiguous whether to promote to num? or num*, so we don't
-            // promote.
+            // It's ambiguous whether to promote to List<Object?> or
+            // List<dynamic>, so we don't promote.
             expect(s2, isNot(same(s1)));
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(objectQVar):
                   _matchVariableModel(
-                chain: ['Object'],
-                ofInterest: ['num?', 'num*'],
+                ofInterest: ['List<Object?>', 'List<dynamic>'],
               ),
             });
           });
@@ -4236,24 +4215,28 @@ main() {
         test('exact match', () {
           var s1 = FlowModel<SharedTypeView>(Reachability.initial)
               ._declare(h, objectQVar, true)
-              ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+              ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
               .ifFalse
-              ._tryPromoteForTypeCheck(h, objectQVar, 'num*')
+              ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
               .ifFalse;
           expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
-              chain: ['Object'],
-              ofInterest: ['num?', 'num*'],
+              ofInterest: ['List<Object?>', 'List<dynamic>'],
             ),
           });
-          var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-              SharedTypeView(Type('num?')), new SsaNode<SharedTypeView>(null));
-          // It's ambiguous whether to promote to num? or num*, but since the
-          // written type is exactly num?, we use that.
+          var s2 = s1._write(
+              h,
+              _MockNonPromotionReason(),
+              objectQVar,
+              SharedTypeView(Type('List<Object?>')),
+              new SsaNode<SharedTypeView>(null));
+          // It's ambiguous whether to promote to List<Object?> or
+          // List<dynamic>, but since the written type is exactly List<Object?>,
+          // we use that.
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
-              chain: ['num?'],
-              ofInterest: ['num?', 'num*'],
+              chain: ['List<Object?>'],
+              ofInterest: ['List<Object?>', 'List<dynamic>'],
             ),
           });
         });
@@ -9039,6 +9022,18 @@ main() {
           ]);
         });
 
+        test('Using dot shorthands in relational pattern', () {
+          h.addMember('C', 'field', 'C');
+          h.run([
+            ifCase(
+                expr('C'),
+                relationalPattern('==', dotShorthandHead('field').dotShorthand),
+                [
+                  checkReachable(true),
+                ]),
+          ]);
+        });
+
         test('Null pattern promotes unchanged scrutinee', () {
           var x = Var('x');
           h.run([
@@ -10647,6 +10642,134 @@ main() {
                 // can't ever match.
                 checkReachable(false),
               ]),
+        ]);
+      });
+    });
+  });
+
+  group('Sound null safety:', () {
+    group('<nonNull> as Null:', () {
+      test('When enabled, is guaranteed to throw', () {
+        h.run([
+          expr('int').as_('Null'),
+          checkReachable(false),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          expr('int').as_('Null'),
+          checkReachable(true),
+        ]);
+      });
+    });
+
+    group('<Null> as <nonNullable>:', () {
+      test('When enabled, is guaranteed to throw', () {
+        h.run([
+          expr('Null').as_('int'),
+          checkReachable(false),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          expr('Null').as_('int'),
+          checkReachable(true),
+        ]);
+      });
+    });
+
+    group('<nonNull> is Null:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('int').is_('Null'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('int').is_('Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<nonNull> is! Null:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('int').is_('Null', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('int').is_('Null', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> is <nonNullable>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('Null').is_('int'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').is_('int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> is! <nonNullable>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('Null').is_('int', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').is_('int', isInverted: true), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
         ]);
       });
     });

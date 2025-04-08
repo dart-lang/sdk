@@ -2415,7 +2415,7 @@ suggestions
     kind: methodInvocation
 ''');
   }
-  
+
   Future<void> test_generic_field() async {
     await computeSuggestions('''
 class C<T> {

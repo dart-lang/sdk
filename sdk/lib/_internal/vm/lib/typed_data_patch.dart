@@ -39,14 +39,14 @@ class ByteData implements TypedData {
   @patch
   @pragma("vm:recognized", "other")
   factory ByteData(int length) {
-    final list = new Uint8List(length) as _TypedList;
+    final list = Uint8List(length) as _TypedList;
     _rangeCheck(list.lengthInBytes, 0, length);
-    return new _ByteDataView._(list, 0, length);
+    return _ByteDataView._(list, 0, length);
   }
 
   factory ByteData._view(_TypedList typedData, int offsetInBytes, int length) {
     _rangeCheck(typedData.lengthInBytes, offsetInBytes, length);
-    return new _ByteDataView._(typedData, offsetInBytes, length);
+    return _ByteDataView._(typedData, offsetInBytes, length);
   }
 }
 
@@ -69,7 +69,7 @@ abstract final class _TypedListBase {
 
   // Method(s) implementing the Collection interface.
   String join([String separator = ""]) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.writeAll(this as Iterable, separator);
     return buffer.toString();
   }
@@ -83,23 +83,23 @@ abstract final class _TypedListBase {
   // Method(s) implementing the List interface.
 
   set length(newLength) {
-    throw new UnsupportedError("Cannot resize a fixed-length list");
+    throw UnsupportedError("Cannot resize a fixed-length list");
   }
 
   void clear() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   bool remove(Object? element) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void replaceRange(int start, int end, Iterable iterable) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   @pragma("vm:prefer-inline")
@@ -235,10 +235,10 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   int get offsetInBytes;
   _ByteBuffer get buffer;
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<int> followedBy(Iterable<int> other) =>
-      new FollowedByIterable<int>.firstEfficient(this, other);
+      FollowedByIterable<int>.firstEfficient(this, other);
 
   List<R> cast<R>() => List.castFrom<int, R>(this);
   void set first(int value) {
@@ -279,7 +279,7 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   }
 
   void shuffle([Random? random]) {
-    random ??= new Random();
+    random ??= Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -290,35 +290,35 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
     }
   }
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => WhereIterable<int>(this, f);
 
-  Iterable<int> take(int n) => new SubListIterable<int>(this, 0, n);
+  Iterable<int> take(int n) => SubListIterable<int>(this, 0, n);
 
   Iterable<int> takeWhile(bool test(int element)) =>
-      new TakeWhileIterable<int>(this, test);
+      TakeWhileIterable<int>(this, test);
 
-  Iterable<int> skip(int n) => new SubListIterable<int>(this, n, null);
+  Iterable<int> skip(int n) => SubListIterable<int>(this, n, null);
 
   Iterable<int> skipWhile(bool test(int element)) =>
-      new SkipWhileIterable<int>(this, test);
+      SkipWhileIterable<int>(this, test);
 
-  Iterable<int> get reversed => new ReversedListIterable<int>(this);
+  Iterable<int> get reversed => ReversedListIterable<int>(this);
 
-  Map<int, int> asMap() => new ListMapView<int>(this);
+  Map<int, int> asMap() => ListMapView<int>(this);
 
   Iterable<int> getRange(int start, [int? end]) {
     int endIndex = RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<int>(this, start, endIndex);
+    return SubListIterable<int>(this, start, endIndex);
   }
 
-  Iterator<int> get iterator => new _TypedListIterator<int>(this);
+  Iterator<int> get iterator => _TypedListIterator<int>(this);
 
   List<int> toList({bool growable = true}) {
-    return new List<int>.of(this, growable: growable);
+    return List<int>.of(this, growable: growable);
   }
 
   Set<int> toSet() {
-    return new Set<int>.of(this);
+    return Set<int>.of(this);
   }
 
   void forEach(void f(int element)) {
@@ -346,10 +346,10 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(int element)) => new MappedIterable<int, T>(this, f);
+  Iterable<T> map<T>(T f(int element)) => MappedIterable<int, T>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(int element)) =>
-      new ExpandIterable<int, T>(this, f);
+      ExpandIterable<int, T>(this, f);
 
   bool every(bool f(int element)) {
     var len = this.length;
@@ -413,19 +413,19 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   }
 
   void add(int value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void addAll(Iterable<int> value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void insert(int index, int value) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void insertAll(int index, Iterable<int> values) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void sort([int compare(int a, int b)?]) {
@@ -454,19 +454,19 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   int removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   int get first {
@@ -569,10 +569,10 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   int get offsetInBytes;
   _ByteBuffer get buffer;
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<double> followedBy(Iterable<double> other) =>
-      new FollowedByIterable<double>.firstEfficient(this, other);
+      FollowedByIterable<double>.firstEfficient(this, other);
 
   List<R> cast<R>() => List.castFrom<double, R>(this);
   void set first(double value) {
@@ -613,7 +613,7 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   }
 
   void shuffle([Random? random]) {
-    random ??= new Random();
+    random ??= Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -625,35 +625,35 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   }
 
   Iterable<double> where(bool f(double element)) =>
-      new WhereIterable<double>(this, f);
+      WhereIterable<double>(this, f);
 
-  Iterable<double> take(int n) => new SubListIterable<double>(this, 0, n);
+  Iterable<double> take(int n) => SubListIterable<double>(this, 0, n);
 
   Iterable<double> takeWhile(bool test(double element)) =>
-      new TakeWhileIterable<double>(this, test);
+      TakeWhileIterable<double>(this, test);
 
-  Iterable<double> skip(int n) => new SubListIterable<double>(this, n, null);
+  Iterable<double> skip(int n) => SubListIterable<double>(this, n, null);
 
   Iterable<double> skipWhile(bool test(double element)) =>
-      new SkipWhileIterable<double>(this, test);
+      SkipWhileIterable<double>(this, test);
 
-  Iterable<double> get reversed => new ReversedListIterable<double>(this);
+  Iterable<double> get reversed => ReversedListIterable<double>(this);
 
-  Map<int, double> asMap() => new ListMapView<double>(this);
+  Map<int, double> asMap() => ListMapView<double>(this);
 
   Iterable<double> getRange(int start, [int? end]) {
     int endIndex = RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<double>(this, start, endIndex);
+    return SubListIterable<double>(this, start, endIndex);
   }
 
-  Iterator<double> get iterator => new _TypedListIterator<double>(this);
+  Iterator<double> get iterator => _TypedListIterator<double>(this);
 
   List<double> toList({bool growable = true}) {
-    return new List<double>.of(this, growable: growable);
+    return List<double>.of(this, growable: growable);
   }
 
   Set<double> toSet() {
-    return new Set<double>.of(this);
+    return Set<double>.of(this);
   }
 
   void forEach(void f(double element)) {
@@ -681,11 +681,10 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(double element)) =>
-      new MappedIterable<double, T>(this, f);
+  Iterable<T> map<T>(T f(double element)) => MappedIterable<double, T>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(double element)) =>
-      new ExpandIterable<double, T>(this, f);
+      ExpandIterable<double, T>(this, f);
 
   bool every(bool f(double element)) {
     var len = this.length;
@@ -749,19 +748,19 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   }
 
   void add(double value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void addAll(Iterable<double> value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void insert(int index, double value) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void insertAll(int index, Iterable<double> values) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void sort([int compare(double a, double b)?]) {
@@ -790,19 +789,19 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   }
 
   double removeLast() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   double removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void removeWhere(bool test(double element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void retainWhere(bool test(double element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   double get first {
@@ -914,10 +913,10 @@ base mixin _Float32x4ListMixin on _TypedListBase
 
   Float32x4List _createList(int length);
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<Float32x4> followedBy(Iterable<Float32x4> other) =>
-      new FollowedByIterable<Float32x4>.firstEfficient(this, other);
+      FollowedByIterable<Float32x4>.firstEfficient(this, other);
 
   List<R> cast<R>() => List.castFrom<Float32x4, R>(this);
   void set first(Float32x4 value) {
@@ -958,7 +957,7 @@ base mixin _Float32x4ListMixin on _TypedListBase
   }
 
   void shuffle([Random? random]) {
-    random ??= new Random();
+    random ??= Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -1015,36 +1014,35 @@ base mixin _Float32x4ListMixin on _TypedListBase
   }
 
   Iterable<Float32x4> where(bool f(Float32x4 element)) =>
-      new WhereIterable<Float32x4>(this, f);
+      WhereIterable<Float32x4>(this, f);
 
-  Iterable<Float32x4> take(int n) => new SubListIterable<Float32x4>(this, 0, n);
+  Iterable<Float32x4> take(int n) => SubListIterable<Float32x4>(this, 0, n);
 
   Iterable<Float32x4> takeWhile(bool test(Float32x4 element)) =>
-      new TakeWhileIterable<Float32x4>(this, test);
+      TakeWhileIterable<Float32x4>(this, test);
 
-  Iterable<Float32x4> skip(int n) =>
-      new SubListIterable<Float32x4>(this, n, null);
+  Iterable<Float32x4> skip(int n) => SubListIterable<Float32x4>(this, n, null);
 
   Iterable<Float32x4> skipWhile(bool test(Float32x4 element)) =>
-      new SkipWhileIterable<Float32x4>(this, test);
+      SkipWhileIterable<Float32x4>(this, test);
 
-  Iterable<Float32x4> get reversed => new ReversedListIterable<Float32x4>(this);
+  Iterable<Float32x4> get reversed => ReversedListIterable<Float32x4>(this);
 
-  Map<int, Float32x4> asMap() => new ListMapView<Float32x4>(this);
+  Map<int, Float32x4> asMap() => ListMapView<Float32x4>(this);
 
   Iterable<Float32x4> getRange(int start, [int? end]) {
     int endIndex = RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<Float32x4>(this, start, endIndex);
+    return SubListIterable<Float32x4>(this, start, endIndex);
   }
 
-  Iterator<Float32x4> get iterator => new _TypedListIterator<Float32x4>(this);
+  Iterator<Float32x4> get iterator => _TypedListIterator<Float32x4>(this);
 
   List<Float32x4> toList({bool growable = true}) {
-    return new List<Float32x4>.of(this, growable: growable);
+    return List<Float32x4>.of(this, growable: growable);
   }
 
   Set<Float32x4> toSet() {
-    return new Set<Float32x4>.of(this);
+    return Set<Float32x4>.of(this);
   }
 
   void forEach(void f(Float32x4 element)) {
@@ -1073,10 +1071,10 @@ base mixin _Float32x4ListMixin on _TypedListBase
   }
 
   Iterable<T> map<T>(T f(Float32x4 element)) =>
-      new MappedIterable<Float32x4, T>(this, f);
+      MappedIterable<Float32x4, T>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(Float32x4 element)) =>
-      new ExpandIterable<Float32x4, T>(this, f);
+      ExpandIterable<Float32x4, T>(this, f);
 
   bool every(bool f(Float32x4 element)) {
     var len = this.length;
@@ -1140,19 +1138,19 @@ base mixin _Float32x4ListMixin on _TypedListBase
   }
 
   void add(Float32x4 value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void addAll(Iterable<Float32x4> value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void insert(int index, Float32x4 value) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void insertAll(int index, Iterable<Float32x4> values) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void sort([int compare(Float32x4 a, Float32x4 b)?]) {
@@ -1184,19 +1182,19 @@ base mixin _Float32x4ListMixin on _TypedListBase
   }
 
   Float32x4 removeLast() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Float32x4 removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void removeWhere(bool test(Float32x4 element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void retainWhere(bool test(Float32x4 element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Float32x4 get first {
@@ -1256,10 +1254,10 @@ base mixin _Int32x4ListMixin on _TypedListBase
 
   Int32x4List _createList(int length);
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<Int32x4> followedBy(Iterable<Int32x4> other) =>
-      new FollowedByIterable<Int32x4>.firstEfficient(this, other);
+      FollowedByIterable<Int32x4>.firstEfficient(this, other);
 
   List<R> cast<R>() => List.castFrom<Int32x4, R>(this);
   void set first(Int32x4 value) {
@@ -1300,7 +1298,7 @@ base mixin _Int32x4ListMixin on _TypedListBase
   }
 
   void shuffle([Random? random]) {
-    random ??= new Random();
+    random ??= Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -1357,35 +1355,35 @@ base mixin _Int32x4ListMixin on _TypedListBase
   }
 
   Iterable<Int32x4> where(bool f(Int32x4 element)) =>
-      new WhereIterable<Int32x4>(this, f);
+      WhereIterable<Int32x4>(this, f);
 
-  Iterable<Int32x4> take(int n) => new SubListIterable<Int32x4>(this, 0, n);
+  Iterable<Int32x4> take(int n) => SubListIterable<Int32x4>(this, 0, n);
 
   Iterable<Int32x4> takeWhile(bool test(Int32x4 element)) =>
-      new TakeWhileIterable<Int32x4>(this, test);
+      TakeWhileIterable<Int32x4>(this, test);
 
-  Iterable<Int32x4> skip(int n) => new SubListIterable<Int32x4>(this, n, null);
+  Iterable<Int32x4> skip(int n) => SubListIterable<Int32x4>(this, n, null);
 
   Iterable<Int32x4> skipWhile(bool test(Int32x4 element)) =>
-      new SkipWhileIterable<Int32x4>(this, test);
+      SkipWhileIterable<Int32x4>(this, test);
 
-  Iterable<Int32x4> get reversed => new ReversedListIterable<Int32x4>(this);
+  Iterable<Int32x4> get reversed => ReversedListIterable<Int32x4>(this);
 
-  Map<int, Int32x4> asMap() => new ListMapView<Int32x4>(this);
+  Map<int, Int32x4> asMap() => ListMapView<Int32x4>(this);
 
   Iterable<Int32x4> getRange(int start, [int? end]) {
     int endIndex = RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<Int32x4>(this, start, endIndex);
+    return SubListIterable<Int32x4>(this, start, endIndex);
   }
 
-  Iterator<Int32x4> get iterator => new _TypedListIterator<Int32x4>(this);
+  Iterator<Int32x4> get iterator => _TypedListIterator<Int32x4>(this);
 
   List<Int32x4> toList({bool growable = true}) {
-    return new List<Int32x4>.of(this, growable: growable);
+    return List<Int32x4>.of(this, growable: growable);
   }
 
   Set<Int32x4> toSet() {
-    return new Set<Int32x4>.of(this);
+    return Set<Int32x4>.of(this);
   }
 
   void forEach(void f(Int32x4 element)) {
@@ -1414,10 +1412,10 @@ base mixin _Int32x4ListMixin on _TypedListBase
   }
 
   Iterable<T> map<T>(T f(Int32x4 element)) =>
-      new MappedIterable<Int32x4, T>(this, f);
+      MappedIterable<Int32x4, T>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(Int32x4 element)) =>
-      new ExpandIterable<Int32x4, T>(this, f);
+      ExpandIterable<Int32x4, T>(this, f);
 
   bool every(bool f(Int32x4 element)) {
     var len = this.length;
@@ -1481,19 +1479,19 @@ base mixin _Int32x4ListMixin on _TypedListBase
   }
 
   void add(Int32x4 value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void addAll(Iterable<Int32x4> value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void insert(int index, Int32x4 value) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void insertAll(int index, Iterable<Int32x4> values) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void sort([int compare(Int32x4 a, Int32x4 b)?]) {
@@ -1525,19 +1523,19 @@ base mixin _Int32x4ListMixin on _TypedListBase
   }
 
   Int32x4 removeLast() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Int32x4 removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void removeWhere(bool test(Int32x4 element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void retainWhere(bool test(Int32x4 element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Int32x4 get first {
@@ -1597,10 +1595,10 @@ base mixin _Float64x2ListMixin on _TypedListBase
 
   Float64x2List _createList(int length);
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<Float64x2> followedBy(Iterable<Float64x2> other) =>
-      new FollowedByIterable<Float64x2>.firstEfficient(this, other);
+      FollowedByIterable<Float64x2>.firstEfficient(this, other);
 
   List<R> cast<R>() => List.castFrom<Float64x2, R>(this);
   void set first(Float64x2 value) {
@@ -1641,7 +1639,7 @@ base mixin _Float64x2ListMixin on _TypedListBase
   }
 
   void shuffle([Random? random]) {
-    random ??= new Random();
+    random ??= Random();
     var i = this.length;
     while (i > 1) {
       int pos = random.nextInt(i);
@@ -1698,36 +1696,35 @@ base mixin _Float64x2ListMixin on _TypedListBase
   }
 
   Iterable<Float64x2> where(bool f(Float64x2 element)) =>
-      new WhereIterable<Float64x2>(this, f);
+      WhereIterable<Float64x2>(this, f);
 
-  Iterable<Float64x2> take(int n) => new SubListIterable<Float64x2>(this, 0, n);
+  Iterable<Float64x2> take(int n) => SubListIterable<Float64x2>(this, 0, n);
 
   Iterable<Float64x2> takeWhile(bool test(Float64x2 element)) =>
-      new TakeWhileIterable<Float64x2>(this, test);
+      TakeWhileIterable<Float64x2>(this, test);
 
-  Iterable<Float64x2> skip(int n) =>
-      new SubListIterable<Float64x2>(this, n, null);
+  Iterable<Float64x2> skip(int n) => SubListIterable<Float64x2>(this, n, null);
 
   Iterable<Float64x2> skipWhile(bool test(Float64x2 element)) =>
-      new SkipWhileIterable<Float64x2>(this, test);
+      SkipWhileIterable<Float64x2>(this, test);
 
-  Iterable<Float64x2> get reversed => new ReversedListIterable<Float64x2>(this);
+  Iterable<Float64x2> get reversed => ReversedListIterable<Float64x2>(this);
 
-  Map<int, Float64x2> asMap() => new ListMapView<Float64x2>(this);
+  Map<int, Float64x2> asMap() => ListMapView<Float64x2>(this);
 
   Iterable<Float64x2> getRange(int start, [int? end]) {
     int endIndex = RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<Float64x2>(this, start, endIndex);
+    return SubListIterable<Float64x2>(this, start, endIndex);
   }
 
-  Iterator<Float64x2> get iterator => new _TypedListIterator<Float64x2>(this);
+  Iterator<Float64x2> get iterator => _TypedListIterator<Float64x2>(this);
 
   List<Float64x2> toList({bool growable = true}) {
-    return new List<Float64x2>.of(this, growable: growable);
+    return List<Float64x2>.of(this, growable: growable);
   }
 
   Set<Float64x2> toSet() {
-    return new Set<Float64x2>.of(this);
+    return Set<Float64x2>.of(this);
   }
 
   void forEach(void f(Float64x2 element)) {
@@ -1756,10 +1753,10 @@ base mixin _Float64x2ListMixin on _TypedListBase
   }
 
   Iterable<T> map<T>(T f(Float64x2 element)) =>
-      new MappedIterable<Float64x2, T>(this, f);
+      MappedIterable<Float64x2, T>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(Float64x2 element)) =>
-      new ExpandIterable<Float64x2, T>(this, f);
+      ExpandIterable<Float64x2, T>(this, f);
 
   bool every(bool f(Float64x2 element)) {
     var len = this.length;
@@ -1823,19 +1820,19 @@ base mixin _Float64x2ListMixin on _TypedListBase
   }
 
   void add(Float64x2 value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void addAll(Iterable<Float64x2> value) {
-    throw new UnsupportedError("Cannot add to a fixed-length list");
+    throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
   void insert(int index, Float64x2 value) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void insertAll(int index, Iterable<Float64x2> values) {
-    throw new UnsupportedError("Cannot insert into a fixed-length list");
+    throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
   void sort([int compare(Float64x2 a, Float64x2 b)?]) {
@@ -1867,19 +1864,19 @@ base mixin _Float64x2ListMixin on _TypedListBase
   }
 
   Float64x2 removeLast() {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Float64x2 removeAt(int index) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void removeWhere(bool test(Float64x2 element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   void retainWhere(bool test(Float64x2 element)) {
-    throw new UnsupportedError("Cannot remove from a fixed-length list");
+    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Float64x2 get first {
@@ -1938,7 +1935,7 @@ final class _ByteBuffer implements ByteBuffer {
   _ByteBuffer(this._data);
 
   @pragma("vm:entry-point")
-  factory _ByteBuffer._New(data) => new _ByteBuffer(data);
+  factory _ByteBuffer._New(data) => _ByteBuffer(data);
 
   // Forward calls to _data.
   int get lengthInBytes => _data.lengthInBytes;
@@ -1949,7 +1946,7 @@ final class _ByteBuffer implements ByteBuffer {
   ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= this.lengthInBytes - offsetInBytes;
     _rangeCheck(this._data.lengthInBytes, offsetInBytes, length);
-    return new _ByteDataView._(this._data, offsetInBytes, length);
+    return _ByteDataView._(this._data, offsetInBytes, length);
   }
 
   Int8List asInt8List([int offsetInBytes = 0, int? length]) {
@@ -1959,7 +1956,7 @@ final class _ByteBuffer implements ByteBuffer {
       offsetInBytes,
       length * Int8List.bytesPerElement,
     );
-    return new _Int8ArrayView._(this._data, offsetInBytes, length);
+    return _Int8ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
@@ -1970,7 +1967,7 @@ final class _ByteBuffer implements ByteBuffer {
       offsetInBytes,
       length * Uint8List.bytesPerElement,
     );
-    return new _Uint8ArrayView._(this._data, offsetInBytes, length);
+    return _Uint8ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) {
@@ -1982,7 +1979,7 @@ final class _ByteBuffer implements ByteBuffer {
       offsetInBytes,
       length * Uint8ClampedList.bytesPerElement,
     );
-    return new _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
+    return _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
   }
 
   Int16List asInt16List([int offsetInBytes = 0, int? length]) {
@@ -1994,7 +1991,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Int16List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Int16List.bytesPerElement);
-    return new _Int16ArrayView._(this._data, offsetInBytes, length);
+    return _Int16ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint16List asUint16List([int offsetInBytes = 0, int? length]) {
@@ -2006,7 +2003,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Uint16List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Uint16List.bytesPerElement);
-    return new _Uint16ArrayView._(this._data, offsetInBytes, length);
+    return _Uint16ArrayView._(this._data, offsetInBytes, length);
   }
 
   Int32List asInt32List([int offsetInBytes = 0, int? length]) {
@@ -2018,7 +2015,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Int32List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Int32List.bytesPerElement);
-    return new _Int32ArrayView._(this._data, offsetInBytes, length);
+    return _Int32ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint32List asUint32List([int offsetInBytes = 0, int? length]) {
@@ -2030,7 +2027,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Uint32List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Uint32List.bytesPerElement);
-    return new _Uint32ArrayView._(this._data, offsetInBytes, length);
+    return _Uint32ArrayView._(this._data, offsetInBytes, length);
   }
 
   Int64List asInt64List([int offsetInBytes = 0, int? length]) {
@@ -2042,7 +2039,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Int64List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Int64List.bytesPerElement);
-    return new _Int64ArrayView._(this._data, offsetInBytes, length);
+    return _Int64ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint64List asUint64List([int offsetInBytes = 0, int? length]) {
@@ -2054,7 +2051,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Uint64List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Uint64List.bytesPerElement);
-    return new _Uint64ArrayView._(this._data, offsetInBytes, length);
+    return _Uint64ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float32List asFloat32List([int offsetInBytes = 0, int? length]) {
@@ -2066,7 +2063,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Float32List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Float32List.bytesPerElement);
-    return new _Float32ArrayView._(this._data, offsetInBytes, length);
+    return _Float32ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float64List asFloat64List([int offsetInBytes = 0, int? length]) {
@@ -2078,7 +2075,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Float64List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
-    return new _Float64ArrayView._(this._data, offsetInBytes, length);
+    return _Float64ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
@@ -2090,7 +2087,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Float32x4List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
-    return new _Float32x4ArrayView._(this._data, offsetInBytes, length);
+    return _Float32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
@@ -2102,7 +2099,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Int32x4List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
-    return new _Int32x4ArrayView._(this._data, offsetInBytes, length);
+    return _Int32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
@@ -2114,7 +2111,7 @@ final class _ByteBuffer implements ByteBuffer {
       length * Float64x2List.bytesPerElement,
     );
     _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
-    return new _Float64x2ArrayView._(this._data, offsetInBytes, length);
+    return _Float64x2ArrayView._(this._data, offsetInBytes, length);
   }
 }
 
@@ -2130,7 +2127,7 @@ abstract final class _TypedList extends _TypedListBase {
     return length * elementSizeInBytes;
   }
 
-  _ByteBuffer get buffer => new _ByteBuffer(this);
+  _ByteBuffer get buffer => _ByteBuffer(this);
 
   // Internal utility methods.
 
@@ -2344,8 +2341,7 @@ class Int8List {
 
   @patch
   factory Int8List.fromList(List<int> elements) {
-    return new Int8List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Int8List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2380,7 +2376,7 @@ final class _Int8List extends _TypedList
 
   // Internal utility methods.
   Int8List _createList(int length) {
-    return new Int8List(length);
+    return Int8List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2402,8 +2398,7 @@ class Uint8List {
 
   @patch
   factory Uint8List.fromList(List<int> elements) {
-    return new Uint8List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Uint8List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2438,7 +2433,7 @@ final class _Uint8List extends _TypedList
 
   // Internal utility methods.
   Uint8List _createList(int length) {
-    return new Uint8List(length);
+    return Uint8List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2463,7 +2458,7 @@ class Uint8ClampedList {
 
   @patch
   factory Uint8ClampedList.fromList(List<int> elements) {
-    return new Uint8ClampedList(elements.length)
+    return Uint8ClampedList(elements.length)
       ..setRange(0, elements.length, elements);
   }
 }
@@ -2500,7 +2495,7 @@ final class _Uint8ClampedList extends _TypedList
 
   // Internal utility methods.
   Uint8ClampedList _createList(int length) {
-    return new Uint8ClampedList(length);
+    return Uint8ClampedList(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2528,8 +2523,7 @@ class Int16List {
 
   @patch
   factory Int16List.fromList(List<int> elements) {
-    return new Int16List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Int16List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2577,7 +2571,7 @@ final class _Int16List extends _TypedList
 
   // Internal utility methods.
   Int16List _createList(int length) {
-    return new Int16List(length);
+    return Int16List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2599,8 +2593,7 @@ class Uint16List {
 
   @patch
   factory Uint16List.fromList(List<int> elements) {
-    return new Uint16List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Uint16List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2648,7 +2641,7 @@ final class _Uint16List extends _TypedList
 
   // Internal utility methods.
   Uint16List _createList(int length) {
-    return new Uint16List(length);
+    return Uint16List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2670,8 +2663,7 @@ class Int32List {
 
   @patch
   factory Int32List.fromList(List<int> elements) {
-    return new Int32List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Int32List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2705,7 +2697,7 @@ final class _Int32List extends _TypedList
 
   // Internal utility methods.
   Int32List _createList(int length) {
-    return new Int32List(length);
+    return Int32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2727,8 +2719,7 @@ class Uint32List {
 
   @patch
   factory Uint32List.fromList(List<int> elements) {
-    return new Uint32List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Uint32List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2762,7 +2753,7 @@ final class _Uint32List extends _TypedList
 
   // Internal utility methods.
   Uint32List _createList(int length) {
-    return new Uint32List(length);
+    return Uint32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2784,8 +2775,7 @@ class Int64List {
 
   @patch
   factory Int64List.fromList(List<int> elements) {
-    return new Int64List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Int64List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2819,7 +2809,7 @@ final class _Int64List extends _TypedList
 
   // Internal utility methods.
   Int64List _createList(int length) {
-    return new Int64List(length);
+    return Int64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2841,8 +2831,7 @@ class Uint64List {
 
   @patch
   factory Uint64List.fromList(List<int> elements) {
-    return new Uint64List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Uint64List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2876,7 +2865,7 @@ final class _Uint64List extends _TypedList
 
   // Internal utility methods.
   Uint64List _createList(int length) {
-    return new Uint64List(length);
+    return Uint64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2898,8 +2887,7 @@ class Float32List {
 
   @patch
   factory Float32List.fromList(List<double> elements) {
-    return new Float32List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Float32List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2934,7 +2922,7 @@ final class _Float32List extends _TypedList
 
   // Internal utility methods.
   Float32List _createList(int length) {
-    return new Float32List(length);
+    return Float32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -2956,8 +2944,7 @@ class Float64List {
 
   @patch
   factory Float64List.fromList(List<double> elements) {
-    return new Float64List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Float64List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -2992,7 +2979,7 @@ final class _Float64List extends _TypedList
 
   // Internal utility methods.
   Float64List _createList(int length) {
-    return new Float64List(length);
+    return Float64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3014,7 +3001,7 @@ class Float32x4List {
 
   @patch
   factory Float32x4List.fromList(List<Float32x4> elements) {
-    return new Float32x4List(elements.length)
+    return Float32x4List(elements.length)
       ..setRange(0, elements.length, elements);
   }
 }
@@ -3049,7 +3036,7 @@ final class _Float32x4List extends _TypedList
 
   // Internal utility methods.
   Float32x4List _createList(int length) {
-    return new Float32x4List(length);
+    return Float32x4List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3071,8 +3058,7 @@ class Int32x4List {
 
   @patch
   factory Int32x4List.fromList(List<Int32x4> elements) {
-    return new Int32x4List(elements.length)
-      ..setRange(0, elements.length, elements);
+    return Int32x4List(elements.length)..setRange(0, elements.length, elements);
   }
 }
 
@@ -3106,7 +3092,7 @@ final class _Int32x4List extends _TypedList
 
   // Internal utility methods.
   Int32x4List _createList(int length) {
-    return new Int32x4List(length);
+    return Int32x4List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3128,7 +3114,7 @@ class Float64x2List {
 
   @patch
   factory Float64x2List.fromList(List<Float64x2> elements) {
-    return new Float64x2List(elements.length)
+    return Float64x2List(elements.length)
       ..setRange(0, elements.length, elements);
   }
 }
@@ -3163,7 +3149,7 @@ final class _Float64x2List extends _TypedList
 
   // Internal utility methods.
   Float64x2List _createList(int length) {
-    return new Float64x2List(length);
+    return Float64x2List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3205,7 +3191,7 @@ final class _ExternalInt8Array extends _TypedList
 
   // Internal utility methods.
   Int8List _createList(int length) {
-    return new Int8List(length);
+    return Int8List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3248,7 +3234,7 @@ final class _ExternalUint8Array extends _TypedList
 
   // Internal utility methods.
   Uint8List _createList(int length) {
-    return new Uint8List(length);
+    return Uint8List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3295,7 +3281,7 @@ final class _ExternalUint8ClampedArray extends _TypedList
 
   // Internal utility methods.
   Uint8ClampedList _createList(int length) {
-    return new Uint8ClampedList(length);
+    return Uint8ClampedList(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3343,7 +3329,7 @@ final class _ExternalInt16Array extends _TypedList
 
   // Internal utility methods.
   Int16List _createList(int length) {
-    return new Int16List(length);
+    return Int16List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3385,7 +3371,7 @@ final class _ExternalUint16Array extends _TypedList
 
   // Internal utility methods.
   Uint16List _createList(int length) {
-    return new Uint16List(length);
+    return Uint16List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3426,7 +3412,7 @@ final class _ExternalInt32Array extends _TypedList
 
   // Internal utility methods.
   Int32List _createList(int length) {
-    return new Int32List(length);
+    return Int32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3467,7 +3453,7 @@ final class _ExternalUint32Array extends _TypedList
 
   // Internal utility methods.
   Uint32List _createList(int length) {
-    return new Uint32List(length);
+    return Uint32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3508,7 +3494,7 @@ final class _ExternalInt64Array extends _TypedList
 
   // Internal utility methods.
   Int64List _createList(int length) {
-    return new Int64List(length);
+    return Int64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3549,7 +3535,7 @@ final class _ExternalUint64Array extends _TypedList
 
   // Internal utility methods.
   Uint64List _createList(int length) {
-    return new Uint64List(length);
+    return Uint64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3591,7 +3577,7 @@ final class _ExternalFloat32Array extends _TypedList
 
   // Internal utility methods.
   Float32List _createList(int length) {
-    return new Float32List(length);
+    return Float32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3633,7 +3619,7 @@ final class _ExternalFloat64Array extends _TypedList
 
   // Internal utility methods.
   Float64List _createList(int length) {
-    return new Float64List(length);
+    return Float64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3675,7 +3661,7 @@ final class _ExternalFloat32x4Array extends _TypedList
 
   // Internal utility methods.
   Float32x4List _createList(int length) {
-    return new Float32x4List(length);
+    return Float32x4List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3717,7 +3703,7 @@ final class _ExternalInt32x4Array extends _TypedList
 
   // Internal utility methods.
   Int32x4List _createList(int length) {
-    return new Int32x4List(length);
+    return Int32x4List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3759,7 +3745,7 @@ final class _ExternalFloat64x2Array extends _TypedList
 
   // Internal utility methods.
   Float64x2List _createList(int length) {
-    return new Float64x2List(length);
+    return Float64x2List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -3777,10 +3763,6 @@ class Float32x4 {
   @patch
   @pragma("vm:prefer-inline")
   factory Float32x4(double x, double y, double z, double w) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
-    _throwIfNull(z, 'z');
-    _throwIfNull(w, 'w');
     return _Float32x4FromDoubles(x, y, z, w);
   }
 
@@ -3796,10 +3778,7 @@ class Float32x4 {
 
   @patch
   @pragma("vm:prefer-inline")
-  factory Float32x4.splat(double v) {
-    _throwIfNull(v, 'v');
-    return _Float32x4Splat(v);
-  }
+  factory Float32x4.splat(double value) => _Float32x4Splat(value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
@@ -3822,7 +3801,7 @@ class Float32x4 {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_fromFloat64x2")
-  external factory Float32x4.fromFloat64x2(Float64x2 v);
+  external factory Float32x4.fromFloat64x2(Float64x2 xy);
 }
 
 @pragma('vm:deeply-immutable')
@@ -3874,7 +3853,7 @@ final class _Float32x4 implements Float32x4 {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_scale")
-  external Float32x4 scale(double s);
+  external Float32x4 scale(double scale);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_abs")
@@ -3914,7 +3893,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withX(double x) {
-    _throwIfNull(x, 'x');
     return _withX(x);
   }
 
@@ -3925,7 +3903,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withY(double y) {
-    _throwIfNull(y, 'y');
     return _withY(y);
   }
 
@@ -3936,7 +3913,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withZ(double z) {
-    _throwIfNull(z, 'z');
     return _withZ(z);
   }
 
@@ -3947,7 +3923,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withW(double w) {
-    _throwIfNull(w, 'w');
     return _withW(w);
   }
 
@@ -3984,10 +3959,6 @@ class Int32x4 {
   @patch
   @pragma("vm:prefer-inline")
   factory Int32x4(int x, int y, int z, int w) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
-    _throwIfNull(z, 'z');
-    _throwIfNull(w, 'w');
     return _Int32x4FromInts(x, y, z, w);
   }
 
@@ -3999,10 +3970,6 @@ class Int32x4 {
   @patch
   @pragma("vm:prefer-inline")
   factory Int32x4.bool(bool x, bool y, bool z, bool w) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
-    _throwIfNull(z, 'z');
-    _throwIfNull(w, 'w');
     return _Int32x4FromBools(x, y, z, w);
   }
 
@@ -4053,7 +4020,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withX(int x) {
-    _throwIfNull(x, 'x');
     return _withX(x);
   }
 
@@ -4063,7 +4029,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withY(int y) {
-    _throwIfNull(y, 'y');
     return _withY(y);
   }
 
@@ -4073,7 +4038,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withZ(int z) {
-    _throwIfNull(z, 'z');
     return _withZ(z);
   }
 
@@ -4083,7 +4047,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withW(int w) {
-    _throwIfNull(w, 'w');
     return _withW(w);
   }
 
@@ -4110,7 +4073,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagX(bool x) {
-    _throwIfNull(x, 'x');
     return _withFlagX(x);
   }
 
@@ -4121,7 +4083,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagY(bool y) {
-    _throwIfNull(y, 'y');
     return _withFlagY(y);
   }
 
@@ -4132,7 +4093,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagZ(bool z) {
-    _throwIfNull(z, 'z');
     return _withFlagZ(z);
   }
 
@@ -4143,7 +4103,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagW(bool w) {
-    _throwIfNull(w, 'w');
     return _withFlagW(w);
   }
 
@@ -4164,8 +4123,6 @@ class Float64x2 {
   @patch
   @pragma("vm:prefer-inline")
   factory Float64x2(double x, double y) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
     return _Float64x2FromDoubles(x, y);
   }
 
@@ -4177,7 +4134,6 @@ class Float64x2 {
   @patch
   @pragma("vm:prefer-inline")
   factory Float64x2.splat(double v) {
-    _throwIfNull(v, 'v');
     return _Float64x2Splat(v);
   }
 
@@ -4244,7 +4200,6 @@ final class _Float64x2 implements Float64x2 {
 
   @pragma("vm:prefer-inline")
   Float64x2 withX(double x) {
-    _throwIfNull(x, 'x');
     return _withX(x);
   }
 
@@ -4255,7 +4210,6 @@ final class _Float64x2 implements Float64x2 {
 
   @pragma("vm:prefer-inline")
   Float64x2 withY(double y) {
-    _throwIfNull(y, 'y');
     return _withY(y);
   }
 
@@ -4371,7 +4325,7 @@ final class _Int8ArrayView extends _TypedListView
 
   // Internal utility methods.
   Int8List _createList(int length) {
-    return new Int8List(length);
+    return Int8List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4424,7 +4378,7 @@ final class _Uint8ArrayView extends _TypedListView
 
   // Internal utility methods.
   Uint8List _createList(int length) {
-    return new Uint8List(length);
+    return Uint8List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4481,7 +4435,7 @@ final class _Uint8ClampedArrayView extends _TypedListView
 
   // Internal utility methods.
   Uint8ClampedList _createList(int length) {
-    return new Uint8ClampedList(length);
+    return Uint8ClampedList(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4554,7 +4508,7 @@ final class _Int16ArrayView extends _TypedListView
 
   // Internal utility methods.
   Int16List _createList(int length) {
-    return new Int16List(length);
+    return Int16List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4621,7 +4575,7 @@ final class _Uint16ArrayView extends _TypedListView
 
   // Internal utility methods.
   Uint16List _createList(int length) {
-    return new Uint16List(length);
+    return Uint16List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4673,7 +4627,7 @@ final class _Int32ArrayView extends _TypedListView
 
   // Internal utility methods.
   Int32List _createList(int length) {
-    return new Int32List(length);
+    return Int32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4725,7 +4679,7 @@ final class _Uint32ArrayView extends _TypedListView
 
   // Internal utility methods.
   Uint32List _createList(int length) {
-    return new Uint32List(length);
+    return Uint32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4777,7 +4731,7 @@ final class _Int64ArrayView extends _TypedListView
 
   // Internal utility methods.
   Int64List _createList(int length) {
-    return new Int64List(length);
+    return Int64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4829,7 +4783,7 @@ final class _Uint64ArrayView extends _TypedListView
 
   // Internal utility methods.
   Uint64List _createList(int length) {
-    return new Uint64List(length);
+    return Uint64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4882,7 +4836,7 @@ final class _Float32ArrayView extends _TypedListView
 
   // Internal utility methods.
   Float32List _createList(int length) {
-    return new Float32List(length);
+    return Float32List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4935,7 +4889,7 @@ final class _Float64ArrayView extends _TypedListView
 
   // Internal utility methods.
   Float64List _createList(int length) {
-    return new Float64List(length);
+    return Float64List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -4987,7 +4941,7 @@ final class _Float32x4ArrayView extends _TypedListView
 
   // Internal utility methods.
   Float32x4List _createList(int length) {
-    return new Float32x4List(length);
+    return Float32x4List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -5039,7 +4993,7 @@ final class _Int32x4ArrayView extends _TypedListView
 
   // Internal utility methods.
   Int32x4List _createList(int length) {
-    return new Int32x4List(length);
+    return Int32x4List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -5091,7 +5045,7 @@ final class _Float64x2ArrayView extends _TypedListView
 
   // Internal utility methods.
   Float64x2List _createList(int length) {
-    return new Float64x2List(length);
+    return Float64x2List(length);
   }
 
   @pragma("vm:prefer-inline")
@@ -5422,10 +5376,10 @@ int _byteSwap64(int value) {
   return (_byteSwap32(value) << 32) | _byteSwap32(value >> 32);
 }
 
-final _convU32 = new Uint32List(2);
-final _convU64 = new Uint64List.view(_convU32.buffer);
-final _convF32 = new Float32List.view(_convU32.buffer);
-final _convF64 = new Float64List.view(_convU32.buffer);
+final _convU32 = Uint32List(2);
+final _convU64 = Uint64List.view(_convU32.buffer);
+final _convF32 = Float32List.view(_convU32.buffer);
+final _convF64 = Float64List.view(_convU32.buffer);
 
 // Top level utility methods.
 @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -5435,19 +5389,12 @@ int _toClampedUint8(int value) {
   return value;
 }
 
-@pragma("vm:prefer-inline")
-void _throwIfNull(val, String name) {
-  if (val == null) {
-    throw ArgumentError.notNull(name);
-  }
-}
-
 // Length should be non-negative.
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 int _typedDataIndexCheck(Object indexable, int index, int length) {
   if (index < 0 || index >= length) {
-    throw new IndexError.withLength(
+    throw IndexError.withLength(
       index,
       length,
       indexable: indexable,
@@ -5462,7 +5409,7 @@ int _typedDataIndexCheck(Object indexable, int index, int length) {
 @pragma("vm:prefer-inline")
 int _byteDataByteOffsetCheck(ByteData indexable, int byteOffset, int length) {
   if (byteOffset < 0 || byteOffset >= length) {
-    throw new IndexError.withLength(
+    throw IndexError.withLength(
       byteOffset,
       length,
       indexable: indexable,
@@ -5477,19 +5424,19 @@ int _byteDataByteOffsetCheck(ByteData indexable, int byteOffset, int length) {
 // otherwise).
 void _rangeCheck(int listLength, int start, int length) {
   if (length < 0) {
-    throw new RangeError.value(length);
+    throw RangeError.value(length);
   }
   if (start < 0) {
-    throw new RangeError.value(start);
+    throw RangeError.value(start);
   }
   if (start + length > listLength) {
-    throw new RangeError.value(start + length);
+    throw RangeError.value(start + length);
   }
 }
 
 void _offsetAlignmentCheck(int offset, int alignment) {
   if ((offset % alignment) != 0) {
-    throw new RangeError(
+    throw RangeError(
       'Offset ($offset) must be a multiple of '
       'BYTES_PER_ELEMENT ($alignment)',
     );
@@ -5510,17 +5457,17 @@ final class _UnmodifiableInt8ArrayView extends _Int8ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableInt8ArrayView(Int8List list) =>
-      new _UnmodifiableInt8ArrayView._(
+      _UnmodifiableInt8ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int8List asUnmodifiableView() => this;
 }
@@ -5539,17 +5486,17 @@ final class _UnmodifiableUint8ArrayView extends _Uint8ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableUint8ArrayView(Uint8List list) =>
-      new _UnmodifiableUint8ArrayView._(
+      _UnmodifiableUint8ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint8List asUnmodifiableView() => this;
 }
@@ -5568,17 +5515,17 @@ final class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableUint8ClampedArrayView(Uint8ClampedList list) =>
-      new _UnmodifiableUint8ClampedArrayView._(
+      _UnmodifiableUint8ClampedArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint8ClampedList asUnmodifiableView() => this;
 }
@@ -5597,17 +5544,17 @@ final class _UnmodifiableInt16ArrayView extends _Int16ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableInt16ArrayView(Int16List list) =>
-      new _UnmodifiableInt16ArrayView._(
+      _UnmodifiableInt16ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int16List asUnmodifiableView() => this;
 }
@@ -5626,17 +5573,17 @@ final class _UnmodifiableUint16ArrayView extends _Uint16ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableUint16ArrayView(Uint16List list) =>
-      new _UnmodifiableUint16ArrayView._(
+      _UnmodifiableUint16ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint16List asUnmodifiableView() => this;
 }
@@ -5655,17 +5602,17 @@ final class _UnmodifiableInt32ArrayView extends _Int32ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableInt32ArrayView(Int32List list) =>
-      new _UnmodifiableInt32ArrayView._(
+      _UnmodifiableInt32ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int32List asUnmodifiableView() => this;
 }
@@ -5684,17 +5631,17 @@ final class _UnmodifiableUint32ArrayView extends _Uint32ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableUint32ArrayView(Uint32List list) =>
-      new _UnmodifiableUint32ArrayView._(
+      _UnmodifiableUint32ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint32List asUnmodifiableView() => this;
 }
@@ -5713,17 +5660,17 @@ final class _UnmodifiableInt64ArrayView extends _Int64ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableInt64ArrayView(Int64List list) =>
-      new _UnmodifiableInt64ArrayView._(
+      _UnmodifiableInt64ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int64List asUnmodifiableView() => this;
 }
@@ -5742,17 +5689,17 @@ final class _UnmodifiableUint64ArrayView extends _Uint64ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableUint64ArrayView(Uint64List list) =>
-      new _UnmodifiableUint64ArrayView._(
+      _UnmodifiableUint64ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint64List asUnmodifiableView() => this;
 }
@@ -5771,17 +5718,17 @@ final class _UnmodifiableFloat32ArrayView extends _Float32ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableFloat32ArrayView(Float32List list) =>
-      new _UnmodifiableFloat32ArrayView._(
+      _UnmodifiableFloat32ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, double value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Float32List asUnmodifiableView() => this;
 }
@@ -5800,17 +5747,17 @@ final class _UnmodifiableFloat64ArrayView extends _Float64ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableFloat64ArrayView(Float64List list) =>
-      new _UnmodifiableFloat64ArrayView._(
+      _UnmodifiableFloat64ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, double value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Float64List asUnmodifiableView() => this;
 }
@@ -5829,17 +5776,17 @@ final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableFloat32x4ArrayView(Float32x4List list) =>
-      new _UnmodifiableFloat32x4ArrayView._(
+      _UnmodifiableFloat32x4ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, Float32x4 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Float32x4List asUnmodifiableView() => this;
 }
@@ -5858,17 +5805,17 @@ final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableInt32x4ArrayView(Int32x4List list) =>
-      new _UnmodifiableInt32x4ArrayView._(
+      _UnmodifiableInt32x4ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, Int32x4 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int32x4List asUnmodifiableView() => this;
 }
@@ -5887,17 +5834,17 @@ final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableFloat64x2ArrayView(Float64x2List list) =>
-      new _UnmodifiableFloat64x2ArrayView._(
+      _UnmodifiableFloat64x2ArrayView._(
         unsafeCast<_TypedListBase>(list)._typedData,
         list.offsetInBytes,
         list.length,
       );
 
   void operator []=(int index, Float64x2 value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Float64x2List asUnmodifiableView() => this;
 }
@@ -5916,50 +5863,50 @@ final class _UnmodifiableByteDataView extends _ByteDataView {
 
   @pragma("vm:prefer-inline")
   factory _UnmodifiableByteDataView(ByteData data) =>
-      new _UnmodifiableByteDataView._(
+      _UnmodifiableByteDataView._(
         unsafeCast<_ByteDataView>(data).buffer._data,
         data.offsetInBytes,
         data.lengthInBytes,
       );
 
   void setInt8(int byteOffset, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setUint8(int byteOffset, int value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
   void setFloat32x4(
@@ -5967,10 +5914,10 @@ final class _UnmodifiableByteDataView extends _ByteDataView {
     Float32x4 value, [
     Endian endian = Endian.big,
   ]) {
-    throw new UnsupportedError("Cannot modify an unmodifiable list");
+    throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 
-  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+  _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   ByteData asUnmodifiableView() => this;
 }
@@ -5980,65 +5927,53 @@ final class _UnmodifiableByteBufferView extends _ByteBuffer {
     : super(unsafeCast<_ByteBuffer>(data)._data);
 
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableUint8ArrayView(super.asUint8List(offsetInBytes, length));
+      _UnmodifiableUint8ArrayView(super.asUint8List(offsetInBytes, length));
 
   Int8List asInt8List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableInt8ArrayView(super.asInt8List(offsetInBytes, length));
+      _UnmodifiableInt8ArrayView(super.asInt8List(offsetInBytes, length));
 
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableUint8ClampedArrayView(
+      _UnmodifiableUint8ClampedArrayView(
         super.asUint8ClampedList(offsetInBytes, length),
       );
 
   Uint16List asUint16List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableUint16ArrayView(
-        super.asUint16List(offsetInBytes, length),
-      );
+      _UnmodifiableUint16ArrayView(super.asUint16List(offsetInBytes, length));
 
   Int16List asInt16List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableInt16ArrayView(super.asInt16List(offsetInBytes, length));
+      _UnmodifiableInt16ArrayView(super.asInt16List(offsetInBytes, length));
 
   Uint32List asUint32List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableUint32ArrayView(
-        super.asUint32List(offsetInBytes, length),
-      );
+      _UnmodifiableUint32ArrayView(super.asUint32List(offsetInBytes, length));
 
   Int32List asInt32List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableInt32ArrayView(super.asInt32List(offsetInBytes, length));
+      _UnmodifiableInt32ArrayView(super.asInt32List(offsetInBytes, length));
 
   Uint64List asUint64List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableUint64ArrayView(
-        super.asUint64List(offsetInBytes, length),
-      );
+      _UnmodifiableUint64ArrayView(super.asUint64List(offsetInBytes, length));
 
   Int64List asInt64List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableInt64ArrayView(super.asInt64List(offsetInBytes, length));
+      _UnmodifiableInt64ArrayView(super.asInt64List(offsetInBytes, length));
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableInt32x4ArrayView(
-        super.asInt32x4List(offsetInBytes, length),
-      );
+      _UnmodifiableInt32x4ArrayView(super.asInt32x4List(offsetInBytes, length));
 
   Float32List asFloat32List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableFloat32ArrayView(
-        super.asFloat32List(offsetInBytes, length),
-      );
+      _UnmodifiableFloat32ArrayView(super.asFloat32List(offsetInBytes, length));
 
   Float64List asFloat64List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableFloat64ArrayView(
-        super.asFloat64List(offsetInBytes, length),
-      );
+      _UnmodifiableFloat64ArrayView(super.asFloat64List(offsetInBytes, length));
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableFloat32x4ArrayView(
+      _UnmodifiableFloat32x4ArrayView(
         super.asFloat32x4List(offsetInBytes, length),
       );
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableFloat64x2ArrayView(
+      _UnmodifiableFloat64x2ArrayView(
         super.asFloat64x2List(offsetInBytes, length),
       );
 
   ByteData asByteData([int offsetInBytes = 0, int? length]) =>
-      new _UnmodifiableByteDataView(super.asByteData(offsetInBytes, length));
+      _UnmodifiableByteDataView(super.asByteData(offsetInBytes, length));
 }

@@ -68,7 +68,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   Uri get importUri => _dillLibraryBuilder.importUri;
 
   @override
-  bool get isAugmenting => _dillLibraryBuilder.isAugmenting;
+  bool get isAugmenting => false;
 
   @override
   bool get isPart => _dillLibraryBuilder.isPart;
@@ -139,9 +139,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;
-
-  @override
-  LibraryBuilder get origin => this;
 
   @override
   Null get partOfLibrary => null;
@@ -478,15 +475,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   Iterator<T> fullMemberIterator<T extends Builder>() {
-    return libraryNameSpace.filteredIterator<T>(
-        includeDuplicates: false, includeAugmentations: false);
+    return libraryNameSpace.filteredIterator<T>(includeDuplicates: false);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() {
-    return libraryNameSpace.filteredNameIterator(
-        includeDuplicates: false, includeAugmentations: false);
+    return libraryNameSpace.filteredNameIterator(includeDuplicates: false);
   }
 
   @override

@@ -7,19 +7,14 @@ import 'package:js_shared/variance.dart';
 import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../options.dart';
 import '../ordered_typeset.dart';
 import 'element_map.dart';
 
 /// Support for subtype checks of kernel based [DartType]s.
 class KernelDartTypes extends DartTypes {
   final IrToElementMap elementMap;
-  final CompilerOptions _options;
 
-  KernelDartTypes(this.elementMap, this._options);
-
-  @override
-  bool get useLegacySubtyping => _options.useLegacySubtyping;
+  KernelDartTypes(this.elementMap);
 
   @override
   InterfaceType getThisType(ClassEntity cls) {

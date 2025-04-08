@@ -29,7 +29,6 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <testLibraryFragment>::@class::A::@getter::foo
   element: <testLibraryFragment>::@class::A::@getter::foo#element
   staticType: int
 ''');
@@ -50,7 +49,6 @@ class B {
     assertResolvedNodeText(node1, r'''
 NamedType
   name: a
-  element: <testLibraryFragment>::@class::a
   element2: <testLibrary>::@class::a
   type: a
 ''');
@@ -59,7 +57,6 @@ NamedType
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@class::B::@method::bar::@parameter::a
   element: <testLibraryFragment>::@class::B::@method::bar::@parameter::a#element
   staticType: a
 ''');
@@ -79,7 +76,6 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
-  staticElement: <testLibraryFragment>::@class::A::@getter::_
   element: <testLibraryFragment>::@class::A::@getter::_#element
   staticType: int
 ''');
@@ -156,7 +152,6 @@ VariableDeclaration
   equals: =
   initializer: SimpleIdentifier
     token: _
-    staticElement: <testLibraryFragment>::@class::C::@getter::_
     element: <testLibraryFragment>::@class::C::@getter::_#element
     staticType: int
   declaredElement: _@51

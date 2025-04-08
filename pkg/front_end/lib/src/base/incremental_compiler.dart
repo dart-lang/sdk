@@ -14,8 +14,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
         CompilationModeError,
         InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
-        SubComponentView,
-        mergeCompilationModeOrThrow;
+        SubComponentView;
 import 'package:kernel/canonical_name.dart'
     show CanonicalNameError, CanonicalNameSdkError;
 import 'package:kernel/class_hierarchy.dart'
@@ -39,7 +38,6 @@ import 'package:kernel/kernel.dart'
         Name,
         NamedNode,
         Node,
-        NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
         Reference,
@@ -492,14 +490,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           data.component?.mainMethod
           : componentWithDill.mainMethod;
       // ignore: unnecessary_null_comparison
-      NonNullableByDefaultCompiledMode? compiledMode = componentWithDill == null
-          ?
-          // Coverage-ignore(suite): Not run.
-          data.component?.mode
-          : componentWithDill.mode;
       Component result = context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
-        ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode!)
+        ..setMainMethodAndMode(mainMethod?.reference, true)
         ..problemsAsJson = problemsAsJson;
 
       // Copy the metadata *just created*. This will likely not contain metadata
@@ -944,27 +937,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     _dillLoadedData!.loader.currentSourceLoader = kernelTarget.loader;
 
     // Re-use the libraries we've deemed re-usable.
-    List<bool> seenModes = [false, false, false, false];
     for (DillLibraryBuilder library in reusedLibraries) {
-      seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
       kernelTarget.loader.registerLoadedDillLibraryBuilder(library);
-    }
-    // Check compilation mode up against what we've seen here and set
-    // `hasInvalidNnbdModeLibrary` accordingly.
-    if (c.options.globalFeatures.nonNullable.isEnabled) {
-      // Don't expect weak or invalid.
-      if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
-          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-        // Coverage-ignore-block(suite): Not run.
-        kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-      }
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      // Don't expect strong or invalid.
-      if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
-          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-        kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-      }
     }
 
     // The entry point(s) has to be set first for loader.firstUri to be setup
@@ -1274,7 +1248,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Uri> seenUris = new Set<Uri>();
     for (DillLibraryBuilder builder in reusedResult.notReusedLibraries) {
       if (builder.isPart) continue;
-      if (builder.isAugmenting) continue;
       if (rebuildBodies!.contains(builder)) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedResult.reusedLibraries.add(builder);
@@ -2239,9 +2212,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // builder can exist multiple times in the values list.
     for (DillLibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
-      // TODO(jensj/ahe): This line can probably go away once
-      // https://dart-review.googlesource.com/47442 lands.
-      if (builder.isAugmenting) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }
@@ -2491,8 +2461,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
               .mainMethod
               // Coverage-ignore(suite): Not run.
               ?.reference,
-          true,
-          componentToInitializeFrom.mode);
+          true);
     componentProblems.saveComponentProblems(component);
 
     bool foundDartCore = false;
@@ -2621,10 +2590,6 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
             .readComponent(data.component!,
                 checkCanonicalNames: true, createView: true)!;
 
-        // Compute "output nnbd mode".
-        NonNullableByDefaultCompiledMode compiledMode =
-            NonNullableByDefaultCompiledMode.Strong;
-
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
         // Also verify NNBD settings.
@@ -2637,16 +2602,6 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
             // TODO(jensj): Anything that doesn't depend on it can be kept.
             // For now just don't initialize from this dill.
             throw const PackageChangedError();
-          }
-          // Note: If a library has a NonNullableByDefaultCompiledMode.invalid
-          // we will throw and we won't initialize from it.
-          // That's wanted behavior.
-          if (compiledMode !=
-              mergeCompilationModeOrThrow(
-                  compiledMode, lib.nonNullableByDefaultCompiledMode)) {
-            throw new CompilationModeError(
-                "Can't compile to $compiledMode with library with mode "
-                "${lib.nonNullableByDefaultCompiledMode}.");
           }
         }
 

@@ -7,7 +7,7 @@ import 'package:expect/async_helper.dart' show asyncExpectThrows;
 
 // It is an error to load a module that provides a second definition for
 // a library that already exists in the application.
-main() async {
+void main() async {
   await helper.load('entry1.dart');
   await asyncExpectThrows(helper.load('entry2.dart'));
   helper.done();

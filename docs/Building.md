@@ -158,9 +158,9 @@ All tests are executed using the `test.py` script under `tools/`.  You need to u
 $ ./tools/build.py --mode release --arch ia32 most run_ffi_unit_tests
 ```
 
-Now you can run all tests as follows (Safari, Firefox, Chrome, and IE must be installed, if you want to run the tests on them):
+Now you can run all tests as follows (Safari, Firefox, and Chrome must be installed, if you want to run the tests on them):
 ```bash
-$ ./tools/test.py -mrelease --arch=ia32 --compiler=dartk,dart2js --runtime=vm,d8,chrome,firefox,[safari,ie10]
+$ ./tools/test.py -mrelease --arch=ia32 --compiler=dartk,dart2js --runtime=vm,d8,chrome,firefox,[safari]
 ```
 Specify the compiler used (optional -- only necessary if you are compiling to JavaScript (required for most browsers), the default is "none") and a runtime (where the code will be run).
 

@@ -29,7 +29,7 @@ class FlutterWrapContainerTest extends AssistProcessorTest {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 Widget f() {
-  return /*caret*/Container();
+  return ^Container();
 }
 ''');
     await assertNoAssist();
@@ -39,7 +39,7 @@ Widget f() {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 void f() {
-  /*caret*/Text('a');
+  ^Text('a');
 }
 ''');
     await assertHasAssist('''

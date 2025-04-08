@@ -13,10 +13,7 @@ import 'dart:typed_data' show Uint8List;
 
 @patch
 @pragma('dart2js:tryInline')
-bool typeAcceptsNull<T>() {
-  bool isLegacySubtyping = JS_GET_FLAG('LEGACY');
-  return isLegacySubtyping || null is T;
-}
+bool typeAcceptsNull<T>() => null is T;
 
 @patch
 class Symbol implements core.Symbol {
@@ -34,7 +31,7 @@ class Symbol implements core.Symbol {
   }
 
   @patch
-  toString() => 'Symbol("$_name")';
+  String toString() => 'Symbol("$_name")';
 
   @patch
   static String computeUnmangledName(Symbol symbol) {

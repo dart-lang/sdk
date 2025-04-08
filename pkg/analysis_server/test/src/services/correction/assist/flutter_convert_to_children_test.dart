@@ -31,7 +31,7 @@ class FlutterConvertToChildrenTest extends AssistProcessorTest {
 import 'package:flutter/material.dart';
 build() {
   return Row(
-    /*caret*/child: Container()
+    ^child: Container()
   );
 }
 ''');
@@ -44,7 +44,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      /*caret*/child: Container(
+      ^child: Container(
         width: 200.0,
         height: 300.0,
       ),
@@ -79,7 +79,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      /*caret*/child:
+      ^child:
           Container(
         width: 200.0,
         height: 300.0,
@@ -112,7 +112,7 @@ build() {
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
-    body: /*caret*/Center(
+    body: ^Center(
       child: Container(),
     ),
   );
@@ -127,7 +127,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      /*caret*/child: GestureDetector(),
+      ^child: GestureDetector(),
       key: Key('x'),
     ),
   );

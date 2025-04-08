@@ -230,7 +230,7 @@ class FormalParameterBuilder extends BuilderImpl
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
     if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.isField) {
-      DartType fieldType = fieldBuilder.inferType(hierarchy);
+      DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
       fieldType = constructorDeclaration.substituteFieldType(fieldType);
       type.registerInferredType(fieldType);
     } else {

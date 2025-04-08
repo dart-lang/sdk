@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/trace_packet.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -24,9 +24,30 @@ import 'package:protobuf/protobuf.dart' as $pb;
 class TracePacket_SequenceFlags extends $pb.ProtobufEnum {
   static const TracePacket_SequenceFlags SEQ_UNSPECIFIED =
       TracePacket_SequenceFlags._(0, _omitEnumNames ? '' : 'SEQ_UNSPECIFIED');
+
+  ///  Set by the writer to indicate that it will re-emit any incremental data
+  ///  for the packet's sequence before referring to it again. This includes
+  ///  interned data as well as periodically emitted data like
+  ///  Process/ThreadDescriptors. This flag only affects the current packet
+  ///  sequence (see |trusted_packet_sequence_id|).
+  ///
+  ///  When set, this TracePacket and subsequent TracePackets on the same
+  ///  sequence will not refer to any incremental data emitted before this
+  ///  TracePacket. For example, previously emitted interned data will be
+  ///  re-emitted if it is referred to again.
+  ///
+  ///  When the reader detects packet loss (|previous_packet_dropped|), it needs
+  ///  to skip packets in the sequence until the next one with this flag set, to
+  ///  ensure intact incremental data.
   static const TracePacket_SequenceFlags SEQ_INCREMENTAL_STATE_CLEARED =
       TracePacket_SequenceFlags._(
           1, _omitEnumNames ? '' : 'SEQ_INCREMENTAL_STATE_CLEARED');
+
+  /// This packet requires incremental state, such as TracePacketDefaults or
+  /// InternedData, to be parsed correctly. The trace reader should skip this
+  /// packet if incremental state is not valid on this sequence, i.e. if no
+  /// packet with the SEQ_INCREMENTAL_STATE_CLEARED flag has been seen on the
+  /// current |trusted_packet_sequence_id|.
   static const TracePacket_SequenceFlags SEQ_NEEDS_INCREMENTAL_STATE =
       TracePacket_SequenceFlags._(
           2, _omitEnumNames ? '' : 'SEQ_NEEDS_INCREMENTAL_STATE');
@@ -42,7 +63,7 @@ class TracePacket_SequenceFlags extends $pb.ProtobufEnum {
       $pb.ProtobufEnum.initByValue(values);
   static TracePacket_SequenceFlags? valueOf($core.int value) => _byValue[value];
 
-  const TracePacket_SequenceFlags._($core.int v, $core.String n) : super(v, n);
+  const TracePacket_SequenceFlags._(super.v, super.n);
 }
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

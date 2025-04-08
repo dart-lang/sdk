@@ -12,6 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
 
@@ -32,10 +33,14 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   String get name => 'ServerAnalysisOptionsActionsComputer';
 
   @override
-  Future<List<CodeActionWithPriority>> getAssistActions() async => [];
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformance? performance,
+  }) async => [];
 
   @override
-  Future<List<CodeActionWithPriority>> getFixActions() async {
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  ) async {
     var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];
@@ -90,7 +95,13 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       var diagnostic = createDiagnostic(lineInfo, result, error);
       codeActions.addAll(
         fixes.map((fix) {
-          var action = createFixAction(fix.change, diagnostic, path, lineInfo);
+          var action = createFixAction(
+            fix.change,
+            fix.change.id,
+            diagnostic,
+            path,
+            lineInfo,
+          );
           return (action: action, priority: fix.kind.priority);
         }),
       );
@@ -100,7 +111,9 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions() async => [];
+  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+    OperationPerformance? performance,
+  ) async => [];
 
   @override
   Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];

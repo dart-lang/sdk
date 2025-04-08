@@ -280,7 +280,6 @@ extension DirectiveExtension on Directive {
     }
   }
 
-
   /// If [referencedUri] is a [DirectiveUriWithSource], returns the [Source]
   /// from it.
   Source? get referencedSource {
@@ -307,36 +306,6 @@ extension DirectiveExtension on Directive {
 }
 
 extension ExpressionExtension on Expression {
-  /// Return `true` if this expression is an invocation of the method `cast`
-  /// from either Iterable`, `List`, `Map`, or `Set`.
-  bool get isCastMethodInvocation {
-    if (this case MethodInvocation self) {
-      var element = self.methodName.element;
-      return element is MethodElement2 && element.isCastMethod;
-    }
-    return false;
-  }
-
-  /// Return `true` if this expression is an invocation of the method `toList`
-  /// from `Iterable`.
-  bool get isToListMethodInvocation {
-    if (this case MethodInvocation self) {
-      var element = self.methodName.element;
-      return element is MethodElement2 && element.isToListMethod;
-    }
-    return false;
-  }
-
-  /// Return `true` if this expression is an invocation of the method `toSet`
-  /// from `Iterable`.
-  bool get isToSetMethodInvocation {
-    if (this case MethodInvocation self) {
-      var element = self.methodName.element;
-      return element is MethodElement2 && element.isToSetMethod;
-    }
-    return false;
-  }
-
   /// Whether this [Expression] should be wrapped with parentheses when we want
   /// to use it as operand of a logical and-expression.
   bool get shouldWrapParenthesisBeforeAnd {
@@ -361,6 +330,29 @@ extension MethodDeclarationExtension on MethodDeclaration {
     return propertyKeyword != null && propertyKeyword.keyword == Keyword.GET
         ? propertyKeyword
         : null;
+  }
+}
+
+extension MethodInvocationExtension on MethodInvocation {
+  /// Returns whether this expression is an invocation of the method `cast`
+  /// from either Iterable`, `List`, `Map`, or `Set`.
+  bool get isCastMethodInvocation {
+    var element = methodName.element;
+    return element is MethodElement2 && element.isCastMethod;
+  }
+
+  /// Returns whether this expression is an invocation of the method `toList`
+  /// from `Iterable`.
+  bool get isToListMethodInvocation {
+    var element = methodName.element;
+    return element is MethodElement2 && element.isToListMethod;
+  }
+
+  /// Returns whether this expression is an invocation of the method `toSet`
+  /// from `Iterable`.
+  bool get isToSetMethodInvocation {
+    var element = methodName.element;
+    return element is MethodElement2 && element.isToSetMethod;
   }
 }
 

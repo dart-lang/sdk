@@ -57,8 +57,6 @@ void main() {
   ConstructorExt? ctorExtNullable5 = .constNamed(x: x);
   ConstructorExt? ctorExtNullable6 = .constOptional(x);
 
-  UnnamedConstructor Function() ctorTearoff = .new;
-
   // Parameter context type.
   ConstructorClassContext(.new(1));
   ConstructorClassContext.named(x: .optional(1));

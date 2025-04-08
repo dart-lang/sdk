@@ -89,7 +89,7 @@ class _WebSocketProtocolTransformer
   int _remainingPayloadBytes = -1;
   int _unmaskingIndex = 0;
   int _currentMessageType = _WebSocketMessageType.NONE;
-  int closeCode = WebSocketStatus.noStatusReceived;
+  int closeCode = WebSocketStatus.abnormalClosure;
   String closeReason = "";
 
   EventSink<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/>? _eventSink;
@@ -316,6 +316,7 @@ class _WebSocketProtocolTransformer
         switch (_opcode) {
           case _WebSocketOpcode.CLOSE:
             _state = CLOSED;
+            closeCode = WebSocketStatus.noStatusReceived;
             _eventSink!.close();
             break;
           case _WebSocketOpcode.PING:

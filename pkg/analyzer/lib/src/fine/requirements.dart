@@ -33,24 +33,26 @@ class BundleRequirementsManifest {
   final Map<Uri, Map<LookupName, Map<LookupName, ManifestItemId?>>>
       interfaceMembers = {};
 
-  final List<_ExportRequirement> exportRequirements = [];
+  final List<ExportRequirement> exportRequirements = [];
 
   BundleRequirementsManifest();
 
   factory BundleRequirementsManifest.read(SummaryDataReader reader) {
     var result = BundleRequirementsManifest();
 
+    Map<LookupName, ManifestItemId?> readNameToIdMap() {
+      return reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => reader.readOptionalObject(
+          () => ManifestItemId.read(reader),
+        ),
+      );
+    }
+
     result.topLevels.addAll(
       reader.readMap(
         readKey: () => reader.readUri(),
-        readValue: () {
-          return reader.readMap(
-            readKey: () => LookupName.read(reader),
-            readValue: () => reader.readOptionalObject(
-              (reader) => ManifestItemId.read(reader),
-            ),
-          );
-        },
+        readValue: readNameToIdMap,
       ),
     );
 
@@ -60,21 +62,14 @@ class BundleRequirementsManifest {
         readValue: () {
           return reader.readMap(
             readKey: () => LookupName.read(reader),
-            readValue: () {
-              return reader.readMap(
-                readKey: () => LookupName.read(reader),
-                readValue: () => reader.readOptionalObject(
-                  (reader) => ManifestItemId.read(reader),
-                ),
-              );
-            },
+            readValue: readNameToIdMap,
           );
         },
       ),
     );
 
     result.exportRequirements.addAll(
-      reader.readTypedList(() => _ExportRequirement.read(reader)),
+      reader.readTypedList(() => ExportRequirement.read(reader)),
     );
 
     return result;
@@ -110,29 +105,14 @@ class BundleRequirementsManifest {
 
       for (var topLevelEntry in libraryEntry.value.entries) {
         var name = topLevelEntry.key;
-        var item = libraryManifest.items[name];
-        if (topLevelEntry.value == null) {
-          if (item != null) {
-            return TopLevelPresent(
-              libraryUri: libraryUri,
-              name: name,
-            );
-          }
-        } else {
-          if (item == null) {
-            return TopLevelMissing(
-              libraryUri: libraryUri,
-              name: name,
-            );
-          }
-          if (item.id != topLevelEntry.value) {
-            return TopLevelIdMismatch(
-              libraryUri: libraryUri,
-              name: name,
-              expectedId: topLevelEntry.value,
-              actualId: item.id,
-            );
-          }
+        var actualId = libraryManifest.getExportedId(name);
+        if (topLevelEntry.value != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: topLevelEntry.value,
+            actualId: actualId,
+          );
         }
       }
     }
@@ -152,6 +132,7 @@ class BundleRequirementsManifest {
         if (interfaceItem is! ClassItem) {
           return TopLevelNotClass(
             libraryUri: libraryUri,
+            name: interfaceName,
           );
         }
 
@@ -159,24 +140,14 @@ class BundleRequirementsManifest {
           var memberName = memberEntry.key;
           var memberItem = interfaceItem.members[memberName];
           var expectedId = memberEntry.value;
-          if (expectedId == null) {
-            if (memberItem != null) {
-              return InstanceMemberPresent();
-            }
-          } else {
-            if (memberItem == null) {
-              return InstanceMemberMissing();
-            }
-            var actualId = memberItem.id;
-            if (actualId != expectedId) {
-              return InstanceMemberIdMismatch(
-                libraryUri: libraryUri,
-                interfaceName: interfaceName,
-                memberName: memberName,
-                expectedId: expectedId,
-                actualId: actualId,
-              );
-            }
+          if (expectedId != memberItem?.id) {
+            return InstanceMemberIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              memberName: memberName,
+              expectedId: expectedId,
+              actualId: memberItem?.id,
+            );
           }
         }
       }
@@ -208,7 +179,8 @@ class BundleRequirementsManifest {
     var libraryElement = element.library2 as LibraryElementImpl;
     var manifest = libraryElement.manifest;
 
-    // TODO(scheglov): can this happen?
+    // If we are linking the library, its manifest is not set yet.
+    // But then we also don't care about this dependency.
     if (manifest == null) {
       return;
     }
@@ -244,7 +216,7 @@ class BundleRequirementsManifest {
       var uri = importedLibrary.uri;
       var nameToId = topLevels[uri] ??= {};
       var name = nameStr.asLookupName;
-      nameToId[name] = manifest.items[name]?.id;
+      nameToId[name] = manifest.getExportedId(name);
     }
   }
 
@@ -268,40 +240,32 @@ class BundleRequirementsManifest {
   }
 
   void write(BufferedSink sink) {
+    void writeNameToIdMap(Map<LookupName, ManifestItemId?> map) {
+      sink.writeMap(
+        map,
+        writeKey: (name) => name.write(sink),
+        writeValue: (id) {
+          sink.writeOptionalObject(id, (id) {
+            id.write(sink);
+          });
+        },
+      );
+    }
+
     sink.writeMap(
       topLevels,
       writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (nameToIdMap) {
-        sink.writeMap(
-          nameToIdMap,
-          writeKey: (name) => name.write(sink),
-          writeValue: (id) {
-            sink.writeOptionalObject(id, (id) {
-              id.write(sink);
-            });
-          },
-        );
-      },
+      writeValue: writeNameToIdMap,
     );
 
     sink.writeMap(
       interfaceMembers,
       writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (nameToIdMap) {
+      writeValue: (nameToInterfaceMap) {
         sink.writeMap(
-          nameToIdMap,
+          nameToInterfaceMap,
           writeKey: (name) => name.write(sink),
-          writeValue: (interface) {
-            sink.writeMap(
-              interface,
-              writeKey: (name) => name.write(sink),
-              writeValue: (id) {
-                sink.writeOptionalObject(id, (id) {
-                  id.write(sink);
-                });
-              },
-            );
-          },
+          writeValue: writeNameToIdMap,
         );
       },
     );
@@ -316,7 +280,8 @@ class BundleRequirementsManifest {
     for (var fragment in libraryElement.fragments) {
       for (var export in fragment.libraryExports) {
         var exportedLibrary = export.exportedLibrary;
-        // TODO(scheglov): record this
+
+        // If no library, then there is nothing to re-export.
         if (exportedLibrary == null) {
           continue;
         }
@@ -350,7 +315,7 @@ class BundleRequirementsManifest {
         }
 
         exportRequirements.add(
-          _ExportRequirement(
+          ExportRequirement(
             fragmentUri: fragment.source.uri,
             exportedUri: exportedLibrary.uri,
             combinators: combinators,
@@ -363,81 +328,21 @@ class BundleRequirementsManifest {
 }
 
 @visibleForTesting
-sealed class ExportRequirementCombinator {
-  ExportRequirementCombinator();
-
-  factory ExportRequirementCombinator.read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_ExportRequirementCombinatorKind.values);
-    switch (kind) {
-      case _ExportRequirementCombinatorKind.hide:
-        return ExportRequirementHideCombinator.read(reader);
-      case _ExportRequirementCombinatorKind.show:
-        return ExportRequirementShowCombinator.read(reader);
-    }
-  }
-
-  void write(BufferedSink sink);
-}
-
-@visibleForTesting
-final class ExportRequirementHideCombinator
-    extends ExportRequirementCombinator {
-  final Set<BaseName> hiddenBaseNames;
-
-  ExportRequirementHideCombinator({
-    required this.hiddenBaseNames,
-  });
-
-  factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
-    return ExportRequirementHideCombinator(
-      hiddenBaseNames: reader.readBaseNameSet(),
-    );
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ExportRequirementCombinatorKind.hide);
-    sink.writeBaseNameIterable(hiddenBaseNames);
-  }
-}
-
-@visibleForTesting
-final class ExportRequirementShowCombinator
-    extends ExportRequirementCombinator {
-  final Set<BaseName> shownBaseNames;
-
-  ExportRequirementShowCombinator({
-    required this.shownBaseNames,
-  });
-
-  factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
-    return ExportRequirementShowCombinator(
-      shownBaseNames: reader.readBaseNameSet(),
-    );
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ExportRequirementCombinatorKind.show);
-    sink.writeBaseNameIterable(shownBaseNames);
-  }
-}
-
-class _ExportRequirement {
+class ExportRequirement {
   final Uri fragmentUri;
   final Uri exportedUri;
   final List<ExportRequirementCombinator> combinators;
   final Map<LookupName, ManifestItemId> exportedIds;
 
-  _ExportRequirement({
+  ExportRequirement({
     required this.fragmentUri,
     required this.exportedUri,
     required this.combinators,
     required this.exportedIds,
   });
 
-  factory _ExportRequirement.read(SummaryDataReader reader) {
-    return _ExportRequirement(
+  factory ExportRequirement.read(SummaryDataReader reader) {
+    return ExportRequirement(
       fragmentUri: reader.readUri(),
       exportedUri: reader.readUri(),
       combinators: reader.readTypedList(
@@ -524,6 +429,67 @@ class _ExportRequirement {
       }
     }
     return true;
+  }
+}
+
+@visibleForTesting
+sealed class ExportRequirementCombinator {
+  ExportRequirementCombinator();
+
+  factory ExportRequirementCombinator.read(SummaryDataReader reader) {
+    var kind = reader.readEnum(_ExportRequirementCombinatorKind.values);
+    switch (kind) {
+      case _ExportRequirementCombinatorKind.hide:
+        return ExportRequirementHideCombinator.read(reader);
+      case _ExportRequirementCombinatorKind.show:
+        return ExportRequirementShowCombinator.read(reader);
+    }
+  }
+
+  void write(BufferedSink sink);
+}
+
+@visibleForTesting
+final class ExportRequirementHideCombinator
+    extends ExportRequirementCombinator {
+  final Set<BaseName> hiddenBaseNames;
+
+  ExportRequirementHideCombinator({
+    required this.hiddenBaseNames,
+  });
+
+  factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
+    return ExportRequirementHideCombinator(
+      hiddenBaseNames: reader.readBaseNameSet(),
+    );
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ExportRequirementCombinatorKind.hide);
+    sink.writeBaseNameIterable(hiddenBaseNames);
+  }
+}
+
+@visibleForTesting
+final class ExportRequirementShowCombinator
+    extends ExportRequirementCombinator {
+  final Set<BaseName> shownBaseNames;
+
+  ExportRequirementShowCombinator({
+    required this.shownBaseNames,
+  });
+
+  factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
+    return ExportRequirementShowCombinator(
+      shownBaseNames: reader.readBaseNameSet(),
+    );
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ExportRequirementCombinatorKind.show);
+    sink.writeBaseNameIterable(shownBaseNames);
   }
 }
 

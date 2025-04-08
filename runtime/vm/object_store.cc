@@ -55,45 +55,15 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
-static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
-  const Array& code_array = Array::Handle(
-      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
-  const TypedData& pc_offset_array = TypedData::Handle(
-      zone, TypedData::New(kUintPtrCid, StackTrace::kPreallocatedStackdepth,
-                           Heap::kOld));
-  const StackTrace& stack_trace =
-      StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
-  // Expansion of inlined functions requires additional memory at run time,
-  // avoid it.
-  stack_trace.set_expand_inlined(false);
-  return stack_trace.ptr();
-}
-
-ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
+ErrorPtr IsolateObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
   ASSERT(isolate != nullptr && isolate->isolate_object_store() == this);
-  ASSERT(preallocated_stack_trace() == StackTrace::null());
   resume_capabilities_ = GrowableObjectArray::New();
   exit_listeners_ = GrowableObjectArray::New();
   error_listeners_ = GrowableObjectArray::New();
   dart_args_1_ = Array::New(1);
   dart_args_2_ = Array::New(2);
-
-  // Allocate pre-allocated unhandled exception object initialized with the
-  // pre-allocated OutOfMemoryError.
-  const StackTrace& preallocated_stack_trace =
-      StackTrace::Handle(zone, CreatePreallocatedStackTrace(zone));
-  set_preallocated_stack_trace(preallocated_stack_trace);
-  set_preallocated_unhandled_exception(UnhandledException::Handle(
-      zone, UnhandledException::New(Instance::Cast(out_of_memory),
-                                    preallocated_stack_trace)));
-  const UnwindError& preallocated_unwind_error =
-      UnwindError::Handle(zone, UnwindError::New(String::Handle(
-                                    zone, String::New("isolate is exiting"))));
-  set_preallocated_unwind_error(preallocated_unwind_error);
-
   return Error::null();
 }
 

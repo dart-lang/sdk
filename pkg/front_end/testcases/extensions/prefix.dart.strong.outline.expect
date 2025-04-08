@@ -1,0 +1,49 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///prefix_lib1.dart" as lib1 show ShownExtension1;
+import "org-dartlang-testcase:///prefix_lib2.dart" as lib2 hide HiddenExtension2;
+import "org-dartlang-testcase:///prefix_lib3.dart" as lib3;
+
+static method test() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension ShownExtension1 on core::String {
+  static method staticMethod = self2::ShownExtension1|staticMethod;
+}
+extension HiddenExtension1 on core::String {
+  static method staticMethod = self2::HiddenExtension1|staticMethod;
+}
+static extension-member method ShownExtension1|staticMethod() → void
+  ;
+static extension-member method HiddenExtension1|staticMethod() → void
+  ;
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+extension HiddenExtension2 on core::String {
+  static method staticMethod = self3::HiddenExtension2|staticMethod;
+}
+extension ShownExtension2 on core::String {
+  static method staticMethod = self3::ShownExtension2|staticMethod;
+}
+static extension-member method HiddenExtension2|staticMethod() → void
+  ;
+static extension-member method ShownExtension2|staticMethod() → void
+  ;
+
+library;
+import self as self4;
+import "dart:core" as core;
+
+extension ShownExtension3 on core::String {
+  static method staticMethod = self4::ShownExtension3|staticMethod;
+}
+static extension-member method ShownExtension3|staticMethod() → void
+  ;

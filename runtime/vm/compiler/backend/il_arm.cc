@@ -183,8 +183,8 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::RequiresRegister());
   locs->set_in(kDestPos, Location::RequiresRegister());
-  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
-  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
+  locs->set_in(kSrcStartPos, LocationRegisterOrSmiConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrSmiConstant(dest_start()));
   locs->set_in(kLengthPos,
                LocationWritableRegisterOrSmiConstant(length(), 0, 4));
   for (intptr_t i = 0; i < kNumTemps; i++) {
@@ -1876,7 +1876,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The callback trampoline (caller) has already left the safepoint for us.
   __ TransitionNativeToGenerated(/*scratch0=*/R0, /*scratch1=*/R1,
                                  /*exit_safepoint=*/false,
-                                 /*ignore_unwind_in_progress=*/false,
                                  /*set_tag=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../type_inference/nullability_suffix.dart';
-
 /// Common interface for data structures used by the implementations to
 /// represent the type `dynamic`.
 abstract interface class SharedDynamicType implements SharedType {}
@@ -71,21 +69,21 @@ abstract interface class SharedRecordType implements SharedType {
 }
 
 /// Common interface for data structures used by the implementations to
-/// represent a generic type parameter.
-abstract interface class SharedTypeParameter {
-  /// The bound of the type parameter.
-  SharedType? get boundShared;
-
-  /// The name of the type parameter, for display to the user.
-  String get displayName;
-}
-
-/// Common interface for data structures used by the implementations to
 /// represent a type.
 abstract interface class SharedType {
-  /// If this type ends in a suffix (`?` or `*`), the suffix it ends with;
-  /// otherwise [NullabilitySuffix.none].
-  NullabilitySuffix get nullabilitySuffix;
+  /// Whether this type ends in a `?` suffix.
+  ///
+  /// Note that some types are nullable even though they do not end in a `?`
+  /// suffix (for example, `Null`, `dynamic`, and `FutureOr<int?>`). These types
+  /// all respond to this query with `false`.
+  bool get isQuestionType;
+
+  /// Returns a modified version of this type, with the nullability suffix
+  /// changed to [isQuestionType].
+  ///
+  /// For types that don't accept a nullability suffix (`dynamic`, InvalidType,
+  /// `Null`, `_`, and `void`), the type is returned unchanged.
+  SharedType asQuestionType(bool isQuestionType);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -95,6 +93,16 @@ abstract interface class SharedType {
   String getDisplayString();
 
   bool isStructurallyEqualTo(covariant SharedType other);
+}
+
+/// Common interface for data structures used by the implementations to
+/// represent a generic type parameter.
+abstract interface class SharedTypeParameter {
+  /// The bound of the type parameter.
+  SharedType? get boundShared;
+
+  /// The name of the type parameter, for display to the user.
+  String get displayName;
 }
 
 /// Common interface for data structures used by the implementations to
@@ -154,9 +162,16 @@ extension type SharedRecordTypeView(SharedRecordType _typeStructure)
   }
 }
 
+extension type SharedTypeParameterView(SharedTypeParameter _typeParameter)
+    implements Object {
+  TypeParameter unwrapTypeParameterViewAsTypeParameterStructure<
+          TypeParameter extends SharedTypeParameter>() =>
+      _typeParameter as TypeParameter;
+}
+
 extension type SharedTypeSchemaView(SharedType _typeStructure)
     implements Object {
-  NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
+  bool get isQuestionType => _typeStructure.isQuestionType;
 
   String getDisplayString() => _typeStructure.getDisplayString();
 
@@ -168,7 +183,7 @@ extension type SharedTypeSchemaView(SharedType _typeStructure)
 }
 
 extension type SharedTypeView(SharedType _typeStructure) implements Object {
-  NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
+  bool get isQuestionType => _typeStructure.isQuestionType;
 
   String getDisplayString() => _typeStructure.getDisplayString();
 
@@ -177,13 +192,6 @@ extension type SharedTypeView(SharedType _typeStructure) implements Object {
 
   TypeStructure unwrapTypeView<TypeStructure extends SharedType>() =>
       _typeStructure as TypeStructure;
-}
-
-extension type SharedTypeParameterView(SharedTypeParameter _typeParameter)
-    implements Object {
-  TypeParameter unwrapTypeParameterViewAsTypeParameterStructure<
-          TypeParameter extends SharedTypeParameter>() =>
-      _typeParameter as TypeParameter;
 }
 
 /// Note that there is no `SharedUnknownTypeView`, only

@@ -22,6 +22,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart'
     show writeComponentToBinary, writeComponentToText;
 import 'package:kernel/library_index.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 import 'package:path/path.dart' as path show setExtension;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
@@ -158,17 +159,7 @@ Future<CompilationResult> compileToModule(
     compilerOptions.compileSdk = true;
   }
 
-  DynamicModuleMetadata? dynamicModuleMetadata;
   final dynamicMainModuleUri = options.dynamicModuleMainUri;
-  if (dynamicMainModuleUri != null && options.dynamicInterfaceUri == null) {
-    final filename = options.dynamicModuleMetadataFile ??
-        Uri.parse(
-            path.setExtension(dynamicMainModuleUri.toFilePath(), '.dyndata'));
-    final dynamicModuleMetadataBytes =
-        await File.fromUri(filename).readAsBytes();
-    final source = BinaryDataSource(dynamicModuleMetadataBytes);
-    dynamicModuleMetadata = DynamicModuleMetadata.deserialize(source);
-  }
 
   final dynamicModuleMainUri = await resolveUri(options.dynamicModuleMainUri);
   final dynamicInterfaceUri = await resolveUri(options.dynamicInterfaceUri);
@@ -177,10 +168,7 @@ Future<CompilationResult> compileToModule(
   final isDynamicModule =
       dynamicModuleMainUri != null && dynamicInterfaceUri == null;
   if (isDynamicModule) {
-    dynamicModuleMetadata!.verifyDynamicModuleOptions(options);
     compilerOptions.additionalDills.add(dynamicModuleMainUri);
-  } else if (isDynamicMainModule) {
-    DynamicModuleMetadata.verifyMainModuleOptions(options);
   }
 
   CompilerResult? compilerResult;
@@ -195,7 +183,8 @@ Future<CompilationResult> compileToModule(
 
   Component component = compilerResult!.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
-  ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+  final classHierarchy =
+      ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   LibraryIndex libraryIndex = LibraryIndex(component, [
     "dart:_boxed_bool",
     "dart:_boxed_double",
@@ -234,12 +223,12 @@ Future<CompilationResult> compileToModule(
     moduleStrategy = DynamicMainModuleStrategy(
         component,
         coreTypes,
-        classHierarchy,
+        target,
         File.fromUri(dynamicInterfaceUri).readAsStringSync(),
         options.dynamicInterfaceUri!);
   } else if (isDynamicModule) {
-    moduleStrategy = DynamicModuleStrategy(component, options, target,
-        coreTypes, classHierarchy, dynamicModuleMainUri);
+    moduleStrategy = DynamicModuleStrategy(
+        component, options, target, coreTypes, dynamicModuleMainUri);
   } else {
     moduleStrategy = DefaultModuleStrategy(component);
   }
@@ -256,8 +245,8 @@ Future<CompilationResult> compileToModule(
       ? null
       : js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
 
-  final Map<RecordShape, Class> recordClasses =
-      generateRecordClasses(component, coreTypes);
+  final Map<RecordShape, Class> recordClasses = generateRecordClasses(
+      component, coreTypes, isDynamicMainModule || isDynamicModule);
   target.recordClasses = recordClasses;
 
   if (options.dumpKernelBeforeTfa != null) {
@@ -268,25 +257,37 @@ Future<CompilationResult> compileToModule(
 
   moduleStrategy.prepareComponent();
 
-  if (isDynamicMainModule) {
+  MainModuleMetadata mainModuleMetadata =
+      MainModuleMetadata.empty(options.translatorOptions, options.environment);
+
+  if (isDynamicModule) {
+    final filename = options.dynamicModuleMetadataFile ??
+        Uri.parse(
+            path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
+    final dynamicModuleMetadataBytes =
+        await File.fromUri(filename).readAsBytes();
+    final source = DataDeserializer(dynamicModuleMetadataBytes, component);
+    mainModuleMetadata = MainModuleMetadata.deserialize(source);
+    mainModuleMetadata.verifyDynamicModuleOptions(options);
+    mainModuleMetadata.initializeDynamicModuleKernel(
+        component,
+        coreTypes,
+        // Create a new hierarchy with generated record classes.
+        ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy);
+  } else if (isDynamicMainModule) {
+    MainModuleMetadata.verifyMainModuleOptions(options);
     writeComponentToBinary(component, dynamicModuleMainUri.path,
         includeSource: false);
   }
 
-  // Patch `dart:_internal`s `mainTearOff` getter.
-  final internalLib = component.libraries
-      .singleWhere((lib) => lib.importUri.toString() == 'dart:_internal');
-  final mainTearOff = internalLib.procedures
-      .singleWhere((procedure) => procedure.name.text == 'mainTearOff');
-  mainTearOff.isExternal = false;
-  mainTearOff.function.body = ReturnStatement(
-      ConstantExpression(StaticTearOffConstant(component.mainMethod!)));
+  if (!isDynamicModule) {
+    _patchMainTearOffs(coreTypes, component);
 
-  // Keep the flags in-sync with
-  // pkg/vm/test/transformations/type_flow/transformer_test.dart
-  // TODO(natebiggs): Only run TFA on main module when dynamic modules enabled.
-  globalTypeFlow.transformComponent(target, coreTypes, component,
-      useRapidTypeAnalysis: false);
+    // Keep the flags in-sync with
+    // pkg/vm/test/transformations/type_flow/transformer_test.dart
+    globalTypeFlow.transformComponent(target, coreTypes, component,
+        useRapidTypeAnalysis: false);
+  }
 
   if (options.dumpKernelAfterTfa != null) {
     writeComponentToText(component,
@@ -303,7 +304,7 @@ Future<CompilationResult> compileToModule(
 
   var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
       moduleOutputData, options.translatorOptions,
-      dynamicModuleMetadata: dynamicModuleMetadata,
+      mainModuleMetadata: mainModuleMetadata,
       enableDynamicModules: dynamicModuleMainUri != null);
 
   String? depFile = options.depFile;
@@ -331,6 +332,9 @@ Future<CompilationResult> compileToModule(
       translator.functions.translatedProcedures,
       translator.internalizedStringsForJSRuntime,
       translator.options.requireJsStringBuiltin,
+      translator.options.enableDeferredLoading ||
+          translator.options.enableMultiModuleStressTestMode ||
+          translator.dynamicModuleSupportEnabled,
       mode);
 
   final supportJs = _generateSupportJs(options.translatorOptions);
@@ -338,12 +342,44 @@ Future<CompilationResult> compileToModule(
     final filename = options.dynamicModuleMetadataFile ??
         Uri.parse(
             path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
-    final sink = BinaryDataSink();
-    translator.dynamicModuleInfo!.toMetadata(options).serialize(sink);
-    await File.fromUri(filename).writeAsBytes(sink.takeBytes());
+    final serializer = DataSerializer(translator.component);
+    translator.dynamicModuleInfo!.metadata.serialize(serializer, translator);
+    await File.fromUri(filename).writeAsBytes(serializer.takeBytes());
   }
 
   return CompilationSuccess(wasmModules, jsRuntime, supportJs);
+}
+
+// Patches `dart:_internal`s `mainTearOff{0,1,2}` getters.
+void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
+  final mainMethod = component.mainMethod!;
+  final mainMethodType = mainMethod.computeSignatureOrFunctionType();
+  void patchToReturnMainTearOff(Procedure p) {
+    p.function.body =
+        ReturnStatement(ConstantExpression(StaticTearOffConstant(mainMethod)))
+          ..parent = p.function;
+  }
+
+  final typeEnv =
+      TypeEnvironment(coreTypes, ClassHierarchy(component, coreTypes));
+  bool mainHasType(DartType type) => typeEnv.isSubtypeOf(
+      mainMethodType, type, SubtypeCheckMode.withNullabilities);
+
+  final internalLib = coreTypes.index.getLibrary('dart:_internal');
+  (Procedure, DartType) lookupAndInitialize(String name) {
+    final p = internalLib.procedures
+        .singleWhere((procedure) => procedure.name.text == name);
+    p.isExternal = false;
+    p.function.body = ReturnStatement(NullLiteral())..parent = p.function;
+    return (p, p.function.returnType.toNonNull());
+  }
+
+  final (mainTearOff0, mainArg0Type) = lookupAndInitialize('mainTearOffArg0');
+  final (mainTearOff1, mainArg1Type) = lookupAndInitialize('mainTearOffArg1');
+  final (mainTearOff2, mainArg2Type) = lookupAndInitialize('mainTearOffArg2');
+  if (mainHasType(mainArg2Type)) return patchToReturnMainTearOff(mainTearOff2);
+  if (mainHasType(mainArg1Type)) return patchToReturnMainTearOff(mainTearOff1);
+  if (mainHasType(mainArg0Type)) return patchToReturnMainTearOff(mainTearOff0);
 }
 
 String _generateSupportJs(TranslatorOptions options) {

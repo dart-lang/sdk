@@ -3680,11 +3680,6 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   }
   ASSERT(buf != nullptr);
 
-  // The C++ caller has not cleaned up the stack memory of C++ frames.
-  // Prepare for unwinding frames by destroying all the stack resources
-  // in the previous C++ frames.
-  StackResource::Unwind(thread);
-
   // Keep the following code in sync with `StubCode::JumpToFrameStub()`.
 
   // Unwind the C++ stack and continue simulation in the target frame.

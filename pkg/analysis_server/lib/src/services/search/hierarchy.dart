@@ -11,7 +11,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 List<Element2> getChildren(Element2 parent, [String? name]) {
   var children = <Element2>[];
   visitChildren(parent, (element) {
-    if (name == null || _getBaseName(element) == name) {
+    if (name == null || element.name3 == name) {
       children.add(element);
     }
     return false;
@@ -221,6 +221,37 @@ Future<List<FormalParameterElement>> getHierarchyNamedParameters(
   return [element];
 }
 
+Future<List<FormalParameterElement>> getHierarchyPositionalParameters(
+  SearchEngine searchEngine,
+  FormalParameterElement element,
+) async {
+  if (element.isPositional) {
+    var method = element.enclosingElement2;
+    if (method is MethodElement2) {
+      var index = method.parameterIndex(element);
+      // Should not ever happen but this means we can't find the index.
+      if (index == null) {
+        return [element];
+      }
+      var hierarchyParameters = <FormalParameterElement>[];
+      var hierarchyMembers = await getHierarchyMembers(searchEngine, method);
+      for (var hierarchyMethod in hierarchyMembers) {
+        if (hierarchyMethod is MethodElement2) {
+          for (var hierarchyParameter in hierarchyMethod.formalParameters) {
+            if (hierarchyParameter.isPositional &&
+                hierarchyMethod.parameterIndex(hierarchyParameter) == index) {
+              hierarchyParameters.add(hierarchyParameter);
+              break;
+            }
+          }
+        }
+      }
+      return hierarchyParameters;
+    }
+  }
+  return [element];
+}
+
 /// Returns non-synthetic members of the given [InterfaceElement2] and its super
 /// classes.
 ///
@@ -247,10 +278,17 @@ Element2 getSyntheticAccessorVariable(Element2 element) {
   return element;
 }
 
-String? _getBaseName(Element2 element) {
-  if (element is SetterElement) {
-    var name = element.name3;
-    return name?.substring(0, name.length - 1);
+extension on MethodElement2 {
+  int? parameterIndex(FormalParameterElement parameter) {
+    var index = 0;
+    for (var positionalParameter in formalParameters.where(
+      (p) => p.isPositional,
+    )) {
+      if (positionalParameter == parameter) {
+        return index;
+      }
+      index++;
+    }
+    return null;
   }
-  return element.name3;
 }

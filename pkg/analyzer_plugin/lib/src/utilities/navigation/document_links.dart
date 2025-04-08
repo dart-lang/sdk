@@ -7,7 +7,64 @@ import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
+
+/// Computes [DocumentLink]s for lint names in an 'analysis_options.yaml'.
+class AnalysisOptionLinkComputer {
+  static const _lintsUrl = 'https://dart.dev/tools/linter-rules/';
+
+  AnalysisOptionLinkComputer();
+
+  List<DocumentLink> findLinks(String content) {
+    YamlNode node;
+    try {
+      node = loadYamlNode(content);
+    } catch (exception) {
+      return [];
+    }
+
+    if (node is! YamlMap) return [];
+
+    var allRules = <YamlNode>[
+      if (node.nodes['linter'] case YamlMap dependencies)
+        ...switch (dependencies.nodes['rules']) {
+          YamlMap(:var nodes) => nodes.keys.map((node) => node as YamlNode),
+          YamlList rules => rules.nodes,
+          _ => const <YamlNode>[],
+        }
+    ];
+
+    var links = <DocumentLink>[];
+    for (var rule in allRules) {
+      var packageLink = _computeLink(rule);
+
+      if (packageLink != null) {
+        var offset = rule.span.start.offset;
+        var length = rule.span.length;
+        links.add(DocumentLink(offset, length, packageLink));
+      }
+    }
+
+    return links;
+  }
+
+  /// Computes a link for the rule named [rule].
+  Uri? _computeLink(YamlNode rule) {
+    if (rule is! YamlScalar) return null;
+    var name = rule.value;
+    if (name is! String) return null;
+
+    var lint = Registry.ruleRegistry.rules
+        .firstWhereOrNull((rule) => rule.name == name);
+    if (lint == null) {
+      return null;
+    }
+
+    return Uri.tryParse(_lintsUrl + name);
+  }
+}
 
 /// A visitor to locate links to other documents in a file.
 ///

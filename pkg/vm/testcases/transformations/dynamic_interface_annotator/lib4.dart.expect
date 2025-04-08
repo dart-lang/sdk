@@ -1,0 +1,71 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "lib5.dart" as lib5;
+additionalExports = (lib5::E1,
+  lib5::E2)
+
+export "file:pkg/vm/testcases/transformations/dynamic_interface_annotator/lib5.dart";
+
+extension E5 on core::String {
+  method addSuffix1 = self::E5|addSuffix1;
+  method tearoff addSuffix1 = self::E5|get#addSuffix1;
+}
+extension _E6 on core::String {
+  method addSuffix2 = self::_E6|addSuffix2;
+  method tearoff addSuffix2 = self::_E6|get#addSuffix2;
+}
+extension /* unnamed */ _extension#2 on core::String {
+  method addSuffix3 = self::_extension#2|addSuffix3;
+  method tearoff addSuffix3 = self::_extension#2|get#addSuffix3;
+}
+extension type E3(core::int _info) {
+  abstract extension-type-member representation-field get _info() → core::int;
+  get info = self::E3|get#info;
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+extension type _E4(core::int _info) {
+  abstract extension-type-member representation-field get _info() → core::int;
+  get info = self::_E4|get#info;
+  constructor • = self::_E4|constructor#;
+  constructor tearoff • = self::_E4|constructor#_#new#tearOff;
+}
+@#C3
+static extension-type-member method E3|constructor#(core::int _info) → self::E3% /* erasure=core::int, declared=! */ {
+  lowered final self::E3% /* erasure=core::int, declared=! */ #this = _info;
+  return #this;
+}
+@#C3
+static extension-type-member method E3|constructor#_#new#tearOff(core::int _info) → self::E3% /* erasure=core::int, declared=! */
+  return self::E3|constructor#(_info);
+@#C3
+static extension-type-member method E3|get#info(lowered final self::E3% /* erasure=core::int, declared=! */ #this) → core::int
+  return #this as{Unchecked} core::int;
+static extension-type-member method _E4|constructor#(core::int _info) → self::_E4% /* erasure=core::int, declared=! */ {
+  lowered final self::_E4% /* erasure=core::int, declared=! */ #this = _info;
+  return #this;
+}
+static extension-type-member method _E4|constructor#_#new#tearOff(core::int _info) → self::_E4% /* erasure=core::int, declared=! */
+  return self::_E4|constructor#(_info);
+static extension-type-member method _E4|get#info(lowered final self::_E4% /* erasure=core::int, declared=! */ #this) → core::int
+  return #this as{Unchecked} core::int;
+@#C3
+static extension-member method E5|addSuffix1(lowered final core::String #this, core::String suffix) → core::String
+  return #this.{core::String::+}(suffix){(core::String) → core::String};
+@#C3
+static extension-member method E5|get#addSuffix1(lowered final core::String #this) → (core::String) → core::String
+  return (core::String suffix) → core::String => self::E5|addSuffix1(#this, suffix);
+static extension-member method _E6|addSuffix2(lowered final core::String #this, core::String suffix) → core::String
+  return #this.{core::String::+}(suffix){(core::String) → core::String};
+static extension-member method _E6|get#addSuffix2(lowered final core::String #this) → (core::String) → core::String
+  return (core::String suffix) → core::String => self::_E6|addSuffix2(#this, suffix);
+static extension-member method _extension#2|addSuffix3(lowered final core::String #this, core::String suffix) → core::String
+  return #this.{core::String::+}(suffix){(core::String) → core::String};
+static extension-member method _extension#2|get#addSuffix3(lowered final core::String #this) → (core::String) → core::String
+  return (core::String suffix) → core::String => self::_extension#2|addSuffix3(#this, suffix);
+constants  {
+  #C1 = "dyn-module:callable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

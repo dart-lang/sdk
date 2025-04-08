@@ -23,13 +23,14 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
-import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
@@ -422,11 +423,14 @@ class LspAnalysisServer extends AnalysisServer {
   void handleClientConnection(
     ClientCapabilities capabilities,
     ClientInfo? clientInfo,
-    Object? initializationOptions,
+    Object? rawInitializationOptions,
   ) {
     _clientCapabilities = LspClientCapabilities(capabilities);
     _clientInfo = clientInfo;
-    _initializationOptions = LspInitializationOptions(initializationOptions);
+    var initializationOptions =
+        _initializationOptions = LspInitializationOptions(
+          rawInitializationOptions,
+        );
 
     /// Enable virtual file support.
     var supportsVirtualFiles =
@@ -435,6 +439,16 @@ class LspAnalysisServer extends AnalysisServer {
         false;
     if (supportsVirtualFiles) {
       uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
+    }
+
+    // Set whether to allow interleaved requests.
+    if (initializationOptions.allowOverlappingHandlers
+        case var allowOverlappingHandlers?) {
+      MessageScheduler.allowOverlappingHandlers = allowOverlappingHandlers;
+      instrumentationService.logInfo(
+        'MessageScheduler.allowOverlappingHandlers set to '
+        '$allowOverlappingHandlers by LSP client initializationOptions',
+      );
     }
 
     performanceAfterStartup = ServerPerformance();
@@ -1205,7 +1219,12 @@ class LspAnalysisServer extends AnalysisServer {
                       // TODO(dantup): Consider supporting per-workspace config by
                       // calling workspace/configuration whenever workspace folders change
                       // and caching the config for each one.
-                      : _workspaceFolders.map((root) => resourceProvider.pathContext.join(root, excludePath)),
+                      : _workspaceFolders.map(
+                        (root) => resourceProvider.pathContext.join(
+                          root,
+                          excludePath,
+                        ),
+                      ),
             )
             .map(pathContext.normalize)
             .toSet();
@@ -1273,6 +1292,12 @@ class LspInitializationOptions {
   final int? completionBudgetMilliseconds;
   final bool allowOpenUri;
 
+  /// Whether the client has expressed an explicit preference for
+  /// overlapping message handlers.
+  ///
+  /// If `null`, the server default will be used.
+  final bool? allowOverlappingHandlers;
+
   /// A temporary flag passed by Dart-Code to enable using in-editor fixes for
   /// the "dart fix" prompt.
   ///
@@ -1302,6 +1327,7 @@ class LspInitializationOptions {
       completionBudgetMilliseconds =
           options['completionBudgetMilliseconds'] as int?,
       allowOpenUri = options['allowOpenUri'] == true,
+      allowOverlappingHandlers = options['allowOverlappingHandlers'] as bool?,
       useInEditorDartFixPrompt = options['useInEditorDartFixPrompt'] == true;
 }
 

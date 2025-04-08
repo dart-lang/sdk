@@ -202,6 +202,66 @@ void f() {
     ]);
   }
 
+  test_nullAwareIndexedRead() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i) {
+  n?[i];
+  print('reached');
+}
+''', [
+      // Dead range: `i]`
+      error(WarningCode.DEAD_CODE, 29, 2)
+    ]);
+  }
+
+  test_nullAwareIndexedWrite() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i, int j) {
+  n?[i] = j;
+  print('reached');
+}
+''', [
+      // Dead range: `i] = j`
+      error(WarningCode.DEAD_CODE, 36, 6)
+    ]);
+  }
+
+  test_nullAwareMethodInvocation() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i) {
+  n?.foo(i);
+  print('reached');
+}
+''', [
+      // Dead range: `foo(i)`
+      error(WarningCode.DEAD_CODE, 29, 6)
+    ]);
+  }
+
+  test_nullAwarePropertyRead() async {
+    await assertErrorsInCode(r'''
+void f(Null n) {
+  n?.p;
+  print('reached');
+}
+''', [
+      // Dead range: `p`
+      error(WarningCode.DEAD_CODE, 22, 1)
+    ]);
+  }
+
+  test_nullAwarePropertyWrite() async {
+    await assertErrorsInCode(r'''
+void f(Null n, int i) {
+  n?.p = i;
+  print('reached');
+}
+''', [
+      // Dead range: `p = i`
+      error(WarningCode.DEAD_CODE, 29, 5)
+    ]);
+  }
+
   test_objectPattern_neverTypedGetter() async {
     await assertErrorsInCode(r'''
 class A {

@@ -51,6 +51,7 @@ import '../fragment/fragment.dart';
 import '../kernel/utils.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
+import 'source_type_parameter_builder.dart';
 import 'stack_listener_impl.dart';
 import 'value_kinds.dart';
 
@@ -3007,8 +3008,8 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<FormalParameterBuilder>?;
     pop(); // formals offset
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralParameterBuilder>? typeParameters =
-        pop() as List<StructuralParameterBuilder>?;
+    List<SourceStructuralParameterBuilder>? typeParameters =
+        pop() as List<SourceStructuralParameterBuilder>?;
     push(_builderFactory.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         typeParameters,
@@ -3028,8 +3029,8 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralParameterBuilder>? typeParameters =
-        pop() as List<StructuralParameterBuilder>?;
+    List<SourceStructuralParameterBuilder>? typeParameters =
+        pop() as List<SourceStructuralParameterBuilder>?;
     push(_builderFactory.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         typeParameters,
@@ -3402,10 +3403,16 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = name as Identifier;
       if (inFunctionType) {
         push(_builderFactory.addStructuralParameter(
-            metadata, identifier.name, null, identifier.nameOffset, uri));
+            metadata: metadata,
+            name: identifier.name,
+            nameOffset: identifier.nameOffset,
+            fileUri: uri));
       } else {
         push(_builderFactory.addNominalParameter(
-            metadata, identifier.name, null, identifier.nameOffset, uri,
+            metadata: metadata,
+            name: identifier.name,
+            nameOffset: identifier.nameOffset,
+            fileUri: uri,
             kind: declarationContext.typeParameterKind));
       }
     }
@@ -3416,7 +3423,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("TypeVariablesDefined");
     assert(count > 0);
     if (inFunctionType) {
-      push(const FixedNullableList<StructuralParameterBuilder>()
+      push(const FixedNullableList<SourceStructuralParameterBuilder>()
               .popNonNullable(stack, count, dummyStructuralVariableBuilder) ??
           NullValues.StructuralParameters);
     } else {
@@ -3451,13 +3458,13 @@ class OutlineBuilder extends StackListenerImpl {
       List<TypeParameterFragment>? typeParameters =
           peek() as List<TypeParameterFragment>?;
       if (typeParameters != null) {
-        typeParameters[index].builder.bound = bound;
+        typeParameters[index].bound = bound;
         if (variance != null) {
           if (!libraryFeatures.variance.isEnabled) {
             // Coverage-ignore-block(suite): Not run.
             reportVarianceModifierNotEnabled(variance);
           }
-          typeParameters[index].builder.variance =
+          typeParameters[index].variance =
               new Variance.fromKeywordString(variance.lexeme);
         }
       }

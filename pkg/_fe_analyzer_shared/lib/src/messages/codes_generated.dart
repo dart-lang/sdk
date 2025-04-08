@@ -3237,6 +3237,50 @@ const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDotShorthandsConstructorInvocationWithTypeArguments =
+    messageDotShorthandsConstructorInvocationWithTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDotShorthandsConstructorInvocationWithTypeArguments =
+    const MessageCode(
+  "DotShorthandsConstructorInvocationWithTypeArguments",
+  problemMessage:
+      r"""A dot shorthand constructor invocation can't have type arguments.""",
+  correctionMessage:
+      r"""Try adding the class name and type arguments explicitly before the constructor name.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDotShorthandsInvalidContext =
+    const Template<Message Function(String name)>(
+  "DotShorthandsInvalidContext",
+  problemMessageTemplate:
+      r"""No type was provided to find the dot shorthand '#name'.""",
+  withArguments: _withArgumentsDotShorthandsInvalidContext,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDotShorthandsInvalidContext =
+    const Code<Message Function(String name)>(
+  "DotShorthandsInvalidContext",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDotShorthandsInvalidContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeDotShorthandsInvalidContext,
+    problemMessage:
+        """No type was provided to find the dot shorthand '${name}'.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDuplicateDeferred = messageDuplicateDeferred;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

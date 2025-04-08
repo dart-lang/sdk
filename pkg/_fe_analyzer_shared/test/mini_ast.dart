@@ -20,7 +20,6 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -28,8 +27,8 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, RecordPatternField;
-import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
@@ -151,6 +150,9 @@ Statement do_(List<ProtoStatement> body, ProtoExpression condition) {
       condition.asExpression(location: location),
       location: location);
 }
+
+Expression dotShorthandHead(String name) =>
+    new DotShorthandHead._(name, location: computeLocation());
 
 /// Creates a pseudo-expression having type [typeStr] that otherwise has no
 /// effect on flow analysis.
@@ -368,8 +370,7 @@ Pattern objectPattern({
   required List<RecordPatternField> fields,
 }) {
   var parsedType = Type(requiredType);
-  if (parsedType is! PrimaryType ||
-      parsedType.nullabilitySuffix != NullabilitySuffix.none) {
+  if (parsedType is! PrimaryType || parsedType.isQuestionType) {
     fail('Expected a primary type, got $parsedType');
   }
   return ObjectPattern._(
@@ -1238,6 +1239,46 @@ class Do extends Statement {
   }
 }
 
+// Represents the entire dot shorthand expression.
+// e.g. `.current.errorZone`
+class DotShorthand extends Expression {
+  final Expression expr;
+
+  DotShorthand._(this.expr, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    expr.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$expr';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    return h.typeAnalyzer.analyzeDotShorthandExpression(expr, schema);
+  }
+}
+
+// Represents the head of a dot shorthand.
+// e.g. `.zero`
+class DotShorthandHead extends Expression {
+  final String name;
+
+  DotShorthandHead._(this.name, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {}
+
+  @override
+  String toString() => '.$name';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    return h.typeAnalyzer.analyzeDotShorthandHeadExpression(this, name, schema);
+  }
+}
+
 class Equal extends Expression {
   final Expression lhs;
   final Expression rhs;
@@ -1560,6 +1601,8 @@ class Harness {
 
   bool? _inferenceUpdate4Enabled;
 
+  bool? _soundFlowAnalysisEnabled;
+
   bool? _patternsEnabled;
 
   Type? _thisType;
@@ -1570,11 +1613,8 @@ class Harness {
           isPromotable: false, whyNotPromotable: null)
   };
 
-  late final typeAnalyzer = _MiniAstTypeAnalyzer(
-      this,
-      TypeAnalyzerOptions(
-          patternsEnabled: patternsEnabled,
-          inferenceUpdate3Enabled: inferenceUpdate3Enabled));
+  late final typeAnalyzer =
+      _MiniAstTypeAnalyzer(this, computeTypeAnalyzerOptions());
 
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
@@ -1592,6 +1632,8 @@ class Harness {
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   bool get patternsEnabled => _patternsEnabled ?? true;
+
+  bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
 
   set thisType(String type) {
     assert(!_started);
@@ -1663,6 +1705,16 @@ class Harness {
     operations.addSuperInterfaces(className, template);
   }
 
+  shared.TypeAnalyzerOptions computeTypeAnalyzerOptions() =>
+      TypeAnalyzerOptions(
+          patternsEnabled: patternsEnabled,
+          inferenceUpdate3Enabled: inferenceUpdate3Enabled,
+          respectImplicitlyTypedVarInitializers:
+              _respectImplicitlyTypedVarInitializers,
+          fieldPromotionEnabled: _fieldPromotionEnabled,
+          inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+          soundFlowAnalysisEnabled: soundFlowAnalysisEnabled);
+
   void disableFieldPromotion() {
     assert(!_started);
     _fieldPromotionEnabled = false;
@@ -1676,6 +1728,11 @@ class Harness {
   void disableInferenceUpdate4() {
     assert(!_started);
     _inferenceUpdate4Enabled = false;
+  }
+
+  void disableSoundFlowAnalysis() {
+    assert(!_started);
+    _soundFlowAnalysisEnabled = false;
   }
 
   void disablePatterns() {
@@ -1733,8 +1790,7 @@ class Harness {
     var member = getMember(matchedValueType, operator);
     if (member == null) return null;
     var memberType = member._type;
-    if (memberType is! FunctionType ||
-        memberType.nullabilitySuffix != NullabilitySuffix.none) {
+    if (memberType is! FunctionType || memberType.isQuestionType) {
       fail('$matchedValueType.operator$operator has type $memberType; '
           'must be a function type');
     }
@@ -1758,13 +1814,8 @@ class Harness {
       var b = Block._(statements, location: computeLocation());
       b.preVisit(visitor);
       flow = FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>(
-        operations,
-        visitor._assignedVariables,
-        respectImplicitlyTypedVarInitializers:
-            _respectImplicitlyTypedVarInitializers,
-        fieldPromotionEnabled: _fieldPromotionEnabled,
-        inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-      );
+          operations, visitor._assignedVariables,
+          typeAnalyzerOptions: computeTypeAnalyzerOptions());
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
@@ -2729,6 +2780,23 @@ class MiniAstOperations
     }
   }
 
+  @override
+  TypeConstraintGenerator<Var, Type, String, Node>
+      createTypeConstraintGenerator(
+          {required TypeConstraintGenerationDataForTesting?
+              typeConstraintGenerationDataForTesting,
+          required List<SharedTypeParameterView> typeParametersToInfer,
+          required TypeAnalyzerOperations<Var, Type, String>
+              typeAnalyzerOperations,
+          required bool inferenceUsingBoundsIsEnabled}) {
+    return TypeConstraintGatherer({
+      for (var typeParameter in typeParametersToInfer)
+        typeParameter
+            .unwrapTypeParameterViewAsTypeParameterStructure<TypeParameter>()
+            .name
+    });
+  }
+
   /// Returns the downward inference result of a type with the given [name],
   /// in the [context]. For example infer `List<int>` from `Iterable<int>`.
   Type downwardInfer(String name, Type context) {
@@ -2812,9 +2880,15 @@ class MiniAstOperations
   }
 
   @override
+  bool isBottomType(SharedTypeView type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is NeverType && !unwrappedType.isQuestionType;
+  }
+
+  @override
   bool isDartCoreFunctionInternal(Type type) {
     return type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
+        !type.isQuestionType &&
         type.name == 'Function' &&
         type.args.isEmpty;
   }
@@ -2822,7 +2896,7 @@ class MiniAstOperations
   @override
   bool isDartCoreRecordInternal(Type type) {
     return type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
+        !type.isQuestionType &&
         type.name == 'Record' &&
         type.args.isEmpty;
   }
@@ -2845,13 +2919,6 @@ class MiniAstOperations
   }
 
   @override
-  bool isNever(SharedTypeView type) {
-    Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is NeverType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
-  }
-
-  @override
   bool isNonNullableInternal(Type type) {
     Type unwrappedType = type;
     if (unwrappedType is DynamicType ||
@@ -2864,14 +2931,14 @@ class MiniAstOperations
         case TypeParameterType(
           :var promotion,
           :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
+          isQuestionType: false
         )) {
       if (promotion != null) {
         return isNonNullableInternal(promotion);
       } else {
         return isNonNullableInternal(typeParameter.bound);
       }
-    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+    } else if (type.isQuestionType) {
       return false;
     } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
       return isNonNullableInternal(typeArgument);
@@ -2887,7 +2954,7 @@ class MiniAstOperations
         unwrappedType is VoidType ||
         unwrappedType is NullType) {
       return true;
-    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+    } else if (type.isQuestionType) {
       return false;
     } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
       return isNullableInternal(typeArgument);
@@ -2902,7 +2969,7 @@ class MiniAstOperations
   bool isObject(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.name == 'Object' &&
         unwrappedType.args.isEmpty;
   }
@@ -2919,8 +2986,7 @@ class MiniAstOperations
   @override
   bool isTypeParameterType(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is TypeParameterType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
+    return unwrappedType is TypeParameterType && !unwrappedType.isQuestionType;
   }
 
   @override
@@ -2973,11 +3039,9 @@ class MiniAstOperations
         promoteToNonNull(SharedTypeView(type1)) != SharedTypeView(type1)) {
       // type1 is already nullable
       return type1;
-    } else if (type1 is NeverType &&
-        type1.nullabilitySuffix == NullabilitySuffix.none) {
+    } else if (type1 is NeverType && !type1.isQuestionType) {
       return type2;
-    } else if (type2 is NeverType &&
-        type2.nullabilitySuffix == NullabilitySuffix.none) {
+    } else if (type2 is NeverType && !type2.isQuestionType) {
       return type1;
     } else {
       var typeNames = [type1.type, type2.type];
@@ -3009,10 +3073,7 @@ class MiniAstOperations
   @override
   TypeParameter? matchInferableParameterInternal(Type type) {
     if (type
-        case TypeParameterType(
-          :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
-        )) {
+        case TypeParameterType(:var typeParameter, isQuestionType: false)) {
       return typeParameter;
     } else {
       return null;
@@ -3021,9 +3082,7 @@ class MiniAstOperations
 
   @override
   Type? matchIterableTypeInternal(Type type) {
-    if (type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.args.length == 1) {
+    if (type is PrimaryType && !type.isQuestionType && type.args.length == 1) {
       if (type.name == 'Iterable' || type.name == 'List') {
         return type.args[0];
       }
@@ -3035,7 +3094,7 @@ class MiniAstOperations
   SharedTypeView? matchListType(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.name == 'List' &&
         unwrappedType.args.length == 1) {
       return SharedTypeView(unwrappedType.args[0]);
@@ -3048,7 +3107,7 @@ class MiniAstOperations
       SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.name == 'Map' &&
         unwrappedType.args.length == 2) {
       return (
@@ -3063,7 +3122,7 @@ class MiniAstOperations
   SharedTypeView? matchStreamType(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.args.length == 1) {
       if (unwrappedType.name == 'Stream') {
         return SharedTypeView(unwrappedType.args[0]);
@@ -3097,7 +3156,7 @@ class MiniAstOperations
         case TypeParameterType(
           :var promotion,
           :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
+          isQuestionType: false
         )) {
       return promotion ?? typeParameter.bound;
     } else {
@@ -3115,9 +3174,8 @@ class MiniAstOperations
   @override
   SharedTypeView promoteToNonNull(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
-    if (unwrappedType.nullabilitySuffix == NullabilitySuffix.question) {
-      return SharedTypeView(
-          unwrappedType.withNullability(NullabilitySuffix.none));
+    if (unwrappedType.isQuestionType) {
+      return SharedTypeView(unwrappedType.asQuestionType(false));
     } else if (unwrappedType is NullType) {
       return SharedTypeView(NeverType.instance);
     } else {
@@ -3173,28 +3231,6 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
-
-  @override
-  Type withNullabilitySuffixInternal(Type type, NullabilitySuffix modifier) {
-    return type.withNullability(modifier);
-  }
-
-  @override
-  TypeConstraintGenerator<Var, Type, String, Node>
-      createTypeConstraintGenerator(
-          {required TypeConstraintGenerationDataForTesting?
-              typeConstraintGenerationDataForTesting,
-          required List<SharedTypeParameterView> typeParametersToInfer,
-          required TypeAnalyzerOperations<Var, Type, String>
-              typeAnalyzerOperations,
-          required bool inferenceUsingBoundsIsEnabled}) {
-    return TypeConstraintGatherer({
-      for (var typeParameter in typeParametersToInfer)
-        typeParameter
-            .unwrapTypeParameterViewAsTypeParameterStructure<TypeParameter>()
-            .name
-    });
-  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -3877,6 +3913,14 @@ mixin ProtoCollectionElement<Self extends ProtoCollectionElement<dynamic>> {
 /// variable).
 mixin ProtoExpression
     implements ProtoStatement<Expression>, ProtoCollectionElement<Expression> {
+  /// If `this` is an expression `x`, creates a dot shorthand wrapper around
+  /// `x`.
+  Expression get dotShorthand {
+    var location = computeLocation();
+    return new DotShorthand._(asExpression(location: location),
+        location: location);
+  }
+
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert {
     var location = computeLocation();
@@ -5380,7 +5424,7 @@ class _MiniAstTypeAnalyzer
   final _irBuilder = MiniIRBuilder();
 
   @override
-  final TypeAnalyzerOptions options;
+  final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The temporary variable used in the IR to represent the target of the
   /// innermost enclosing cascade expression, or `null` if no cascade expression
@@ -5392,7 +5436,7 @@ class _MiniAstTypeAnalyzer
   /// cascade expression is currently being visited.
   SharedTypeView? _currentCascadeTargetType;
 
-  _MiniAstTypeAnalyzer(this._harness, this.options);
+  _MiniAstTypeAnalyzer(this._harness, this.typeAnalyzerOptions);
 
   @override
   FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView> get flow =>
@@ -5509,6 +5553,19 @@ class _MiniAstTypeAnalyzer
     flow.doStatement_end(condition);
   }
 
+  ExpressionTypeAnalysisResult analyzeDotShorthandExpression(
+      Expression expression, SharedTypeSchemaView schema) {
+    var type = analyzeDotShorthand(expression, schema);
+    return new ExpressionTypeAnalysisResult(type: type);
+  }
+
+  ExpressionTypeAnalysisResult analyzeDotShorthandHeadExpression(
+      Expression node, String name, SharedTypeSchemaView schema) {
+    _irBuilder.atom(name, Kind.expression, location: node.location);
+    return new ExpressionTypeAnalysisResult(
+        type: SharedTypeView(getDotShorthandContext().unwrapTypeSchemaView()));
+  }
+
   void analyzeExpressionStatement(Expression expression) {
     analyzeExpression(expression, operations.unknownType);
   }
@@ -5569,8 +5626,7 @@ class _MiniAstTypeAnalyzer
       inputKinds.add(Kind.expression);
       analyzeExpression(
           arguments[i],
-          methodType is FunctionType &&
-                  methodType.nullabilitySuffix == NullabilitySuffix.none
+          methodType is FunctionType && !methodType.isQuestionType
               ? operations.typeToSchema(
                   SharedTypeView(methodType.positionalParameters[i]))
               : operations.unknownType);
@@ -5687,16 +5743,21 @@ class _MiniAstTypeAnalyzer
 
   ExpressionTypeAnalysisResult analyzeTypeCast(
       Expression node, Expression expression, Type type) {
-    analyzeExpression(expression, operations.unknownType);
-    flow.asExpression_end(expression, SharedTypeView(type));
+    var subExpressionType =
+        analyzeExpression(expression, operations.unknownType);
+    flow.asExpression_end(expression,
+        subExpressionType: subExpressionType, castType: SharedTypeView(type));
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(type));
   }
 
   ExpressionTypeAnalysisResult analyzeTypeTest(
       Expression node, Expression expression, Type type,
       {bool isInverted = false}) {
-    analyzeExpression(expression, operations.unknownType);
-    flow.isExpression_end(node, expression, isInverted, SharedTypeView(type));
+    var subExpressionType =
+        analyzeExpression(expression, operations.unknownType);
+    flow.isExpression_end(node, expression, isInverted,
+        subExpressionType: subExpressionType,
+        checkedType: SharedTypeView(type));
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
   }
 
@@ -6042,6 +6103,11 @@ class _MiniAstTypeAnalyzer
 
   @override
   void handleSwitchScrutinee(SharedTypeView type) {}
+
+  @override
+  bool isDotShorthand(Node node) {
+    return node is DotShorthand;
+  }
 
   @override
   bool isLegacySwitchExhaustive(

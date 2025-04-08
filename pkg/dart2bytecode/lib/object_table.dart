@@ -707,11 +707,81 @@ class NameAndType {
   String toString() => '$type ${name.name}';
 }
 
+class ParameterFlags {
+  // Parameter flags in FunctionDeclaration, ClosureDeclaration and
+  // FunctionType.
+  static const isRequiredFlag = 1 << 0;
+  // Parameter flags in Code.
+  static const isCovariantFlag = 1 << 0;
+  static const isCovariantByClassFlag = 1 << 1;
+
+  static List<int>? finalizeFlags(List<int> paramFlags) {
+    for (int flags in paramFlags) {
+      if (flags != 0) {
+        return paramFlags;
+      }
+    }
+    return null;
+  }
+
+  static int getVariableDeclarationFlags(
+      VariableDeclaration variable, bool isCode) {
+    int flags = 0;
+    if (isCode) {
+      if (variable.isCovariantByDeclaration) {
+        flags |= isCovariantFlag;
+      }
+      if (variable.isCovariantByClass) {
+        flags |= isCovariantByClassFlag;
+      }
+    } else {
+      if (variable.isRequired) {
+        flags |= isRequiredFlag;
+      }
+    }
+    return flags;
+  }
+
+  // Get parameter flags for the given [function].
+  // Returns null if parameters do not have any flags.
+  static List<int>? getFunctionFlags(FunctionNode function,
+      {required bool isCode}) {
+    final paramFlags = <int>[];
+    if (isCode) {
+      for (var param in function.positionalParameters) {
+        paramFlags.add(getVariableDeclarationFlags(param, isCode));
+      }
+    }
+    for (var param in function.namedParameters) {
+      paramFlags.add(getVariableDeclarationFlags(param, isCode));
+    }
+    return finalizeFlags(paramFlags);
+  }
+
+  static int getNamedTypeFlags(NamedType param) {
+    int flags = 0;
+    if (param.isRequired) {
+      flags |= isRequiredFlag;
+    }
+    return flags;
+  }
+
+  // Get flags for named parameters of the given [functionType].
+  // Returns null if named parameters do not have any flags.
+  static List<int>? getFunctionTypeFlags(FunctionType functionType) {
+    final namedParameters = functionType.namedParameters;
+    final paramFlags = List<int>.generate(
+        namedParameters.length, (i) => getNamedTypeFlags(namedParameters[i]));
+    return finalizeFlags(paramFlags);
+  }
+}
+
 class _FunctionTypeHandle extends _TypeHandle {
   static const int flagHasOptionalPositionalParams = 1 << 0;
   static const int flagHasOptionalNamedParams = 1 << 1;
   static const int flagHasTypeParams = 1 << 2;
   static const int flagHasEnclosingTypeParameters = 1 << 3;
+  static const int flagHasParameterFlags = 1 << 4;
 
   int functionTypeFlags = 0;
   late int numEnclosingTypeParameters;
@@ -719,6 +789,8 @@ class _FunctionTypeHandle extends _TypeHandle {
   late int numRequiredParams;
   late List<_TypeHandle> positionalParams;
   late List<NameAndType> namedParams;
+  // Only contains the required flag for named parameters when present.
+  late List<int>? parameterFlags;
   late _TypeHandle returnType;
 
   _FunctionTypeHandle._empty(Nullability nullability)
@@ -730,6 +802,7 @@ class _FunctionTypeHandle extends _TypeHandle {
       this.numRequiredParams,
       this.positionalParams,
       this.namedParams,
+      this.parameterFlags,
       this.returnType,
       Nullability nullability)
       : super(TypeTag.kFunctionType, nullability) {
@@ -741,6 +814,11 @@ class _FunctionTypeHandle extends _TypeHandle {
     if (namedParams.isNotEmpty) {
       assert(numRequiredParams == positionalParams.length);
       functionTypeFlags |= flagHasOptionalNamedParams;
+    }
+    if (parameterFlags != null) {
+      assert(namedParams.isNotEmpty);
+      assert(parameterFlags!.length == namedParams.length);
+      functionTypeFlags |= flagHasParameterFlags;
     }
     if (typeParameters != null) {
       functionTypeFlags |= flagHasTypeParams;
@@ -771,6 +849,11 @@ class _FunctionTypeHandle extends _TypeHandle {
     for (var param in namedParams) {
       writer.writePackedObject(param.name);
       writer.writePackedObject(param.type);
+    }
+    if ((functionTypeFlags & flagHasParameterFlags) != 0) {
+      final parameterFlags = this.parameterFlags!;
+      writer.writePackedUInt30(parameterFlags.length);
+      parameterFlags.forEach((flags) => writer.writePackedUInt30(flags));
     }
     writer.writePackedObject(returnType);
   }
@@ -805,6 +888,10 @@ class _FunctionTypeHandle extends _TypeHandle {
     } else {
       namedParams = const <NameAndType>[];
     }
+    parameterFlags = ((functionTypeFlags & flagHasParameterFlags) != 0)
+        ? List<int>.generate(
+            reader.readPackedUInt30(), (_) => reader.readPackedUInt30())
+        : null;
     returnType = reader.readPackedObject();
   }
 
@@ -847,6 +934,9 @@ class _FunctionTypeHandle extends _TypeHandle {
     hash = _combineHashes(hash, numRequiredParams);
     hash = _combineHashes(hash, listHashCode(positionalParams));
     hash = _combineHashes(hash, listHashCode(namedParams));
+    if (parameterFlags != null) {
+      hash = _combineHashes(hash, listHashCode(parameterFlags!));
+    }
     hash = _combineHashes(hash, returnType.hashCode);
     hash = _combineHashes(hash, nullability.index);
     return hash;
@@ -860,6 +950,10 @@ class _FunctionTypeHandle extends _TypeHandle {
       this.numRequiredParams == other.numRequiredParams &&
       listEquals(this.positionalParams, other.positionalParams) &&
       listEquals(this.namedParams, other.namedParams) &&
+      (identical(this.parameterFlags, other.parameterFlags) ||
+          (this.parameterFlags != null &&
+              other.parameterFlags != null &&
+              listEquals(this.parameterFlags!, other.parameterFlags!))) &&
       this.returnType == other.returnType &&
       this.nullability == other.nullability;
 
@@ -885,7 +979,20 @@ class _FunctionTypeHandle extends _TypeHandle {
       if (numRequiredParams > 0) {
         sb.write(', ');
       }
-      sb.write('{ ${namedParams.join(', ')} }');
+      sb.write('{ ');
+      final flags = this.parameterFlags;
+      assert(flags == null || flags.length == namedParams.length);
+      for (int i = 0; i < namedParams.length; ++i) {
+        if (i != 0) {
+          sb.write(', ');
+        }
+        // We only store the required flag.
+        if (flags != null && (flags[i] & ParameterFlags.isRequiredFlag) != 0) {
+          sb.write('required ');
+        }
+        sb.write(namedParams[i]);
+      }
+      sb.write(' }');
     }
     sb.write(')${nullabilityToString(nullability)} -> ');
     sb.write(returnType);
@@ -2076,6 +2183,7 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
       return NameAndType(objectTable.getPublicNameHandle(param.name),
           objectTable.getHandle(param.type)!);
     });
+    final parameterFlags = ParameterFlags.getFunctionTypeFlags(node);
     final returnType = objectTable.getHandle(node.returnType) as _TypeHandle;
 
     final result = objectTable.getOrAddObject(new _FunctionTypeHandle(
@@ -2085,6 +2193,7 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
         node.requiredParameterCount,
         positionalParams,
         namedParams,
+        parameterFlags,
         returnType,
         node.nullability));
 

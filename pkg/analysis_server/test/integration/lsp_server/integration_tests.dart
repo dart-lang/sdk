@@ -16,6 +16,7 @@ import 'package:path/path.dart';
 
 import '../../lsp/request_helpers_mixin.dart';
 import '../../lsp/server_abstract.dart';
+import '../../support/sdk_paths.dart';
 
 abstract class AbstractLspAnalysisServerIntegrationTest
     with
@@ -190,19 +191,6 @@ class LspServerClient {
     _process?.kill();
   }
 
-  /// Find the root directory of the analysis_server package by proceeding
-  /// upward to the 'test' dir, and then going up one more directory.
-  String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(basename(pathname))) {
-      var parent = dirname(pathname);
-      if (parent.length >= pathname.length) {
-        throw Exception("Can't find root directory");
-      }
-      pathname = parent;
-    }
-    return dirname(pathname);
-  }
-
   Future<void> start({
     required String dartSdkPath,
     List<String>? vmArgs,
@@ -212,22 +200,7 @@ class LspServerClient {
     }
 
     var dartBinary = join(dartSdkPath, 'bin', 'dart');
-
-    // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
-    // snapshot and run from source.
-    var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
-    String serverPath;
-
-    if (useSnapshot) {
-      serverPath = normalize(
-        join(dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'),
-      );
-    } else {
-      var rootDir = findRoot(
-        Platform.script.toFilePath(windows: Platform.isWindows),
-      );
-      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
-    }
+    var serverPath = getAnalysisServerPath(dartSdkPath);
 
     var arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
     var process = await Process.start(

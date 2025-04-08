@@ -306,8 +306,7 @@ class TypeSystem {
   /// Returns the intersection between [type] and [annotation].
   ///
   /// [isCast] indicates whether narrowing comes from a cast or parameter check
-  /// rather than an 'is' test. (In legacy semantics these differ on whether
-  /// `null` is accepted).
+  /// rather than an 'is' test.
   ///
   /// If [excludeNull] is true, the intersection excludes `null` even if the
   /// Dart type implies `null`.
@@ -341,9 +340,7 @@ class TypeSystem {
     }
 
     AbstractValue narrowing =
-        _abstractValueDomain
-            .createFromStaticType(annotation, nullable: isCast)
-            .abstractValue;
+        _abstractValueDomain.createFromStaticType(annotation).abstractValue;
 
     if (excludeNull) {
       narrowing = _abstractValueDomain.excludeNull(narrowing);
@@ -616,17 +613,13 @@ class TypeSystem {
       _abstractValueDomain,
       currentMember,
       simplifiedKeyType,
-      _abstractValueDomain
-          .createFromStaticType(keyStaticType, nullable: false)
-          .abstractValue,
+      _abstractValueDomain.createFromStaticType(keyStaticType).abstractValue,
     );
     final valueTypeInfo = ValueInMapTypeInformation(
       _abstractValueDomain,
       currentMember,
       simplifiedValueType,
-      _abstractValueDomain
-          .createFromStaticType(valueStaticType, nullable: false)
-          .abstractValue,
+      _abstractValueDomain.createFromStaticType(valueStaticType).abstractValue,
     );
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);

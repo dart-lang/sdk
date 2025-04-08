@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/convert_getter_to_method.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/convert_method_to_getter.dart';
@@ -28,7 +26,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -495,6 +492,17 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is LibraryElement2) {
       return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
     }
+    if (enclosingElement?.thisOrAncestorOfType2<InterfaceElement2>()
+        case var enclosingElement?) {
+      if (element case FieldFormalParameterElement2(:var field2?)) {
+        return RenameClassMemberRefactoringImpl(
+          workspace,
+          sessionHelper,
+          enclosingElement,
+          field2,
+        );
+      }
+    }
     if (element is FormalParameterElement) {
       return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
     }
@@ -622,15 +630,9 @@ abstract class RenameRefactoring implements Refactoring {
 }
 
 class RenameRefactoringElement {
-  final Element2 _element2;
+  final Element2 element;
   final int offset;
   final int length;
 
-  RenameRefactoringElement(this._element2, this.offset, this.length);
-
-  Element get element => element2.asElement!;
-
-  Element2 get element2 {
-    return _element2;
-  }
+  RenameRefactoringElement(this.element, this.offset, this.length);
 }

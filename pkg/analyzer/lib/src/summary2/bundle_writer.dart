@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
@@ -43,14 +41,12 @@ class BundleWriter {
   /// errors, or whether a parameter inherits `covariant`, or a class is
   /// simply bounded.
   late final _SummaryDataWriter _sink = _SummaryDataWriter(
-    sink: ByteSink(),
     stringIndexer: _stringIndexer,
   );
 
   /// The resolution sink - any data that references elements, so can only
   /// be read after elements are created and available via its [Reference]s.
   late final ResolutionSink _resolutionSink = ResolutionSink(
-    sink: ByteSink(),
     stringIndexer: _stringIndexer,
     references: _references,
   );
@@ -70,7 +66,7 @@ class BundleWriter {
 
   BundleWriterResult finish() {
     var baseResolutionOffset = _sink.offset;
-    _sink.addBytes(_resolutionSink.flushAndTake());
+    _sink.writeBytes(_resolutionSink.takeBytes());
 
     var librariesOffset = _sink.offset;
     _sink.writeList<_Library>(_libraries, (library) {
@@ -92,7 +88,7 @@ class BundleWriter {
     _sink.writeUInt32(referencesOffset);
     _sink.writeUInt32(stringTableOffset);
 
-    var bytes = _sink.flushAndTake();
+    var bytes = _sink.takeBytes();
     return BundleWriterResult(
       resolutionBytes: bytes,
     );
@@ -118,7 +114,7 @@ class BundleWriter {
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
-    _resolutionSink.writeElement(libraryElement.entryPoint);
+    _resolutionSink.writeElement2(libraryElement.entryPoint2);
     _writeFieldNameNonPromotabilityInfo(
         libraryElement.fieldNameNonPromotabilityInfo);
 
@@ -131,17 +127,6 @@ class BundleWriter {
     );
   }
 
-  void _writeAugmentationTargetAny<T extends AugmentableElement<T>>(
-    T fragment,
-  ) {
-    var target = fragment.augmentationTargetAny;
-    _writeOptionalReference(target?.reference);
-
-    var maybeFragment = fragment.augmentationTarget?.augmentation;
-    var shouldSetAugmentation = identical(maybeFragment, fragment);
-    _sink.writeBool(shouldSetAugmentation);
-  }
-
   void _writeClassElement(ClassElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
 
@@ -149,7 +134,6 @@ class BundleWriter {
     _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     ClassElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
@@ -157,15 +141,6 @@ class BundleWriter {
       _resolutionSink.writeType(fragment.supertype);
       _resolutionSink._writeTypeList(fragment.mixins);
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeTypeList(element.mixins);
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.constructors);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
-      }
 
       if (!fragment.isMixinApplication) {
         var membersOffset = _sink.offset;
@@ -190,7 +165,6 @@ class BundleWriter {
     _sink._writeOptionalStringReference(element.typeName);
     _sink._writeStringReference(element.name2);
     ConstructorElementFlags.write(_sink, element);
-    _writeAugmentationTargetAny(element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _resolutionSink.localElements.withElements(element.parameters, () {
@@ -243,7 +217,6 @@ class BundleWriter {
     _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     EnumElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
@@ -251,15 +224,6 @@ class BundleWriter {
       _resolutionSink.writeType(fragment.supertype);
       _resolutionSink._writeTypeList(fragment.mixins);
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeTypeList(element.mixins);
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.constructors);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
-      }
 
       _writeList(
         fragment.fields.where((e) {
@@ -310,18 +274,12 @@ class BundleWriter {
     _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     ExtensionElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
     _writeTypeParameters(fragment.typeParameters, () {
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink.writeType(element.extendedType);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
-      }
+      var element = fragment.element;
+      _resolutionSink.writeType(element.extendedType);
 
       _writeList(
         fragment.accessors.where((e) => !e.isSynthetic).toList(),
@@ -341,21 +299,12 @@ class BundleWriter {
     _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     ExtensionTypeElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
     _writeTypeParameters(fragment.typeParameters, () {
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.constructors);
-        _resolutionSink._writeElementList(element.methods);
-        _resolutionSink.writeType(element.typeErasure);
-      }
+      _resolutionSink.writeType(fragment.typeErasure);
 
       _writeList(
         fragment.fields.where((e) => !e.isSynthetic).toList(),
@@ -385,7 +334,6 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
-    _writeAugmentationTargetAny(element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.type);
@@ -413,16 +361,15 @@ class BundleWriter {
     _sink._writeOptionalStringReference(fragment.name2);
   }
 
-  void _writeFunctionElement(FunctionElementImpl fragment) {
+  void _writeFunctionElement(TopLevelFunctionFragmentImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    var element = fragment.element as TopLevelFunctionElementImpl;
+    var element = fragment.element;
 
     _writeReference(fragment);
     _writeReference2(element.reference);
     _writeFragmentName(fragment);
     FunctionElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
@@ -493,11 +440,9 @@ class BundleWriter {
   void _writeMethodElement(MethodElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     _sink._writeStringReference(fragment.name);
     MethodElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
@@ -515,21 +460,15 @@ class BundleWriter {
     _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     MixinElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
     _writeTypeParameters(fragment.typeParameters, () {
       _resolutionSink._writeTypeList(fragment.superclassConstraints);
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeTypeList(element.superclassConstraints);
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
-      }
+
+      var element = fragment.element;
+      _resolutionSink._writeTypeList(element.superclassConstraints);
 
       _writeList(
         fragment.fields.where((e) => !e.isSynthetic).toList(),
@@ -568,8 +507,7 @@ class BundleWriter {
   }
 
   // TODO(scheglov): Deduplicate parameter writing implementation.
-  void _writeParameterElement(ParameterElement element) {
-    element as ParameterElementImpl;
+  void _writeParameterElement(ParameterElementImpl element) {
     _writeFragmentName(element);
     _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstVariableElement);
@@ -595,7 +533,7 @@ class BundleWriter {
     });
   }
 
-  void _writePartElement(PartElement element) {
+  void _writePartElement(PartElementImpl element) {
     _writeDirectiveUri(element.uri);
   }
 
@@ -614,12 +552,6 @@ class BundleWriter {
     _writeReference(fragment);
     _writeFragmentName(fragment);
     PropertyAccessorElementFlags.write(_sink, fragment);
-    switch (fragment) {
-      case SetterFragmentImpl():
-        _writeAugmentationTargetAny(fragment);
-      case GetterFragmentImpl():
-        _writeAugmentationTargetAny(fragment);
-    }
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
     _resolutionSink.writeType(fragment.returnType);
@@ -663,7 +595,6 @@ class BundleWriter {
     _sink._writeStringReference(fragment.name);
     _sink.writeBool(fragment.isConst);
     TopLevelVariableElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
     _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
     _resolutionSink._writeAnnotationList(fragment.metadata);
     _resolutionSink.writeType(fragment.type);
@@ -680,7 +611,6 @@ class BundleWriter {
     _sink._writeStringReference(fragment.name);
     _sink.writeBool(fragment.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
 
@@ -690,8 +620,7 @@ class BundleWriter {
     });
   }
 
-  void _writeTypeParameterElement(TypeParameterElement element) {
-    element as TypeParameterElementImpl;
+  void _writeTypeParameterElement(TypeParameterElementImpl element) {
     _sink._writeStringReference(element.name);
     _writeFragmentName(element);
     _sink.writeByte(_encodeVariance(element).index);
@@ -703,7 +632,7 @@ class BundleWriter {
   /// Add [typeParameters] to the indexing scope, so make them available
   /// when writing types that might reference them, and write the elements.
   void _writeTypeParameters(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     void Function() f,
   ) {
     _resolutionSink.localElements.withElements(typeParameters, () {
@@ -783,35 +712,51 @@ class ResolutionSink extends _SummaryDataWriter {
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
-    required super.sink,
     required super.stringIndexer,
     required _BundleWriterReferences references,
   }) : _references = references;
 
   // TODO(scheglov): Triage places where we write elements.
   // Some of then cannot be members, e.g. type names.
-  void writeElement(Element? element) {
-    if (element is Member) {
+  void writeElement(ElementOrMember? element) {
+    if (element == null) {
+      writeByte(Tag.RawElement);
+      writeUInt30(0);
+    } else if (element is Member) {
       var declaration = element.declaration;
 
       var typeArguments = _enclosingClassTypeArguments(
-        declaration,
+        declaration.asElement2!,
         element.substitution.map,
       );
 
       writeByte(Tag.MemberWithTypeArguments);
-      _writeElement(declaration);
+      _writeElementImpl(declaration);
       _writeTypeList(typeArguments);
     } else {
       writeByte(Tag.RawElement);
-      _writeElement(element);
+      _writeElementImpl(element as ElementImpl);
     }
   }
 
   // TODO(scheglov): Triage places where we write elements.
   // Some of then cannot be members, e.g. type names.
   void writeElement2(Element2? element) {
-    writeElement(element.asElement);
+    if (element case Member element) {
+      var baseElement = element.baseElement;
+
+      var typeArguments = _enclosingClassTypeArguments(
+        baseElement,
+        element.substitution.map,
+      );
+
+      writeByte(Tag.MemberWithTypeArguments);
+      _writeElement2(baseElement);
+      _writeTypeList(typeArguments);
+    } else {
+      writeByte(Tag.RawElement);
+      _writeElement2(element);
+    }
   }
 
   void writeFragment(Fragment? fragment) {
@@ -846,11 +791,11 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(Tag.InterfaceType_noTypeArguments_question);
         }
         // TODO(scheglov): Write raw
-        writeElement(type.element);
+        writeElement2(type.element3);
       } else {
         writeByte(Tag.InterfaceType);
         // TODO(scheglov): Write raw
-        writeElement(type.element);
+        writeElement2(type.element3);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
           writeType(typeArguments[i]);
@@ -870,7 +815,7 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterTypeImpl) {
       writeByte(Tag.TypeParameterType);
-      writeElement(type.element);
+      writeElement2(type.element3);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is VoidTypeImpl) {
@@ -881,11 +826,7 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  int _indexOfElement(Element? element) {
-    if (element == null) return 0;
-    if (element is MultiplyDefinedElement) return 0;
-    assert(element is! Member);
-
+  int _indexOfElement(ElementImpl element) {
     // Positional parameters cannot be referenced outside of their scope,
     // so don't have a reference, so are stored as local elements.
     if (element is ParameterElementImpl && element.reference == null) {
@@ -894,7 +835,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
     // Type parameters cannot be referenced outside of their scope,
     // so don't have a reference, so are stored as local elements.
-    if (element is TypeParameterElement) {
+    if (element is TypeParameterElementImpl) {
       return localElements[element] << 1 | 0x1;
     }
 
@@ -902,14 +843,14 @@ class ResolutionSink extends _SummaryDataWriter {
       return _references._dynamicReferenceIndex << 1;
     }
 
-    var reference = (element as ElementImpl).reference;
+    var reference = element.reference;
     return _references._indexOfReference(reference) << 1;
   }
 
-  void _writeAliasedElement(Element? element) {
+  void _writeAliasedElement(ElementImpl? element) {
     if (element == null) {
       writeByte(AliasedElementTag.nothing);
-    } else if (element is GenericFunctionTypeElement) {
+    } else if (element is GenericFunctionTypeElementImpl) {
       writeByte(AliasedElementTag.genericFunctionElement);
       _writeTypeParameters(element.typeParameters, () {
         _writeFormalParameters(element.parameters, withAnnotations: true);
@@ -928,26 +869,50 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void _writeElement(Element? element) {
-    assert(element is! Member, 'Use writeMemberOrElement()');
+  void _writeElement2(Element2? element) {
+    switch (element) {
+      case null:
+      case MultiplyDefinedElementImpl2():
+        writeUInt30(0);
+      case DynamicElementImpl2():
+        _writeElementImpl(DynamicElementImpl.instance);
+      case ExecutableElementImpl2 element:
+        _writeElementImpl(element.asElement as ElementImpl);
+      case FieldElementImpl2 element:
+        _writeElementImpl(element.asElement);
+      case FormalParameterElementImpl element:
+        _writeElementImpl(element.asElement);
+      case InstanceElementImpl2 element:
+        _writeElementImpl(element.asElement);
+      case NeverElementImpl2():
+        _writeElementImpl(NeverElementImpl.instance);
+      case PrefixElementImpl2 element:
+        _writeElementImpl(element.asElement);
+      case TopLevelVariableElementImpl2 element:
+        _writeElementImpl(element.asElement);
+      case TypeAliasElementImpl2 element:
+        _writeElementImpl(element.asElement);
+      case TypeParameterElementImpl2 element:
+        _writeElementImpl(element.asElement);
+      default:
+        throw UnimplementedError('${element.runtimeType}');
+    }
+  }
+
+  void _writeElementImpl(ElementImpl element) {
     var elementIndex = _indexOfElement(element);
     writeUInt30(elementIndex);
   }
 
-  void _writeElementList(List<Element> elements) {
+  void _writeElementList2(List<Element2> elements) {
     writeUInt30(elements.length);
     for (var element in elements) {
-      writeElement(element);
+      writeElement2(element);
     }
   }
 
-  void _writeElementList2(List<Element2> elements2) {
-    var elements = elements2.map((e) => e.asElement!).toList();
-    _writeElementList(elements);
-  }
-
   void _writeFormalParameters(
-    List<ParameterElement> parameters, {
+    List<ParameterElementMixin> parameters, {
     required bool withAnnotations,
   }) {
     writeUInt30(parameters.length);
@@ -1027,7 +992,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void _writeTypeAliasElementArguments(TypeImpl type) {
     var alias = type.alias;
-    _writeElement(alias?.element);
+    _writeElement2(alias?.element2);
     if (alias != null) {
       _writeTypeList(alias.typeArguments);
     }
@@ -1041,7 +1006,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeTypeParameters(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     void Function() f, {
     required bool withAnnotations,
   }) {
@@ -1061,7 +1026,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   static List<DartType> _enclosingClassTypeArguments(
-    Element declaration,
+    Element2 declaration,
     Map<TypeParameterElement2, DartType> substitution,
   ) {
     // TODO(scheglov): Just keep it null in class Member?
@@ -1069,10 +1034,9 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement3;
-    if (enclosing is InstanceElement) {
-      var typeParameters =
-          (enclosing.asElement2! as InstanceElement2).typeParameters2;
+    var enclosing = declaration.enclosingElement2;
+    if (enclosing is InstanceElement2) {
+      var typeParameters = enclosing.typeParameters2;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }
@@ -1142,11 +1106,11 @@ class StringIndexer {
       var codeUnit = source.codeUnitAt(i++);
       if (codeUnit < 128) {
         // ASCII.
-        sink.addByte(codeUnit);
+        sink.writeByte(codeUnit);
       } else if (codeUnit < 0x800) {
         // Two-byte sequence (11-bit unicode value).
-        sink.addByte(0xC0 | (codeUnit >> 6));
-        sink.addByte(0x80 | (codeUnit & 0x3f));
+        sink.writeByte(0xC0 | (codeUnit >> 6));
+        sink.writeByte(0x80 | (codeUnit & 0x3f));
       } else if ((codeUnit & 0xFC00) == 0xD800 &&
           i < end &&
           (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
@@ -1154,16 +1118,16 @@ class StringIndexer {
         int codeUnit2 = source.codeUnitAt(i++);
         int unicode =
             0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
-        sink.addByte(0xF0 | (unicode >> 18));
-        sink.addByte(0x80 | ((unicode >> 12) & 0x3F));
-        sink.addByte(0x80 | ((unicode >> 6) & 0x3F));
-        sink.addByte(0x80 | (unicode & 0x3F));
+        sink.writeByte(0xF0 | (unicode >> 18));
+        sink.writeByte(0x80 | ((unicode >> 12) & 0x3F));
+        sink.writeByte(0x80 | ((unicode >> 6) & 0x3F));
+        sink.writeByte(0x80 | (unicode & 0x3F));
       } else {
         // Three-byte sequence (16-bit unicode value), including lone
         // surrogates.
-        sink.addByte(0xE0 | (codeUnit >> 12));
-        sink.addByte(0x80 | ((codeUnit >> 6) & 0x3f));
-        sink.addByte(0x80 | (codeUnit & 0x3f));
+        sink.writeByte(0xE0 | (codeUnit >> 12));
+        sink.writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
+        sink.writeByte(0x80 | (codeUnit & 0x3f));
       }
     } while (i < end);
   }
@@ -1238,15 +1202,15 @@ class _Library {
 }
 
 class _LocalElementIndexer {
-  final Map<Element, int> _index = Map.identity();
+  final Map<ElementImpl, int> _index = Map.identity();
   int _stackHeight = 0;
 
-  int operator [](Element element) {
+  int operator [](ElementImpl element) {
     return _index[element] ??
         (throw ArgumentError('Unexpectedly not indexed: $element'));
   }
 
-  void withElements(List<Element> elements, void Function() f) {
+  void withElements(List<ElementImpl> elements, void Function() f) {
     for (var element in elements) {
       _index[element] = _stackHeight++;
     }
@@ -1264,12 +1228,10 @@ class _SummaryDataWriter extends BufferedSink {
   final StringIndexer _stringIndexer;
 
   _SummaryDataWriter({
-    required ByteSink sink,
     required StringIndexer stringIndexer,
-  })  : _stringIndexer = stringIndexer,
-        super(sink);
+  }) : _stringIndexer = stringIndexer;
 
-  void _writeFormalParameterKind(ParameterElement p) {
+  void _writeFormalParameterKind(ParameterElementMixin p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
     } else if (p.isOptionalPositional) {

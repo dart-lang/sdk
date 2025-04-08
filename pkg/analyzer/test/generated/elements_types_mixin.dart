@@ -138,10 +138,7 @@ mixin ElementsTypesMixin {
     fragment.mixins = mixins;
     fragment.methods = methods;
 
-    var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
+    ClassElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -170,10 +167,6 @@ mixin ElementsTypesMixin {
     fragment.methods = methods.map((e) => e.firstFragment).toList();
 
     var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
-
     return element;
   }
 
@@ -256,12 +249,9 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
-    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element
-      ..representation = field
-      ..typeErasure = representationType
-      ..interfaces = fragment.interfaces
-      ..fields = fragment.fields;
+    fragment.typeErasure = representationType;
+
+    ExtensionTypeElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -282,14 +272,9 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
-    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element
-      ..representation = field
-      ..typeErasure = representationType
-      ..interfaces = fragment.interfaces
-      ..fields = fragment.fields;
+    fragment.typeErasure = representationType;
 
-    return element;
+    return ExtensionTypeElementImpl2(Reference.root(), fragment);
   }
 
   FunctionTypeImpl functionType({
@@ -333,28 +318,28 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl futureNone(TypeImpl type) {
-    return typeProvider.futureElement.instantiateImpl(
+    return typeProvider.futureElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl futureOrNone(TypeImpl type) {
-    return typeProvider.futureOrElement.instantiateImpl(
+    return typeProvider.futureOrElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl futureOrQuestion(TypeImpl type) {
-    return typeProvider.futureOrElement.instantiateImpl(
+    return typeProvider.futureOrElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl futureQuestion(TypeImpl type) {
-    return typeProvider.futureElement.instantiateImpl(
+    return typeProvider.futureElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -402,14 +387,14 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl iterableNone(TypeImpl type) {
-    return typeProvider.iterableElement.instantiateImpl(
+    return typeProvider.iterableElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl iterableQuestion(TypeImpl type) {
-    return typeProvider.iterableElement.instantiateImpl(
+    return typeProvider.iterableElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -447,28 +432,28 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl listNone(TypeImpl type) {
-    return typeProvider.listElement.instantiateImpl(
+    return typeProvider.listElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl listQuestion(TypeImpl type) {
-    return typeProvider.listElement.instantiateImpl(
+    return typeProvider.listElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl mapNone(TypeImpl key, TypeImpl value) {
-    return typeProvider.mapElement.instantiateImpl(
+    return typeProvider.mapElement2.instantiateImpl(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl mapQuestion(TypeImpl key, TypeImpl value) {
-    return typeProvider.mapElement.instantiateImpl(
+    return typeProvider.mapElement2.instantiateImpl(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -505,8 +490,6 @@ mixin ElementsTypesMixin {
 
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return fragment;
   }
@@ -528,8 +511,6 @@ mixin ElementsTypesMixin {
 
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return element;
   }
@@ -592,8 +573,8 @@ mixin ElementsTypesMixin {
     required NullabilitySuffix nullabilitySuffix,
     required TypeImpl promotedBound,
   }) {
-    return TypeParameterTypeImpl.v2(
-      element: element,
+    return TypeParameterTypeImpl(
+      element3: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -699,7 +680,7 @@ mixin ElementsTypesMixin {
     TypeAliasElementImpl2 element, {
     List<TypeImpl> typeArguments = const [],
   }) {
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -723,8 +704,8 @@ mixin ElementsTypesMixin {
     required NullabilitySuffix nullabilitySuffix,
     TypeImpl? promotedBound,
   }) {
-    return TypeParameterTypeImpl.v2(
-      element: element,
+    return TypeParameterTypeImpl(
+      element3: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -768,22 +749,12 @@ extension ClassElementImpl2Extension on ClassElementImpl2 {
     var augmentationTarget = fragments.last;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-
-      interfaces = [
-        ...interfaces,
-        ...augmentation.interfaces,
-      ];
-
-      mixins = [
-        ...mixins,
-        ...augmentation.mixins,
-      ];
     }
   }
 }
@@ -793,28 +764,13 @@ extension ClassElementImplExtension on ClassElementImpl {
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-
-      augmentedInternal.interfaces = [
-        ...augmentedInternal.interfaces,
-        ...augmentation.interfaces,
-      ];
-
-      augmentedInternal.mixins = [
-        ...augmentedInternal.mixins,
-        ...augmentation.mixins,
-      ];
     }
-  }
-
-  void updateElement() {
-    element.interfaces = interfaces;
-    element.mixins = mixins;
   }
 }
 
@@ -823,8 +779,8 @@ extension MixinElementImpl2Extension on MixinElementImpl2 {
     var augmentationTarget = fragments.last;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
@@ -833,11 +789,6 @@ extension MixinElementImpl2Extension on MixinElementImpl2 {
       superclassConstraints = [
         ...superclassConstraints,
         ...augmentation.superclassConstraints,
-      ];
-
-      interfaces = [
-        ...interfaces,
-        ...augmentation.interfaces,
       ];
     }
   }
@@ -848,8 +799,8 @@ extension MixinElementImplExtension on MixinElementImpl {
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
@@ -858,11 +809,6 @@ extension MixinElementImplExtension on MixinElementImpl {
       augmentedInternal.superclassConstraints = [
         ...augmentedInternal.superclassConstraints,
         ...augmentation.superclassConstraints,
-      ];
-
-      augmentedInternal.interfaces = [
-        ...augmentedInternal.interfaces,
-        ...augmentation.interfaces,
       ];
     }
   }

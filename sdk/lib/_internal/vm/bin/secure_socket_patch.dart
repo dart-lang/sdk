@@ -7,14 +7,13 @@ part of "common_patch.dart";
 @patch
 class SecureSocket {
   @patch
-  factory SecureSocket._(RawSecureSocket rawSocket) =>
-      new _SecureSocket(rawSocket);
+  factory SecureSocket._(RawSecureSocket rawSocket) => _SecureSocket(rawSocket);
 }
 
 @patch
 class _SecureFilter {
   @patch
-  factory _SecureFilter._() => new _SecureFilterImpl._();
+  factory _SecureFilter._() => _SecureFilterImpl._();
 }
 
 @patch
@@ -22,7 +21,7 @@ class _SecureFilter {
 class X509Certificate {
   @patch
   @pragma("vm:entry-point")
-  factory X509Certificate._() => new _X509CertificateImpl._();
+  factory X509Certificate._() => _X509CertificateImpl._();
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
@@ -38,14 +37,14 @@ class _SecureSocket extends _Socket implements SecureSocket {
 
   X509Certificate? get peerCertificate {
     if (_raw == null) {
-      throw new StateError("peerCertificate called on destroyed SecureSocket");
+      throw StateError("peerCertificate called on destroyed SecureSocket");
     }
     return _raw!.peerCertificate;
   }
 
   String? get selectedProtocol {
     if (_raw == null) {
-      throw new StateError("selectedProtocol called on destroyed SecureSocket");
+      throw StateError("selectedProtocol called on destroyed SecureSocket");
     }
     return _raw!.selectedProtocol;
   }
@@ -74,7 +73,7 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
   _SecureFilterImpl._() {
     buffers = <_ExternalBuffer>[
       for (int i = 0; i < _RawSecureSocket.bufferCount; ++i)
-        new _ExternalBuffer(
+        _ExternalBuffer(
           _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE,
         ),
     ];
@@ -158,9 +157,9 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
     }
   }
 
-  void rehandshake() => throw new UnimplementedError();
+  void rehandshake() => throw UnimplementedError();
 
-  int processBuffer(int bufferIndex) => throw new UnimplementedError();
+  int processBuffer(int bufferIndex) => throw UnimplementedError();
 
   @pragma("vm:external-name", "SecureSocket_GetSelectedProtocol")
   external String? selectedProtocol();
@@ -203,7 +202,7 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
 class SecurityContext {
   @patch
   factory SecurityContext({bool withTrustedRoots = false}) {
-    return new _SecurityContext(withTrustedRoots);
+    return _SecurityContext(withTrustedRoots);
   }
 
   @patch
@@ -245,10 +244,10 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   @pragma("vm:external-name", "SecurityContext_Allocate")
   external void _createNativeContext();
 
-  static final SecurityContext defaultContext = new _SecurityContext(true);
+  static final SecurityContext defaultContext = _SecurityContext(true);
 
   void usePrivateKey(String file, {String? password}) {
-    List<int> bytes = (new File(file)).readAsBytesSync();
+    List<int> bytes = (File(file)).readAsBytesSync();
     usePrivateKeyBytes(bytes, password: password);
   }
 
@@ -256,7 +255,7 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   external void usePrivateKeyBytes(List<int> keyBytes, {String? password});
 
   void setTrustedCertificates(String file, {String? password}) {
-    List<int> bytes = (new File(file)).readAsBytesSync();
+    List<int> bytes = (File(file)).readAsBytesSync();
     setTrustedCertificatesBytes(bytes, password: password);
   }
 
@@ -267,7 +266,7 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   });
 
   void useCertificateChain(String file, {String? password}) {
-    List<int> bytes = (new File(file)).readAsBytesSync();
+    List<int> bytes = (File(file)).readAsBytesSync();
     useCertificateChainBytes(bytes, password: password);
   }
 
@@ -278,7 +277,7 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   });
 
   void setClientAuthorities(String file, {String? password}) {
-    List<int> bytes = (new File(file)).readAsBytesSync();
+    List<int> bytes = (File(file)).readAsBytesSync();
     setClientAuthoritiesBytes(bytes, password: password);
   }
 
@@ -334,14 +333,11 @@ base class _X509CertificateImpl extends NativeFieldWrapperClass1
   @pragma("vm:external-name", "X509_Issuer")
   external String get issuer;
   DateTime get startValidity {
-    return new DateTime.fromMillisecondsSinceEpoch(
-      _startValidity(),
-      isUtc: true,
-    );
+    return DateTime.fromMillisecondsSinceEpoch(_startValidity(), isUtc: true);
   }
 
   DateTime get endValidity {
-    return new DateTime.fromMillisecondsSinceEpoch(_endValidity(), isUtc: true);
+    return DateTime.fromMillisecondsSinceEpoch(_endValidity(), isUtc: true);
   }
 
   @pragma("vm:external-name", "X509_StartValidity")

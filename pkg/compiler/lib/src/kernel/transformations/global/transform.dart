@@ -38,7 +38,7 @@ class _GlobalTransformer extends ConstantTransformer {
   _GlobalTransformer(
     super.constantEvaluator,
     CoreTypes coreTypes,
-    super.options,
+    CompilerOptions options,
   ) : _jsGetFlagLowering = JsGetFlagLowering(coreTypes, options);
 
   @override

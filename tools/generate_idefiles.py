@@ -90,12 +90,12 @@ def GenerateCompileCommands(options):
         # Add sysroot from out\DebugX64\environment.x64 on Windows.
         # TODO(dacoharkes): Fetch the paths from that file.
         windowsSysroots = [
-            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\27370823e7\\Windows Kits\\10\\Include\\10.0.22621.0\\um',
-            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\27370823e7\\Windows Kits\\10\\Include\\10.0.22621.0\\shared',
-            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\27370823e7\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt',
-            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\27370823e7\\Windows Kits\\10\\Include\\10.0.22621.0\\ucrt',
-            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\27370823e7\\VC\\Tools\\MSVC\\14.34.31933\\include',
-            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\27370823e7\\VC\\Tools\\MSVC\\14.34.31933\\atlmfc\\include',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\076960eda6\\Windows Kits\\10\\Include\\10.0.26100.0\\um',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\076960eda6\\Windows Kits\\10\\Include\\10.0.26100.0\\shared',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\076960eda6\\Windows Kits\\10\\Include\\10.0.26100.0\\winrt',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\076960eda6\\Windows Kits\\10\\Include\\10.0.26100.0\\ucrt',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\076960eda6\\VC\\Tools\\MSVC\\14.34.34808\\include',
+            'C:\\src\\depot_tools\\win_toolchain\\vs_files\\076960eda6\\VC\\Tools\\MSVC\\14.34.34808\\atlmfc\\include',
         ]
         for windowsSysroot in windowsSysroots:
             command = command.replace(

@@ -133,7 +133,8 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': contains('developer.postEvent'),
+              'compiledProcedure':
+                  stringContainsInOrder(['developer', 'postEvent']),
             })
           ]));
     });
@@ -167,7 +168,8 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': contains('developer.postEvent'),
+              'compiledProcedure':
+                  stringContainsInOrder(['developer', 'postEvent']),
             })
           ]));
     });
@@ -807,9 +809,6 @@ class TestProjectConfiguration {
   Uri get packagesPath => root.resolve('package_config.json');
 
   Uri get sdkRoot => computePlatformBinariesLocation();
-  // Use the outline copied to the released SDK.
-  // Unsound .dill files are not longer in the released SDK so this file must be
-  // read from the build output directory.
   Uri get sdkSummaryPath => sdkRoot.resolve('ddc_outline.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
@@ -1195,18 +1194,15 @@ class DDCKernelGenerator {
   DDCKernelGenerator(this.config, this.verbose);
 
   Future<int> generate() async {
+    var exitCode = 0;
     if (!File(dartdevc).existsSync()) {
-      // This can be removed once we stop supporting ia32 architecture.
-      dartdevc = p.join(
-          sdkPath, 'dart-sdk', 'bin', 'snapshots', 'dartdevc.dart.snapshot');
-      kernelWorker = p.join(sdkPath, 'dart-sdk', 'bin', 'snapshots',
-          'kernel_worker.dart.snapshot');
-      dartExecutable = Platform.resolvedExecutable;
+      exitCode = 1;
+      expect(exitCode, 0,
+          reason: 'Unable to locate snapshot for compiler $dartdevc');
     }
     Directory.fromUri(config.outputPath).createSync();
 
     // generate summaries
-    var exitCode = 0;
     for (var module in config.modules.values) {
       exitCode = await _generateSummary(module);
       expect(exitCode, 0,

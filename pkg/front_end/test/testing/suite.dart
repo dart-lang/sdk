@@ -68,7 +68,6 @@ import 'package:kernel/ast.dart'
         LibraryPart,
         Member,
         Node,
-        NonNullableByDefaultCompiledMode,
         RecursiveVisitor,
         Reference,
         TreeNode,
@@ -501,22 +500,6 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
               await StdioProcess.run(context.vm.toFilePath(), args);
           print(process.output);
           Result<int> runResult = process.toResult();
-          if (result.component.mode ==
-              NonNullableByDefaultCompiledMode.Invalid) {
-            // In this case we expect and want a runtime error.
-            if (runResult.outcome ==
-                ExpectationSet.defaultExpectations["RuntimeError"]) {
-              // We convert this to pass because that's exactly what we'd
-              // expect.
-              return pass(result);
-            } else {
-              // Different outcome - that's a failure!
-              return new Result<ComponentResult>(
-                  result,
-                  ExpectationSet.defaultExpectations["MissingRuntimeError"],
-                  runResult.error);
-            }
-          }
           return new Result<ComponentResult>(
               result, runResult.outcome, runResult.error);
         case "none":

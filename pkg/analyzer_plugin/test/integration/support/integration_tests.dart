@@ -38,7 +38,7 @@ Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
 Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /// Assert that [actual] matches [matcher].
-void outOfTestExpect(actual, Matcher matcher,
+void outOfTestExpect(dynamic actual, Matcher matcher,
     {String? reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
@@ -49,8 +49,8 @@ void outOfTestExpect(actual, Matcher matcher,
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
 
-String _defaultFailFormatter(
-    actual, Matcher matcher, String? reason, Map matchState, bool verbose) {
+String _defaultFailFormatter(dynamic actual, Matcher matcher, String? reason,
+    Map matchState, bool verbose) {
   var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
@@ -306,7 +306,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
       description.add(this.description);
 
   @override
-  void populateMismatches(item, List<MismatchDescriber> mismatches) {
+  void populateMismatches(dynamic item, List<MismatchDescriber> mismatches) {
     if (item is! Map) {
       mismatches.add(simpleDescription('is not a map'));
       return;
@@ -344,7 +344,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
   /// Check the type of a field called [key], having value [value], using
   /// [valueMatcher]. If it doesn't match, record a closure in [mismatches]
   /// which can describe the mismatch.
-  void _checkField(String key, value, Matcher valueMatcher,
+  void _checkField(String key, Object? value, Matcher valueMatcher,
       List<MismatchDescriber> mismatches) {
     checkSubstructure(
         value,
@@ -757,7 +757,7 @@ abstract class _RecursiveMatcher extends Matcher {
   /// the mismatch. [describeSubstructure] is used to describe which
   /// substructure did not match.
   void checkSubstructure(
-      item,
+      Object? item,
       Matcher matcher,
       List<MismatchDescriber> mismatches,
       Description Function(Description description) describeSubstructure) {
@@ -806,7 +806,7 @@ abstract class _RecursiveMatcher extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
+  bool matches(dynamic item, Map matchState) {
     var mismatches = <MismatchDescriber>[];
     populateMismatches(item, mismatches);
     if (mismatches.isEmpty) {
@@ -819,7 +819,7 @@ abstract class _RecursiveMatcher extends Matcher {
 
   /// Populate [mismatches] with descriptions of all the ways in which [item]
   /// does not match.
-  void populateMismatches(item, List<MismatchDescriber> mismatches);
+  void populateMismatches(dynamic item, List<MismatchDescriber> mismatches);
 
   /// Create a [MismatchDescriber] describing a mismatch with a simple string.
   MismatchDescriber simpleDescription(String description) =>

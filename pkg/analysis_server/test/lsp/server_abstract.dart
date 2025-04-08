@@ -27,6 +27,7 @@ import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' hide expect;
 import 'package:unified_analytics/unified_analytics.dart';
@@ -266,6 +267,7 @@ abstract class AbstractLspAnalysisServerTest
     channel.sendResponseToServer(response);
   }
 
+  @mustCallSuper
   void setUp() {
     httpClient = MockHttpClient();
     processRunner = MockProcessRunner();

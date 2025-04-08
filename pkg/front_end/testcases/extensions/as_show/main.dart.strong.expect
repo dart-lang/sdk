@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:test" as test;
+
+import "org-dartlang-testcase:///main_lib.dart" as lib1;
+import "org-dartlang-testcase:///main_lib.dart" show Extension1;
+import "dart:test" as lib2;
+import "dart:test" show Extension2;
+
+static method main() → dynamic {
+  mai::Extension1|method1(0);
+  mai::Extension1|method1(0);
+  test::Extension2|method2("");
+  test::Extension2|method2("");
+}
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+extension Extension1 on core::int {
+  method method1 = mai::Extension1|method1;
+  method tearoff method1 = mai::Extension1|get#method1;
+}
+static extension-member method Extension1|method1(lowered final core::int #this) → dynamic {}
+static extension-member method Extension1|get#method1(lowered final core::int #this) → () → dynamic
+  return () → dynamic => mai::Extension1|method1(#this);
+
+library;
+import self as test;
+import "dart:core" as core;
+
+extension Extension2 on core::String {
+  method method2 = test::Extension2|method2;
+  method tearoff method2 = test::Extension2|get#method2;
+}
+static extension-member method Extension2|method2(lowered final core::String #this) → dynamic {}
+static extension-member method Extension2|get#method2(lowered final core::String #this) → () → dynamic
+  return () → dynamic => test::Extension2|method2(#this);

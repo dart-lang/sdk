@@ -216,7 +216,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
+void Assembler::ExitFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   // For TSAN, we always go to the runtime so TSAN is aware of the acquire
@@ -243,14 +243,7 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   }
 
   Bind(&slow_path);
-  if (ignore_unwind_in_progress) {
-    movq(TMP,
-         Address(THR,
-                 target::Thread::
-                     exit_safepoint_ignore_unwind_in_progress_stub_offset()));
-  } else {
-    movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  }
+  movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
 
   // Use call instead of CallCFunction to avoid having to clean up shadow space
@@ -261,14 +254,10 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(bool exit_safepoint,
-                                            bool ignore_unwind_in_progress,
-                                            bool set_tag) {
+void Assembler::TransitionNativeToGenerated(bool exit_safepoint, bool set_tag) {
   if (exit_safepoint) {
-    ExitFullSafepoint(ignore_unwind_in_progress);
+    ExitFullSafepoint();
   } else {
-    // flag only makes sense if we are leaving safepoint
-    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));

@@ -1,0 +1,9 @@
+import 'main_lib.dart' as lib1;
+
+import 'main_lib.dart' show Extension1;
+
+import 'dart:test' as lib2;
+
+import 'dart:test' show Extension2;
+
+main() {}

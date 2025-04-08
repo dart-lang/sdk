@@ -339,7 +339,8 @@ abstract class ClassMember {
   /// Registers that this class member overrides [overriddenMembers].
   ///
   /// This is used to infer types from the [overriddenMembers].
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers);
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers);
 
   /// Returns `true` if this has the same underlying declaration as [other].
   ///
@@ -400,7 +401,8 @@ abstract class SynthesizedMember extends ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {}
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {}
 
   @override
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {

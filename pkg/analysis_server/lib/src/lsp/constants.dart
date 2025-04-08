@@ -157,12 +157,12 @@ abstract final class CustomMethods {
   /// Method for requesting the set of editable arguments at a location in a
   /// document.
   static const dartTextDocumentEditableArguments = Method(
-    'experimental/dart/textDocument/editableArguments',
+    'dart/textDocument/editableArguments',
   );
 
   /// Method for adding/editing an argument at a location in a document.
   static const dartTextDocumentEditArgument = Method(
-    'experimental/dart/textDocument/editArgument',
+    'dart/textDocument/editArgument',
   );
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
@@ -175,6 +175,13 @@ abstract final class CustomMethods {
   /// the required constant.
   static const semanticTokenDynamicRegistration = Method(
     'textDocument/semanticTokens',
+  );
+
+  /// Used to pass diagnostic information from the client editor to the server
+  /// that can be shown in the analyzer diagnostic pages, and also included in
+  /// the exported diagnostic report.
+  static const updateDiagnosticInformation = Method(
+    'dart/updateDiagnosticInformation',
   );
 
   /// An experimental 'echo' handler that can used by tests to verify

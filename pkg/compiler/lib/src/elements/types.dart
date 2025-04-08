@@ -6,9 +6,8 @@ import 'package:js_shared/variance.dart';
 
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart';
-import '../options.dart';
 import '../serialization/serialization.dart';
-import '../util/util.dart' show equalElements, equalSets, identicalElements;
+import '../util/util.dart' show equalElements, equalSets;
 import '../universe/record_shape.dart';
 import 'entities.dart';
 
@@ -72,8 +71,6 @@ abstract class DartType {
     switch (kind) {
       case DartTypeKind.none:
         return null;
-      case DartTypeKind.legacyType:
-        return LegacyType._readFromDataSource(source, functionTypeVariables);
       case DartTypeKind.nullableType:
         return NullableType._readFromDataSource(source, functionTypeVariables);
       case DartTypeKind.neverType:
@@ -112,8 +109,8 @@ abstract class DartType {
     List<FunctionTypeVariable> functionTypeVariables,
   );
 
-  /// Returns the base type if this is a [LegacyType] or [NullableType] and
-  /// returns this type otherwise.
+  /// Returns the base type if this is a [NullableType] and returns this type
+  /// otherwise.
   DartType get withoutNullability => this;
 
   /// Whether this type contains a type variable.
@@ -142,10 +139,10 @@ abstract class DartType {
   bool _equals(DartType other, _Assumptions? assumptions);
 
   @override
-  String toString() => toStructuredText(null, null);
+  String toString() => toStructuredText(null);
 
-  String toStructuredText(DartTypes? dartTypes, CompilerOptions? options) =>
-      _DartTypeToStringVisitor(dartTypes, options).run(this);
+  String toStructuredText(DartTypes? dartTypes) =>
+      _DartTypeToStringVisitor(dartTypes).run(this);
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be
@@ -229,67 +226,6 @@ class _Assumptions {
     sb.write(')');
     return sb.toString();
   }
-}
-
-class LegacyType extends DartType {
-  final DartType baseType;
-
-  const LegacyType._(this.baseType);
-
-  factory LegacyType._readFromDataSource(
-    DataSourceReader source,
-    List<FunctionTypeVariable> functionTypeVariables,
-  ) {
-    DartType baseType = DartType.readFromDataSource(
-      source,
-      functionTypeVariables,
-    );
-    return LegacyType._(baseType);
-  }
-
-  @override
-  void writeToDataSink(
-    DataSinkWriter sink,
-    List<FunctionTypeVariable> functionTypeVariables,
-  ) {
-    sink.writeEnum(DartTypeKind.legacyType);
-    baseType.writeToDataSink(sink, functionTypeVariables);
-  }
-
-  @override
-  DartType get withoutNullability => baseType;
-
-  @override
-  bool get containsTypeVariables => baseType.containsTypeVariables;
-
-  @override
-  void forEachTypeVariable(void Function(TypeVariableType variable) f) {
-    baseType.forEachTypeVariable(f);
-  }
-
-  @override
-  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
-      visitor.visitLegacyType(this, argument);
-
-  @override
-  int get hashCode => baseType.hashCode * 31;
-
-  @override
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! LegacyType) return false;
-    return _equalsInternal(other, null);
-  }
-
-  @override
-  bool _equals(DartType other, _Assumptions? assumptions) {
-    if (identical(this, other)) return true;
-    if (other is! LegacyType) return false;
-    return _equalsInternal(other, assumptions);
-  }
-
-  bool _equalsInternal(LegacyType other, _Assumptions? assumptions) =>
-      baseType._equals(other.baseType, assumptions);
 }
 
 class NullableType extends DartType {
@@ -1091,8 +1027,6 @@ abstract class DartTypeVisitor<R, A> {
 
   R visit(covariant DartType type, A argument) => type.accept(this, argument);
 
-  R visitLegacyType(covariant LegacyType type, A argument);
-
   R visitNullableType(covariant NullableType type, A argument);
 
   R visitNeverType(covariant NeverType type, A argument);
@@ -1116,133 +1050,6 @@ abstract class DartTypeVisitor<R, A> {
   R visitAnyType(covariant AnyType type, A argument);
 
   R visitFutureOrType(covariant FutureOrType type, A argument);
-}
-
-class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
-  final DartTypes _dartTypes;
-
-  _LegacyErasureVisitor(this._dartTypes);
-
-  DartType erase(DartType type) => visit(type, null);
-
-  List<DartType> eraseList(List<DartType> types) {
-    List<DartType> erasedTypes = types.map(erase).toList();
-    return identicalElements(erasedTypes, types) ? types : erasedTypes;
-  }
-
-  @override
-  DartType visit(DartType type, Null _) => type.accept(this, null);
-
-  @override
-  DartType visitLegacyType(LegacyType type, Null _) => erase(type.baseType);
-
-  @override
-  DartType visitNullableType(NullableType type, Null _) {
-    var baseType = erase(type.baseType);
-    if (identical(baseType, type.baseType)) return type;
-    return _dartTypes.nullableType(baseType);
-  }
-
-  @override
-  NeverType visitNeverType(NeverType type, Null _) => type;
-
-  @override
-  VoidType visitVoidType(VoidType type, Null _) => type;
-
-  @override
-  TypeVariableType visitTypeVariableType(TypeVariableType type, Null _) => type;
-
-  @override
-  FunctionTypeVariable visitFunctionTypeVariable(
-    FunctionTypeVariable type,
-    Null _,
-  ) => type;
-
-  @override
-  FunctionType visitFunctionType(FunctionType type, Null _) {
-    var returnType = erase(type.returnType);
-    var parameterTypes = eraseList(type.parameterTypes);
-    var optionalParameterTypes = eraseList(type.optionalParameterTypes);
-    var namedParameterTypes = eraseList(type.namedParameterTypes);
-
-    var oldTypeVariables = type.typeVariables;
-    var length = oldTypeVariables.length;
-
-    // Use the old type variables as placeholders that are overwritten.
-    List<FunctionTypeVariable> typeVariables = List<FunctionTypeVariable>.of(
-      oldTypeVariables,
-      growable: false,
-    );
-    List<FunctionTypeVariable> erasableTypeVariables = [];
-    List<FunctionTypeVariable> erasedTypeVariables = [];
-    for (int i = 0; i < length; i++) {
-      var oldTypeVariable = oldTypeVariables[i];
-      var oldBound = oldTypeVariable.bound;
-      var bound = erase(oldBound);
-      if (identical(bound, oldBound)) {
-        typeVariables[i] = oldTypeVariable;
-      } else {
-        var typeVariable = _dartTypes.functionTypeVariable(i)..bound = bound;
-        typeVariables[i] = typeVariable;
-        erasableTypeVariables.add(oldTypeVariable);
-        erasedTypeVariables.add(typeVariable);
-      }
-    }
-
-    if (identical(returnType, type.returnType) &&
-        identical(parameterTypes, type.parameterTypes) &&
-        identical(optionalParameterTypes, type.optionalParameterTypes) &&
-        identical(namedParameterTypes, type.namedParameterTypes) &&
-        erasableTypeVariables.isEmpty) {
-      return type;
-    }
-
-    // TODO(48820): Can we avoid the cast?
-    return _dartTypes.subst(
-          erasedTypeVariables,
-          erasableTypeVariables,
-          _dartTypes.functionType(
-            returnType,
-            parameterTypes,
-            optionalParameterTypes,
-            type.namedParameters,
-            type.requiredNamedParameters,
-            namedParameterTypes,
-            typeVariables,
-          ),
-        )
-        as FunctionType;
-  }
-
-  @override
-  InterfaceType visitInterfaceType(InterfaceType type, Null _) {
-    var typeArguments = eraseList(type.typeArguments);
-    if (identical(typeArguments, type.typeArguments)) return type;
-    return _dartTypes.interfaceType(type.element, typeArguments);
-  }
-
-  @override
-  RecordType visitRecordType(RecordType type, Null _) {
-    final fields = eraseList(type.fields);
-    if (identical(fields, type.fields)) return type;
-    return _dartTypes.recordType(type.shape, fields);
-  }
-
-  @override
-  DynamicType visitDynamicType(DynamicType type, Null _) => type;
-
-  @override
-  ErasedType visitErasedType(ErasedType type, Null _) => type;
-
-  @override
-  AnyType visitAnyType(AnyType type, Null _) => type;
-
-  @override
-  DartType visitFutureOrType(FutureOrType type, Null _) {
-    var typeArgument = erase(type.typeArgument);
-    if (identical(typeArgument, type.typeArgument)) return type;
-    return _dartTypes.futureOrType(typeArgument);
-  }
 }
 
 abstract class DartTypeSubstitutionVisitor<A>
@@ -1279,19 +1086,6 @@ abstract class DartTypeSubstitutionVisitor<A>
     A argument,
     bool freshReference,
   ) => type;
-
-  @override
-  DartType visitLegacyType(covariant LegacyType type, A argument) {
-    DartType? probe = _map[type];
-    if (probe != null) return probe;
-
-    DartType newBaseType = visit(type.baseType, argument);
-    // Create a new type only if necessary.
-    if (identical(type.baseType, newBaseType)) {
-      return _mapped(type, type);
-    }
-    return _mapped(type, dartTypes.legacyType(newBaseType));
-  }
 
   @override
   DartType visitNullableType(covariant NullableType type, A argument) {
@@ -1540,7 +1334,6 @@ abstract class DartTypeStructuralPredicateVisitor
 
   bool run(DartType type) => visit(type, null);
 
-  bool handleLegacyType(LegacyType type) => false;
   bool handleNullableType(NullableType type) => false;
   bool handleNeverType(NeverType type) => false;
   bool handleVoidType(VoidType type) => false;
@@ -1554,10 +1347,6 @@ abstract class DartTypeStructuralPredicateVisitor
   bool handleErasedType(ErasedType type) => false;
   bool handleAnyType(AnyType type) => false;
   bool handleFutureOrType(FutureOrType type) => false;
-
-  @override
-  bool visitLegacyType(LegacyType type, List<FunctionTypeVariable>? bindings) =>
-      handleLegacyType(type) || visit(type.baseType, bindings);
 
   @override
   bool visitNullableType(
@@ -1727,14 +1516,13 @@ class _DeferredName {
 
 class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   final DartTypes? _dartTypes; // May be null.
-  final CompilerOptions? _options; // May be null.
   final List<Object> _fragments = []; // Strings and _DeferredNames
   bool _lastIsIdentifier = false;
   List<FunctionTypeVariable>? _boundVariables;
   Map<FunctionTypeVariable, _DeferredName>? _variableToName;
   Set<FunctionType>? _genericFunctions;
 
-  _DartTypeToStringVisitor(this._dartTypes, this._options);
+  _DartTypeToStringVisitor(this._dartTypes);
 
   String run(DartType type) {
     _visit(type);
@@ -1791,18 +1579,6 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
 
   void _visit(DartType type) {
     type.accept(this, null);
-  }
-
-  @override
-  void visitLegacyType(covariant LegacyType type, _) {
-    _visit(type.baseType);
-    // We do not emit the '*' token for legacy types because this is a purely
-    // internal notion. The language specification does not define a '*' token
-    // in the type language, and no such token should be surfaced to users.
-    // For debugging, pass `--debug-print-legacy-stars` to emit the '*'.
-    if (_options == null || _options.printLegacyStars) {
-      _token('*');
-    }
   }
 
   @override
@@ -1985,48 +1761,21 @@ abstract class DartTypes {
   /// The types defined in 'dart:core'.
   CommonElements get commonElements;
 
-  bool get useLegacySubtyping;
-
-  DartType legacyType(DartType baseType) {
-    DartType result;
-    if (isStrongTopType(baseType) ||
-        baseType.isNull ||
-        baseType is LegacyType ||
-        baseType is NullableType) {
-      result = baseType;
-    } else {
-      result = LegacyType._(baseType);
-    }
-    return result;
-  }
-
   DartType nullableType(DartType baseType) {
     bool isNullable(DartType t) =>
-        // Note that we can assume null safety is enabled here.
         t.isNull ||
         t is NullableType ||
-        t is LegacyType && isNullable(t.baseType) ||
         t is FutureOrType && isNullable(t.typeArgument) ||
-        isStrongTopType(t);
+        isTopType(t);
 
     DartType result;
-    if (isStrongTopType(baseType) ||
+    if (isTopType(baseType) ||
         baseType.isNull ||
         baseType is NullableType ||
         baseType is FutureOrType && isNullable(baseType.typeArgument)) {
       result = baseType;
     } else if (baseType is NeverType) {
       result = commonElements.nullType;
-    } else if (baseType is LegacyType) {
-      DartType legacyBaseType = baseType.baseType;
-      if (legacyBaseType is NeverType) {
-        result = commonElements.nullType;
-      } else if (legacyBaseType is FutureOrType &&
-          isNullable(legacyBaseType.typeArgument)) {
-        result = legacyBaseType;
-      } else {
-        result = nullableType(legacyBaseType);
-      }
     } else {
       result = NullableType._(baseType);
     }
@@ -2108,9 +1857,6 @@ abstract class DartTypes {
     return result;
   }
 
-  DartType eraseLegacy(DartType type) =>
-      _LegacyErasureVisitor(this).erase(type);
-
   /// Performs the substitution `[arguments[i]/parameters[i]]t`.
   ///
   /// The notation is known from this lambda calculus rule:
@@ -2172,16 +1918,10 @@ abstract class DartTypes {
   }
 
   /// Returns `true` if [t] is a bottom type, that is, a subtype of every type.
-  bool isBottomType(DartType t) =>
-      t is NeverType || (useLegacySubtyping && t.isNull);
+  bool isBottomType(DartType t) => t is NeverType;
 
   /// Returns `true` if [t] is a top type, that is, a supertype of every type.
   bool isTopType(DartType t) =>
-      isStrongTopType(t) ||
-      t is LegacyType && t.baseType.isObject ||
-      useLegacySubtyping && t.isObject;
-
-  bool isStrongTopType(DartType t) =>
       t is VoidType ||
       t is DynamicType ||
       t is ErasedType ||
@@ -2237,7 +1977,7 @@ abstract class DartTypes {
       if (isTopType(t)) return true;
 
       // Left Top:
-      if (isStrongTopType(s)) return false;
+      if (isTopType(s)) return false;
 
       // Left Bottom:
       if (isBottomType(s)) return true;
@@ -2253,38 +1993,19 @@ abstract class DartTypes {
       // Left Null:
       // Note: Interchanging the Left Null and Right Object rules allows us to
       // reduce casework.
-      if (!useLegacySubtyping && s.isNull) {
+      if (s.isNull) {
         if (t is FutureOrType) {
           return isSubtype(s, t.typeArgument, env);
         }
-        return t.isNull || t is LegacyType || t is NullableType;
+        return t.isNull || t is NullableType;
       }
 
       // Right Object:
-      if (!useLegacySubtyping && t.isObject) {
+      if (t.isObject) {
         if (s is FutureOrType) {
           return isSubtype(s.typeArgument, t, env);
         }
-        if (s is LegacyType) {
-          return isSubtype(s.baseType, t, env);
-        }
         return s is! NullableType;
-      }
-
-      // Left Legacy:
-      if (s is LegacyType) {
-        return isSubtype(s.baseType, t, env);
-      }
-
-      // Right Legacy:
-      if (t is LegacyType) {
-        // Note that to convert `T*` to `T?`, we can't just say `t._toNullable`.
-        // The resulting type `T?` may be normalizable (e.g. if `T` is `Never`).
-        return isSubtype(
-          s,
-          useLegacySubtyping ? t.baseType : nullableType(t),
-          env,
-        );
       }
 
       // Left FutureOr:
@@ -2296,8 +2017,7 @@ abstract class DartTypes {
 
       // Left Nullable:
       if (s is NullableType) {
-        return (useLegacySubtyping ||
-                isSubtype(commonElements.nullType, t, env)) &&
+        return (isSubtype(commonElements.nullType, t, env)) &&
             isSubtype(s.baseType, t, env);
       }
 
@@ -2317,8 +2037,7 @@ abstract class DartTypes {
 
       // Right Nullable:
       if (t is NullableType) {
-        return (!useLegacySubtyping &&
-                isSubtype(s, commonElements.nullType, env)) ||
+        return (isSubtype(s, commonElements.nullType, env)) ||
             isSubtype(s, t.baseType, env);
       }
 
@@ -2425,14 +2144,12 @@ abstract class DartTypes {
                 String sName = sNamed[sIndex++];
                 int comparison = sName.compareTo(tName);
                 if (comparison > 0) return false;
-                bool sIsRequired =
-                    !useLegacySubtyping && sRequiredNamed.contains(sName);
+                bool sIsRequired = sRequiredNamed.contains(sName);
                 if (comparison < 0) {
                   if (sIsRequired) return false;
                   continue;
                 }
-                bool tIsRequired =
-                    !useLegacySubtyping && tRequiredNamed.contains(tName);
+                bool tIsRequired = tRequiredNamed.contains(tName);
                 if (sIsRequired && !tIsRequired) return false;
                 if (!isSubtype(
                   tNamedTypes[tIndex],
@@ -2444,10 +2161,8 @@ abstract class DartTypes {
                 break;
               }
             }
-            if (!useLegacySubtyping) {
-              while (sIndex < sNamedLength) {
-                if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
-              }
+            while (sIndex < sNamedLength) {
+              if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
             }
             return true;
           } finally {
@@ -2610,9 +2325,7 @@ abstract class DartTypes {
         type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
   }
 
-  /// Returns `true` if [type] occurring in a program with no sound null safety
-  /// cannot accept `null` under sound rules.
-  bool isNonNullableIfSound(DartType type) {
+  bool isNonNullable(DartType type) {
     if (type is DynamicType ||
         type is VoidType ||
         type is AnyType ||
@@ -2620,9 +2333,6 @@ abstract class DartTypes {
       return false;
     }
     if (type is NullableType) return false;
-    if (type is LegacyType) {
-      return isNonNullableIfSound(type.baseType);
-    }
     if (type is InterfaceType) {
       if (type.isNull) return false;
       return true;
@@ -2631,16 +2341,15 @@ abstract class DartTypes {
     if (type is RecordType) return true;
     if (type is NeverType) return true;
     if (type is TypeVariableType) {
-      return isNonNullableIfSound(getTypeVariableBound(type.element));
+      return isNonNullable(getTypeVariableBound(type.element));
     }
     if (type is FutureOrType) {
-      return isNonNullableIfSound(type.typeArgument);
+      return isNonNullable(type.typeArgument);
     }
     throw UnimplementedError('isNonNullableIfSound $type');
   }
 
   DartType getUnionFreeType(DartType type) {
-    if (type is LegacyType) return getUnionFreeType(type.baseType);
     if (type is NullableType) return getUnionFreeType(type.baseType);
     if (type is FutureOrType) return getUnionFreeType(type.typeArgument);
     return type;

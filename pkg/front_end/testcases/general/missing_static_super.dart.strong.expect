@@ -203,7 +203,7 @@ class Class extends self::Super {
           ^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:15:11: Error: Superclass has no getter named 'missingSuperMethod'.
     super.missingSuperMethod<int>;
-          ^^^^^^^^^^^^^^^^^^"<core::int>;
+          ^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:16:11: Error: Superclass has no getter named 'missingSuperIndex'.
     super.missingSuperIndex[42];
           ^^^^^^^^^^^^^^^^^"{<invalid>}.[](42);
@@ -232,7 +232,7 @@ class Class extends self::Super {
           ^^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:27:11: Error: Member not found: 'missingStaticMethod'.
     Super.missingStaticMethod<int>;
-          ^^^^^^^^^^^^^^^^^^^"<core::int>;
+          ^^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:28:11: Error: Member not found: 'missingStaticIndex'.
     Super.missingStaticIndex[42];
           ^^^^^^^^^^^^^^^^^^"{<invalid>}.[](42);
@@ -263,7 +263,7 @@ abstract class Mixin extends self::Super /*isMixinDeclaration*/  {
           ^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:41:11: Error: Superclass has no getter named 'missingSuperMethod'.
     super.missingSuperMethod<int>;
-          ^^^^^^^^^^^^^^^^^^"<core::int>;
+          ^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:42:11: Error: Superclass has no getter named 'missingSuperIndex'.
     super.missingSuperIndex[42];
           ^^^^^^^^^^^^^^^^^"{<invalid>}.[](42);
@@ -292,7 +292,7 @@ abstract class Mixin extends self::Super /*isMixinDeclaration*/  {
           ^^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:53:11: Error: Member not found: 'missingStaticMethod'.
     Super.missingStaticMethod<int>;
-          ^^^^^^^^^^^^^^^^^^^"<core::int>;
+          ^^^^^^^^^^^^^^^^^^^";
     invalid-expression "pkg/front_end/testcases/general/missing_static_super.dart:54:11: Error: Member not found: 'missingStaticIndex'.
     Super.missingStaticIndex[42];
           ^^^^^^^^^^^^^^^^^^"{<invalid>}.[](42);

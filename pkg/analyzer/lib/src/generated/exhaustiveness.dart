@@ -284,7 +284,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListElementType(TypeImpl type) {
-    var listType = type.asInstanceOf(_typeSystem.typeProvider.listElement);
+    var listType = type.asInstanceOf2(_typeSystem.typeProvider.listElement2);
     if (listType != null) {
       return listType.typeArguments[0];
     }
@@ -293,12 +293,12 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListType(TypeImpl type) {
-    return type.asInstanceOf(_typeSystem.typeProvider.listElement);
+    return type.asInstanceOf2(_typeSystem.typeProvider.listElement2);
   }
 
   @override
   TypeImpl? getMapValueType(TypeImpl type) {
-    var mapType = type.asInstanceOf(_typeSystem.typeProvider.mapElement);
+    var mapType = type.asInstanceOf2(_typeSystem.typeProvider.mapElement2);
     if (mapType != null) {
       return mapType.typeArguments[1];
     }

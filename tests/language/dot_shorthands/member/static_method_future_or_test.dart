@@ -30,6 +30,7 @@ class StaticMemberExtFutureOrContext {
 void main() {
   // Class
   FutureOr<StaticMember> member = .member();
+  FutureOr<FutureOr<StaticMember>> memberNested = .member();
   FutureOr<StaticMember?> nullableMember = .memberType<String, int>("s");
 
   var memberList = <FutureOr<StaticMember>>[.member(), .memberType<String, int>("s")];
@@ -41,12 +42,13 @@ void main() {
 
   // Extension type
   FutureOr<StaticMemberExt> memberExt = .member();
+  FutureOr<FutureOr<StaticMemberExt>> memberExtNested = .member();
   FutureOr<StaticMemberExt?> nullableMemberExt = .memberType<String, int>("s");
 
   var memberExtList = <FutureOr<StaticMemberExt>>[.member(), .memberType<String, int>("s")];
   var nullableMemberExtList = <FutureOr<StaticMemberExt?>>[.member(), .memberType<String, int>("s")];
 
-  var memberExtContextPositional = StaticMemberExtFutureOrContext(.member(), .regular(1));
+  var memberExtContextPositional = StaticMemberExtFutureOrContext(.member(), .memberType<String, int>("s"));
   var memberExtContextNamed = StaticMemberExtFutureOrContext.named(nullableMemberExt: .memberType<String, int>("s"));
   var memberExtContextOptional = StaticMemberExtFutureOrContext.optional(.memberType<String, int>("s"));
 }

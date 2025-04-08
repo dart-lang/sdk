@@ -18,7 +18,7 @@ class Child extends Base {
 /// This is similar to the `extend_class` test case, but includes more nuance,
 /// like extending a non-leaf class that already was used in the program, since
 /// that may affect dispatch logic based on some backends.
-main() async {
+void main() async {
   Base o = Child1();
   Expect.equals(1, o.method1());
   Expect.equals(3, o.method2());

@@ -824,18 +824,9 @@ class PowersetDomain with AbstractValueDomain {
   }
 
   @override
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  }) {
-    int powersetBits = _powersetBitsDomain.createFromStaticType(
-      type,
-      nullable: nullable,
-    );
-    var unwrapped = _abstractValueDomain.createFromStaticType(
-      type,
-      nullable: nullable,
-    );
+  AbstractValueWithPrecision createFromStaticType(DartType type) {
+    int powersetBits = _powersetBitsDomain.createFromStaticType(type);
+    var unwrapped = _abstractValueDomain.createFromStaticType(type);
     return AbstractValueWithPrecision(
       PowersetValue(unwrapped.abstractValue, powersetBits),
       unwrapped.isPrecise,
@@ -1019,12 +1010,12 @@ class PowersetDomain with AbstractValueDomain {
   }
 }
 
-class PowersetStrategy implements AbstractValueStrategy {
+class PowersetStrategy implements AbstractValueStrategy<PowersetDomain> {
   final AbstractValueStrategy _abstractValueStrategy;
   const PowersetStrategy(this._abstractValueStrategy);
 
   @override
-  AbstractValueDomain createDomain(JClosedWorld closedWorld) {
+  PowersetDomain createDomain(JClosedWorld closedWorld) {
     return PowersetDomain(
       _abstractValueStrategy.createDomain(closedWorld),
       PowersetBitsDomain(closedWorld),
@@ -1032,9 +1023,11 @@ class PowersetStrategy implements AbstractValueStrategy {
   }
 
   @override
-  SelectorConstraintsStrategy createSelectorStrategy() {
+  SelectorConstraintsStrategy createSelectorStrategy(PowersetDomain domain) {
     return PowersetsSelectorStrategy(
-      _abstractValueStrategy.createSelectorStrategy(),
+      _abstractValueStrategy.createSelectorStrategy(
+        domain._abstractValueDomain,
+      ),
     );
   }
 }

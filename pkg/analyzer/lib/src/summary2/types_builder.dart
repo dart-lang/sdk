@@ -113,7 +113,7 @@ class TypesBuilder {
     );
   }
 
-  void _classDeclaration( ClassDeclarationImpl node) {
+  void _classDeclaration(ClassDeclarationImpl node) {
     var element = node.declaredFragment!;
 
     var extendsClause = node.extendsClause;
@@ -133,7 +133,7 @@ class TypesBuilder {
     _updatedAugmented(element, withClause: node.withClause);
   }
 
-  void _classTypeAlias( ClassTypeAliasImpl node) {
+  void _classTypeAlias(ClassTypeAliasImpl node) {
     var element = node.declaredFragment!;
 
     var superType = node.superclass.type;
@@ -232,13 +232,9 @@ class TypesBuilder {
 
   void _extensionDeclaration(ExtensionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.augmentationTarget == null) {
-      if (node.onClause case var onClause?) {
-        var extendedType = onClause.extendedType.typeOrThrow;
-        fragment.element.extendedType = extendedType;
-      }
-    } else {
-      _updatedAugmented(fragment);
+    if (node.onClause case var onClause?) {
+      var extendedType = onClause.extendedType.typeOrThrow;
+      fragment.element.extendedType = extendedType;
     }
   }
 
@@ -369,78 +365,19 @@ class TypesBuilder {
     return node.typeParameters.map((p) => p.declaredFragment!).toFixedList();
   }
 
+  // TODO(scheglov): remove it, mostly.
   void _updatedAugmented(
     InstanceElementImpl fragment, {
     WithClause? withClause,
   }) {
-    // Always schedule mixin inference for the declaration.
-    if (fragment.augmentationTarget == null) {
-      if (fragment is InterfaceElementImpl) {
-        _toInferMixins[fragment] = _ToInferMixins(fragment, withClause);
-      }
-    }
-
-    // Here we merge declaration and augmentations.
-    // If there are no augmentations, nothing to do.
     var element = fragment.element;
 
-    var firstFragment = element.firstFragment;
-    var firstTypeParameters =
-        firstFragment.typeParameters.map((tp) => tp.asElement2).toList();
-
-    var fragmentTypeParameters =
-        fragment.typeParameters.map((tp) => tp.asElement2).toList();
-    if (fragmentTypeParameters.length != firstTypeParameters.length) {
-      return;
-    }
-
-    var toFirst = Substitution.fromPairs2(
-      fragmentTypeParameters,
-      firstTypeParameters.instantiateNone(),
-    );
-
-    var fromFirst = Substitution.fromPairs2(
-      firstTypeParameters,
-      fragmentTypeParameters.instantiateNone(),
-    );
-
-    // Schedule mixing inference for augmentations.
-    if (fragment.augmentationTarget != null) {
-      if (fragment is InterfaceElementImpl && withClause != null) {
-        var toInferMixins = _toInferMixins[firstFragment];
-        if (toInferMixins != null) {
-          toInferMixins.augmentations.add(
-            _ToInferMixinsAugmentation(
-              element: fragment,
-              withClause: withClause,
-              toDeclaration: toFirst,
-              fromDeclaration: fromFirst,
-            ),
-          );
-        }
-      }
-    }
-
-    if (fragment is InterfaceElementImpl &&
-        firstFragment is InterfaceElementImpl &&
-        element is InterfaceElementImpl2) {
-      if (firstFragment.supertype == null) {
-        var fragmentSuperType = fragment.supertype;
-        if (fragmentSuperType != null) {
-          var superType = toFirst.mapInterfaceType(fragmentSuperType);
-          firstFragment.supertype = superType;
-        }
-      }
-
-      element.interfaces.addAll(
-        toFirst.mapInterfaceTypes(fragment.interfaces),
-      );
+    if (fragment is InterfaceElementImpl) {
+      _toInferMixins[fragment] = _ToInferMixins(fragment, withClause);
     }
 
     if (fragment is MixinElementImpl && element is MixinElementImpl2) {
-      element.superclassConstraints.addAll(
-        toFirst.mapInterfaceTypes(fragment.superclassConstraints),
-      );
+      element.superclassConstraints.addAll(fragment.superclassConstraints);
     }
   }
 
@@ -556,7 +493,7 @@ class _MixinInference {
         if (rawType is InterfaceTypeImpl) {
           supertypeConstraints = rawType.superclassConstraints;
           instantiate = (typeArguments) {
-            return mixinElement.instantiate(
+            return mixinElement.instantiateImpl(
               typeArguments: typeArguments,
               nullabilitySuffix: mixinType.nullabilitySuffix,
             ) as InterfaceTypeImpl;
@@ -688,10 +625,6 @@ class _MixinsInference {
       }
     } finally {
       element.mixinInferenceCallback = null;
-      switch (element.element) {
-        case InterfaceElementImpl2 augmented:
-          augmented.mixins.addAll(declarationMixins);
-      }
     }
   }
 
@@ -713,9 +646,7 @@ class _ToInferMixins {
   final WithClause? withClause;
   final List<_ToInferMixinsAugmentation> augmentations = [];
 
-  _ToInferMixins(this.element, this.withClause) {
-    assert(element.augmentationTarget == null);
-  }
+  _ToInferMixins(this.element, this.withClause);
 }
 
 class _ToInferMixinsAugmentation {

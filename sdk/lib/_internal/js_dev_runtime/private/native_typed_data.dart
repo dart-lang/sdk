@@ -1219,20 +1219,20 @@ final class NativeFloat32x4 implements Float32x4 {
     if (w is! num) throw ArgumentError(w);
   }
 
-  NativeFloat32x4.splat(double v) : this(v, v, v, v);
+  NativeFloat32x4.splat(double value) : this(value, value, value, value);
   NativeFloat32x4.zero() : this._truncated(0.0, 0.0, 0.0, 0.0);
 
-  /// Returns a bit-wise copy of [i] as a Float32x4.
-  factory NativeFloat32x4.fromInt32x4Bits(Int32x4 i) {
-    _uint32view[0] = i.x;
-    _uint32view[1] = i.y;
-    _uint32view[2] = i.z;
-    _uint32view[3] = i.w;
+  /// Returns a bit-wise copy of [bits] as a Float32x4.
+  factory NativeFloat32x4.fromInt32x4Bits(Int32x4 bits) {
+    _uint32view[0] = bits.x;
+    _uint32view[1] = bits.y;
+    _uint32view[2] = bits.z;
+    _uint32view[3] = bits.w;
     return NativeFloat32x4._truncated(_list[0], _list[1], _list[2], _list[3]);
   }
 
-  NativeFloat32x4.fromFloat64x2(Float64x2 v)
-    : this._truncated(_truncate(v.x), _truncate(v.y), 0.0, 0.0);
+  NativeFloat32x4.fromFloat64x2(Float64x2 xy)
+    : this._truncated(_truncate(xy.x), _truncate(xy.y), 0.0, 0.0);
 
   /// Creates a new NativeFloat32x4.
   ///
@@ -1380,11 +1380,11 @@ final class NativeFloat32x4 implements Float32x4 {
   }
 
   /// Returns a copy of this [Float32x4] each lane being scaled by [s].
-  Float32x4 scale(double s) {
-    double _x = s * x;
-    double _y = s * y;
-    double _z = s * z;
-    double _w = s * w;
+  Float32x4 scale(double scale) {
+    double _x = scale * x;
+    double _y = scale * y;
+    double _z = scale * z;
+    double _w = scale * w;
     return NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
 

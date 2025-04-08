@@ -114,7 +114,7 @@ class ConstructorReferenceResolver {
       // Get back to the uninstantiated generic constructor.
       // TODO(jmesserly): should we store this earlier in resolution?
       // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = elementToInfer.element2;
+      var rawElement = elementToInfer.element2.baseElement;
       var constructorType = elementToInfer.asType;
 
       var inferred = _resolver.inferenceHelper.inferTearOff(

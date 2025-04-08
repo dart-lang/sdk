@@ -1850,6 +1850,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
               null,
               initializer: node.value,
               isSynthesized: true,
+              type: visitDartType(field.type, cannotRemoveSentinel),
             ),
           );
         } else {
@@ -2302,8 +2303,14 @@ class _TreeShakerPass2 extends RemovingTransformer {
         }
         Statistics.methodBodiesDropped++;
       } else if (node is Field) {
-        node.initializer = null;
-        Statistics.fieldInitializersDropped++;
+        // Do not remove initializers of late final fields as
+        // late final fields without initializer would have
+        // an additional implicit setter which was not accounted
+        // (Field.setterReference == null and Field.hasSetter == false).
+        if (!(node.isLate && node.isFinal)) {
+          node.initializer = null;
+          Statistics.fieldInitializersDropped++;
+        }
       } else if (node is Constructor) {
         _makeUnreachableBody(node.function);
         _removeDefaultValuesOfParameters(node.function);

@@ -4,7 +4,7 @@
 
 part of dart.io;
 
-final _ioOverridesToken = new Object();
+final _ioOverridesToken = Object();
 
 /// Facilities for overriding various APIs of `dart:io` with mock
 /// implementations.
@@ -117,7 +117,7 @@ abstract class IOOverrides {
       currentScope = current;
       current = currentScope._previous;
     }
-    IOOverrides overrides = new _IOOverridesScope(
+    IOOverrides overrides = _IOOverridesScope(
       current,
       // Directory
       createDirectory ?? currentScope?._createDirectory,
@@ -180,7 +180,7 @@ abstract class IOOverrides {
   ///
   /// When this override is installed, this function overrides the behavior of
   /// `new Directory()` and `new Directory.fromUri()`.
-  Directory createDirectory(String path) => new _Directory(path);
+  Directory createDirectory(String path) => _Directory(path);
 
   /// Returns the current working directory.
   ///
@@ -208,7 +208,7 @@ abstract class IOOverrides {
   ///
   /// When this override is installed, this function overrides the behavior of
   /// `new File()` and `new File.fromUri()`.
-  File createFile(String path) => new _File(path);
+  File createFile(String path) => _File(path);
 
   // FileStat
 
@@ -286,7 +286,7 @@ abstract class IOOverrides {
   ///
   /// When this override is installed, this function overrides the behavior of
   /// `new Link()` and `new Link.fromUri()`.
-  Link createLink(String path) => new _Link(path);
+  Link createLink(String path) => _Link(path);
 
   // Socket
 

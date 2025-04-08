@@ -19,7 +19,7 @@ abstract class _Array<E> extends FixedLengthListBase<E> {
   @pragma("vm:prefer-inline")
   _List _slice(int start, int count, bool needsTypeArgument) {
     if (count <= 64) {
-      final result = needsTypeArgument ? new _List<E>(count) : new _List(count);
+      final result = needsTypeArgument ? _List<E>(count) : _List(count);
       for (int i = 0; i < result.length; i++) {
         result[i] = this[start + i];
       }
@@ -44,7 +44,7 @@ abstract class _Array<E> extends FixedLengthListBase<E> {
 
   @pragma("vm:prefer-inline")
   Iterator<E> get iterator {
-    return new _ArrayIterator<E>(this);
+    return _ArrayIterator<E>(this);
   }
 
   E get first {
@@ -68,12 +68,12 @@ abstract class _Array<E> extends FixedLengthListBase<E> {
     if (length > 0) {
       _List result = _slice(0, length, !growable);
       if (growable) {
-        return new _GrowableList<E>._withData(result).._setLength(length);
+        return _GrowableList<E>._withData(result).._setLength(length);
       }
       return unsafeCast<_List<E>>(result);
     }
     // _GrowableList._withData must not be called with empty list.
-    return growable ? <E>[] : new _List<E>(0);
+    return growable ? <E>[] : _List<E>(0);
   }
 }
 
@@ -87,15 +87,18 @@ class _List<E> extends _Array<E> {
   ])
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "List_allocate")
+  @pragma('dyn-module:language-impl:callable')
   external factory _List(length);
 
   // Specialization of List.empty constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:language-impl:callable')
   factory _List.empty() => _List<E>(0);
 
   // Specialization of List.filled constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma('dyn-module:language-impl:callable')
   factory _List.filled(int length, E fill) {
     final result = _List<E>(length);
     if (fill != null) {
@@ -109,6 +112,7 @@ class _List<E> extends _Array<E> {
   // Specialization of List.generate constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:language-impl:callable')
   factory _List.generate(int length, E generator(int index)) {
     final result = _List<E>(length);
     for (int i = 0; i < result.length; ++i) {
@@ -191,10 +195,10 @@ class _List<E> extends _Array<E> {
   // List interface.
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+      throw RangeError.range(start, 0, this.length);
     }
     if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
+      throw RangeError.range(end, start, this.length);
     }
     int length = end - start;
     if (length == 0) return;
@@ -220,7 +224,7 @@ class _List<E> extends _Array<E> {
 
   void setAll(int index, Iterable<E> iterable) {
     if (index < 0 || index > this.length) {
-      throw new RangeError.range(index, 0, this.length, "index");
+      throw RangeError.range(index, 0, this.length, "index");
     }
     List<E> iterableAsList;
     if (identical(this, iterable)) {
@@ -237,7 +241,7 @@ class _List<E> extends _Array<E> {
     }
     int length = iterableAsList.length;
     if (index + length > this.length) {
-      throw new RangeError.range(index + length, 0, this.length);
+      throw RangeError.range(index + length, 0, this.length);
     }
     Lists.copy(iterableAsList, 0, this, index, length);
   }
@@ -247,7 +251,7 @@ class _List<E> extends _Array<E> {
     final int actualEnd = RangeError.checkValidRange(start, end, listLength);
     int length = actualEnd - start;
     if (length == 0) return <E>[];
-    var result = new _GrowableList<E>._withData(_slice(start, length, false));
+    var result = _GrowableList<E>._withData(_slice(start, length, false));
     result._setLength(length);
     return result;
   }
@@ -257,9 +261,7 @@ class _List<E> extends _Array<E> {
 @pragma("vm:entry-point")
 class _ImmutableList<E> extends _Array<E> with UnmodifiableListMixin<E> {
   factory _ImmutableList._uninstantiable() {
-    throw new UnsupportedError(
-      "ImmutableArray can only be allocated by the VM",
-    );
+    throw UnsupportedError("ImmutableArray can only be allocated by the VM");
   }
 
   @pragma("vm:external-name", "ImmutableList_from")

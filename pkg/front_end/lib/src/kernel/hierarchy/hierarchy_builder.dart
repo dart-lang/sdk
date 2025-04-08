@@ -232,14 +232,12 @@ class ClassHierarchyBuilder
         new ClassHierarchyBuilder(objectClass, loader, coreTypes);
     for (int i = 0; i < classes.length; i++) {
       SourceClassBuilder classBuilder = classes[i];
-      assert(!classBuilder.isAugmenting);
       hierarchy.classNodes[classBuilder.cls] =
           new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
     }
     for (int i = 0; i < extensionTypes.length; i++) {
       SourceExtensionTypeDeclarationBuilder extensionTypeBuilder =
           extensionTypes[i];
-      assert(!extensionTypeBuilder.isAugmenting);
       hierarchy.extensionTypeNodes[
               extensionTypeBuilder.extensionTypeDeclaration] =
           new ExtensionTypeHierarchyNodeBuilder(hierarchy, extensionTypeBuilder)

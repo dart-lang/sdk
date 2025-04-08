@@ -25,31 +25,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final x @32
-              reference: <testLibraryFragment>::@class::A::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: (int, String)
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::A::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: (int, String)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -96,32 +71,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final x @18
-              reference: <testLibraryFragment>::@class::A::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: (int, bool)
-              shouldUseTypeForInitializerInference: false
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::A::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: (int, bool)
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -172,29 +121,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            foo @17
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional a @35
-                  type: (int, String)
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -223,7 +149,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional a
@@ -238,26 +163,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            foo @26
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: (int, String)
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -285,7 +190,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -297,25 +201,6 @@ class A<T extends (int, String)> {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              bound: (int, String)
-              defaultType: (int, String)
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -325,7 +210,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -351,18 +236,6 @@ extension IntStringExtension on (int, String) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        IntStringExtension @10
-          reference: <testLibraryFragment>::@extension::IntStringExtension
-          enclosingElement3: <testLibraryFragment>
-          extendedType: (int, String)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -382,21 +255,6 @@ library
 void f(void Function((int, String) a) b) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional b @38
-              type: void Function((int, String))
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -427,21 +285,6 @@ void f((int, String) Function() a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @32
-              type: (int, String) Function()
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -468,21 +311,6 @@ library
 void f((int, String) a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @21
-              type: (int, String)
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -513,18 +341,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @3
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: ()
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -547,21 +363,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @9
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @11
-              defaultType: dynamic
-          returnType: (int, T)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -571,7 +372,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
   functions
     f
       reference: <testLibrary>::@function::f
@@ -587,18 +388,6 @@ library
 (int, String, {bool c}) f() {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @24
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int, String, {bool c})
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -623,18 +412,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @20
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: ({int a, String b})
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -655,18 +432,6 @@ library
 ((int, String), (bool, double)) f() {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @32
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: ((int, String), (bool, double))
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -691,18 +456,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @15
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int, String)?
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -723,18 +476,6 @@ library
 (int, String) f() {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @14
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int, String)
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -759,18 +500,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @7
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int,)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -791,23 +520,6 @@ library
 final (int, String) x;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static final x @20
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: (int, String)
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int, String)
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -841,24 +553,6 @@ final x = (0, true);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static final x @6
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: (int, bool)
-          shouldUseTypeForInitializerInference: false
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: (int, bool)
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -890,58 +584,6 @@ const x = List<({int f1, String f2})>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const x @6
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            TypeLiteral
-              type: NamedType
-                name: List @10
-                typeArguments: TypeArgumentList
-                  leftBracket: < @14
-                  arguments
-                    RecordTypeAnnotation
-                      leftParenthesis: ( @15
-                      namedFields: RecordTypeAnnotationNamedFields
-                        leftBracket: { @16
-                        fields
-                          RecordTypeAnnotationNamedField
-                            type: NamedType
-                              name: int @17
-                              element: dart:core::<fragment>::@class::int
-                              element2: dart:core::@class::int
-                              type: int
-                            name: f1 @21
-                          RecordTypeAnnotationNamedField
-                            type: NamedType
-                              name: String @25
-                              element: dart:core::<fragment>::@class::String
-                              element2: dart:core::@class::String
-                              type: String
-                            name: f2 @32
-                        rightBracket: } @34
-                      rightParenthesis: ) @35
-                      type: ({int f1, String f2})
-                  rightBracket: > @36
-                element: dart:core::<fragment>::@class::List
-                element2: dart:core::@class::List
-                type: List<({int f1, String f2})>
-              staticType: Type
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -964,14 +606,12 @@ library
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: int @17
-                              element: dart:core::<fragment>::@class::int
                               element2: dart:core::@class::int
                               type: int
                             name: f1 @21
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: String @25
-                              element: dart:core::<fragment>::@class::String
                               element2: dart:core::@class::String
                               type: String
                             name: f2 @32
@@ -979,7 +619,6 @@ library
                       rightParenthesis: ) @35
                       type: ({int f1, String f2})
                   rightBracket: > @36
-                element: dart:core::<fragment>::@class::List
                 element2: dart:core::@class::List
                 type: List<({int f1, String f2})>
               staticType: Type
@@ -1010,54 +649,6 @@ const x = List<(int, String f2)>;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static const x @6
-          reference: <testLibraryFragment>::@topLevelVariable::x
-          enclosingElement3: <testLibraryFragment>
-          type: Type
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            TypeLiteral
-              type: NamedType
-                name: List @10
-                typeArguments: TypeArgumentList
-                  leftBracket: < @14
-                  arguments
-                    RecordTypeAnnotation
-                      leftParenthesis: ( @15
-                      positionalFields
-                        RecordTypeAnnotationPositionalField
-                          type: NamedType
-                            name: int @16
-                            element: dart:core::<fragment>::@class::int
-                            element2: dart:core::@class::int
-                            type: int
-                        RecordTypeAnnotationPositionalField
-                          type: NamedType
-                            name: String @21
-                            element: dart:core::<fragment>::@class::String
-                            element2: dart:core::@class::String
-                            type: String
-                          name: f2 @28
-                      rightParenthesis: ) @30
-                      type: (int, String)
-                  rightBracket: > @31
-                element: dart:core::<fragment>::@class::List
-                element2: dart:core::@class::List
-                type: List<(int, String)>
-              staticType: Type
-      accessors
-        synthetic static get x @-1
-          reference: <testLibraryFragment>::@getter::x
-          enclosingElement3: <testLibraryFragment>
-          returnType: Type
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1078,20 +669,17 @@ library
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: int @16
-                            element: dart:core::<fragment>::@class::int
                             element2: dart:core::@class::int
                             type: int
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: String @21
-                            element: dart:core::<fragment>::@class::String
                             element2: dart:core::@class::String
                             type: String
                           name: f2 @28
                       rightParenthesis: ) @30
                       type: (int, String)
                   rightBracket: > @31
-                element: dart:core::<fragment>::@class::List
                 element2: dart:core::@class::List
                 type: List<(int, String)>
               staticType: Type

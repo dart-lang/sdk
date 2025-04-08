@@ -46,8 +46,8 @@
 #    experiment is disabled by default, but may be enabled by specifying the
 #    flag on the command line. (e.g. --enable-experiment=non-nullable)
 #
-#    A version less than this version may be specified in a .packages file
-#    or in a library language version override (e.g. // @dart = 2.1)
+#    A version less than this version may be specified in a package config file
+#    or in a library language version override (e.g. // @dart = 2.12)
 #    to disable this feature. For more on library language version override, see
 #    https://dart.dev/to/language-version-override
 #
@@ -150,6 +150,10 @@ features:
 
   getter-setter-error:
     help: "Stop reporting errors about mismatching types in a getter/setter pair."
+
+  sound-flow-analysis:
+    # See https://github.com/dart-lang/language/issues/3100
+    help: "Assume sound null safety when computing type promotion, reachability, and definite assignment."
 
 # Experiment flag only used for testing.
   test-experiment:

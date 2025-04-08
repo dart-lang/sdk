@@ -17,6 +17,7 @@ class AnnotateOverridesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.annotate_overrides;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_implementsInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

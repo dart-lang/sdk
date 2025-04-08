@@ -151,7 +151,7 @@ class SubtypeHelper {
       var S0 = T0.typeArguments[0];
       // * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
       if (isSubtypeOf(S0, T1)) {
-        var FutureS0 = _typeProvider.futureElement.instantiateImpl(
+        var FutureS0 = _typeProvider.futureElement2.instantiateImpl(
           typeArguments: fixedTypeList(S0),
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -182,8 +182,8 @@ class SubtypeHelper {
     if (T1 is TypeParameterTypeImpl) {
       var T1_promotedBound = T1.promotedBound;
       if (T1_promotedBound != null) {
-        var X1 = TypeParameterTypeImpl.v2(
-          element: T1.element3,
+        var X1 = TypeParameterTypeImpl(
+          element3: T1.element3,
           nullabilitySuffix: T1.nullabilitySuffix,
         );
         return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1_promotedBound);
@@ -197,7 +197,7 @@ class SubtypeHelper {
       var S1 = T1.typeArguments[0];
       // `T0 <: T1` iff any of the following hold:
       // * either `T0 <: Future<S1>`
-      var FutureS1 = _typeProvider.futureElement.instantiateImpl(
+      var FutureS1 = _typeProvider.futureElement2.instantiateImpl(
         typeArguments: fixedTypeList(S1),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -466,8 +466,7 @@ class SubtypeHelper {
     for (var interface in subElement.allSupertypes) {
       if (identical(interface.element3, superElement)) {
         var substitution = Substitution.fromInterfaceType(subType);
-        var substitutedInterface =
-            substitution.substituteType(interface) as InterfaceTypeImpl;
+        var substitutedInterface = substitution.mapInterfaceType(interface);
         return _interfaceArguments(
           superElement,
           substitutedInterface,

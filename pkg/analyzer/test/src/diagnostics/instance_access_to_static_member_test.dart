@@ -34,13 +34,11 @@ f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: <testLibraryFragment>::@function::f::@parameter::c
     element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@class::C::@method::a
     element: <testLibraryFragment>::@class::C::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList
@@ -158,13 +156,11 @@ f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@mixin::A::@method::a
     element: <testLibraryFragment>::@mixin::A::@method::a#element
     staticType: void Function()
   argumentList: ArgumentList

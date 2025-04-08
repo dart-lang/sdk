@@ -127,8 +127,8 @@ DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
 
     // Wait for mutator thread to continue (and block) before leaving the
     // safepoint.
-    while (Dart_ExecuteInternalCommand("is-mutator-in-native", isolate) !=
-           nullptr) {
+    while (Dart_ExecuteInternalCommand("is-mutator-blocked-at-safepoint",
+                                       isolate) == nullptr) {
       usleep(10 * 1000 /*10 ms*/);
     }
   };

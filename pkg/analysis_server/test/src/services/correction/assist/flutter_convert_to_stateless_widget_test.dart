@@ -29,7 +29,7 @@ class FlutterConvertToStatelessWidgetTest extends AssistProcessorTest {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget();
 
   @override
@@ -83,7 +83,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -125,7 +125,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -157,7 +157,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   static String staticField1 = '';
   final String instanceField1;
   final String instanceField2;
@@ -247,7 +247,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   @override
   State<MyWidget> createState() => _MyWidgetState();
 
@@ -305,7 +305,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   static String staticField = '';
   final String instanceField1;
 
@@ -394,7 +394,7 @@ class MyWidget extends StatelessWidget {
   Future<void> test_notClass() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-/*caret*/void f() {}
+^void f() {}
 ''');
     await assertNoAssist();
   }
@@ -402,7 +402,7 @@ import 'package:flutter/material.dart';
   Future<void> test_notStatefulWidget() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-class /*caret*/MyWidget extends AppBar {
+class ^MyWidget extends AppBar {
   MyWidget({super.key});
 }
 ''');
@@ -412,7 +412,7 @@ class /*caret*/MyWidget extends AppBar {
   Future<void> test_notWidget() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-class /*caret*/MyWidget {}
+class ^MyWidget {}
 ''');
     await assertNoAssist();
   }
@@ -421,7 +421,7 @@ class /*caret*/MyWidget {}
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -449,7 +449,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -470,7 +470,7 @@ class MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   final String aaa;
   final String $bbb;
 
@@ -536,7 +536,7 @@ class _MyWidgetState extends State<MyWidget> {
   }
 }
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   final String aaa;
   final String $bbb;
 
@@ -574,7 +574,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -596,7 +596,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -618,7 +618,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/FirstWidget extends StatefulWidget {
+class ^FirstWidget extends StatefulWidget {
   const FirstWidget({super.key});
 
   @override
@@ -646,7 +646,7 @@ class _MyWidgetState extends State<FirstWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -669,7 +669,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -692,7 +692,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -715,7 +715,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -738,7 +738,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget extends StatefulWidget {
+class ^MyWidget extends StatefulWidget {
   const MyWidget({super.key});
 
   @override
@@ -764,7 +764,7 @@ class _MyWidgetState extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget<T extends String> extends StatefulWidget {
+class ^MyWidget<T extends String> extends StatefulWidget {
   @override
   State<MyWidget<T>> createState() => _MyWidgetState<T>();
 }
@@ -792,7 +792,7 @@ class MyWidget<T extends String> extends StatelessWidget {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget<T extends String> extends StatefulWidget {
+class ^MyWidget<T extends String> extends StatefulWidget {
   @override
   State createState() => _MyWidgetState();
 }
@@ -811,7 +811,7 @@ class _MyWidgetState<T extends List> extends State<MyWidget> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget<T> extends StatefulWidget {
+class ^MyWidget<T> extends StatefulWidget {
   @override
   State<MyWidget<T>> createState() => _MyWidgetState<T>();
 }
@@ -830,7 +830,7 @@ class _MyWidgetState<S> extends State<MyWidget<S>> {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
-class /*caret*/MyWidget<T> extends StatefulWidget {
+class ^MyWidget<T> extends StatefulWidget {
   @override
   State<MyWidget<T>> createState() => _MyWidgetState<T>();
 }

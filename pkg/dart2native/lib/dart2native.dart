@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:kernel/binary/tag.dart' show Tag;
+import 'package:native_assets_cli/code_assets_builder.dart' show OS;
 import 'package:path/path.dart' as path;
 
 import 'dart2native_macho.dart' show writeAppendedMachOExecutable;
@@ -19,7 +20,7 @@ final genKernel = path.join(
   'snapshots',
   'gen_kernel_aot.dart.snapshot',
 );
-final genSnapshot = path.join(
+final genSnapshotHost = path.join(
   binDir.path,
   'utils',
   'gen_snapshot$executableSuffix',
@@ -65,36 +66,38 @@ Future<bool> isKernelFile(String path) async {
 // WARNING: this method is used within google3, so don't try to refactor so
 // [dartaotruntime] is a constant inside this file.
 Future<void> writeAppendedExecutable(
-  String dartaotruntime,
+  String dartAotRuntime,
   String payloadPath,
   String outputPath,
+  OS targetOS,
 ) async {
-  if (Platform.isMacOS) {
-    return await writeAppendedMachOExecutable(
-        dartaotruntime, payloadPath, outputPath);
-  } else if (Platform.isWindows) {
-    return await writeAppendedPortableExecutable(
-        dartaotruntime, payloadPath, outputPath);
+  switch (targetOS) {
+    case OS.macOS:
+      return await writeAppendedMachOExecutable(
+          dartAotRuntime, payloadPath, outputPath);
+    case OS.windows:
+      return await writeAppendedPortableExecutable(
+          dartAotRuntime, payloadPath, outputPath);
+    default:
+      final dartAotRuntimeFile = File(dartAotRuntime);
+      final dartAotRuntimeLength = dartAotRuntimeFile.lengthSync();
+
+      final padding = (elfPageSize - dartAotRuntimeLength) % elfPageSize;
+      final padBytes = Uint8List(padding);
+      final offset = dartAotRuntimeLength + padding;
+
+      // Note: The offset is always Little Endian regardless of host.
+      final offsetBytes = ByteData(8) // 64 bit in bytes.
+        ..setUint64(0, offset, Endian.little);
+
+      final outputFile = File(outputPath).openWrite();
+      outputFile.add(dartAotRuntimeFile.readAsBytesSync());
+      outputFile.add(padBytes);
+      outputFile.add(File(payloadPath).readAsBytesSync());
+      outputFile.add(offsetBytes.buffer.asUint8List());
+      outputFile.add(appJitMagicNumber);
+      await outputFile.close();
   }
-
-  final dartaotruntimeFile = File(dartaotruntime);
-  final dartaotruntimeLength = dartaotruntimeFile.lengthSync();
-
-  final padding = (elfPageSize - dartaotruntimeLength) % elfPageSize;
-  final padBytes = Uint8List(padding);
-  final offset = dartaotruntimeLength + padding;
-
-  // Note: The offset is always Little Endian regardless of host.
-  final offsetBytes = ByteData(8) // 64 bit in bytes.
-    ..setUint64(0, offset, Endian.little);
-
-  final outputFile = File(outputPath).openWrite();
-  outputFile.add(dartaotruntimeFile.readAsBytesSync());
-  outputFile.add(padBytes);
-  outputFile.add(File(payloadPath).readAsBytesSync());
-  outputFile.add(offsetBytes.buffer.asUint8List());
-  outputFile.add(appJitMagicNumber);
-  await outputFile.close();
 }
 
 Future<ProcessResult> markExecutable(String outputFile) {
@@ -106,13 +109,13 @@ Future<ProcessResult> markExecutable(String outputFile) {
 /// Also takes a path to the [recordedUsagesFile] JSON file, where the method
 /// calls to static functions annotated with `@RecordUse` will be collected.
 Future<ProcessResult> generateKernelHelper({
-  required String dartaotruntime,
+  required String hostDartAotRuntime,
   String? sourceFile,
   required String kernelFile,
   String? packages,
   List<String> defines = const [],
   String enableExperiment = '',
-  String? targetOS,
+  OS? targetOS,
   List<String> extraGenKernelOptions = const [],
   String? nativeAssets,
   String? recordedUsagesFile,
@@ -145,10 +148,11 @@ Future<ProcessResult> generateKernelHelper({
     ...extraGenKernelOptions,
     if (sourceFile != null) sourceFile,
   ];
-  return Process.run(dartaotruntime, args);
+  return Process.run(hostDartAotRuntime, args);
 }
 
 Future<ProcessResult> generateAotSnapshotHelper(
+    String genSnapshot,
     String kernelFile,
     String snapshotFile,
     String? debugFile,

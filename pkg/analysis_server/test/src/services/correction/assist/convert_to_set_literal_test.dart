@@ -21,7 +21,7 @@ class ConvertToSetLiteralTest extends AssistProcessorTest {
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''
-Set s = S/*caret*/et();
+Set s = S^et();
 ''');
     await assertHasAssist('''
 Set s = {};
@@ -30,7 +30,7 @@ Set s = {};
 
   Future<void> test_default_minimal() async {
     await resolveTestCode('''
-var s = S/*caret*/et();
+var s = S^et();
 ''');
     await assertHasAssist('''
 var s = <dynamic>{};
@@ -39,7 +39,7 @@ var s = <dynamic>{};
 
   Future<void> test_default_newKeyword() async {
     await resolveTestCode('''
-var s = new S/*caret*/et();
+var s = new S^et();
 ''');
     await assertHasAssist('''
 var s = <dynamic>{};
@@ -48,7 +48,7 @@ var s = <dynamic>{};
 
   Future<void> test_default_typeArg() async {
     await resolveTestCode('''
-var s = S/*caret*/et<int>();
+var s = S^et<int>();
 ''');
     await assertHasAssist('''
 var s = <int>{};
@@ -57,7 +57,7 @@ var s = <int>{};
 
   Future<void> test_from_empty() async {
     await resolveTestCode('''
-var s = S/*caret*/et.from([]);
+var s = S^et.from([]);
 ''');
     await assertHasAssist('''
 var s = <dynamic>{};
@@ -66,7 +66,7 @@ var s = <dynamic>{};
 
   Future<void> test_from_newKeyword() async {
     await resolveTestCode('''
-var s = new S/*caret*/et.from([2, 3]);
+var s = new S^et.from([2, 3]);
 ''');
     await assertHasAssist('''
 var s = {2, 3};
@@ -75,7 +75,7 @@ var s = {2, 3};
 
   Future<void> test_from_noKeyword_declaredType() async {
     await resolveTestCode('''
-Set s = S/*caret*/et.from([2, 3]);
+Set s = S^et.from([2, 3]);
 ''');
     await assertHasAssist('''
 Set s = {2, 3};
@@ -84,7 +84,7 @@ Set s = {2, 3};
 
   Future<void> test_from_noKeyword_typeArg_onConstructor() async {
     await resolveTestCode('''
-var s = S/*caret*/et<int>.from([2, 3]);
+var s = S^et<int>.from([2, 3]);
 ''');
     await assertHasAssist('''
 var s = <int>{2, 3};
@@ -93,7 +93,7 @@ var s = <int>{2, 3};
 
   Future<void> test_from_noKeyword_typeArg_onConstructorAndLiteral() async {
     await resolveTestCode('''
-var s = S/*caret*/et<int>.from(<num>[2, 3]);
+var s = S^et<int>.from(<num>[2, 3]);
 ''');
     await assertHasAssist('''
 var s = <int>{2, 3};
@@ -102,7 +102,7 @@ var s = <int>{2, 3};
 
   Future<void> test_from_noKeyword_typeArg_onLiteral() async {
     await resolveTestCode('''
-var s = S/*caret*/et.from(<int>[2, 3]);
+var s = S^et.from(<int>[2, 3]);
 ''');
     await assertHasAssist('''
 var s = <int>{2, 3};
@@ -111,7 +111,7 @@ var s = <int>{2, 3};
 
   Future<void> test_from_nonEmpty() async {
     await resolveTestCode('''
-var s = S/*caret*/et.from([2, 3]);
+var s = S^et.from([2, 3]);
 ''');
     await assertHasAssist('''
 var s = {2, 3};
@@ -121,14 +121,14 @@ var s = {2, 3};
   Future<void> test_from_notALiteral() async {
     await resolveTestCode('''
 var l = [1];
-Set s = new S/*caret*/et.from(l);
+Set s = new S^et.from(l);
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_from_trailingComma() async {
     await resolveTestCode('''
-var s = S/*caret*/et.from([2, 3,]);
+var s = S^et.from([2, 3,]);
 ''');
     await assertHasAssist('''
 var s = {2, 3,};
@@ -137,7 +137,7 @@ var s = {2, 3,};
 
   Future<void> test_toSet_empty() async {
     await resolveTestCode('''
-var s = [].to/*caret*/Set();
+var s = [].to^Set();
 ''');
     await assertHasAssist('''
 var s = <dynamic>{};
@@ -146,7 +146,7 @@ var s = <dynamic>{};
 
   Future<void> test_toSet_empty_typeArg() async {
     await resolveTestCode('''
-var s = <int>[].to/*caret*/Set();
+var s = <int>[].to^Set();
 ''');
     await assertHasAssist('''
 var s = <int>{};
@@ -155,7 +155,7 @@ var s = <int>{};
 
   Future<void> test_toSet_nonEmpty() async {
     await resolveTestCode('''
-var s = [2, 3].to/*caret*/Set();
+var s = [2, 3].to^Set();
 ''');
     await assertHasAssist('''
 var s = {2, 3};
@@ -164,7 +164,7 @@ var s = {2, 3};
 
   Future<void> test_toSet_nonEmpty_typeArg() async {
     await resolveTestCode('''
-var s = <int>[2, 3].to/*caret*/Set();
+var s = <int>[2, 3].to^Set();
 ''');
     await assertHasAssist('''
 var s = <int>{2, 3};
@@ -174,7 +174,7 @@ var s = <int>{2, 3};
   Future<void> test_toSet_notALiteral() async {
     await resolveTestCode('''
 var l = [];
-var s = l.to/*caret*/Set();
+var s = l.to^Set();
 ''');
     await assertNoAssist();
   }

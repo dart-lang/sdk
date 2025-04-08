@@ -168,6 +168,14 @@ Returns: `{ port: number }`
 
 Starts the analyzer diagnostics server (if not already running) and returns the port number it's listening on.
 
+### dart/updateDiagnosticInformation Method
+
+Direction: Client -> Server
+Params: `Map<String, Object?>`
+Returns: None
+
+Provides a map of diagnostic information to the server that will be included in diagnostic reports exported with the "Collect Report" function of the analyzer diagnostics site. Values here should be simple values like whether format-on-save is enabled or a set of commands that are enabled for running on save, and should not include personal or otherwise sensitive information.
+
 ### dart/reanalyze Method
 
 Direction: Client -> Server
@@ -277,13 +285,30 @@ Params: `{ uri: Uri }`
 
 Notifies the client that the content in the virtual file with `uri` may have changed (for example because a macro executed and regenerated its content).
 
-### dart/connectToDtd Method (Experimental)
+### dart/connectToDtd Method
 
 Direction: Client -> Server
 Params: `{ uri: Uri }`
 Returns: `null`
 
-Provides the URI of a Dart Tooling Daemon server to allow the LSP server to connect and provide access to a subset of LSP functionality to DTD clients. This support is still a work in progress and should not be used outside of development (yet).
+Provides the URI of a Dart Tooling Daemon server to allow the LSP server to connect and provide access to a subset of LSP functionality to DTD clients. This method can only be called by the tool that owns the analysis server process (via stdin/stdout) and not through DTD.
+
+### dart/textDocument/editableArguments Method
+
+Direction: Client -> Server
+Params: `TextDocumentPositionParams`
+Returns: `EditableArguments`
+
+Returns the list of editable arguments at a position within the current document. This information can be used to update arguments in the document by using the `dart/textDocument/editArgument` request.
+
+### dart/textDocument/editArgument Method
+
+Direction: Client -> Server
+Params: `EditArgumentParams`
+Returns: `Null`
+
+Instructs the editor to edit the value of an argument (that was returned from a `dart/textDocument/editableArguments` request).
+
 
 ## Client Commands
 

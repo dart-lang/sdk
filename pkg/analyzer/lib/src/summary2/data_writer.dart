@@ -7,107 +7,27 @@ import 'dart:typed_data';
 
 /// Puts a buffer in front of a [Sink<List<int>>].
 class BufferedSink {
-  static const int SIZE = 100000;
-  static const int SAFE_SIZE = SIZE - 5;
-  static const int SMALL = 10000;
+  static const int _SIZE = 128 * 1024;
+  static const int _SAFE_LENGTH = _SIZE - 5;
 
-  final ByteSink _sink;
+  final BytesBuilder _builder = BytesBuilder(copy: false);
 
-  int flushedLength = 0;
+  Uint8List _buffer = Uint8List(_SIZE);
+  int _length = 0;
 
-  Uint8List _buffer = Uint8List(SIZE);
-  int length = 0;
+  final Int64List _int64Buffer = Int64List(1);
+  late final Uint8List _int64BufferUint8 = _int64Buffer.buffer.asUint8List();
 
   final Float64List _doubleBuffer = Float64List(1);
-  Uint8List? _doubleBufferUint8;
+  late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
 
-  BufferedSink(this._sink);
+  BufferedSink();
 
-  int get offset => flushedLength + length;
+  int get offset => _builder.length + _length;
 
-  @pragma("vm:prefer-inline")
-  void addByte(int byte) {
-    _buffer[length++] = byte;
-    if (length == SIZE) {
-      _sink.add(_buffer);
-      _buffer = Uint8List(SIZE);
-      length = 0;
-      flushedLength += SIZE;
-    }
-  }
-
-  @pragma("vm:prefer-inline")
-  void addByte2(int byte1, int byte2) {
-    if (length < SAFE_SIZE) {
-      _buffer[length++] = byte1;
-      _buffer[length++] = byte2;
-    } else {
-      addByte(byte1);
-      addByte(byte2);
-    }
-  }
-
-  @pragma("vm:prefer-inline")
-  void addByte4(int byte1, int byte2, int byte3, int byte4) {
-    if (length < SAFE_SIZE) {
-      _buffer[length++] = byte1;
-      _buffer[length++] = byte2;
-      _buffer[length++] = byte3;
-      _buffer[length++] = byte4;
-    } else {
-      addByte(byte1);
-      addByte(byte2);
-      addByte(byte3);
-      addByte(byte4);
-    }
-  }
-
-  void addBytes(Uint8List bytes) {
-    // Avoid copying a large buffer into the another large buffer. Also, if
-    // the bytes buffer is too large to fit in our own buffer, just emit both.
-    if (length + bytes.length < SIZE &&
-        (bytes.length < SMALL || length < SMALL)) {
-      _buffer.setRange(length, length + bytes.length, bytes);
-      length += bytes.length;
-    } else if (bytes.length < SMALL) {
-      // Flush as much as we can in the current buffer.
-      _buffer.setRange(length, SIZE, bytes);
-      _sink.add(_buffer);
-      // Copy over the remainder into a new buffer. It is guaranteed to fit
-      // because the input byte array is small.
-      int alreadyEmitted = SIZE - length;
-      int remainder = bytes.length - alreadyEmitted;
-      _buffer = Uint8List(SIZE);
-      _buffer.setRange(0, remainder, bytes, alreadyEmitted);
-      length = remainder;
-      flushedLength += SIZE;
-    } else {
-      flush();
-      _sink.add(bytes);
-      flushedLength += bytes.length;
-    }
-  }
-
-  void addDouble(double value) {
-    var doubleBufferUint8 =
-        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    _doubleBuffer[0] = value;
-    addByte4(doubleBufferUint8[0], doubleBufferUint8[1], doubleBufferUint8[2],
-        doubleBufferUint8[3]);
-    addByte4(doubleBufferUint8[4], doubleBufferUint8[5], doubleBufferUint8[6],
-        doubleBufferUint8[7]);
-  }
-
-  void flush() {
-    _sink.add(_buffer.sublist(0, length));
-    _buffer = Uint8List(SIZE);
-    flushedLength += length;
-    length = 0;
-  }
-
-  Uint8List flushAndTake() {
-    _sink.add(_buffer.sublist(0, length));
-    return _sink.builder.takeBytes();
+  Uint8List takeBytes() {
+    _builder.add(_buffer.sublist(0, _length));
+    return _builder.takeBytes();
   }
 
   @pragma("vm:prefer-inline")
@@ -118,7 +38,57 @@ class BufferedSink {
   @pragma("vm:prefer-inline")
   void writeByte(int byte) {
     assert((byte & 0xFF) == byte);
-    addByte(byte);
+    _addByte(byte);
+  }
+
+  void writeBytes(Uint8List bytes) {
+    if (bytes.isEmpty) {
+      return;
+    }
+
+    // Usually the bytes is short, and fits the current buffer.
+    if (_length + bytes.length < _SIZE) {
+      _buffer.setRange(_length, _length + bytes.length, bytes);
+      _length += bytes.length;
+      return;
+    }
+
+    // If the bytes is too long, add separate buffers.
+    if (bytes.length >= _SIZE) {
+      _builder.add(_buffer.sublist(0, _length));
+      _builder.add(bytes);
+      // Start a new buffer.
+      _buffer = Uint8List(_SIZE);
+      _length = 0;
+      return;
+    }
+
+    // Copy as much as we can into the current buffer.
+    _buffer.setRange(_length, _SIZE, bytes);
+    _builder.add(_buffer);
+
+    // Copy the remainder into a new buffer.
+    var alreadyCopied = _SIZE - _length;
+    var remainder = bytes.length - alreadyCopied;
+    _buffer = Uint8List(_SIZE);
+    _buffer.setRange(0, remainder, bytes, alreadyCopied);
+    _length = remainder;
+  }
+
+  void writeDouble(double value) {
+    _doubleBuffer[0] = value;
+    _addByte4(
+      _doubleBufferUint8[0],
+      _doubleBufferUint8[1],
+      _doubleBufferUint8[2],
+      _doubleBufferUint8[3],
+    );
+    _addByte4(
+      _doubleBufferUint8[4],
+      _doubleBufferUint8[5],
+      _doubleBufferUint8[6],
+      _doubleBufferUint8[7],
+    );
   }
 
   void writeEnum(Enum e) {
@@ -147,6 +117,22 @@ class BufferedSink {
     } else {
       writeBool(false);
     }
+  }
+
+  void writeInt64(int value) {
+    _int64Buffer[0] = value;
+    _addByte4(
+      _int64BufferUint8[0],
+      _int64BufferUint8[1],
+      _int64BufferUint8[2],
+      _int64BufferUint8[3],
+    );
+    _addByte4(
+      _int64BufferUint8[4],
+      _int64BufferUint8[5],
+      _int64BufferUint8[6],
+      _int64BufferUint8[7],
+    );
   }
 
   /// Writes [items], converts to [List] first.
@@ -179,6 +165,15 @@ class BufferedSink {
     for (var entry in map.entries) {
       writeKey(entry.key);
       writeValue(entry.value);
+    }
+  }
+
+  void writeOptionalInt64(int? value) {
+    if (value != null) {
+      writeBool(true);
+      writeInt64(value);
+    } else {
+      writeBool(false);
     }
   }
 
@@ -226,11 +221,11 @@ class BufferedSink {
   void writeUInt30(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
-      addByte(value);
+      _addByte(value);
     } else if (value < 0x4000) {
-      addByte2((value >> 8) | 0x80, value & 0xFF);
+      _addByte2((value >> 8) | 0x80, value & 0xFF);
     } else {
-      addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
+      _addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
           value & 0xFF);
     }
   }
@@ -244,30 +239,53 @@ class BufferedSink {
   }
 
   void writeUInt32(int value) {
-    addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
+    _addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
         value & 0xFF);
   }
 
   void writeUint8List(Uint8List bytes) {
     writeUInt30(bytes.length);
-    addBytes(bytes);
+    writeBytes(bytes);
   }
 
   void writeUri(Uri uri) {
     var uriStr = uri.toString();
     writeStringUtf8(uriStr);
   }
-}
 
-/// A [Sink] that directly writes data into a byte builder.
-class ByteSink implements Sink<List<int>> {
-  final BytesBuilder builder = BytesBuilder(copy: false);
-
-  @override
-  void add(List<int> data) {
-    builder.add(data);
+  @pragma("vm:prefer-inline")
+  void _addByte(int byte) {
+    _buffer[_length++] = byte;
+    if (_length == _SIZE) {
+      _builder.add(_buffer);
+      _buffer = Uint8List(_SIZE);
+      _length = 0;
+    }
   }
 
-  @override
-  void close() {}
+  @pragma("vm:prefer-inline")
+  void _addByte2(int byte1, int byte2) {
+    if (_length < _SAFE_LENGTH) {
+      _buffer[_length++] = byte1;
+      _buffer[_length++] = byte2;
+    } else {
+      _addByte(byte1);
+      _addByte(byte2);
+    }
+  }
+
+  @pragma("vm:prefer-inline")
+  void _addByte4(int byte1, int byte2, int byte3, int byte4) {
+    if (_length < _SAFE_LENGTH) {
+      _buffer[_length++] = byte1;
+      _buffer[_length++] = byte2;
+      _buffer[_length++] = byte3;
+      _buffer[_length++] = byte4;
+    } else {
+      _addByte(byte1);
+      _addByte(byte2);
+      _addByte(byte3);
+      _addByte(byte4);
+    }
+  }
 }

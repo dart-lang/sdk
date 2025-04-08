@@ -11,16 +11,16 @@ const int _versionMinor = 0;
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
 
-// Creates a Map conforming to the HttpProfileRequest type defined in the
-// dart:io service extension spec from an element of dart:developer's
-// [_developerProfilingData].
-Future<Map<String, dynamic>> _createHttpProfileRequestFromProfileMap(
+/// Creates a Map conforming to the `HttpProfileRequest` type defined in the
+/// dart:io service extension spec from an element of dart:developer's
+/// `_developerProfilingData`.
+Map<String, Object?> _createHttpProfileRequestFromProfileMap(
   Map<String, dynamic> requestProfile, {
   required bool ref,
-}) async {
+}) {
   final responseData = requestProfile['responseData'] as Map<String, dynamic>;
 
-  return <String, dynamic>{
+  return {
     'type': '${ref ? '@' : ''}HttpProfileRequest',
     'id': requestProfile['id']!,
     'isolateId': requestProfile['isolateId']!,
@@ -39,7 +39,7 @@ Future<Map<String, dynamic>> _createHttpProfileRequestFromProfileMap(
   };
 }
 
-@pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
+@pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
   // Http relative RPCs
   static const _kHttpEnableTimelineLogging =
@@ -58,7 +58,7 @@ abstract class _NetworkProfiling {
   // if more methods added to dart:io,
   static const _kGetVersionRPC = 'ext.dart.io.getVersion';
 
-  @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
+  @pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
   static void _registerServiceExtension() {
     registerExtension(_kHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
@@ -70,6 +70,9 @@ abstract class _NetworkProfiling {
     registerExtension(_kClearHttpProfileRPC, _serviceExtensionHandler);
   }
 
+  // Note this function only returns a `Future` because that is required by the
+  // signature of `registerExtension`. We might be able to change the signature
+  // of ServiceExtensionHandler to use `FutureOr` instead of `Future`.
   static Future<ServiceExtensionResponse> _serviceExtensionHandler(
     String method,
     Map<String, String> parameters,
@@ -93,23 +96,21 @@ abstract class _NetworkProfiling {
             'timestamp': DateTime.now().microsecondsSinceEpoch,
             'requests': [
               ...HttpProfiler.serializeHttpProfileRequests(updatedSince),
-              ...await Future.wait(
-                getHttpClientProfilingData()
-                    .where(
-                      (final Map<String, dynamic> p) =>
-                          updatedSince == null ||
-                          (p['_lastUpdateTime'] as int) >= updatedSince,
-                    )
-                    .map(
-                      (p) =>
-                          _createHttpProfileRequestFromProfileMap(p, ref: true),
-                    ),
-              ),
+              ...getHttpClientProfilingData()
+                  .where(
+                    (final Map<String, dynamic> p) =>
+                        updatedSince == null ||
+                        (p['_lastUpdateTime'] as int) >= updatedSince,
+                  )
+                  .map(
+                    (p) =>
+                        _createHttpProfileRequestFromProfileMap(p, ref: true),
+                  ),
             ],
           });
           break;
         case _kGetHttpProfileRequestRPC:
-          responseJson = await _getHttpProfileRequest(parameters);
+          responseJson = _getHttpProfileRequest(parameters);
           break;
         case _kClearHttpProfileRPC:
           HttpProfiler.clear();
@@ -174,12 +175,12 @@ String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   return _success();
 }
 
-Future<String> _getHttpProfileRequest(Map<String, String> parameters) async {
-  if (!parameters.containsKey('id')) {
+String _getHttpProfileRequest(Map<String, String> parameters) {
+  final id = parameters['id'];
+  if (id == null) {
     throw _missingArgument('id');
   }
-  final id = parameters['id']!;
-  final request;
+  final Map<String, Object?>? request;
   if (id.startsWith('from_package/')) {
     final profileMap = getHttpClientProfilingData().elementAtOrNull(
       int.parse(id.substring('from_package/'.length)) - 1,
@@ -187,10 +188,7 @@ Future<String> _getHttpProfileRequest(Map<String, String> parameters) async {
     request =
         profileMap == null
             ? null
-            : await _createHttpProfileRequestFromProfileMap(
-              profileMap,
-              ref: false,
-            );
+            : _createHttpProfileRequestFromProfileMap(profileMap, ref: false);
   } else {
     request = HttpProfiler.getHttpProfileRequest(id)?.toJson(ref: false);
   }

@@ -1262,6 +1262,8 @@ void Object::Init(IsolateGroup* isolate_group) {
       "released with Dart_TypedDataReleaseData, or a finalizer is running.",
       Heap::kOld);
   *no_callbacks_error_ = ApiError::New(error_str, Heap::kOld);
+  error_str = String::New("isolate is exiting", Heap::kOld);
+  *unwind_error_ = UnwindError::New(error_str, Heap::kOld);
   error_str = String::New(
       "No api calls are allowed while unwind is in progress", Heap::kOld);
   *unwind_in_progress_error_ = UnwindError::New(error_str, Heap::kOld);
@@ -1281,6 +1283,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   error_str = String::New("Out of memory", Heap::kOld);
   *out_of_memory_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
+  *unhandled_oom_exception_ =
+      UnhandledException::New(error_str, StackTrace::Handle(), Heap::kOld);
 
   // Allocate the parameter types and names for synthetic getters.
   *synthetic_getter_parameter_types_ = Array::New(1, Heap::kOld);
@@ -1393,6 +1397,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(smi_zero_->IsSmi());
   ASSERT(!no_callbacks_error_->IsSmi());
   ASSERT(no_callbacks_error_->IsApiError());
+  ASSERT(!unwind_error_->IsSmi());
+  ASSERT(unwind_error_->IsUnwindError());
   ASSERT(!unwind_in_progress_error_->IsSmi());
   ASSERT(unwind_in_progress_error_->IsUnwindError());
   ASSERT(!snapshot_writer_error_->IsSmi());
@@ -1403,6 +1409,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(background_compilation_error_->IsLanguageError());
   ASSERT(!out_of_memory_error_->IsSmi());
   ASSERT(out_of_memory_error_->IsLanguageError());
+  ASSERT(!unhandled_oom_exception_->IsSmi());
+  ASSERT(unhandled_oom_exception_->IsUnhandledException());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
   ASSERT(!synthetic_getter_parameter_types_->IsSmi());
@@ -2883,8 +2891,9 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       Report::LongJump(Object::out_of_memory_error());
       UNREACHABLE();
     } else if (thread->top_exit_frame_info() != 0) {
-      // Use the preallocated out of memory exception to avoid calling
-      // into dart code or allocating any code.
+      if (thread->IsInNoThrowOOMScope()) {
+        return Object::null();
+      }
       Exceptions::ThrowOOM();
       UNREACHABLE();
     } else {
@@ -11410,8 +11419,10 @@ KernelProgramInfoPtr Function::KernelProgramInfo() const {
 }
 
 TypedDataViewPtr Function::KernelLibrary() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return TypedDataView::null();
   const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
-  return info.KernelLibrary(KernelLibraryIndex());
+  return info.KernelLibrary(kernel_library_index);
 }
 
 intptr_t Function::KernelLibraryOffset() const {
@@ -12419,8 +12430,10 @@ void Field::InheritKernelOffsetFrom(const Field& src) const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 TypedDataViewPtr Field::KernelLibrary() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return TypedDataView::null();
   const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
-  return info.KernelLibrary(KernelLibraryIndex());
+  return info.KernelLibrary(kernel_library_index);
 }
 
 intptr_t Field::KernelLibraryOffset() const {
@@ -15685,6 +15698,7 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
   const intptr_t library_count =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  ASSERT((library_index >= 0) && (library_index < library_count));
   const intptr_t library_start =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() -
@@ -15694,6 +15708,7 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
 
 TypedDataViewPtr KernelProgramInfo::KernelLibrary(
     intptr_t library_index) const {
+  ASSERT(library_index >= 0);
   const intptr_t start_offset = KernelLibraryStartOffset(library_index);
   const intptr_t end_offset = KernelLibraryEndOffset(library_index);
   const auto& component = TypedDataBase::Handle(kernel_component());
@@ -15706,6 +15721,7 @@ intptr_t KernelProgramInfo::KernelLibraryEndOffset(
   const intptr_t library_count =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  ASSERT((library_index >= 0) && (library_index < library_count));
   const intptr_t library_end = Utils::BigEndianToHost32(
       LoadUnaligned(reinterpret_cast<uint32_t*>(blob.DataAddr(
           blob.LengthInBytes() - (2 + (library_count - library_index)) * 4))));
@@ -18724,7 +18740,6 @@ void Code::NotifyCodeObservers(const Function& function,
                                bool optimized) {
 #if !defined(PRODUCT)
   ASSERT(!function.IsNull());
-  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
   if (CodeObservers::AreActive()) {
@@ -18740,7 +18755,6 @@ void Code::NotifyCodeObservers(const char* name,
 #if !defined(PRODUCT)
   ASSERT(name != nullptr);
   ASSERT(!code.IsNull());
-  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
     CodeObservers::NotifyAll(name, instrs.PayloadStart(),

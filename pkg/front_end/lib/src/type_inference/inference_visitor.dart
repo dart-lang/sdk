@@ -30,7 +30,7 @@ import '../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 import '../base/problems.dart' as problems
-    show internalProblem, unhandled, unsupported, unimplemented;
+    show internalProblem, unhandled, unsupported;
 import '../base/uri_offset.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/body_builder.dart' show combineStatements;
@@ -74,7 +74,7 @@ import 'stack_values.dart';
 import 'type_constraint_gatherer.dart';
 import 'type_inference_engine.dart';
 import 'type_inferrer.dart' show TypeInferrerImpl;
-import 'type_schema.dart' show UnknownType;
+import 'type_schema.dart' show UnknownType, isKnown;
 
 abstract class InferenceVisitor {
   /// Performs type inference on the given [expression].
@@ -149,7 +149,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   final List<Object> _rewriteStack = [];
 
   @override
-  final TypeAnalyzerOptions options;
+  final TypeAnalyzerOptions typeAnalyzerOptions;
 
   final ConstructorDeclarationBuilder? constructorDeclaration;
 
@@ -175,13 +175,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   bool _inTryOrLocalFunction = false;
 
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
-      this.constructorDeclaration, this.operations)
-      : options = new TypeAnalyzerOptions(
-            patternsEnabled:
-                inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled,
-            inferenceUpdate3Enabled: inferrer
-                .libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled),
-        super(inferrer, helper);
+      this.constructorDeclaration, this.operations, this.typeAnalyzerOptions)
+      : super(inferrer, helper);
 
   @override
   int get stackHeight => _rewriteStack.length;
@@ -585,6 +580,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitRedirectingFactoryTearOff(
       RedirectingFactoryTearOff node, DartType typeContext) {
+    ensureMemberType(node.target);
     DartType type =
         node.target.function.computeFunctionType(Nullability.nonNullable);
     return instantiateTearOff(type, typeContext, node);
@@ -701,6 +697,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult operandResult = inferExpression(
         node.expression, const UnknownType(),
         isVoidAllowed: true);
+    if (operandResult.expression is InvalidExpression) return operandResult;
     Expression operand = operandResult.expression;
     DartType operandType = operandResult.inferredType;
     if (operandType is! FunctionType) {
@@ -817,7 +814,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult operandResult =
         inferExpression(node.operand, const UnknownType(), isVoidAllowed: true);
     node.operand = operandResult.expression..parent = node;
-    flowAnalysis.asExpression_end(node.operand, new SharedTypeView(node.type));
+    flowAnalysis.asExpression_end(node.operand,
+        subExpressionType: new SharedTypeView(operandResult.inferredType),
+        castType: new SharedTypeView(node.type));
     return new ExpressionInferenceResult(node.type, node);
   }
 
@@ -1419,6 +1418,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitFactoryConstructorInvocation(
       FactoryConstructorInvocation node, DartType typeContext) {
+    ensureMemberType(node.target);
+
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
 
     FunctionType functionType =
@@ -1488,6 +1489,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitTypeAliasedConstructorInvocation(
       TypeAliasedConstructorInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
+    ensureMemberType(node.target);
+
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType =
         _computeAliasedConstructorFunctionType(node.target, typedef);
@@ -1555,6 +1558,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitTypeAliasedFactoryInvocation(
       TypeAliasedFactoryInvocation node, DartType typeContext) {
+    ensureMemberType(node.target);
+
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType =
@@ -2283,8 +2288,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.operand, const UnknownType(),
         isVoidAllowed: false);
     node.operand = operandResult.expression..parent = node;
-    flowAnalysis.isExpression_end(
-        node, node.operand, /*isNot:*/ false, new SharedTypeView(node.type));
+    flowAnalysis.isExpression_end(node, node.operand, /*isNot:*/ false,
+        subExpressionType: new SharedTypeView(operandResult.inferredType),
+        checkedType: new SharedTypeView(node.type));
     return new ExpressionInferenceResult(
         coreTypes.boolRawType(Nullability.nonNullable), node);
   }
@@ -6754,10 +6760,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInfo<SharedTypeView>? equalityInfo =
         flowAnalysis.equalityOperand_end(left);
 
-    Expression? equals;
+    // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
+    // to provide the context type for the shorthand.
+    DartType rightTypeContext =
+        right is DotShorthand ? leftType : const UnknownType();
     ExpressionInferenceResult rightResult =
-        inferExpression(right, const UnknownType(), isVoidAllowed: false);
+        inferExpression(right, rightTypeContext, isVoidAllowed: false);
 
+    Expression? equals;
     if (_isNull(right)) {
       equals = new EqualsNull(left)..fileOffset = fileOffset;
     } else if (_isNull(left)) {
@@ -10609,7 +10619,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void handleSwitchScrutinee(SharedTypeView type) {
     DartType unwrapped = type.unwrapTypeView();
-    if ((!options.patternsEnabled) &&
+    if ((!typeAnalyzerOptions.patternsEnabled) &&
         unwrapped is InterfaceType &&
         unwrapped.classNode.isEnum) {
       _enumFields = <Field?>{
@@ -12116,56 +12126,144 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Use the previously cached context type to determine the declaration
     // member that we're trying to find.
     DartType cachedContext = getDotShorthandContext().unwrapTypeSchemaView();
-    Member? member = findInterfaceMember(
-            cachedContext, node.name, node.fileOffset,
-            includeExtensionMethods: false,
-            isSetter: false,
-            isDotShorthand: true)
-        .member;
 
-    Expression expr;
-    if (member is Procedure) {
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    while (cachedContext is FutureOrType) {
+      cachedContext = cachedContext.typeArgument;
+    }
+
+    Member? member =
+        findStaticMember(cachedContext, node.name, node.fileOffset);
+
+    Expression? expr;
+    if (member is Procedure && member.kind == ProcedureKind.Method) {
+      // The shorthand expression is inferred in the empty context and then type
+      // inference infers the type arguments.
+      FunctionType functionType =
+          member.function.computeThisFunctionType(Nullability.nonNullable);
+      InvocationInferenceResult result = inferInvocation(
+          this,
+          typeContext,
+          node.fileOffset,
+          new InvocationTargetFunctionType(functionType),
+          node.arguments as ArgumentsImpl,
+          isConst: node.isConst,
+          staticTarget: member);
       expr = new StaticInvocation(member, node.arguments)
         ..fileOffset = node.fileOffset;
+      return new ExpressionInferenceResult(
+          result.inferredType, result.applyResult(expr));
     } else if (member == null && cachedContext is TypeDeclarationType) {
       // Couldn't find a static method in the declaration so we'll try and find
       // a constructor of that name instead.
       Member? constructor =
           findConstructor(cachedContext, node.name, node.fileOffset);
+
+      // Dot shorthand constructor invocations with type parameters
+      // `.id<type>()` are not allowed.
+      if (constructor != null && node.arguments.types.isNotEmpty) {
+        return new ExpressionInferenceResult(
+            const DynamicType(),
+            helper.buildProblem(
+                messageDotShorthandsConstructorInvocationWithTypeArguments,
+                node.nameOffset,
+                node.name.text.length));
+      }
+
       if (constructor is Constructor) {
-        // TODO(kallentu): Const constructors.
+        if (!constructor.isConst && node.isConst) {
+          return new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(messageNonConstConstructor, node.nameOffset,
+                  node.name.text.length));
+        }
+
+        // The shorthand expression is inferred in the empty context and then
+        // type inference infers the type arguments.
+        FunctionType functionType = constructor.function
+            .computeThisFunctionType(Nullability.nonNullable);
+        InvocationInferenceResult result = inferInvocation(
+            this,
+            typeContext,
+            node.fileOffset,
+            new InvocationTargetFunctionType(functionType),
+            node.arguments as ArgumentsImpl,
+            isConst: node.isConst,
+            staticTarget: constructor);
         expr = new ConstructorInvocation(constructor, node.arguments,
-            isConst: false)
+            isConst: node.isConst)
           ..fileOffset = node.fileOffset;
+        return new ExpressionInferenceResult(
+            result.inferredType, result.applyResult(expr));
       } else if (constructor is Procedure) {
         // [constructor] can be a [Procedure] if we have an extension type
-        // constructor.
-        expr = new StaticInvocation(constructor, node.arguments)
-          ..fileOffset = node.fileOffset;
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        // TODO(kallentu): This is temporary. Build a problem with an error
-        // specific to not being able to find a member named [node.name].
-        problems.unimplemented(
-            'Cannot find dot shorthand member of name ${node.name}',
+        // constructor or a redirecting factory constructor.
+        if (!constructor.isConst && node.isConst) {
+          // Coverage-ignore-block(suite): Not run.
+          return new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(messageNonConstConstructor, node.nameOffset,
+                  node.name.text.length));
+        }
+
+        // The shorthand expression is inferred in the empty context and then
+        // type inference infers the type arguments.
+        FunctionType functionType = constructor.function
+            .computeThisFunctionType(Nullability.nonNullable);
+        InvocationInferenceResult result = inferInvocation(
+            this,
+            typeContext,
             node.fileOffset,
-            helper.uri);
+            new InvocationTargetFunctionType(functionType),
+            node.arguments as ArgumentsImpl,
+            isConst: node.isConst,
+            staticTarget: constructor);
+        if (constructor.isRedirectingFactory) {
+          expr = helper.resolveRedirectingFactoryTarget(
+              constructor, node.arguments, node.fileOffset, node.isConst)!;
+        } else {
+          expr = new StaticInvocation(constructor, node.arguments,
+              isConst: node.isConst)
+            ..fileOffset = node.fileOffset;
+        }
+        return new ExpressionInferenceResult(
+            result.inferredType, result.applyResult(expr));
       }
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      // TODO(kallentu): This is temporary. Build a problem with an error on the
-      // bad context type.
-      problems.unimplemented(
-          'Cannot find dot shorthand member of name ${node.name} with '
-          'context $cachedContext',
-          node.fileOffset,
-          helper.uri);
     }
 
-    ExpressionInferenceResult expressionInferenceResult =
-        inferExpression(expr, cachedContext);
-    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
-    return expressionInferenceResult;
+    if (member != null &&
+        (member is Field || (member is Procedure && member.isGetter))) {
+      // Try to find a `.call()`.
+      DartType receiverType = member.getterType;
+      Expression receiver = new StaticGet(member)..fileOffset = node.fileOffset;
+      return inferMethodInvocation(this, node.fileOffset, receiver,
+          receiverType, callName, node.arguments as ArgumentsImpl, typeContext,
+          isExpressionInvocation: true, isImplicitCall: true);
+    }
+
+    // Error handling. At this point, we've exhausted all possible valid
+    // invocations.
+    Expression replacement;
+    if (isKnown(cachedContext)) {
+      // Error when we can't find the static member or constructor named
+      // [node.name] in the declaration of [cachedContext].
+      replacement = helper.buildProblem(
+          templateDotShorthandsUndefinedInvocation.withArguments(
+              node.name.text, cachedContext),
+          node.nameOffset,
+          node.name.text.length);
+    } else {
+      // Error when no context type or an invalid context type is given to
+      // resolve the dot shorthand.
+      //
+      // e.g. `var x = .one;`
+      replacement = helper.buildProblem(
+          templateDotShorthandsInvalidContext.withArguments(node.name.text),
+          node.nameOffset,
+          node.name.text.length);
+    }
+    return new ExpressionInferenceResult(const DynamicType(), replacement);
   }
 
   ExpressionInferenceResult visitDotShorthandPropertyGet(
@@ -12173,31 +12271,93 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Use the previously cached context type to determine the declaration
     // member that we're trying to find.
     DartType cachedContext = getDotShorthandContext().unwrapTypeSchemaView();
-    Member? member = findInterfaceMember(
-            cachedContext, node.name, node.fileOffset,
-            isSetter: false, isDotShorthand: true)
-        .member;
 
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    while (cachedContext is FutureOrType) {
+      cachedContext = cachedContext.typeArgument;
+    }
+
+    Member? member =
+        findStaticMember(cachedContext, node.name, node.fileOffset);
     ExpressionInferenceResult expressionInferenceResult;
-    if (member == null) {
-      // Coverage-ignore-block(suite): Not run.
-      // TODO(kallentu): This is temporary. Build a problem with an error
-      // specific to not being able to find a member named [node.name].
-      problems.unimplemented(
-          'Cannot find dot shorthand member of name ${node.name}',
-          node.fileOffset,
-          helper.uri);
-    } else if (member is Procedure && !member.isGetter) {
-      // Tearoff like `Object.new`;
-      expressionInferenceResult =
-          inferExpression(new StaticTearOff(member), cachedContext);
-    } else {
-      expressionInferenceResult =
-          inferExpression(new StaticGet(member), cachedContext);
+    switch (member) {
+      case Field():
+        expressionInferenceResult =
+            inferExpression(new StaticGet(member), cachedContext);
+      case Procedure():
+        if (member.isGetter) {
+          expressionInferenceResult =
+              inferExpression(new StaticGet(member), cachedContext);
+        } else {
+          // Method tearoffs.
+          DartType type =
+              member.function.computeFunctionType(Nullability.nonNullable);
+          return instantiateTearOff(
+              type, typeContext, new StaticTearOff(member));
+        }
+      case Constructor():
+      case null:
+        // Handle constructor tearoffs.
+        if (cachedContext is TypeDeclarationType) {
+          Member? constructor = findConstructor(
+              cachedContext, node.name, node.fileOffset,
+              isTearoff: true);
+          // Dot shorthand constructor invocations with type parameters
+          // `.id<type>()` are not allowed.
+          if (constructor != null && node.hasTypeParameters) {
+            return new ExpressionInferenceResult(
+                const DynamicType(),
+                helper.buildProblem(
+                    messageDotShorthandsConstructorInvocationWithTypeArguments,
+                    node.nameOffset,
+                    node.name.text.length));
+          }
+          if (constructor is Constructor) {
+            DartType type = constructor.function
+                .computeFunctionType(Nullability.nonNullable);
+            return instantiateTearOff(
+                type, typeContext, new ConstructorTearOff(constructor));
+          } else if (constructor is Procedure) {
+            DartType type = constructor.function
+                .computeFunctionType(Nullability.nonNullable);
+            return instantiateTearOff(
+                type, typeContext, new StaticTearOff(constructor));
+          }
+        }
+
+        if (isKnown(cachedContext)) {
+          // Error when we can't find the static getter or field [node.name] in
+          // the declaration of [cachedContext].
+          expressionInferenceResult = new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(
+                  templateDotShorthandsUndefinedGetter.withArguments(
+                      node.name.text, cachedContext),
+                  node.nameOffset,
+                  node.name.text.length));
+        } else {
+          // Error when no context type or an invalid context type is given to
+          // resolve the dot shorthand.
+          //
+          // e.g. `var x = .one;`
+          expressionInferenceResult = new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(
+                  templateDotShorthandsInvalidContext
+                      .withArguments(node.name.text),
+                  node.nameOffset,
+                  node.name.text.length));
+        }
     }
 
     flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
     return expressionInferenceResult;
+  }
+
+  @override
+  bool isDotShorthand(Expression node) {
+    return node is DotShorthand;
   }
 }
 

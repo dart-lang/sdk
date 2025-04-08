@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,26 +21,21 @@ import 'package:pub_semver/pub_semver.dart';
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
-    with ConstructorElementMixin, ConstructorElementMixin2
-    implements ConstructorElement, ConstructorElement2 {
+    with
+        ConstructorElementMixin,
+        ConstructorElementMixin2
+    implements
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
+        ConstructorElement,
+        ConstructorElement2 {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({
-    required ConstructorElement declaration,
-    required MapSubstitution augmentationSubstitution,
-    required MapSubstitution substitution,
-  }) : super(declaration, augmentationSubstitution, substitution,
-            const <TypeParameterElement>[]);
-
-  @override
-  ConstructorElement? get augmentation {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  ConstructorElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
+    required ConstructorElementImpl super.declaration,
+    required super.substitution,
+  }) : super(
+          typeParameters: const <TypeParameterElementImpl>[],
+        );
 
   @override
   ConstructorElementImpl2 get baseElement => _element2;
@@ -58,7 +51,7 @@ class ConstructorMember extends ExecutableMember
   InterfaceElementImpl2 get enclosingElement2 => _element2.enclosingElement2;
 
   @override
-  InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
+  InterfaceElementImpl get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   ConstructorFragment get firstFragment => _element2.firstFragment;
@@ -83,6 +76,11 @@ class ConstructorMember extends ExecutableMember
   bool get isFactory => declaration.isFactory;
 
   @override
+  LibraryElementImpl get library {
+    return _declaration.library!;
+  }
+
+  @override
   String? get lookupName => _element2.lookupName;
 
   @override
@@ -100,35 +98,33 @@ class ConstructorMember extends ExecutableMember
   @override
   ConstructorElementMixin? get redirectedConstructor {
     var element = declaration.redirectedConstructor;
-    return _from2(element);
+    return _redirect(element);
   }
 
   @override
-  ConstructorElement2? get redirectedConstructor2 {
-    var element = redirectedConstructor.asElement2;
-    return switch (element) {
-      ConstructorElement2() => element,
-      _ => null,
-    };
+  ConstructorElementMixin2? get redirectedConstructor2 {
+    return redirectedConstructor?.asElement2;
   }
 
   @override
-  InterfaceTypeImpl get returnType =>
-      // TODO(paulberry): eliminate this cast by changing the type of `type` to
-      // `FunctionTypeImpl`.
-      type.returnType as InterfaceTypeImpl;
+  InterfaceTypeImpl get returnType {
+    var returnType = declaration.returnType;
+    return substitution.mapInterfaceType(returnType);
+  }
 
   @override
   Source get source => _declaration.source!;
 
   @override
-  ConstructorElement? get superConstructor {
+  ConstructorElementMixin? get superConstructor {
     var element = declaration.superConstructor;
-    return _from2(element);
+    return _redirect(element);
   }
 
   @override
-  ConstructorElement2? get superConstructor2 => superConstructor?.asElement2;
+  ConstructorElementMixin2? get superConstructor2 {
+    return superConstructor?.asElement2;
+  }
 
   @override
   ConstructorElementImpl2 get _element2 => declaration.asElement2;
@@ -148,78 +144,61 @@ class ConstructorMember extends ExecutableMember
     builder.writeConstructorElement(this);
   }
 
-  ConstructorMember? _from2(ConstructorElement? element) {
-    if (element == null) {
-      return null;
+  ConstructorElementMixin? _redirect(ConstructorElementMixin? element) {
+    switch (element) {
+      case null:
+        return null;
+      case ConstructorElementImpl():
+        return element;
+      case ConstructorMember():
+        var memberMap = element.substitution.map;
+        var map = <TypeParameterElement2, DartType>{
+          for (var MapEntry(:key, :value) in memberMap.entries)
+            key: substitution.substituteType(value),
+        };
+        return ConstructorMember(
+          declaration: element.declaration,
+          substitution: Substitution.fromMap2(map),
+        );
+      default:
+        throw UnimplementedError('(${element.runtimeType}) $element');
     }
-
-    ConstructorElement declaration;
-    MapSubstitution substitution;
-    if (element is ConstructorMember) {
-      declaration = element._declaration as ConstructorElement;
-      var map = <TypeParameterElement2, DartType>{};
-      var elementMap = element._substitution.map;
-      for (var typeParameter in elementMap.keys) {
-        var type = elementMap[typeParameter]!;
-        map[typeParameter] = _substitution.substituteType(type);
-      }
-      substitution = Substitution.fromMap2(map);
-    } else {
-      declaration = element;
-      substitution = _substitution;
-    }
-
-    return ConstructorMember(
-      declaration: declaration,
-      augmentationSubstitution: augmentationSubstitution,
-      substitution: substitution,
-    );
   }
 
-  /// If the given [constructor]'s type is different when any type parameters
+  /// If the given [element]'s type is different when any type parameters
   /// from the defining type's declaration are replaced with the actual type
   /// arguments from the [definingType], create a constructor member
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
   static ConstructorElementMixin from(
-      ConstructorElementMixin constructor, InterfaceType definingType) {
+    ConstructorElementImpl element,
+    InterfaceType definingType,
+  ) {
     if (definingType.typeArguments.isEmpty) {
-      return constructor;
-    }
-
-    var augmentationSubstitution = Substitution.empty;
-    if (constructor is ConstructorMember) {
-      augmentationSubstitution = constructor.augmentationSubstitution;
-      constructor = constructor.declaration;
+      return element;
     }
 
     return ConstructorMember(
-      declaration: constructor,
-      augmentationSubstitution: augmentationSubstitution,
+      declaration: element,
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 
-  /// If the given [constructor]'s type is different when any type parameters
+  /// If the given [element]'s type is different when any type parameters
   /// from the defining type's declaration are replaced with the actual type
   /// arguments from the [definingType], create a constructor member
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
   static ConstructorElementMixin2 from2(
-      ConstructorElementMixin2 constructor, InterfaceType definingType) {
+    ConstructorElementImpl2 element,
+    InterfaceType definingType,
+  ) {
     if (definingType.typeArguments.isEmpty) {
-      return constructor;
-    }
-
-    var augmentationSubstitution = Substitution.empty;
-    if (constructor is ConstructorMember) {
-      augmentationSubstitution = constructor.augmentationSubstitution;
-      constructor = constructor.baseElement;
+      return element;
     }
 
     return ConstructorMember(
-      declaration: constructor.asElement,
-      augmentationSubstitution: augmentationSubstitution,
+      declaration: element.asElement,
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }
@@ -230,7 +209,7 @@ class ConstructorMember extends ExecutableMember
 abstract class ExecutableMember extends Member
     implements ExecutableElementOrMember, ExecutableElement2OrMember {
   @override
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
 
   FunctionTypeImpl? _type;
 
@@ -241,19 +220,23 @@ abstract class ExecutableMember extends Member
   /// The [typeParameters] are fresh, and [substitution] is already applied to
   /// their bounds.  The [substitution] includes replacing [declaration] type
   /// parameters with the provided fresh [typeParameters].
-  ExecutableMember(
-    ExecutableElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    this.typeParameters,
-  );
+  ExecutableMember({
+    required ExecutableElementImpl super.declaration,
+    required super.substitution,
+    required this.typeParameters,
+  });
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => parameters;
 
   @override
-  List<Element2> get children2 =>
-      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+  List<Element2> get children2 {
+    return [
+      ...typeParameters2,
+      ...formalParameters,
+    ];
+  }
 
   @override
   ExecutableElementImpl get declaration =>
@@ -312,6 +295,7 @@ abstract class ExecutableMember extends Member
   @override
   bool get isSynchronous => declaration.isSynchronous;
 
+  @Deprecated('Use ExecutableElement2 instead')
   @override
   LibraryElement get library => _declaration.library!;
 
@@ -329,40 +313,42 @@ abstract class ExecutableMember extends Member
 
   @override
   List<ParameterElementMixin> get parameters {
-    return declaration.parameters.map<ParameterElementMixin>((p) {
-      if (p is FieldFormalParameterElementImpl) {
-        return FieldFormalParameterMember(
-            p, augmentationSubstitution, _substitution);
+    return declaration.parameters.map<ParameterElementMixin>((element) {
+      switch (element) {
+        case FieldFormalParameterElementImpl():
+          return FieldFormalParameterMember(
+            declaration: element,
+            substitution: substitution,
+          );
+        case SuperFormalParameterElementImpl():
+          return SuperFormalParameterMember(
+            declaration: element,
+            substitution: substitution,
+          );
+        default:
+          return ParameterMember(
+            declaration: element,
+            substitution: substitution,
+          );
       }
-      if (p is SuperFormalParameterElementImpl) {
-        return SuperFormalParameterMember(
-            p, augmentationSubstitution, _substitution);
-      }
-      return ParameterMember(p, augmentationSubstitution, _substitution);
     }).toList();
   }
 
   @override
   TypeImpl get returnType {
     var result = declaration.returnType;
-    result = augmentationSubstitution.substituteType(result);
-    result = _substitution.substituteType(result);
+    result = substitution.substituteType(result);
     return result;
   }
 
   @override
   FunctionTypeImpl get type {
-    if (_type != null) return _type!;
-
-    _type = _substitution.substituteType(declaration.type) as FunctionTypeImpl;
-    return _type!;
+    return _type ??= substitution.mapFunctionType(declaration.type);
   }
 
   @override
-  List<TypeParameterElement2> get typeParameters2 => typeParameters
-      .map((fragment) => fragment.asElement2 as TypeParameterElement2?)
-      .nonNulls
-      .toList();
+  List<TypeParameterElementImpl2> get typeParameters2 =>
+      typeParameters.map((fragment) => fragment.asElement2).toList();
 
   @override
   ExecutableElement2 get _element2 => declaration.asElement2;
@@ -412,69 +398,45 @@ abstract class ExecutableMember extends Member
   }
 
   static ExecutableElementOrMember from2(
-    ExecutableElement element,
+    ExecutableElementOrMember element,
     MapSubstitution substitution,
   ) {
-    var augmentationSubstitution = Substitution.empty;
-    var combined = substitution;
-    if (element is ExecutableMember) {
-      ExecutableMember member = element;
-      element = member.declaration;
-
-      augmentationSubstitution = member.augmentationSubstitution;
-
-      var map = <TypeParameterElement2, DartType>{
-        for (var MapEntry(:key, :value) in member._substitution.map.entries)
-          key: substitution.substituteType(value),
-        ...substitution.map,
-      };
-      combined = Substitution.fromMap2(map);
-    }
-
-    if (augmentationSubstitution.map.isEmpty && combined.map.isEmpty) {
-      // TODO(paulberry): eliminate this cast by changing the type of the
-      // parameter `element`.
-      return element as ExecutableElementOrMember;
-    }
-
-    if (element is ConstructorElement) {
-      return ConstructorMember(
-        declaration: element,
-        augmentationSubstitution: augmentationSubstitution,
-        substitution: combined,
-      );
-    } else if (element is MethodElement) {
-      return MethodMember(element, augmentationSubstitution, combined);
-    } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember(
-          element, augmentationSubstitution, combined);
-    } else {
-      throw UnimplementedError('(${element.runtimeType}) $element');
-    }
-  }
-
-  static ExecutableElement fromAugmentation(
-    ExecutableElement element,
-    MapSubstitution augmentationSubstitution,
-  ) {
-    if (augmentationSubstitution.map.isEmpty) {
+    if (identical(substitution, Substitution.empty)) {
       return element;
     }
 
-    if (element is ConstructorElement) {
-      return ConstructorMember(
-        declaration: element,
-        augmentationSubstitution: augmentationSubstitution,
-        substitution: Substitution.empty,
-      );
-    } else if (element is MethodElement) {
-      return MethodMember(
-          element, augmentationSubstitution, Substitution.empty);
-    } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember(
-          element, augmentationSubstitution, Substitution.empty);
+    ExecutableElementImpl declaration;
+    var combined = substitution;
+    if (element is ExecutableMember) {
+      declaration = element.declaration;
+
+      var map = <TypeParameterElement2, DartType>{
+        for (var MapEntry(:key, :value) in element.substitution.map.entries)
+          key: substitution.substituteType(value),
+      };
+      combined = Substitution.fromMap2(map);
     } else {
-      throw UnimplementedError('(${element.runtimeType}) $element');
+      declaration = element as ExecutableElementImpl;
+    }
+
+    switch (declaration) {
+      case ConstructorElementImpl():
+        return ConstructorMember(
+          declaration: declaration,
+          substitution: combined,
+        );
+      case MethodElementImpl():
+        return MethodMember(
+          declaration: declaration,
+          substitution: combined,
+        );
+      case PropertyAccessorElementImpl():
+        return PropertyAccessorMember(
+          declaration: declaration,
+          substitution: combined,
+        );
+      default:
+        throw UnimplementedError('(${declaration.runtimeType}) $element');
     }
   }
 }
@@ -482,39 +444,44 @@ abstract class ExecutableMember extends Member
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class FieldFormalParameterMember extends ParameterMember
-    implements FieldFormalParameterElement {
-  factory FieldFormalParameterMember(
-    FieldFormalParameterElement declaration,
-    MapSubstitution augmentationSubstitution,
-    MapSubstitution substitution,
-  ) {
+    implements FieldFormalParameterElementOrMember {
+  factory FieldFormalParameterMember({
+    required FieldFormalParameterElementImpl declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
     );
     return FieldFormalParameterMember._(
-      declaration,
-      augmentationSubstitution,
-      freshTypeParameters.substitution,
-      freshTypeParameters.elements,
+      declaration: declaration,
+      substitution: freshTypeParameters.substitution,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
-  FieldFormalParameterMember._(
-    FieldFormalParameterElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    super.typeParameters,
-  ) : super._();
+  FieldFormalParameterMember._({
+    required FieldFormalParameterElementImpl super.declaration,
+    required super.substitution,
+    required super.typeParameters,
+  }) : super._();
+
+  @override
+  FieldFormalParameterElementImpl get declaration {
+    return _declaration as FieldFormalParameterElementImpl;
+  }
 
   @override
   FieldElementOrMember? get field {
-    var field = (declaration as FieldFormalParameterElement).field;
+    var field = declaration.field;
     if (field == null) {
       return null;
     }
 
-    return FieldMember(field, augmentationSubstitution, _substitution);
+    return FieldMember(
+      declaration: field,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -535,28 +502,16 @@ class FieldMember extends VariableMember
     implements FieldElementOrMember, FieldElement2OrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
-  FieldMember(
-    FieldElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-  );
-
-  @override
-  FieldElement? get augmentation {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  FieldElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
+  FieldMember({
+    required FieldElementImpl super.declaration,
+    required super.substitution,
+  });
 
   @override
   FieldElement2 get baseElement => _element2;
 
   @override
-  List<Element2> get children2 =>
-      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+  List<Element2> get children2 => const [];
 
   @override
   ConstantInitializer? get constantInitializer2 {
@@ -572,6 +527,8 @@ class FieldMember extends VariableMember
   @override
   InstanceElement2 get enclosingElement2 => _element2.enclosingElement2;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -589,13 +546,15 @@ class FieldMember extends VariableMember
   }
 
   @override
-  PropertyAccessorElement? get getter {
+  PropertyAccessorElementOrMember? get getter {
     var baseGetter = declaration.getter;
     if (baseGetter == null) {
       return null;
     }
     return PropertyAccessorMember(
-        baseGetter, augmentationSubstitution, _substitution);
+      declaration: baseGetter,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -604,8 +563,11 @@ class FieldMember extends VariableMember
     if (baseGetter == null) {
       return null;
     }
-    return GetterMember._(baseGetter, augmentationSubstitution, _substitution,
-        baseGetter.typeParameters);
+    return GetterMember._(
+      declaration: baseGetter,
+      substitution: substitution,
+      typeParameters: baseGetter.typeParameters,
+    );
   }
 
   @override
@@ -629,6 +591,7 @@ class FieldMember extends VariableMember
   @override
   bool get isPromotable => declaration.isPromotable;
 
+  @Deprecated('Use FieldElement2 instead')
   @override
   LibraryElement get library => _declaration.library!;
 
@@ -648,13 +611,15 @@ class FieldMember extends VariableMember
   Element2 get nonSynthetic2 => _element2.nonSynthetic2;
 
   @override
-  PropertyAccessorElement? get setter {
+  PropertyAccessorElementOrMember? get setter {
     var baseSetter = declaration.setter;
     if (baseSetter == null) {
       return null;
     }
     return PropertyAccessorMember(
-        baseSetter, augmentationSubstitution, _substitution);
+      declaration: baseSetter,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -663,8 +628,11 @@ class FieldMember extends VariableMember
     if (baseSetter == null) {
       return null;
     }
-    return SetterMember._(baseSetter, augmentationSubstitution, _substitution,
-        baseSetter.typeParameters);
+    return SetterMember._(
+      declaration: baseSetter,
+      substitution: substitution,
+      typeParameters: baseSetter.typeParameters,
+    );
   }
 
   @override
@@ -707,49 +675,35 @@ class FieldMember extends VariableMember
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 
-  /// If the given [field]'s type is different when any type parameters from the
+  /// If the given [element]'s type is different when any type parameters from the
   /// defining type's declaration are replaced with the actual type arguments
   /// from the [definingType], create a field member representing the given
   /// field. Return the member that was created, or the base field if no member
   /// was created.
   static FieldElementOrMember from(
-      FieldElementOrMember field, InterfaceType definingType) {
+    FieldElementImpl element,
+    InterfaceType definingType,
+  ) {
     if (definingType.typeArguments.isEmpty) {
-      return field;
+      return element;
     }
     return FieldMember(
-      field,
-      field is FieldMember
-          ? field.augmentationSubstitution
-          : Substitution.empty,
-      Substitution.fromInterfaceType(definingType),
+      declaration: element,
+      substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 
-  static FieldElement from2(
-    FieldElement element,
+  static FieldElementOrMember from2(
+    FieldElementImpl element,
     MapSubstitution substitution,
   ) {
     if (substitution.map.isEmpty) {
       return element;
     }
     return FieldMember(
-      element,
-      element is FieldMember
-          ? element.augmentationSubstitution
-          : Substitution.empty,
-      substitution,
+      declaration: element,
+      substitution: substitution,
     );
-  }
-
-  static FieldElement fromAugmentation(
-    FieldElement element,
-    MapSubstitution augmentationSubstitution,
-  ) {
-    if (augmentationSubstitution.map.isEmpty) {
-      return element;
-    }
-    return FieldMember(element, augmentationSubstitution, Substitution.empty);
   }
 }
 
@@ -757,23 +711,22 @@ class FieldMember extends VariableMember
 /// type parameters are known.
 class GetterMember extends PropertyAccessorMember
     implements GetterElement2OrMember {
-  GetterMember._(
-    super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    super.typeParameters,
-  ) : super._();
+  GetterMember._({
+    required super.declaration,
+    required super.substitution,
+    required super.typeParameters,
+  }) : super._();
 
   @override
-  GetterElement get baseElement => _element2;
+  GetterElementImpl get baseElement => _element2;
 
   @override
-  SetterElement? get correspondingSetter2 {
+  SetterElement2OrMember? get correspondingSetter2 {
     var setter = correspondingSetter;
     if (setter is SetterMember) {
       return setter;
     }
-    return setter.asElement2 as SetterElement?;
+    return setter.asElement2 as SetterElementImpl?;
   }
 
   @override
@@ -807,34 +760,59 @@ class GetterMember extends PropertyAccessorMember
       variable2.asElement2 as PropertyInducingElement2OrMember?;
 
   @override
-  GetterElement get _element2 => declaration.asElement2 as GetterElement;
+  GetterElementImpl get _element2 {
+    return declaration.asElement2 as GetterElementImpl;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitGetterElement(this);
   }
+
+  static GetterElement2OrMember from(
+    GetterElementImpl element,
+    InterfaceType definingType,
+  ) {
+    if (definingType.typeArguments.isEmpty) {
+      return element;
+    }
+
+    return GetterMember._(
+      declaration: element.asElement,
+      substitution: Substitution.fromInterfaceType(definingType),
+      typeParameters: const [],
+    );
+  }
 }
 
 /// An element defined in a parameterized type where the values of the type
 /// parameters are known.
-abstract class Member implements Element {
+abstract class Member
+    implements
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
+        Element,
+        ElementOrMember {
   /// The element on which the parameterized element was created.
-  final Element _declaration;
-
-  final MapSubstitution augmentationSubstitution;
+  final ElementImpl _declaration;
 
   /// The substitution for type parameters referenced in the base element.
-  final MapSubstitution _substitution;
+  final MapSubstitution substitution;
 
   /// Initialize a newly created element to represent a member, based on the
-  /// [declaration], and applied [_substitution].
-  Member(this._declaration, this.augmentationSubstitution, this._substitution) {
+  /// [declaration], and applied [substitution].
+  Member({
+    required ElementImpl declaration,
+    required this.substitution,
+  }) : _declaration = declaration {
     if (_declaration is Member) {
       throw StateError('Members must be created from a declaration, but is '
           '(${_declaration.runtimeType}) "$_declaration".');
     }
   }
 
+  Element2 get baseElement;
+
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => const [];
 
@@ -842,7 +820,7 @@ abstract class Member implements Element {
   AnalysisContext get context => _declaration.context;
 
   @override
-  ElementImpl get declaration => _declaration as ElementImpl;
+  ElementImpl get declaration => _declaration;
 
   @override
   String get displayName => _declaration.displayName;
@@ -850,6 +828,8 @@ abstract class Member implements Element {
   @override
   String? get documentationComment => _declaration.documentationComment;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element? get enclosingElement3 => _declaration.enclosingElement3;
 
@@ -949,6 +929,7 @@ abstract class Member implements Element {
   @override
   ElementKind get kind => _declaration.kind;
 
+  @Deprecated('Use Element2 instead')
   @override
   LibraryElement? get library => _declaration.library;
 
@@ -956,12 +937,12 @@ abstract class Member implements Element {
   Source? get librarySource => _declaration.librarySource;
 
   @override
-  ElementLocation get location => _declaration.location!;
+  ElementLocation get location => _declaration.location;
 
   @override
   List<ElementAnnotation> get metadata => _declaration.metadata;
 
-  Metadata get metadata2 => (_declaration as ElementImpl).metadata2;
+  MetadataImpl get metadata2 => declaration.metadata2;
 
   @override
   String? get name => _declaration.name;
@@ -972,6 +953,7 @@ abstract class Member implements Element {
   @override
   int get nameOffset => _declaration.nameOffset;
 
+  @Deprecated('Use Element2.nonSynthetic instead')
   @override
   Element get nonSynthetic => _declaration.nonSynthetic;
 
@@ -980,9 +962,6 @@ abstract class Member implements Element {
 
   @override
   Version? get sinceSdkVersion => _declaration.sinceSdkVersion;
-
-  /// The substitution for type parameters referenced in the base element.
-  MapSubstitution get substitution => _substitution;
 
   Element2 get _element2;
 
@@ -1014,10 +993,12 @@ abstract class Member implements Element {
     );
   }
 
+  @Deprecated('Use Element2 instead')
   @override
   bool isAccessibleIn(LibraryElement library) =>
       _declaration.isAccessibleIn(library);
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
@@ -1025,6 +1006,7 @@ abstract class Member implements Element {
     return declaration.thisOrAncestorMatching(predicate);
   }
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching3<E extends Element>(
     bool Function(Element) predicate,
@@ -1032,10 +1014,12 @@ abstract class Member implements Element {
     return declaration.thisOrAncestorMatching3(predicate);
   }
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType<E extends Element>() =>
       declaration.thisOrAncestorOfType<E>();
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType3<E extends Element>() =>
       declaration.thisOrAncestorOfType3<E>();
@@ -1060,47 +1044,35 @@ abstract class Member implements Element {
 /// type parameters are known.
 class MethodMember extends ExecutableMember
     implements MethodElementOrMember, MethodElement2OrMember {
-  factory MethodMember(
-    MethodElement declaration,
-    MapSubstitution augmentationSubstitution,
-    MapSubstitution substitution,
-  ) {
+  factory MethodMember({
+    required MethodElementImpl declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
     );
     return MethodMember._(
-      declaration,
-      augmentationSubstitution,
-      freshTypeParameters.substitution,
-      freshTypeParameters.elements,
+      declaration: declaration,
+      substitution: freshTypeParameters.substitution,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
-  MethodMember._(
-    MethodElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    super.typeParameters,
-  );
+  MethodMember._({
+    required MethodElementImpl super.declaration,
+    required super.substitution,
+    required super.typeParameters,
+  });
 
   @override
-  MethodElement? get augmentation {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
-  }
-
-  @override
-  MethodElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  MethodElement2 get baseElement => _element2;
+  MethodElementImpl2 get baseElement => _element2;
 
   @override
   MethodElementImpl get declaration => _declaration as MethodElementImpl;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -1133,7 +1105,7 @@ class MethodMember extends ExecutableMember
   Source get source => _declaration.source!;
 
   @override
-  MethodElement2 get _element2 => declaration.asElement2;
+  MethodElementImpl2 get _element2 => declaration.asElement2;
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -1144,41 +1116,19 @@ class MethodMember extends ExecutableMember
     return visitor.visitMethodElement(this);
   }
 
-  /// If the given [method]'s type is different when any type parameters from
-  /// the defining type's declaration are replaced with the actual type
-  /// arguments from the [definingType], create a method member representing the
-  /// given method. Return the member that was created, or the base method if no
-  /// member was created.
-  static MethodElementOrMember? from(
-      MethodElement? method, InterfaceType definingType) {
-    if (method == null || definingType.typeArguments.isEmpty) {
-      // TODO(paulberry): eliminate this cast by changing the type of the
-      // `method` parameter.
-      return method as MethodElementOrMember?;
-    }
-
-    return MethodMember(
-      method,
-      method is MethodMember
-          ? method.augmentationSubstitution
-          : Substitution.empty,
-      Substitution.fromInterfaceType(definingType),
-    );
-  }
-
-  static MethodElement from2(
-    MethodElement element,
-    MapSubstitution substitution,
+  /// If [definingType] has type parameters, returns [MethodMember] with
+  /// type substitutions. Otherwise returns [element] as is.
+  static MethodElement2OrMember from2(
+    MethodElementImpl2 element,
+    InterfaceType definingType,
   ) {
-    if (substitution.map.isEmpty) {
+    if (definingType.typeArguments.isEmpty) {
       return element;
     }
+
     return MethodMember(
-      element,
-      element is MethodMember
-          ? element.augmentationSubstitution
-          : Substitution.empty,
-      substitution,
+      declaration: element.asElement,
+      substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 }
@@ -1186,46 +1136,52 @@ class MethodMember extends ExecutableMember
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class ParameterMember extends VariableMember
-    with ParameterElementMixin, FormalParameterElementMixin
-    implements ParameterElement {
+    with
+        ParameterElementMixin,
+        FormalParameterElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
+        ParameterElement {
   @override
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
 
-  factory ParameterMember(
-    ParameterElement declaration,
-    MapSubstitution augmentationSubstitution,
-    MapSubstitution substitution,
-  ) {
+  factory ParameterMember({
+    required ParameterElementImpl declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
     );
     return ParameterMember._(
-      declaration,
-      augmentationSubstitution,
-      freshTypeParameters.substitution,
-      freshTypeParameters.elements,
+      declaration: declaration,
+      substitution: freshTypeParameters.substitution,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
   /// Initialize a newly created element to represent a parameter, based on the
   /// [declaration], with applied [substitution].
-  ParameterMember._(
-    ParameterElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    this.typeParameters,
-  );
+  ParameterMember._({
+    required ParameterElementImpl super.declaration,
+    required super.substitution,
+    required this.typeParameters,
+  });
 
   @override
   FormalParameterElement get baseElement => _element2;
 
+  @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => parameters;
 
   @override
-  List<Element2> get children2 =>
-      children.map((fragment) => fragment.asElement2).nonNulls.toList();
+  List<Element2> get children2 {
+    return [
+      ...typeParameters2,
+      ...formalParameters,
+    ];
+  }
 
   @override
   ConstantInitializer? get constantInitializer2 {
@@ -1244,6 +1200,8 @@ class ParameterMember extends VariableMember
   @override
   Element2? get enclosingElement2 => _element2.enclosingElement2;
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element? get enclosingElement3 => declaration.enclosingElement3;
 
@@ -1251,8 +1209,7 @@ class ParameterMember extends VariableMember
   FormalParameterFragment get firstFragment => _element2.firstFragment;
 
   @override
-  // TODO(brianwilkerson): This loses type information.
-  List<FormalParameterElement> get formalParameters =>
+  List<FormalParameterElementImpl> get formalParameters =>
       _element2.formalParameters;
 
   @override
@@ -1302,12 +1259,12 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementMixin> get parameters {
     var type = this.type;
     if (type is FunctionTypeImpl) {
       return type.parameters;
     }
-    return const <ParameterElement>[];
+    return const <ParameterElementMixin>[];
   }
 
   @override
@@ -1320,7 +1277,7 @@ class ParameterMember extends VariableMember
   TypeImpl get typeShared => type;
 
   @override
-  FormalParameterElement get _element2 => declaration.asElement2;
+  FormalParameterElementImpl get _element2 => declaration.asElement2;
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -1365,17 +1322,19 @@ class ParameterMember extends VariableMember
 
   static ParameterElementMixin from(
       ParameterElementMixin element, MapSubstitution substitution) {
+    ParameterElementImpl declaration;
     var combined = substitution;
     if (element is ParameterMember) {
       var member = element;
-      element = member.declaration;
+      declaration = member.declaration;
 
       var map = <TypeParameterElement2, DartType>{
-        for (var MapEntry(:key, :value) in member._substitution.map.entries)
+        for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
-        ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
+    } else {
+      declaration = element as ParameterElementImpl;
     }
 
     if (combined.map.isEmpty) {
@@ -1383,11 +1342,8 @@ class ParameterMember extends VariableMember
     }
 
     return ParameterMember(
-      element,
-      element is ParameterMember
-          ? element.augmentationSubstitution
-          : Substitution.empty,
-      combined,
+      declaration: declaration,
+      substitution: combined,
     );
   }
 }
@@ -1398,67 +1354,57 @@ abstract class PropertyAccessorMember extends ExecutableMember
     implements
         PropertyAccessorElementOrMember,
         PropertyAccessorElement2OrMember {
-  factory PropertyAccessorMember(
-    PropertyAccessorElement declaration,
-    MapSubstitution augmentationSubstitution,
-    MapSubstitution substitution,
-  ) {
+  factory PropertyAccessorMember({
+    required PropertyAccessorElementImpl declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
     );
     if (declaration.isGetter) {
       return GetterMember._(
-        declaration,
-        augmentationSubstitution,
-        freshTypeParameters.substitution,
-        freshTypeParameters.elements,
+        declaration: declaration,
+        substitution: freshTypeParameters.substitution,
+        typeParameters: freshTypeParameters.elements,
       );
     } else {
       return SetterMember._(
-        declaration,
-        augmentationSubstitution,
-        freshTypeParameters.substitution,
-        freshTypeParameters.elements,
+        declaration: declaration,
+        substitution: freshTypeParameters.substitution,
+        typeParameters: freshTypeParameters.elements,
       );
     }
   }
 
-  PropertyAccessorMember._(
-    PropertyAccessorElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    super.typeParameters,
-  );
+  PropertyAccessorMember._({
+    required PropertyAccessorElementImpl super.declaration,
+    required super.substitution,
+    required super.typeParameters,
+  });
 
   @override
-  PropertyAccessorElement? get augmentation {
-    return declaration.augmentation;
-  }
-
-  @override
-  PropertyAccessorElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  PropertyAccessorElement? get correspondingGetter {
+  PropertyAccessorElementOrMember? get correspondingGetter {
     var baseGetter = declaration.correspondingGetter;
     if (baseGetter == null) {
       return null;
     }
     return PropertyAccessorMember(
-        baseGetter, augmentationSubstitution, _substitution);
+      declaration: baseGetter,
+      substitution: substitution,
+    );
   }
 
   @override
-  PropertyAccessorElement? get correspondingSetter {
+  PropertyAccessorElementOrMember? get correspondingSetter {
     var baseSetter = declaration.correspondingSetter;
     if (baseSetter == null) {
       return null;
     }
     return PropertyAccessorMember(
-        baseSetter, augmentationSubstitution, _substitution);
+      declaration: baseSetter,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -1470,6 +1416,8 @@ abstract class PropertyAccessorMember extends ExecutableMember
     return super.enclosingElement2!;
   }
 
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -1490,15 +1438,16 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyInducingElementOrMember? get variable2 {
-    // TODO(scheglov): revisit
     var variable = declaration.variable2;
-    if (variable is FieldElementImpl) {
-      return FieldMember(variable, augmentationSubstitution, _substitution);
-    } else if (variable is TopLevelVariableElementImpl) {
-      return TopLevelVariableMember(
-          variable, augmentationSubstitution, _substitution);
+    switch (variable) {
+      case FieldElementImpl():
+        return FieldMember(
+          declaration: variable,
+          substitution: substitution,
+        );
+      default:
+        return variable;
     }
-    return variable;
   }
 
   @Deprecated('Use Element2 and accept2() instead')
@@ -1514,23 +1463,22 @@ abstract class PropertyAccessorMember extends ExecutableMember
     );
   }
 
-  /// If the given [accessor]'s type is different when any type parameters from
+  /// If the given [element]'s type is different when any type parameters from
   /// the defining type's declaration are replaced with the actual type
   /// arguments from the [definingType], create an accessor member representing
   /// the given accessor. Return the member that was created, or the base
   /// accessor if no member was created.
   static PropertyAccessorElementOrMember? from(
-      PropertyAccessorElementOrMember? accessor, InterfaceType definingType) {
-    if (accessor == null || definingType.typeArguments.isEmpty) {
-      return accessor;
+    PropertyAccessorElementImpl? element,
+    InterfaceType definingType,
+  ) {
+    if (element == null || definingType.typeArguments.isEmpty) {
+      return element;
     }
 
     return PropertyAccessorMember(
-      accessor,
-      accessor is PropertyAccessorMember
-          ? accessor.augmentationSubstitution
-          : Substitution.empty,
-      Substitution.fromInterfaceType(definingType),
+      declaration: element,
+      substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 }
@@ -1539,23 +1487,22 @@ abstract class PropertyAccessorMember extends ExecutableMember
 /// type parameters are known.
 class SetterMember extends PropertyAccessorMember
     implements SetterElement2OrMember {
-  SetterMember._(
-    super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    super.typeParameters,
-  ) : super._();
+  SetterMember._({
+    required super.declaration,
+    required super.substitution,
+    required super.typeParameters,
+  }) : super._();
 
   @override
-  SetterElement get baseElement => _element2;
+  SetterElementImpl get baseElement => _element2;
 
   @override
-  GetterElement? get correspondingGetter2 {
+  GetterElement2OrMember? get correspondingGetter2 {
     var getter = correspondingGetter;
     if (getter is GetterMember) {
       return getter;
     }
-    return getter.asElement2 as GetterElement?;
+    return getter.asElement2 as GetterElementImpl?;
   }
 
   @override
@@ -1589,39 +1536,58 @@ class SetterMember extends PropertyAccessorMember
       variable2.asElement2 as PropertyInducingElement2OrMember?;
 
   @override
-  SetterElement get _element2 => declaration.asElement2 as SetterElement;
+  SetterElementImpl get _element2 {
+    return declaration.asElement2 as SetterElementImpl;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitSetterElement(this);
   }
+
+  static SetterElement2OrMember from(
+    SetterElementImpl element,
+    InterfaceType definingType,
+  ) {
+    if (definingType.typeArguments.isEmpty) {
+      return element;
+    }
+
+    return SetterMember._(
+      declaration: element.asElement,
+      substitution: Substitution.fromInterfaceType(definingType),
+      typeParameters: const [],
+    );
+  }
 }
 
 class SuperFormalParameterMember extends ParameterMember
-    implements SuperFormalParameterElement {
-  factory SuperFormalParameterMember(
-    SuperFormalParameterElement declaration,
-    MapSubstitution augmentationSubstitution,
-    MapSubstitution substitution,
-  ) {
+    implements SuperFormalParameterElementOrMember {
+  factory SuperFormalParameterMember({
+    required SuperFormalParameterElementImpl declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
     );
     return SuperFormalParameterMember._(
-      declaration,
-      augmentationSubstitution,
-      freshTypeParameters.substitution,
-      freshTypeParameters.elements,
+      declaration: declaration,
+      substitution: freshTypeParameters.substitution,
+      typeParameters: freshTypeParameters.elements,
     );
   }
 
-  SuperFormalParameterMember._(
-    SuperFormalParameterElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-    super.typeParameters,
-  ) : super._();
+  SuperFormalParameterMember._({
+    required SuperFormalParameterElementImpl super.declaration,
+    required super.substitution,
+    required super.typeParameters,
+  }) : super._();
+
+  @override
+  SuperFormalParameterElementImpl get declaration {
+    return _declaration as SuperFormalParameterElementImpl;
+  }
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1630,10 +1596,8 @@ class SuperFormalParameterMember extends ParameterMember
   bool get isCovariant => declaration.isCovariant;
 
   @override
-  ParameterElement? get superConstructorParameter {
-    var superConstructorParameter =
-        (declaration as SuperFormalParameterElementImpl)
-            .superConstructorParameter;
+  ParameterElementMixin? get superConstructorParameter {
+    var superConstructorParameter = declaration.superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
     }
@@ -1650,82 +1614,6 @@ class SuperFormalParameterMember extends ParameterMember
       visitor.visitSuperFormalParameterElement(this);
 }
 
-class TopLevelVariableMember extends VariableMember
-    implements TopLevelVariableElement, PropertyInducingElementOrMember {
-  TopLevelVariableMember(
-    super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-  );
-
-  @override
-  TopLevelVariableElement? get augmentation {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  TopLevelVariableElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  TopLevelVariableElementImpl get declaration =>
-      _declaration as TopLevelVariableElementImpl;
-
-  @override
-  String get displayName => declaration.displayName;
-
-  @override
-  PropertyAccessorElement? get getter {
-    var baseGetter = declaration.getter;
-    if (baseGetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-        baseGetter, augmentationSubstitution, _substitution);
-  }
-
-  @override
-  bool get hasInitializer => declaration.hasInitializer;
-
-  @override
-  bool get isAugmentation => declaration.isAugmentation;
-
-  @override
-  bool get isExternal => declaration.isExternal;
-
-  @override
-  LibraryElement get library => _declaration.library!;
-
-  @override
-  LibraryElement2 get library2 => _declaration.library as LibraryElement2;
-
-  @override
-  String get name => declaration.name;
-
-  @override
-  PropertyAccessorElement? get setter {
-    var baseSetter = declaration.setter;
-    if (baseSetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-        baseSetter, augmentationSubstitution, _substitution);
-  }
-
-  @override
-  Source get source => _declaration.source!;
-
-  @override
-  TopLevelVariableElement2 get _element2 => declaration.asElement2;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitTopLevelVariableElement(this);
-  }
-}
-
 /// A variable element defined in a parameterized type where the values of the
 /// type parameters are known.
 abstract class VariableMember extends Member
@@ -1734,11 +1622,10 @@ abstract class VariableMember extends Member
 
   /// Initialize a newly created element to represent a variable, based on the
   /// [declaration], with applied [substitution].
-  VariableMember(
-    VariableElement super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-  );
+  VariableMember({
+    required VariableElementImpl super.declaration,
+    required super.substitution,
+  });
 
   @override
   VariableElementImpl get declaration => _declaration as VariableElementImpl;
@@ -1766,8 +1653,7 @@ abstract class VariableMember extends Member
     if (_type != null) return _type!;
 
     var result = declaration.type;
-    result = augmentationSubstitution.substituteType(result);
-    result = _substitution.substituteType(result);
+    result = substitution.substituteType(result);
     return _type = result;
   }
 
@@ -1781,20 +1667,20 @@ abstract class VariableMember extends Member
 }
 
 class _SubstitutedTypeParameters {
-  final List<TypeParameterElement> elements;
+  final List<TypeParameterElementImpl> elements;
   final MapSubstitution substitution;
 
   factory _SubstitutedTypeParameters(
-    List<TypeParameterElement> elements,
+    List<TypeParameterElementImpl> elements,
     MapSubstitution substitution,
   ) {
     if (elements.isEmpty) {
-      return _SubstitutedTypeParameters._(elements, substitution);
+      return _SubstitutedTypeParameters._(const [], substitution);
     }
 
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
-    var newElements = <TypeParameterElement>[];
+    var newElements = <TypeParameterElementImpl>[];
     var newTypes = <TypeParameterType>[];
     for (int i = 0; i < elements.length; i++) {
       var element = elements[i];
@@ -1811,7 +1697,7 @@ class _SubstitutedTypeParameters {
     var substitution2 = Substitution.fromPairs(elements, newTypes);
     for (int i = 0; i < newElements.length; i++) {
       var element = elements[i];
-      var newElement = newElements[i] as TypeParameterElementImpl;
+      var newElement = newElements[i];
       var bound = element.bound;
       if (bound != null) {
         var newBound = substitution2.substituteType(bound);

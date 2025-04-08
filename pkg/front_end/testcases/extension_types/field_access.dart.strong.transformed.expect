@@ -261,11 +261,6 @@ library;
 //   var h2 = privateInlineClass._it<int>; // Error
 //                               ^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:158:34: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
-// Try changing the operand or remove the type arguments.
-//   var h2 = privateInlineClass._it<int>; // Error
-//                                  ^
-//
 // pkg/front_end/testcases/extension_types/field_access.dart:159:31: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
 //   var h3 = privateInlineClass._it = 42; // Error
@@ -628,10 +623,10 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 Try correcting the name to the name of an existing getter, or defining a getter or field named '_it'.
   var h1 = privateInlineClass._it; // Error
                               ^^^" in privateInlineClass{<unresolved>}._it;
-  invalid-type h2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:158:34: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
-Try changing the operand or remove the type arguments.
+  dynamic h2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:158:31: Error: The getter '_it' isn't defined for the class 'PrivateInlineClass'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_it'.
   var h2 = privateInlineClass._it<int>; // Error
-                                 ^";
+                              ^^^" in privateInlineClass{<unresolved>}._it;
   core::int h3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:159:31: Error: The setter '_it' isn't defined for the class 'PrivateInlineClass'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named '_it'.
   var h3 = privateInlineClass._it = 42; // Error

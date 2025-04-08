@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/profiling/profile_common.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -22,8 +22,28 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+/// The interning fields in this file can refer to 2 different intern tables,
+/// depending on the message they are used in. If the interned fields are present
+/// in ProfilePacket proto, then the intern tables included in the ProfilePacket
+/// should be used. If the intered fields are present in the
+/// StreamingProfilePacket proto, then the intern tables included in all of the
+/// previous InternedData message with same sequence ID should be used.
 class InternedString extends $pb.GeneratedMessage {
-  factory InternedString() => create();
+  factory InternedString({
+    $fixnum.Int64? iid,
+    $core.List<$core.int>? str,
+  }) {
+    final $result = create();
+    if (iid != null) {
+      $result.iid = iid;
+    }
+    if (str != null) {
+      $result.str = str;
+    }
+    return $result;
+  }
   InternedString._() : super();
   factory InternedString.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -76,7 +96,7 @@ class InternedString extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearIid() => clearField(1);
+  void clearIid() => $_clearField(1);
 
   @$pb.TagNumber(2)
   $core.List<$core.int> get str => $_getN(1);
@@ -88,11 +108,23 @@ class InternedString extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.bool hasStr() => $_has(1);
   @$pb.TagNumber(2)
-  void clearStr() => clearField(2);
+  void clearStr() => $_clearField(2);
 }
 
 class Mapping extends $pb.GeneratedMessage {
-  factory Mapping() => create();
+  factory Mapping({
+    $fixnum.Int64? iid,
+    $core.Iterable<$fixnum.Int64>? pathStringIds,
+  }) {
+    final $result = create();
+    if (iid != null) {
+      $result.iid = iid;
+    }
+    if (pathStringIds != null) {
+      $result.pathStringIds.addAll(pathStringIds);
+    }
+    return $result;
+  }
   Mapping._() : super();
   factory Mapping.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -133,6 +165,7 @@ class Mapping extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Mapping>(create);
   static Mapping? _defaultInstance;
 
+  /// Interning key.
   @$pb.TagNumber(1)
   $fixnum.Int64 get iid => $_getI64(0);
   @$pb.TagNumber(1)
@@ -143,14 +176,36 @@ class Mapping extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearIid() => clearField(1);
+  void clearIid() => $_clearField(1);
 
+  /// E.g. ["system", "lib64", "libc.so"]
+  /// id of string.
   @$pb.TagNumber(7)
-  $core.List<$fixnum.Int64> get pathStringIds => $_getList(1);
+  $pb.PbList<$fixnum.Int64> get pathStringIds => $_getList(1);
 }
 
 class Frame extends $pb.GeneratedMessage {
-  factory Frame() => create();
+  factory Frame({
+    $fixnum.Int64? iid,
+    $fixnum.Int64? functionNameId,
+    $fixnum.Int64? mappingId,
+    $fixnum.Int64? relPc,
+  }) {
+    final $result = create();
+    if (iid != null) {
+      $result.iid = iid;
+    }
+    if (functionNameId != null) {
+      $result.functionNameId = functionNameId;
+    }
+    if (mappingId != null) {
+      $result.mappingId = mappingId;
+    }
+    if (relPc != null) {
+      $result.relPc = relPc;
+    }
+    return $result;
+  }
   Frame._() : super();
   factory Frame.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -197,6 +252,7 @@ class Frame extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Frame>(create);
   static Frame? _defaultInstance;
 
+  /// Interning key
   @$pb.TagNumber(1)
   $fixnum.Int64 get iid => $_getI64(0);
   @$pb.TagNumber(1)
@@ -207,8 +263,10 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearIid() => clearField(1);
+  void clearIid() => $_clearField(1);
 
+  /// E.g. "fopen"
+  /// id of string.
   @$pb.TagNumber(2)
   $fixnum.Int64 get functionNameId => $_getI64(1);
   @$pb.TagNumber(2)
@@ -219,7 +277,7 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.bool hasFunctionNameId() => $_has(1);
   @$pb.TagNumber(2)
-  void clearFunctionNameId() => clearField(2);
+  void clearFunctionNameId() => $_clearField(2);
 
   @$pb.TagNumber(3)
   $fixnum.Int64 get mappingId => $_getI64(2);
@@ -231,7 +289,7 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.bool hasMappingId() => $_has(2);
   @$pb.TagNumber(3)
-  void clearMappingId() => clearField(3);
+  void clearMappingId() => $_clearField(3);
 
   @$pb.TagNumber(4)
   $fixnum.Int64 get relPc => $_getI64(3);
@@ -243,11 +301,23 @@ class Frame extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.bool hasRelPc() => $_has(3);
   @$pb.TagNumber(4)
-  void clearRelPc() => clearField(4);
+  void clearRelPc() => $_clearField(4);
 }
 
 class Callstack extends $pb.GeneratedMessage {
-  factory Callstack() => create();
+  factory Callstack({
+    $fixnum.Int64? iid,
+    $core.Iterable<$fixnum.Int64>? frameIds,
+  }) {
+    final $result = create();
+    if (iid != null) {
+      $result.iid = iid;
+    }
+    if (frameIds != null) {
+      $result.frameIds.addAll(frameIds);
+    }
+    return $result;
+  }
   Callstack._() : super();
   factory Callstack.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -298,10 +368,11 @@ class Callstack extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasIid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearIid() => clearField(1);
+  void clearIid() => $_clearField(1);
 
+  /// Frames of this callstack. Bottom frame first.
   @$pb.TagNumber(2)
-  $core.List<$fixnum.Int64> get frameIds => $_getList(1);
+  $pb.PbList<$fixnum.Int64> get frameIds => $_getList(1);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

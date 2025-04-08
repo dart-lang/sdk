@@ -859,6 +859,7 @@ increasing
 incrementally
 incremented
 incrementing
+indentations
 independently
 indexer
 indexing
@@ -895,6 +896,7 @@ inst
 instanceof
 instantiable
 instantiator
+instructed
 instrument
 integrate
 intel
@@ -924,6 +926,7 @@ interval
 intervals
 intervening
 intl
+introduction
 introductory
 introspect
 introspectable
@@ -1103,7 +1106,9 @@ mimic
 min
 mini
 minutes
+misaligned
 misc
+misinterpreted
 miss
 misses
 mistakes
@@ -1159,6 +1164,7 @@ nk
 nm
 nnbd
 node's
+noise
 noisy
 nomenclature
 nominality
@@ -1303,6 +1309,7 @@ pm
 pn
 pointed
 pointwise
+pollute
 polluted
 polymorphism
 pool
@@ -1907,6 +1914,7 @@ token's
 tokenize
 tokenized
 tokenizer
+tokenizing
 tolerant
 tolerate
 tolerated
@@ -2088,6 +2096,7 @@ visitors
 visits
 visualize
 vm's
+vmservice
 vn
 vs
 vtab

@@ -15,6 +15,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
+import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -63,7 +64,7 @@ class BuildCommand extends DartdevCommand {
   @override
   Future<int> run() async {
     if (!Sdk.checkArtifactExists(genKernel) ||
-        !Sdk.checkArtifactExists(genSnapshot) ||
+        !Sdk.checkArtifactExists(genSnapshotHost) ||
         !Sdk.checkArtifactExists(sdk.dart)) {
       return 255;
     }
@@ -134,7 +135,22 @@ class BuildCommand extends DartdevCommand {
     final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
       sourceUri,
     );
+    final pubspecUri = await DartNativeAssetsBuilder.findPubspec(sourceUri);
+    final Map? pubspec;
+    if (pubspecUri == null) {
+      pubspec = null;
+    } else {
+      pubspec = loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
+      final pubspecErrors =
+          DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(pubspec);
+      if (pubspecErrors.isNotEmpty) {
+        log.stderr('Errors in pubspec:');
+        pubspecErrors.forEach(log.stderr);
+        return 255;
+      }
+    }
     final builder = DartNativeAssetsBuilder(
+      pubspec: pubspec,
       packageConfigUri: packageConfig!,
       runPackageName: runPackageName!,
       verbose: verbose,
@@ -152,6 +168,8 @@ class BuildCommand extends DartdevCommand {
         recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
       }
       final generator = KernelGenerator(
+        genSnapshot: genSnapshotHost,
+        targetDartAotRuntime: hostDartAotRuntime,
         kind: format,
         sourceFile: sourceUri.toFilePath(),
         outputFile: outputExeUri.toFilePath(),
@@ -159,7 +177,7 @@ class BuildCommand extends DartdevCommand {
         verbosity: args.option('verbosity')!,
         defines: [],
         packages: packageConfig.toFilePath(),
-        targetOS: targetOS,
+        targetOS: targetOS == null ? null : OS.fromString(targetOS),
         enableExperiment: args.enabledExperiments.join(','),
         tempDir: tempDir,
       );
@@ -177,10 +195,13 @@ class BuildCommand extends DartdevCommand {
         return 255;
       }
 
-      final allAssets = linkResult.encodedAssets;
+      final allAssets = [
+        ...buildResult.encodedAssets,
+        ...linkResult.encodedAssets
+      ];
 
       final staticAssets = allAssets
-          .where((e) => e.type == CodeAsset.type)
+          .where((e) => e.isCodeAsset)
           .map(CodeAsset.fromEncoded)
           .where((e) => e.linkMode == StaticLinking());
       if (staticAssets.isNotEmpty) {

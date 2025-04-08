@@ -58,6 +58,24 @@ dart:core::<fragment>::@class::num::@method::+#element
 ''');
   }
 
+  test_locate_CatchClauseParameter() async {
+    await resolveTestCode(r'''
+void f() {
+  try {} catch (e, s) {}
+}
+''');
+    var node = findNode.catchClauseParameter('e');
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+e@27
+''');
+    node = findNode.catchClauseParameter('s');
+    element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+s@30
+''');
+  }
+
   test_locate_ClassDeclaration() async {
     await resolveTestCode('class A {}');
     var node = findNode.classDeclaration('class');
@@ -299,7 +317,9 @@ void main() {
     var node = findNode.index('[0]');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::List::@method::[]#element
+MethodMember
+  baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+  substitution: {E: int}
 ''');
   }
 
@@ -564,9 +584,8 @@ x@12
       configuration: ElementPrinterConfiguration(),
     );
 
-    sink.writeIndentedLine(() {
-      elementPrinter.writeElement2(element);
-    });
+    sink.writeIndent();
+    elementPrinter.writeElement2(element);
 
     var actual = buffer.toString();
     if (actual != expected) {

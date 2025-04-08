@@ -63,7 +63,7 @@ class Table {
 
   /// Add an entry in the table, creating a new row each time [totalColumns]
   /// entries are added.
-  void addEntry(entry) {
+  void addEntry(Object entry) {
     if (_currentRow == null) {
       _sealed = true;
       _currentRow = [];

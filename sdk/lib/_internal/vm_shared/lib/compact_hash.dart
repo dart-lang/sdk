@@ -376,6 +376,7 @@ external List<Object?> get _uninitializedData;
 // VM-internalized implementation of a default-constructed LinkedHashMap. Map
 // literals also create instances of this class.
 @pragma("vm:entry-point")
+@pragma('dyn-module:language-impl:callable')
 base class _Map<K, V> extends _HashVMBase
     with
         MapMixin<K, V>,
@@ -383,6 +384,7 @@ base class _Map<K, V> extends _HashVMBase
         _OperatorEqualsAndHashCode,
         _LinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
+  @pragma('dyn-module:language-impl:callable')
   _Map() {
     _index = _uninitializedIndex;
     _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
@@ -415,7 +417,7 @@ base class _ConstMap<K, V> extends _HashVMImmutableBase
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   factory _ConstMap._uninstantiable() {
-    throw new UnsupportedError("_ConstMap can only be allocated by the VM");
+    throw UnsupportedError("_ConstMap can only be allocated by the VM");
   }
 }
 
@@ -439,7 +441,7 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
     final size = _roundUpToPowerOfTwo(
       max(_data.length, _HashBase._INITIAL_INDEX_SIZE),
     );
-    final newIndex = new Uint32List(size);
+    final newIndex = Uint32List(size);
     final hashMask = _HashBase._indexSizeToHashMask(size);
     assert(_hashMask == hashMask);
 
@@ -523,9 +525,9 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
-    _index = new Uint32List(size);
+    _index = Uint32List(size);
     _hashMask = hashMask;
-    _data = new List.filled(size, null);
+    _data = List.filled(size, null);
     _usedData = 0;
     _deletedKeys = 0;
     if (oldData != null) {
@@ -554,9 +556,9 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
 
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
-    _index = new Uint32List(size);
+    _index = Uint32List(size);
     _hashMask = hashMask;
-    _data = new List.filled(size, null);
+    _data = List.filled(size, null);
     _usedData = 0;
     _deletedKeys = 0;
     for (int i = 0; i < keyValuePairs.length; i += 2) {
@@ -567,8 +569,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   }
 
   void _regenerateIndex() {
-    _index =
-        _data.length == 0 ? _uninitializedIndex : new Uint32List(_data.length);
+    _index = _data.length == 0 ? _uninitializedIndex : Uint32List(_data.length);
     assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     final int tmpUsed = _usedData;
@@ -854,7 +855,7 @@ class _CompactIterator<E> implements Iterator<E> {
   E? _current;
 
   _CompactIterator(this._table, this._data, this._len, this._offset, this._step)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -903,7 +904,7 @@ class _CompactEntriesIterator<K, V> implements Iterator<MapEntry<K, V>> {
   MapEntry<K, V>? _current;
 
   _CompactEntriesIterator(this._table, this._data, this._len)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -1036,9 +1037,9 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
       size = _HashBase._INITIAL_INDEX_SIZE;
       hashMask = _HashBase._indexSizeToHashMask(size);
     }
-    _index = new Uint32List(size);
+    _index = Uint32List(size);
     _hashMask = hashMask;
-    _data = new List.filled(size >> 1, null);
+    _data = List.filled(size >> 1, null);
     _usedData = 0;
     _deletedKeys = 0;
     if (oldData != null) {
@@ -1152,7 +1153,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     final size = _roundUpToPowerOfTwo(
       max(_data.length, _HashBase._INITIAL_INDEX_SIZE),
     );
-    _index = _data.length == 0 ? _uninitializedIndex : new Uint32List(size);
+    _index = _data.length == 0 ? _uninitializedIndex : Uint32List(size);
     assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     _rehash();
@@ -1162,6 +1163,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
 // Set implementation, analogous to _Map. Set literals create instances of this
 // class.
 @pragma("vm:entry-point")
+@pragma('dyn-module:language-impl:callable')
 base class _Set<E> extends _HashVMBase
     with
         SetMixin<E>,
@@ -1169,6 +1171,7 @@ base class _Set<E> extends _HashVMBase
         _OperatorEqualsAndHashCode,
         _LinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
+  @pragma('dyn-module:language-impl:callable')
   _Set() {
     _index = _uninitializedIndex;
     _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
@@ -1204,7 +1207,7 @@ base class _ConstSet<E> extends _HashVMImmutableBase
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
   factory _ConstSet._uninstantiable() {
-    throw new UnsupportedError("_ConstSet can only be allocated by the VM");
+    throw UnsupportedError("_ConstSet can only be allocated by the VM");
   }
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
@@ -1235,7 +1238,7 @@ mixin _ImmutableLinkedHashSetMixin<E>
     final size = _roundUpToPowerOfTwo(
       max(_data.length * 2, _HashBase._INITIAL_INDEX_SIZE),
     );
-    final index = new Uint32List(size);
+    final index = Uint32List(size);
     final hashMask = _HashBase._indexSizeToHashMask(size);
     assert(_hashMask == hashMask);
 
@@ -1322,8 +1325,9 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
   ) : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-  Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
-    ..addAll(this);
+  Set<E> toSet() =>
+      CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+        ..addAll(this);
 }
 
 /// Expose [_Map] as [DefaultMap] and [_Set] as [DefaultSet] so that

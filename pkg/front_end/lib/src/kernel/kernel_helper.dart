@@ -313,24 +313,7 @@ void adjustAnnotationFileUri(Annotatable annotatable, Uri annotatableFileUri) {
   }
 }
 
-/// Copies properties, function parameters and body from the [augmentation]
-/// constructor to its [origin].
-void finishConstructorAugmentation(
-    Constructor origin, Constructor augmentation) {
-  origin.fileUri = augmentation.fileUri;
-  origin.startFileOffset = augmentation.startFileOffset;
-  origin.fileOffset = augmentation.fileOffset;
-  origin.fileEndOffset = augmentation.fileEndOffset;
-
-  origin.isExternal = augmentation.isExternal;
-  origin.function = augmentation.function;
-  origin.function.parent = origin;
-  origin.initializers = augmentation.initializers;
-  setParents(origin.initializers, origin);
-
-  adjustAnnotationFileUri(origin, origin.fileUri);
-}
-
+// Coverage-ignore(suite): Not run.
 /// Copies properties, function parameters and body from the [augmentation]
 /// procedure to its [origin].
 void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {

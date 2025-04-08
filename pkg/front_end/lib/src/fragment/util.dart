@@ -45,7 +45,7 @@ class ConstructorName {
       : assert(name != 'new');
 }
 
-void _buildMetadataForOutlineExpressions(
+void buildMetadataForOutlineExpressions(
     SourceLibraryBuilder libraryBuilder,
     LookupScope parentScope,
     BodyBuilderContext bodyBuilderContext,
@@ -58,21 +58,20 @@ void _buildMetadataForOutlineExpressions(
       createFileUriExpression: createFileUriExpression);
 }
 
-void _buildTypeParametersForOutlineExpressions(
+void buildTypeParametersForOutlineExpressions(
     ClassHierarchy classHierarchy,
     SourceLibraryBuilder libraryBuilder,
     BodyBuilderContext bodyBuilderContext,
-    LookupScope typeParameterScope,
-    List<NominalParameterBuilder>? typeParameters) {
+    List<SourceNominalParameterBuilder>? typeParameters) {
   if (typeParameters != null) {
     for (int i = 0; i < typeParameters.length; i++) {
-      typeParameters[i].buildOutlineExpressions(libraryBuilder,
-          bodyBuilderContext, classHierarchy, typeParameterScope);
+      typeParameters[i].buildOutlineExpressions(
+          libraryBuilder, bodyBuilderContext, classHierarchy);
     }
   }
 }
 
-void _buildFormalsForOutlineExpressions(
+void buildFormalsForOutlineExpressions(
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder,
     List<FormalParameterBuilder>? formals,
@@ -80,14 +79,14 @@ void _buildFormalsForOutlineExpressions(
     required bool isClassInstanceMember}) {
   if (formals != null) {
     for (FormalParameterBuilder formal in formals) {
-      _buildFormalForOutlineExpressions(
+      buildFormalForOutlineExpressions(
           libraryBuilder, declarationBuilder, formal,
           scope: scope, isClassInstanceMember: isClassInstanceMember);
     }
   }
 }
 
-void _buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
+void buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, FormalParameterBuilder formal,
     {required LookupScope scope, required bool isClassInstanceMember}) {
   // For const constructors we need to include default parameter values
@@ -321,12 +320,12 @@ sealed class PropertyEncodingStrategy {
     }
   }
 
-  _GetterEncoding createGetterEncoding(
+  GetterEncoding createGetterEncoding(
       SourcePropertyBuilder builder,
       GetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters);
 
-  _SetterEncoding createSetterEncoding(
+  SetterEncoding createSetterEncoding(
       SourcePropertyBuilder builder,
       SetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters);
@@ -336,19 +335,19 @@ class RegularPropertyEncodingStrategy implements PropertyEncodingStrategy {
   const RegularPropertyEncodingStrategy();
 
   @override
-  _GetterEncoding createGetterEncoding(
+  GetterEncoding createGetterEncoding(
       SourcePropertyBuilder builder,
       GetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
-    return new _RegularGetterEncoding(fragment);
+    return new RegularGetterEncoding(fragment);
   }
 
   @override
-  _SetterEncoding createSetterEncoding(
+  SetterEncoding createSetterEncoding(
       SourcePropertyBuilder builder,
       SetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
-    return new _RegularSetterEncoding(fragment);
+    return new RegularSetterEncoding(fragment);
   }
 }
 
@@ -357,7 +356,7 @@ class ExtensionInstancePropertyEncodingStrategy
   const ExtensionInstancePropertyEncodingStrategy();
 
   @override
-  _GetterEncoding createGetterEncoding(
+  GetterEncoding createGetterEncoding(
       SourcePropertyBuilder builder,
       GetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
@@ -371,12 +370,12 @@ class ExtensionInstancePropertyEncodingStrategy
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
-    return new _ExtensionInstanceGetterEncoding(fragment,
+    return new ExtensionInstanceGetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
 
   @override
-  _SetterEncoding createSetterEncoding(
+  SetterEncoding createSetterEncoding(
       SourcePropertyBuilder builder,
       SetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
@@ -390,7 +389,7 @@ class ExtensionInstancePropertyEncodingStrategy
         onTypeBuilder: declarationBuilder.onType,
         fileUri: fragment.fileUri,
         fileOffset: fragment.nameOffset);
-    return new _ExtensionInstanceSetterEncoding(fragment,
+    return new ExtensionInstanceSetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
 }
@@ -400,19 +399,19 @@ class ExtensionStaticPropertyEncodingStrategy
   const ExtensionStaticPropertyEncodingStrategy();
 
   @override
-  _GetterEncoding createGetterEncoding(
+  GetterEncoding createGetterEncoding(
       SourcePropertyBuilder builder,
       GetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
-    return new _ExtensionStaticGetterEncoding(fragment);
+    return new ExtensionStaticGetterEncoding(fragment);
   }
 
   @override
-  _SetterEncoding createSetterEncoding(
+  SetterEncoding createSetterEncoding(
       SourcePropertyBuilder builder,
       SetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
-    return new _ExtensionStaticSetterEncoding(fragment);
+    return new ExtensionStaticSetterEncoding(fragment);
   }
 }
 
@@ -421,7 +420,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
   const ExtensionTypeInstancePropertyEncodingStrategy();
 
   @override
-  _GetterEncoding createGetterEncoding(
+  GetterEncoding createGetterEncoding(
       SourcePropertyBuilder builder,
       GetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
@@ -435,12 +434,12 @@ class ExtensionTypeInstancePropertyEncodingStrategy
             unboundNominalParameters: unboundNominalParameters,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
-    return new _ExtensionTypeInstanceGetterEncoding(fragment,
+    return new ExtensionTypeInstanceGetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
 
   @override
-  _SetterEncoding createSetterEncoding(
+  SetterEncoding createSetterEncoding(
       SourcePropertyBuilder builder,
       SetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
@@ -454,7 +453,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
             unboundNominalParameters: unboundNominalParameters,
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset);
-    return new _ExtensionTypeInstanceSetterEncoding(fragment,
+    return new ExtensionTypeInstanceSetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
 }
@@ -464,18 +463,18 @@ class ExtensionTypeStaticPropertyEncodingStrategy
   const ExtensionTypeStaticPropertyEncodingStrategy();
 
   @override
-  _GetterEncoding createGetterEncoding(
+  GetterEncoding createGetterEncoding(
       SourcePropertyBuilder builder,
       GetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
-    return new _ExtensionTypeStaticGetterEncoding(fragment);
+    return new ExtensionTypeStaticGetterEncoding(fragment);
   }
 
   @override
-  _SetterEncoding createSetterEncoding(
+  SetterEncoding createSetterEncoding(
       SourcePropertyBuilder builder,
       SetterFragment fragment,
       List<NominalParameterBuilder> unboundNominalParameters) {
-    return new _ExtensionTypeStaticSetterEncoding(fragment);
+    return new ExtensionTypeStaticSetterEncoding(fragment);
   }
 }

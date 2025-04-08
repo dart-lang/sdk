@@ -185,7 +185,7 @@ class TopMergeHelper {
         throw _TopMergeStateError(T, S, 'Different named parameter names');
       }
 
-      DartType R_type;
+      TypeImpl R_type;
 
       // Given two corresponding parameters of type `T1` and `T2`, where at least
       // one of the parameters is covariant:

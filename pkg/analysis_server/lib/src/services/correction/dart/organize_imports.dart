@@ -14,9 +14,8 @@ class OrganizeImports extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Bulk application is supported by a distinct import cleanup fix phase.
-          CorrectionApplicability
-          .singleLocation;
+      // Bulk application is supported by a distinct import cleanup fix phase.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ORGANIZE_IMPORTS;

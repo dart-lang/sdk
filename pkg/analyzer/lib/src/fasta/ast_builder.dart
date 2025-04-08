@@ -1494,6 +1494,19 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endConstDotShorthand(Token token) {
+    debugEvent("endConstDotShorthand");
+    if (!enabledDotShorthands) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.dot_shorthands,
+        startToken: token,
+      );
+    }
+
+    // TODO(kallentu): Handle dot shorthands.
+  }
+
+  @override
   void endConstExpression(Token constKeyword) {
     assert(optional('const', constKeyword));
     debugEvent("ConstExpression");
@@ -2092,7 +2105,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionName(Token beginToken, Token token) {
+  void endFunctionName(
+      Token beginToken, Token token, bool isFunctionExpression) {
     debugEvent("FunctionName");
   }
 

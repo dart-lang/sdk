@@ -577,12 +577,6 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool!.releaseDevice(device);
         }
       });
-    } else if (command is CompilationCommand &&
-        command.displayName == 'babel') {
-      return RunningProcess(command, timeout,
-              configuration: globalConfiguration,
-              outputFile: io.File(command.outputFile))
-          .run();
     } else if (command is ProcessCommand) {
       return RunningProcess(command, timeout,
               configuration: globalConfiguration)
@@ -1058,6 +1052,7 @@ class BatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
+    arguments = arguments.map(escapeCommandLineArgument).toList();
     if (_useJson) {
       return "${jsonEncode(arguments)}\n";
     } else {

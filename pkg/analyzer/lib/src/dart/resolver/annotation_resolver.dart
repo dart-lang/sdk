@@ -379,7 +379,7 @@ class AnnotationResolver {
       constructorElement,
       argumentList,
       (typeArguments) {
-        return typeAliasElement.instantiate(
+        return typeAliasElement.instantiateImpl(
           typeArguments: typeArguments,
           nullabilitySuffix: NullabilitySuffix.none,
         ) as InterfaceType;

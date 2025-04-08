@@ -19,6 +19,7 @@ import 'package:front_end/src/builder/type_builder.dart';
 import 'package:front_end/src/codes/cfe_codes.dart'
     show Message, templateUnspecified;
 import 'package:front_end/src/dill/dill_target.dart' show DillTarget;
+import 'package:front_end/src/dill/dill_type_parameter_builder.dart';
 import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/kernel/body_builder_context.dart';
 import 'package:front_end/src/kernel/expression_generator.dart';
@@ -141,7 +142,7 @@ Future<void> main() async {
         "myPrefix", false, libraryBuilder, null,
         fileUri: uri, prefixOffset: -1, importOffset: -1);
     String assignmentOperator = "+=";
-    TypeDeclarationBuilder declaration = new NominalParameterBuilder.fromKernel(
+    TypeDeclarationBuilder declaration = new DillNominalParameterBuilder(
         new TypeParameter("T", const DynamicType(), const DynamicType()),
         loader: null);
     VariableDeclaration variable =
@@ -249,7 +250,8 @@ Future<void> main() async {
         " ReadOnlyAccessKind.ParenthesizedExpression)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check(
-        "TypeUseGenerator(offset: 4, declaration: NominalParameterBuilder(T), "
+        "TypeUseGenerator(offset: 4, "
+        "declaration: DillNominalParameterBuilder(T), "
         "plainNameForRead: foo)",
         new TypeUseGenerator(
             helper, token, declaration, new SyntheticTypeName("foo", -1)));

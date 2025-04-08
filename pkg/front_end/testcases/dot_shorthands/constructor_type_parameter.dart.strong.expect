@@ -1,0 +1,57 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::C::T% value;
+  constructor •(self::C::T% value) → self::C<self::C::T%>
+    : self::C::value = value, super core::Object::•()
+    ;
+  constructor id(self::C::T% value) → self::C<self::C::T%>
+    : self::C::value = value, super core::Object::•()
+    ;
+  method toInt(core::int v) → self::C<core::int>
+    return new self::C::•<core::int>(v);
+}
+class CC<T extends core::Object? = dynamic, S extends core::Iterable<self::CC::T%> = core::Iterable<dynamic>> extends core::Object {
+  covariant-by-class field self::CC::T% t;
+  constructor •(self::CC::T% t) → self::CC<self::CC::T%, self::CC::S>
+    : self::CC::t = t, super core::Object::•()
+    ;
+}
+extension type ET<T extends core::Object? = dynamic>(T% v) {
+  abstract extension-type-member representation-field get v() → T%;
+  method toInt = self::ET|toInt;
+  method tearoff toInt = self::ET|get#toInt;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+  constructor id = self::ET|constructor#id;
+  constructor tearoff id = self::ET|constructor#_#id#tearOff;
+}
+static extension-type-member method ET|constructor#<T extends core::Object? = dynamic>(self::ET|constructor#::T% v) → self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */ {
+  lowered final self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */ #this = v;
+  return #this;
+}
+static extension-type-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
+  return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T%>(v);
+static extension-type-member method ET|constructor#id<T extends core::Object? = dynamic>(self::ET|constructor#id::T% v) → self::ET<self::ET|constructor#id::T%>% /* erasure=self::ET|constructor#id::T%, declared=! */ {
+  lowered final self::ET<self::ET|constructor#id::T%>% /* erasure=self::ET|constructor#id::T%, declared=! */ #this = v;
+  return #this;
+}
+static extension-type-member method ET|constructor#_#id#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#id#tearOff::T% v) → self::ET<self::ET|constructor#_#id#tearOff::T%>% /* erasure=self::ET|constructor#_#id#tearOff::T%, declared=! */
+  return self::ET|constructor#id<self::ET|constructor#_#id#tearOff::T%>(v);
+static extension-type-member method ET|toInt<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|toInt::T%>% /* erasure=self::ET|toInt::T%, declared=! */ #this, core::int v) → self::ET<core::int>% /* erasure=core::int, declared=! */
+  return self::ET|constructor#<core::int>(v);
+static extension-type-member method ET|get#toInt<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|get#toInt::T%>% /* erasure=self::ET|get#toInt::T%, declared=! */ #this) → (core::int) → self::ET<core::int>% /* erasure=core::int, declared=! */
+  return (core::int v) → self::ET<core::int>% /* erasure=core::int, declared=! */ => self::ET|toInt<self::ET|get#toInt::T%>(#this, v);
+static method bar<U extends core::Object? = dynamic>(self::CC<self::bar::U%, core::Iterable<self::bar::U%>> cc) → self::bar::U%
+  return cc.{self::CC::t}{self::bar::U%};
+static method main() → dynamic {
+  core::List<core::String> list1 = <core::String>[self::bar<core::String>(new self::CC::•<core::String, core::Iterable<core::String>>("String"))];
+  core::List<core::String> list2 = list1;
+  self::C<core::int> c1 = new self::C::•<core::String>("String").{self::C::toInt}(1){(core::int) → self::C<core::int>};
+  self::C<core::int> c2 = new self::C::id<core::String>("String").{self::C::toInt}(2){(core::int) → self::C<core::int>};
+  self::ET<core::int>% /* erasure=core::int, declared=! */ et1 = self::ET|toInt<core::String>(self::ET|constructor#<core::String>("String"), 3);
+  self::ET<core::int>% /* erasure=core::int, declared=! */ et2 = self::ET|toInt<core::String>(self::ET|constructor#id<core::String>("String"), 4);
+  core::List<core::String> l = core::List::generate<core::int>(10, (core::int i) → core::int => i.{core::num::+}(1){(core::num) → core::int}).{core::Iterable::map}<core::String>((core::int x) → core::String => x.{core::int::toRadixString}(16){(core::int) → core::String}){((core::int) → core::String) → core::Iterable<core::String>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::String>};
+}

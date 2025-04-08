@@ -22,20 +22,23 @@ class Class extends core::Object {
   synthetic constructor •() → self2::Class
     ;
   @_in::patch
-  external method method1() → core::int;
+  method /* from org-dartlang-testcase:///patch_lib1.dart */ method1() → core::int
+    ;
   @_in::patch
-  external method method2() → core::int;
+  method /* from org-dartlang-testcase:///patch_lib2.dart */ method2() → core::int
+    ;
   @/* from org-dartlang-testcase:///patch_lib1.dart */ _in::patch
   @_in::patch
-  external method method3() → core::int;
+  method /* from org-dartlang-testcase:///patch_lib2.dart */ method3() → core::int
+    ;
 }
 
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib1.dart:8:1 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib2.dart:8:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:20 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:20 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib1.dart:10:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib2.dart:10:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib1.dart:13:3 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib2.dart:13:4 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 6, effectively constant: 6

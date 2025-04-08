@@ -39,6 +39,10 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var declaration = node;
+    if (declaration is! ClassDeclaration || declaration.name != token) {
+      return;
+    }
     if (!isEnabled(Feature.enhanced_enums)) {
       // If the library doesn't support enhanced_enums then the class can't be
       // converted.
@@ -51,17 +55,15 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
       // the class.
       return;
     }
-    var declaration = node;
-    if (declaration is ClassDeclaration && declaration.name == token) {
-      var description = _EnumDescription.fromClass(
-        declaration,
-        strictCasts: analysisOptions.strictCasts,
-      );
-      if (description != null) {
-        await builder.addDartFileEdit(file, (builder) {
-          description.applyChanges(builder, utils);
-        });
-      }
+
+    var description = _EnumDescription.fromClass(
+      declaration,
+      strictCasts: analysisOptions.strictCasts,
+    );
+    if (description != null) {
+      await builder.addDartFileEdit(file, (builder) {
+        description.applyChanges(builder, utils);
+      });
     }
   }
 }

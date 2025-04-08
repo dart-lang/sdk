@@ -273,7 +273,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         .toList(growable: false);
     js_ast.ArrayInitializer array = js_ast.ArrayInitializer(elements);
     js_ast.Expression value = _makeConstantList(array);
-    return maybeAddListTypeArgumentsNewRti(constant, constant.type, value);
+    return maybeAddListTypeArguments(constant, constant.type, value);
   }
 
   @override
@@ -296,7 +296,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         _constantReferenceGenerator(constant.indexObject!),
         js.number(constant.length),
         if (_rtiNeed.classNeedsTypeArguments(classElement))
-          _reifiedTypeNewRti(sourceType),
+          _reifiedType(sourceType),
       ];
       js_ast.Expression constructor = _emitter.constructorAccess(classElement);
       return js_ast.New(constructor, arguments);
@@ -313,7 +313,7 @@ class ConstantEmitter extends ModularConstantEmitter {
             _constantReferenceGenerator(value),
         ]),
         if (_rtiNeed.classNeedsTypeArguments(classElement))
-          _reifiedTypeNewRti(sourceType),
+          _reifiedType(sourceType),
       ];
       js_ast.Expression constructor = _emitter.constructorAccess(classElement);
       return js_ast.New(constructor, arguments);
@@ -412,7 +412,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     }
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
-      arguments.add(_reifiedTypeNewRti(constant.type));
+      arguments.add(_reifiedType(constant.type));
     }
 
     js_ast.Expression constructor = _emitter.constructorAccess(classElement);
@@ -491,7 +491,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       }
     });
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
-      fields.add(_reifiedTypeNewRti(constant.type));
+      fields.add(_reifiedType(constant.type));
     }
     return js_ast.New(constructor, fields);
   }
@@ -527,7 +527,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       _constantReferenceGenerator(constant.function),
     ];
     fields.add(
-      _reifiedTypeNewRti(
+      _reifiedType(
         _commonElements.dartTypes.interfaceType(cls, constant.typeArguments),
       ),
     );
@@ -539,7 +539,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     return rawJavaScript.replaceAll(commentRE, '');
   }
 
-  js_ast.Expression maybeAddListTypeArgumentsNewRti(
+  js_ast.Expression maybeAddListTypeArguments(
     ConstantValue constant,
     InterfaceType type,
     js_ast.Expression value,
@@ -548,13 +548,13 @@ class ConstantEmitter extends ModularConstantEmitter {
     if (_rtiNeed.classNeedsTypeArguments(type.element)) {
       return js_ast.Call(getHelperProperty(_commonElements.setArrayType), [
         value,
-        _reifiedTypeNewRti(type),
+        _reifiedType(type),
       ]);
     }
     return value;
   }
 
-  js_ast.Expression _reifiedTypeNewRti(DartType type) {
+  js_ast.Expression _reifiedType(DartType type) {
     assert(!type.containsTypeVariables);
     return TypeReference(TypeExpressionRecipe(type))..forConstant = true;
   }

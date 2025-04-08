@@ -115,11 +115,15 @@ abstract class AstCodeGenerator
 
   w.ValueType translateType(DartType type) => translator.translateType(type);
 
-  w.Local addLocal(w.ValueType type) {
-    return b.addLocal(type);
-  }
+  w.Local addLocal(w.ValueType type, {String? name}) =>
+      b.addLocal(type, name: name);
 
   DartType dartTypeOf(Expression exp) {
+    if (exp is ConstantExpression) {
+      // For constant expressions `getStaticType` returns often `DynamicType`
+      // instead of a more precise type. See http://dartbug.com/60368
+      return exp.constant.getType(typeContext);
+    }
     return exp.getStaticType(typeContext);
   }
 
@@ -252,7 +256,12 @@ abstract class AstCodeGenerator
         int index,
         Constant? defaultValue,
         bool isRequired) {
-      w.Local local = paramLocals[implicitParams + index];
+      final localIndex = implicitParams + index;
+      w.Local local = paramLocals[localIndex];
+      final variableName = variable.name;
+      if (variableName != null) {
+        b.localNames[local.index] = variableName;
+      }
       if (defaultValue == ParameterInfo.defaultValueSentinel) {
         // The default value for this parameter differs between implementations
         // within the same selector. This means that callers will pass the
@@ -352,7 +361,8 @@ abstract class AstCodeGenerator
       if (local.type == w.RefType.extern(nullable: true) &&
           !(parameterType is InterfaceType &&
               parameterType.classNode == translator.wasmExternRefClass)) {
-        w.Local newLocal = addLocal(translateType(parameterType));
+        w.Local newLocal =
+            addLocal(translateType(parameterType), name: parameter.name);
         b.local_get(local);
         translator.convertType(b, local.type, newLocal.type);
         b.local_set(newLocal);
@@ -379,10 +389,18 @@ abstract class AstCodeGenerator
         canSafelyOmitImplicitChecks: !translator.needToCheckTypesFor(member));
   }
 
+  void setupParametersForCheckedEntry(Member member) {
+    assert(member.isInstanceMember);
+    assert(translator.needToCheckTypesFor(member));
+    setupParameters(member.checkedEntryReference,
+        canSafelyOmitImplicitChecks: false);
+  }
+
   void setupParametersForUncheckedEntry(Member member) {
     assert(member.isInstanceMember);
     assert(translator.needToCheckTypesFor(member));
-    setupParameters(member.reference, canSafelyOmitImplicitChecks: true);
+    setupParameters(member.uncheckedEntryReference,
+        canSafelyOmitImplicitChecks: true);
   }
 
   void setupContexts(Member member) {
@@ -477,9 +495,10 @@ abstract class AstCodeGenerator
         member.isInstanceMember || reference.isConstructorBodyReference;
     if (hasThis) {
       thisLocal = paramLocals[0];
+      b.localNames[thisLocal!.index] = "this";
       final preciseThisType = translator.preciseThisFor(member);
       if (translator.needsConversion(thisLocal!.type, preciseThisType)) {
-        preciseThisLocal = addLocal(preciseThisType);
+        preciseThisLocal = addLocal(preciseThisType, name: "preciseThis");
         b.local_get(thisLocal!);
         translator.convertType(b, thisLocal!.type, preciseThisType);
         b.local_set(preciseThisLocal!);
@@ -524,9 +543,10 @@ abstract class AstCodeGenerator
         }
 
         if (context.containsThis) {
-          thisLocal = addLocal(context
-              .struct.fields[context.thisFieldIndex].type.unpacked
-              .withNullability(false));
+          thisLocal = addLocal(
+              context.struct.fields[context.thisFieldIndex].type.unpacked
+                  .withNullability(false),
+              name: "this");
           preciseThisLocal = thisLocal;
 
           b.struct_get(context.struct, context.thisFieldIndex);
@@ -781,7 +801,7 @@ abstract class AstCodeGenerator
     w.Local? local;
     Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
-      local = addLocal(type);
+      local = addLocal(type, name: node.name);
       locals[node] = local;
     }
 
@@ -823,7 +843,7 @@ abstract class AstCodeGenerator
     w.Local? local;
     final Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
-      local = addLocal(type);
+      local = addLocal(type, name: node.name);
       locals[node] = local;
     }
 
@@ -965,7 +985,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.module));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -994,7 +1014,7 @@ abstract class AstCodeGenerator
         .any((c) => guardCanMatchJSException(translator, c.guard))) {
       // This catches any objects that aren't dart exceptions, such as
       // JavaScript exceptions or objects.
-      b.catch_all();
+      b.catch_all_legacy();
 
       // We can't inspect the thrown object in a catch_all and get a stack
       // trace, so we just attach the current stack trace.
@@ -1109,12 +1129,12 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.module));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
     // Handle JS exceptions.
-    b.catch_all();
+    b.catch_all_legacy();
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
@@ -1339,7 +1359,8 @@ abstract class AstCodeGenerator
         // Since the flow of the return value through the returnValueLocal
         // crosses control-flow constructs, the local needs to always have a
         // defaultable type in order for the Wasm code to validate.
-        returnValueLocal ??= addLocal(returnType.withNullability(true));
+        returnValueLocal ??=
+            addLocal(returnType.withNullability(true), name: "returnValue");
         b.local_set(returnValueLocal!);
       }
       b.br(returnFinalizers.last.label);
@@ -1692,6 +1713,18 @@ abstract class AstCodeGenerator
     }
 
     Member? singleTarget = translator.singleTarget(node);
+
+    // Custom devirtualization because TFA doesn't correctly devirtualize index
+    // accesses on constant lists (see https://dartbug.com/60313)
+    if (singleTarget == null &&
+        target.kind == ProcedureKind.Operator &&
+        target.name.text == '[]') {
+      final receiver = node.receiver;
+      if (receiver is ConstantExpression && receiver.constant is ListConstant) {
+        singleTarget = translator.listBaseIndexOperator;
+      }
+    }
+
     if (singleTarget != null) {
       final target = translator.getFunctionEntry(singleTarget.reference,
           uncheckedEntry: useUncheckedEntry);
@@ -1803,8 +1836,14 @@ abstract class AstCodeGenerator
     w.ValueType? intrinsicResult = intrinsifier.generateEqualsIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
+    final leftType = translator.translateType(dartTypeOf(node.left));
     Member? singleTarget = translator.singleTarget(node);
-    if (singleTarget == translator.coreTypes.objectEquals) {
+    if (singleTarget == translator.coreTypes.objectEquals ||
+        // If leftType is not a Dart type (or builtin value type) then use
+        // reference equality (e.g. the vtable type is not a subtype of
+        // topType).
+        (leftType is w.RefType &&
+            !leftType.isSubtypeOf(translator.topInfo.nullableType))) {
       // Plain reference comparison
       translateExpression(node.left, w.RefType.eq(nullable: true));
       translateExpression(node.right, w.RefType.eq(nullable: true));
@@ -1899,64 +1938,51 @@ abstract class AstCodeGenerator
       void Function(w.FunctionType signature, ParameterInfo) pushArguments,
       {required bool useUncheckedEntry}) {
     assert(kind != _VirtualCallKind.Get || !useUncheckedEntry);
-    SelectorInfo selector = translator.dispatchTable.selectorForTarget(
-        interfaceTarget.referenceAs(
-            getter: kind.isGetter, setter: kind.isSetter));
+    final reference = interfaceTarget.referenceAs(
+        getter: kind.isGetter, setter: kind.isSetter);
+    final dispatchTable = translator.dispatchTableForTarget(reference);
+    SelectorInfo selector = dispatchTable.selectorForTarget(reference);
+    final signature = selector.signature;
     final name = selector.entryPointName(useUncheckedEntry);
     assert(selector.name == interfaceTarget.name.text);
 
-    pushReceiver(selector.signature);
+    pushReceiver(signature);
 
-    SelectorTargets targets;
-
-    if (!translator.dynamicModuleSupportEnabled ||
-        b.module == translator.mainModule) {
-      targets =
-          selector.targets(unchecked: useUncheckedEntry, dynamicModule: false);
-    } else {
-      targets =
-          selector.targets(unchecked: useUncheckedEntry, dynamicModule: true);
-    }
-
-    final isDynamicModuleOverrideable = selector.isDynamicModuleOverrideable;
-    if (!isDynamicModuleOverrideable) {
-      w.ValueType? checkRanges(List<({Range range, Reference target})> ranges) {
-        if (ranges.length == 1) {
-          final target = translator.getFunctionEntry(ranges[0].target,
-              uncheckedEntry: useUncheckedEntry);
-          final signature = translator.signatureForDirectCall(target);
-          final paramInfo = translator.paramInfoForDirectCall(target);
-          pushArguments(signature, paramInfo);
-          return translator.outputOrVoid(call(target));
-        }
-        if (ranges.isEmpty) {
-          // Unreachable call
-          b.comment("Virtual call of $name with no targets"
-              " at ${node.location}");
-          pushArguments(selector.signature, selector.paramInfo);
-          for (int i = 0; i < selector.signature.inputs.length; ++i) {
-            b.drop();
-          }
-          b.block(const [], selector.signature.outputs);
-          b.unreachable();
-          b.end();
-          return translator.outputOrVoid(selector.signature.outputs);
-        }
-        return null;
+    final targets = selector.targets(unchecked: useUncheckedEntry);
+    List<({Range range, Reference target})> targetRanges = targets.targetRanges;
+    List<({Range range, Reference target})> staticDispatchRanges =
+        targets.staticDispatchRanges;
+    if (!selector.isDynamicModuleOverrideable) {
+      if (targetRanges.length == 1) {
+        final target = translator.getFunctionEntry(targetRanges[0].target,
+            uncheckedEntry: useUncheckedEntry);
+        final directCallSignature = translator.signatureForDirectCall(target);
+        final paramInfo = translator.paramInfoForDirectCall(target);
+        pushArguments(directCallSignature, paramInfo);
+        return translator.outputOrVoid(call(target));
       }
-
-      final result = checkRanges(targets.targetRanges);
-      if (result != null) return result;
+      if (targetRanges.isEmpty) {
+        // Unreachable call
+        b.comment("Virtual call of $name with no targets"
+            " at ${node.location}");
+        pushArguments(signature, selector.paramInfo);
+        for (int i = 0; i < signature.inputs.length; ++i) {
+          b.drop();
+        }
+        b.block(const [], signature.outputs);
+        b.unreachable();
+        b.end();
+        return translator.outputOrVoid(signature.outputs);
+      }
     }
 
     // Receiver is already on stack.
-    w.Local receiverVar = addLocal(selector.signature.inputs.first);
+    w.Local receiverVar = addLocal(signature.inputs.first);
     assert(!receiverVar.type.nullable);
     b.local_tee(receiverVar);
-    pushArguments(selector.signature, selector.paramInfo);
+    pushArguments(signature, selector.paramInfo);
 
-    if (targets.staticDispatchRanges.isNotEmpty) {
-      assert(!translator.dynamicModuleSupportEnabled);
+    if (staticDispatchRanges.isNotEmpty) {
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
           .getPolymorphicDispatcher(selector,
@@ -1965,11 +1991,12 @@ abstract class AstCodeGenerator
       b.comment("Instance $kind of '$name'");
       b.local_get(receiverVar);
       translator.callDispatchTable(b, selector,
-          interfaceTarget: interfaceTarget,
-          useUncheckedEntry: useUncheckedEntry);
+          interfaceTarget: reference,
+          useUncheckedEntry: useUncheckedEntry,
+          table: dispatchTable);
     }
 
-    return translator.outputOrVoid(selector.signature.outputs);
+    return translator.outputOrVoid(signature.outputs);
   }
 
   @override
@@ -2077,7 +2104,7 @@ abstract class AstCodeGenerator
           () => visitThis(w.RefType.struct(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
     }
-    return _directGet(target, ThisExpression(), () => null);
+    return _directGet(target, ThisExpression());
   }
 
   @override
@@ -2118,10 +2145,13 @@ abstract class AstCodeGenerator
       b.end(); // doneLabel
       return resultType;
     }
+
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget != null) {
-      return _directGet(singleTarget, node.receiver,
-          () => intrinsifier.generateInstanceGetterIntrinsic(node));
+      final intrinsic = intrinsifier.generateInstanceGetterIntrinsic(node);
+      if (intrinsic != null) return intrinsic;
+
+      return _directGet(singleTarget, node.receiver);
     } else {
       return _virtualCall(
           node,
@@ -2204,11 +2234,7 @@ abstract class AstCodeGenerator
     return translator.topInfo.nullableType;
   }
 
-  w.ValueType _directGet(
-      Member target, Expression receiver, w.ValueType? Function() intrinsify) {
-    w.ValueType? intrinsicResult = intrinsify();
-    if (intrinsicResult != null) return intrinsicResult;
-
+  w.ValueType _directGet(Member target, Expression receiver) {
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;
@@ -2633,8 +2659,7 @@ abstract class AstCodeGenerator
     // We lower a null check to a br_on_non_null, throwing a [TypeError] in
     // the null case.
     b.br_on_non_null(nullCheckBlock);
-    call(translator.stackTraceCurrent.reference);
-    call(translator.throwNullCheckError.reference);
+    call(translator.throwNullCheckErrorWithCurrentStack.reference);
     b.unreachable();
     b.end();
     return nonNullOperandType;
@@ -3299,7 +3324,7 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
     final function = member.function;
     final signature = translator.signatureForDirectCall(member.bodyReference);
     if (checked) {
-      setupParametersForNormalEntry(member);
+      setupParametersForCheckedEntry(member);
     } else {
       setupParametersForUncheckedEntry(member);
     }
@@ -4321,6 +4346,23 @@ class SwitchInfo {
                     translator.classForType(codeGen.dartTypeOf(e)),
                     switchExprClass))));
 
+    // Type objects should be compared using `==` rather than identity even
+    // though the specification is not very clear about it. In language versions
+    // >=3.0 CFE would desugar such switches to a sequence of `if` statements
+    // using `==`, but for language versions <3.0 it would simply emit
+    // `SwitchStatement` and expect back-end to handle types specially if
+    // required. See #60375 for more details.
+    bool canInvokeTypeEquality() =>
+        translator.typeEnvironment.isSubtypeOf(
+            switchExprType,
+            translator.coreTypes.typeNullableRawType,
+            SubtypeCheckMode.withNullabilities) ||
+        node.cases.expand((c) => c.expressions).any((e) =>
+            translator.typeEnvironment.isSubtypeOf(
+                codeGen.dartTypeOf(e),
+                translator.coreTypes.typeNonNullableRawType,
+                SubtypeCheckMode.withNullabilities));
+
     if (node.cases.every((c) =>
         c.expressions.isEmpty && c.isDefault ||
         c.expressions.every((e) =>
@@ -4331,6 +4373,21 @@ class SwitchInfo {
       nullableType = w.RefType.eq(nullable: true);
       compare = (switchExprLocal, pushCaseExpr) =>
           throw "Comparison in default-only switch";
+    } else if (canInvokeTypeEquality()) {
+      nonNullableType = translator
+          .classInfo[translator.coreTypes.typeClass]!.repr.nonNullableType;
+      nullableType = translator
+          .classInfo[translator.coreTypes.typeClass]!.repr.nullableType;
+      compare = (switchExprLocal, pushCaseExpr) {
+        // Virtual call to `Object.==`.
+        codeGen._virtualCall(
+            node, translator.coreTypes.objectEquals, _VirtualCallKind.Call,
+            (functionType) {
+          codeGen.b.local_get(switchExprLocal);
+        }, (functionType, paramInfo) {
+          pushCaseExpr();
+        }, useUncheckedEntry: false);
+      };
     } else if (switchExprType is DynamicType) {
       // Object equality switch
       nonNullableType = translator.topInfo.nonNullableType;

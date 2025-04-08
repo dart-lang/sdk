@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -19,7 +16,6 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Deserializer of ASTs.
@@ -496,13 +492,13 @@ class AstBinaryReader {
   ExtensionOverride _readExtensionOverride() {
     var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
     var extensionName = _readStringReference();
-    var element = _reader.readElement() as ExtensionElement;
+    var element = _reader.readElement2() as ExtensionElementImpl2;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var argumentList = readNode() as ArgumentListImpl;
     var node = ExtensionOverrideImpl(
       importPrefix: importPrefix,
       name: StringToken(TokenType.STRING, extensionName, -1),
-      element2: element.asElement2,
+      element2: element,
       argumentList: argumentList,
       typeArguments: typeArguments,
     );
@@ -712,11 +708,11 @@ class AstBinaryReader {
     var expression = readNode() as ExpressionImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var typeArgumentTypes = _reader.readOptionalTypeList()!;
-    var staticElement = _reader.readElement() as MethodElement;
+    var staticElement = _reader.readElement2() as MethodElementImpl2;
 
     var node = ImplicitCallReferenceImpl(
       expression: expression,
-      element: staticElement.asElement2,
+      element: staticElement,
       typeArguments: typeArguments,
       typeArgumentTypes: typeArgumentTypes,
     );
@@ -1141,8 +1137,8 @@ class AstBinaryReader {
     var metadata = _readNodeList<AnnotationImpl>();
     var type = readNode() as TypeAnnotationImpl;
 
-    var name = _reader.readOptionalObject((reader) {
-      var lexeme = reader.readStringReference();
+    var name = _reader.readOptionalObject(() {
+      var lexeme = _reader.readStringReference();
       return TokenFactory.tokenFromString(lexeme);
     });
 
@@ -1162,7 +1158,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       argumentList: argumentList,
     );
-    node.element = _reader.readElement2() as ConstructorElementMixin2?;
+    node.element = _reader.readElement2() as ConstructorElementImpl2?;
     _resolveNamedExpressions(node.element, node.argumentList);
     return node;
   }

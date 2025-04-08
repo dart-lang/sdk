@@ -5222,7 +5222,7 @@ class Parser {
       reportRecoverableError(
           beforeName.next!, codes.messageNamedFunctionExpression);
     }
-    listener.endFunctionName(begin, token);
+    listener.endFunctionName(begin, token, isFunctionExpression);
     token = parseFormalParametersRequiredOpt(formals, MemberKind.Local);
     token = parseInitializersOpt(token);
     token = parseAsyncOptBody(
@@ -5826,13 +5826,24 @@ class Parser {
     return token;
   }
 
+  /// Returns `true` if [period] is a `.` and the next token after is an
+  /// identifier or the `new` keyword.
+  ///
+  /// This indicates the parsing of a dot shorthand e.g. `.parse(42)`.
+  bool _isDotShorthand(Token period) {
+    if (period.isA(TokenType.PERIOD) &&
+        (period.next!.isIdentifier || period.next!.isA(Keyword.NEW))) {
+      return true;
+    }
+    return false;
+  }
+
   Token parsePrecedenceExpression(Token token, int precedence,
       bool allowCascades, ConstantPatternContext constantPatternContext) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
 
-    bool isDotShorthand = token.next!.isA(TokenType.PERIOD) &&
-        (token.next!.next!.isIdentifier || token.next!.next!.isA(Keyword.NEW));
+    bool isDotShorthand = _isDotShorthand(token.next!);
     if (isDotShorthand) {
       // TODO(kallentu): Once the analyzer implementation is done, we can avoid
       // adding a synthetic identifier completely, but currently, the parser
@@ -5876,7 +5887,6 @@ class Parser {
 
       // The entire shorthand is parsed at this point.
       listener.handleDotShorthandContext(dot);
-      return token;
     }
 
     return _parsePrecedenceExpressionLoop(
@@ -7464,6 +7474,19 @@ class Parser {
         assert(false, "Expected either [, [] or < but found neither.");
       }
     }
+
+    bool isDotShorthand = _isDotShorthand(token.next!);
+    if (isDotShorthand) {
+      Token dot = token.next!;
+      listener.beginConstDotShorthand(constKeyword);
+      token = parsePrimary(dot, IdentifierContext.expressionContinuation,
+          ConstantPatternContext.explicit);
+      listener.handleDotShorthandHead(dot);
+      listener.handleDotShorthandContext(dot);
+      listener.endConstDotShorthand(constKeyword);
+      return token;
+    }
+
     listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token, ConstructorReferenceContext.Const,
         /* typeArg = */ potentialTypeArg);

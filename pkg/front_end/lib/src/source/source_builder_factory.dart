@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
-import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
@@ -41,6 +40,7 @@ import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
+import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
@@ -167,13 +167,25 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void endClassDeclaration(String name) {
+  ClassFragment endClassDeclaration() {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.classDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+    ClassFragment declarationFragment =
+        _declarationFragments.pop() as ClassFragment;
+    _nominalParameterNameSpaces.pop();
+    return declarationFragment;
+  }
+
+  void _popNominalParametersForRecovery(
+      List<TypeParameterFragment>? typeParameters) {
+    createNominalParameterBuilders(typeParameters, _unboundNominalParameters);
+    _nominalParameterNameSpaces.pop().addTypeParameters(
+        _problemReporting, typeParameters?.builders,
+        ownerName: null, allowNameConflict: true);
   }
 
   @override
@@ -188,9 +200,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationFragments.pop();
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: null, allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -214,13 +224,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void endMixinDeclaration(String name) {
+  MixinFragment endMixinDeclaration() {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.mixinDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+    MixinFragment declarationFragment =
+        _declarationFragments.pop() as MixinFragment;
+    _nominalParameterNameSpaces.pop();
+    return declarationFragment;
   }
 
   @override
@@ -235,9 +249,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationFragments.pop();
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: null, allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -245,10 +257,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeParameterFragment>? typeParameters) {}
 
   @override
-  void endNamedMixinApplication(String name) {
+  LookupScope endNamedMixinApplication(String name) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+    return typeParameterScope.lookupScope;
   }
 
   @override
@@ -257,10 +270,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: null, allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -296,13 +306,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void endEnumDeclaration(String name) {
+  EnumFragment endEnumDeclaration() {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.enumDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+    EnumFragment declarationFragment =
+        _declarationFragments.pop() as EnumFragment;
+    _nominalParameterNameSpaces.pop();
+    return declarationFragment;
   }
 
   @override
@@ -316,13 +330,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationFragments.pop();
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting,
-        typeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
-        ownerName: null,
-        allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -360,13 +368,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void endExtensionDeclaration(String? name) {
+  ExtensionFragment endExtensionDeclaration() {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.extensionDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+
+    ExtensionFragment declarationFragment =
+        _declarationFragments.pop() as ExtensionFragment;
+    _nominalParameterNameSpaces.pop();
+    return declarationFragment;
   }
 
   @override
@@ -390,13 +403,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void endExtensionTypeDeclaration(String name) {
+  ExtensionTypeFragment endExtensionTypeDeclaration() {
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.extensionTypeDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+    ExtensionTypeFragment declarationFragment =
+        _declarationFragments.pop() as ExtensionTypeFragment;
+    _nominalParameterNameSpaces.pop();
+    return declarationFragment;
   }
 
   @override
@@ -417,9 +434,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(_problemReporting, null,
-        ownerName: null, allowNameConflict: true);
+    _popNominalParametersForRecovery(null);
   }
 
   @override
@@ -440,14 +455,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting,
-        typeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
-        ownerName: null,
-        allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -469,10 +477,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: null, allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -493,14 +498,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting,
-        typeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
-        ownerName: null,
-        allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -521,14 +519,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting,
-        typeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
-        ownerName: null,
-        allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -557,10 +548,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: null, allowNameConflict: true);
+    _popNominalParametersForRecovery(typeParameters);
   }
 
   @override
@@ -821,18 +809,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int nameOffset,
       required int endOffset,
       required int supertypeOffset}) {
-    String className = identifier.name;
-
-    endClassDeclaration(className);
-
-    ClassFragment declarationFragment =
-        _declarationFragments.pop() as ClassFragment;
-
-    NominalParameterNameSpace nominalParameterNameSpace =
-        _nominalParameterNameSpaces.pop();
-    nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: className, allowNameConflict: false);
+    ClassFragment declarationFragment = endClassDeclaration();
 
     if (declarationFragment.declaresConstConstructor) {
       modifiers |= Modifiers.DeclaresConstConstructor;
@@ -869,19 +846,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset}) {
-    String name = identifier.name;
-
-    // Nested declaration began in `OutlineBuilder.beginEnum`.
-    endEnumDeclaration(name);
-
-    EnumFragment declarationFragment =
-        _declarationFragments.pop() as EnumFragment;
-
-    NominalParameterNameSpace nominalParameterNameSpace =
-        _nominalParameterNameSpaces.pop();
-    nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: name, allowNameConflict: false);
+    EnumFragment declarationFragment = endEnumDeclaration();
 
     declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
@@ -944,17 +909,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       }
     }
 
-    String className = identifier.name;
-    endMixinDeclaration(className);
-
-    MixinFragment declarationFragment =
-        _declarationFragments.pop() as MixinFragment;
-
-    NominalParameterNameSpace nominalParameterNameSpace =
-        _nominalParameterNameSpaces.pop();
-    nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: className, allowNameConflict: false);
+    MixinFragment declarationFragment = endMixinDeclaration();
 
     modifiers |= Modifiers.Abstract;
     if (declarationFragment.declaresConstConstructor) {
@@ -990,15 +945,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int startOffset,
       required int nameOffset,
       required int endOffset}) {
-    // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNamedMixinApplication(name);
+    LookupScope typeParameterScope = endNamedMixinApplication(name);
 
     assert(
         _mixinApplications != null, "Late registration of mixin application.");
 
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: name, allowNameConflict: false);
+    NominalParameterNameSpace nominalParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
 
     _addFragment(new NamedMixinApplicationFragment(
         name: name,
@@ -1009,6 +962,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         metadata: metadata,
         typeParameters: typeParameters,
+        typeParameterScope: typeParameterScope,
+        nominalParameterNameSpace: nominalParameterNameSpace,
         supertype: supertype,
         mixins: mixins,
         interfaces: interfaces,
@@ -1028,19 +983,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int startOffset,
       required int nameOrExtensionOffset,
       required int endOffset}) {
-    String? name = identifier?.name;
-    // Nested declaration began in
-    // `OutlineBuilder.beginExtensionDeclarationPrelude`.
-    endExtensionDeclaration(name);
-
-    ExtensionFragment declarationFragment =
-        _declarationFragments.pop() as ExtensionFragment;
-
-    NominalParameterNameSpace nominalParameterNameSpace =
-        _nominalParameterNameSpaces.pop();
-    nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: name, allowNameConflict: false);
+    ExtensionFragment declarationFragment = endExtensionDeclaration();
 
     bool isPatch =
         _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
@@ -1077,18 +1020,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset}) {
-    String name = identifier.name;
-    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    endExtensionTypeDeclaration(name);
-
-    ExtensionTypeFragment declarationFragment =
-        _declarationFragments.pop() as ExtensionTypeFragment;
-
-    NominalParameterNameSpace nominalParameterNameSpace =
-        _nominalParameterNameSpaces.pop();
-    nominalParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: name, allowNameConflict: false);
+    ExtensionTypeFragment declarationFragment = endExtensionTypeDeclaration();
 
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
@@ -1111,18 +1043,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeParameterFragment>? typeParameters,
       TypeBuilder type,
       int nameOffset) {
-    if (typeParameters != null) {
-      for (NominalParameterBuilder typeParameter in typeParameters.builders) {
-        typeParameter.varianceCalculationValue =
-            VarianceCalculationValue.pending;
-      }
-    }
-
-    NominalParameterNameSpace typeParameterNameSpace =
+    NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
-    typeParameterNameSpace.addTypeParameters(
-        _problemReporting, typeParameters?.builders,
-        ownerName: name, allowNameConflict: true);
     LookupScope typeParameterScope = _typeScopes.current.lookupScope;
 
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
@@ -1135,6 +1057,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         fileUri: _compilationUnit.fileUri,
         nameOffset: nameOffset,
         typeParameterScope: typeParameterScope,
+        nominalParameterNameSpace: nominalParameterNameSpace,
         enclosingScope: _compilationUnitScope,
         enclosingCompilationUnit: _compilationUnit);
     _addFragment(fragment);
@@ -1841,7 +1764,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       metadata: metadata,
       modifiers: modifiers,
       returnType: returnType ?? addInferableType(),
-      declaredTypeParameters: typeParameters?.builders,
+      declaredTypeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
       typeParameterScope: typeParameterScope.lookupScope,
@@ -1997,7 +1920,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   FunctionTypeBuilder addFunctionType(
       TypeBuilder returnType,
-      List<StructuralParameterBuilder>? structuralVariableBuilders,
+      List<SourceStructuralParameterBuilder>? structuralVariableBuilders,
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
@@ -2013,7 +1936,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
     _checkStructuralParameters(structuralVariableBuilders);
     if (structuralVariableBuilders != null) {
-      for (StructuralParameterBuilder builder in structuralVariableBuilders) {
+      for (SourceStructuralParameterBuilder builder
+          in structuralVariableBuilders) {
         if (builder.metadata != null) {
           if (!libraryFeatures.genericMetadata.isEnabled) {
             _problemReporting.addProblem(
@@ -2061,9 +1985,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterFragment addNominalParameter(List<MetadataBuilder>? metadata,
-      String name, TypeBuilder? bound, int charOffset, Uri fileUri,
-      {required TypeParameterKind kind}) {
+  TypeParameterFragment addNominalParameter(
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required Uri fileUri,
+      required TypeParameterKind kind}) {
     String variableName = name;
     bool isWildcard =
         libraryFeatures.wildcardVariables.isEnabled && variableName == '_';
@@ -2074,30 +2001,21 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeParameterFragment fragment = new TypeParameterFragment(
         metadata: metadata,
         name: name,
-        bound: bound,
-        nameOffset: charOffset,
+        nameOffset: nameOffset,
         fileUri: fileUri,
         kind: kind,
         isWildcard: isWildcard,
-        variableName: variableName);
-
-    NominalParameterBuilder builder = new NominalParameterBuilder(
-        variableName, charOffset, fileUri,
-        bound: bound, metadata: metadata, kind: kind, isWildcard: isWildcard);
-
-    _unboundNominalParameters.add(builder);
-
-    fragment.builder = builder;
+        variableName: variableName,
+        typeParameterScope: _typeScopes.current.lookupScope);
     return fragment;
   }
 
   @override
   StructuralParameterBuilder addStructuralParameter(
-      List<MetadataBuilder>? metadata,
-      String name,
-      TypeBuilder? bound,
-      int charOffset,
-      Uri fileUri) {
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required Uri fileUri}) {
     String variableName = name;
     bool isWildcard =
         libraryFeatures.wildcardVariables.isEnabled && variableName == '_';
@@ -2105,9 +2023,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       variableName = createWildcardTypeParameterName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    StructuralParameterBuilder builder = new StructuralParameterBuilder(
-        variableName, charOffset, fileUri,
-        bound: bound, metadata: metadata, isWildcard: isWildcard);
+    StructuralParameterBuilder builder = new SourceStructuralParameterBuilder(
+        new RegularStructuralParameterDeclaration(
+            metadata: metadata,
+            name: variableName,
+            fileOffset: nameOffset,
+            fileUri: fileUri,
+            isWildcard: isWildcard),
+        metadata: metadata);
 
     _unboundStructuralVariables.add(builder);
     return builder;
@@ -2193,13 +2116,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       fragment.builder.becomeNative(loader);
     }
     for (GetterFragment fragment in _nativeGetterFragments) {
-      fragment.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     for (SetterFragment fragment in _nativeSetterFragments) {
-      fragment.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     for (MethodFragment fragment in _nativeMethodFragments) {
-      fragment.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     for (ConstructorFragment fragment in _nativeConstructorFragments) {
       fragment.builder.becomeNative(loader);

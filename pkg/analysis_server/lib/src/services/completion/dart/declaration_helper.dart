@@ -1742,6 +1742,10 @@ class DeclarationHelper {
           importData: importData,
           element: element,
           matcherScore: matcherScore,
+          kind:
+              preferNonInvocation
+                  ? CompletionSuggestionKind.IDENTIFIER
+                  : CompletionSuggestionKind.INVOCATION,
         );
         collector.addSuggestion(suggestion);
       }

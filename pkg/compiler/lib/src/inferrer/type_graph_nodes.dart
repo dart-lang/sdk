@@ -599,10 +599,7 @@ class FieldTypeInformation extends MemberTypeInformation {
     AbstractValueDomain abstractValueDomain,
     this._member,
     DartType type,
-  ) : _type =
-          abstractValueDomain
-              .createFromStaticType(type, nullable: true)
-              .abstractValue,
+  ) : _type = abstractValueDomain.createFromStaticType(type).abstractValue,
       super._internal(abstractValueDomain, _member);
 
   @override
@@ -659,7 +656,7 @@ class GetterTypeInformation extends MemberTypeInformation {
     FunctionType type,
   ) : _type =
           abstractValueDomain
-              .createFromStaticType(type.returnType, nullable: true)
+              .createFromStaticType(type.returnType)
               .abstractValue,
       super._internal(abstractValueDomain, _member);
 
@@ -709,7 +706,7 @@ class MethodTypeInformation extends MemberTypeInformation {
     FunctionType type,
   ) : _type =
           abstractValueDomain
-              .createFromStaticType(type.returnType, nullable: true)
+              .createFromStaticType(type.returnType)
               .abstractValue,
       super._internal(abstractValueDomain, _member);
 
@@ -744,7 +741,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
     FunctionType type,
   ) : _type =
           abstractValueDomain
-              .createFromStaticType(type.returnType, nullable: true)
+              .createFromStaticType(type.returnType)
               .abstractValue,
       super._internal(abstractValueDomain, _member);
 
@@ -842,10 +839,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     this._parameter,
     DartType type,
     this._method,
-  ) : _type =
-          abstractValueDomain
-              .createFromStaticType(type, nullable: true)
-              .abstractValue,
+  ) : _type = abstractValueDomain.createFromStaticType(type).abstractValue,
       _inputType = abstractValueDomain.uncomputedType,
       super._internal() {
     _flags = _flags.add(_Flag.isClosureParameter);
@@ -858,10 +852,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     DartType type,
     this._method, {
     bool isInitializingFormal = false,
-  }) : _type =
-           abstractValueDomain
-               .createFromStaticType(type, nullable: true)
-               .abstractValue,
+  }) : _type = abstractValueDomain.createFromStaticType(type).abstractValue,
        _inputType = abstractValueDomain.uncomputedType,
        super._internal() {
     _flags = _flags.update(_Flag.isInitializingFormal, isInitializingFormal);
@@ -891,8 +882,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     DartType type,
     FunctionEntity method,
   ) {
-    final staticType =
-        domain.createFromStaticType(type, nullable: true).abstractValue;
+    final staticType = domain.createFromStaticType(type).abstractValue;
     // We include null in the type of `==` because it usually does not already
     // include null. When we narrow the inferred type using this static type
     // we want to allow for null so that downstream we can know if null flows
@@ -2576,7 +2566,7 @@ class AwaitTypeInformation extends TypeInformation {
       ),
     );
     return inferrer.abstractValueDomain
-        .createFromStaticType(staticType, nullable: true)
+        .createFromStaticType(staticType)
         .abstractValue;
   }
 

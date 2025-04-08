@@ -89,10 +89,6 @@ Future runTest(
     '--out=$outputFile',
     inputFile,
     Flags.disableInlining,
-    // Unsound platform dill files are no longer packaged in the SDK and must
-    // be read from the build directory during tests.
-    '--platform-binaries=$sdkPlatformBinariesPath',
-    '--libraries-spec=$sdkLibrariesSpecificationUri',
   ];
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess);

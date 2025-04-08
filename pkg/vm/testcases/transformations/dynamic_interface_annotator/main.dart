@@ -5,6 +5,7 @@
 import 'lib1.dart';
 import 'lib2.dart';
 import 'lib3.dart';
+import 'lib4.dart';
 import 'prefix/lib1.dart';
 import 'prefix/lib2.dart';
 

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:io';
 
+import 'package:shell_arg_splitter/shell_arg_splitter.dart';
+
 import 'feature.dart';
 import 'path.dart';
 import 'static_error.dart';
@@ -22,9 +24,6 @@ final _localFileRegExp = RegExp(
     r"""(?:(?:show|hide)\s+\w+\s*(?:,\s*\w+\s*))*;""",
     multiLine: true);
 
-List<String> _splitWords(String s) =>
-    s.split(' ')..removeWhere((s) => s.isEmpty);
-
 List<T> _parseOption<T>(
     String filePath, String contents, String name, T Function(String) convert,
     {bool allowMultiple = false}) {
@@ -37,7 +36,7 @@ List<T> _parseOption<T>(
 
   var options = <T>[];
   for (var match in matches) {
-    for (var option in _splitWords(match[1]!)) {
+    for (var option in splitLine(match[1]!)) {
       options.add(convert(option));
     }
   }
@@ -109,10 +108,7 @@ abstract class _TestFileBase {
     return originPath.relativeTo(_suiteDirectory).toString().hashCode;
   }
 
-  _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors) {
-    // The VM C++ unit tests have a special fake TestFile with no path.
-    assert(path.isAbsolute);
-  }
+  _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors);
 
   /// The logical name of the test.
   ///
@@ -228,7 +224,7 @@ class TestFile extends _TestFileBase {
     var vmOptions = <List<String>>[];
     var matches = _vmOptionsRegExp.allMatches(contents);
     for (var match in matches) {
-      vmOptions.add(_splitWords(match[1]!));
+      vmOptions.add(splitLine(match[1]!));
     }
     if (vmOptions.isEmpty) vmOptions.add(<String>[]);
 

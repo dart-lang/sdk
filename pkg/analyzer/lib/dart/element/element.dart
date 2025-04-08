@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// Defines the element model. The element model describes the semantic (as
 /// opposed to syntactic) structure of Dart code. The syntactic structure of the
 /// code is modeled by the [AST
 /// structure](../dart_ast_ast/dart_ast_ast-library.html).
 ///
 /// The element model consists of two closely related kinds of objects: elements
-/// (instances of a subclass of [Element]) and types. This library defines the
+/// (instances of a subclass of `Element`) and types. This library defines the
 /// elements, the types are defined in
 /// [type.dart](../dart_element_type/dart_element_type-library.html).
 ///
@@ -22,10 +20,10 @@
 /// children of the element representing the class.
 ///
 /// Every complete element structure is rooted by an instance of the class
-/// [LibraryElement]. A library element represents a single Dart library. Every
+/// `LibraryElement`. A library element represents a single Dart library. Every
 /// library is defined by one or more compilation units (the library and all of
 /// its parts). The compilation units are represented by the class
-/// [CompilationUnitElement] and are children of the library that is defined by
+/// `CompilationUnitElement` and are children of the library that is defined by
 /// them. Each compilation unit can contain zero or more top-level declarations,
 /// such as classes, functions, and variables. Each of these is in turn
 /// represented as an element that is a child of the compilation unit. Classes
@@ -52,156 +50,21 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/element/element.dart'
+    show elementModelDeprecationMsg;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+// ignore: deprecated_member_use_from_same_package
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// The result of applying augmentations to a [ClassElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedClassElement implements AugmentedInterfaceElement {
-  @override
-  ClassElement get firstFragment;
-}
-
-/// The result of applying augmentations to an [EnumElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
-  /// The enum constants declared in this element.
-  List<FieldElement> get constants;
-
-  @override
-  EnumElement get firstFragment;
-}
-
-/// The result of applying augmentations to an [ExtensionElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
-  /// The type that is extended by this extension.
-  DartType get extendedType;
-}
-
-/// The result of applying augmentations to an [ExtensionTypeElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedExtensionTypeElement
-    implements AugmentedInterfaceElement {
-  @override
-  ExtensionTypeElement get firstFragment;
-
-  /// The primary constructor of this extension.
-  ConstructorElement get primaryConstructor;
-
-  /// The representation of this extension.
-  FieldElement get representation;
-
-  /// The extension type erasure, obtained by recursively replacing every
-  /// subterm which is an extension type by the corresponding representation
-  /// type.
-  DartType get typeErasure;
-}
-
-/// The result of applying augmentations to a [InstanceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedInstanceElement {
-  /// The accessors (getters and setters) declared in this element.
-  ///
-  /// [PropertyAccessorElement]s replace corresponding elements,
-  /// other [PropertyAccessorElement]s are appended.
-  List<PropertyAccessorElement> get accessors;
-
-  /// The fields declared in this element.
-  ///
-  /// `FieldAugmentationElement`s replace corresponding elements, other
-  /// [FieldElement]s are appended.
-  List<FieldElement> get fields;
-
-  /// The declaration (not augmentation) that owns this result.
-  InstanceElement get firstFragment;
-
-  /// The metadata associated with this element.
-  ///
-  /// This is a union of annotations associated with the class declaration and
-  /// all its augmentations.
-  List<ElementAnnotation> get metadata;
-
-  /// The methods declared in this element.
-  ///
-  /// `MethodAugmentationElement`s replace corresponding elements, other
-  /// [MethodElement]s are appended.
-  List<MethodElement> get methods;
-
-  /// The type of `this` expression.
-  DartType get thisType;
-
-  /// Returns the field from [fields] that has the given [name].
-  FieldElement? getField(String name);
-
-  /// Returns the getter from [accessors] that has the given [name].
-  PropertyAccessorElement? getGetter(String name);
-
-  /// Returns the method from [methods] that has the given [name].
-  MethodElement? getMethod(String name);
-
-  /// Returns the setter from [accessors] that has the given [name].
-  PropertyAccessorElement? getSetter(String name);
-}
-
-/// The result of applying augmentations to a [InterfaceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
-  /// The constructors declared in this element.
-  ///
-  /// `ConstructorAugmentationElement`s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
-  List<ConstructorElement> get constructors;
-
-  @override
-  InterfaceElement get firstFragment;
-
-  /// The interfaces implemented by this element.
-  ///
-  /// This is a union of interfaces declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get interfaces;
-
-  /// The mixins applied by this class or in its augmentations.
-  ///
-  /// This is a union of mixins applied by the class declaration and all its
-  /// augmentations.
-  List<InterfaceType> get mixins;
-
-  @override
-  InterfaceType get thisType;
-
-  /// The unnamed constructor from [constructors].
-  ConstructorElement? get unnamedConstructor;
-
-  /// Returns the constructor from [constructors] that has the given [name].
-  ConstructorElement? getNamedConstructor(String name);
-}
-
-/// The result of applying augmentations to a [MixinElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
-  /// The superclass constraints of this element.
-  ///
-  /// This is a union of constraints declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get superclassConstraints;
-}
-
 /// A pattern variable that is explicitly declared.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated(
+    'Use BindPatternVariableFragment and BindPatternVariableElement2 instead')
 abstract class BindPatternVariableElement implements PatternVariableElement {}
 
 /// An element that represents a class or a mixin. The class can be defined by
@@ -209,15 +72,8 @@ abstract class BindPatternVariableElement implements PatternVariableElement {}
 /// a class body), a mixin declaration, or an enum declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ClassElement2 instead')
 abstract class ClassElement implements InterfaceElement {
-  @experimental
-  @override
-  ClassElement? get augmentation;
-
-  @experimental
-  @override
-  ClassElement? get augmentationTarget;
-
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
 
@@ -309,6 +165,13 @@ abstract class ClassElement implements InterfaceElement {
 /// An element that is contained within a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('''
+There is no common interface for class members in the new analyzer element
+model. If you are using this class in an `is` test or a pattern match, replace
+it with checks for the specific element types you are interested in (e.g.,
+`ConstructorElement2`, `MethodElement2`, etc.). If you are using this class as
+a type annotation for a variable that could hold any kind of class member, use
+`Element2` instead.''')
 abstract class ClassMemberElement implements Element {
   // TODO(brianwilkerson): Either remove this class or rename it to something
   //  more correct.
@@ -326,6 +189,7 @@ abstract class ClassMemberElement implements Element {
 /// An element representing a compilation unit.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated(elementModelDeprecationMsg)
 abstract class CompilationUnitElement implements UriReferencedElement {
   /// The extension elements accessible within this unit.
   List<ExtensionElement> get accessibleExtensions;
@@ -405,16 +269,9 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 /// class.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ConstructorElement2 instead')
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
-  @experimental
-  @override
-  ConstructorElement? get augmentation;
-
-  @experimental
-  @override
-  ConstructorElement? get augmentationTarget;
-
   @override
   ConstructorElement get declaration;
 
@@ -467,6 +324,7 @@ abstract class ConstructorElement
 /// [ImportElementPrefix] that is used together with `deferred`.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PrefixElement2 instead')
 abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 
 /// Meaning of a URI referenced in a directive.
@@ -474,11 +332,12 @@ abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUri {}
 
-/// [DirectiveUriWithSource] that references a [LibraryElement].
+/// [DirectiveUriWithSource] that references a [LibraryElement2].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
   /// The library referenced by the [source].
+  @Deprecated(elementModelDeprecationMsg)
   LibraryElement get library;
 
   /// The library referenced by the [source].
@@ -510,7 +369,7 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
   Source get source;
 }
 
-/// [DirectiveUriWithSource] that references a [CompilationUnitElement].
+/// [DirectiveUriWithSource] that references a [LibraryFragment].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
@@ -519,6 +378,7 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
   LibraryFragment get libraryFragment;
 
   /// The unit referenced by the [source].
+  @Deprecated('Use libraryFragment instead')
   CompilationUnitElement get unit;
 }
 
@@ -544,10 +404,12 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 /// represent the semantic structure of the program.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated(elementModelDeprecationMsg)
 abstract class Element implements AnalysisTarget {
   /// A list of this element's children.
   ///
   /// There is no guarantee of the order in which the children will be included.
+  @Deprecated(elementModelDeprecationMsg)
   List<Element> get children;
 
   /// The analysis context in which this element is defined.
@@ -560,6 +422,7 @@ abstract class Element implements AnalysisTarget {
   /// from the class, without any substitutions. If this element is already a
   /// declaration (or a synthetic element, e.g. a synthetic property accessor),
   /// return itself.
+  @Deprecated(elementModelDeprecationMsg)
   Element? get declaration;
 
   /// The display name of this element, possibly the empty string if the
@@ -582,6 +445,8 @@ abstract class Element implements AnalysisTarget {
   /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
   /// uses `part` directive to include this element, or `null` if this element
   /// is the defining unit of the library.
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   Element? get enclosingElement3;
 
   /// Whether the element has an annotation of the form `@alwaysThrows`.
@@ -696,8 +561,9 @@ abstract class Element implements AnalysisTarget {
   /// Library that contains this element.
   ///
   /// This will be the element itself if it is a library element. This will be
-  /// `null` if this element is [MultiplyDefinedElement] that is not contained
+  /// `null` if this element is [MultiplyDefinedElement2] that is not contained
   /// in a library.
+  @Deprecated(elementModelDeprecationMsg)
   LibraryElement? get library;
 
   /// The location of this element in the element model.
@@ -731,6 +597,7 @@ abstract class Element implements AnalysisTarget {
   /// element is returned. For example, for a synthetic getter of a
   /// non-synthetic field the field is returned; for a synthetic constructor
   /// the enclosing class is returned.
+  @Deprecated(elementModelDeprecationMsg)
   Element get nonSynthetic;
 
   /// The analysis session in which this element is defined.
@@ -800,11 +667,13 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
+  @Deprecated(elementModelDeprecationMsg)
   bool isAccessibleIn(LibraryElement library);
 
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
   /// element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
   );
@@ -812,16 +681,19 @@ abstract class Element implements AnalysisTarget {
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
   /// element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorMatching3<E extends Element>(
     bool Function(Element) predicate,
   );
 
   /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorOfType<E extends Element>();
 
   /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorOfType3<E extends Element>();
 
   /// Uses the given [visitor] to visit all of the children of this element.
@@ -849,13 +721,14 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   ///
   /// In invalid code this element can be `null`, or a reference to any
   /// other element.
+  @Deprecated('Use element2 instead')
   Element? get element;
 
   /// Returns the element referenced by this annotation.
   ///
   /// In valid code this element can be a [GetterElement] of a constant
   /// top-level variable, or a constant static field of a class; or a
-  /// constant [ConstructorElement].
+  /// constant [ConstructorElement2].
   ///
   /// In invalid code this element can be `null`, or a reference to any
   /// other element.
@@ -1120,18 +993,6 @@ class ElementKind implements Comparable<ElementKind> {
 
   @override
   String toString() => name;
-
-  /// Returns the kind of the given [element], or [ERROR] if the element is
-  /// `null`.
-  ///
-  /// This is a utility method that can reduce the need for null checks in
-  /// other places.
-  static ElementKind of(Element? element) {
-    if (element == null) {
-      return ERROR;
-    }
-    return element.kind;
-  }
 }
 
 /// The location of an element within the element model.
@@ -1217,37 +1078,15 @@ abstract class ElementVisitor<R> {
 /// An element that represents an enum.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class EnumElement implements InterfaceElement {
-  @experimental
-  @override
-  EnumElement? get augmentation;
-
-  @experimental
-  @override
-  EnumElement? get augmentationTarget;
-}
+@Deprecated('Use EnumElement2 instead')
+abstract class EnumElement implements InterfaceElement {}
 
 /// An element representing an executable object, including functions, methods,
 /// constructors, getters, and setters.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ExecutableElement2 instead')
 abstract class ExecutableElement implements FunctionTypedElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [ExecutableElement.augmentationTarget] will point back at this element.
-  @experimental
-  ExecutableElement? get augmentation;
-
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations normally ends with a [ExecutableElement] that
-  /// is not an augmentation, but might end with `null` immediately or after a
-  /// few intermediate [ExecutableElement]s in case of invalid code when an
-  /// augmentation is declared without the corresponding declaration.
-  @experimental
-  ExecutableElement? get augmentationTarget;
-
   @override
   ExecutableElement get declaration;
 
@@ -1309,15 +1148,8 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An element that represents an extension.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ExtensionElement2 instead')
 abstract class ExtensionElement implements InstanceElement {
-  @experimental
-  @override
-  ExtensionElement? get augmentation;
-
-  @experimental
-  @override
-  ExtensionElement? get augmentationTarget;
-
   /// The type that is extended by this extension.
   DartType get extendedType;
 
@@ -1345,17 +1177,10 @@ abstract class ExtensionElement implements InstanceElement {
 /// An element that represents an extension type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
+@Deprecated('Use ExtensionTypeElement2 instead')
 abstract class ExtensionTypeElement implements InterfaceElement {
-  @experimental
-  @override
-  ExtensionTypeElement? get augmentation;
-
-  @experimental
-  @override
-  ExtensionTypeElement? get augmentationTarget;
-
   /// The primary constructor of this extension.
+  @Deprecated(elementModelDeprecationMsg)
   ConstructorElement get primaryConstructor;
 
   /// The representation of this extension.
@@ -1370,16 +1195,9 @@ abstract class ExtensionTypeElement implements InterfaceElement {
 /// A field defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FieldElement2 instead')
 abstract class FieldElement
     implements ClassMemberElement, PropertyInducingElement {
-  @experimental
-  @override
-  FieldElement? get augmentation;
-
-  @experimental
-  @override
-  FieldElement? get augmentationTarget;
-
   @override
   FieldElement get declaration;
 
@@ -1412,9 +1230,11 @@ abstract class FieldElement
 /// A field formal parameter defined within a constructor element.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FieldFormalParameterElement2 instead')
 abstract class FieldFormalParameterElement implements ParameterElement {
   /// The field element associated with this field formal parameter, or `null`
   /// if the parameter references a field that doesn't exist.
+  @Deprecated(elementModelDeprecationMsg)
   FieldElement? get field;
 }
 
@@ -1423,6 +1243,7 @@ abstract class FieldFormalParameterElement implements ParameterElement {
 /// variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TopLevelFunctionElement or LocalFunctionElement')
 abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
@@ -1439,14 +1260,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// invoke an undefined method on an object.
   static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
 
-  @experimental
-  @override
-  FunctionElement? get augmentation;
-
-  @experimental
-  @override
-  FunctionElement? get augmentationTarget;
-
   /// Whether the function represents `identical` from the `dart:core` library.
   bool get isDartCoreIdentical;
 
@@ -1460,6 +1273,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 /// This also provides convenient access to the parameters and return type.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FunctionTypedElement2 instead')
 abstract class FunctionTypedElement implements TypeParameterizedElement {
   /// The parameters defined by this executable element.
   List<ParameterElement> get parameters;
@@ -1474,6 +1288,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
 /// The pseudo-declaration that defines a generic function type.
 ///
 /// Clients may not extend, implement, or mix-in this class.
+@Deprecated('Use GenericFunctionTypeElement2 instead')
 abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 
 /// A combinator that causes some of the names in a namespace to be hidden when
@@ -1481,21 +1296,15 @@ abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class HideElementCombinator implements NamespaceCombinator {
-  /// The offset of the character immediately following the last character of
-  /// this node.
-  int get end;
-
   /// The names that are not to be made visible in the importing library even
   /// if they are defined in the imported library.
   List<String> get hiddenNames;
-
-  /// The offset of the 'hide' keyword of this element.
-  int get offset;
 }
 
 /// Usage of a [PrefixElement] in an `import` directive.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PrefixElement2 instead')
 abstract class ImportElementPrefix {
   /// The prefix that was specified as part of the import directive, or `null`
   /// if there was no prefix specified.
@@ -1505,29 +1314,13 @@ abstract class ImportElementPrefix {
 /// An element that has `this`.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use InstanceElement2 instead')
 abstract class InstanceElement
     implements TypeDefiningElement, TypeParameterizedElement {
   /// The declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
 
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [InstanceElement.augmentationTarget] will point back at this element.
-  @experimental
-  InstanceElement? get augmentation;
-
-  /// The element that is augmented by this augmentation; or `null` if
-  /// [isAugmentation] is `false`, or there is no corresponding element to be
-  /// augmented.
-  ///
-  /// The chain of augmentations should normally end with a not augmentation
-  /// [InstanceElement], but might end with `null` immediately or after a few
-  /// intermediate elements in case of invalid code when an augmentation is
-  /// declared without the corresponding declaration.
-  @experimental
-  InstanceElement? get augmentationTarget;
-
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1551,18 +1344,17 @@ abstract class InstanceElement
 /// An element that defines an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use InterfaceElement2 instead')
 abstract class InterfaceElement implements InstanceElement {
   /// All the supertypes defined for this element and its supertypes.
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
 
-  @override
-  InterfaceElement? get augmentationTarget;
-
   /// The declared constructors.
   ///
   /// The list is empty for [MixinElement].
+  @Deprecated(elementModelDeprecationMsg)
   List<ConstructorElement> get constructors;
 
   /// The interfaces that are implemented by this class.
@@ -1586,6 +1378,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// safe to assume that the inheritance structure of a class does not contain
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
+  @Deprecated(elementModelDeprecationMsg)
   List<InterfaceType> get mixins;
 
   @override
@@ -1606,6 +1399,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// safe to assume that the inheritance structure of a class does not contain
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
+  @Deprecated(elementModelDeprecationMsg)
   InterfaceType? get supertype;
 
   @override
@@ -1616,6 +1410,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// If the class does not declare any constructors, a synthetic default
   /// constructor will be returned.
   // TODO(scheglov): Deprecate and remove it.
+  @Deprecated(elementModelDeprecationMsg)
   ConstructorElement? get unnamedConstructor;
 
   /// The field (synthetic or explicit) defined directly in this class or
@@ -1636,6 +1431,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// The constructor defined directly in this class or augmentation
   /// that has the given [name].
   // TODO(scheglov): Deprecate and remove it.
+  @Deprecated(elementModelDeprecationMsg)
   ConstructorElement? getNamedConstructor(String name);
 
   /// The setter (synthetic or explicit) defined directly in this class or
@@ -1813,6 +1609,8 @@ abstract class InterfaceElement implements InstanceElement {
 /// for a logical-or patterns, or shared `case` bodies in `switch` statements.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated(
+    'Use JoinPatternVariableFragment and JoinPatternVariableElement2 instead')
 abstract class JoinPatternVariableElement implements PatternVariableElement {
   /// Whether the [variables] are consistent, present in all branches,
   /// and have the same type and finality.
@@ -1825,7 +1623,9 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
 /// A label associated with a statement.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LabelElement2 instead')
 abstract class LabelElement implements Element {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   ExecutableElement get enclosingElement3;
 
@@ -1836,8 +1636,10 @@ abstract class LabelElement implements Element {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryElement2 instead')
 abstract class LibraryElement implements _ExistingElement {
   /// The compilation unit that defines this library.
+  @Deprecated(elementModelDeprecationMsg)
   CompilationUnitElement get definingCompilationUnit;
 
   /// Returns `null`, because libraries are the top-level elements in the model.
@@ -1849,6 +1651,7 @@ abstract class LibraryElement implements _ExistingElement {
   ///
   /// The entry point is defined to be a zero argument top-level function
   /// whose name is `main`.
+  @Deprecated(elementModelDeprecationMsg)
   FunctionElement? get entryPoint;
 
   /// The libraries that are exported from this library.
@@ -1892,6 +1695,7 @@ abstract class LibraryElement implements _ExistingElement {
   /// The element representing the synthetic function `loadLibrary` that is
   /// implicitly defined for this library if the library is imported using a
   /// deferred import.
+  @Deprecated(elementModelDeprecationMsg)
   FunctionElement get loadLibraryFunction;
 
   /// The name of this library, possibly the empty string if this library does
@@ -1920,21 +1724,25 @@ abstract class LibraryElement implements _ExistingElement {
   ///
   /// This includes the defining compilation unit and units included using the
   /// `part` directive.
+  @Deprecated(elementModelDeprecationMsg)
   List<CompilationUnitElement> get units;
 
   /// The class defined in this library that has the given [name], or
   /// `null` if this library does not define a class with the given name.
+  @Deprecated(elementModelDeprecationMsg)
   ClassElement? getClass(String name);
 }
 
 /// A single export directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryExport instead')
 abstract class LibraryExportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `export` directive in
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1951,11 +1759,13 @@ abstract class LibraryExportElement implements _ExistingElement {
 /// A single import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryImport instead')
 abstract class LibraryImportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `import` directive in
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1970,6 +1780,7 @@ abstract class LibraryImportElement implements _ExistingElement {
 
   /// The prefix that was specified as part of the import directive, or `null`
   /// if there was no prefix specified.
+  @Deprecated(elementModelDeprecationMsg)
   ImportElementPrefix? get prefix;
 
   /// The interpretation of the URI specified in the directive.
@@ -1998,11 +1809,13 @@ class LibraryLanguageVersion {
 /// or function (an [ExecutableElement]).
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LocalElement2 instead')
 abstract class LocalElement implements Element {}
 
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LocalVariableFragment and LocalVariableElement2 instead')
 abstract class LocalVariableElement implements PromotableElement {
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
@@ -2014,15 +1827,8 @@ abstract class LocalVariableElement implements PromotableElement {
 /// An element that represents a method defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use MethodElement2 instead')
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
-  @experimental
-  @override
-  MethodElement? get augmentation;
-
-  @experimental
-  @override
-  MethodElement? get augmentationTarget;
-
   @override
   MethodElement get declaration;
 }
@@ -2030,15 +1836,8 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
 /// An element that represents a mixin.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use MixinElement2 instead')
 abstract class MixinElement implements InterfaceElement {
-  @experimental
-  @override
-  MixinElement? get augmentation;
-
-  @experimental
-  @override
-  MixinElement? get augmentationTarget;
-
   /// Whether the mixin is a base mixin.
   ///
   /// A mixin is a base mixin if it has an explicit `base` modifier.
@@ -2069,6 +1868,7 @@ abstract class MixinElement implements InterfaceElement {
 /// and will return useless results.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use MultiplyDefinedElement2 instead')
 abstract class MultiplyDefinedElement implements Element {
   /// The elements that were defined within the scope to have the same name.
   List<Element> get conflictingElements;
@@ -2077,11 +1877,19 @@ abstract class MultiplyDefinedElement implements Element {
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
-sealed class NamespaceCombinator {}
+sealed class NamespaceCombinator {
+  /// The offset of the character immediately following the last character of
+  /// this node.
+  int get end;
+
+  /// The offset of the first character of this node.
+  int get offset;
+}
 
 /// A parameter defined within an executable element.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FormalParameterElement instead')
 abstract class ParameterElement
     implements PromotableElement, ConstantEvaluationTarget {
   @override
@@ -2173,6 +1981,7 @@ abstract class ParameterElement
   ///
   /// A parameter will only define type parameters if it is a function typed
   /// parameter.
+  @Deprecated(elementModelDeprecationMsg)
   List<TypeParameterElement> get typeParameters;
 
   /// Appends the type, name and possibly the default value of this parameter
@@ -2187,6 +1996,7 @@ abstract class ParameterElement
 /// A 'part' directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PartInclude instead')
 abstract class PartElement implements _ExistingElement {
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
@@ -2195,6 +2005,7 @@ abstract class PartElement implements _ExistingElement {
 /// A pattern variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PatternVariableFragment and PatternVariableElement2 instead')
 abstract class PatternVariableElement implements LocalVariableElement {
   /// The variable in which this variable joins with other pattern variables
   /// with the same name, in a logical-or pattern, or shared case scope.
@@ -2204,7 +2015,9 @@ abstract class PatternVariableElement implements LocalVariableElement {
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PrefixElement2 instead')
 abstract class PrefixElement implements _ExistingElement {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -2226,6 +2039,7 @@ abstract class PrefixElement implements _ExistingElement {
 /// variable or a parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PromotableElement2 instead')
 abstract class PromotableElement implements LocalElement, VariableElement {
   // Promotable elements are guaranteed to have a name.
   @override
@@ -2245,15 +2059,8 @@ abstract class PromotableElement implements LocalElement, VariableElement {
 ///   name) induces a field that is represented by a synthetic [FieldElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PropertyAccessorElement2 instead')
 abstract class PropertyAccessorElement implements ExecutableElement {
-  @experimental
-  @override
-  PropertyAccessorElement? get augmentation;
-
-  @experimental
-  @override
-  PropertyAccessorElement? get augmentationTarget;
-
   /// The accessor representing the getter that corresponds to (has the same
   /// name as) this setter, or `null` if this accessor is not a setter or
   /// if there is no corresponding getter.
@@ -2303,24 +2110,8 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 ///   [PropertyInducingElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PropertyInducingElement2 instead')
 abstract class PropertyInducingElement implements VariableElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [PropertyInducingElement.augmentationTarget] points back at this element.
-  @experimental
-  PropertyInducingElement? get augmentation;
-
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations normally ends with a [PropertyInducingElement]
-  /// that is not an augmentation, but might end with `null` immediately or
-  /// after a few intermediate [PropertyInducingElement]s in case of invalid
-  /// code when an augmentation is declared without the corresponding
-  /// declaration.
-  @experimental
-  PropertyInducingElement? get augmentationTarget;
-
   @override
   String get displayName;
 
@@ -2328,6 +2119,7 @@ abstract class PropertyInducingElement implements VariableElement {
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
+  @Deprecated(elementModelDeprecationMsg)
   PropertyAccessorElement? get getter;
 
   /// Whether the variable has an initializer at declaration.
@@ -2353,6 +2145,7 @@ abstract class PropertyInducingElement implements VariableElement {
   /// that does not have a corresponding setter. If this variable was
   /// explicitly defined (is not synthetic) then the setter associated with
   /// it will be synthetic.
+  @Deprecated(elementModelDeprecationMsg)
   PropertyAccessorElement? get setter;
 }
 
@@ -2361,13 +2154,6 @@ abstract class PropertyInducingElement implements VariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ShowElementCombinator implements NamespaceCombinator {
-  /// The offset of the character immediately following the last character of
-  /// this node.
-  int get end;
-
-  /// The offset of the 'show' keyword of this element.
-  int get offset;
-
   /// The names that are to be made visible in the importing library if they
   /// are defined in the imported library.
   List<String> get shownNames;
@@ -2376,6 +2162,7 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// A super formal parameter defined within a constructor element.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use SuperFormalParameterElement2 instead')
 abstract class SuperFormalParameterElement implements ParameterElement {
   /// The associated super-constructor parameter, from the super-constructor
   /// that is referenced by the implicit or explicit super-constructor
@@ -2389,15 +2176,8 @@ abstract class SuperFormalParameterElement implements ParameterElement {
 /// A top-level variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TopLevelVariableElement2 instead')
 abstract class TopLevelVariableElement implements PropertyInducingElement {
-  @experimental
-  @override
-  TopLevelVariableElement? get augmentation;
-
-  @experimental
-  @override
-  TopLevelVariableElement? get augmentationTarget;
-
   @override
   TopLevelVariableElement get declaration;
 
@@ -2408,12 +2188,14 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 /// A type alias (`typedef`).
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeAliasElement2 instead')
 abstract class TypeAliasElement
     implements TypeParameterizedElement, TypeDefiningElement {
   /// If the aliased type has structure, return the corresponding element.
   /// For example it could be [GenericFunctionTypeElement].
   ///
   /// If there is no structure, return `null`.
+  @Deprecated(elementModelDeprecationMsg)
   Element? get aliasedElement;
 
   /// The aliased type.
@@ -2423,6 +2205,7 @@ abstract class TypeAliasElement
   /// a [FunctionType].
   DartType get aliasedType;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -2453,11 +2236,13 @@ abstract class TypeAliasElement
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeDefiningElement2 instead')
 abstract class TypeDefiningElement implements Element {}
 
 /// A type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeParameterElement2 instead')
 abstract class TypeParameterElement implements TypeDefiningElement {
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound. Being able to
@@ -2485,6 +2270,7 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 /// includes functions and methods if support for generic methods is enabled.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeParameterizedElement2 instead')
 abstract class TypeParameterizedElement implements _ExistingElement {
   /// If the element defines a type, indicates whether the type may safely
   /// appear without explicit type parameters as the bounds of a type parameter
@@ -2497,6 +2283,7 @@ abstract class TypeParameterizedElement implements _ExistingElement {
   ///
   /// This does not include type parameters that are declared by any enclosing
   /// elements.
+  @Deprecated(elementModelDeprecationMsg)
   List<TypeParameterElement> get typeParameters;
 }
 
@@ -2506,11 +2293,13 @@ abstract class TypeParameterizedElement implements _ExistingElement {
 /// elements do not make sense and will return useless results.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Not used anymore')
 abstract class UndefinedElement implements Element {}
 
 /// An element included into a library using some URI.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use Element2 instead')
 abstract class UriReferencedElement implements _ExistingElement {
   /// The URI that is used to include this element into the enclosing library,
   /// or `null` if this is the defining compilation unit of a library.
@@ -2528,6 +2317,7 @@ abstract class UriReferencedElement implements _ExistingElement {
 /// variables.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use VariableElement2 instead')
 abstract class VariableElement implements Element, ConstantEvaluationTarget {
   @override
   VariableElement get declaration;
@@ -2577,12 +2367,15 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
 
 /// This class exists to provide non-nullable overrides for existing elements,
 /// as opposite to artificial "multiply defined" element.
+@Deprecated('Use Element2 instead')
 @AnalyzerPublicApi(
     message: 'Exposed because it is implemented by various elements')
 abstract class _ExistingElement implements Element {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   Element get declaration;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   LibraryElement get library;
 

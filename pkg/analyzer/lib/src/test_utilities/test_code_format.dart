@@ -12,23 +12,40 @@ import 'package:collection/collection.dart';
 /// Positions and ranges are marked with brackets inside block comments:
 ///
 /// ```
-/// position ::= '/*' integer '*/
-/// rangeStart ::= '/*[' integer '*/
-/// rangeEnd ::= '/*' integer ']*/
+/// position ::= '/*' integer '*/'
+/// rangeStart ::= '/*[' integer '*/'
+/// rangeEnd ::= '/*' integer ']*/'
 /// ```
 ///
 /// Numbers start at 0 and positions and range starts must be consecutive.
 /// The same numbers can be used to represent both positions and ranges.
 ///
 /// For convenience, a single position can also be marked with a `^` (which
-/// behaves the same as `/*0*/).
+/// behaves the same as `/*0*/`). A single range can be marked with `[!` and
+/// `!]`, which behave the same as `/*[0*/` and `/*0]*/`.
+///
+/// In addition, the pattern `/**/` will be removed from the test code. This is
+/// be used for two purposes.
+///
+/// First, it can prevent certain code from being interpreted as markup. For
+/// example, if the test code includes `[!` (such as in a list literal whose
+/// first element begins with a unary prefix operator), you can use `[/**/!` to
+/// prevent the `[!` from being interpreted as markup. Similarly, you can use
+/// `!/**/]` in places where `!]` should appear in the unmarked code.
+///
+/// Second, it can be used at the end of a line of code that contains trailing
+/// whitespace. Without some form of marker the formatter will remove the
+/// trailing whitespace.
 class TestCode {
   static final _positionShorthand = '^';
+  static final _positionPattern = RegExp(r'/\*(\d+)\*/');
+
   static final _rangeStartShorthand = '[!';
   static final _rangeEndShorthand = '!]';
-  static final _positionPattern = RegExp(r'/\*(\d+)\*/');
   static final _rangeStartPattern = RegExp(r'/\*\[(\d+)\*/');
   static final _rangeEndPattern = RegExp(r'/\*(\d+)\]\*/');
+
+  static final _zeroWidthMarker = '/**/';
 
   /// An empty code block with a single position at offset 0.
   static final empty = TestCode.parse('^');
@@ -60,6 +77,7 @@ class TestCode {
     String markedCode, {
     bool positionShorthand = true,
     bool rangeShorthand = true,
+    bool zeroWidthMarker = true,
   }) {
     var scanner = _StringScanner(markedCode);
     var codeBuffer = StringBuffer();
@@ -118,6 +136,9 @@ class TestCode {
         recordRangeStart(scannedNumber());
       } else if (scanner.scan(_rangeEndPattern)) {
         recordRangeEnd(scannedNumber());
+      } else if (zeroWidthMarker && scanner.scan(_zeroWidthMarker)) {
+        // Don't record any information about zero-width markers, simply remove
+        // the marker from the unmarked code.
       } else {
         codeBuffer.writeCharCode(scanner.readChar());
       }

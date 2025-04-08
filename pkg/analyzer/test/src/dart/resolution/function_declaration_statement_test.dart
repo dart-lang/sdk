@@ -31,8 +31,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: T
-      element: T@17
-      element2: <not-implemented>
+      element2: T@17
       type: T
     name: g
     functionExpression: FunctionExpression
@@ -51,27 +50,24 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element: T@17
-            element2: <not-implemented>
+            element2: T@17
             type: T
           name: a
-          declaredElement: g@15::@parameter::a
+          declaredElement: g@15::@formalParameter::a
             type: T
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
-            element: U@20
-            element2: <not-implemented>
+            element2: U@20
             type: U
           name: b
-          declaredElement: g@15::@parameter::b
+          declaredElement: g@15::@formalParameter::b
             type: U
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
         expression: SimpleIdentifier
           token: a
-          staticElement: g@15::@parameter::a
           element: g@15::@parameter::a#element
           staticType: T
         semicolon: ;
@@ -98,7 +94,6 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: g
@@ -111,8 +106,7 @@ FunctionDeclarationStatement
             extendsKeyword: extends
             bound: NamedType
               name: U
-              element: U@33
-              element2: <not-implemented>
+              element2: U@33
               type: U
             declaredElement: T@20
           TypeParameter
@@ -123,8 +117,7 @@ FunctionDeclarationStatement
             extendsKeyword: extends
             bound: NamedType
               name: U
-              element: U@33
-              element2: <not-implemented>
+              element2: U@33
               type: U
             declaredElement: V@36
         rightBracket: >
@@ -133,29 +126,26 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element: T@20
-            element2: <not-implemented>
+            element2: T@20
             type: T
           name: x
-          declaredElement: g@18::@parameter::x
+          declaredElement: g@18::@formalParameter::x
             type: T
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
-            element: U@33
-            element2: <not-implemented>
+            element2: U@33
             type: U
           name: y
-          declaredElement: g@18::@parameter::y
+          declaredElement: g@18::@formalParameter::y
             type: U
         parameter: SimpleFormalParameter
           type: NamedType
             name: V
-            element: V@36
-            element2: <not-implemented>
+            element2: V@36
             type: V
           name: z
-          declaredElement: g@18::@parameter::z
+          declaredElement: g@18::@formalParameter::z
             type: V
         rightParenthesis: )
       body: BlockFunctionBody
@@ -185,7 +175,6 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: g
@@ -205,13 +194,12 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element: T@20
-              element2: <not-implemented>
+              element2: T@20
               type: T?
             name: a
-            declaredElement: g@18::@parameter::a
+            declaredElement: g@18::@formalParameter::a
               type: T?
-          declaredElement: g@18::@parameter::a
+          declaredElement: g@18::@formalParameter::a
             type: T?
         rightDelimiter: }
         rightParenthesis: )
@@ -242,7 +230,6 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: g
@@ -262,13 +249,12 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element: T@20
-              element2: <not-implemented>
+              element2: T@20
               type: T?
             name: a
-            declaredElement: g@18::@parameter::a
+            declaredElement: g@18::@formalParameter::a
               type: T?
-          declaredElement: g@18::@parameter::a
+          declaredElement: g@18::@formalParameter::a
             type: T?
         rightDelimiter: ]
         rightParenthesis: )
@@ -299,7 +285,6 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: g
@@ -320,13 +305,12 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element: T@20
-              element2: <not-implemented>
+              element2: T@20
               type: T?
             name: a
-            declaredElement: g@18::@parameter::a
+            declaredElement: g@18::@formalParameter::a
               type: T?
-          declaredElement: g@18::@parameter::a
+          declaredElement: g@18::@formalParameter::a
             type: T?
         rightDelimiter: }
         rightParenthesis: )
@@ -357,7 +341,6 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     name: g
@@ -374,11 +357,10 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element: T@20
-            element2: <not-implemented>
+            element2: T@20
             type: T
           name: a
-          declaredElement: g@18::@parameter::a
+          declaredElement: g@18::@formalParameter::a
             type: T
         rightParenthesis: )
       body: BlockFunctionBody

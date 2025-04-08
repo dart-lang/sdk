@@ -5,9 +5,8 @@ publish_to: none
 environment:
   sdk: ^3.5.0
 
+resolution: workspace
+
 dependencies:
   vm_service: any
 
-dependency_overrides:
-  vm_service:
-    path: ../vm_service

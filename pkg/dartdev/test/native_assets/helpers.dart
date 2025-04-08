@@ -191,6 +191,7 @@ Future<void> nativeAssetsTest(
         'native_dynamic_linking',
         'system_library',
         'treeshaking_native_libs',
+        'user_defines',
       ],
       Platform.script.resolve(
           '../../../../third_party/pkg/native/pkgs/native_assets_builder/'),

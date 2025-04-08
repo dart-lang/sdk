@@ -130,13 +130,6 @@ Future<Map<String, dynamic>$NULLABLE> promiseToFutureAsMap(jsPromise) =>
 class HtmlElement extends Element implements NoncedElement {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  HtmlElement.created() : super.created();
-
   // From NoncedElement
   String$NULLABLE get nonce native;
   set nonce(String$NULLABLE value) native;

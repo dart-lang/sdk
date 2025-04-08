@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_null_check_
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 
@@ -53,12 +54,19 @@ class InlineValueHandler
       }
       var lineInfo = unitResult.lineInfo;
 
-      // We will provide values from the start of the visible range up to
-      // the end of the line the debugger is stopped on (which will do by just
-      // jumping to position 0 of the next line).
+      // Compute the ranges for which we will provide values. We produce two
+      // ranges here because for some kinds of variables (simple values) it's
+      // convenient to see them on an `if` statement on the same line that
+      // hasn't executed yet. However, we should avoid evaluating getters which
+      // may have side effects if they haven't executed previously, because this
+      // may change state in a way that's less obvious.
       var visibleRange = params.range;
       var stoppedLocation = params.context.stoppedLocation;
-      var applicableRange = Range(
+      var rangeAlreadyExecuted = Range(
+        start: visibleRange.start,
+        end: stoppedLocation.end,
+      );
+      var rangeIncludingCurrentLine = Range(
         start: visibleRange.start,
         end: Position(line: stoppedLocation.end.line + 1, character: 0),
       );
@@ -75,7 +83,11 @@ class InlineValueHandler
           return success(null);
         }
 
-        var collector = _InlineValueCollector(lineInfo, applicableRange);
+        var collector = _InlineValueCollector(
+          lineInfo,
+          rangeAlreadyExecuted: rangeAlreadyExecuted,
+          rangeIncludingCurrentLine: rangeIncludingCurrentLine,
+        );
         var visitor = _InlineValueVisitor(
           server.lspClientConfiguration,
           collector,
@@ -113,17 +125,28 @@ class _InlineValueCollector {
   /// A map of elements and their inline value.
   final Map<Element2, InlineValue> values = {};
 
-  /// The range for which inline values should be retained.
+  /// The range for which simple inline values should be returned.
+  ///
+  /// This should be approximately the range of the visible code on screen up to
+  /// the point of execution and including the current line.
+  final Range rangeIncludingCurrentLine;
+
+  /// The range for which complex inline values (such as getters) should be
+  /// returned.
   ///
   /// This should be approximately the range of the visible code on screen up to
   /// the point of execution.
-  final Range applicableRange;
+  final Range rangeAlreadyExecuted;
 
   /// A [LineInfo] used to convert offsets to lines/columns for comparing to
   /// [applicableRange].
   final LineInfo lineInfo;
 
-  _InlineValueCollector(this.lineInfo, this.applicableRange);
+  _InlineValueCollector(
+    this.lineInfo, {
+    required this.rangeAlreadyExecuted,
+    required this.rangeIncludingCurrentLine,
+  });
 
   /// Records an expression inline value for [element] with [offset]/[length].
   ///
@@ -135,6 +158,11 @@ class _InlineValueCollector {
     if (element == null) return;
 
     var range = toRange(lineInfo, offset, length);
+
+    // Don't record anything outside of the visible range (excluding next line).
+    if (!range.intersects(rangeAlreadyExecuted)) {
+      return;
+    }
 
     var value = InlineValue.t1(
       InlineValueEvaluatableExpression(
@@ -158,6 +186,11 @@ class _InlineValueCollector {
 
     var range = toRange(lineInfo, offset, length);
 
+    // Don't record anything outside of the visible range (including next line).
+    if (!range.intersects(rangeIncludingCurrentLine)) {
+      return;
+    }
+
     var value = InlineValue.t3(
       InlineValueVariableLookup(
         caseSensitiveLookup: true,
@@ -178,15 +211,37 @@ class _InlineValueCollector {
     );
   }
 
+  /// Returns whether [element] is something that should never be eagerly
+  /// evaluated because of potential side-effects (such as `iterable.length`).
+  bool _isExcludedElement(Element2 element) {
+    return switch (element) {
+      VariableElement2() => _isExcludedType(element.type),
+      GetterElement() => _isExcludedType(element.returnType),
+      _ => false,
+    };
+  }
+
+  /// Returns whether [type] is something that should never be eagerly
+  /// evaluated because of potential side-effects (such as `iterable.length`).
+  bool _isExcludedType(DartType? type) {
+    if (type == null) {
+      return false;
+    }
+    return type.isDartCoreIterable ||
+        type.isDartAsyncFuture ||
+        type.isDartAsyncFutureOr ||
+        type.isDartAsyncStream;
+  }
+
   /// Records an inline value [value] for [element] if it is within range and is
   /// the latest one in the source for that element.
   void _record(InlineValue value, Element2 element) {
-    var range = _getRange(value);
-
-    // Never record anything outside of the visible range.
-    if (!range.intersects(applicableRange)) {
+    // Don't create values for any elements that are excluded types.
+    if (_isExcludedElement(element)) {
       return;
     }
+
+    var range = _getRange(value);
 
     // We only want to show each variable once, so keep only the one furthest
     // into the source (closest to the execution pointer).
@@ -239,11 +294,22 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (experimentalInlineValuesProperties) {
+      // Don't create values for excluded types or access of their properties.
+      if (collector._isExcludedType(node.prefix.staticType)) {
+        return;
+      }
+
       var parent = node.parent;
 
       // Never produce values for the left side of a property access.
       var isTarget = parent is PropertyAccess && node == parent.realTarget;
-      if (!isTarget) {
+
+      // Never produce values for obvious enum getters (this includes `values`).
+      var isEnumGetter =
+          node.element is GetterElement &&
+          node.element?.enclosingElement2 is EnumElement2;
+
+      if (!isTarget && !isEnumGetter) {
         collector.recordExpression(node.element, node.offset, node.length);
       }
     }
@@ -253,7 +319,13 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (experimentalInlineValuesProperties && node.target is Identifier) {
+    var target = node.target;
+    if (experimentalInlineValuesProperties && target is Identifier) {
+      // Don't create values for excluded types or access of their properties.
+      if (collector._isExcludedType(target.staticType)) {
+        return;
+      }
+
       collector.recordExpression(
         node.canonicalElement,
         node.offset,

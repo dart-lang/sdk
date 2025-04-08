@@ -31,7 +31,7 @@ static extension-member method E|[](lowered final core::String #this, core::int 
   return 42;
 static method warning(core::String s, core::List<core::String> l, core::Map<core::String, core::int> m) → dynamic {
   let final core::String #t2 = s in #t2 == null ?{core::int?} null : #t2.{core::String::length}{core::int};
-  let final core::String #t3 = s in #t3 == null ?{core::String} null : block {
+  let final core::String #t3 = s in #t3 == null ?{core::String} #t3 : block {
     #t3.{core::String::length}{core::int};
   } =>#t3;
   let final core::String #t4 = s in #t4 == null ?{core::String} "foo" : #t4;
@@ -75,10 +75,10 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   let final core::String #t20 = s in let final core::int #t21 = 42 in self::E|[](#t20, #t21) == null ?{core::int?} self::E|[]=(#t20, #t21, 42) : null;
   let final core::List<core::String> #t22 = l in let final core::int #t23 = 42 in #t22.{core::List::[]}(#t23){(core::int) → core::String} == null ?{core::String?} #t22.{core::List::[]=}(#t23, "foo"){(core::int, core::String) → void} : null;
   let final core::List<core::String> #t24 = l in #t24.{core::List::length}{core::int} == null ?{core::int?} #t24.{core::List::length} = 42 : null;
-  let final core::List<core::String> #t25 = l in #t25 == null ?{core::List<core::String>} null : block {
+  let final core::List<core::String> #t25 = l in #t25 == null ?{core::List<core::String>} #t25 : block {
     #t25.{core::List::length} = 42;
   } =>#t25;
-  let final core::List<core::String> #t26 = l in #t26 == null ?{core::List<core::String>} null : block {
+  let final core::List<core::String> #t26 = l in #t26 == null ?{core::List<core::String>} #t26 : block {
     let final core::List<core::String> #t27 = #t26 in #t27.{core::List::length}{core::int} == null ?{core::int?} #t27.{core::List::length} = 42 : null;
   } =>#t26;
 }

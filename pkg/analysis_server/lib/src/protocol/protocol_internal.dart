@@ -15,6 +15,8 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 export 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     show JsonDecoder;
 
+// Ignored for legacy code reasons; this variable is used across a few packages.
+// ignore: non_constant_identifier_names
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
 

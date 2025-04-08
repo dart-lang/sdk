@@ -22,7 +22,7 @@ class InvertConditionalExpressionTest extends AssistProcessorTest {
   Future<void> test_thenStatement_elseStatement_on_colon() async {
     await resolveTestCode('''
 void f() {
-  true ? 0 /*caret*/: 1;
+  true ? 0 ^: 1;
 }
 ''');
     await assertHasAssist('''
@@ -35,7 +35,7 @@ void f() {
   Future<void> test_thenStatement_elseStatement_on_condition() async {
     await resolveTestCode('''
 void f() {
-  /*caret*/true ? 0 : 1;
+  ^true ? 0 : 1;
 }
 ''');
     await assertHasAssist('''
@@ -49,7 +49,7 @@ void f() {
   test_thenStatement_elseStatement_on_conditionParentheses() async {
     await resolveTestCode('''
 void f() {
-  (t/*caret*/rue) ? 0 : 1;
+  (t^rue) ? 0 : 1;
 }
 ''');
     await assertHasAssist('''
@@ -63,7 +63,7 @@ void f() {
   test_thenStatement_elseStatement_on_conditionTestParentheses() async {
     await resolveTestCode('''
 void f() {
-  (1 ==/*caret*/ 1) ? 0 : 1;
+  (1 ==^ 1) ? 0 : 1;
 }
 ''');
     await assertHasAssist('''
@@ -76,7 +76,7 @@ void f() {
   Future<void> test_thenStatement_elseStatement_on_else() async {
     await resolveTestCode('''
 void f() {
-  true ? 0 : /*caret*/1;
+  true ? 0 : ^1;
 }
 ''');
     await assertHasAssist('''
@@ -89,7 +89,7 @@ void f() {
   Future<void> test_thenStatement_elseStatement_on_question() async {
     await resolveTestCode('''
 void f() {
-  true /*caret*/? 0 : 1;
+  true ^? 0 : 1;
 }
 ''');
     await assertHasAssist('''
@@ -102,7 +102,7 @@ void f() {
   Future<void> test_thenStatement_elseStatement_on_then() async {
     await resolveTestCode('''
 void f() {
-  true ? /*caret*/0 : 1;
+  true ? ^0 : 1;
 }
 ''');
     await assertHasAssist('''
@@ -116,7 +116,7 @@ void f() {
   test_thenStatement_elseStatement_on_thenAsyncParenthesizedFunction() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? await (f/*caret*/n()) : 1;
+  (true) ? await (f^n()) : 1;
 }
 
 Future<int> fn() async => 0;
@@ -133,7 +133,7 @@ Future<int> fn() async => 0;
   Future<void> test_thenStatement_elseStatement_on_thenLambda() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? () =>/*caret*/ 1 : 1;
+  (true) ? () =>^ 1 : 1;
 }
 ''');
     await assertNoAssist();
@@ -142,7 +142,7 @@ void f() async {
   Future<void> test_thenStatement_elseStatement_on_thenLambdaBody() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? () => /*caret*/1 : 1;
+  (true) ? () => ^1 : 1;
 }
 ''');
     await assertNoAssist();
@@ -152,7 +152,7 @@ void f() async {
   test_thenStatement_elseStatement_on_thenLambdaParameters() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? (/*caret*/) => 1 : 1;
+  (true) ? (^) => 1 : 1;
 }
 ''');
     await assertNoAssist();
@@ -162,7 +162,7 @@ void f() async {
   test_thenStatement_elseStatement_on_thenLambdaParenthesized() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? (/*caret*/() => 1) : 1;
+  (true) ? (^() => 1) : 1;
 }
 ''');
     await assertNoAssist();
@@ -172,7 +172,7 @@ void f() async {
   test_thenStatement_elseStatement_on_thenParenthesesAsyncFunction() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? (await f/*caret*/n()) : 1;
+  (true) ? (await f^n()) : 1;
 }
 
 Future<void> fn() async {}
@@ -190,7 +190,7 @@ Future<void> fn() async {}
   test_thenStatement_elseStatement_on_thenParenthesesFunction() async {
     await resolveTestCode('''
 void f() {
-  (true) ? (f/*caret*/n()) : 1;
+  (true) ? (f^n()) : 1;
 }
 
 void fn() {}
@@ -208,7 +208,7 @@ void fn() {}
   test_thenStatement_elseStatement_on_thenParenthesesFunctionResultExpression() async {
     await resolveTestCode('''
 void f() {
-  (true) ? (f/*caret*/n() && false) : 1;
+  (true) ? (f^n() && false) : 1;
 }
 
 bool fn() => true;
@@ -226,7 +226,7 @@ bool fn() => true;
   test_thenStatement_elseStatement_on_thenParenthesesTearoff() async {
     await resolveTestCode('''
 void f() {
-  (true) ? (f/*caret*/n) : 1;
+  (true) ? (f^n) : 1;
 }
 
 void fn() {}
@@ -243,7 +243,7 @@ void fn() {}
   Future<void> test_thenStatement_elseStatement_on_thenParenthesized() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? /*caret*/(() => 1) : 1;
+  (true) ? ^(() => 1) : 1;
 }
 ''');
     await assertHasAssist('''
@@ -256,7 +256,7 @@ void f() async {
   Future<void> test_thenStatement_elseStatement_on_thenSumExp() async {
     await resolveTestCode('''
 void f() async {
-  (true) ? (1 + /*caret*/2) : 1;
+  (true) ? (1 + ^2) : 1;
 }
 ''');
     await assertHasAssist('''

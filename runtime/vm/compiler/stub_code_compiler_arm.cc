@@ -222,8 +222,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ Ret();
 }
 
-static void GenerateExitSafepointStubCommon(Assembler* assembler,
-                                            uword runtime_entry_offset) {
+void StubCodeCompiler::GenerateExitSafepointStub() {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
@@ -232,29 +231,13 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ ReserveAlignedFrameSpace(0);
 
   __ VerifyNotInGenerated(R0);
-  // Set the execution state to VM while waiting for the safepoint to end.
-  // This isn't strictly necessary but enables tests to check that we're not
-  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
-  __ LoadImmediate(R0, target::Thread::vm_execution_state());
-  __ str(R0, Address(THR, target::Thread::execution_state_offset()));
 
-  __ ldr(R0, Address(THR, runtime_entry_offset));
+  __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
   __ PopRegisters(all_registers);
   __ Ret();
-}
-
-void StubCodeCompiler::GenerateExitSafepointStub() {
-  GenerateExitSafepointStubCommon(
-      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
-}
-
-void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
-  GenerateExitSafepointStubCommon(
-      assembler,
-      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Call a native function within a safepoint.
@@ -447,15 +430,16 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ EnterFrame(1 << FP, 0);
-    __ ReserveAlignedFrameSpace(0);
-
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, R4);
+        FfiCallbackMetadata::kExitTemporaryIsolate, R0);
 
-    __ blx(R4);
+    CLOBBERS_LR(__ PopList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
 
-    __ LeaveFrame(1 << FP);
+    // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
+    // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
+    // enough for VM shutdown.
+    __ bx(R0);
+    __ Breakpoint();
   }
 
   __ Bind(&done);
@@ -3059,32 +3043,13 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   COMPILE_ASSERT(kStackTraceObjectReg == R1);
   COMPILE_ASSERT(IsAbiPreservedRegister(R4));
   COMPILE_ASSERT(IsAbiPreservedRegister(THR));
-  __ mov(IP, Operand(R1));  // Copy Stack pointer into IP.
-  // TransitionGeneratedToNative might clobber LR if it takes the slow path.
   __ mov(R4, Operand(R0));   // Program counter.
   __ mov(THR, Operand(R3));  // Thread.
   __ mov(FP, Operand(R2));   // Frame_pointer.
-  __ mov(SP, Operand(IP));   // Set Stack pointer.
+  __ mov(SP, Operand(R1));   // Set Stack pointer.
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
-  Label exit_through_non_ffi;
-  Register tmp1 = R0, tmp2 = R1;
-  // Check if we exited generated from FFI. If so do transition - this is needed
-  // because normally runtime calls transition back to generated via destructor
-  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
-  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
-  // have this boilerplate, don't have this stack resource, have to transition
-  // explicitly.
-  __ LoadFromOffset(tmp1, THR,
-                    compiler::target::Thread::exit_through_ffi_offset());
-  __ LoadImmediate(tmp2, target::Thread::exit_through_ffi());
-  __ cmp(tmp1, Operand(tmp2));
-  __ b(&exit_through_non_ffi, NE);
-  __ TransitionNativeToGenerated(tmp1, tmp2,
-                                 /*exit_safepoint=*/true,
-                                 /*ignore_unwind_in_progress=*/true);
-  __ Bind(&exit_through_non_ffi);
 
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);

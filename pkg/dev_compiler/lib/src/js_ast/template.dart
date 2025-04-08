@@ -158,7 +158,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   static Instantiator<T> same<T extends Node>(T node) => (arguments) => node;
-  static Null makeNull(arguments) => null;
+  static Null makeNull(dynamic arguments) => null;
 
   Instantiator visit<T extends Node>(T node) {
     if (forceCopy || analysis.containsInterpolatedNodes(node)) {

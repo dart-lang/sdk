@@ -56,7 +56,6 @@ class C<V> extends B<V> {
       declaration: A_key,
       substitution: {
         'T': 'V',
-        'U': 'V',
       },
     );
   }
@@ -77,8 +76,7 @@ class B extends A {
 SuperFormalParameter
   type: NamedType
     name: T
-    element: T@62
-    element2: <not-implemented>
+    element2: T@62
     type: T
   superKeyword: super
   period: .
@@ -95,14 +93,13 @@ SuperFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: b
-      declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a::@parameter::b
+      declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a::@formalParameter::b
         type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
     type: T Function<T>(int)
 ''');
   }
@@ -120,7 +117,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@function::f::@parameter::a
+  declaredElement: <testLibraryFragment>::@function::f::@formalParameter::a
     type: dynamic
 ''');
   }
@@ -164,7 +161,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
     type: int?
 ''');
   }
@@ -209,7 +206,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
     type: int
 ''');
   }
@@ -232,7 +229,6 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@class::A::@getter::a
   element: <testLibraryFragment>::@class::A::@getter::a#element
   staticType: int
 ''');
@@ -254,7 +250,6 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
   staticType: int
 ''');

@@ -41,7 +41,7 @@ abstract class FutureOr<T> {
   // Private generative constructor, so that it is not subclassable, mixable,
   // or instantiable.
   FutureOr._() {
-    throw new UnsupportedError("FutureOr cannot be instantiated");
+    throw UnsupportedError("FutureOr cannot be instantiated");
   }
 }
 
@@ -235,7 +235,7 @@ abstract interface class Future<T> {
   static final _Future<void> _nullFuture = nullFuture as _Future<void>;
 
   /// A `Future<bool>` completed with `false`.
-  static final _Future<bool> _falseFuture = new _Future<bool>.zoneValue(
+  static final _Future<bool> _falseFuture = _Future<bool>.zoneValue(
     false,
     _rootZone,
   );
@@ -253,7 +253,7 @@ abstract interface class Future<T> {
   /// If a non-future value is returned, the returned future is completed
   /// with that value.
   factory Future(FutureOr<T> computation()) {
-    _Future<T> result = new _Future<T>();
+    _Future<T> result = _Future<T>();
     Timer.run(() {
       FutureOr<T> computationResult;
       try {
@@ -280,7 +280,7 @@ abstract interface class Future<T> {
   /// If calling [computation] returns a non-future value,
   /// the returned future is completed with that value.
   factory Future.microtask(FutureOr<T> computation()) {
-    _Future<T> result = new _Future<T>();
+    _Future<T> result = _Future<T>();
     scheduleMicrotask(() {
       FutureOr<T> computationResult;
       try {
@@ -348,7 +348,7 @@ abstract interface class Future<T> {
   @pragma("vm:entry-point")
   @pragma("vm:prefer-inline")
   factory Future.value([FutureOr<T>? value]) {
-    return new _Future<T>.immediate(value == null ? value as T : value);
+    return _Future<T>.immediate(value == null ? value as T : value);
   }
 
   /// Creates a future that completes with an error.
@@ -410,7 +410,7 @@ abstract interface class Future<T> {
       );
     }
     _Future<T> result = _Future<T>();
-    new Timer(duration, () {
+    Timer(duration, () {
       if (computation == null) {
         result._complete(null as T);
       } else {
@@ -612,7 +612,7 @@ abstract interface class Future<T> {
   /// }
   /// ```
   static Future<T> any<T>(Iterable<Future<T>> futures) {
-    var completer = new Completer<T>.sync();
+    var completer = Completer<T>.sync();
     void onValue(T value) {
       if (!completer.isCompleted) completer.complete(value);
     }
@@ -697,7 +697,7 @@ abstract interface class Future<T> {
   /// // Outputs: 'Finished with 3'
   /// ```
   static Future<void> doWhile(FutureOr<bool> action()) {
-    _Future<void> doneSignal = new _Future<void>();
+    _Future<void> doneSignal = _Future<void>();
     late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
@@ -1192,7 +1192,7 @@ abstract interface class Completer<T> {
   ///   completer.complete('completion value');
   /// }
   /// ```
-  factory Completer() => new _AsyncCompleter<T>();
+  factory Completer() => _AsyncCompleter<T>();
 
   /// Completes the future synchronously.
   ///
@@ -1243,7 +1243,7 @@ abstract interface class Completer<T> {
   ///   foo();  // In this case, foo() runs after bar().
   /// });
   /// ```
-  factory Completer.sync() => new _SyncCompleter<T>();
+  factory Completer.sync() => _SyncCompleter<T>();
 
   /// The future that is completed by this completer.
   ///

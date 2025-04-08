@@ -145,7 +145,7 @@ class MetadataCollector implements js_ast.TokenFinalizer {
     return _addTypeInOutputUnit(type, outputUnit);
   }
 
-  js_ast.Expression _computeTypeRepresentationNewRti(DartType type) {
+  js_ast.Expression _computeTypeRepresentation(DartType type) {
     return _rtiRecipeEncoder.encodeGroundRecipe(
       _emitter,
       TypeExpressionRecipe(type),
@@ -156,7 +156,7 @@ class MetadataCollector implements js_ast.TokenFinalizer {
     final typeMap = _typesMap[outputUnit] ??= {};
     final metadataEntryList =
         (typeMap[type] ??= [
-          BoundMetadataEntry(_computeTypeRepresentationNewRti(type)),
+          BoundMetadataEntry(_computeTypeRepresentation(type)),
         ]);
     return metadataEntryList.single;
   }

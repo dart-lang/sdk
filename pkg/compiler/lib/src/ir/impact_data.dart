@@ -108,7 +108,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   CompilerOptions get _options => _elementMap.options;
 
   String _typeToString(DartType type) =>
-      type.toStructuredText(_elementMap.types, _elementMap.options);
+      type.toStructuredText(_elementMap.types);
 
   /// Return the named arguments names as a list of strings.
   List<String> _getNamedArguments(ir.Arguments arguments) =>

@@ -33,11 +33,10 @@ ExportDirective
       hiddenNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::<fragment>::@class::Random
           element: dart:math::@class::Random
           staticType: null
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -62,11 +61,10 @@ ExportDirective
       hiddenNames
         SimpleIdentifier
           token: Unresolved
-          staticElement: <null>
           element: <null>
           staticType: null
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -89,11 +87,10 @@ ExportDirective
       shownNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::<fragment>::@class::Random
           element: dart:math::@class::Random
           staticType: null
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -118,11 +115,10 @@ ExportDirective
       shownNames
         SimpleIdentifier
           token: Unresolved
-          staticElement: <null>
           element: <null>
           staticType: null
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: dart:math
 ''');
@@ -158,17 +154,14 @@ ExportDirective
         components
           SimpleIdentifier
             token: dart
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: library
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: html
-            staticElement: <null>
             element: <null>
             staticType: null
       rightParenthesis: )
@@ -183,17 +176,14 @@ ExportDirective
         components
           SimpleIdentifier
             token: dart
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: library
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: io
-            staticElement: <null>
             element: <null>
             staticType: null
       rightParenthesis: )
@@ -202,7 +192,7 @@ ExportDirective
       resolvedUri: DirectiveUriWithSource
         source: package:test/a_io.dart
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
 ''');
@@ -238,17 +228,14 @@ ExportDirective
         components
           SimpleIdentifier
             token: dart
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: library
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: html
-            staticElement: <null>
             element: <null>
             staticType: null
       rightParenthesis: )
@@ -263,17 +250,14 @@ ExportDirective
         components
           SimpleIdentifier
             token: dart
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: library
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: io
-            staticElement: <null>
             element: <null>
             staticType: null
       rightParenthesis: )
@@ -282,7 +266,7 @@ ExportDirective
       resolvedUri: DirectiveUriWithSource
         source: package:test/a_io.dart
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:test/a_html.dart
 ''');
@@ -318,17 +302,14 @@ ExportDirective
         components
           SimpleIdentifier
             token: dart
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: library
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: html
-            staticElement: <null>
             element: <null>
             staticType: null
       rightParenthesis: )
@@ -343,17 +324,14 @@ ExportDirective
         components
           SimpleIdentifier
             token: dart
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: library
-            staticElement: <null>
             element: <null>
             staticType: null
           SimpleIdentifier
             token: io
-            staticElement: <null>
             element: <null>
             staticType: null
       rightParenthesis: )
@@ -362,7 +340,7 @@ ExportDirective
       resolvedUri: DirectiveUriWithSource
         source: package:test/a_io.dart
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:test/a_io.dart
 ''');
@@ -382,7 +360,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
 ''');
@@ -402,7 +380,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
 ''');
@@ -427,7 +405,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'package:foo/foo.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:foo/foo.dart
 ''');
@@ -461,7 +439,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: ':net'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
 ''');
@@ -492,7 +470,7 @@ ExportDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUri
 ''');
   }
@@ -511,7 +489,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'foo:bar'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
 ''');
@@ -535,7 +513,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithSource
       source: package:test/a.dart
 ''');
@@ -559,7 +537,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithSource
       source: package:test/a.dart
 ''');
@@ -587,7 +565,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'package:foo/foo2.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithSource
       source: package:foo/foo2.dart
 ''');
@@ -615,7 +593,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
 ''');
@@ -643,7 +621,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
 ''');
@@ -671,7 +649,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: ':net'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
 ''');
@@ -710,7 +688,7 @@ ExportDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUri
 ''');
   }
@@ -737,7 +715,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'foo:bar'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
 ''');
@@ -769,7 +747,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithSource
       source: package:test/c.dart
 ''');
@@ -801,7 +779,7 @@ ExportDirective
   uri: SimpleStringLiteral
     literal: 'c.dart'
   semicolon: ;
-  element: LibraryExportElement
+  libraryExport: LibraryExport
     uri: DirectiveUriWithSource
       source: package:test/c.dart
 ''');
