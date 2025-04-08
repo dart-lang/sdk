@@ -181,6 +181,8 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
   bool _hasInteropType = false;
   final _visitedTypes = <DartType>{};
 
+  InteropTypeChecker() : super(includeTypeAliasArguments: false);
+
   bool hasInteropType(DartType type) {
     _hasInteropType = false;
     _visitedTypes.clear();
