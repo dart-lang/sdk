@@ -26,7 +26,7 @@ Update the commit message accordingly:
 
 1. Add a `[beta]` or `[stable]` gerrit hashtag at the start of the first line.
 2. Rename the `Reviewed-on` field to `Cherry-pick` to link to the original
-   changelist being cherry-picked.\
+   changelist being cherry-picked.
 3. Remove the conflicting fields `Change-id`, `Commit-queue`, `Reviewed-by` that
    are not true of the new changelist.
 4. Fill out the changelist description with the following information:
