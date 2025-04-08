@@ -607,14 +607,6 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
                             bool clear_deopt_at_target) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
 
-#if defined(DART_DYNAMIC_MODULES)
-  Interpreter* interpreter = thread->interpreter();
-  if ((interpreter != nullptr) && interpreter->HasFrame(frame_pointer)) {
-    interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
-                             thread);
-  }
-#endif  // defined(DART_DYNAMIC_MODULES)
-
   const uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
@@ -622,6 +614,14 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
   StackResource::Unwind(thread);
+
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter = thread->interpreter();
+  if ((interpreter != nullptr) && interpreter->HasFrame(frame_pointer)) {
+    interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
+                             thread);
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
 
   // If execution exited generated code through FFI then exit the safepoint
   // and transition back to kThreadInGenerated execution state. JumpToFrame
