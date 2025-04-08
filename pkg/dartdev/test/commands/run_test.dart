@@ -1062,6 +1062,50 @@ void residentRun() {
     );
   });
 
+  test('passing --resident is a prerequisite for passing --quiet', () async {
+    p = project(mainSrc: 'void main() {}');
+    final result = await p.run([
+      'run',
+      '--$quietOption',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 255);
+    expect(
+      result.stderr,
+      contains(
+        'Error: the --resident flag must be passed whenever the --quiet flag is '
+        'passed.',
+      ),
+    );
+  });
+
+  test('passing --quiet hides the resident compiler startup message', () async {
+    p = project(mainSrc: 'void main() {}');
+
+    // First, shut down the compiler started in [setUp].
+    await p.run([
+      'compilation-server',
+      'shutdown',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+    ]);
+
+    final result = await p.run([
+      'run',
+      '--$residentOption',
+      '--$quietOption',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout,
+      isNot(contains(residentFrontendCompilerPrefix)),
+    );
+    expect(result.stderr, isEmpty);
+  });
+
   test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
 

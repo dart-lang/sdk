@@ -49,11 +49,15 @@ Future<DartExecutableWithPackageConfig> generateKernel(
   File serverInfoFile,
   ArgResults args,
   CompileRequestGeneratorCallback compileRequestGenerator, {
+  required bool quiet,
   bool aot = false,
 }) async {
   // Locates the package_config.json and cached kernel file, makes sure the
   // resident frontend server is up and running, and computes a kernel.
-  await ensureCompilationServerIsRunning(serverInfoFile);
+  await ensureCompilationServerIsRunning(
+    serverInfoFile,
+    quiet: quiet,
+  );
 
   final packageRoot = _packageRootFor(executable);
   final packageConfig =
@@ -102,8 +106,9 @@ Future<DartExecutableWithPackageConfig> generateKernel(
 /// completes. Throws a [FrontendCompilerException] if starting the server
 /// fails.
 Future<void> ensureCompilationServerIsRunning(
-  File serverInfoFile,
-) async {
+  File serverInfoFile, {
+  required bool quiet,
+}) async {
   if (serverInfoFile.existsSync()) {
     final residentCompilerInfo = ResidentCompilerInfo.fromFile(serverInfoFile);
     if (residentCompilerInfo.sdkHash != null &&
@@ -113,11 +118,13 @@ Future<void> ensureCompilationServerIsRunning(
       // the user is currently using.
       return;
     } else {
-      log.stderr(
-        'The Dart SDK has been upgraded or downgraded since the Resident '
-        'Frontend Compiler was started, so the Resident Frontend Compiler will '
-        'now be restarted for compatibility reasons.',
-      );
+      if (!quiet) {
+        log.stderr(
+          'The Dart SDK has been upgraded or downgraded since the Resident '
+          'Frontend Compiler was started, so the Resident Frontend Compiler will '
+          'now be restarted for compatibility reasons.',
+        );
+      }
       await shutDownOrForgetResidentFrontendCompiler(serverInfoFile);
     }
   }
@@ -153,11 +160,14 @@ Future<void> ensureCompilationServerIsRunning(
     if (serverOutput.startsWith('Error')) {
       throw StateError(serverOutput);
     }
-    // Prints the server's address and port information
-    log.stdout(serverOutput);
-    log.stdout('');
-    log.stdout(
-        'Run dart compilation-server shutdown to terminate the process.');
+    if (!quiet) {
+      // Prints the server's address and port information
+      log.stdout(serverOutput);
+      log.stdout('');
+      log.stdout(
+        'Run dart compilation-server shutdown to terminate the process.',
+      );
+    }
   } catch (e) {
     throw FrontendCompilerException._(
       e.toString(),

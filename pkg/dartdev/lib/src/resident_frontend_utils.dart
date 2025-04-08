@@ -167,7 +167,7 @@ String createCompileJitJson({
             .toList(),
       if (packages != null) packageString: packages,
       if (args.wasParsed(verbosityOption))
-        verbosityOption: args.flag(verbosityOption),
+        verbosityOption: args[verbosityOption],
     },
   );
 }

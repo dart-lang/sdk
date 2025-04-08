@@ -144,7 +144,7 @@ vars = {
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "test_rev": "c1fa1e692084a9aab83a171cdcffcc4087e8e40b",
-  "tools_rev": "62bc13bc086a66ce9a6a3e64865c82d17a1379b3", # dart-lang/tools/pull/2034
+  "tools_rev": "8d49319b95912a5dff3d7ba4cd861458c55c5608", # dart-lang/tools/pull/2065
   "vector_math_rev": "f08d7d2652e9ecf7d8f8605d9983335174511c95",
   "web_rev": "5a39fdc396ae40344308975140343c23b6863261",
   "webdev_rev": "697f2f7f56517b0678c6256e0834778905acfc0d",

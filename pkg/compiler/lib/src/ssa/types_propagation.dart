@@ -441,40 +441,6 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     AbstractValue receiverType = receiver.instructionType;
     node.updateReceiverType(abstractValueDomain, receiverType);
 
-    // Try to refine that the receiver is not null after this call by inserting
-    // a refinement node (HTypeKnown).
-    var selector = node.selector;
-    if (!selector.isMaybeClosureCall && !selector.appliesToNullWithoutThrow()) {
-      var next = node.next;
-      if (next is HTypeKnown && next.checkedInput == receiver) {
-        // On a previous pass or iteration we already refined [receiver] by
-        // inserting a [HTypeKnown] instruction. That replaced several dominated
-        // uses with the refinement. We update the type of the [HTypeKnown]
-        // instruction because it may have been refined with a correct type at
-        // the time, but incorrect now.
-        AbstractValue newType = abstractValueDomain.excludeNull(receiverType);
-        if (next.instructionType != newType) {
-          next.knownType = next.instructionType = newType;
-          addDependentInstructionsToWorkList(next);
-        }
-      } else if (abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
-        DominatedUses uses = DominatedUses.of(
-          receiver,
-          node,
-          excludeDominator: true,
-        );
-        if (uses.isNotEmpty) {
-          // Insert a refinement node after the call and update all users
-          // dominated by the call to use that node instead of [receiver].
-          AbstractValue newType = abstractValueDomain.excludeNull(receiverType);
-          HTypeKnown converted = HTypeKnown.witnessed(newType, receiver, node);
-          node.block!.addBefore(node.next, converted);
-          uses.replaceWith(converted);
-          addDependentInstructionsToWorkList(converted);
-        }
-      }
-    }
-
     var result = node.specializer.computeTypeFromInputTypes(
       node,
       results,
