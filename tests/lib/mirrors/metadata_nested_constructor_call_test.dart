@@ -52,13 +52,10 @@ final closure = () => 42;
 @Box(closure())
 //   ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [cfe] Method invocation is not a constant expression.
 // [cfe] Not a constant expression.
 class J {}
 
 @Box(closure)
-// [error column 2]
-// [cfe] Constant evaluation error:
 //   ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
 // [cfe] Not a constant expression.

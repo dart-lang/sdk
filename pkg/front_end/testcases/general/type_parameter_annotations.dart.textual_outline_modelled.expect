@@ -1,0 +1,25 @@
+class Annotation {
+  const Annotation(dynamic d);
+}
+
+class C {
+  static void bar() {}
+  void method<@Annotation(foo) T, @Annotation(bar) U>(dynamic foo) {}
+}
+
+class Class<@Annotation(foo) T> {
+  static void foo() {}
+}
+
+extension Extension<@Annotation(foo) T> on Class<T> {
+  static void foo() {}
+  void extensionMethod<@Annotation(foo) T, @Annotation(bar) U>() {}
+}
+
+mixin Mixin<@Annotation(foo) T> {
+  static void foo() {}
+}
+
+typedef Typedef<@Annotation(foo) T> = void Function<foo>();
+
+void function<@Annotation(foo) T>(dynamic foo) {}

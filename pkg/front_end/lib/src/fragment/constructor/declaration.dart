@@ -13,7 +13,6 @@ import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../base/name_space.dart';
 import '../../base/scope.dart';
-import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -21,6 +20,7 @@ import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
@@ -201,7 +201,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
     // parameter initializer scope.
 
     if (formals == null) return parent;
-    Map<String, Builder> local = {};
+    Map<String, VariableBuilder> local = {};
     for (FormalParameterBuilder formal in formals!) {
       // Wildcard initializing formal parameters do not introduce a local
       // variable in the initializer list.
@@ -504,7 +504,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   LocalScope computeFormalParameterScope(LookupScope parent) {
     if (formals == null) return new FormalParameterScope(parent: parent);
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
     for (FormalParameterBuilder formal in formals!) {
       if (formal.isWildcard) {
         continue;

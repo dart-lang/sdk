@@ -29,6 +29,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/variable_builder.dart';
 import '../kernel/body_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constness.dart';

@@ -145,6 +145,7 @@ class DillFieldBuilder extends DillMemberBuilder implements PropertyBuilder {
   Reference? get invokeTargetReference => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isField => true;
 
   @override
@@ -152,6 +153,9 @@ class DillFieldBuilder extends DillMemberBuilder implements PropertyBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get hasSetter => field.hasSetter;
+
+  @override
   bool get isConst => field.isConst;
 
   @override
@@ -162,12 +166,17 @@ class DillFieldBuilder extends DillMemberBuilder implements PropertyBuilder {
       [field.getterReference, if (field.hasSetter) field.setterReference!];
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isProperty => true;
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => field.isEnumElement;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => field.hasSetter ? this : null;
 }
 
 abstract class DillProcedureBuilder extends DillMemberBuilder
@@ -185,7 +194,6 @@ abstract class DillProcedureBuilder extends DillMemberBuilder
   FunctionNode get function => procedure.function;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConst => procedure.isConst;
 
   @override
@@ -201,7 +209,6 @@ class DillGetterBuilder extends DillProcedureBuilder {
       : assert(procedure.kind == ProcedureKind.Getter);
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isProperty => true;
 
   @override
@@ -231,6 +238,12 @@ class DillGetterBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 }
 
 class DillSetterBuilder extends DillProcedureBuilder {
@@ -239,8 +252,11 @@ class DillSetterBuilder extends DillProcedureBuilder {
       : assert(procedure.kind == ProcedureKind.Setter);
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isProperty => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasSetter => true;
 
   @override
   Member get member => procedure;
@@ -268,6 +284,12 @@ class DillSetterBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
+
+  @override
+  Builder? get getable => null;
+
+  @override
+  Builder get setable => this;
 }
 
 class DillMethodBuilder extends DillProcedureBuilder {
@@ -276,7 +298,6 @@ class DillMethodBuilder extends DillProcedureBuilder {
       : assert(procedure.kind == ProcedureKind.Method);
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
 
   @override
@@ -289,6 +310,7 @@ class DillMethodBuilder extends DillProcedureBuilder {
   Reference get readTargetReference => procedure.reference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -305,6 +327,12 @@ class DillMethodBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 }
 
 class DillOperatorBuilder extends DillProcedureBuilder {
@@ -346,6 +374,14 @@ class DillOperatorBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }
 
 class DillFactoryBuilder extends DillProcedureBuilder {
@@ -386,6 +422,14 @@ class DillFactoryBuilder extends DillProcedureBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }
 
 class DillConstructorBuilder extends DillMemberBuilder
@@ -440,6 +484,14 @@ class DillConstructorBuilder extends DillMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [constructor.reference];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }
 
 class DillClassMember extends BuilderClassMember {

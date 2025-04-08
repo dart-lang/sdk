@@ -4,13 +4,14 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/lookup_result.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 
-abstract class MemberBuilder implements Builder {
+abstract class MemberBuilder implements Builder, LookupResult {
   String get name;
 
   bool get isAssignable;

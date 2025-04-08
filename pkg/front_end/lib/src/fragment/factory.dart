@@ -105,7 +105,7 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
     if (_fragment.formals == null) {
       return new FormalParameterScope(parent: typeParameterScope);
     }
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
     for (FormalParameterBuilder formal in _fragment.formals!) {
       if (formal.isWildcard) {
         continue;

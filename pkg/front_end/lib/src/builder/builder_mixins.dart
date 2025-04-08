@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
@@ -20,31 +21,15 @@ import 'type_builder.dart';
 mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Lookup a static member of this declaration.
   @override
-  Builder? findStaticBuilder(
-      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter = false}) {
+  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
+      LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
-    Builder? declaration;
-    if (getable != null || setable != null) {
-      declaration = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: this.name,
-          isSetter: isSetter,
-          forStaticAccess: true);
-    }
-    // TODO(johnniwinther): Handle augmented extensions/extension type
-    //  declarations.
-    return declaration;
+    return nameSpace.lookupLocal(name,
+        fileUri: fileUri, fileOffset: fileOffset, staticOnly: true);
   }
 
   @override
@@ -97,9 +82,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     if (builder == null && setter) {
       // When looking up setters, we include assignable fields.
       builder = lookupLocalMember(name.text, setter: false, required: required);
-      if (builder is! MemberBuilder ||
-          !builder.isField ||
-          !builder.isAssignable) {
+      if (builder is! MemberBuilder || !builder.hasSetter) {
         builder = null;
       }
     }

@@ -173,7 +173,7 @@ class AnnotationScope implements shared.Scope {
   shared.Proto lookup(String name) {
     int fileOffset = -1;
     Uri fileUri = dummyUri;
-    Builder? builder = scope.lookupGetable(name, fileOffset, fileUri);
+    Builder? builder = scope.lookup(name, fileOffset, fileUri)?.getable;
     if (builder == null) {
       return new shared.UnresolvedIdentifier(this, name);
     } else {
@@ -325,7 +325,7 @@ class PrefixScope implements shared.Scope {
   shared.Proto lookup(String name) {
     int fileOffset = -1;
     Uri fileUri = dummyUri;
-    Builder? builder = prefixBuilder.lookup(name, fileOffset, fileUri);
+    Builder? builder = prefixBuilder.lookup(name, fileOffset, fileUri)?.getable;
     if (builder == null) {
       return new shared.UnresolvedIdentifier(this, name);
     } else {

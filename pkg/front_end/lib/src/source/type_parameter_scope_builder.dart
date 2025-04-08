@@ -1570,7 +1570,8 @@ class NominalParameterScope extends AbstractTypeParameterScope {
   NominalParameterScope(super._parent, this._nameSpace);
 
   @override
-  Builder? getTypeParameter(String name) => _nameSpace.getTypeParameter(name);
+  TypeParameterBuilder? getTypeParameter(String name) =>
+      _nameSpace.getTypeParameter(name);
 }
 
 class NominalParameterNameSpace {

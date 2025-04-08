@@ -709,12 +709,13 @@ class _Tuple {
             implementedSetable = null;
           }
         }
-        // Coverage-ignore(suite): Not run.
         if (implementedSetable == null) {
           // On the first skipped setter we add all previous.
           implementedNonExtensionTypeSetables ??=
               tupleImplementedNonExtensionTypeSetables.take(i).toList();
-        } else if (implementedNonExtensionTypeSetables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (implementedNonExtensionTypeSetables != null) {
           // If already skipping setters we add [implementedSetable]
           // explicitly.
           implementedNonExtensionTypeSetables.add(implementedSetable);
@@ -724,9 +725,7 @@ class _Tuple {
         // No setters were skipped so we use the full list.
         implementedNonExtensionTypeSetables =
             tupleImplementedNonExtensionTypeSetables;
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (implementedNonExtensionTypeSetables.isEmpty) {
+      } else if (implementedNonExtensionTypeSetables.isEmpty) {
         // No setters were included.
         implementedNonExtensionTypeSetables = null;
       }

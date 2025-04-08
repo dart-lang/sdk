@@ -210,6 +210,14 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   bool get isRedirecting => _lastDeclaration.isRedirecting;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
+
+  @override
   Member get readTarget => _readTarget;
 
   @override
@@ -738,6 +746,14 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.

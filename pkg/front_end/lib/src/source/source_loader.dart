@@ -1265,8 +1265,9 @@ severity: $severity
 
     DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? builder = memberScope.lookupGetable(
-          enclosingClassOrExtension, -1, libraryBuilder.fileUri);
+      Builder? builder = memberScope
+          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri)
+          ?.getable;
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
@@ -2591,7 +2592,7 @@ severity: $severity
         // This is an ambiguous export, skip the check.
         return;
       }
-      if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
+      if (mainBuilder.isProperty) {
         if (mainBuilder.libraryBuilder != libraryBuilder) {
           libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
               libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,

@@ -190,13 +190,16 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitVariableGet(VariableGet node) {
-    return new VariableGet(
-        getVariableClone(node.variable)!, visitOptionalType(node.promotedType));
+    VariableDeclaration? variable = getVariableClone(node.variable);
+    assert(variable != null, "Missing clone for variable ${node.variable}.");
+    return new VariableGet(variable!, visitOptionalType(node.promotedType));
   }
 
   @override
   TreeNode visitVariableSet(VariableSet node) {
-    return new VariableSet(getVariableClone(node.variable)!, clone(node.value));
+    VariableDeclaration? variable = getVariableClone(node.variable);
+    assert(variable != null, "Missing clone for variable ${node.variable}.");
+    return new VariableSet(variable!, clone(node.value));
   }
 
   @override

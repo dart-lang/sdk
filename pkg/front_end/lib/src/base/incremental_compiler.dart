@@ -694,9 +694,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (sourceBuilder == null) {
         sourceBuilder = sourceLibraryBuilder.exportNameSpace
             .lookupLocalMember(name, setter: false);
-        if (sourceBuilder is MemberBuilder &&
-            sourceBuilder.isField &&
-            sourceBuilder.isAssignable) {
+        if (sourceBuilder is MemberBuilder && sourceBuilder.hasSetter) {
           // Assignable fields can be lowered into a getter and setter.
           return;
         }

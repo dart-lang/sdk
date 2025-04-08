@@ -152,7 +152,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isAbstract => _modifiers.isAbstract;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConst => _modifiers.isConst;
 
   @override
@@ -163,6 +162,17 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isEnumElement => _introductoryField?.isEnumElement ?? false;
+
+  @override
+  Builder? get getable =>
+      _introductoryField != null || _introductoryGetable != null ? this : null;
+
+  @override
+  Builder? get setable =>
+      _introductoryField != null && _introductoryField!.hasSetter ||
+              _introductorySetable != null
+          ? this
+          : null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) => 0;
@@ -350,6 +360,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   Reference? get invokeTargetReference => readTargetReference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAssignable => _introductoryField?.hasSetter ?? false;
 
   List<ClassMember>? _localMembers;
@@ -438,6 +449,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   // TODO(johnniwinther): Remove this. Maybe replace with `hasSetter`?
   @override
   bool get isSetter => _introductorySetable != null;
+
+  @override
+  bool get hasSetter =>
+      _introductoryField?.hasSetter ?? _introductorySetable != null;
 
   bool _typeEnsured = false;
   ClassMembersBuilder? _classMembersBuilder;

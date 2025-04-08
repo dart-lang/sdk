@@ -3995,9 +3995,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 makeLiteral(element.fileOffset, []), iterableType,
                 nullCheckedValue: makeLiteral(element.fileOffset,
                     [_createNullCheckedVariableGet(temp)])));
-          // Coverage-ignore(suite): Not run.
           case IfElement():
             if (currentPart != null) {
+              // Coverage-ignore-block(suite): Not run.
               parts.add(makeLiteral(node.fileOffset, currentPart));
               currentPart = null;
             }
@@ -4005,8 +4005,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Expression then =
                 makeLiteral(element.then.fileOffset, [element.then]);
             Expression otherwise = element.otherwise != null
-                ? makeLiteral(
-                    element.otherwise!.fileOffset, [element.otherwise!])
+                ?
+                // Coverage-ignore(suite): Not run.
+                makeLiteral(element.otherwise!.fileOffset, [element.otherwise!])
                 : makeLiteral(element.fileOffset, []);
             parts.add(_createConditionalExpression(
                 element.fileOffset, condition, then, otherwise, iterableType));

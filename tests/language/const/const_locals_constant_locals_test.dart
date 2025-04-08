@@ -15,12 +15,10 @@ void main() {
   const c3 = field;
   //         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  // [cfe] Constant evaluation error:
   // [cfe] Not a constant expression.
   const c4 = finalField;
   //         ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  // [cfe] Constant evaluation error:
   // [cfe] Not a constant expression.
   const c5 = constField;
   const c6 = method();

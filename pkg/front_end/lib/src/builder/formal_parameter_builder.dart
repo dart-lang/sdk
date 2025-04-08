@@ -126,9 +126,6 @@ class FormalParameterBuilder extends BuilderImpl
 
   bool get isOptional => kind.isOptional;
 
-  @override
-  bool get isLocal => true;
-
   bool get isInitializingFormal => modifiers.isInitializingFormal;
 
   bool get isSuperInitializingFormal => modifiers.isSuperInitializingFormal;
@@ -146,6 +143,12 @@ class FormalParameterBuilder extends BuilderImpl
       variable!.isAssignable &&
       !isInitializingFormal &&
       !isSuperInitializingFormal;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => isAssignable ? this : null;
 
   @override
   // Coverage-ignore(suite): Not run.

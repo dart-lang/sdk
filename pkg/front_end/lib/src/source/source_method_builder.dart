@@ -100,7 +100,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isAbstract => _modifiers.isAbstract;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConst => _modifiers.isConst;
 
   @override
@@ -116,6 +115,12 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isEnumElement => false;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
@@ -229,6 +234,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Reference get invokeTargetReference => _reference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override

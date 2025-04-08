@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
+import 'package:front_end/src/base/lookup_result.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -299,5 +300,16 @@ final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
 final FieldInfo dummyFieldInfo =
     new FieldInfo(dummyIdentifier, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
-final LookupScope dummyLookupScope =
-    new FixedLookupScope(ScopeKind.library, 'dummy');
+final LookupScope dummyLookupScope = new _DummyLookupScope();
+
+// Coverage-ignore(suite): Not run.
+class _DummyLookupScope implements LookupScope {
+  @override
+  void forEachExtension(void Function(ExtensionBuilder p1) f) {}
+
+  @override
+  ScopeKind get kind => ScopeKind.library;
+
+  @override
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) => null;
+}
