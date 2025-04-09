@@ -34,16 +34,16 @@ const loggedAnalyzerErrorExitCode = 63;
 
 const unableToProcessExitCode = 64;
 
-/// Collect all lintable files, recursively, under this [entityPtah] root,
+/// Collect all lintable files, recursively, under this [entityPath] root,
 /// ignoring links.
-Iterable<File> collectFiles(String entityPtah) {
+Iterable<File> collectFiles(String entityPath) {
   var files = <File>[];
 
-  var file = File(entityPtah);
+  var file = File(entityPath);
   if (file.existsSync()) {
     files.add(file);
   } else {
-    var directory = Directory(entityPtah);
+    var directory = Directory(entityPath);
     if (directory.existsSync()) {
       for (var entry in directory.listSync(
         recursive: true,
