@@ -198,6 +198,8 @@ class _MockRecursiveVisitor extends RecursiveTypeVisitor {
   final Set<DartType> visitedTypes = {};
   DartType? stopOnType;
 
+  _MockRecursiveVisitor() : super(includeTypeAliasArguments: false);
+
   void assertNotVisitedType(DartType type) {
     expect(visitedTypes, isNot(contains(type)));
   }

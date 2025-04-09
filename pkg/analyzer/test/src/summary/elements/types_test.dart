@@ -2359,6 +2359,7 @@ library
       fields
         hasInitializer v
           firstFragment: <testLibraryFragment>::@class::C::@field::v
+          hasEnclosingTypeParameterReference: true
           type: int Function(T, U)
           getter: <testLibraryFragment>::@class::C::@getter::v#element
           setter: <testLibraryFragment>::@class::C::@setter::v#element
@@ -2368,9 +2369,11 @@ library
       getters
         synthetic get v
           firstFragment: <testLibraryFragment>::@class::C::@getter::v
+          hasEnclosingTypeParameterReference: true
       setters
         synthetic set v
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _v
               type: int Function(T, U)

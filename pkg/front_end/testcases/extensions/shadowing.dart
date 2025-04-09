@@ -14,3 +14,17 @@ extension on int {
     setter = setter;
   }
 }
+
+class Class {
+  int get getter => 42;
+  void set setter(int _) {}
+}
+
+extension on Class {
+  String get getter => '42';
+  void set setter(String _) {}
+  void method() {
+    String value = getter;
+    setter = value;
+  }
+}

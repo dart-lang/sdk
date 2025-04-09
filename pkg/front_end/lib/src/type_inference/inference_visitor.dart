@@ -3995,9 +3995,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 makeLiteral(element.fileOffset, []), iterableType,
                 nullCheckedValue: makeLiteral(element.fileOffset,
                     [_createNullCheckedVariableGet(temp)])));
-          // Coverage-ignore(suite): Not run.
           case IfElement():
             if (currentPart != null) {
+              // Coverage-ignore-block(suite): Not run.
               parts.add(makeLiteral(node.fileOffset, currentPart));
               currentPart = null;
             }
@@ -4005,8 +4005,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Expression then =
                 makeLiteral(element.then.fileOffset, [element.then]);
             Expression otherwise = element.otherwise != null
-                ? makeLiteral(
-                    element.otherwise!.fileOffset, [element.otherwise!])
+                ?
+                // Coverage-ignore(suite): Not run.
+                makeLiteral(element.otherwise!.fileOffset, [element.otherwise!])
                 : makeLiteral(element.fileOffset, []);
             parts.add(_createConditionalExpression(
                 element.fileOffset, condition, then, otherwise, iterableType));
@@ -12283,18 +12284,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult expressionInferenceResult;
     switch (member) {
       case Field():
-        expressionInferenceResult =
-            inferExpression(new StaticGet(member), cachedContext);
+        Expression staticGet = new StaticGet(member)
+          ..fileOffset = node.fileOffset;
+        expressionInferenceResult = inferExpression(staticGet, cachedContext);
       case Procedure():
         if (member.isGetter) {
-          expressionInferenceResult =
-              inferExpression(new StaticGet(member), cachedContext);
+          Expression staticGet = new StaticGet(member)
+            ..fileOffset = node.fileOffset;
+          expressionInferenceResult = inferExpression(staticGet, cachedContext);
         } else {
           // Method tearoffs.
           DartType type =
               member.function.computeFunctionType(Nullability.nonNullable);
-          return instantiateTearOff(
-              type, typeContext, new StaticTearOff(member));
+          Expression tearOff = new StaticTearOff(member)
+            ..fileOffset = node.fileOffset;
+          return instantiateTearOff(type, typeContext, tearOff);
         }
       case Constructor():
       case null:
@@ -12316,13 +12320,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (constructor is Constructor) {
             DartType type = constructor.function
                 .computeFunctionType(Nullability.nonNullable);
-            return instantiateTearOff(
-                type, typeContext, new ConstructorTearOff(constructor));
+            Expression tearOff = new ConstructorTearOff(constructor)
+              ..fileOffset = node.fileOffset;
+            return instantiateTearOff(type, typeContext, tearOff);
           } else if (constructor is Procedure) {
             DartType type = constructor.function
                 .computeFunctionType(Nullability.nonNullable);
-            return instantiateTearOff(
-                type, typeContext, new StaticTearOff(constructor));
+            Expression tearOff = new StaticTearOff(constructor)
+              ..fileOffset = node.fileOffset;
+            return instantiateTearOff(type, typeContext, tearOff);
           }
         }
 

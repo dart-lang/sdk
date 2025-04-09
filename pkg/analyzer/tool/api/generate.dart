@@ -279,6 +279,9 @@ class ApiDescription {
                   .separate(prefix: ' implements '));
             }
             parentheticals.add(instanceDescription);
+            if (element is ClassElement2 && element.isSealed) {
+              parentheticals.add(['sealed']);
+            }
           case ExtensionElement2(:var extendedType):
             parentheticals
                 .add(['extension on ', ..._describeType(extendedType)]);

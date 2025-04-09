@@ -5,7 +5,7 @@
 part of 'declaration_builders.dart';
 
 // Coverage-ignore(suite): Not run.
-abstract class ITypeDeclarationBuilder implements Builder {
+abstract class ITypeDeclarationBuilder implements Builder, LookupResult {
   String get name;
 
   bool get isNamedMixinApplication;
@@ -62,9 +62,6 @@ abstract class TypeDeclarationBuilderImpl extends BuilderImpl
   bool get isNamedMixinApplication => false;
 
   @override
-  bool get isTypeDeclaration => true;
-
-  @override
   bool get isEnum => false;
 
   @override
@@ -72,6 +69,12 @@ abstract class TypeDeclarationBuilderImpl extends BuilderImpl
 
   @override
   int get typeParametersCount => 0;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 
   @override
   String toString() {

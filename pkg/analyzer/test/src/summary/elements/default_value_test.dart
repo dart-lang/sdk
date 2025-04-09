@@ -66,6 +66,7 @@ library
       methods
         abstract X
           firstFragment: <testLibraryFragment>::@class::A::@method::X
+          hasEnclosingTypeParameterReference: true
           formalParameters
             optionalNamed a
               firstFragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
@@ -1171,6 +1172,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
           typeParameters
             E2
           formalParameters
@@ -1262,6 +1264,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
           formalParameters
             optionalPositional b
               type: B<T>

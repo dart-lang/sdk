@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.8.0';
+const _currentVersion = '3.9.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -212,7 +212,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.const_functions,
     documentation:
         'Allow more of the Dart language to be executed in const expressions.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.8.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -268,7 +268,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.dot_shorthands,
     isExpired: IsExpired.dot_shorthands,
     documentation: 'Shorter dot syntax for static accesses.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.8.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -325,7 +325,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.getter_setter_error,
     documentation:
         'Stop reporting errors about mismatching types in a getter/setter pair.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.8.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -371,7 +371,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.inference_update_4,
     isExpired: IsExpired.inference_update_4,
     documentation: 'A bundle of updates to type inference.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.8.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -605,7 +605,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
     documentation: 'Sound variance',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.8.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );

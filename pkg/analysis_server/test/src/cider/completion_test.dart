@@ -6,6 +6,7 @@ import 'package:analysis_server/src/cider/completion.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show CompletionSuggestion, CompletionSuggestionKind, ElementKind;
 import 'package:test/test.dart';
@@ -855,14 +856,13 @@ import 'a.dart';
   }
 
   _CompletionContext _updateFile(String content) {
-    var offset = content.indexOf('^');
-    expect(offset, isPositive, reason: 'Expected to find ^');
-    expect(content.indexOf('^', offset + 1), -1, reason: 'Expected only one ^');
+    var code = TestCode.parse(content);
+    var offset = code.position.offset;
 
+    content = code.code;
     var lineInfo = LineInfo.fromContent(content);
     var location = lineInfo.getLocation(offset);
 
-    content = content.substring(0, offset) + content.substring(offset + 1);
     newFile(testPath, content);
 
     return _CompletionContext(

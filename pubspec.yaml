@@ -53,8 +53,6 @@ workspace:
   - pkg/js_shared
   - pkg/kernel
   - pkg/linter
-  - pkg/_macros
-  - pkg/macros
   - pkg/meta
   - pkg/mmap
   - pkg/modular_test

@@ -410,6 +410,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     // Build the 'values' field.
     var valuesField = ConstFieldElementImpl('values', -1)
+      ..hasEnclosingTypeParameterReference = false
       ..isConst = true
       ..isStatic = true
       ..isSynthetic = true
@@ -2071,9 +2072,11 @@ class _EnclosingContext {
     _parameters.add(element);
     if (name == null) {
       return null;
-    } else {
-      return _addReference('@parameter', name, element);
     }
+    if (fragment.reference == null) {
+      return null;
+    }
+    return _addReference('@parameter', name, element);
   }
 
   void addPropertyAccessorSynthetic(PropertyAccessorElementImpl element) {

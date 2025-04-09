@@ -372,12 +372,13 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
       active_mutators_monitor_(new Monitor()),
-      max_active_mutators_(Scavenger::MaxMutatorThreadCount())
+      max_active_mutators_(Scavenger::MaxMutatorThreadCount()),
 #if !defined(PRODUCT)
-      ,
-      debugger_(new GroupDebugger(this))
+      debugger_(new GroupDebugger(this)),
 #endif
-{
+      cache_mutex_(),
+      handler_info_cache_(),
+      catch_entry_moves_cache_() {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
     intptr_t max_worker_threads;
@@ -925,6 +926,30 @@ void IsolateGroup::ExitTemporaryIsolate() {
   ASSERT(thread != nullptr);
   thread->set_execution_state(Thread::kThreadInVM);
   Dart::ShutdownIsolate(thread);
+}
+
+void IsolateGroup::RunWithCachedCatchEntryMoves(
+    const Code& code,
+    intptr_t pc,
+    std::function<void(const CatchEntryMoves&)> action) {
+  SafepointMutexLocker ml(&cache_mutex_);
+  const CatchEntryMovesRefPtr* ref = catch_entry_moves_cache_.Lookup(pc);
+  if (ref != nullptr) {
+    action(ref->moves());
+  } else {
+    const intptr_t pc_offset = pc - code.PayloadStart();
+    const auto& td = TypedData::Handle(code.catch_entry_moves_maps());
+
+    CatchEntryMovesMapReader reader(td);
+    const CatchEntryMoves* moves = reader.ReadMovesForPcOffset(pc_offset);
+    catch_entry_moves_cache_.Insert(pc, CatchEntryMovesRefPtr(moves));
+    action(*moves);
+  }
+}
+
+void IsolateGroup::ClearCatchEntryMovesCache() {
+  SafepointMutexLocker ml(&cache_mutex_);
+  catch_entry_moves_cache_.Clear();
 }
 
 void IsolateGroup::RehashConstants(Become* become) {
@@ -1816,8 +1841,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
-      handler_info_cache_(),
-      catch_entry_moves_cache_(),
       wake_pause_event_handler_count_(0),
       loaded_prefixes_set_storage_(nullptr) {
   FlagsCopyFrom(api_flags);

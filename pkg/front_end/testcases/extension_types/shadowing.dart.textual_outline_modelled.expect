@@ -1,0 +1,20 @@
+class Class {
+  int get getter => 42;
+  void set setter(int _) {}
+}
+
+extension type ET1(int i) {
+  get getter => 42;
+  method() {}
+  set setter(_) {}
+}
+
+extension type ET2(Class c) implements Class {
+  String get getter => '42';
+  void method() {}
+  void set setter(String _) {}
+}
+
+int getter = 42;
+
+int setter = 42;

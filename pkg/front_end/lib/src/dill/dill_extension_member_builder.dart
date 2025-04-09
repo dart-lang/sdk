@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../builder/builder.dart';
 import 'dill_extension_builder.dart';
 import 'dill_member_builder.dart';
 
@@ -73,10 +74,15 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
   Reference get invokeTargetReference => field.getterReference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isField => true;
 
   @override
   bool get isAssignable => field.hasSetter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasSetter => field.hasSetter;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -90,6 +96,12 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences =>
       [field.getterReference, if (field.hasSetter) field.setterReference!];
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => field.hasSetter ? this : null;
 }
 
 class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
@@ -133,8 +145,17 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
   bool get isEnumElement => false;
 
   @override
+  bool get hasSetter => true;
+
+  @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  Builder? get getable => null;
+
+  @override
+  Builder get setable => this;
 }
 
 class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
@@ -180,6 +201,12 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 }
 
 class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
@@ -225,6 +252,14 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }
 
 class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
@@ -272,6 +307,12 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 }
 
 class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
@@ -321,4 +362,12 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => procedure.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }

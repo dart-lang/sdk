@@ -21,10 +21,12 @@ class C {
   const C.rn1() : this(nonConst);
   //                   ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] Not a constant expression.
 
   const C.rn2(bool b) : this(b ? null : nonConst);
   //                                    ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] Not a constant expression.
 
   // Initializer list expressions must be potentially constant.
   const C.g1() : v = const C(null);
@@ -34,10 +36,12 @@ class C {
   const C.gn3() : v = nonConst;
   //                  ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] Not a constant expression.
 
   const C.gn4(bool b) : v = b ? null : nonConst;
   //                                   ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] Not a constant expression.
 
   // Constant constructor initializer list assert expressions
   // must be potentially constant (and boolean).
@@ -51,12 +55,14 @@ class C {
     : assert(nonConst),
       //     ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+      // [cfe] Not a constant expression.
       v = null;
 
   const C.an2(bool b)
     : assert(b ? true : nonConst),
       //                ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+      // [cfe] Not a constant expression.
       v = null;
 }
 

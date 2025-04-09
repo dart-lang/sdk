@@ -47,6 +47,8 @@ void _breakImplementsCycles(List<ExtensionTypeElementImpl2> elements) {
 class _DependenciesCollector extends RecursiveTypeVisitor {
   final List<ExtensionTypeElementImpl2> dependencies = [];
 
+  _DependenciesCollector() : super(includeTypeAliasArguments: false);
+
   @override
   bool visitInterfaceType(InterfaceType type) {
     var element = type.element3;

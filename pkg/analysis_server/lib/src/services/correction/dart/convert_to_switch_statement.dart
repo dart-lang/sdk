@@ -394,7 +394,9 @@ class ConvertSwitchExpressionToSwitchStatement
         switchExpression: switchExpression,
         builder: builder,
         indent: indent,
-        beforeCaseExpression: '${variableId.token.lexeme} = ',
+        beforeCaseExpression:
+            '${variableId.token.lexeme} '
+            '${assignment.operator.lexeme} ',
         semicolon: semicolon,
       );
     });

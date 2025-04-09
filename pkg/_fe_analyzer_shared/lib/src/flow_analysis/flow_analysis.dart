@@ -4693,6 +4693,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
         booleanLiteral(wholeExpression, !notEqual);
+      case _GuaranteedNotEqual():
+        // Both operands are known by flow analysis to compare unequal, so the
+        // whole expression behaves equivalently to a boolean (either `true` or
+        // `false` depending whether the check uses the `!=` operator).
+        booleanLiteral(wholeExpression, notEqual);
 
       // SAFETY: we can assume `reference` is a `_Reference<Type>` because we
       // require clients not to mix data obtained from different
@@ -5770,10 +5775,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
                 TypeClassification.nullOrEquivalent &&
             leftOperandTypeClassification == TypeClassification.nonNullable)) {
       // In strong mode the test is guaranteed to produce a "not equal" result,
-      // but weak mode it might produce an "equal" result.  We don't want flow
-      // analysis behavior to depend on mode, so we conservatively assume that
-      // either result is possible.
-      return const _NoEqualityInformation();
+      // but weak mode it might produce an "equal" result. If sound flow
+      // analysis is enabled, we assume that the user isn't running in weak mode
+      // and so we propagate the known "not equal" result. Otherwise, we
+      // conservatively assume that either result is possible.
+      if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+        return const _GuaranteedNotEqual();
+      } else {
+        return const _NoEqualityInformation();
+      }
     } else if (lhsInfo != null && lhsInfo.isNull) {
       return new _EqualityCheckIsNullCheck(
           rhsInfo is _Reference<Type> ? rhsInfo : null,
@@ -6012,16 +6022,30 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       case _GuaranteedEqual():
         if (notEqual) {
           // Both operands are known by flow analysis to compare equal, so the
-          // constant pattern is guaranteed *not* to match.
+          // pattern is guaranteed *not* to match.
           _unmatched = _join(_unmatched!, _current);
           _current = _current.setUnreachable();
         } else {
           // Both operands are known by flow analysis to compare equal, so the
-          // constant pattern is guaranteed to match.  Since our approach to
-          // handling patterns in flow analysis uses "implicit and" semantics
-          // (initially assuming that the pattern always matches, and then
-          // updating the `_current` and `_unmatched` states to reflect what
-          // values the pattern rejects), we don't have to do any updates.
+          // pattern is guaranteed to match.  Since our approach to handling
+          // patterns in flow analysis uses "implicit and" semantics (initially
+          // assuming that the pattern always matches, and then updating the
+          // `_current` and `_unmatched` states to reflect what values the
+          // pattern rejects), we don't have to do any updates.
+        }
+      case _GuaranteedNotEqual():
+        if (notEqual) {
+          // Both operands are known by flow analysis to compare unequal, so the
+          // pattern is guaranteed to match.  Since our approach to handling
+          // patterns in flow analysis uses "implicit and" semantics (initially
+          // assuming that the pattern always matches, and then updating the
+          // `_current` and `_unmatched` states to reflect what values the
+          // pattern rejects), we don't have to do any updates.
+        } else {
+          // Both operands are known by flow analysis to compare unequal, so the
+          // pattern is guaranteed *not* to match.
+          _unmatched = _join(_unmatched!, _current);
+          _current = _current.setUnreachable();
         }
     }
   }
@@ -6380,6 +6404,16 @@ class _FunctionExpressionContext<Type extends Object>
 /// happens if both operands have type `Null`).
 class _GuaranteedEqual extends _EqualityCheckResult {
   const _GuaranteedEqual() : super._();
+}
+
+/// Specialization of [_EqualityCheckResult] used as the return value for
+/// [_FlowAnalysisImpl._equalityCheck] when it is determined that the two
+/// operands are guaranteed to be not equal to one another, so the code path
+/// that results from an equal result should be marked as unreachable.  (This
+/// happens if one operands has type `Null` and the other has a non-nullable
+/// type, and [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `true`).
+class _GuaranteedNotEqual extends _EqualityCheckResult {
+  const _GuaranteedNotEqual() : super._();
 }
 
 /// [_FlowContext] representing an `if` statement.

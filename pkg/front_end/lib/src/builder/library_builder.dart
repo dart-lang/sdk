@@ -511,16 +511,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     if (declaration == other) return declaration;
     if (declaration is InvalidTypeDeclarationBuilder) return declaration;
     if (other is InvalidTypeDeclarationBuilder) return other;
-    if (declaration is AccessErrorBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      AccessErrorBuilder error = declaration;
-      declaration = error.builder;
-    }
-    if (other is AccessErrorBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      AccessErrorBuilder error = other;
-      other = error.builder;
-    }
     Builder? preferred;
     Uri? uri;
     Uri? otherUri;

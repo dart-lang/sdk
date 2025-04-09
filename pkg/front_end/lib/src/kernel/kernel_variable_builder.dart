@@ -24,13 +24,16 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   int get fileOffset => variable.fileOffset;
 
   @override
-  bool get isLocal => true;
-
-  @override
   bool get isConst => variable.isConst;
 
   @override
   bool get isAssignable => variable.isAssignable;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => isAssignable ? this : null;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -1268,11 +1268,13 @@ library
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -2088,11 +2090,13 @@ library
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          hasEnclosingTypeParameterReference: true
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -2276,6 +2280,7 @@ library
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          hasEnclosingTypeParameterReference: true
           type: Map<T, U>
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
@@ -2287,6 +2292,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 }

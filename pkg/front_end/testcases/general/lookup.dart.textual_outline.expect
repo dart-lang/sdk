@@ -1,0 +1,53 @@
+import 'lookup.dart' as prefix;
+
+import 'lookup.dart' deferred as deferred;
+
+typedef Typedef<T> = Class<T>;
+
+Class<T> topLevelMember<T>() {}
+
+set topLevelSetter(_) {}
+
+var topLevelField;
+
+topLevelTest<S>(parameter) {}
+
+class SuperClass {
+  void superMember() {}
+  set superSetter(_) {}
+  var superField;
+}
+
+class Class<T> extends SuperClass {
+  void instanceMember() {}
+  set instanceSetter(_) {}
+  var instanceField;
+  static void staticMember() {}
+  static set staticSetter(_) {}
+  static var staticField;
+  Class([parameter]) {}
+  factory Class.factory([parameter]) {}
+  instanceTest<S>(parameter) {}
+  static staticTest<S>(parameter) {}
+}
+
+extension Extension<T> on Class<T> {
+  void extensionInstanceMember() {}
+  set extensionInstanceSetter(_) {}
+  static void extensionStaticMember() {}
+  static set extensionStaticSetter(_) {}
+  instanceTest<S>(parameter) {}
+  static staticTest<S>(parameter) {}
+}
+
+extension type ExtensionType<T>._(Class<T> c) implements Class<T> {
+  void extensionTypeInstanceMember() {}
+  set extensionTypeInstanceSetter(_) {}
+  static void extensionTypeStaticMember() {}
+  static set extensionTypeStaticSetter(_) {}
+  ExtensionType([parameter]) : c = topLevelMember() {}
+  ExtensionType.redirect() : this._(topLevelMember());
+  factory ExtensionType.factory(parameter) {}
+  instanceTest<S>(parameter) {}
+  static staticTest<S>(parameter) {}
+}

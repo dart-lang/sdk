@@ -160,14 +160,6 @@ library;
 //   Class.staticDuplicateFieldAndDuplicateSetter = 0;
 //                                                ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:97:9: Error: Setter not found: 'staticMethodAndSetter1'.
-//   Class.staticMethodAndSetter1 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:98:9: Error: Setter not found: 'staticMethodAndSetter2'.
-//   Class.staticMethodAndSetter2 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -246,12 +238,8 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:96:48: Error: Can't assign to this.
   Class.staticDuplicateFieldAndDuplicateSetter = 0;
                                                ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:97:9: Error: Setter not found: 'staticMethodAndSetter1'.
-  Class.staticMethodAndSetter1 = 0;
-        ^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:98:9: Error: Setter not found: 'staticMethodAndSetter2'.
-  Class.staticMethodAndSetter2 = 0;
-        ^^^^^^^^^^^^^^^^^^^^^^";
+  self::Class::staticMethodAndSetter1 = 0;
+  self::Class::staticMethodAndSetter2 = 0;
 }
 static method main() → dynamic {
   self::result = null;

@@ -6,6 +6,7 @@ import 'package:analysis_server/src/cider/fixes.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -219,14 +220,13 @@ var v = 0;
   }
 
   void _updateFile(String content) {
-    var offset = content.indexOf('^');
-    expect(offset, isPositive, reason: 'Expected to find ^');
-    expect(content.indexOf('^', offset + 1), -1, reason: 'Expected only one ^');
+    var code = TestCode.parse(content);
+    content = code.code;
 
+    var offset = code.position.offset;
     var lineInfo = LineInfo.fromContent(content);
     var location = lineInfo.getLocation(offset);
 
-    content = content.substring(0, offset) + content.substring(offset + 1);
     newFile(testPath, content);
 
     _correctionContext = _CorrectionContext(

@@ -9,11 +9,11 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
 import '../../base/scope.dart';
-import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/builder_factory.dart';
@@ -251,7 +251,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     if (formals == null) {
       return new FormalParameterScope(parent: parent);
     }
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
     for (FormalParameterBuilder formal in formals) {
       if (formal.isWildcard) {
         continue;
@@ -531,7 +531,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   LocalScope createFormalParameterScope(LookupScope parent) {
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
 
     assert(!_thisFormal.isWildcard);
     local[_thisFormal.name] = _thisFormal;

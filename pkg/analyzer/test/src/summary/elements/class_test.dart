@@ -9219,6 +9219,131 @@ library
 ''');
   }
 
+  test_class_field_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+class C<T> {
+  late int foo;
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          fields
+            foo @24
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              element: <testLibraryFragment>::@class::C::@field::foo#element
+              getter2: <testLibraryFragment>::@class::C::@getter::foo
+              setter2: <testLibraryFragment>::@class::C::@setter::foo
+          getters
+            synthetic get foo
+              reference: <testLibraryFragment>::@class::C::@getter::foo
+              element: <testLibraryFragment>::@class::C::@getter::foo#element
+          setters
+            synthetic set foo
+              reference: <testLibraryFragment>::@class::C::@setter::foo
+              element: <testLibraryFragment>::@class::C::@setter::foo#element
+              formalParameters
+                _foo
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      fields
+        late foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@class::C::@getter::foo#element
+          setter: <testLibraryFragment>::@class::C::@setter::foo#element
+      getters
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+      setters
+        synthetic set foo
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
+          formalParameters
+            requiredPositional _foo
+              type: int
+''');
+  }
+
+  test_class_field_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+class C<T> {
+  late T foo;
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          fields
+            foo @22
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              element: <testLibraryFragment>::@class::C::@field::foo#element
+              getter2: <testLibraryFragment>::@class::C::@getter::foo
+              setter2: <testLibraryFragment>::@class::C::@setter::foo
+          getters
+            synthetic get foo
+              reference: <testLibraryFragment>::@class::C::@getter::foo
+              element: <testLibraryFragment>::@class::C::@getter::foo#element
+          setters
+            synthetic set foo
+              reference: <testLibraryFragment>::@class::C::@setter::foo
+              element: <testLibraryFragment>::@class::C::@setter::foo#element
+              formalParameters
+                _foo
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      fields
+        late foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibraryFragment>::@class::C::@getter::foo#element
+          setter: <testLibraryFragment>::@class::C::@setter::foo#element
+      getters
+        synthetic get foo
+          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+          hasEnclosingTypeParameterReference: true
+      setters
+        synthetic set foo
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _foo
+              type: T
+''');
+  }
+
   test_class_field_propagatedType_const_noDep() async {
     var library = await buildLibrary('''
 class C {
@@ -10944,6 +11069,100 @@ library
 ''');
   }
 
+  test_class_getter_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+class C<T> {
+  int get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              element: <testLibraryFragment>::@class::C::@field::foo#element
+              getter2: <testLibraryFragment>::@class::C::@getter::foo
+          getters
+            get foo @23
+              reference: <testLibraryFragment>::@class::C::@getter::foo
+              element: <testLibraryFragment>::@class::C::@getter::foo#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@class::C::@getter::foo#element
+      getters
+        get foo
+          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+''');
+  }
+
+  test_class_getter_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+class C<T> {
+  T get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              element: <testLibraryFragment>::@class::C::@field::foo#element
+              getter2: <testLibraryFragment>::@class::C::@getter::foo
+          getters
+            get foo @21
+              reference: <testLibraryFragment>::@class::C::@getter::foo
+              element: <testLibraryFragment>::@class::C::@getter::foo#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibraryFragment>::@class::C::@getter::foo#element
+      getters
+        get foo
+          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+          hasEnclosingTypeParameterReference: true
+''');
+  }
+
   test_class_getter_static() async {
     var library = await buildLibrary('class C { static int get x => null; }');
     checkElementText(library, r'''
@@ -12026,6 +12245,332 @@ library
 ''');
   }
 
+  test_class_method_ofGeneric_refEnclosingTypeParameter_false_hide() async {
+    var library = await buildLibrary('''
+class C<T> {
+  void foo<T>(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <testLibraryFragment>::@class::C::@method::foo#element
+              typeParameters
+                T @24
+                  element: T@24
+              formalParameters
+                _ @29
+                  element: <testLibraryFragment>::@class::C::@method::foo::@parameter::_#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          typeParameters
+            T
+          formalParameters
+            requiredPositional _
+              type: T
+''');
+  }
+
+  test_class_method_ofGeneric_refEnclosingTypeParameter_true_formalParameter() async {
+    var library = await buildLibrary('''
+class C<T> {
+  void foo(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <testLibraryFragment>::@class::C::@method::foo#element
+              formalParameters
+                _ @26
+                  element: <testLibraryFragment>::@class::C::@method::foo::@parameter::_#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _
+              type: T
+''');
+  }
+
+  test_class_method_ofGeneric_refEnclosingTypeParameter_true_formalParameter2() async {
+    var library = await buildLibrary('''
+class C<T> {
+  void foo(void Function(T) _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <testLibraryFragment>::@class::C::@method::foo#element
+              formalParameters
+                _ @41
+                  element: <testLibraryFragment>::@class::C::@method::foo::@parameter::_#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _
+              type: void Function(T)
+''');
+  }
+
+  test_class_method_ofGeneric_refEnclosingTypeParameter_true_inferred() async {
+    var library = await buildLibrary('''
+class A<U> {
+  U foo() {}
+}
+
+class B<T> extends A<T> {
+  foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibrary>::@class::A
+          typeParameters
+            U @8
+              element: U@8
+          methods
+            foo @17
+              reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <testLibraryFragment>::@class::A::@method::foo#element
+        class B @35
+          reference: <testLibraryFragment>::@class::B
+          element: <testLibrary>::@class::B
+          typeParameters
+            T @37
+              element: T@37
+          methods
+            foo @57
+              reference: <testLibraryFragment>::@class::B::@method::foo
+              element: <testLibraryFragment>::@class::B::@method::foo#element
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
+      typeParameters
+        U
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          hasEnclosingTypeParameterReference: true
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
+      typeParameters
+        T
+      supertype: A<T>
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::B::@method::foo
+          hasEnclosingTypeParameterReference: true
+''');
+  }
+
+  test_class_method_ofGeneric_refEnclosingTypeParameter_true_returnType() async {
+    var library = await buildLibrary('''
+class C<T> {
+  T foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @17
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <testLibraryFragment>::@class::C::@method::foo#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
+''');
+  }
+
+  test_class_method_ofGeneric_refEnclosingTypeParameter_true_typeAlias() async {
+    var library = await buildLibrary('''
+typedef MyInt<U> = int;
+
+class C<T> {
+  MyInt<T> foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @31
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @33
+              element: T@33
+          methods
+            foo @49
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <testLibraryFragment>::@class::C::@method::foo#element
+      typeAliases
+        MyInt @8
+          reference: <testLibraryFragment>::@typeAlias::MyInt
+          element: <testLibrary>::@typeAlias::MyInt
+          typeParameters
+            U @14
+              element: U@14
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
+  typeAliases
+    MyInt
+      firstFragment: <testLibraryFragment>::@typeAlias::MyInt
+      typeParameters
+        U
+      aliasedType: int
+''');
+  }
+
+  test_class_method_ofGeneric_refEnclosingTypeParameter_true_typeParameter() async {
+    var library = await buildLibrary('''
+class C<T> {
+  void foo<U extends T>() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@class::C::@method::foo
+              element: <testLibraryFragment>::@class::C::@method::foo#element
+              typeParameters
+                U @24
+                  element: U@24
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
+          typeParameters
+            U
+              bound: T
+''');
+  }
+
   test_class_method_params() async {
     var library = await buildLibrary('class C { f(x, y) {} }');
     checkElementText(library, r'''
@@ -12247,6 +12792,7 @@ library
       methods
         f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
+          hasEnclosingTypeParameterReference: true
           typeParameters
             V
             W
@@ -15509,6 +16055,112 @@ library
           formalParameters
             requiredPositional value
               type: int
+''');
+  }
+
+  test_class_setter_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+class C<T> {
+  set foo(int _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              element: <testLibraryFragment>::@class::C::@field::foo#element
+              setter2: <testLibraryFragment>::@class::C::@setter::foo
+          setters
+            set foo @19
+              reference: <testLibraryFragment>::@class::C::@setter::foo
+              element: <testLibraryFragment>::@class::C::@setter::foo#element
+              formalParameters
+                _ @27
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          type: int
+          setter: <testLibraryFragment>::@class::C::@setter::foo#element
+      setters
+        set foo
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
+          formalParameters
+            requiredPositional _
+              type: int
+''');
+  }
+
+  test_class_setter_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+class C<T> {
+  set foo(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @6
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          typeParameters
+            T @8
+              element: T@8
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@class::C::@field::foo
+              element: <testLibraryFragment>::@class::C::@field::foo#element
+              setter2: <testLibraryFragment>::@class::C::@setter::foo
+          setters
+            set foo @19
+              reference: <testLibraryFragment>::@class::C::@setter::foo
+              element: <testLibraryFragment>::@class::C::@setter::foo#element
+              formalParameters
+                _ @25
+                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_#element
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          hasEnclosingTypeParameterReference: true
+          type: T
+          setter: <testLibraryFragment>::@class::C::@setter::foo#element
+      setters
+        set foo
+          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _
+              type: T
 ''');
   }
 

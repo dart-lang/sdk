@@ -469,47 +469,50 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
     descriptors = code.pc_descriptors();
     *is_optimized = code.is_optimized();
   }
-  HandlerInfoCache* cache = thread->isolate()->handler_info_cache();
-  ExceptionHandlerInfo* info = cache->Lookup(pc());
-  if (info != nullptr) {
-    *handler_pc = start + info->handler_pc_offset;
-    *needs_stacktrace = (info->needs_stacktrace != 0);
-    *has_catch_all = (info->has_catch_all != 0);
-    return true;
-  }
+  {
+    SafepointMutexLocker ml(thread->isolate_group()->cache_mutex());
+    HandlerInfoCache* cache = thread->isolate_group()->handler_info_cache();
+    ExceptionHandlerInfo* info = cache->Lookup(pc());
+    if (info != nullptr) {
+      *handler_pc = start + info->handler_pc_offset;
+      *needs_stacktrace = (info->needs_stacktrace != 0);
+      *has_catch_all = (info->has_catch_all != 0);
+      return true;
+    }
 
-  intptr_t try_index = -1;
-  if (handlers.num_entries() != 0) {
-    if (is_interpreted()) {
-      try_index = bytecode.GetTryIndexAtPc(pc());
-    } else {
-      uword pc_offset = pc() - code.PayloadStart();
-      PcDescriptors::Iterator iter(descriptors,
-                                   UntaggedPcDescriptors::kAnyKind);
-      while (iter.MoveNext()) {
-        const intptr_t current_try_index = iter.TryIndex();
-        if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
-          try_index = current_try_index;
-          break;
+    intptr_t try_index = -1;
+    if (handlers.num_entries() != 0) {
+      if (is_interpreted()) {
+        try_index = bytecode.GetTryIndexAtPc(pc());
+      } else {
+        uword pc_offset = pc() - code.PayloadStart();
+        PcDescriptors::Iterator iter(descriptors,
+                                     UntaggedPcDescriptors::kAnyKind);
+        while (iter.MoveNext()) {
+          const intptr_t current_try_index = iter.TryIndex();
+          if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
+            try_index = current_try_index;
+            break;
+          }
         }
       }
     }
-  }
-  if (try_index == -1) {
-    if (handlers.has_async_handler()) {
-      *handler_pc = StubCode::AsyncExceptionHandler().EntryPoint();
-      *needs_stacktrace = true;
-      *has_catch_all = true;
-      return true;
+    if (try_index == -1) {
+      if (handlers.has_async_handler()) {
+        *handler_pc = StubCode::AsyncExceptionHandler().EntryPoint();
+        *needs_stacktrace = true;
+        *has_catch_all = true;
+        return true;
+      }
+      return false;
     }
-    return false;
+    ExceptionHandlerInfo handler_info;
+    handlers.GetHandlerInfo(try_index, &handler_info);
+    *handler_pc = start + handler_info.handler_pc_offset;
+    *needs_stacktrace = (handler_info.needs_stacktrace != 0);
+    *has_catch_all = (handler_info.has_catch_all != 0);
+    cache->Insert(pc(), handler_info);
   }
-  ExceptionHandlerInfo handler_info;
-  handlers.GetHandlerInfo(try_index, &handler_info);
-  *handler_pc = start + handler_info.handler_pc_offset;
-  *needs_stacktrace = (handler_info.needs_stacktrace != 0);
-  *has_catch_all = (handler_info.has_catch_all != 0);
-  cache->Insert(pc(), handler_info);
   return true;
 }
 

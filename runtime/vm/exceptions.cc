@@ -137,7 +137,6 @@ class ExceptionHandlerFinder : public StackResource {
     uword temp_handler_pc = kUwordMax;
     bool is_optimized = false;
     code_ = nullptr;
-    catch_entry_moves_cache_ = thread_->isolate()->catch_entry_moves_cache();
 
     while (!frame->IsEntryFrame()) {
       if (frame->IsDartFrame()) {
@@ -154,14 +153,6 @@ class ExceptionHandlerFinder : public StackResource {
                  StubCode::AsyncExceptionHandler().EntryPoint())) {
               pc_ = frame->pc();
               code_ = &Code::Handle(frame->LookupDartCode());
-              CatchEntryMovesRefPtr* cached_catch_entry_moves =
-                  catch_entry_moves_cache_->Lookup(pc_);
-              if (cached_catch_entry_moves != nullptr) {
-                cached_catch_entry_moves_ = *cached_catch_entry_moves;
-              }
-              if (cached_catch_entry_moves_.IsEmpty()) {
-                ReadCompressedCatchEntryMoves();
-              }
             }
           }
           if (needs_stacktrace || is_catch_all) {
@@ -190,15 +181,9 @@ class ExceptionHandlerFinder : public StackResource {
     if (code_ == nullptr || !code_->is_optimized()) {
       return;
     }
-
-    if (cached_catch_entry_moves_.IsEmpty()) {
-      catch_entry_moves_cache_->Insert(
-          pc_, CatchEntryMovesRefPtr(catch_entry_moves_));
-    } else {
-      catch_entry_moves_ = &cached_catch_entry_moves_.moves();
-    }
-
-    ExecuteCatchEntryMoves(*catch_entry_moves_);
+    thread_->isolate_group()->RunWithCachedCatchEntryMoves(
+        *code_, pc_,
+        [&](const CatchEntryMoves& moves) { ExecuteCatchEntryMoves(moves); });
   }
 
   void ExecuteCatchEntryMoves(const CatchEntryMoves& moves) {
@@ -295,14 +280,6 @@ class ExceptionHandlerFinder : public StackResource {
     }
   }
 
-  void ReadCompressedCatchEntryMoves() {
-    const intptr_t pc_offset = pc_ - code_->PayloadStart();
-    const auto& td = TypedData::Handle(code_->catch_entry_moves_maps());
-
-    CatchEntryMovesMapReader reader(td);
-    catch_entry_moves_ = reader.ReadMovesForPcOffset(pc_offset);
-  }
-
   bool needs_stacktrace;
   uword handler_pc;
   uword handler_sp;
@@ -325,10 +302,6 @@ class ExceptionHandlerFinder : public StackResource {
   Code* code_;
   bool handler_pc_set_;
   intptr_t pc_;  // Current pc in the handler frame.
-
-  const CatchEntryMoves* catch_entry_moves_ = nullptr;
-  CatchEntryMovesCache* catch_entry_moves_cache_ = nullptr;
-  CatchEntryMovesRefPtr cached_catch_entry_moves_;
 };
 
 CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
@@ -607,14 +580,6 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
                             bool clear_deopt_at_target) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
 
-#if defined(DART_DYNAMIC_MODULES)
-  Interpreter* interpreter = thread->interpreter();
-  if ((interpreter != nullptr) && interpreter->HasFrame(frame_pointer)) {
-    interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
-                             thread);
-  }
-#endif  // defined(DART_DYNAMIC_MODULES)
-
   const uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
@@ -622,6 +587,14 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
   StackResource::Unwind(thread);
+
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter = thread->interpreter();
+  if ((interpreter != nullptr) && interpreter->HasFrame(frame_pointer)) {
+    interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
+                             thread);
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
 
   // If execution exited generated code through FFI then exit the safepoint
   // and transition back to kThreadInGenerated execution state. JumpToFrame

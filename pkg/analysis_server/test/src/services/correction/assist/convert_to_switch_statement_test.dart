@@ -521,6 +521,29 @@ int f(int x) {
 ''');
   }
 
+  Future<void> test_operatorAssignment() async {
+    await resolveTestCode('''
+void f(int x) {
+  int v = 0;
+  v += switch (x) {
+    0 => 0,
+    _ => 1,
+  };
+}
+''');
+    await assertHasAssistAt('switch', '''
+void f(int x) {
+  int v = 0;
+  switch (x) {
+    case 0:
+      v += 0;
+    default:
+      v += 1;
+  }
+}
+''');
+  }
+
   Future<void> test_returnStatement() async {
     await resolveTestCode('''
 int f(int x) {

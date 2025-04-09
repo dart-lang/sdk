@@ -114,6 +114,8 @@ class AnalyzerUseNewElements extends LintRule {
 class _TypeVisitor extends RecursiveTypeVisitor {
   bool result = false;
 
+  _TypeVisitor() : super(includeTypeAliasArguments: false);
+
   @override
   bool visitInterfaceType(InterfaceType type) {
     result |= _isOldModelElement(type.element3);

@@ -45,3 +45,4 @@ dev_dependencies:
   lints: any
   pub_semver: any
   test: any
+  yaml_edit: any

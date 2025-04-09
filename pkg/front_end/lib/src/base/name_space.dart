@@ -8,6 +8,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../dill/dill_library_builder.dart';
+import 'lookup_result.dart';
 import 'scope.dart';
 
 abstract class NameSpace {
@@ -15,6 +16,15 @@ abstract class NameSpace {
 
   /// Adds [builder] to the extensions in this name space.
   void addExtension(ExtensionBuilder builder);
+
+  /// Returns the [LookupResult] for the [Builder]s of the given [name] in
+  /// the name space.
+  ///
+  /// If [staticOnly] is `true`, instance members are not returned.
+  LookupResult? lookupLocal(String name,
+      {required Uri fileUri,
+      required int fileOffset,
+      required bool staticOnly});
 
   Builder? lookupLocalMember(String name, {required bool setter});
 
@@ -169,6 +179,68 @@ class NameSpaceImpl implements NameSpace {
 
   @override
   Iterable<Builder> get localMembers => _getables?.values ?? const [];
+
+  @override
+  LookupResult? lookupLocal(String name,
+      {required Uri fileUri,
+      required int fileOffset,
+      required bool staticOnly}) {
+    Builder? getable = _getables?[name];
+    Builder? setable = _setables?[name];
+    if (getable != null) {
+      if (getable.next != null) {
+        getable = new AmbiguousBuilder(name, getable, fileOffset, fileUri);
+      }
+      if (staticOnly && getable.isDeclarationInstanceMember) {
+        getable = null;
+      }
+    }
+    if (setable != null) {
+      if (setable.next != null) {
+        AmbiguousBuilder ambiguousBuilder =
+            setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
+        Builder firstSetable = ambiguousBuilder.getFirstDeclaration();
+        if (firstSetable is MemberBuilder && firstSetable.isConflictingSetter) {
+          setable = null;
+        }
+      } else if (setable is MemberBuilder && setable.isConflictingSetter) {
+        setable = null;
+      }
+      if (setable != null &&
+          staticOnly &&
+          setable.isDeclarationInstanceMember) {
+        setable = null;
+      }
+    }
+
+    if (getable is LookupResult) {
+      if (setable == null) {
+        return getable as LookupResult;
+      } else {
+        assert(getable != setable,
+            "Unexpected getable $getable and setable $setable.");
+        assert(
+            (getable as LookupResult).setable == null,
+            "Unexpected setable ${(getable as LookupResult).setable} from "
+            "getable $getable and setable $setable.");
+        return new GetableSetableResult(getable!, setable);
+      }
+    } else if (setable is LookupResult) {
+      if (getable == null) {
+        return setable as LookupResult;
+      } else {
+        assert(getable != setable,
+            "Unexpected getable $getable and setable $setable.");
+        assert(
+            (setable as LookupResult).getable == null,
+            "Unexpected getable ${(setable as LookupResult).getable} from "
+            "setable $setable and getable $getable.");
+        return new GetableSetableResult(getable, setable!);
+      }
+    } else {
+      return LookupResult.fromBuilders(getable, setable);
+    }
+  }
 
   @override
   Builder? lookupLocalMember(String name, {required bool setter}) {

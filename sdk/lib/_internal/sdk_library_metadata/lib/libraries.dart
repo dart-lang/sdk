@@ -332,12 +332,6 @@ const Map<String, LibraryInfo> libraries = const {
     categories: '',
     documented: false,
   ),
-  "_macros": const LibraryInfo(
-    '_macros/macros.dart',
-    documented: false,
-    platforms: VM_PLATFORM,
-    maturity: Maturity.EXPERIMENTAL,
-  ),
 };
 
 /// Information about a "dart:" library.

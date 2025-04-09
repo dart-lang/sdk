@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import 'dill_extension_type_declaration_builder.dart';
 import 'dill_member_builder.dart';
@@ -115,10 +116,15 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {
   Reference get invokeTargetReference => field.getterReference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isField => true;
 
   @override
   bool get isAssignable => field.hasSetter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasSetter => field.hasSetter;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -132,6 +138,12 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences =>
       [field.getterReference, if (field.hasSetter) field.setterReference!];
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => field.hasSetter ? this : null;
 }
 
 class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder {
@@ -175,7 +187,17 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get hasSetter => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  Builder? get getable => null;
+
+  @override
+  Builder get setable => this;
 }
 
 class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder {
@@ -221,6 +243,12 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 }
 
 class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder {
@@ -266,6 +294,14 @@ class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }
 
 class DillExtensionTypeStaticMethodBuilder
@@ -313,6 +349,12 @@ class DillExtensionTypeStaticMethodBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 }
 
 class DillExtensionTypeInstanceMethodBuilder
@@ -363,6 +405,14 @@ class DillExtensionTypeInstanceMethodBuilder
   @override
   // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }
 
 class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
@@ -420,6 +470,14 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [constructor.reference];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }
 
 class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder {
@@ -468,4 +526,12 @@ class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
 }

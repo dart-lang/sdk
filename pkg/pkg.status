@@ -138,6 +138,8 @@ vm_service/test/enhanced_enum_test: SkipByDesign # Debugger is disabled in AOT m
 vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/external_compilation_service_test: SkipByDesign # Spawns a secondary process.
+vm_service/test/failure_to_start_vm_service_after_vm_is_initialized_test: SkipByDesign # Spawns a child process from source, and the codepath under test is the same in JIT and AOT.
+vm_service/test/failure_to_start_vm_service_during_vm_initialization_test: SkipByDesign # Spawns a child process from source, and the codepath under test is the same in JIT and AOT.
 vm_service/test/field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/forward_compile_expression_error_from_external_client_with_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/forward_compile_expression_error_from_external_client_without_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -189,7 +191,7 @@ vm_service/test/regress_45684_test: SkipByDesign # Debugger is disabled in AOT m
 vm_service/test/regress_46419_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/regress_46559_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/regress_48279_test: SkipByDesign # Debugger is disabled in AOT mode.
-vm_service/test/regress_55559_test: SkipByDesign # Spawns a child process from source.
+vm_service/test/regress_55559_test: SkipByDesign # Spawns a child process from source, and the codepath under test is the same in JIT and AOT.
 vm_service/test/regress_60396_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/regress_88104_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/reload_sources_rpc_triggers_isolate_reload_event_test: SkipByDesign # Hot reload is disabled in AOT mode.
@@ -254,7 +256,6 @@ vm/test/*: SkipByDesign # Only meant to run on vm
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
-_macros/test/executor/executor_test: Skip # dartbug.com/56002
 front_end/test/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths

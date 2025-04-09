@@ -131,6 +131,14 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isAssignable => false;
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
+
   void becomeNative(SourceLoader loader) {
     _introductory.becomeNative(loader: loader, annotatables: annotatables);
     for (FactoryDeclaration augmentation in _augmentations) {

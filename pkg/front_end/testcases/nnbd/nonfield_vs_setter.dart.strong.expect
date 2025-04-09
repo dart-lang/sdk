@@ -121,14 +121,6 @@ library;
 //   classAndSetter = classAndSetter();
 //   ^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:9: Error: Setter not found: 'staticMethodAndSetter'.
-//   Class.staticMethodAndSetter = Class.staticMethodAndSetter();
-//         ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:65:13: Error: Setter not found: 'extensionStaticMethodAndSetter'.
-//   Extension.extensionStaticMethodAndSetter =
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:61:15: Error: The getter 'Class' isn't defined for the class 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'Class'.
@@ -201,9 +193,7 @@ static method test() → dynamic {
   ^^^^^^^^^^^^^^";
   self::Class c = new self::Class::•();
   c.{self::Class::instanceMethodAndSetter} = c.{self::Class::instanceMethodAndSetter}(){() → dynamic};
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:9: Error: Setter not found: 'staticMethodAndSetter'.
-  Class.staticMethodAndSetter = Class.staticMethodAndSetter();
-        ^^^^^^^^^^^^^^^^^^^^^";
+  self::Class::staticMethodAndSetter = self::Class::staticMethodAndSetter();
   c.{self::Class::staticMethodAndInstanceSetter} = self::Class::staticMethodAndInstanceSetter();
   self::Class::instanceMethodAndStaticSetter = c.{self::Class::instanceMethodAndStaticSetter}(){() → dynamic};
   c.{self::Class::Class} = invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:61:15: Error: The getter 'Class' isn't defined for the class 'Class'.
@@ -215,9 +205,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionInstanceFieldAndSetter'.
   0.extensionInstanceFieldAndSetter = 0.extensionInstanceMethodAndSetter();
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0.{<unresolved>}extensionInstanceFieldAndSetter = self::Extension|extensionInstanceMethodAndSetter(0);
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:65:13: Error: Setter not found: 'extensionStaticMethodAndSetter'.
-  Extension.extensionStaticMethodAndSetter =
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  self::Extension|extensionStaticMethodAndSetter = self::Extension|extensionStaticMethodAndSetter();
   self::Extension|set#extensionStaticMethodAndInstanceSetter(0, self::Extension|extensionStaticMethodAndInstanceSetter());
   self::Extension|extensionInstanceMethodAndStaticSetter = self::Extension|extensionInstanceMethodAndStaticSetter(0);
 }

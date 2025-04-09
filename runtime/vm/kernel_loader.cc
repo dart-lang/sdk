@@ -790,6 +790,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
 }
 
 LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
+  HANDLESCOPE(thread_);
   if (!program_->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "

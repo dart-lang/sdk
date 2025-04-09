@@ -18,8 +18,6 @@ abstract class Builder {
 
   String get fullNameForErrors;
 
-  bool get hasProblem;
-
   bool get isConst;
 
   bool get isConstructor;
@@ -29,6 +27,15 @@ abstract class Builder {
   bool get isField;
 
   bool get isGetter;
+
+  /// Returns `true` if this builder is a setable property.
+  ///
+  /// For instance `a` and `b` in:
+  ///
+  ///     int? a;
+  ///     set b(int v) {}
+  ///
+  bool get hasSetter;
 
   bool get isExternal;
 
@@ -214,8 +221,6 @@ abstract class Builder {
   ///
   bool get isExtensionTypeInstanceMember;
 
-  bool get isLocal;
-
   /// Returns `true` if the related declaration is marked `augment`
   bool get isAugment;
 
@@ -230,8 +235,6 @@ abstract class Builder {
   bool get isSynthetic;
 
   bool get isTopLevel;
-
-  bool get isTypeDeclaration;
 
   bool get isTypeParameter;
 
@@ -252,9 +255,6 @@ abstract class BuilderImpl implements Builder {
   Builder? next;
 
   BuilderImpl();
-
-  @override
-  bool get hasProblem => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -295,16 +295,16 @@ abstract class BuilderImpl implements Builder {
   bool get isDeclarationInstanceMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isClassInstanceMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExtensionInstanceMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExtensionTypeInstanceMember => false;
-
-  @override
-  bool get isLocal => false;
 
   @override
   bool get isAugment => false;
@@ -317,6 +317,9 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isSetter => false;
+
+  @override
+  bool get hasSetter => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -332,9 +335,6 @@ abstract class BuilderImpl implements Builder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isTopLevel => false;
-
-  @override
-  bool get isTypeDeclaration => false;
 
   @override
   bool get isTypeParameter => false;

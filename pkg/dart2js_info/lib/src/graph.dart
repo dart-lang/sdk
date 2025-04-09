@@ -33,7 +33,7 @@ abstract class Graph<N> {
   bool containsPath(N source, N target) {
     Set<N> seen = <N>{};
     bool helper(N node) {
-      if (identical(node, target)) return true;
+      if (node == target) return true;
       if (!seen.add(node)) return false;
       return targetsOf(node).any(helper);
     }
@@ -73,7 +73,6 @@ abstract class Graph<N> {
   /// the node is not part of a cycle in this graph, then a list containing only
   /// the node itself will be returned.
   List<N>? findCycleContaining(N node) {
-    assert(node != null);
     _SccFinder<N> finder = _SccFinder<N>(this);
     return finder._componentContaining(node);
   }
@@ -126,12 +125,11 @@ class EdgeListGraph<N> extends Graph<N> {
   @override
   int get nodeCount => _edges.length;
 
-  final _empty = <N>{};
-
   @override
-  Iterable<N> targetsOf(N source) => _edges[source] ?? _empty;
+  Iterable<N> targetsOf(N source) => _edges[source] ?? const Iterable.empty();
   @override
-  Iterable<N> sourcesOf(N source) => _revEdges[source] ?? _empty;
+  Iterable<N> sourcesOf(N source) =>
+      _revEdges[source] ?? const Iterable.empty();
 
   void addEdge(N source, N target) {
     addNode(source);
@@ -141,7 +139,6 @@ class EdgeListGraph<N> extends Graph<N> {
   }
 
   void addNode(N node) {
-    assert(node != null);
     _edges.putIfAbsent(node, () => <N>{});
     _revEdges.putIfAbsent(node, () => <N>{});
   }
@@ -174,7 +171,7 @@ class EdgeListGraph<N> extends Graph<N> {
 /// been examined. There is an instance of this class per node in the graph.
 class _NodeInfo<N> {
   /// Depth of the node corresponding to this info.
-  int index = 0;
+  final int index;
 
   /// Depth of the first node in a cycle.
   int lowlink = 0;
@@ -187,7 +184,7 @@ class _NodeInfo<N> {
   /// Component that contains the corresponding node.
   List<N>? component;
 
-  _NodeInfo(int depth) : index = depth, lowlink = depth, onStack = false;
+  _NodeInfo(this.index) : lowlink = index, onStack = false;
 }
 
 /// Implements Tarjan's Algorithm for finding the strongly connected components
@@ -230,7 +227,7 @@ class _SccFinder<N> {
 
   /// Remove and return the top-most element from the stack.
   N _pop() {
-    N node = _stack.removeAt(_stack.length - 1);
+    N node = _stack.removeLast();
     _info[node]!.onStack = false;
     return node;
   }
@@ -270,7 +267,7 @@ class _SccFinder<N> {
         w = _pop();
         component.add(w);
         _info[w]!.component = component;
-      } while (!identical(w, v));
+      } while (w != v);
       _allComponents.add(component);
     }
     return vInfo;
