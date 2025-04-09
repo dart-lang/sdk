@@ -182,7 +182,8 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
     if (stats.significant) {
       somethingWasSignificant = true;
       print("$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
-          "(${stats.valueChangeIfSignificant(fractionDigits: 2)})");
+          "(${stats.valueChangeIfSignificant(fractionDigits: 2)}) "
+          "(${stats.meanChangeStringIfSignificant(fractionDigits: 2)})");
     }
   }
   return somethingWasSignificant;
