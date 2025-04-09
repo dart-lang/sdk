@@ -155,6 +155,27 @@ class InvocationInferenceHelper {
     return tearOffType;
   }
 
+  /// Finish resolution of the [DotShorthandInvocation].
+  ///
+  /// We have already found the invoked [ExecutableElement2], and the [rawType]
+  /// is its not yet instantiated type. Here we perform downwards inference,
+  /// resolution of arguments, and upwards inference.
+  void resolveDotShorthandInvocation({
+    required DotShorthandInvocationImpl node,
+    required FunctionTypeImpl rawType,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    var returnType = DotShorthandInvocationInferrer(
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    ).resolveInvocation(rawType: rawType);
+    node.recordStaticType(returnType, resolver: _resolver);
+  }
+
   /// Finish resolution of the [MethodInvocation].
   ///
   /// We have already found the invoked [ExecutableElement2], and the [rawType]
@@ -162,7 +183,7 @@ class InvocationInferenceHelper {
   /// resolution of arguments, and upwards inference.
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
-    required FunctionType rawType,
+    required FunctionTypeImpl rawType,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
   }) {
@@ -172,11 +193,7 @@ class InvocationInferenceHelper {
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(
-        // TODO(paulberry): eliminate this cast by changing the type of
-        // `rawType`.
-        rawType: rawType as FunctionTypeImpl);
-
+    ).resolveInvocation(rawType: rawType);
     node.recordStaticType(returnType, resolver: _resolver);
   }
 }
