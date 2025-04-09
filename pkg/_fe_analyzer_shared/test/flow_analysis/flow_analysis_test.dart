@@ -1292,6 +1292,8 @@ main() {
     });
 
     test('ifNullExpression does not detect when RHS is unreachable', () {
+      // Note: sound flow analysis changes this behavior.
+      h.disableSoundFlowAnalysis();
       h.run([
         expr('int')
             .ifNull(second(checkReachable(true), expr('int')))
@@ -1321,6 +1323,8 @@ main() {
     test(
         'ifNullExpression sets shortcut reachability correctly for non-null '
         'type', () {
+      // Note: sound flow analysis changes this behavior.
+      h.disableSoundFlowAnalysis();
       h.run([
         expr('Object')
             .ifNull(second(checkReachable(true), throw_(expr('Object'))))
@@ -10946,6 +10950,21 @@ main() {
             (e) => e.invokeMethod('foo', [x.write(expr('int'))])
           ]),
           checkAssigned(x, false)
+        ]);
+      });
+    });
+
+    group('<nonNullable> ?? <expr>', () {
+      test('When enabled, <expr> is dead', () {
+        h.run([
+          expr('int').ifNull(checkReachable(false)),
+        ]);
+      });
+
+      test('When disabled, <expr> is live', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          expr('int').ifNull(checkReachable(true)),
         ]);
       });
     });

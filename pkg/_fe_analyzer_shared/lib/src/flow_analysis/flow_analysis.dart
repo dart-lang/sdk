@@ -4896,25 +4896,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     } else {
       shortcutState = _current;
     }
-    if (operations.classifyType(leftHandSideType) ==
-        TypeClassification.nullOrEquivalent) {
-      shortcutState = shortcutState.setUnreachable();
+    switch (operations.classifyType(leftHandSideType)) {
+      case TypeClassification.nullOrEquivalent:
+        // The control path that skips the "if null" code is unreachable.
+        shortcutState = shortcutState.setUnreachable();
+      case TypeClassification.nonNullable:
+        // The control path containing the "if null" code is unreachable,
+        // assuming sound null safety.
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+          _current = _current.setUnreachable();
+        }
+      case TypeClassification.potentiallyNullable:
+        // Both control flow paths are reachable.
+        break;
     }
     _stack.add(new _IfNullExpressionContext<Type>(shortcutState));
-    // Note: we are now on the RHS of the `??`, and so at this point in the
-    // flow, it is known that the LHS evaluated to `null`.  It's tempting to
-    // update `_current` to reflect this (either promoting the type of the LHS,
-    // if it's a variable reference, or marking the flow as unreachable, if the
-    // LHS had a non-nullable static type).  However:
-    // - In the case where the LHS was a variable reference, we can't promote
-    //   it, because we don't promote to `Null` (see
-    //   https://github.com/dart-lang/language/issues/1505#issuecomment-975706918)
-    // - In the case where the LHS had a non-nullable static type, it still
-    //   might have been `null` due to mixed-mode unsoundness, so we can't mark
-    //   the flow as unreachable without allowing the unsoundness to escalate
-    //   (see https://github.com/dart-lang/language/issues/1143)
-    //
-    // So we just leave `_current` as is.
   }
 
   @override
