@@ -231,6 +231,11 @@ final class MessageScheduler {
               message.responseCompleter,
               completer,
             );
+          case WatcherMessage():
+            server.contextManager.handleWatchEvent(message.event);
+            // Handling a watch event is a synchronous process, so there's
+            // nothing to wait for.
+            completer.complete();
         }
 
         // Blocking here with an await on the future was intended to prevent
