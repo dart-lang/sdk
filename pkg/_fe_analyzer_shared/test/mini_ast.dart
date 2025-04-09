@@ -2642,6 +2642,7 @@ class MiniAstOperations
     'double?, int?': Type('num?'),
     'int, num': Type('num'),
     'Null, bool': Type('bool?'),
+    'Null, dynamic': Type('dynamic'),
     'Null, int': Type('int?'),
     'Null, Object': Type('Object?'),
     'Null, String': Type('String?'),

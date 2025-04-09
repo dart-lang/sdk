@@ -5155,15 +5155,26 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {
     _current = _current.split();
-    _stack.add(new _NullAwareAccessContext<Type>(_current));
+    FlowModel<Type> shortcutControlPath = _current;
     _Reference<Type>? targetReference = _getExpressionReference(target);
     if (targetReference != null) {
       _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
     }
-    if (operations.classifyType(targetType) ==
-        TypeClassification.nullOrEquivalent) {
-      _current = _current.setUnreachable();
+    switch (operations.classifyType(targetType)) {
+      case TypeClassification.nullOrEquivalent:
+        // The control flow path containing the null-aware code is unreachable.
+        _current = _current.setUnreachable();
+      case TypeClassification.nonNullable:
+        // The control flow path that skips the null-aware code is unreachable,
+        // assuming sound null safety.
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+          shortcutControlPath = shortcutControlPath.setUnreachable();
+        }
+      case TypeClassification.potentiallyNullable:
+        // Both control flow paths are reachable.
+        break;
     }
+    _stack.add(new _NullAwareAccessContext<Type>(shortcutControlPath));
   }
 
   @override
