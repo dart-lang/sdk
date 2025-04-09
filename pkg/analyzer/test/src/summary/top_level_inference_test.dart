@@ -536,61 +536,77 @@ library
   getters
     synthetic static get vPlusIntInt
       firstFragment: <testLibraryFragment>::@getter::vPlusIntInt
+      returnType: int
     synthetic static get vPlusIntDouble
       firstFragment: <testLibraryFragment>::@getter::vPlusIntDouble
+      returnType: double
     synthetic static get vPlusDoubleInt
       firstFragment: <testLibraryFragment>::@getter::vPlusDoubleInt
+      returnType: double
     synthetic static get vPlusDoubleDouble
       firstFragment: <testLibraryFragment>::@getter::vPlusDoubleDouble
+      returnType: double
     synthetic static get vMinusIntInt
       firstFragment: <testLibraryFragment>::@getter::vMinusIntInt
+      returnType: int
     synthetic static get vMinusIntDouble
       firstFragment: <testLibraryFragment>::@getter::vMinusIntDouble
+      returnType: double
     synthetic static get vMinusDoubleInt
       firstFragment: <testLibraryFragment>::@getter::vMinusDoubleInt
+      returnType: double
     synthetic static get vMinusDoubleDouble
       firstFragment: <testLibraryFragment>::@getter::vMinusDoubleDouble
+      returnType: double
   setters
     synthetic static set vPlusIntInt
       firstFragment: <testLibraryFragment>::@setter::vPlusIntInt
       formalParameters
         requiredPositional _vPlusIntInt
           type: int
+      returnType: void
     synthetic static set vPlusIntDouble
       firstFragment: <testLibraryFragment>::@setter::vPlusIntDouble
       formalParameters
         requiredPositional _vPlusIntDouble
           type: double
+      returnType: void
     synthetic static set vPlusDoubleInt
       firstFragment: <testLibraryFragment>::@setter::vPlusDoubleInt
       formalParameters
         requiredPositional _vPlusDoubleInt
           type: double
+      returnType: void
     synthetic static set vPlusDoubleDouble
       firstFragment: <testLibraryFragment>::@setter::vPlusDoubleDouble
       formalParameters
         requiredPositional _vPlusDoubleDouble
           type: double
+      returnType: void
     synthetic static set vMinusIntInt
       firstFragment: <testLibraryFragment>::@setter::vMinusIntInt
       formalParameters
         requiredPositional _vMinusIntInt
           type: int
+      returnType: void
     synthetic static set vMinusIntDouble
       firstFragment: <testLibraryFragment>::@setter::vMinusIntDouble
       formalParameters
         requiredPositional _vMinusIntDouble
           type: double
+      returnType: void
     synthetic static set vMinusDoubleInt
       firstFragment: <testLibraryFragment>::@setter::vMinusDoubleInt
       formalParameters
         requiredPositional _vMinusDoubleInt
           type: double
+      returnType: void
     synthetic static set vMinusDoubleDouble
       firstFragment: <testLibraryFragment>::@setter::vMinusDoubleDouble
       formalParameters
         requiredPositional _vMinusDoubleDouble
           type: double
+      returnType: void
 ''');
   }
 
@@ -631,12 +647,14 @@ library
   getters
     synthetic static get V
       firstFragment: <testLibraryFragment>::@getter::V
+      returnType: num
   setters
     synthetic static set V
       firstFragment: <testLibraryFragment>::@setter::V
       formalParameters
         requiredPositional _V
           type: num
+      returnType: void
 ''');
   }
 
@@ -719,26 +737,32 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
     synthetic static get t1
       firstFragment: <testLibraryFragment>::@getter::t1
+      returnType: int
     synthetic static get t2
       firstFragment: <testLibraryFragment>::@getter::t2
+      returnType: int
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: int
+      returnType: void
     synthetic static set t1
       firstFragment: <testLibraryFragment>::@setter::t1
       formalParameters
         requiredPositional _t1
           type: int
+      returnType: void
     synthetic static set t2
       firstFragment: <testLibraryFragment>::@setter::t2
       formalParameters
         requiredPositional _t2
           type: int
+      returnType: void
 ''');
   }
 
@@ -821,26 +845,32 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: List<int>
     synthetic static get t1
       firstFragment: <testLibraryFragment>::@getter::t1
+      returnType: int
     synthetic static get t2
       firstFragment: <testLibraryFragment>::@getter::t2
+      returnType: int
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: List<int>
+      returnType: void
     synthetic static set t1
       firstFragment: <testLibraryFragment>::@setter::t1
       formalParameters
         requiredPositional _t1
           type: int
+      returnType: void
     synthetic static set t2
       firstFragment: <testLibraryFragment>::@setter::t2
       formalParameters
         requiredPositional _t2
           type: int
+      returnType: void
 ''');
   }
 
@@ -946,12 +976,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
   topLevelVariables
     hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -974,26 +1006,32 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: A
     synthetic static get t1
       firstFragment: <testLibraryFragment>::@getter::t1
+      returnType: int
     synthetic static get t2
       firstFragment: <testLibraryFragment>::@getter::t2
+      returnType: int
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: A
+      returnType: void
     synthetic static set t1
       firstFragment: <testLibraryFragment>::@setter::t1
       formalParameters
         requiredPositional _t1
           type: int
+      returnType: void
     synthetic static set t2
       firstFragment: <testLibraryFragment>::@setter::t2
       formalParameters
         requiredPositional _t2
           type: int
+      returnType: void
 ''');
   }
 
@@ -1108,12 +1146,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::I::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::I::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1144,26 +1184,32 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get t1
       firstFragment: <testLibraryFragment>::@getter::t1
+      returnType: int
     synthetic static get t2
       firstFragment: <testLibraryFragment>::@getter::t2
+      returnType: int
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set t1
       firstFragment: <testLibraryFragment>::@setter::t1
       formalParameters
         requiredPositional _t1
           type: int
+      returnType: void
     synthetic static set t2
       firstFragment: <testLibraryFragment>::@setter::t2
       formalParameters
         requiredPositional _t2
           type: int
+      returnType: void
 ''');
   }
 
@@ -1268,12 +1314,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::I::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::I::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -1298,19 +1346,23 @@ library
   getters
     synthetic static get t1
       firstFragment: <testLibraryFragment>::@getter::t1
+      returnType: int
     synthetic static get t2
       firstFragment: <testLibraryFragment>::@getter::t2
+      returnType: int
   setters
     synthetic static set t1
       firstFragment: <testLibraryFragment>::@setter::t1
       formalParameters
         requiredPositional _t1
           type: int
+      returnType: void
     synthetic static set t2
       firstFragment: <testLibraryFragment>::@setter::t2
       formalParameters
         requiredPositional _t2
           type: int
+      returnType: void
   functions
     getC
       reference: <testLibrary>::@function::getC
@@ -1389,19 +1441,23 @@ library
   getters
     synthetic static get uValue
       firstFragment: <testLibraryFragment>::@getter::uValue
+      returnType: Future<int> Function()
     synthetic static get uFuture
       firstFragment: <testLibraryFragment>::@getter::uFuture
+      returnType: Future<int> Function()
   setters
     synthetic static set uValue
       firstFragment: <testLibraryFragment>::@setter::uValue
       formalParameters
         requiredPositional _uValue
           type: Future<int> Function()
+      returnType: void
     synthetic static set uFuture
       firstFragment: <testLibraryFragment>::@setter::uFuture
       formalParameters
         requiredPositional _uFuture
           type: Future<int> Function()
+      returnType: void
   functions
     fValue
       reference: <testLibrary>::@function::fValue
@@ -1535,40 +1591,50 @@ library
   getters
     synthetic static get vBitXor
       firstFragment: <testLibraryFragment>::@getter::vBitXor
+      returnType: int
     synthetic static get vBitAnd
       firstFragment: <testLibraryFragment>::@getter::vBitAnd
+      returnType: int
     synthetic static get vBitOr
       firstFragment: <testLibraryFragment>::@getter::vBitOr
+      returnType: int
     synthetic static get vBitShiftLeft
       firstFragment: <testLibraryFragment>::@getter::vBitShiftLeft
+      returnType: int
     synthetic static get vBitShiftRight
       firstFragment: <testLibraryFragment>::@getter::vBitShiftRight
+      returnType: int
   setters
     synthetic static set vBitXor
       firstFragment: <testLibraryFragment>::@setter::vBitXor
       formalParameters
         requiredPositional _vBitXor
           type: int
+      returnType: void
     synthetic static set vBitAnd
       firstFragment: <testLibraryFragment>::@setter::vBitAnd
       formalParameters
         requiredPositional _vBitAnd
           type: int
+      returnType: void
     synthetic static set vBitOr
       firstFragment: <testLibraryFragment>::@setter::vBitOr
       formalParameters
         requiredPositional _vBitOr
           type: int
+      returnType: void
     synthetic static set vBitShiftLeft
       firstFragment: <testLibraryFragment>::@setter::vBitShiftLeft
       formalParameters
         requiredPositional _vBitShiftLeft
           type: int
+      returnType: void
     synthetic static set vBitShiftRight
       firstFragment: <testLibraryFragment>::@setter::vBitShiftRight
       formalParameters
         requiredPositional _vBitShiftRight
           type: int
+      returnType: void
 ''');
   }
 
@@ -1679,15 +1745,18 @@ library
       getters
         synthetic get a
           firstFragment: <testLibraryFragment>::@class::A::@getter::a
+          returnType: int
       setters
         synthetic set a
           firstFragment: <testLibraryFragment>::@class::A::@setter::a
           formalParameters
             requiredPositional _a
               type: int
+          returnType: void
       methods
         m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
+          returnType: void
   topLevelVariables
     hasInitializer vSetField
       reference: <testLibrary>::@topLevelVariable::vSetField
@@ -1710,26 +1779,32 @@ library
   getters
     synthetic static get vSetField
       firstFragment: <testLibraryFragment>::@getter::vSetField
+      returnType: A
     synthetic static get vInvokeMethod
       firstFragment: <testLibraryFragment>::@getter::vInvokeMethod
+      returnType: A
     synthetic static get vBoth
       firstFragment: <testLibraryFragment>::@getter::vBoth
+      returnType: A
   setters
     synthetic static set vSetField
       firstFragment: <testLibraryFragment>::@setter::vSetField
       formalParameters
         requiredPositional _vSetField
           type: A
+      returnType: void
     synthetic static set vInvokeMethod
       firstFragment: <testLibraryFragment>::@setter::vInvokeMethod
       formalParameters
         requiredPositional _vInvokeMethod
           type: A
+      returnType: void
     synthetic static set vBoth
       firstFragment: <testLibraryFragment>::@setter::vBoth
       formalParameters
         requiredPositional _vBoth
           type: A
+      returnType: void
 ''');
   }
 
@@ -2053,12 +2128,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -2074,12 +2151,14 @@ library
       getters
         synthetic get a
           firstFragment: <testLibraryFragment>::@class::B::@getter::a
+          returnType: A
       setters
         synthetic set a
           firstFragment: <testLibraryFragment>::@class::B::@setter::a
           formalParameters
             requiredPositional _a
               type: A
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -2095,12 +2174,14 @@ library
       getters
         synthetic get b
           firstFragment: <testLibraryFragment>::@class::C::@getter::b
+          returnType: B
       setters
         synthetic set b
           firstFragment: <testLibraryFragment>::@class::C::@setter::b
           formalParameters
             requiredPositional _b
               type: B
+          returnType: void
     class X
       reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
@@ -2171,89 +2252,113 @@ library
       getters
         synthetic get a
           firstFragment: <testLibraryFragment>::@class::X::@getter::a
+          returnType: A
         synthetic get b
           firstFragment: <testLibraryFragment>::@class::X::@getter::b
+          returnType: B
         synthetic get c
           firstFragment: <testLibraryFragment>::@class::X::@getter::c
+          returnType: C
         synthetic get t01
           firstFragment: <testLibraryFragment>::@class::X::@getter::t01
+          returnType: int
         synthetic get t02
           firstFragment: <testLibraryFragment>::@class::X::@getter::t02
+          returnType: int
         synthetic get t03
           firstFragment: <testLibraryFragment>::@class::X::@getter::t03
+          returnType: int
         synthetic get t11
           firstFragment: <testLibraryFragment>::@class::X::@getter::t11
+          returnType: int
         synthetic get t12
           firstFragment: <testLibraryFragment>::@class::X::@getter::t12
+          returnType: int
         synthetic get t13
           firstFragment: <testLibraryFragment>::@class::X::@getter::t13
+          returnType: int
         synthetic get t21
           firstFragment: <testLibraryFragment>::@class::X::@getter::t21
+          returnType: int
         synthetic get t22
           firstFragment: <testLibraryFragment>::@class::X::@getter::t22
+          returnType: int
         synthetic get t23
           firstFragment: <testLibraryFragment>::@class::X::@getter::t23
+          returnType: int
       setters
         synthetic set a
           firstFragment: <testLibraryFragment>::@class::X::@setter::a
           formalParameters
             requiredPositional _a
               type: A
+          returnType: void
         synthetic set b
           firstFragment: <testLibraryFragment>::@class::X::@setter::b
           formalParameters
             requiredPositional _b
               type: B
+          returnType: void
         synthetic set c
           firstFragment: <testLibraryFragment>::@class::X::@setter::c
           formalParameters
             requiredPositional _c
               type: C
+          returnType: void
         synthetic set t01
           firstFragment: <testLibraryFragment>::@class::X::@setter::t01
           formalParameters
             requiredPositional _t01
               type: int
+          returnType: void
         synthetic set t02
           firstFragment: <testLibraryFragment>::@class::X::@setter::t02
           formalParameters
             requiredPositional _t02
               type: int
+          returnType: void
         synthetic set t03
           firstFragment: <testLibraryFragment>::@class::X::@setter::t03
           formalParameters
             requiredPositional _t03
               type: int
+          returnType: void
         synthetic set t11
           firstFragment: <testLibraryFragment>::@class::X::@setter::t11
           formalParameters
             requiredPositional _t11
               type: int
+          returnType: void
         synthetic set t12
           firstFragment: <testLibraryFragment>::@class::X::@setter::t12
           formalParameters
             requiredPositional _t12
               type: int
+          returnType: void
         synthetic set t13
           firstFragment: <testLibraryFragment>::@class::X::@setter::t13
           formalParameters
             requiredPositional _t13
               type: int
+          returnType: void
         synthetic set t21
           firstFragment: <testLibraryFragment>::@class::X::@setter::t21
           formalParameters
             requiredPositional _t21
               type: int
+          returnType: void
         synthetic set t22
           firstFragment: <testLibraryFragment>::@class::X::@setter::t22
           formalParameters
             requiredPositional _t22
               type: int
+          returnType: void
         synthetic set t23
           firstFragment: <testLibraryFragment>::@class::X::@setter::t23
           formalParameters
             requiredPositional _t23
               type: int
+          returnType: void
   functions
     newA
       reference: <testLibrary>::@function::newA
@@ -2307,12 +2412,14 @@ library
   getters
     synthetic static get V
       firstFragment: <testLibraryFragment>::@getter::V
+      returnType: num
   setters
     synthetic static set V
       firstFragment: <testLibraryFragment>::@setter::V
       formalParameters
         requiredPositional _V
           type: num
+      returnType: void
 ''');
   }
 
@@ -2374,19 +2481,23 @@ library
   getters
     synthetic static get vEq
       firstFragment: <testLibraryFragment>::@getter::vEq
+      returnType: bool
     synthetic static get vNotEq
       firstFragment: <testLibraryFragment>::@getter::vNotEq
+      returnType: bool
   setters
     synthetic static set vEq
       firstFragment: <testLibraryFragment>::@setter::vEq
       formalParameters
         requiredPositional _vEq
           type: bool
+      returnType: void
     synthetic static set vNotEq
       firstFragment: <testLibraryFragment>::@setter::vNotEq
       formalParameters
         requiredPositional _vNotEq
           type: bool
+      returnType: void
 ''');
   }
 
@@ -2448,19 +2559,23 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: dynamic
+      returnType: void
     synthetic static set b
       firstFragment: <testLibraryFragment>::@setter::b
       formalParameters
         requiredPositional _b
           type: dynamic
+      returnType: void
 ''');
   }
 
@@ -2501,12 +2616,14 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: dynamic
+      returnType: void
 ''');
   }
 
@@ -2589,26 +2706,32 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: List<num>
     synthetic static get b0
       firstFragment: <testLibraryFragment>::@getter::b0
+      returnType: num
     synthetic static get b1
       firstFragment: <testLibraryFragment>::@getter::b1
+      returnType: num
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: List<num>
+      returnType: void
     synthetic static set b0
       firstFragment: <testLibraryFragment>::@setter::b0
       formalParameters
         requiredPositional _b0
           type: num
+      returnType: void
     synthetic static set b1
       firstFragment: <testLibraryFragment>::@setter::b1
       formalParameters
         requiredPositional _b1
           type: num
+      returnType: void
 ''');
   }
 
@@ -2657,12 +2780,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -2738,12 +2863,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::C::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2754,12 +2881,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -2809,12 +2938,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -2863,12 +2994,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -2944,12 +3077,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::C::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2960,12 +3095,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -3015,12 +3152,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -3106,12 +3245,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -3127,12 +3268,14 @@ library
       getters
         synthetic static get t
           firstFragment: <testLibraryFragment>::@class::B::@getter::t
+          returnType: int
       setters
         synthetic static set t
           firstFragment: <testLibraryFragment>::@class::B::@setter::t
           formalParameters
             requiredPositional _t
               type: int
+          returnType: void
 ''');
   }
 
@@ -3223,12 +3366,14 @@ library
       getters
         synthetic get b
           firstFragment: <testLibraryFragment>::@class::C::@getter::b
+          returnType: bool
       setters
         synthetic set b
           firstFragment: <testLibraryFragment>::@class::C::@setter::b
           formalParameters
             requiredPositional _b
               type: bool
+          returnType: void
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -3245,19 +3390,23 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: bool
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: bool
+      returnType: void
 ''');
   }
 
@@ -3357,12 +3506,14 @@ library
       getters
         synthetic get b
           firstFragment: <testLibraryFragment>::@class::I::@getter::b
+          returnType: bool
       setters
         synthetic set b
           firstFragment: <testLibraryFragment>::@class::I::@setter::b
           formalParameters
             requiredPositional _b
               type: bool
+          returnType: void
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -3387,19 +3538,23 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: bool
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: bool
+      returnType: void
 ''');
   }
 
@@ -3489,12 +3644,14 @@ library
       getters
         synthetic get b
           firstFragment: <testLibraryFragment>::@class::I::@getter::b
+          returnType: bool
       setters
         synthetic set b
           firstFragment: <testLibraryFragment>::@class::I::@setter::b
           formalParameters
             requiredPositional _b
               type: bool
+          returnType: void
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -3513,12 +3670,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: bool
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: bool
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -3610,6 +3769,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          returnType: int
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -3621,6 +3781,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
+          returnType: int
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -3637,19 +3798,23 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
     synthetic static get y
       firstFragment: <testLibraryFragment>::@getter::y
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
     synthetic static set y
       firstFragment: <testLibraryFragment>::@setter::y
       formalParameters
         requiredPositional _y
           type: int
+      returnType: void
 ''');
   }
 
@@ -3798,47 +3963,59 @@ library
   getters
     synthetic static get vFuture
       firstFragment: <testLibraryFragment>::@getter::vFuture
+      returnType: Future<int>
     synthetic static get v_noParameters_inferredReturnType
       firstFragment: <testLibraryFragment>::@getter::v_noParameters_inferredReturnType
+      returnType: int Function()
     synthetic static get v_hasParameter_withType_inferredReturnType
       firstFragment: <testLibraryFragment>::@getter::v_hasParameter_withType_inferredReturnType
+      returnType: int Function(String)
     synthetic static get v_hasParameter_withType_returnParameter
       firstFragment: <testLibraryFragment>::@getter::v_hasParameter_withType_returnParameter
+      returnType: String Function(String)
     synthetic static get v_async_returnValue
       firstFragment: <testLibraryFragment>::@getter::v_async_returnValue
+      returnType: Future<int> Function()
     synthetic static get v_async_returnFuture
       firstFragment: <testLibraryFragment>::@getter::v_async_returnFuture
+      returnType: Future<int> Function()
   setters
     synthetic static set vFuture
       firstFragment: <testLibraryFragment>::@setter::vFuture
       formalParameters
         requiredPositional _vFuture
           type: Future<int>
+      returnType: void
     synthetic static set v_noParameters_inferredReturnType
       firstFragment: <testLibraryFragment>::@setter::v_noParameters_inferredReturnType
       formalParameters
         requiredPositional _v_noParameters_inferredReturnType
           type: int Function()
+      returnType: void
     synthetic static set v_hasParameter_withType_inferredReturnType
       firstFragment: <testLibraryFragment>::@setter::v_hasParameter_withType_inferredReturnType
       formalParameters
         requiredPositional _v_hasParameter_withType_inferredReturnType
           type: int Function(String)
+      returnType: void
     synthetic static set v_hasParameter_withType_returnParameter
       firstFragment: <testLibraryFragment>::@setter::v_hasParameter_withType_returnParameter
       formalParameters
         requiredPositional _v_hasParameter_withType_returnParameter
           type: String Function(String)
+      returnType: void
     synthetic static set v_async_returnValue
       firstFragment: <testLibraryFragment>::@setter::v_async_returnValue
       formalParameters
         requiredPositional _v_async_returnValue
           type: Future<int> Function()
+      returnType: void
     synthetic static set v_async_returnFuture
       firstFragment: <testLibraryFragment>::@setter::v_async_returnFuture
       formalParameters
         requiredPositional _v_async_returnFuture
           type: Future<int> Function()
+      returnType: void
 ''');
   }
 
@@ -3880,12 +4057,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: int
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: int
+      returnType: void
 ''');
   }
 
@@ -3955,19 +4134,23 @@ library
   getters
     synthetic static get vHasTypeArgument
       firstFragment: <testLibraryFragment>::@getter::vHasTypeArgument
+      returnType: int
     synthetic static get vNoTypeArgument
       firstFragment: <testLibraryFragment>::@getter::vNoTypeArgument
+      returnType: dynamic
   setters
     synthetic static set vHasTypeArgument
       firstFragment: <testLibraryFragment>::@setter::vHasTypeArgument
       formalParameters
         requiredPositional _vHasTypeArgument
           type: int
+      returnType: void
     synthetic static set vNoTypeArgument
       firstFragment: <testLibraryFragment>::@setter::vNoTypeArgument
       formalParameters
         requiredPositional _vNoTypeArgument
           type: dynamic
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -4044,19 +4227,23 @@ library
   getters
     synthetic static get vOkArgumentType
       firstFragment: <testLibraryFragment>::@getter::vOkArgumentType
+      returnType: String
     synthetic static get vWrongArgumentType
       firstFragment: <testLibraryFragment>::@getter::vWrongArgumentType
+      returnType: String
   setters
     synthetic static set vOkArgumentType
       firstFragment: <testLibraryFragment>::@setter::vOkArgumentType
       formalParameters
         requiredPositional _vOkArgumentType
           type: String
+      returnType: void
     synthetic static set vWrongArgumentType
       firstFragment: <testLibraryFragment>::@setter::vWrongArgumentType
       formalParameters
         requiredPositional _vWrongArgumentType
           type: String
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -4186,7 +4373,7 @@ library
           element: <testLibrary>::@topLevelVariable::r_instanceClassMethod
           getter2: <testLibraryFragment>::@getter::r_instanceClassMethod
           setter2: <testLibraryFragment>::@setter::r_instanceClassMethod
-        synthetic topLevelGetter
+        synthetic topLevelGetter (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::topLevelGetter
           element: <testLibrary>::@topLevelVariable::topLevelGetter
           getter2: <testLibraryFragment>::@getter::topLevelGetter
@@ -4303,25 +4490,30 @@ library
       getters
         synthetic static get staticClassVariable
           firstFragment: <testLibraryFragment>::@class::A::@getter::staticClassVariable
+          returnType: int
         static get staticGetter
           firstFragment: <testLibraryFragment>::@class::A::@getter::staticGetter
+          returnType: int
       setters
         synthetic static set staticClassVariable
           firstFragment: <testLibraryFragment>::@class::A::@setter::staticClassVariable
           formalParameters
             requiredPositional _staticClassVariable
               type: int
+          returnType: void
       methods
         static staticClassMethod
           firstFragment: <testLibraryFragment>::@class::A::@method::staticClassMethod
           formalParameters
             requiredPositional p
               type: int
+          returnType: String
         instanceClassMethod
           firstFragment: <testLibraryFragment>::@class::A::@method::instanceClassMethod
           formalParameters
             requiredPositional p
               type: int
+          returnType: String
   topLevelVariables
     hasInitializer topLevelVariable
       reference: <testLibrary>::@topLevelVariable::topLevelVariable
@@ -4385,70 +4577,89 @@ library
   getters
     synthetic static get topLevelVariable
       firstFragment: <testLibraryFragment>::@getter::topLevelVariable
+      returnType: int
     synthetic static get r_topLevelFunction
       firstFragment: <testLibraryFragment>::@getter::r_topLevelFunction
+      returnType: String Function(int)
     synthetic static get r_topLevelVariable
       firstFragment: <testLibraryFragment>::@getter::r_topLevelVariable
+      returnType: int
     synthetic static get r_topLevelGetter
       firstFragment: <testLibraryFragment>::@getter::r_topLevelGetter
+      returnType: int
     synthetic static get r_staticClassVariable
       firstFragment: <testLibraryFragment>::@getter::r_staticClassVariable
+      returnType: int
     synthetic static get r_staticGetter
       firstFragment: <testLibraryFragment>::@getter::r_staticGetter
+      returnType: int
     synthetic static get r_staticClassMethod
       firstFragment: <testLibraryFragment>::@getter::r_staticClassMethod
+      returnType: String Function(int)
     synthetic static get instanceOfA
       firstFragment: <testLibraryFragment>::@getter::instanceOfA
+      returnType: A
     synthetic static get r_instanceClassMethod
       firstFragment: <testLibraryFragment>::@getter::r_instanceClassMethod
+      returnType: String Function(int)
     static get topLevelGetter
       firstFragment: <testLibraryFragment>::@getter::topLevelGetter
+      returnType: int
   setters
     synthetic static set topLevelVariable
       firstFragment: <testLibraryFragment>::@setter::topLevelVariable
       formalParameters
         requiredPositional _topLevelVariable
           type: int
+      returnType: void
     synthetic static set r_topLevelFunction
       firstFragment: <testLibraryFragment>::@setter::r_topLevelFunction
       formalParameters
         requiredPositional _r_topLevelFunction
           type: String Function(int)
+      returnType: void
     synthetic static set r_topLevelVariable
       firstFragment: <testLibraryFragment>::@setter::r_topLevelVariable
       formalParameters
         requiredPositional _r_topLevelVariable
           type: int
+      returnType: void
     synthetic static set r_topLevelGetter
       firstFragment: <testLibraryFragment>::@setter::r_topLevelGetter
       formalParameters
         requiredPositional _r_topLevelGetter
           type: int
+      returnType: void
     synthetic static set r_staticClassVariable
       firstFragment: <testLibraryFragment>::@setter::r_staticClassVariable
       formalParameters
         requiredPositional _r_staticClassVariable
           type: int
+      returnType: void
     synthetic static set r_staticGetter
       firstFragment: <testLibraryFragment>::@setter::r_staticGetter
       formalParameters
         requiredPositional _r_staticGetter
           type: int
+      returnType: void
     synthetic static set r_staticClassMethod
       firstFragment: <testLibraryFragment>::@setter::r_staticClassMethod
       formalParameters
         requiredPositional _r_staticClassMethod
           type: String Function(int)
+      returnType: void
     synthetic static set instanceOfA
       firstFragment: <testLibraryFragment>::@setter::instanceOfA
       formalParameters
         requiredPositional _instanceOfA
           type: A
+      returnType: void
     synthetic static set r_instanceClassMethod
       firstFragment: <testLibraryFragment>::@setter::r_instanceClassMethod
       formalParameters
         requiredPositional _r_instanceClassMethod
           type: String Function(int)
+      returnType: void
   functions
     topLevelFunction
       reference: <testLibrary>::@function::topLevelFunction
@@ -4560,12 +4771,14 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@class::A::@getter::a
+          returnType: dynamic
       setters
         synthetic static set a
           firstFragment: <testLibraryFragment>::@class::A::@setter::a
           formalParameters
             requiredPositional _a
               type: dynamic
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -4581,12 +4794,14 @@ library
       getters
         synthetic static get b
           firstFragment: <testLibraryFragment>::@class::B::@getter::b
+          returnType: dynamic
       setters
         synthetic static set b
           firstFragment: <testLibraryFragment>::@class::B::@setter::b
           formalParameters
             requiredPositional _b
               type: dynamic
+          returnType: void
   topLevelVariables
     hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
@@ -4597,12 +4812,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: dynamic
+      returnType: void
 ''');
   }
 
@@ -4693,12 +4910,14 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@class::A::@getter::a
+          returnType: dynamic
       setters
         synthetic static set a
           firstFragment: <testLibraryFragment>::@class::A::@setter::a
           formalParameters
             requiredPositional _a
               type: dynamic
+          returnType: void
   topLevelVariables
     hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -4715,19 +4934,23 @@ library
   getters
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
   setters
     synthetic static set b
       firstFragment: <testLibraryFragment>::@setter::b
       formalParameters
         requiredPositional _b
           type: dynamic
+      returnType: void
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: dynamic
+      returnType: void
 ''');
   }
 
@@ -4798,12 +5021,16 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
     synthetic static get d
       firstFragment: <testLibraryFragment>::@getter::d
+      returnType: dynamic
 ''');
   }
 
@@ -4881,12 +5108,14 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: A
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: A
+      returnType: void
 ''');
   }
 
@@ -4953,19 +5182,23 @@ library
   getters
     synthetic static get s
       firstFragment: <testLibraryFragment>::@getter::s
+      returnType: String
     synthetic static get h
       firstFragment: <testLibraryFragment>::@getter::h
+      returnType: int
   setters
     synthetic static set s
       firstFragment: <testLibraryFragment>::@setter::s
       formalParameters
         requiredPositional _s
           type: String
+      returnType: void
     synthetic static set h
       firstFragment: <testLibraryFragment>::@setter::h
       formalParameters
         requiredPositional _h
           type: int
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -5053,26 +5286,32 @@ library
   getters
     synthetic static get d
       firstFragment: <testLibraryFragment>::@getter::d
+      returnType: dynamic
     synthetic static get s
       firstFragment: <testLibraryFragment>::@getter::s
+      returnType: String
     synthetic static get h
       firstFragment: <testLibraryFragment>::@getter::h
+      returnType: int
   setters
     synthetic static set d
       firstFragment: <testLibraryFragment>::@setter::d
       formalParameters
         requiredPositional _d
           type: dynamic
+      returnType: void
     synthetic static set s
       firstFragment: <testLibraryFragment>::@setter::s
       formalParameters
         requiredPositional _s
           type: String
+      returnType: void
     synthetic static set h
       firstFragment: <testLibraryFragment>::@setter::h
       formalParameters
         requiredPositional _h
           type: int
+      returnType: void
 ''');
   }
 
@@ -5134,19 +5373,23 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: double
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: bool
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: double
+      returnType: void
     synthetic static set b
       firstFragment: <testLibraryFragment>::@setter::b
       formalParameters
         requiredPositional _b
           type: bool
+      returnType: void
 ''');
   }
 
@@ -5278,33 +5521,41 @@ library
   getters
     synthetic static get vObject
       firstFragment: <testLibraryFragment>::@getter::vObject
+      returnType: List<Object>
     synthetic static get vNum
       firstFragment: <testLibraryFragment>::@getter::vNum
+      returnType: List<num>
     synthetic static get vNumEmpty
       firstFragment: <testLibraryFragment>::@getter::vNumEmpty
+      returnType: List<num>
     synthetic static get vInt
       firstFragment: <testLibraryFragment>::@getter::vInt
+      returnType: List<int>
   setters
     synthetic static set vObject
       firstFragment: <testLibraryFragment>::@setter::vObject
       formalParameters
         requiredPositional _vObject
           type: List<Object>
+      returnType: void
     synthetic static set vNum
       firstFragment: <testLibraryFragment>::@setter::vNum
       formalParameters
         requiredPositional _vNum
           type: List<num>
+      returnType: void
     synthetic static set vNumEmpty
       firstFragment: <testLibraryFragment>::@setter::vNumEmpty
       formalParameters
         requiredPositional _vNumEmpty
           type: List<num>
+      returnType: void
     synthetic static set vInt
       firstFragment: <testLibraryFragment>::@setter::vInt
       formalParameters
         requiredPositional _vInt
           type: List<int>
+      returnType: void
 ''');
   }
 
@@ -5387,26 +5638,32 @@ library
   getters
     synthetic static get vInt
       firstFragment: <testLibraryFragment>::@getter::vInt
+      returnType: List<int>
     synthetic static get vNum
       firstFragment: <testLibraryFragment>::@getter::vNum
+      returnType: List<num>
     synthetic static get vObject
       firstFragment: <testLibraryFragment>::@getter::vObject
+      returnType: List<Object>
   setters
     synthetic static set vInt
       firstFragment: <testLibraryFragment>::@setter::vInt
       formalParameters
         requiredPositional _vInt
           type: List<int>
+      returnType: void
     synthetic static set vNum
       firstFragment: <testLibraryFragment>::@setter::vNum
       formalParameters
         requiredPositional _vNum
           type: List<num>
+      returnType: void
     synthetic static set vObject
       firstFragment: <testLibraryFragment>::@setter::vObject
       formalParameters
         requiredPositional _vObject
           type: List<Object>
+      returnType: void
 ''');
   }
 
@@ -5543,40 +5800,50 @@ library
   getters
     synthetic static get vObjectObject
       firstFragment: <testLibraryFragment>::@getter::vObjectObject
+      returnType: Map<Object, Object>
     synthetic static get vComparableObject
       firstFragment: <testLibraryFragment>::@getter::vComparableObject
+      returnType: Map<Comparable<int>, Object>
     synthetic static get vNumString
       firstFragment: <testLibraryFragment>::@getter::vNumString
+      returnType: Map<num, String>
     synthetic static get vNumStringEmpty
       firstFragment: <testLibraryFragment>::@getter::vNumStringEmpty
+      returnType: Map<num, String>
     synthetic static get vIntString
       firstFragment: <testLibraryFragment>::@getter::vIntString
+      returnType: Map<int, String>
   setters
     synthetic static set vObjectObject
       firstFragment: <testLibraryFragment>::@setter::vObjectObject
       formalParameters
         requiredPositional _vObjectObject
           type: Map<Object, Object>
+      returnType: void
     synthetic static set vComparableObject
       firstFragment: <testLibraryFragment>::@setter::vComparableObject
       formalParameters
         requiredPositional _vComparableObject
           type: Map<Comparable<int>, Object>
+      returnType: void
     synthetic static set vNumString
       firstFragment: <testLibraryFragment>::@setter::vNumString
       formalParameters
         requiredPositional _vNumString
           type: Map<num, String>
+      returnType: void
     synthetic static set vNumStringEmpty
       firstFragment: <testLibraryFragment>::@setter::vNumStringEmpty
       formalParameters
         requiredPositional _vNumStringEmpty
           type: Map<num, String>
+      returnType: void
     synthetic static set vIntString
       firstFragment: <testLibraryFragment>::@setter::vIntString
       formalParameters
         requiredPositional _vIntString
           type: Map<int, String>
+      returnType: void
 ''');
   }
 
@@ -5659,26 +5926,32 @@ library
   getters
     synthetic static get vIntString
       firstFragment: <testLibraryFragment>::@getter::vIntString
+      returnType: Map<int, String>
     synthetic static get vNumString
       firstFragment: <testLibraryFragment>::@getter::vNumString
+      returnType: Map<num, String>
     synthetic static get vIntObject
       firstFragment: <testLibraryFragment>::@getter::vIntObject
+      returnType: Map<int, Object>
   setters
     synthetic static set vIntString
       firstFragment: <testLibraryFragment>::@setter::vIntString
       formalParameters
         requiredPositional _vIntString
           type: Map<int, String>
+      returnType: void
     synthetic static set vNumString
       firstFragment: <testLibraryFragment>::@setter::vNumString
       formalParameters
         requiredPositional _vNumString
           type: Map<num, String>
+      returnType: void
     synthetic static set vIntObject
       firstFragment: <testLibraryFragment>::@setter::vIntObject
       formalParameters
         requiredPositional _vIntObject
           type: Map<int, Object>
+      returnType: void
 ''');
   }
 
@@ -5815,40 +6088,50 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: bool
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: bool
     synthetic static get vEq
       firstFragment: <testLibraryFragment>::@getter::vEq
+      returnType: bool
     synthetic static get vAnd
       firstFragment: <testLibraryFragment>::@getter::vAnd
+      returnType: bool
     synthetic static get vOr
       firstFragment: <testLibraryFragment>::@getter::vOr
+      returnType: bool
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: bool
+      returnType: void
     synthetic static set b
       firstFragment: <testLibraryFragment>::@setter::b
       formalParameters
         requiredPositional _b
           type: bool
+      returnType: void
     synthetic static set vEq
       firstFragment: <testLibraryFragment>::@setter::vEq
       formalParameters
         requiredPositional _vEq
           type: bool
+      returnType: void
     synthetic static set vAnd
       firstFragment: <testLibraryFragment>::@setter::vAnd
       formalParameters
         requiredPositional _vAnd
           type: bool
+      returnType: void
     synthetic static set vOr
       firstFragment: <testLibraryFragment>::@setter::vOr
       formalParameters
         requiredPositional _vOr
           type: bool
+      returnType: void
 ''');
   }
 
@@ -5960,6 +6243,7 @@ library
           formalParameters
             requiredPositional p
               type: int
+          returnType: String
   topLevelVariables
     hasInitializer instanceOfA
       reference: <testLibrary>::@topLevelVariable::instanceOfA
@@ -5982,26 +6266,32 @@ library
   getters
     synthetic static get instanceOfA
       firstFragment: <testLibraryFragment>::@getter::instanceOfA
+      returnType: A
     synthetic static get v1
       firstFragment: <testLibraryFragment>::@getter::v1
+      returnType: String
     synthetic static get v2
       firstFragment: <testLibraryFragment>::@getter::v2
+      returnType: String
   setters
     synthetic static set instanceOfA
       firstFragment: <testLibraryFragment>::@setter::instanceOfA
       formalParameters
         requiredPositional _instanceOfA
           type: A
+      returnType: void
     synthetic static set v1
       firstFragment: <testLibraryFragment>::@setter::v1
       formalParameters
         requiredPositional _v1
           type: String
+      returnType: void
     synthetic static set v2
       firstFragment: <testLibraryFragment>::@setter::v2
       formalParameters
         requiredPositional _v2
           type: String
+      returnType: void
 ''');
   }
 
@@ -6252,82 +6542,104 @@ library
   getters
     synthetic static get vModuloIntInt
       firstFragment: <testLibraryFragment>::@getter::vModuloIntInt
+      returnType: int
     synthetic static get vModuloIntDouble
       firstFragment: <testLibraryFragment>::@getter::vModuloIntDouble
+      returnType: double
     synthetic static get vMultiplyIntInt
       firstFragment: <testLibraryFragment>::@getter::vMultiplyIntInt
+      returnType: int
     synthetic static get vMultiplyIntDouble
       firstFragment: <testLibraryFragment>::@getter::vMultiplyIntDouble
+      returnType: double
     synthetic static get vMultiplyDoubleInt
       firstFragment: <testLibraryFragment>::@getter::vMultiplyDoubleInt
+      returnType: double
     synthetic static get vMultiplyDoubleDouble
       firstFragment: <testLibraryFragment>::@getter::vMultiplyDoubleDouble
+      returnType: double
     synthetic static get vDivideIntInt
       firstFragment: <testLibraryFragment>::@getter::vDivideIntInt
+      returnType: double
     synthetic static get vDivideIntDouble
       firstFragment: <testLibraryFragment>::@getter::vDivideIntDouble
+      returnType: double
     synthetic static get vDivideDoubleInt
       firstFragment: <testLibraryFragment>::@getter::vDivideDoubleInt
+      returnType: double
     synthetic static get vDivideDoubleDouble
       firstFragment: <testLibraryFragment>::@getter::vDivideDoubleDouble
+      returnType: double
     synthetic static get vFloorDivide
       firstFragment: <testLibraryFragment>::@getter::vFloorDivide
+      returnType: int
   setters
     synthetic static set vModuloIntInt
       firstFragment: <testLibraryFragment>::@setter::vModuloIntInt
       formalParameters
         requiredPositional _vModuloIntInt
           type: int
+      returnType: void
     synthetic static set vModuloIntDouble
       firstFragment: <testLibraryFragment>::@setter::vModuloIntDouble
       formalParameters
         requiredPositional _vModuloIntDouble
           type: double
+      returnType: void
     synthetic static set vMultiplyIntInt
       firstFragment: <testLibraryFragment>::@setter::vMultiplyIntInt
       formalParameters
         requiredPositional _vMultiplyIntInt
           type: int
+      returnType: void
     synthetic static set vMultiplyIntDouble
       firstFragment: <testLibraryFragment>::@setter::vMultiplyIntDouble
       formalParameters
         requiredPositional _vMultiplyIntDouble
           type: double
+      returnType: void
     synthetic static set vMultiplyDoubleInt
       firstFragment: <testLibraryFragment>::@setter::vMultiplyDoubleInt
       formalParameters
         requiredPositional _vMultiplyDoubleInt
           type: double
+      returnType: void
     synthetic static set vMultiplyDoubleDouble
       firstFragment: <testLibraryFragment>::@setter::vMultiplyDoubleDouble
       formalParameters
         requiredPositional _vMultiplyDoubleDouble
           type: double
+      returnType: void
     synthetic static set vDivideIntInt
       firstFragment: <testLibraryFragment>::@setter::vDivideIntInt
       formalParameters
         requiredPositional _vDivideIntInt
           type: double
+      returnType: void
     synthetic static set vDivideIntDouble
       firstFragment: <testLibraryFragment>::@setter::vDivideIntDouble
       formalParameters
         requiredPositional _vDivideIntDouble
           type: double
+      returnType: void
     synthetic static set vDivideDoubleInt
       firstFragment: <testLibraryFragment>::@setter::vDivideDoubleInt
       formalParameters
         requiredPositional _vDivideDoubleInt
           type: double
+      returnType: void
     synthetic static set vDivideDoubleDouble
       firstFragment: <testLibraryFragment>::@setter::vDivideDoubleDouble
       formalParameters
         requiredPositional _vDivideDoubleDouble
           type: double
+      returnType: void
     synthetic static set vFloorDivide
       firstFragment: <testLibraryFragment>::@setter::vFloorDivide
       formalParameters
         requiredPositional _vFloorDivide
           type: int
+      returnType: void
 ''');
   }
 
@@ -6410,26 +6722,32 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
     synthetic static get vEq
       firstFragment: <testLibraryFragment>::@getter::vEq
+      returnType: bool
     synthetic static get vNotEq
       firstFragment: <testLibraryFragment>::@getter::vNotEq
+      returnType: bool
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: int
+      returnType: void
     synthetic static set vEq
       firstFragment: <testLibraryFragment>::@setter::vEq
       formalParameters
         requiredPositional _vEq
           type: bool
+      returnType: void
     synthetic static set vNotEq
       firstFragment: <testLibraryFragment>::@setter::vNotEq
       formalParameters
         requiredPositional _vNotEq
           type: bool
+      returnType: void
 ''');
   }
 
@@ -6470,12 +6788,14 @@ library
   getters
     synthetic static get V
       firstFragment: <testLibraryFragment>::@getter::V
+      returnType: int
   setters
     synthetic static set V
       firstFragment: <testLibraryFragment>::@setter::V
       formalParameters
         requiredPositional _V
           type: int
+      returnType: void
 ''');
   }
 
@@ -6621,47 +6941,59 @@ library
   getters
     synthetic static get vInt
       firstFragment: <testLibraryFragment>::@getter::vInt
+      returnType: int
     synthetic static get vDouble
       firstFragment: <testLibraryFragment>::@getter::vDouble
+      returnType: double
     synthetic static get vIncInt
       firstFragment: <testLibraryFragment>::@getter::vIncInt
+      returnType: int
     synthetic static get vDecInt
       firstFragment: <testLibraryFragment>::@getter::vDecInt
+      returnType: int
     synthetic static get vIncDouble
       firstFragment: <testLibraryFragment>::@getter::vIncDouble
+      returnType: double
     synthetic static get vDecDouble
       firstFragment: <testLibraryFragment>::@getter::vDecDouble
+      returnType: double
   setters
     synthetic static set vInt
       firstFragment: <testLibraryFragment>::@setter::vInt
       formalParameters
         requiredPositional _vInt
           type: int
+      returnType: void
     synthetic static set vDouble
       firstFragment: <testLibraryFragment>::@setter::vDouble
       formalParameters
         requiredPositional _vDouble
           type: double
+      returnType: void
     synthetic static set vIncInt
       firstFragment: <testLibraryFragment>::@setter::vIncInt
       formalParameters
         requiredPositional _vIncInt
           type: int
+      returnType: void
     synthetic static set vDecInt
       firstFragment: <testLibraryFragment>::@setter::vDecInt
       formalParameters
         requiredPositional _vDecInt
           type: int
+      returnType: void
     synthetic static set vIncDouble
       firstFragment: <testLibraryFragment>::@setter::vIncDouble
       formalParameters
         requiredPositional _vIncDouble
           type: double
+      returnType: void
     synthetic static set vDecDouble
       firstFragment: <testLibraryFragment>::@setter::vDecDouble
       formalParameters
         requiredPositional _vDecDouble
           type: double
+      returnType: void
 ''');
   }
 
@@ -6807,47 +7139,59 @@ library
   getters
     synthetic static get vInt
       firstFragment: <testLibraryFragment>::@getter::vInt
+      returnType: List<int>
     synthetic static get vDouble
       firstFragment: <testLibraryFragment>::@getter::vDouble
+      returnType: List<double>
     synthetic static get vIncInt
       firstFragment: <testLibraryFragment>::@getter::vIncInt
+      returnType: int
     synthetic static get vDecInt
       firstFragment: <testLibraryFragment>::@getter::vDecInt
+      returnType: int
     synthetic static get vIncDouble
       firstFragment: <testLibraryFragment>::@getter::vIncDouble
+      returnType: double
     synthetic static get vDecDouble
       firstFragment: <testLibraryFragment>::@getter::vDecDouble
+      returnType: double
   setters
     synthetic static set vInt
       firstFragment: <testLibraryFragment>::@setter::vInt
       formalParameters
         requiredPositional _vInt
           type: List<int>
+      returnType: void
     synthetic static set vDouble
       firstFragment: <testLibraryFragment>::@setter::vDouble
       formalParameters
         requiredPositional _vDouble
           type: List<double>
+      returnType: void
     synthetic static set vIncInt
       firstFragment: <testLibraryFragment>::@setter::vIncInt
       formalParameters
         requiredPositional _vIncInt
           type: int
+      returnType: void
     synthetic static set vDecInt
       firstFragment: <testLibraryFragment>::@setter::vDecInt
       formalParameters
         requiredPositional _vDecInt
           type: int
+      returnType: void
     synthetic static set vIncDouble
       firstFragment: <testLibraryFragment>::@setter::vIncDouble
       formalParameters
         requiredPositional _vIncDouble
           type: double
+      returnType: void
     synthetic static set vDecDouble
       firstFragment: <testLibraryFragment>::@setter::vDecDouble
       formalParameters
         requiredPositional _vDecDouble
           type: double
+      returnType: void
 ''');
   }
 
@@ -6993,47 +7337,59 @@ library
   getters
     synthetic static get vInt
       firstFragment: <testLibraryFragment>::@getter::vInt
+      returnType: int
     synthetic static get vDouble
       firstFragment: <testLibraryFragment>::@getter::vDouble
+      returnType: double
     synthetic static get vIncInt
       firstFragment: <testLibraryFragment>::@getter::vIncInt
+      returnType: int
     synthetic static get vDecInt
       firstFragment: <testLibraryFragment>::@getter::vDecInt::@def::0
+      returnType: int
     synthetic static get vIncDouble
       firstFragment: <testLibraryFragment>::@getter::vIncDouble
+      returnType: double
     synthetic static get vDecInt
       firstFragment: <testLibraryFragment>::@getter::vDecInt::@def::1
+      returnType: double
   setters
     synthetic static set vInt
       firstFragment: <testLibraryFragment>::@setter::vInt
       formalParameters
         requiredPositional _vInt
           type: int
+      returnType: void
     synthetic static set vDouble
       firstFragment: <testLibraryFragment>::@setter::vDouble
       formalParameters
         requiredPositional _vDouble
           type: double
+      returnType: void
     synthetic static set vIncInt
       firstFragment: <testLibraryFragment>::@setter::vIncInt
       formalParameters
         requiredPositional _vIncInt
           type: int
+      returnType: void
     synthetic static set vDecInt
       firstFragment: <testLibraryFragment>::@setter::vDecInt::@def::0
       formalParameters
         requiredPositional _vDecInt
           type: int
+      returnType: void
     synthetic static set vIncDouble
       firstFragment: <testLibraryFragment>::@setter::vIncDouble
       formalParameters
         requiredPositional _vIncDouble
           type: double
+      returnType: void
     synthetic static set vDecInt
       firstFragment: <testLibraryFragment>::@setter::vDecInt::@def::1
       formalParameters
         requiredPositional _vDecInt
           type: double
+      returnType: void
 ''');
   }
 
@@ -7197,47 +7553,59 @@ library
   getters
     synthetic static get vInt
       firstFragment: <testLibraryFragment>::@getter::vInt
+      returnType: List<int>
     synthetic static get vDouble
       firstFragment: <testLibraryFragment>::@getter::vDouble
+      returnType: List<double>
     synthetic static get vIncInt
       firstFragment: <testLibraryFragment>::@getter::vIncInt
+      returnType: int
     synthetic static get vDecInt
       firstFragment: <testLibraryFragment>::@getter::vDecInt::@def::0
+      returnType: int
     synthetic static get vIncDouble
       firstFragment: <testLibraryFragment>::@getter::vIncDouble
+      returnType: double
     synthetic static get vDecInt
       firstFragment: <testLibraryFragment>::@getter::vDecInt::@def::1
+      returnType: double
   setters
     synthetic static set vInt
       firstFragment: <testLibraryFragment>::@setter::vInt
       formalParameters
         requiredPositional _vInt
           type: List<int>
+      returnType: void
     synthetic static set vDouble
       firstFragment: <testLibraryFragment>::@setter::vDouble
       formalParameters
         requiredPositional _vDouble
           type: List<double>
+      returnType: void
     synthetic static set vIncInt
       firstFragment: <testLibraryFragment>::@setter::vIncInt
       formalParameters
         requiredPositional _vIncInt
           type: int
+      returnType: void
     synthetic static set vDecInt
       firstFragment: <testLibraryFragment>::@setter::vDecInt::@def::0
       formalParameters
         requiredPositional _vDecInt
           type: int
+      returnType: void
     synthetic static set vIncDouble
       firstFragment: <testLibraryFragment>::@setter::vIncDouble
       formalParameters
         requiredPositional _vIncDouble
           type: double
+      returnType: void
     synthetic static set vDecInt
       firstFragment: <testLibraryFragment>::@setter::vDecInt::@def::1
       formalParameters
         requiredPositional _vDecInt
           type: double
+      returnType: void
 ''');
   }
 
@@ -7278,12 +7646,14 @@ library
   getters
     synthetic static get vNot
       firstFragment: <testLibraryFragment>::@getter::vNot
+      returnType: bool
   setters
     synthetic static set vNot
       firstFragment: <testLibraryFragment>::@setter::vNot
       formalParameters
         requiredPositional _vNot
           type: bool
+      returnType: void
 ''');
   }
 
@@ -7366,26 +7736,32 @@ library
   getters
     synthetic static get vNegateInt
       firstFragment: <testLibraryFragment>::@getter::vNegateInt
+      returnType: int
     synthetic static get vNegateDouble
       firstFragment: <testLibraryFragment>::@getter::vNegateDouble
+      returnType: double
     synthetic static get vComplement
       firstFragment: <testLibraryFragment>::@getter::vComplement
+      returnType: int
   setters
     synthetic static set vNegateInt
       firstFragment: <testLibraryFragment>::@setter::vNegateInt
       formalParameters
         requiredPositional _vNegateInt
           type: int
+      returnType: void
     synthetic static set vNegateDouble
       firstFragment: <testLibraryFragment>::@setter::vNegateDouble
       formalParameters
         requiredPositional _vNegateDouble
           type: double
+      returnType: void
     synthetic static set vComplement
       firstFragment: <testLibraryFragment>::@setter::vComplement
       formalParameters
         requiredPositional _vComplement
           type: int
+      returnType: void
 ''');
   }
 
@@ -7481,12 +7857,14 @@ library
       getters
         synthetic static get d
           firstFragment: <testLibraryFragment>::@class::C::@getter::d
+          returnType: D
       setters
         synthetic static set d
           firstFragment: <testLibraryFragment>::@class::C::@setter::d
           formalParameters
             requiredPositional _d
               type: D
+          returnType: void
     class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -7502,12 +7880,14 @@ library
       getters
         synthetic get i
           firstFragment: <testLibraryFragment>::@class::D::@getter::i
+          returnType: int
       setters
         synthetic set i
           firstFragment: <testLibraryFragment>::@class::D::@setter::i
           formalParameters
             requiredPositional _i
               type: int
+          returnType: void
   topLevelVariables
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -7517,6 +7897,7 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
 ''');
   }
 
@@ -7611,6 +7992,7 @@ library
       getters
         static get d
           firstFragment: <testLibraryFragment>::@class::C::@getter::d
+          returnType: D
     class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -7626,12 +8008,14 @@ library
       getters
         synthetic get i
           firstFragment: <testLibraryFragment>::@class::D::@getter::i
+          returnType: int
       setters
         synthetic set i
           firstFragment: <testLibraryFragment>::@class::D::@setter::i
           formalParameters
             requiredPositional _i
               type: int
+          returnType: void
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -7642,12 +8026,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -7751,33 +8137,41 @@ library
   getters
     synthetic static get vLess
       firstFragment: <testLibraryFragment>::@getter::vLess
+      returnType: bool
     synthetic static get vLessOrEqual
       firstFragment: <testLibraryFragment>::@getter::vLessOrEqual
+      returnType: bool
     synthetic static get vGreater
       firstFragment: <testLibraryFragment>::@getter::vGreater
+      returnType: bool
     synthetic static get vGreaterOrEqual
       firstFragment: <testLibraryFragment>::@getter::vGreaterOrEqual
+      returnType: bool
   setters
     synthetic static set vLess
       firstFragment: <testLibraryFragment>::@setter::vLess
       formalParameters
         requiredPositional _vLess
           type: bool
+      returnType: void
     synthetic static set vLessOrEqual
       firstFragment: <testLibraryFragment>::@setter::vLessOrEqual
       formalParameters
         requiredPositional _vLessOrEqual
           type: bool
+      returnType: void
     synthetic static set vGreater
       firstFragment: <testLibraryFragment>::@setter::vGreater
       formalParameters
         requiredPositional _vGreater
           type: bool
+      returnType: void
     synthetic static set vGreaterOrEqual
       firstFragment: <testLibraryFragment>::@setter::vGreaterOrEqual
       formalParameters
         requiredPositional _vGreaterOrEqual
           type: bool
+      returnType: void
 ''');
   }
 
@@ -7865,12 +8259,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
           formalParameters
             requiredPositional _x
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -7887,6 +8283,7 @@ library
       setters
         set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
+          returnType: void
 ''');
   }
 
@@ -7957,12 +8354,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
 ''');
   }
 
@@ -8107,26 +8506,32 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
         synthetic get y
           firstFragment: <testLibraryFragment>::@class::A::@getter::y
+          returnType: int
         synthetic get z
           firstFragment: <testLibraryFragment>::@class::A::@getter::z
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
           formalParameters
             requiredPositional _x
               type: int
+          returnType: void
         synthetic set y
           firstFragment: <testLibraryFragment>::@class::A::@setter::y
           formalParameters
             requiredPositional _y
               type: int
+          returnType: void
         synthetic set z
           firstFragment: <testLibraryFragment>::@class::A::@setter::z
           formalParameters
             requiredPositional _z
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -8152,19 +8557,23 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: int
         get y
           firstFragment: <testLibraryFragment>::@class::B::@getter::y
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
           formalParameters
             requiredPositional _x
               type: int
+          returnType: void
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
             requiredPositional hasImplicitType _
               type: int
+          returnType: void
 ''');
   }
 
@@ -8250,12 +8659,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: dynamic
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -8273,12 +8684,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: dynamic
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -8435,12 +8848,15 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
           hasEnclosingTypeParameterReference: true
+          returnType: E
         synthetic get y
           firstFragment: <testLibraryFragment>::@class::A::@getter::y
           hasEnclosingTypeParameterReference: true
+          returnType: E
         synthetic get z
           firstFragment: <testLibraryFragment>::@class::A::@getter::z
           hasEnclosingTypeParameterReference: true
+          returnType: E
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
@@ -8448,18 +8864,21 @@ library
           formalParameters
             requiredPositional _x
               type: E
+          returnType: void
         synthetic set y
           firstFragment: <testLibraryFragment>::@class::A::@setter::y
           hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _y
               type: E
+          returnType: void
         synthetic set z
           firstFragment: <testLibraryFragment>::@class::A::@setter::z
           hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _z
               type: E
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -8491,9 +8910,11 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
           hasEnclosingTypeParameterReference: true
+          returnType: T
         get y
           firstFragment: <testLibraryFragment>::@class::B::@getter::y
           hasEnclosingTypeParameterReference: true
+          returnType: T
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
@@ -8501,12 +8922,14 @@ library
           formalParameters
             requiredPositional _x
               type: T
+          returnType: void
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional hasImplicitType _
               type: T
+          returnType: void
 ''');
   }
 
@@ -8592,12 +9015,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: dynamic
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -8615,12 +9040,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: dynamic
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -8706,12 +9133,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: num
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
           formalParameters
             requiredPositional _x
               type: num
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -8729,12 +9158,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: num
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
           formalParameters
             requiredPositional _x
               type: num
+          returnType: void
 ''');
   }
 
@@ -8854,10 +9285,13 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
         abstract get y
           firstFragment: <testLibraryFragment>::@class::A::@getter::y
+          returnType: int
         abstract get z
           firstFragment: <testLibraryFragment>::@class::A::@getter::z
+          returnType: int
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -8883,19 +9317,23 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: int
         get y
           firstFragment: <testLibraryFragment>::@class::B::@getter::y
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
           formalParameters
             requiredPositional _x
               type: int
+          returnType: void
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
             requiredPositional hasImplicitType _
               type: int
+          returnType: void
 ''');
   }
 
@@ -9027,12 +9465,15 @@ library
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
           hasEnclosingTypeParameterReference: true
+          returnType: E
         abstract get y
           firstFragment: <testLibraryFragment>::@class::A::@getter::y
           hasEnclosingTypeParameterReference: true
+          returnType: E
         abstract get z
           firstFragment: <testLibraryFragment>::@class::A::@getter::z
           hasEnclosingTypeParameterReference: true
+          returnType: E
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9064,9 +9505,11 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
           hasEnclosingTypeParameterReference: true
+          returnType: T
         get y
           firstFragment: <testLibraryFragment>::@class::B::@getter::y
           hasEnclosingTypeParameterReference: true
+          returnType: T
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
@@ -9074,12 +9517,14 @@ library
           formalParameters
             requiredPositional _x
               type: T
+          returnType: void
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional hasImplicitType _
               type: T
+          returnType: void
 ''');
   }
 
@@ -9169,6 +9614,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9183,6 +9629,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: String
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -9200,6 +9647,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -9289,6 +9737,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9303,6 +9752,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: dynamic
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -9320,6 +9770,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: int
 ''');
   }
 
@@ -9419,6 +9870,7 @@ library
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
           hasEnclosingTypeParameterReference: true
+          returnType: T
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9437,6 +9889,7 @@ library
         abstract get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
           hasEnclosingTypeParameterReference: true
+          returnType: T
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -9454,6 +9907,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -9542,6 +9996,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9556,6 +10011,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: int
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -9573,6 +10029,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: int
 ''');
   }
 
@@ -9703,8 +10160,10 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
         abstract get y
           firstFragment: <testLibraryFragment>::@class::A::@getter::y
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9726,11 +10185,13 @@ library
           formalParameters
             requiredPositional _
               type: String
+          returnType: void
         abstract set y
           firstFragment: <testLibraryFragment>::@class::B::@setter::y
           formalParameters
             requiredPositional _
               type: String
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -9753,14 +10214,17 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: dynamic
         synthetic get y
           firstFragment: <testLibraryFragment>::@class::C::@getter::y
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -9852,6 +10316,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9869,6 +10334,7 @@ library
           formalParameters
             requiredPositional _
               type: String
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -9886,6 +10352,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: int
 ''');
   }
 
@@ -9981,6 +10448,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -9998,6 +10466,7 @@ library
           formalParameters
             requiredPositional _
               type: String
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10018,6 +10487,7 @@ library
           formalParameters
             requiredPositional hasImplicitType _
               type: String
+          returnType: void
 ''');
   }
 
@@ -10117,6 +10587,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -10134,6 +10605,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10152,12 +10624,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
             requiredPositional _x
               type: int
+          returnType: void
 ''');
   }
 
@@ -10249,6 +10723,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -10266,6 +10741,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10283,6 +10759,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: int
 ''');
   }
 
@@ -10377,6 +10854,7 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -10394,6 +10872,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10414,6 +10893,7 @@ library
           formalParameters
             requiredPositional hasImplicitType _
               type: int
+          returnType: void
 ''');
   }
 
@@ -10545,16 +11025,19 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
         abstract set y
           firstFragment: <testLibraryFragment>::@class::A::@setter::y
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
         abstract set z
           firstFragment: <testLibraryFragment>::@class::A::@setter::z
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -10580,19 +11063,23 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: int
         get y
           firstFragment: <testLibraryFragment>::@class::B::@getter::y
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
           formalParameters
             requiredPositional _x
               type: int
+          returnType: void
         set z
           firstFragment: <testLibraryFragment>::@class::B::@setter::z
           formalParameters
             requiredPositional hasImplicitType _
               type: int
+          returnType: void
 ''');
   }
 
@@ -10690,6 +11177,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -10707,6 +11195,7 @@ library
           formalParameters
             requiredPositional _
               type: String
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10724,6 +11213,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -10821,6 +11311,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -10838,6 +11329,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -10855,6 +11347,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: int
 ''');
   }
 
@@ -10964,9 +11457,14 @@ library
         get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
           hasEnclosingTypeParameterReference: true
+          returnType: dynamic Function()
+            alias: <testLibrary>::@typeAlias::F
+              typeArguments
+                T
         get y
           firstFragment: <testLibraryFragment>::@class::A::@getter::y
           hasEnclosingTypeParameterReference: true
+          returnType: List<dynamic Function()>
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -10990,8 +11488,13 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: dynamic Function()
+            alias: <testLibrary>::@typeAlias::F
+              typeArguments
+                int
         get y
           firstFragment: <testLibraryFragment>::@class::B::@getter::y
+          returnType: List<dynamic Function()>
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -11084,12 +11587,14 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: num
       setters
         abstract set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
           formalParameters
             requiredPositional covariant _
               type: num
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11107,12 +11612,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::B::@getter::x
+          returnType: int
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::B::@setter::x
           formalParameters
             requiredPositional covariant _x
               type: int
+          returnType: void
 ''');
   }
 
@@ -11194,12 +11701,14 @@ library
       getters
         abstract get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: num
       setters
         abstract set x
           firstFragment: <testLibraryFragment>::@class::A::@setter::x
           formalParameters
             requiredPositional covariant _
               type: num
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11219,6 +11728,7 @@ library
           formalParameters
             requiredPositional covariant _
               type: int
+          returnType: void
 ''');
   }
 
@@ -11316,26 +11826,32 @@ library
       getters
         synthetic get t1
           firstFragment: <testLibraryFragment>::@class::A::@getter::t1
+          returnType: int
         synthetic get t2
           firstFragment: <testLibraryFragment>::@class::A::@getter::t2
+          returnType: double
         synthetic get t3
           firstFragment: <testLibraryFragment>::@class::A::@getter::t3
+          returnType: dynamic
       setters
         synthetic set t1
           firstFragment: <testLibraryFragment>::@class::A::@setter::t1
           formalParameters
             requiredPositional _t1
               type: int
+          returnType: void
         synthetic set t2
           firstFragment: <testLibraryFragment>::@class::A::@setter::t2
           formalParameters
             requiredPositional _t2
               type: double
+          returnType: void
         synthetic set t3
           firstFragment: <testLibraryFragment>::@class::A::@setter::t3
           formalParameters
             requiredPositional _t3
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -11402,6 +11918,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11418,6 +11935,7 @@ library
               type: int
             requiredPositional hasImplicitType b
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -11498,6 +12016,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11510,6 +12029,7 @@ library
           formalParameters
             requiredPositional a
               type: String
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11526,6 +12046,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: dynamic
+          returnType: dynamic
 ''');
   }
 
@@ -11608,6 +12129,7 @@ library
           formalParameters
             requiredPositional x
               type: int
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11620,6 +12142,7 @@ library
           formalParameters
             requiredPositional x
               type: int
+          returnType: double
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11635,6 +12158,7 @@ library
           formalParameters
             requiredPositional hasImplicitType x
               type: dynamic
+          returnType: Never
 ''');
   }
 
@@ -11704,6 +12228,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
+          returnType: int
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11713,6 +12238,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
+          returnType: String
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11726,6 +12252,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
+          returnType: dynamic
 ''');
   }
 
@@ -11815,6 +12342,7 @@ library
           formalParameters
             requiredPositional a
               type: T
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11830,6 +12358,7 @@ library
           formalParameters
             requiredPositional a
               type: E
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11846,6 +12375,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: dynamic
+          returnType: dynamic
 ''');
   }
 
@@ -11938,6 +12468,7 @@ library
           formalParameters
             requiredPositional a
               type: K
+          returnType: V
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -11953,6 +12484,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: T
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -11969,6 +12501,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: dynamic
+          returnType: dynamic
 ''');
   }
 
@@ -12034,6 +12567,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12051,6 +12585,7 @@ library
             optionalNamed hasImplicitType b
               firstFragment: <testLibraryFragment>::@class::B::@method::m::@parameter::b
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -12115,6 +12650,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12131,6 +12667,7 @@ library
               type: int
             optionalPositional hasImplicitType b
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -12193,6 +12730,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: dynamic
+          returnType: dynamic
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12207,6 +12745,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: dynamic
+          returnType: dynamic
 ''');
   }
 
@@ -12269,6 +12808,7 @@ library
           formalParameters
             requiredPositional a
               type: String
+          returnType: int
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12283,6 +12823,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: dynamic
+          returnType: dynamic
 ''');
   }
 
@@ -12358,12 +12899,14 @@ library
       getters
         synthetic get m
           firstFragment: <testLibraryFragment>::@class::A::@getter::m
+          returnType: int
       setters
         synthetic set m
           firstFragment: <testLibraryFragment>::@class::A::@setter::m
           formalParameters
             requiredPositional _m
               type: int
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12378,6 +12921,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: dynamic
+          returnType: dynamic
 ''');
   }
 
@@ -12461,6 +13005,7 @@ library
           formalParameters
             requiredPositional a
               type: K
+          returnType: V
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12485,6 +13030,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -12565,6 +13111,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12579,6 +13126,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -12593,6 +13141,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -12673,6 +13222,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12687,6 +13237,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -12701,6 +13252,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -12781,6 +13333,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12796,6 +13349,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -12810,6 +13364,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -12887,6 +13442,7 @@ library
               type: K
             requiredPositional b
               type: double
+          returnType: V
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12903,6 +13459,7 @@ library
               type: int
             requiredPositional hasImplicitType b
               type: double
+          returnType: String
 ''');
   }
 
@@ -12965,6 +13522,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -12979,6 +13537,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -13050,6 +13609,7 @@ library
             optionalNamed b
               firstFragment: <testLibraryFragment>::@class::A::@method::m::@parameter::b
               type: double
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13067,6 +13627,7 @@ library
             optionalNamed hasImplicitType b
               firstFragment: <testLibraryFragment>::@class::B::@method::m::@parameter::b
               type: double
+          returnType: String
 ''');
   }
 
@@ -13135,6 +13696,7 @@ library
               type: int
             optionalPositional b
               type: double
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13151,6 +13713,7 @@ library
               type: int
             optionalPositional hasImplicitType b
               type: double
+          returnType: String
 ''');
   }
 
@@ -13234,6 +13797,7 @@ library
           formalParameters
             requiredPositional a
               type: K
+          returnType: V
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13258,6 +13822,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -13329,6 +13894,7 @@ library
           formalParameters
             requiredPositional a
               type: K
+          returnType: V
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13343,6 +13909,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -13405,6 +13972,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13419,6 +13987,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -13504,6 +14073,7 @@ library
           formalParameters
             requiredPositional a
               type: K
+          returnType: V
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13529,6 +14099,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: String
+          returnType: int
 ''');
   }
 
@@ -13589,6 +14160,7 @@ library
       methods
         _foo
           firstFragment: <testLibraryFragment>::@class::A1::@method::_foo
+          returnType: int
     class A2
       reference: <testLibrary>::@class::A2
       firstFragment: <testLibraryFragment>::@class::A2
@@ -13600,6 +14172,7 @@ library
       methods
         _foo
           firstFragment: <testLibraryFragment>::@class::A2::@method::_foo
+          returnType: int
 ''');
   }
 
@@ -13662,6 +14235,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13677,6 +14251,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -13769,6 +14344,7 @@ library
           formalParameters
             requiredPositional a
               type: K
+          returnType: V
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13784,6 +14360,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: T
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -13800,6 +14377,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 
@@ -13880,6 +14458,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13892,6 +14471,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: String
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -13908,6 +14488,7 @@ library
           formalParameters
             requiredPositional hasImplicitType a
               type: int
+          returnType: String
 ''');
   }
 

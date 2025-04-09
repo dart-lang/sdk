@@ -1062,8 +1062,6 @@ abstract class CommonServerContextManagerCallbacks
 
   CommonServerContextManagerCallbacks(this.resourceProvider);
 
-  AnalysisServer get analysisServer;
-
   @override
   @mustCallSuper
   void afterContextsCreated() {

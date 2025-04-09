@@ -114,6 +114,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
+          returnType: dynamic
 ''');
   }
 
@@ -130,7 +131,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic g
+        synthetic g (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::g
           element: <testLibrary>::@topLevelVariable::g
           getter2: <testLibraryFragment>::@getter::g
@@ -147,6 +148,7 @@ library
   getters
     static get g
       firstFragment: <testLibraryFragment>::@getter::g
+      returnType: dynamic
 ''');
   }
 
@@ -229,6 +231,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
+          returnType: dynamic
 ''');
   }
 

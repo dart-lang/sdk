@@ -21,13 +21,11 @@ class ParserDiagnosticsTest {
   void assertParsedNodeText(
     AstNode node,
     String expected, {
-    bool withCheckingLinking = false,
     bool withOffsets = false,
     bool withTokenPreviousNext = false,
   }) {
     var actual = _parsedNodeText(
       node,
-      withCheckingLinking: withCheckingLinking,
       withOffsets: withOffsets,
       withTokenPreviousNext: withTokenPreviousNext,
     );
@@ -68,7 +66,6 @@ class ParserDiagnosticsTest {
 
   String _parsedNodeText(
     AstNode node, {
-    required bool withCheckingLinking,
     required bool withOffsets,
     required bool withTokenPreviousNext,
   }) {
@@ -86,7 +83,6 @@ class ParserDiagnosticsTest {
         sink: sink,
         elementPrinter: elementPrinter,
         configuration: ResolvedNodeTextConfiguration()
-          ..withCheckingLinking = withCheckingLinking
           ..withTokenPreviousNext = withTokenPreviousNext,
         withResolution: false,
         withOffsets: withOffsets,

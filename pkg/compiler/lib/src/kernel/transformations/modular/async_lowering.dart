@@ -103,10 +103,7 @@ class AsyncLowering {
     // If every await is the direct child of a return statement then we can
     // do the following transformation:
     // return await e; --> return e;
-    final updatedReturns = <ReturnStatement>{};
     for (final awaitExpression in functionData.awaits) {
-      final returnStatement = awaitExpression.parent as ReturnStatement;
-      updatedReturns.add(returnStatement);
       awaitExpression.replaceWith(awaitExpression.operand);
     }
   }

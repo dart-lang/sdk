@@ -381,12 +381,14 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: Future<dynamic>
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: Future<dynamic>
+      returnType: void
 ''');
   }
 
@@ -472,12 +474,14 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: Future<dynamic>
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: Future<dynamic>
+      returnType: void
 ''');
   }
 
@@ -527,12 +531,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
 ''');
   }
 
@@ -672,19 +678,23 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: Future<dynamic>
     synthetic static get s
       firstFragment: <testLibraryFragment>::@getter::s
+      returnType: Stream<dynamic>
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: Future<dynamic>
+      returnType: void
     synthetic static set s
       firstFragment: <testLibraryFragment>::@setter::s
       formalParameters
         requiredPositional _s
           type: Stream<dynamic>
+      returnType: void
 ''');
   }
 
@@ -769,19 +779,23 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get d
       firstFragment: <testLibraryFragment>::@getter::d
+      returnType: D
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set d
       firstFragment: <testLibraryFragment>::@setter::d
       formalParameters
         requiredPositional _d
           type: D
+      returnType: void
 ''');
   }
 
@@ -986,6 +1000,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -1045,6 +1060,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -1096,12 +1112,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: A
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: A
+      returnType: void
 ''');
   }
 

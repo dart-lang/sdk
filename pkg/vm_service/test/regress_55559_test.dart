@@ -30,20 +30,10 @@ void main() {
   }
 
   setUp(() async {
-    switch (await spawnDartProcess(
+    state = await spawnDartProcess(
       'regress_55559_script.dart',
-      enableDds: false,
       pauseOnStart: false,
-      pauseOnExit: false,
-    )) {
-      case (final Process process, final Uri uri):
-        state = (process, uri);
-      default:
-        fail(
-          "The implementation of spawnDartProcess's returnServiceUri parameter"
-          'is incorrect',
-        );
-    }
+    );
   });
 
   tearDown(() {

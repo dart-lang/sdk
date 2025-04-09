@@ -1292,6 +1292,8 @@ main() {
     });
 
     test('ifNullExpression does not detect when RHS is unreachable', () {
+      // Note: sound flow analysis changes this behavior.
+      h.disableSoundFlowAnalysis();
       h.run([
         expr('int')
             .ifNull(second(checkReachable(true), expr('int')))
@@ -1321,6 +1323,8 @@ main() {
     test(
         'ifNullExpression sets shortcut reachability correctly for non-null '
         'type', () {
+      // Note: sound flow analysis changes this behavior.
+      h.disableSoundFlowAnalysis();
       h.run([
         expr('Object')
             .ifNull(second(checkReachable(true), throw_(expr('Object'))))
@@ -1982,27 +1986,6 @@ main() {
         expr('Null')
             .invokeMethod('f', [checkReachable(false)], isNullAware: true),
         checkReachable(true),
-      ]);
-    });
-
-    test('nullAwareAccess_end ignores shorting if target is non-nullable', () {
-      var x = Var('x');
-      h.addMember('int', 'f', 'Null Function(Object?)');
-      h.run([
-        declare(x, type: 'int?', initializer: expr('int?')),
-        expr('int').invokeMethod(
-            'f',
-            [
-              listLiteral(elementType: 'dynamic', [
-                checkReachable(true),
-                x.as_('int'),
-                checkPromoted(x, 'int'),
-              ])
-            ],
-            isNullAware: true),
-        // Since the null-shorting path was reachable, promotion of `x` should
-        // be cancelled.
-        checkNotPromoted(x),
       ]);
     });
 
@@ -5831,12 +5814,13 @@ main() {
         });
 
         test('even a field of a write captured variable can be promoted', () {
+          h.addSuperInterfaces('C', (_) => [Type('Object')]);
           h.addMember('C', '_field', 'int?', promotable: true);
           var x = Var('x');
           h.run([
-            declare(x, initializer: expr('C')),
+            declare(x, initializer: expr('C?')),
             localFunction([
-              x.write(expr('C')),
+              x.write(expr('C?')),
             ]),
             x
                 .cascade(isNullAware: true, [
@@ -5849,6 +5833,7 @@ main() {
                 // be sound to preserve the promotion, but it's extra work to do
                 // so, and it's not clear that there would be enough user
                 // benefit to justify the work).
+                .nonNullAssert
                 .property('_field')
                 .checkType('int?'),
           ]);
@@ -10913,6 +10898,73 @@ main() {
           ], [
             checkReachable(true),
           ]),
+        ]);
+      });
+    });
+
+    group('<nonNull>?.foo(<expr>)', () {
+      test('When enabled, guaranteed to execute <expr>', () {
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          checkAssigned(x, true)
+        ]);
+      });
+
+      test('When disabled, not guaranteed to execute <expr>', () {
+        h.disableSoundFlowAnalysis();
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          checkAssigned(x, false)
+        ]);
+      });
+    });
+
+    group('<nonNull>?..foo(<expr>)', () {
+      test('When enabled, guaranteed to execute <expr>', () {
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C').cascade(isNullAware: true, [
+            (e) => e.invokeMethod('foo', [x.write(expr('int'))])
+          ]),
+          checkAssigned(x, true)
+        ]);
+      });
+
+      test('When disabled, not guaranteed to execute <expr>', () {
+        h.disableSoundFlowAnalysis();
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C').cascade(isNullAware: true, [
+            (e) => e.invokeMethod('foo', [x.write(expr('int'))])
+          ]),
+          checkAssigned(x, false)
+        ]);
+      });
+    });
+
+    group('<nonNullable> ?? <expr>', () {
+      test('When enabled, <expr> is dead', () {
+        h.run([
+          expr('int').ifNull(checkReachable(false)),
+        ]);
+      });
+
+      test('When disabled, <expr> is live', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          expr('int').ifNull(checkReachable(true)),
         ]);
       });
     });

@@ -1045,9 +1045,7 @@ enum E {
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
-    assertParsedNodeText(
-        node,
-        r'''
+    assertParsedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
   arguments: EnumConstantArguments
@@ -1064,8 +1062,7 @@ EnumConstantDeclaration
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
       rightParenthesis: ) <synthetic>
-''',
-        withCheckingLinking: true);
+''');
   }
 
   void test_enum_constant_withTypeArgumentsWithoutArguments() {

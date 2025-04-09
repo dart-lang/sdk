@@ -86,6 +86,7 @@ library
       getters
         synthetic static get x
           firstFragment: <testLibraryFragment>::@extension::E::@getter::x
+          returnType: int
 ''');
   }
 
@@ -185,6 +186,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -233,6 +235,7 @@ library
         get foo
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
           hasEnclosingTypeParameterReference: true
+          returnType: T
 ''');
   }
 
@@ -331,6 +334,7 @@ library
       getters
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          returnType: int
       methods
         bar
           firstFragment: <testLibraryFragment>::@extension::E::@method::bar
@@ -342,6 +346,7 @@ library
                 element: <testLibraryFragment>::@extension::E::@getter::foo#element
                 staticType: null
               element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+          returnType: void
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -354,6 +359,7 @@ library
   getters
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
+      returnType: int
 ''');
   }
 
@@ -419,6 +425,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
 ''');
   }
 
@@ -455,6 +462,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@extension::E::@method::foo
+          returnType: void
 ''');
   }
 
@@ -498,6 +506,7 @@ library
           formalParameters
             requiredPositional _
               type: T
+          returnType: void
 ''');
   }
 
@@ -539,6 +548,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -586,6 +596,7 @@ library
           formalParameters
             requiredPositional value
               type: int
+          returnType: void
 ''');
   }
 
@@ -600,7 +611,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension <null-name>
+        extension <null-name> (offset=0)
           reference: <testLibraryFragment>::@extension::0
           element: <testLibrary>::@extension::0
   extensions

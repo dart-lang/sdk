@@ -493,9 +493,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumConstantArguments(EnumConstantArguments node) {
-    if (configuration.withCheckingLinking) {
-      _checkChildrenEntitiesLinking(node);
-    }
+    _checkChildrenEntitiesLinking(node);
     _sink.writeln('EnumConstantArguments');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1471,9 +1469,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    if (configuration.withCheckingLinking) {
-      _checkChildrenEntitiesLinking(node);
-    }
+    _checkChildrenEntitiesLinking(node);
     _sink.writeln('SuperFormalParameter');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2079,10 +2075,6 @@ Expected parent: (${parent.runtimeType}) $parent
 
 class ResolvedNodeTextConfiguration {
   bool skipArgumentList = false;
-
-  /// If `true`, linking of [EnumConstantDeclaration] will be checked
-  // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/48380
-  bool withCheckingLinking = false;
 
   /// If `true`, elements of [InterfaceType] should be printed.
   bool withInterfaceTypeElements = false;
