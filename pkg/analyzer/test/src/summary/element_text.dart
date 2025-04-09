@@ -935,7 +935,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.formalParameters,
         _writeFormalParameterElement,
       );
-      // _writeReturnType(e.returnType);
+      _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
     });
@@ -1341,7 +1341,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.formalParameters,
         _writeFormalParameterElement,
       );
-      // _writeReturnType(e.returnType);
+      _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
     });
 
@@ -1414,6 +1414,12 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
+  void _writeReturnType(DartType type) {
+    if (configuration.withReturnType) {
+      _writeType('returnType', type);
+    }
+  }
+
   void _writeSetterElement(SetterElementImpl e) {
     var variable = e.variable3;
     if (variable != null) {
@@ -1472,7 +1478,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.formalParameters,
         _writeFormalParameterElement,
       );
-      // _writeReturnType(e.returnType);
+      _writeReturnType(e.returnType);
       // _writeNonSyntheticElement(e);
       // writeLinking();
     });

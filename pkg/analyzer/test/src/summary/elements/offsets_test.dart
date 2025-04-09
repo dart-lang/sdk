@@ -1027,40 +1027,50 @@ library
       getters
         synthetic get withInit
           firstFragment: <testLibraryFragment>::@class::C::@getter::withInit
+          returnType: int
         synthetic get withoutInit
           firstFragment: <testLibraryFragment>::@class::C::@getter::withoutInit
+          returnType: int
         synthetic get multiWithInit
           firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithInit
+          returnType: int
         synthetic get multiWithoutInit
           firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
+          returnType: int
         synthetic get multiWithInit2
           firstFragment: <testLibraryFragment>::@class::C::@getter::multiWithInit2
+          returnType: int
       setters
         synthetic set withInit
           firstFragment: <testLibraryFragment>::@class::C::@setter::withInit
           formalParameters
             requiredPositional _withInit
               type: int
+          returnType: void
         synthetic set withoutInit
           firstFragment: <testLibraryFragment>::@class::C::@setter::withoutInit
           formalParameters
             requiredPositional _withoutInit
               type: int
+          returnType: void
         synthetic set multiWithInit
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithInit
           formalParameters
             requiredPositional _multiWithInit
               type: int
+          returnType: void
         synthetic set multiWithoutInit
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
           formalParameters
             requiredPositional _multiWithoutInit
               type: int
+          returnType: void
         synthetic set multiWithInit2
           firstFragment: <testLibraryFragment>::@class::C::@setter::multiWithInit2
           formalParameters
             requiredPositional _multiWithInit2
               type: int
+          returnType: void
 ''');
   }
 
@@ -1310,75 +1320,95 @@ library
       getters
         synthetic get hasDocComment
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasDocComment
+          returnType: int
         synthetic get hasDocComment2
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasDocComment2
+          returnType: int
         synthetic get hasAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasAnnotation
+          returnType: int
         synthetic get hasAnnotation2
           firstFragment: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
+          returnType: int
         synthetic get annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@getter::annotationThenComment
+          returnType: int
         synthetic get annotationThenComment2
           firstFragment: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
+          returnType: int
         synthetic get commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
+          returnType: int
         synthetic get commentThenAnnotation2
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
+          returnType: int
         synthetic get commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
+          returnType: int
         synthetic get commentAroundAnnotation2
           firstFragment: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
+          returnType: int
       setters
         synthetic set hasDocComment
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment
           formalParameters
             requiredPositional _hasDocComment
               type: int
+          returnType: void
         synthetic set hasDocComment2
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasDocComment2
           formalParameters
             requiredPositional _hasDocComment2
               type: int
+          returnType: void
         synthetic set hasAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation
           formalParameters
             requiredPositional _hasAnnotation
               type: int
+          returnType: void
         synthetic set hasAnnotation2
           firstFragment: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
           formalParameters
             requiredPositional _hasAnnotation2
               type: int
+          returnType: void
         synthetic set annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment
           formalParameters
             requiredPositional _annotationThenComment
               type: int
+          returnType: void
         synthetic set annotationThenComment2
           firstFragment: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
           formalParameters
             requiredPositional _annotationThenComment2
               type: int
+          returnType: void
         synthetic set commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
           formalParameters
             requiredPositional _commentThenAnnotation
               type: int
+          returnType: void
         synthetic set commentThenAnnotation2
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
           formalParameters
             requiredPositional _commentThenAnnotation2
               type: int
+          returnType: void
         synthetic set commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
           formalParameters
             requiredPositional _commentAroundAnnotation
               type: int
+          returnType: void
         synthetic set commentAroundAnnotation2
           firstFragment: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
           formalParameters
             requiredPositional _commentAroundAnnotation2
               type: int
+          returnType: void
 ''');
   }
 
@@ -1691,9 +1721,11 @@ library
       methods
         raw
           firstFragment: <testLibraryFragment>::@class::C::@method::raw
+          returnType: void
         hasDocComment
           firstFragment: <testLibraryFragment>::@class::C::@method::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
+          returnType: void
         hasAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::hasAnnotation
           metadata
@@ -1707,6 +1739,7 @@ library
                 leftParenthesis: ( @97
                 rightParenthesis: ) @98
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          returnType: void
         annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@method::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1721,6 +1754,7 @@ library
                 leftParenthesis: ( @136
                 rightParenthesis: ) @137
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          returnType: void
         commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1735,6 +1769,7 @@ library
                 leftParenthesis: ( @251
                 rightParenthesis: ) @252
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          returnType: void
         commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -1749,6 +1784,7 @@ library
                 leftParenthesis: ( @315
                 rightParenthesis: ) @316
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
+          returnType: void
 ''');
   }
 
@@ -2012,40 +2048,50 @@ library
   getters
     synthetic static get withInit
       firstFragment: <testLibraryFragment>::@getter::withInit
+      returnType: int
     synthetic static get withoutInit
       firstFragment: <testLibraryFragment>::@getter::withoutInit
+      returnType: int
     synthetic static get multiWithInit
       firstFragment: <testLibraryFragment>::@getter::multiWithInit
+      returnType: int
     synthetic static get multiWithoutInit
       firstFragment: <testLibraryFragment>::@getter::multiWithoutInit
+      returnType: int
     synthetic static get multiWithInit2
       firstFragment: <testLibraryFragment>::@getter::multiWithInit2
+      returnType: int
   setters
     synthetic static set withInit
       firstFragment: <testLibraryFragment>::@setter::withInit
       formalParameters
         requiredPositional _withInit
           type: int
+      returnType: void
     synthetic static set withoutInit
       firstFragment: <testLibraryFragment>::@setter::withoutInit
       formalParameters
         requiredPositional _withoutInit
           type: int
+      returnType: void
     synthetic static set multiWithInit
       firstFragment: <testLibraryFragment>::@setter::multiWithInit
       formalParameters
         requiredPositional _multiWithInit
           type: int
+      returnType: void
     synthetic static set multiWithoutInit
       firstFragment: <testLibraryFragment>::@setter::multiWithoutInit
       formalParameters
         requiredPositional _multiWithoutInit
           type: int
+      returnType: void
     synthetic static set multiWithInit2
       firstFragment: <testLibraryFragment>::@setter::multiWithInit2
       formalParameters
         requiredPositional _multiWithInit2
           type: int
+      returnType: void
 ''');
   }
 
@@ -2479,75 +2525,95 @@ library
   getters
     synthetic static get hasDocComment
       firstFragment: <testLibraryFragment>::@getter::hasDocComment
+      returnType: int
     synthetic static get hasDocComment2
       firstFragment: <testLibraryFragment>::@getter::hasDocComment2
+      returnType: int
     synthetic static get hasAnnotation
       firstFragment: <testLibraryFragment>::@getter::hasAnnotation
+      returnType: int
     synthetic static get hasAnnotation2
       firstFragment: <testLibraryFragment>::@getter::hasAnnotation2
+      returnType: int
     synthetic static get annotationThenComment
       firstFragment: <testLibraryFragment>::@getter::annotationThenComment
+      returnType: int
     synthetic static get annotationThenComment2
       firstFragment: <testLibraryFragment>::@getter::annotationThenComment2
+      returnType: int
     synthetic static get commentThenAnnotation
       firstFragment: <testLibraryFragment>::@getter::commentThenAnnotation
+      returnType: int
     synthetic static get commentThenAnnotation2
       firstFragment: <testLibraryFragment>::@getter::commentThenAnnotation2
+      returnType: int
     synthetic static get commentAroundAnnotation
       firstFragment: <testLibraryFragment>::@getter::commentAroundAnnotation
+      returnType: int
     synthetic static get commentAroundAnnotation2
       firstFragment: <testLibraryFragment>::@getter::commentAroundAnnotation2
+      returnType: int
   setters
     synthetic static set hasDocComment
       firstFragment: <testLibraryFragment>::@setter::hasDocComment
       formalParameters
         requiredPositional _hasDocComment
           type: int
+      returnType: void
     synthetic static set hasDocComment2
       firstFragment: <testLibraryFragment>::@setter::hasDocComment2
       formalParameters
         requiredPositional _hasDocComment2
           type: int
+      returnType: void
     synthetic static set hasAnnotation
       firstFragment: <testLibraryFragment>::@setter::hasAnnotation
       formalParameters
         requiredPositional _hasAnnotation
           type: int
+      returnType: void
     synthetic static set hasAnnotation2
       firstFragment: <testLibraryFragment>::@setter::hasAnnotation2
       formalParameters
         requiredPositional _hasAnnotation2
           type: int
+      returnType: void
     synthetic static set annotationThenComment
       firstFragment: <testLibraryFragment>::@setter::annotationThenComment
       formalParameters
         requiredPositional _annotationThenComment
           type: int
+      returnType: void
     synthetic static set annotationThenComment2
       firstFragment: <testLibraryFragment>::@setter::annotationThenComment2
       formalParameters
         requiredPositional _annotationThenComment2
           type: int
+      returnType: void
     synthetic static set commentThenAnnotation
       firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation
       formalParameters
         requiredPositional _commentThenAnnotation
           type: int
+      returnType: void
     synthetic static set commentThenAnnotation2
       firstFragment: <testLibraryFragment>::@setter::commentThenAnnotation2
       formalParameters
         requiredPositional _commentThenAnnotation2
           type: int
+      returnType: void
     synthetic static set commentAroundAnnotation
       firstFragment: <testLibraryFragment>::@setter::commentAroundAnnotation
       formalParameters
         requiredPositional _commentAroundAnnotation
           type: int
+      returnType: void
     synthetic static set commentAroundAnnotation2
       firstFragment: <testLibraryFragment>::@setter::commentAroundAnnotation2
       formalParameters
         requiredPositional _commentAroundAnnotation2
           type: int
+      returnType: void
 ''');
   }
 
@@ -2735,12 +2801,14 @@ library
       getters
         synthetic get foo
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+          returnType: int
       setters
         synthetic set foo
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
           formalParameters
             requiredPositional _foo
               type: int
+          returnType: void
 ''');
   }
 
@@ -2789,6 +2857,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -2838,6 +2907,7 @@ library
           formalParameters
             requiredPositional a
               type: int
+          returnType: void
 ''');
   }
 
@@ -2892,6 +2962,7 @@ library
           formalParameters
             requiredPositional x
               type: int
+          returnType: void
 ''');
   }
 
@@ -3154,6 +3225,7 @@ library
   getters
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
+      returnType: int
 ''');
   }
 }

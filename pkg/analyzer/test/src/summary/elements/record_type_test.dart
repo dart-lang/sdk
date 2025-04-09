@@ -61,6 +61,7 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: (int, String)
 ''');
   }
 
@@ -109,6 +110,7 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: (int, bool)
 ''');
   }
 
@@ -153,6 +155,7 @@ library
           formalParameters
             requiredPositional a
               type: (int, String)
+          returnType: void
 ''');
   }
 
@@ -191,6 +194,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          returnType: (int, String)
 ''');
   }
 
@@ -543,6 +547,7 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: (int, String)
 ''');
   }
 
@@ -574,6 +579,7 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: (int, bool)
 ''');
   }
 
@@ -639,6 +645,7 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: Type
 ''');
   }
 
@@ -700,6 +707,7 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: Type
 ''');
   }
 }

@@ -85,6 +85,7 @@ library
             optionalNamed covariant a
               firstFragment: <testLibraryFragment>::@class::A::@method::m::@parameter::a
               type: A
+          returnType: void
 ''');
   }
 
@@ -129,6 +130,7 @@ library
           formalParameters
             optionalPositional covariant a
               type: A
+          returnType: void
 ''');
   }
 
@@ -173,6 +175,7 @@ library
           formalParameters
             requiredPositional covariant a
               type: A
+          returnType: void
 ''');
   }
 
@@ -244,6 +247,7 @@ library
           formalParameters
             requiredPositional covariant t
               type: T
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -261,6 +265,7 @@ library
           formalParameters
             requiredPositional covariant t
               type: T
+          returnType: void
 ''');
   }
 
@@ -326,6 +331,7 @@ library
             optionalNamed covariant a
               firstFragment: <testLibraryFragment>::@class::A::@method::m::@parameter::a
               type: A
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -341,6 +347,7 @@ library
             optionalNamed covariant a
               firstFragment: <testLibraryFragment>::@class::B::@method::m::@parameter::a
               type: B
+          returnType: void
 ''');
   }
 
@@ -386,6 +393,7 @@ library
                   type: dynamic
                 requiredPositional hasImplicitType y
                   type: dynamic
+          returnType: dynamic
 ''');
   }
 
@@ -438,6 +446,7 @@ library
               formalParameters
                 requiredPositional x
                   type: B
+          returnType: dynamic
 ''');
   }
 
@@ -478,6 +487,7 @@ library
           formalParameters
             requiredPositional g
               type: int Function()
+          returnType: dynamic
 ''');
   }
 
@@ -518,6 +528,7 @@ library
           formalParameters
             requiredPositional g
               type: void Function()
+          returnType: dynamic
 ''');
   }
 
@@ -718,12 +729,14 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: dynamic
       setters
         synthetic set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -788,6 +801,7 @@ library
               type: dynamic
               constantInitializer
                 expression: expression_0
+          returnType: void
         static named
           firstFragment: <testLibraryFragment>::@class::C::@method::named
           formalParameters
@@ -797,6 +811,7 @@ library
               constantInitializer
                 fragment: <testLibraryFragment>::@class::C::@method::named::@parameter::x
                 expression: expression_1
+          returnType: void
 ''');
   }
 

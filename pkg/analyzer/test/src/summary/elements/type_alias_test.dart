@@ -1753,6 +1753,10 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
+          returnType: int Function<T>(T)
+            alias: <testLibrary>::@typeAlias::Foo
+              typeArguments
+                int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
@@ -1762,6 +1766,7 @@ library
                 alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
+          returnType: void
   typeAliases
     Foo
       firstFragment: <testLibraryFragment>::@typeAlias::Foo

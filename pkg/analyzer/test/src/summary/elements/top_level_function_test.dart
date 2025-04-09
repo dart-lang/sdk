@@ -1051,6 +1051,7 @@ library
   getters
     static get main
       firstFragment: <testLibraryFragment>::@getter::main
+      returnType: dynamic
 ''');
   }
 
@@ -1132,12 +1133,14 @@ library
   getters
     synthetic static get main
       firstFragment: <testLibraryFragment>::@getter::main
+      returnType: dynamic
   setters
     synthetic static set main
       firstFragment: <testLibraryFragment>::@setter::main
       formalParameters
         requiredPositional _main
           type: dynamic
+      returnType: void
 ''');
   }
 

@@ -114,6 +114,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
+          returnType: dynamic
 ''');
   }
 
@@ -147,6 +148,7 @@ library
   getters
     static get g
       firstFragment: <testLibraryFragment>::@getter::g
+      returnType: dynamic
 ''');
   }
 
@@ -229,6 +231,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
+          returnType: dynamic
 ''');
   }
 

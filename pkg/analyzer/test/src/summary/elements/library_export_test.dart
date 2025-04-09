@@ -1241,12 +1241,14 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+      returnType: int
   setters
     synthetic static set a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::a
       formalParameters
         requiredPositional _a
           type: int
+      returnType: void
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::a
@@ -1303,6 +1305,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+      returnType: int
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportNamespace
