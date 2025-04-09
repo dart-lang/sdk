@@ -104,8 +104,9 @@ vars = {
   "devtools_rev": "1fb2f4ce5099042b7f2dfa93dec675a21861d21f",
   "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
-  "libcxxabi_rev": "2ce528fb5e0f92e57c97ec3ff53b75359d33af12",
+  "libcxx_rev": "bd557f6f764d1e40b62528a13b124ce740624f8f",
+  "libcxxabi_rev": "a4dda1589d37a7e4b4f7a81ebad01b1083f2e726",
+  "libc_rev": "5af39a19a1ad51ce93972cdab206dcd3ff9b6afa",
   "libprotobuf_rev": "24487dd1045c7f3d64a21f38a3f0c06cc4cf2edb",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "perfetto_rev": "13ce0c9e13b0940d2476cd0cff2301708a9a2e2b",
@@ -272,6 +273,9 @@ deps = {
 
   Var("dart_root") + "/third_party/libcxxabi":
       Var("llvm_git") + "/llvm-project/libcxxabi" + "@" + Var("libcxxabi_rev"),
+
+  Var("dart_root") + "/third_party/libc":
+      Var("llvm_git") + "/llvm-project/libc" + "@" + Var("libc_rev"),
 
   Var("dart_root") + "/third_party/boringssl/src":
       "https://boringssl.googlesource.com/boringssl.git" +
