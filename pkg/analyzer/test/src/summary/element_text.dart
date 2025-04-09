@@ -546,7 +546,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeFieldElement(FieldElement2 e) {
+  void _writeFieldElement(FieldElementImpl2 e) {
     e as FieldElement2OrMember;
     DartType type = e.type;
     expect(type, isNotNull);
@@ -596,6 +596,9 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
+      if (e.hasEnclosingTypeParameterReference) {
+        _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
+      }
       // _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
@@ -874,7 +877,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeGetterElement(GetterElement e) {
+  void _writeGetterElement(GetterElementImpl e) {
     var variable = e.variable3;
     if (variable != null) {
       var variableEnclosing = variable.enclosingElement2;
@@ -918,6 +921,9 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
+      if (e.hasEnclosingTypeParameterReference) {
+        _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
+      }
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
       _writeSinceSdkVersion(e);
@@ -1315,6 +1321,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
+      if (e.hasEnclosingTypeParameterReference) {
+        _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
+      }
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
       _writeSinceSdkVersion(e);
@@ -1405,7 +1414,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeSetterElement(SetterElement e) {
+  void _writeSetterElement(SetterElementImpl e) {
     var variable = e.variable3;
     if (variable != null) {
       var variableEnclosing = variable.enclosingElement2;
@@ -1449,6 +1458,9 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
+      if (e.hasEnclosingTypeParameterReference) {
+        _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
+      }
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);
       _writeSinceSdkVersion(e);

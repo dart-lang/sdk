@@ -456,6 +456,7 @@ library
       fields
         final t
           firstFragment: <testLibraryFragment>::@class::C::@field::t
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::C::@getter::t#element
       constructors
@@ -472,6 +473,7 @@ library
       getters
         synthetic get t
           firstFragment: <testLibraryFragment>::@class::C::@getter::t
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2242,6 +2244,7 @@ library
       fields
         final t
           firstFragment: <testLibraryFragment>::@class::A::@field::t
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::A::@getter::t#element
       constructors
@@ -2253,6 +2256,7 @@ library
       getters
         synthetic get t
           firstFragment: <testLibraryFragment>::@class::A::@getter::t
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -7175,6 +7179,7 @@ library
       fields
         final hasInitializer f
           firstFragment: <testLibraryFragment>::@class::C::@field::f
+          hasEnclosingTypeParameterReference: true
           type: List<T>
           getter: <testLibraryFragment>::@class::C::@getter::f#element
       constructors
@@ -7183,6 +7188,7 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 

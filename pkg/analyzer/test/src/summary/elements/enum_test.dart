@@ -2899,6 +2899,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
+          hasEnclosingTypeParameterReference: true
           typeParameters
             U
           formalParameters

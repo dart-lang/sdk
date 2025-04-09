@@ -165,11 +165,13 @@ library
       fields
         f
           firstFragment: <testLibraryFragment>::@mixin::M::@field::f
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@mixin::M::@getter::f#element
           setter: <testLibraryFragment>::@mixin::M::@setter::f#element
         synthetic g
           firstFragment: <testLibraryFragment>::@mixin::M::@field::g
+          hasEnclosingTypeParameterReference: true
           type: U
           getter: <testLibraryFragment>::@mixin::M::@getter::g#element
         synthetic s
@@ -179,11 +181,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::f
+          hasEnclosingTypeParameterReference: true
         get g
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::g
+          hasEnclosingTypeParameterReference: true
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _f
               type: T
@@ -1313,6 +1318,89 @@ library
       methods
         A
           firstFragment: <testLibraryFragment>::@mixin::B::@method::A
+''');
+  }
+
+  test_mixin_method_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+mixin M<T> {
+  void foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+          element: <testLibrary>::@mixin::M
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@mixin::M::@method::foo
+              element: <testLibraryFragment>::@mixin::M::@method::foo#element
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: <testLibraryFragment>::@mixin::M
+      typeParameters
+        T
+      superclassConstraints
+        Object
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+''');
+  }
+
+  test_mixin_method_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+mixin M<T> {
+  void foo(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+          element: <testLibrary>::@mixin::M
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@mixin::M::@method::foo
+              element: <testLibraryFragment>::@mixin::M::@method::foo#element
+              formalParameters
+                _ @26
+                  element: <testLibraryFragment>::@mixin::M::@method::foo::@parameter::_#element
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: <testLibraryFragment>::@mixin::M
+      typeParameters
+        T
+      superclassConstraints
+        Object
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _
+              type: T
 ''');
   }
 

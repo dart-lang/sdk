@@ -3638,6 +3638,14 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// The type of function defined by this executable element.
   FunctionTypeImpl? _type;
 
+  /// Whether the type of this fragment references a type parameter of the
+  /// enclosing element. This includes not only explicitly specified type
+  /// annotations, but also inferred types.
+  ///
+  /// Top-level declarations don't have enclosing element type parameters,
+  /// so for them this flag is always `false`.
+  bool hasEnclosingTypeParameterReference = true;
+
   @override
   ElementLinkedData? linkedData;
 
@@ -3843,6 +3851,17 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
         ...typeParameters2,
         ...formalParameters,
       ];
+
+  /// Whether the type of this element references a type parameter of the
+  /// enclosing element. This includes not only explicitly specified type
+  /// annotations, but also inferred types.
+  ///
+  /// Top-level declarations don't have enclosing element type parameters,
+  /// so for them this flag is always `false`.
+  bool get hasEnclosingTypeParameterReference {
+    var firstFragment = this.firstFragment as ExecutableElementImpl;
+    return firstFragment.hasEnclosingTypeParameterReference;
+  }
 
   bool get invokesSuperSelf {
     var firstFragment = this.firstFragment as ExecutableElementImpl;
@@ -4195,6 +4214,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// when it overrides a field in a supertype that is covariant.
   bool inheritsCovariant = false;
 
+  /// Whether the type of this fragment references a type parameter of the
+  /// enclosing element. This includes not only explicitly specified type
+  /// annotations, but also inferred types.
+  bool hasEnclosingTypeParameterReference = true;
+
   /// The element corresponding to this fragment.
   FieldElementImpl2? _element;
 
@@ -4339,6 +4363,13 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   @override
   GetterElementImpl? get getter2 => firstFragment.getter?.element;
 
+  /// Whether the type of this fragment references a type parameter of the
+  /// enclosing element. This includes not only explicitly specified type
+  /// annotations, but also inferred types.
+  bool get hasEnclosingTypeParameterReference {
+    return firstFragment.hasEnclosingTypeParameterReference;
+  }
+
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
 
@@ -4353,6 +4384,10 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
   @override
   bool get isEnumConstant => firstFragment.isEnumConstant;
+
+  bool get isEnumValues {
+    return enclosingElement2 is EnumElementImpl2 && name3 == 'values';
+  }
 
   @override
   bool get isExternal => firstFragment.isExternal;

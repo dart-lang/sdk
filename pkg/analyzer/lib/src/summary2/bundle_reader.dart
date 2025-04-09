@@ -1108,10 +1108,14 @@ class LibraryReader {
 
     if (!element.isAugmentation) {
       if (getterReference != null) {
-        element.createImplicitGetter(getterReference);
+        var getter = element.createImplicitGetter(getterReference);
+        getter.hasEnclosingTypeParameterReference =
+            element.hasEnclosingTypeParameterReference;
       }
       if (element.hasSetter && setterReference != null) {
-        element.createImplicitSetter(setterReference);
+        var setter = element.createImplicitSetter(setterReference);
+        setter.hasEnclosingTypeParameterReference =
+            element.hasEnclosingTypeParameterReference;
       }
     }
 
@@ -1581,7 +1585,9 @@ class LibraryReader {
             ..name2 = accessor.name2
             ..isStatic = accessor.isStatic
             ..isSynthetic = true
-            ..isPromotable = isPromotable;
+            ..isPromotable = isPromotable
+            ..hasEnclosingTypeParameterReference =
+                accessor.hasEnclosingTypeParameterReference;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(propertyFragment);
         }
@@ -1662,10 +1668,12 @@ class LibraryReader {
     fragment.typeInferenceError = _readTopLevelInferenceError();
 
     if (getterReference != null) {
-      fragment.createImplicitGetter(getterReference);
+      var getter = fragment.createImplicitGetter(getterReference);
+      getter.hasEnclosingTypeParameterReference = false;
     }
     if (fragment.hasSetter && setterReference != null) {
-      fragment.createImplicitSetter(setterReference);
+      var getter = fragment.createImplicitSetter(setterReference);
+      getter.hasEnclosingTypeParameterReference = false;
     }
 
     return fragment;

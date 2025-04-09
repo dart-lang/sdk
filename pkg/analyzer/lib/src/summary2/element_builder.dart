@@ -410,6 +410,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     // Build the 'values' field.
     var valuesField = ConstFieldElementImpl('values', -1)
+      ..hasEnclosingTypeParameterReference = false
       ..isConst = true
       ..isStatic = true
       ..isSynthetic = true

@@ -142,6 +142,100 @@ library
 ''');
   }
 
+  test_getter_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  int get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@extension::E::@field::foo
+              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              getter2: <testLibraryFragment>::@extension::E::@getter::foo
+          getters
+            get foo @38
+              reference: <testLibraryFragment>::@extension::E::@getter::foo
+              element: <testLibraryFragment>::@extension::E::@getter::foo#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@extension::E::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@extension::E::@getter::foo#element
+      getters
+        get foo
+          firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+''');
+  }
+
+  test_getter_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  T get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@extension::E::@field::foo
+              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              getter2: <testLibraryFragment>::@extension::E::@getter::foo
+          getters
+            get foo @36
+              reference: <testLibraryFragment>::@extension::E::@getter::foo
+              element: <testLibraryFragment>::@extension::E::@getter::foo#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@extension::E::@field::foo
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibraryFragment>::@extension::E::@getter::foo#element
+      getters
+        get foo
+          firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          hasEnclosingTypeParameterReference: true
+''');
+  }
+
   test_metadata_extension_scope() async {
     var library = await buildLibrary(r'''
 const foo = 0;
@@ -325,6 +419,85 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+''');
+  }
+
+  test_method_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  void foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          methods
+            foo @35
+              reference: <testLibraryFragment>::@extension::E::@method::foo
+              element: <testLibraryFragment>::@extension::E::@method::foo#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@extension::E::@method::foo
+''');
+  }
+
+  test_method_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  void foo(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          methods
+            foo @35
+              reference: <testLibraryFragment>::@extension::E::@method::foo
+              element: <testLibraryFragment>::@extension::E::@method::foo#element
+              formalParameters
+                _ @41
+                  element: <testLibraryFragment>::@extension::E::@method::foo::@parameter::_#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@extension::E::@method::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _
+              type: T
 ''');
   }
 

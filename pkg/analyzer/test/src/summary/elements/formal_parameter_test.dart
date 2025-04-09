@@ -240,6 +240,7 @@ library
       methods
         f
           firstFragment: <testLibraryFragment>::@class::A::@method::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional covariant t
               type: T
@@ -256,6 +257,7 @@ library
       methods
         f
           firstFragment: <testLibraryFragment>::@class::B::@method::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional covariant t
               type: T
@@ -429,6 +431,7 @@ library
       methods
         f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional g
               type: A Function(B)

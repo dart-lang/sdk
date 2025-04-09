@@ -2181,6 +2181,7 @@ library
       fields
         v
           firstFragment: <testLibraryFragment>::@class::C::@field::v
+          hasEnclosingTypeParameterReference: true
           type: Map<T, int>
           getter: <testLibraryFragment>::@class::C::@getter::v#element
           setter: <testLibraryFragment>::@class::C::@setter::v#element
@@ -2191,9 +2192,11 @@ library
       getters
         synthetic get v
           firstFragment: <testLibraryFragment>::@class::C::@getter::v
+          hasEnclosingTypeParameterReference: true
       setters
         synthetic set v
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _v
               type: Map<T, int>
@@ -2206,6 +2209,7 @@ library
       fields
         synthetic v
           firstFragment: <testLibraryFragment>::@class::D::@field::v
+          hasEnclosingTypeParameterReference: true
           type: Map<V, U>
           getter: <testLibraryFragment>::@class::D::@getter::v#element
       constructors
@@ -2214,6 +2218,7 @@ library
       getters
         abstract get v
           firstFragment: <testLibraryFragment>::@class::D::@getter::v
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -2363,6 +2368,7 @@ library
       methods
         f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional x
               type: int
@@ -2380,6 +2386,7 @@ library
       methods
         abstract f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional x
               type: int
@@ -3852,6 +3859,7 @@ library
       fields
         value
           firstFragment: <testLibraryFragment>::@class::A::@field::value
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::A::@getter::value#element
           setter: <testLibraryFragment>::@class::A::@setter::value#element
@@ -3864,9 +3872,11 @@ library
       getters
         synthetic get value
           firstFragment: <testLibraryFragment>::@class::A::@getter::value
+          hasEnclosingTypeParameterReference: true
       setters
         synthetic set value
           firstFragment: <testLibraryFragment>::@class::A::@setter::value
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _value
               type: T
@@ -4001,6 +4011,7 @@ library
       fields
         value
           firstFragment: <testLibraryFragment>::@class::A::@field::value
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::A::@getter::value#element
           setter: <testLibraryFragment>::@class::A::@setter::value#element
@@ -4013,9 +4024,11 @@ library
       getters
         synthetic get value
           firstFragment: <testLibraryFragment>::@class::A::@getter::value
+          hasEnclosingTypeParameterReference: true
       setters
         synthetic set value
           firstFragment: <testLibraryFragment>::@class::A::@setter::value
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _value
               type: T
@@ -4786,6 +4799,7 @@ library
       fields
         final f
           firstFragment: <testLibraryFragment>::@class::C::@field::f
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::C::@getter::f#element
       constructors
@@ -4797,6 +4811,7 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     final hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -5275,6 +5290,7 @@ library
       fields
         t
           firstFragment: <testLibraryFragment>::@class::C::@field::t
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::C::@getter::t#element
           setter: <testLibraryFragment>::@class::C::@setter::t#element
@@ -5284,9 +5300,11 @@ library
       getters
         synthetic get t
           firstFragment: <testLibraryFragment>::@class::C::@getter::t
+          hasEnclosingTypeParameterReference: true
       setters
         synthetic set t
           firstFragment: <testLibraryFragment>::@class::C::@setter::t
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _t
               type: T
@@ -5343,6 +5361,7 @@ library
       fields
         t
           firstFragment: <testLibraryFragment>::@class::C::@field::t
+          hasEnclosingTypeParameterReference: true
           type: T?
           getter: <testLibraryFragment>::@class::C::@getter::t#element
           setter: <testLibraryFragment>::@class::C::@setter::t#element
@@ -5352,9 +5371,11 @@ library
       getters
         synthetic get t
           firstFragment: <testLibraryFragment>::@class::C::@getter::t
+          hasEnclosingTypeParameterReference: true
       setters
         synthetic set t
           firstFragment: <testLibraryFragment>::@class::C::@setter::t
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _t
               type: T?

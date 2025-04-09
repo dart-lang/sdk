@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
+import 'package:analyzer/src/summary2/enclosing_type_parameters_flag.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -256,6 +257,7 @@ class Linker {
     _resolveMetadata();
 
     _collectMixinSuperInvokedNames();
+    EnclosingTypeParameterReferenceFlag(this).perform();
     _buildElementNameUnions();
     _detachNodes();
   }

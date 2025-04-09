@@ -55,14 +55,17 @@ class ClassElementFlags {
 }
 
 class ConstructorElementFlags {
-  static const int _isAugmentation = 1 << 0;
-  static const int _isConst = 1 << 1;
-  static const int _isExternal = 1 << 2;
-  static const int _isFactory = 1 << 3;
-  static const int _isSynthetic = 1 << 4;
+  static const int _hasEnclosingTypeParameterReference = 1 << 0;
+  static const int _isAugmentation = 1 << 1;
+  static const int _isConst = 1 << 2;
+  static const int _isExternal = 1 << 3;
+  static const int _isFactory = 1 << 4;
+  static const int _isSynthetic = 1 << 5;
 
   static void read(SummaryDataReader reader, ConstructorElementImpl element) {
     var byte = reader.readByte();
+    element.hasEnclosingTypeParameterReference =
+        (byte & _hasEnclosingTypeParameterReference) != 0;
     element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isConst = (byte & _isConst) != 0;
     element.isExternal = (byte & _isExternal) != 0;
@@ -72,6 +75,9 @@ class ConstructorElementFlags {
 
   static void write(BufferedSink sink, ConstructorElementImpl element) {
     var result = 0;
+    result |= element.hasEnclosingTypeParameterReference
+        ? _hasEnclosingTypeParameterReference
+        : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isConst ? _isConst : 0;
     result |= element.isExternal ? _isExternal : 0;
@@ -150,24 +156,27 @@ class ExtensionTypeElementFlags {
 }
 
 class FieldElementFlags {
-  static const int _hasImplicitType = 1 << 0;
-  static const int _hasInitializer = 1 << 1;
-  static const int _inheritsCovariant = 1 << 2;
-  static const int _isAbstract = 1 << 3;
-  static const int _isAugmentation = 1 << 4;
-  static const int _isConst = 1 << 5;
-  static const int _isCovariant = 1 << 6;
-  static const int _isEnumConstant = 1 << 7;
-  static const int _isExternal = 1 << 8;
-  static const int _isFinal = 1 << 9;
-  static const int _isLate = 1 << 10;
-  static const int _isPromotable = 1 << 11;
-  static const int _shouldUseTypeForInitializerInference = 1 << 12;
-  static const int _isStatic = 1 << 13;
-  static const int _isSynthetic = 1 << 14;
+  static const int _hasEnclosingTypeParameterReference = 1 << 0;
+  static const int _hasImplicitType = 1 << 1;
+  static const int _hasInitializer = 1 << 2;
+  static const int _inheritsCovariant = 1 << 3;
+  static const int _isAbstract = 1 << 4;
+  static const int _isAugmentation = 1 << 5;
+  static const int _isConst = 1 << 6;
+  static const int _isCovariant = 1 << 7;
+  static const int _isEnumConstant = 1 << 8;
+  static const int _isExternal = 1 << 9;
+  static const int _isFinal = 1 << 10;
+  static const int _isLate = 1 << 11;
+  static const int _isPromotable = 1 << 12;
+  static const int _shouldUseTypeForInitializerInference = 1 << 13;
+  static const int _isStatic = 1 << 14;
+  static const int _isSynthetic = 1 << 15;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
+    element.hasEnclosingTypeParameterReference =
+        (byte & _hasEnclosingTypeParameterReference) != 0;
     element.hasImplicitType = (byte & _hasImplicitType) != 0;
     element.hasInitializer = (byte & _hasInitializer) != 0;
     element.inheritsCovariant = (byte & _inheritsCovariant) != 0;
@@ -188,6 +197,9 @@ class FieldElementFlags {
 
   static void write(BufferedSink sink, FieldElementImpl element) {
     var result = 0;
+    result |= element.hasEnclosingTypeParameterReference
+        ? _hasEnclosingTypeParameterReference
+        : 0;
     result |= element.hasImplicitType ? _hasImplicitType : 0;
     result |= element.hasInitializer ? _hasInitializer : 0;
     result |= element.inheritsCovariant ? _inheritsCovariant : 0;
@@ -275,19 +287,22 @@ class LibraryImportElementFlags {
 
 class MethodElementFlags {
   static const int _hasImplicitReturnType = 1 << 0;
-  static const int _invokesSuperSelf = 1 << 1;
-  static const int _isAbstract = 1 << 2;
-  static const int _isAsynchronous = 1 << 3;
-  static const int _isAugmentation = 1 << 4;
-  static const int _isExtensionTypeMember = 1 << 5;
-  static const int _isExternal = 1 << 6;
-  static const int _isGenerator = 1 << 7;
-  static const int _isStatic = 1 << 8;
-  static const int _isSynthetic = 1 << 9;
+  static const int _hasEnclosingTypeParameterReference = 1 << 1;
+  static const int _invokesSuperSelf = 1 << 2;
+  static const int _isAbstract = 1 << 3;
+  static const int _isAsynchronous = 1 << 4;
+  static const int _isAugmentation = 1 << 5;
+  static const int _isExtensionTypeMember = 1 << 6;
+  static const int _isExternal = 1 << 7;
+  static const int _isGenerator = 1 << 8;
+  static const int _isStatic = 1 << 9;
+  static const int _isSynthetic = 1 << 10;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
     var bits = reader.readUInt30();
     element.hasImplicitReturnType = (bits & _hasImplicitReturnType) != 0;
+    element.hasEnclosingTypeParameterReference =
+        (bits & _hasEnclosingTypeParameterReference) != 0;
     element.invokesSuperSelf = (bits & _invokesSuperSelf) != 0;
     element.isAbstract = (bits & _isAbstract) != 0;
     element.isAsynchronous = (bits & _isAsynchronous) != 0;
@@ -302,6 +317,9 @@ class MethodElementFlags {
   static void write(BufferedSink sink, MethodElementImpl element) {
     var result = 0;
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
+    result |= element.hasEnclosingTypeParameterReference
+        ? _hasEnclosingTypeParameterReference
+        : 0;
     result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
@@ -364,17 +382,18 @@ class ParameterElementFlags {
 }
 
 class PropertyAccessorElementFlags {
-  static const int _invokesSuperSelf = 1 << 0;
-  static const int _isAugmentation = 1 << 1;
-  static const int _isGetter = 1 << 2;
-  static const int _isSetter = 1 << 3;
-  static const int _hasImplicitReturnType = 1 << 4;
-  static const int _isAbstract = 1 << 5;
-  static const int _isAsynchronous = 1 << 6;
-  static const int _isExtensionTypeMember = 1 << 7;
-  static const int _isExternal = 1 << 8;
-  static const int _isGenerator = 1 << 9;
-  static const int _isStatic = 1 << 10;
+  static const int _hasEnclosingTypeParameterReference = 1 << 0;
+  static const int _invokesSuperSelf = 1 << 1;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isGetter = 1 << 3;
+  static const int _isSetter = 1 << 4;
+  static const int _hasImplicitReturnType = 1 << 5;
+  static const int _isAbstract = 1 << 6;
+  static const int _isAsynchronous = 1 << 7;
+  static const int _isExtensionTypeMember = 1 << 8;
+  static const int _isExternal = 1 << 9;
+  static const int _isGenerator = 1 << 10;
+  static const int _isStatic = 1 << 11;
 
   static bool isGetter(int flags) => (flags & _isGetter) != 0;
 
@@ -388,6 +407,8 @@ class PropertyAccessorElementFlags {
 
   static void setFlagsBasedOnFlagByte(
       PropertyAccessorElementImpl element, int byte) {
+    element.hasEnclosingTypeParameterReference =
+        (byte & _hasEnclosingTypeParameterReference) != 0;
     element.invokesSuperSelf = (byte & _invokesSuperSelf) != 0;
     element.isAugmentation = (byte & _isAugmentation) != 0;
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
@@ -401,6 +422,9 @@ class PropertyAccessorElementFlags {
 
   static void write(BufferedSink sink, PropertyAccessorElementImpl element) {
     var result = 0;
+    result |= element.hasEnclosingTypeParameterReference
+        ? _hasEnclosingTypeParameterReference
+        : 0;
     result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isGetter ? _isGetter : 0;
