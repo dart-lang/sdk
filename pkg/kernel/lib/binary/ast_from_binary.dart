@@ -890,12 +890,6 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForCanonicalNames;
     readLinkTable(component.root);
 
-    // TODO(alexmarkov): reverse metadata mappings and read forwards
-    _byteOffset = index.binaryOffsetForStringTable; // Read backwards.
-    _readMetadataMappings(component, index.binaryOffsetForMetadataPayloads);
-
-    _associateMetadata(component, _componentStartOffset);
-
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource(readCoverage: true);
     _mergeUriToSource(component.uriToSource, uriToSource);
@@ -903,6 +897,14 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForConstantTable;
     readConstantTable();
     // We don't need the constant table index on the dart side.
+
+    // TODO(alexmarkov): reverse metadata mappings and read forwards
+    // Ensure constant table is loaded before metadata is read as it may contain
+    // references to the constant table.
+    _byteOffset = index.binaryOffsetForStringTable; // Read backwards.
+    _readMetadataMappings(component, index.binaryOffsetForMetadataPayloads);
+
+    _associateMetadata(component, _componentStartOffset);
 
     int numberOfLibraries = index.libraryCount;
 
