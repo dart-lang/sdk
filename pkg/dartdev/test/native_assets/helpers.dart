@@ -13,6 +13,7 @@ import 'package:native_assets_builder/src/utils/run_process.dart'
     as run_process;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 extension UriExtension on Uri {
   Uri get parent {
@@ -67,7 +68,7 @@ Future<run_process.RunProcessResult> runProcess({
     );
 
 Future<void> copyTestProjects(
-    Uri copyTargetUri, Logger logger, Uri packageLocation) async {
+    Uri copyTargetUri, Logger logger, Uri packageLocation, Uri sdkRoot) async {
   // Reuse the test projects from `pkg:native`.
   final testProjectsUri = packageLocation.resolve('test_data/');
   final manifestUri = testProjectsUri.resolve('manifest.yaml');
@@ -101,10 +102,31 @@ Future<void> copyTestProjects(
     final sourceFile = File.fromUri(testProjectsUri.resolveUri(pathToModify));
     final targetUri = copyTargetUri.resolveUri(pathToModify);
     final sourceString = await sourceFile.readAsString();
-    final modifiedString = sourceString.replaceAll(
-      'path: ../../',
-      'path: ${packageLocation.toFilePath().replaceAll('\\', '/')}',
-    );
+    final pubspec = YamlEditor(sourceString);
+    if ((loadYamlNode(sourceString) as Map)['resolution'] != null) {
+      pubspec.remove(['resolution']);
+    }
+    pubspec.update([
+      'dependency_overrides'
+    ], {
+      'native_assets_cli': {
+        'path': sdkRoot
+            .resolve('third_party/pkg/native/pkgs/native_assets_cli/')
+            .toFilePath(),
+      },
+      'native_toolchain_c': {
+        'path': sdkRoot
+            .resolve('third_party/pkg/native/pkgs/native_toolchain_c/')
+            .toFilePath(),
+      },
+      'meta': {
+        'path': sdkRoot.resolve('pkg/meta/').toFilePath(),
+      },
+      'record_use': {
+        'path': sdkRoot.resolve('pkg/record_use/').toFilePath(),
+      },
+    });
+    final modifiedString = pubspec.toString();
     await File.fromUri(targetUri).writeAsString(modifiedString);
   }
 
@@ -195,6 +217,7 @@ Future<void> nativeAssetsTest(
       ],
       Platform.script.resolve(
           '../../../../third_party/pkg/native/pkgs/native_assets_builder/'),
+      Platform.script.resolve('../../../../'),
     );
 
 Future<void> recordUseTest(
@@ -208,6 +231,7 @@ Future<void> recordUseTest(
       fun,
       const ['drop_dylib_recording'],
       Platform.script.resolve('../../../record_use/'),
+      Platform.script.resolve('../../../../'),
     );
 
 Future<void> runPackageTest(
@@ -215,11 +239,12 @@ Future<void> runPackageTest(
   bool skipPubGet,
   Future<void> Function(Uri) fun,
   List<String> validPackages,
-  Uri packageLocation,
+    Uri packageLocation,
+    Uri sdkRoot
 ) async {
   assert(validPackages.contains(packageUnderTest));
   return await inTempDir((tempUri) async {
-    await copyTestProjects(tempUri, logger, packageLocation);
+    await copyTestProjects(tempUri, logger, packageLocation, sdkRoot);
     final packageUri = tempUri.resolve('$packageUnderTest/');
     if (!skipPubGet) {
       await runPubGet(workingDirectory: packageUri, logger: logger);

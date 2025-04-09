@@ -21,7 +21,6 @@ dev_dependencies:
   lints: any
   test: any
 
-
 dependency_overrides:
   meta:
     path: ../../../meta/
