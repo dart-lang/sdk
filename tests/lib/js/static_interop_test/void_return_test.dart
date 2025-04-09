@@ -6,11 +6,11 @@
 
 import 'dart:js_interop';
 
-@JS()
-external void eval(String code);
+@JS('Math.max')
+external void max(int a, int b);
 
 void main() {
-  Object? x = eval('1 + 1') as dynamic;
+  Object? x = max(1, 2) as dynamic;
 
   // It doesn't matter what this prints, it just shouldn't crash.
   print(x);
