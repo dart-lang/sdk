@@ -5196,8 +5196,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     } else {
       shortcutState = _current;
     }
-    if (operations.classifyType(keyType) == TypeClassification.nonNullable) {
-      shortcutState = shortcutState.setUnreachable();
+    switch (operations.classifyType(keyType)) {
+      case TypeClassification.nonNullable:
+        // The control flow path that skips the value expression is unreachable.
+        shortcutState = shortcutState.setUnreachable();
+      case TypeClassification.nullOrEquivalent:
+        // The control flow path containing the value expression is unreachable.
+        // This functionality was added as part of the `sound-flow-analysis`
+        // language feature, even though it would have been a sound reasoning
+        // step before then.
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+          _current = _current.setUnreachable();
+        }
+      case TypeClassification.potentiallyNullable:
+        // Both control flow paths are reachable.
+        break;
     }
     _stack.add(new _NullAwareMapEntryContext<Type>(shortcutState));
   }

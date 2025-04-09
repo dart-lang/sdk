@@ -10968,6 +10968,60 @@ main() {
         ]);
       });
     });
+
+    group('{ ?<nonNullable>: <expr> }', () {
+      test('When enabled, guaranteed to execute <expr>', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('int'), x.write(expr('int')), isKeyNullAware: true),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+
+      test('When disabled, guaranteed to execute <expr>', () {
+        // Flow analysis has considered `{ ?<nonNullable>: <expr> }` as
+        // guaranteed to execute <expr> since null-aware map entries were added
+        // to the language.
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('int'), x.write(expr('int')), isKeyNullAware: true),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+    });
+
+    group('{ ?<Null>: <expr> }', () {
+      test('When enabled, guaranteed to skip execution of <expr>', () {
+        h.run([
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('Null'), checkReachable(false), isKeyNullAware: true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, not guaranteed to skip execution of <expr>', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `{ ?<Null>: <expr> }` was guaranteed to skip execution of
+        // `<expr>` (even when flow analysis had to assume that code might be
+        // running in unsound null safety mode). But this functionality wasn't
+        // implemented. It's been added as part of `sound-flow-analysis`; this
+        // test verifies that the old behavior is preserved when
+        // `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('Null'), checkReachable(true), isKeyNullAware: true),
+          ]),
+        ]);
+      });
+    });
   });
 }
 
