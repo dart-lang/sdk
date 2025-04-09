@@ -3208,7 +3208,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo

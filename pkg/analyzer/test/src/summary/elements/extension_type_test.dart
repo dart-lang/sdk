@@ -1608,7 +1608,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type <null-name>
+        extension type <null-name> (offset=15)
           reference: <testLibraryFragment>::@extensionType::0
           element: <testLibrary>::@extensionType::0
           fields
@@ -1656,7 +1656,7 @@ library
           reference: <testLibraryFragment>::@extensionType::A
           element: <testLibrary>::@extensionType::A
           fields
-            <null-name>
+            <null-name> (offset=17)
               reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
               element: <testLibraryFragment>::@extensionType::A::@field::<empty>#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::<empty>
@@ -1669,7 +1669,7 @@ library
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.<null-name>
+                this.<null-name> (offset=17)
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::<empty>#element
           getters
             synthetic get <null-name>

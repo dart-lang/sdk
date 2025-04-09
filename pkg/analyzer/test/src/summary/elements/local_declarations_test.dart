@@ -131,7 +131,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic g
+        synthetic g (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::g
           element: <testLibrary>::@topLevelVariable::g
           getter2: <testLibraryFragment>::@getter::g

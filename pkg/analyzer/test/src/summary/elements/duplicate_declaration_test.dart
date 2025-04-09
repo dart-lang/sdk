@@ -1375,7 +1375,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo::@def::1
@@ -1415,7 +1415,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo::@def::1

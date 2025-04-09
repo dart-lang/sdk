@@ -3087,7 +3087,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       enums
-        enum <null-name>
+        enum <null-name> (offset=5)
           reference: <testLibraryFragment>::@enum::0
           element: <testLibrary>::@enum::0
           fields
@@ -4612,7 +4612,7 @@ library
                     rightParenthesis: ) @0
                   staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::v
-            hasInitializer <null-name>
+            hasInitializer <null-name> (offset=10)
               reference: <testLibraryFragment>::@enum::E::@field::0
               element: <testLibraryFragment>::@enum::E::@field::0#element
               initializer: expression_1

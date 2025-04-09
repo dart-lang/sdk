@@ -806,6 +806,63 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
+  void _writeFragmentBestOffset(Fragment f) {
+    // Usually the name offset is available.
+    // And then the offset must be the same.
+    if (f.nameOffset2 case var nameOffset?) {
+      expect(f.offset, nameOffset);
+      return;
+    }
+
+    switch (f) {
+      case ConstructorFragment():
+        if (f.isSynthetic) {
+          expect(f.offset, f.enclosingFragment!.offset);
+          return;
+        } else {
+          expect(f.offset, f.typeNameOffset);
+          return;
+        }
+      case FieldFragment():
+        if (f.isSynthetic) {
+          // TODO(scheglov): Why not the offset of the getter/setter?
+          expect(f.offset, f.enclosingFragment!.offset);
+          return;
+        }
+      case FormalParameterFragment():
+        if (f.enclosingFragment case SetterFragment setter) {
+          if (setter.isSynthetic) {
+            var variableOffset = setter.variable3!.offset;
+            expect(f.offset, variableOffset);
+            return;
+          }
+        }
+      case GetterFragment():
+        expect(f.isSynthetic, isTrue);
+        if (f.isSynthetic) {
+          expect(f.offset, f.variable3!.offset);
+          return;
+        }
+      case SetterFragment():
+        if (f.isSynthetic) {
+          var variableOffset = f.variable3!.offset;
+          expect(f.offset, variableOffset);
+          expect(f.formalParameters.single.offset, variableOffset);
+          return;
+        }
+      case LibraryFragment():
+        if (f.element.firstFragment != f) {
+          expect(f.offset, 0);
+          return;
+        } else if (f.offset == 0) {
+          return;
+        }
+    }
+
+    // If a non-standard case, write the offset.
+    _sink.write(' (offset=${f.offset})');
+  }
+
   void _writeFragmentCodeRange(Fragment f) {
     if (configuration.withCodeRanges) {
       if (f is ElementImpl) {
@@ -847,6 +904,8 @@ class _Element2Writer extends _AbstractElementWriter {
     if (f.nameOffset2 case var nameOffset?) {
       _sink.write(' @$nameOffset');
     }
+
+    _writeFragmentBestOffset(f);
   }
 
   void _writeFragmentReference(String name, Fragment? f) {
@@ -1009,9 +1068,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(fragment.isDeferred, ' deferred');
       _sink.write(' as ');
       _writeFragmentName(fragment);
-      if (fragment.offset != fragment.nameOffset2) {
-        _sink.write(' (offset=${fragment.offset})');
-      }
     }
   }
 
@@ -1199,6 +1255,7 @@ class _Element2Writer extends _AbstractElementWriter {
     var reference = f.reference!;
     _sink.writeIndentedLine(() {
       _elementPrinter.writeReference(reference);
+      _writeFragmentBestOffset(f);
     });
 
     _sink.withIndent(() {

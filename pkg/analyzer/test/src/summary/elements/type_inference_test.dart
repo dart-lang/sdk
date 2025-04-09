@@ -63,7 +63,7 @@ library
   reference: <testLibrary>
   name: lib
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
@@ -4095,7 +4095,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
               formalParameters
-                value
+                value (offset=-1)
                   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value#element
         class C @78
           reference: <testLibraryFragment>::@class::C
@@ -5001,7 +5001,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension <null-name>
+        extension <null-name> (offset=0)
           reference: <testLibraryFragment>::@extension::0
           element: <testLibrary>::@extension::0
           fields
@@ -5782,7 +5782,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
@@ -5998,7 +5998,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
@@ -6216,7 +6216,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
@@ -6437,7 +6437,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart

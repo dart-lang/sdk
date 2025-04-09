@@ -9241,7 +9241,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::a#element
               getter2: <testLibraryFragment>::@class::C::@getter::a
               setter2: <testLibraryFragment>::@class::C::@setter::a
-            <null-name>
+            <null-name> (offset=30)
               reference: <testLibraryFragment>::@class::C::@field::0
               element: <testLibraryFragment>::@class::C::@field::0#element
               getter2: <testLibraryFragment>::@class::C::@getter::0
@@ -9561,7 +9561,7 @@ library
   reference: <testLibrary>
   name: lib
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
@@ -12300,7 +12300,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           methods
-            <null-name>
+            <null-name> (offset=12)
               reference: <testLibraryFragment>::@class::A::@method::0
               element: <testLibraryFragment>::@class::A::@method::0#element
   classes
@@ -13093,7 +13093,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       classes
-        class <null-name>
+        class <null-name> (offset=6)
           reference: <testLibraryFragment>::@class::0
           element: <testLibrary>::@class::0
           constructors
@@ -17608,7 +17608,7 @@ library
           typeParameters
             T @8
               element: T@8
-            <null-name>
+            <null-name> (offset=10)
               element: null@null
           constructors
             synthetic new
@@ -18121,7 +18121,7 @@ library
               element: <testLibraryFragment>::@class::C2::@constructor::new#element
               typeName: C2
               formalParameters
-                i
+                i (offset=-1)
                   element: <testLibraryFragment>::@class::C2::@constructor::new::@parameter::i#element
         class C1 @90
           reference: <testLibraryFragment>::@class::C1
@@ -18132,7 +18132,7 @@ library
               element: <testLibraryFragment>::@class::C1::@constructor::new#element
               typeName: C1
               formalParameters
-                i
+                i (offset=-1)
                   element: <testLibraryFragment>::@class::C1::@constructor::new::@parameter::i#element
   classes
     class A
@@ -18287,18 +18287,18 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::c1#element
               typeName: C
               formalParameters
-                a
+                a (offset=-1)
                   element: <testLibraryFragment>::@class::C::@constructor::c1::@parameter::a#element
             synthetic c2
               reference: <testLibraryFragment>::@class::C::@constructor::c2
               element: <testLibraryFragment>::@class::C::@constructor::c2#element
               typeName: C
               formalParameters
-                a
+                a (offset=-1)
                   element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::a#element
-                default b
+                default b (offset=-1)
                   element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b#element
-                default c
+                default c (offset=-1)
                   element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c#element
                   initializer: expression_0
             synthetic c3
@@ -18306,12 +18306,12 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::c3#element
               typeName: C
               formalParameters
-                a
+                a (offset=-1)
                   element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::a#element
-                default b
+                default b (offset=-1)
                   reference: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b
                   element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::b#element
-                default c
+                default c (offset=-1)
                   reference: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c
                   element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c#element
                   initializer: expression_1
@@ -18516,9 +18516,9 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
               formalParameters
-                x
+                x (offset=-1)
                   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x#element
-                y
+                y (offset=-1)
                   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::y#element
       mixins
         mixin M @49
@@ -19573,14 +19573,14 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg#element
               typeName: MixinApp
               formalParameters
-                x
+                x (offset=-1)
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::requiredArg::@parameter::x#element
             synthetic positionalArg
               reference: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg
               element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg#element
               typeName: MixinApp
               formalParameters
-                default x
+                default x (offset=-1)
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x#element
                   initializer: expression_0
                     BooleanLiteral
@@ -19591,7 +19591,7 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2#element
               typeName: MixinApp
               formalParameters
-                default x
+                default x (offset=-1)
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x#element
                   initializer: expression_1
                     BooleanLiteral
@@ -19602,7 +19602,7 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg#element
               typeName: MixinApp
               formalParameters
-                default x
+                default x (offset=-1)
                   reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x#element
                   initializer: expression_2
@@ -19614,7 +19614,7 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2#element
               typeName: MixinApp
               formalParameters
-                default x
+                default x (offset=-1)
                   reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x#element
                   initializer: expression_3
@@ -19840,9 +19840,9 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor#element
               typeName: MixinApp
               formalParameters
-                t
+                t (offset=-1)
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
-                l
+                l (offset=-1)
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
   classes
     class Base
@@ -19956,9 +19956,9 @@ library
               element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor#element
               typeName: MixinApp
               formalParameters
-                t
+                t (offset=-1)
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::t#element
-                l
+                l (offset=-1)
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::ctor::@parameter::l#element
   classes
     class Base

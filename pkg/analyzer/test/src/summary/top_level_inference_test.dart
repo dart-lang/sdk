@@ -4373,7 +4373,7 @@ library
           element: <testLibrary>::@topLevelVariable::r_instanceClassMethod
           getter2: <testLibraryFragment>::@getter::r_instanceClassMethod
           setter2: <testLibraryFragment>::@setter::r_instanceClassMethod
-        synthetic topLevelGetter
+        synthetic topLevelGetter (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::topLevelGetter
           element: <testLibrary>::@topLevelVariable::topLevelGetter
           getter2: <testLibraryFragment>::@getter::topLevelGetter

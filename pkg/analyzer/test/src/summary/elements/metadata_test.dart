@@ -2071,7 +2071,7 @@ library
               literal: null @10
               staticType: Null
           getter2: <testLibraryFragment>::@getter::a
-        synthetic f
+        synthetic f (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::f
           element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
@@ -2139,7 +2139,7 @@ library
               literal: null @10
               staticType: Null
           getter2: <testLibraryFragment>::@getter::a
-        synthetic f
+        synthetic f (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::f
           element: <testLibrary>::@topLevelVariable::f
           setter2: <testLibraryFragment>::@setter::f
@@ -2741,7 +2741,7 @@ library
         staticType: null
       element2: <testLibraryFragment>::@getter::a#element
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=11)
       element: <testLibrary>
       topLevelVariables
         hasInitializer a @20
@@ -4458,7 +4458,7 @@ library
         staticType: null
       element2: <testLibraryFragment>::@getter::foo#element
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=37)
       element: <testLibrary>
       topLevelVariables
         hasInitializer foo @52
@@ -4761,7 +4761,7 @@ library
   reference: <testLibrary>
   name: my.lib
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
@@ -4943,7 +4943,7 @@ library
               literal: 0 @12
               staticType: int
           getter2: <testLibraryFragment>::@getter::foo
-        synthetic getter
+        synthetic getter (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::getter
           element: <testLibrary>::@topLevelVariable::getter
           getter2: <testLibraryFragment>::@getter::getter
@@ -5016,7 +5016,7 @@ library
               literal: 0 @12
               staticType: int
           getter2: <testLibraryFragment>::@getter::foo
-        synthetic setter
+        synthetic setter (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::setter
           element: <testLibrary>::@topLevelVariable::setter
           setter2: <testLibraryFragment>::@setter::setter
@@ -5233,7 +5233,7 @@ library
   reference: <testLibrary>
   name: L
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo.dart
       topLevelVariables
@@ -5626,7 +5626,7 @@ library
               literal: null @10
               staticType: Null
           getter2: <testLibraryFragment>::@getter::a
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo

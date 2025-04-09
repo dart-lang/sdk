@@ -1429,7 +1429,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin <null-name>
+        mixin <null-name> (offset=6)
           reference: <testLibraryFragment>::@mixin::0
           element: <testLibrary>::@mixin::0
   mixins

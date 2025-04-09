@@ -611,7 +611,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension <null-name>
+        extension <null-name> (offset=0)
           reference: <testLibraryFragment>::@extension::0
           element: <testLibrary>::@extension::0
   extensions
