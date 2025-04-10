@@ -11051,6 +11051,35 @@ main() {
         });
       });
     });
+
+    group('Map pattern', () {
+      test('When enabled, guaranteed to match non-nullable map', () {
+        h.run([
+          ifCase(
+              expr('Map<int, int>'), mapPattern([])..errorId = 'mapPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ], expectedErrors: {
+          'emptyMapPattern(pattern: mapPattern)'
+        });
+      });
+
+      test('When disabled, not guaranteed to match non-nullable map', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(
+              expr('Map<int, int>'), mapPattern([])..errorId = 'mapPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ], expectedErrors: {
+          'emptyMapPattern(pattern: mapPattern)'
+        });
+      });
+    });
   });
 }
 
