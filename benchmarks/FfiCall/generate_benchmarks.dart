@@ -243,10 +243,7 @@ void generateBenchmarkPointer(StringBuffer buffer, List<String> types) {
           .map((n) => '$type $n = nullptr;')
           .join('\n');
       final String setup =
-          List.generate(
-            number - 1,
-            (i) => 'p${i + 2} = p1.elementAt(${i + 1});',
-          ).join();
+          List.generate(number - 1, (i) => 'p${i + 2} = p1 + ${i + 1};').join();
       final String functionType = 'Function$number$dartTypeName';
       final String functionNativeType = 'NativeFunction$number$typeName';
       final String functionNameC = 'Function$number$typeName';
