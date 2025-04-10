@@ -1347,6 +1347,7 @@ presented
 pressure
 presubmit
 presumably
+presume
 presuming
 prev
 primarily

@@ -11022,6 +11022,35 @@ main() {
         ]);
       });
     });
+
+    group('? pattern applied to non-nullable type', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('int'), wildcard().nullCheck..errorId = 'nullCheck', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ], expectedErrors: {
+          'matchedTypeIsStrictlyNonNullable(pattern: nullCheck, '
+              'matchedType: int)'
+        });
+      });
+
+      test('When disabled, not guaranteed to match', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), wildcard().nullCheck..errorId = 'nullCheck', [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ], expectedErrors: {
+          'matchedTypeIsStrictlyNonNullable(pattern: nullCheck, '
+              'matchedType: int)'
+        });
+      });
+    });
   });
 }
 

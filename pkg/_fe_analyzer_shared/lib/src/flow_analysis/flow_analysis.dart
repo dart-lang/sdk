@@ -5219,14 +5219,17 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   bool nullCheckOrAssertPattern_begin(
       {required bool isAssert, required Type matchedValueType}) {
     if (!isAssert) {
-      // Account for the possibility that the pattern might not match.  Note
-      // that it's tempting to skip this step if matchedValueType is
-      // non-nullable (based on the reasoning that a non-null value is
-      // guaranteed to satisfy a null check), but in weak mode that's not sound,
-      // because in weak mode even non-nullable values might be null.  We don't
-      // want flow analysis behavior to depend on mode, so we conservatively
-      // assume the pattern might not match regardless of matchedValueType.
-      _unmatched = _join(_unmatched, _current);
+      if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+          operations.classifyType(matchedValueType) ==
+              TypeClassification.nonNullable) {
+        // The pattern is guaranteed to match.
+      } else {
+        // The pattern might not match, either because matchedValueType is
+        // nullable, or because sound flow analysis is disabled (in which case
+        // we presume the user might be running under an older version of Dart
+        // that supported weak null safety mode).
+        _unmatched = _join(_unmatched, _current);
+      }
     }
     FlowModel<Type>? ifNotNull =
         _nullCheckPattern(matchedValueType: matchedValueType);
