@@ -469,7 +469,7 @@ sealed class ManifestItem {
   });
 
   @mustCallSuper
-  bool match(MatchContext context, AnnotatableElement element) {
+  bool match(MatchContext context, AnnotatableElementImpl element) {
     return metadata.match(context, element.effectiveMetadata);
   }
 
@@ -711,9 +711,9 @@ enum _ManifestItemKind2 {
   interfaceConstructor,
 }
 
-extension _AnnotatableElementExtension on AnnotatableElement {
+extension _AnnotatableElementExtension on AnnotatableElementImpl {
   MetadataImpl get effectiveMetadata {
-    if (this case PropertyAccessorElement2OrMember accessor) {
+    if (this case PropertyAccessorElementImpl2 accessor) {
       return accessor.thisOrVariableMetadata;
     }
     return metadata2;
@@ -738,7 +738,7 @@ extension _GetterElementImplExtension on GetterElementImpl {
   }
 }
 
-extension _PropertyAccessExtension on PropertyAccessorElement2OrMember {
+extension _PropertyAccessExtension on PropertyAccessorElementImpl2 {
   MetadataImpl get thisOrVariableMetadata {
     if (isSynthetic) {
       return variable3!.metadata2;

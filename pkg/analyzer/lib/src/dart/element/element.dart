@@ -69,6 +69,9 @@ abstract class AnnotatableElement implements Element2, Annotatable {
   MetadataImpl get metadata2;
 }
 
+abstract class AnnotatableElementImpl
+    implements ElementImpl2, AnnotatableElement {}
+
 @Deprecated('This is an internal class, do not use it')
 // TODO(scheglov): remove it when DartDoc stops using it
 // https://github.com/dart-lang/dartdoc/issues/4015
@@ -3841,7 +3844,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 }
 
 abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
-    implements ExecutableElement2OrMember {
+    implements ExecutableElement2OrMember, AnnotatableElementImpl {
   @override
   ExecutableElementImpl2 get baseElement => this;
 
@@ -5762,7 +5765,10 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 }
 
 abstract class InstanceElementImpl2 extends ElementImpl2
-    implements InstanceElement2, TypeParameterizedElement2, AnnotatableElement {
+    implements
+        InstanceElement2,
+        TypeParameterizedElement2,
+        AnnotatableElementImpl {
   @override
   InstanceElement2 get baseElement => this;
 
