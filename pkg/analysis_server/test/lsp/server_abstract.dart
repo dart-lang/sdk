@@ -37,6 +37,7 @@ import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
+import '../utils/message_scheduler_test_view.dart';
 import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
@@ -55,6 +56,7 @@ abstract class AbstractLspAnalysisServerTest
   late MockLspServerChannel channel;
   late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
+  MessageSchedulerTestView? testView;
   late LspAnalysisServer server;
   late MockProcessRunner processRunner;
   late MockHttpClient httpClient;
@@ -279,6 +281,7 @@ abstract class AbstractLspAnalysisServerTest
 
     errorNotifier = ErrorNotifier();
     pluginManager = TestPluginManager();
+    testView = retainDataForTesting ? MessageSchedulerTestView() : null;
     server = LspAnalysisServer(
       channel,
       resourceProvider,
@@ -290,7 +293,7 @@ abstract class AbstractLspAnalysisServerTest
       httpClient: httpClient,
       processRunner: processRunner,
       dartFixPromptManager: dartFixPromptManager,
-      retainDataForTesting: retainDataForTesting,
+      messageSchedulerListener: testView,
     );
     errorNotifier.server = server;
     server.pluginManager = pluginManager;
@@ -314,7 +317,7 @@ abstract class AbstractLspAnalysisServerTest
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
-$experiments    
+$experiments
 ''');
 
     writeTestPackageConfig();

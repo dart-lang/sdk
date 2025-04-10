@@ -162,7 +162,7 @@ class LspAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     super.enableBlazeWatcher,
     super.dartFixPromptManager,
-    super.retainDataForTesting,
+    super.messageSchedulerListener,
   }) : lspClientConfiguration = LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),

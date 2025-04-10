@@ -23,7 +23,7 @@ import 'package:meta/meta.dart';
 /// [AnalysisServer].
 ///
 /// Clients include IDE's (LSP and Legacy protocol), DTD, the Diagnostic server
-/// and file wathcers. The [MessageScheduler] acts as a hub for all incoming
+/// and file watchers. The [MessageScheduler] acts as a hub for all incoming
 /// messages and forwards the messages to the appropriate handlers.
 final class MessageScheduler {
   /// A flag to allow disabling overlapping message handlers.
@@ -31,7 +31,7 @@ final class MessageScheduler {
 
   /// A view into the [MessageScheduler] used for testing.
   @visibleForTesting
-  MessageSchedulerTestView? testView;
+  MessageSchedulerListener? testView;
 
   /// The [AnalysisServer] associated with the scheduler.
   // TODO(brianwilkerson): Make this field private.
@@ -60,9 +60,7 @@ final class MessageScheduler {
   /// atomically and it was decided that it was cleaner for the scheduler to
   /// have the nullable reference to the server rather than the other way
   /// around.
-  MessageScheduler({this.testView}) {
-    testView?.messageScheduler = this;
-  }
+  MessageScheduler({this.testView});
 
   /// Add the [message] to the end of the pending messages queue.
   ///
@@ -87,7 +85,7 @@ final class MessageScheduler {
   /// - The incoming [legacy.ANALYSIS_REQUEST_UPDATE_CONTENT] message cancels
   ///   any rename files request that is in progress.
   void add(ScheduledMessage message) {
-    testView?.logAddMessage(message);
+    testView?.addPendingMessage(message);
     if (message is LegacyMessage) {
       var request = message.request;
       var method = request.method;
@@ -109,9 +107,7 @@ final class MessageScheduler {
                   code: lsp.ErrorCodes.ContentModified.toJson(),
                   reason: 'File content was modified',
                 );
-                testView?.messageLog.add(
-                  'Canceled active request ${activeRequest.method}',
-                );
+                testView?.cancelActiveMessage(activeMessage);
               }
             }
           }
@@ -157,9 +153,7 @@ final class MessageScheduler {
               var message = activeMessage.message as lsp.RequestMessage;
               if (message.method == incomingMsgMethod) {
                 activeMessage.cancellationToken?.cancel(reason: reason);
-                testView?.messageLog.add(
-                  'Canceled active request ${message.method}',
-                );
+                testView?.cancelActiveMessage(activeMessage);
               }
             }
           }
@@ -168,9 +162,7 @@ final class MessageScheduler {
               var message = pendingMessage.message as lsp.RequestMessage;
               if (message.method == msg.method) {
                 pendingMessage.cancellationToken?.cancel(reason: reason);
-                testView?.messageLog.add(
-                  'Canceled pending request ${msg.method}',
-                );
+                testView?.cancelPendingMessage(pendingMessage);
               }
             }
           }
@@ -186,18 +178,18 @@ final class MessageScheduler {
   /// Dispatch the first message in the queue to be executed.
   void processMessages() async {
     _isProcessing = true;
-    testView?.messageLog.add('Entering process messages loop');
+    testView?.startProcessingMessages();
     try {
       while (_pendingMessages.isNotEmpty) {
         var currentMessage = _pendingMessages.removeFirst();
         _activeMessages.addLast(currentMessage);
+        testView?.addActiveMessage(currentMessage);
         completer = Completer<void>();
         unawaited(
           completer.future.then((_) {
             _activeMessages.remove(currentMessage);
           }),
         );
-        testView?.logHandleMessage(currentMessage);
         switch (currentMessage) {
           case LspMessage():
             var lspMessage = currentMessage.message;
@@ -242,9 +234,7 @@ final class MessageScheduler {
         // TODO(pq): if not awaited, consider adding a `then` so we can track
         // when the future completes. But note that we may see some flakiness in
         // tests as message handling gets non-deterministically interleaved.
-        testView?.messageLog.add(
-          '  Complete ${currentMessage.runtimeType}: ${currentMessage.toString()}',
-        );
+        testView?.messageCompleted(currentMessage);
       }
     } catch (error, stackTrace) {
       server.instrumentationService.logException(
@@ -254,7 +244,7 @@ final class MessageScheduler {
       );
     }
     _isProcessing = false;
-    testView?.messageLog.add('Exit process messages loop');
+    testView?.endProcessingMessages();
   }
 
   /// Set the [AnalysisServer].
@@ -358,7 +348,7 @@ final class MessageScheduler {
         var request = activeMessage.message as lsp.RequestMessage;
         if (request.id == params.id) {
           activeMessage.cancellationToken?.cancel();
-          testView?.messageLog.add('Canceled active request ${request.method}');
+          testView?.cancelActiveMessage(activeMessage);
           return;
         }
       }
@@ -368,9 +358,7 @@ final class MessageScheduler {
         var request = pendingMessage.message as lsp.RequestMessage;
         if (request.id == params.id) {
           pendingMessage.cancellationToken?.cancel();
-          testView?.messageLog.add(
-            'Canceled pending request ${request.method}',
-          );
+          testView?.cancelPendingMessage(pendingMessage);
           return;
         }
       }
@@ -403,7 +391,10 @@ final class MessageScheduler {
       return path != null ? Uri.file(path) : null;
     }
 
-    void checkAndCancelRefactor(LspMessage lspMessage) {
+    void checkAndCancelRefactor(
+      LspMessage lspMessage, {
+      required bool isActive,
+    }) {
       var request = lspMessage.message as lsp.RequestMessage;
       var execParams = _getCommandParams(request);
       if (execParams != null &&
@@ -414,14 +405,16 @@ final class MessageScheduler {
           lspMessage.cancellationToken?.cancel(
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
-          testView?.messageLog.add(
-            'Canceled in progress request ${request.method}',
-          );
+          if (isActive) {
+            testView?.cancelActiveMessage(lspMessage);
+          } else {
+            testView?.cancelPendingMessage(lspMessage);
+          }
         }
       }
     }
 
-    void checkAndCancelRename(LspMessage lspMessage) {
+    void checkAndCancelRename(LspMessage lspMessage, {required bool isActive}) {
       var request = lspMessage.message as lsp.RequestMessage;
       var renameParams = _getRenameParams(request);
       if (renameParams != null) {
@@ -430,9 +423,11 @@ final class MessageScheduler {
           lspMessage.cancellationToken?.cancel(
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
-          testView?.messageLog.add(
-            'Canceled in progress request ${request.method}',
-          );
+          if (isActive) {
+            testView?.cancelActiveMessage(lspMessage);
+          } else {
+            testView?.cancelPendingMessage(lspMessage);
+          }
         }
       }
     }
@@ -441,9 +436,9 @@ final class MessageScheduler {
       if (activeMessage is LspMessage && activeMessage.isRequest) {
         var request = activeMessage.message as lsp.RequestMessage;
         if (request.method == lsp.Method.workspace_executeCommand) {
-          checkAndCancelRefactor(activeMessage);
+          checkAndCancelRefactor(activeMessage, isActive: true);
         } else if (request.method == lsp.Method.textDocument_rename) {
-          checkAndCancelRename(activeMessage);
+          checkAndCancelRename(activeMessage, isActive: true);
         }
       }
     }
@@ -451,27 +446,34 @@ final class MessageScheduler {
       if (pendingMessage is LspMessage && pendingMessage.isRequest) {
         var request = pendingMessage.message as lsp.RequestMessage;
         if (request.method == lsp.Method.workspace_executeCommand) {
-          checkAndCancelRefactor(pendingMessage);
+          checkAndCancelRefactor(pendingMessage, isActive: false);
         } else if (request.method == lsp.Method.textDocument_rename) {
-          checkAndCancelRename(pendingMessage);
+          checkAndCancelRename(pendingMessage, isActive: false);
         }
       }
     }
   }
 }
 
-class MessageSchedulerTestView {
-  late final MessageScheduler messageScheduler;
+abstract class MessageSchedulerListener {
+  /// Report that the [message] was added to the active message queue.
+  void addActiveMessage(ScheduledMessage message);
 
-  List<String> messageLog = <String>[];
+  /// Report that the [message] was added to the pending message queue.
+  void addPendingMessage(ScheduledMessage message);
 
-  void logAddMessage(ScheduledMessage message) {
-    messageLog.add(
-      'Incoming ${message is LspMessage ? message.message.runtimeType : message.runtimeType}: ${message.toString()}',
-    );
-  }
+  /// Report that an active [message] was cancelled.
+  void cancelActiveMessage(ScheduledMessage message);
 
-  void logHandleMessage(ScheduledMessage message) {
-    messageLog.add('  Start ${message.runtimeType}: ${message.toString()}');
-  }
+  /// Report that a pending [message] was cancelled.
+  void cancelPendingMessage(ScheduledMessage message);
+
+  /// Report that the loop that processes messages has stopped running.
+  void endProcessingMessages();
+
+  /// Report that the [message] has been completed.
+  void messageCompleted(ScheduledMessage message);
+
+  /// Report that the loop that processes messages has started to run.
+  void startProcessingMessages();
 }
