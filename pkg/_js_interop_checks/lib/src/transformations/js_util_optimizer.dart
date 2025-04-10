@@ -64,6 +64,8 @@ class JsUtilOptimizer extends Transformer {
   final Map<Member, _InvocationBuilder?> _externalInvocationBuilders = {};
   final StatefulStaticTypeContext _staticTypeContext;
 
+  final bool isDart2JS;
+
   /// Dynamic members in js_util that interop allowed.
   static const List<String> _allowedInteropJsUtilMembers = [
     'callConstructor',
@@ -78,7 +80,7 @@ class JsUtilOptimizer extends Transformer {
     this._coreTypes,
     ClassHierarchy hierarchy,
     this._extensionIndex, {
-    required bool isDart2JS,
+    required this.isDart2JS,
   }) : _callMethodTarget = _coreTypes.index.getTopLevelProcedure(
          'dart:js_util',
          'callMethod',
@@ -212,6 +214,68 @@ class JsUtilOptimizer extends Transformer {
     return node;
   }
 
+  @override
+  TreeNode visitProcedure(Procedure node) {
+    if (!isDart2JS) return defaultMember(node);
+
+    if (node.isExternal &&
+        node.isStatic &&
+        !JsInteropChecks.isPatchedMember(node)) {
+      if (node.kind == ProcedureKind.Getter) {
+        final dottedPrefix = _getDottedPrefixForStaticallyResolvableMember(
+          node,
+        );
+        if (dottedPrefix != null) {
+          // Convert the external getter into a Dart getter with a body of the
+          // form
+          //
+          //    => getPropertyTrustType<dynamic>(
+          //           staticInteropGlobalContext(),
+          //           "name"
+          //         ) as <type>;
+          //
+          // The type argument is `<dynamic>` so the downcast can be removed
+          // under `-O3`.
+
+          final receiver = _getObjectOffGlobalContext(
+            node,
+            dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'),
+          );
+
+          final shouldTrustType =
+              node.enclosingClass != null &&
+              hasTrustTypesAnnotation(node.enclosingClass!);
+
+          Expression expression = StaticInvocation(
+            _getPropertyTrustTypeTarget,
+            Arguments(
+              [receiver, StringLiteral(_getMemberJSName(node))],
+              types: [DynamicType()],
+            ),
+          )..fileOffset = node.fileOffset;
+
+          if (!shouldTrustType) {
+            expression =
+                AsExpression(expression, node.getterType)
+                  ..isTypeError = true
+                  ..isForDynamic = true
+                  ..fileOffset = node.fileOffset;
+          }
+
+          final statement = ReturnStatement(expression)
+            ..fileOffset = node.fileOffset;
+
+          node.function.body = statement;
+          node.isExternal = false;
+        } else {
+          // Leave the static getter member as `external`.
+        }
+      }
+    }
+
+    return defaultMember(node);
+  }
+
   /// Given a static interop procedure [node], return a
   /// [_InvocationBuilder] that will create new [StaticInvocation]s that
   /// replace calls to [node].
@@ -244,6 +308,16 @@ class JsUtilOptimizer extends Transformer {
               node.enclosingClass != null &&
               hasTrustTypesAnnotation(node.enclosingClass!);
           if (_extensionIndex.isGetter(node)) {
+            if (isDart2JS) {
+              // Top-level and static external getters are given a Dart body so
+              // that annotations can remain attached. The call to the getter
+              // remains in place. The dart2js optimizer may do inlining.
+              return null;
+            }
+            // For DDC, the call to the getter is replaced with the lowered code
+            // in this transformer.
+            // TODO(http://dartbug.com/60505): Consider also using a synthesized
+            // getter and leaving the call in place.
             return _getExternalGetterInvocationBuilder(
               node,
               shouldTrustType,
