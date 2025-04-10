@@ -80,12 +80,15 @@ class LibraryManifestBuilder {
   final Map<Uri, LibraryManifest> inputManifests;
 
   /// Key: an element from [inputLibraries].
-  /// Value: the item from [inputManifests].
+  /// Value: the item from [inputManifests], or newly build.
   ///
-  /// We attempt to reuse the same item, mostly importantly its ID.
+  /// We attempt to reuse the same item, most importantly its ID.
   ///
   /// It is filled initially during matching element structures.
   /// Then we remove those that affected by changed elements.
+  ///
+  /// Then we iterate over the elements in [libraryElements], and build new
+  /// items for declared elements that don't have items in this map.
   final Map<Element2, ManifestItem> declaredItems = Map.identity();
 
   /// The new manifests for libraries.
@@ -123,16 +126,15 @@ class LibraryManifestBuilder {
     required ClassElementImpl2 element,
     required LookupName lookupName,
   }) {
-    var item = _getOrBuildElementItem(element, () {
+    var classItem = _getOrBuildElementItem(element, () {
       return ClassItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
     });
-    newItems[lookupName] = item;
+    newItems[lookupName] = classItem;
 
-    var classItem = item;
     encodingContext.withTypeParameters(
       element.typeParameters2,
       (typeParameters) {
@@ -645,7 +647,7 @@ class LibraryManifestBuilder {
     var item = declaredItems[element] as Item?;
     if (item == null) {
       item = build();
-      // To reuse items for inherited members.
+      // To find IDs of inherited members.
       declaredItems[element] = item;
     }
     return item;
@@ -721,6 +723,19 @@ class _LibraryMatch {
     }
   }
 
+  /// Records [item] as matching [element], and stores dependencies.
+  ///
+  /// The fact that it does match is checked outside.
+  void _addMatchingElementItem(
+    ElementImpl2 element,
+    ManifestItem item,
+    MatchContext matchContext,
+  ) {
+    itemMap[element] = item;
+    refElementsMap[element] = matchContext.elementList;
+    refExternalIds.addAll(matchContext.externalIds);
+  }
+
   bool _matchClass({
     required LookupName? name,
     required ClassElementImpl2 element,
@@ -735,15 +750,14 @@ class _LibraryMatch {
       return false;
     }
 
-    itemMap[element] = item;
-    refElementsMap[element] = matchContext.elementList;
-    refExternalIds.addAll(matchContext.externalIds);
+    _addMatchingElementItem(element, item, matchContext);
 
     _matchInterfaceConstructors(
       matchContext: matchContext,
       interfaceElement: element,
       item: item,
     );
+
     _matchStaticExecutables(
       matchContext: matchContext,
       element: element,
@@ -778,9 +792,7 @@ class _LibraryMatch {
           return false;
         }
 
-        itemMap[executable] = item;
-        refElementsMap[executable] = matchContext.elementList;
-        refExternalIds.addAll(matchContext.externalIds);
+        _addMatchingElementItem(executable, item, matchContext);
         return true;
       case MethodElementImpl2():
         if (item is! InstanceItemMethodItem) {
@@ -792,9 +804,7 @@ class _LibraryMatch {
           return false;
         }
 
-        itemMap[executable] = item;
-        refElementsMap[executable] = matchContext.elementList;
-        refExternalIds.addAll(matchContext.externalIds);
+        _addMatchingElementItem(executable, item, matchContext);
         return true;
       case SetterElementImpl():
         if (item is! InstanceItemSetterItem) {
@@ -806,9 +816,7 @@ class _LibraryMatch {
           return false;
         }
 
-        itemMap[executable] = item;
-        refElementsMap[executable] = matchContext.elementList;
-        refExternalIds.addAll(matchContext.externalIds);
+        _addMatchingElementItem(executable, item, matchContext);
         return true;
       default:
         // SAFETY: the cases above handle all expected executables.
@@ -860,9 +868,7 @@ class _LibraryMatch {
       return false;
     }
 
-    itemMap[element] = item;
-    refElementsMap[element] = matchContext.elementList;
-    refExternalIds.addAll(matchContext.externalIds);
+    _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
@@ -952,10 +958,7 @@ class _LibraryMatch {
       return false;
     }
 
-    // TODO(scheglov): it looks that this code is repeating
-    itemMap[element] = item;
-    refElementsMap[element] = matchContext.elementList;
-    refExternalIds.addAll(matchContext.externalIds);
+    _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
@@ -973,9 +976,7 @@ class _LibraryMatch {
       return false;
     }
 
-    itemMap[element] = item;
-    refElementsMap[element] = matchContext.elementList;
-    refExternalIds.addAll(matchContext.externalIds);
+    _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
@@ -993,9 +994,7 @@ class _LibraryMatch {
       return false;
     }
 
-    itemMap[element] = item;
-    refElementsMap[element] = matchContext.elementList;
-    refExternalIds.addAll(matchContext.externalIds);
+    _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 }
