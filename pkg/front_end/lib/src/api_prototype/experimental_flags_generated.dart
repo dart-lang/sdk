@@ -81,7 +81,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8));
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag constantUpdate2018 = const ExperimentalFlag(
       name: 'constant-update-2018',
@@ -121,7 +121,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8));
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',
@@ -161,7 +161,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8));
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
       name: 'inference-update-1',
@@ -193,7 +193,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8));
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag inferenceUsingBounds = const ExperimentalFlag(
       name: 'inference-using-bounds',
@@ -361,7 +361,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8));
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag wildcardVariables = const ExperimentalFlag(
       name: 'wildcard-variables',

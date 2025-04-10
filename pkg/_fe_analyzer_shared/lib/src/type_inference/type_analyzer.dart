@@ -1090,10 +1090,16 @@ mixin TypeAnalyzer<
       keyType: keyType,
       valueType: valueType,
     );
+    bool matchMayFailEvenIfCorrectType = true;
+    if (typeAnalyzerOptions.soundFlowAnalysisEnabled && elements.isEmpty) {
+      // With sound null safety, an empty map pattern can only fail to match if
+      // the types don't match.
+      matchMayFailEvenIfCorrectType = false;
+    }
     flow.promoteForPattern(
         matchedType: matchedValueType,
         knownType: requiredType,
-        matchMayFailEvenIfCorrectType: true);
+        matchMayFailEvenIfCorrectType: matchMayFailEvenIfCorrectType);
     // Stack: ()
 
     Map<int, Error>? restPatternErrors;

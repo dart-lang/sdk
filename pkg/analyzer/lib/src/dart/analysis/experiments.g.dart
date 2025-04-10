@@ -212,7 +212,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.const_functions,
     documentation:
         'Allow more of the Dart language to be executed in const expressions.',
-    experimentalReleaseVersion: Version.parse('3.8.0'),
+    experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -268,7 +268,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.dot_shorthands,
     isExpired: IsExpired.dot_shorthands,
     documentation: 'Shorter dot syntax for static accesses.',
-    experimentalReleaseVersion: Version.parse('3.8.0'),
+    experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -325,7 +325,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.getter_setter_error,
     documentation:
         'Stop reporting errors about mismatching types in a getter/setter pair.',
-    experimentalReleaseVersion: Version.parse('3.8.0'),
+    experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -371,7 +371,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.inference_update_4,
     isExpired: IsExpired.inference_update_4,
     documentation: 'A bundle of updates to type inference.',
-    experimentalReleaseVersion: Version.parse('3.8.0'),
+    experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
@@ -605,7 +605,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
     documentation: 'Sound variance',
-    experimentalReleaseVersion: Version.parse('3.8.0'),
+    experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );

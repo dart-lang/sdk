@@ -22,18 +22,19 @@ typedef CalloutCType = Handle Function(Pointer);
 typedef CalloutDartType = Object Function(Pointer);
 
 void child(_) {
-  var callout = ffiTestFunctions.lookupFunction<CalloutCType, CalloutDartType>(
-    "TestUnwindErrorThroughHandle",
-    isLeaf: false,
-  );
-  var callback = Pointer.fromFunction<CallbackType>(unwindErrorThroughHandle);
-  var result = callout(callback);
+  final callout = ffiTestFunctions
+      .lookupFunction<CalloutCType, CalloutDartType>(
+        "TestUnwindErrorThroughHandle",
+        isLeaf: false,
+      );
+  final callback = Pointer.fromFunction<CallbackType>(unwindErrorThroughHandle);
+  callout(callback);
   throw "Should not be reached";
 }
 
 void main() {
-  var onExit = new RawReceivePort();
-  var onError = new RawReceivePort();
+  final onExit = new RawReceivePort();
+  final onError = new RawReceivePort();
   onExit.handler = ((msg) {
     print("Child exited");
     onExit.close();

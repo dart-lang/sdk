@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'c_types.dart';
 import 'utils.dart';
-import 'structs_by_value_tests_generator.dart';
 
 void main() async {
   final StringBuffer buffer = StringBuffer();
@@ -355,5 +354,4 @@ String typedDataListName(FundamentalType type) => switch (type) {
   float => 'Float32List',
   double_ => 'Float64List',
   FundamentalType() => '${type.dartCType}List',
-  _ => throw UnimplementedError(),
 };
