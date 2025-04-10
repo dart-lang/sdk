@@ -12,7 +12,7 @@ class A extends core::_Enum /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "A.${this.{core::_Enum::_name}{core::String}}";
-  static method _#new#tearOff(core::int #index, core::String #name, self::B value) → self::A
+  static synthetic method _#new#tearOff(core::int #index, core::String #name, self::B value) → self::A
     return new self::A::•(#index, #name, value);
 }
 class B extends core::Object /*hasConstConstructor*/  {
@@ -22,7 +22,7 @@ class B extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int value) → self::B
     : self::B::value = value, super core::Object::•()
     ;
-  static method _#new#tearOff(core::int value) → self::B
+  static synthetic method _#new#tearOff(core::int value) → self::B
     return new self::B::•(value);
 }
 static method method(self::A a) → core::String {

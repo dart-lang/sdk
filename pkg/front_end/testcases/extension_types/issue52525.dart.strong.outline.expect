@@ -11,11 +11,11 @@ extension type IC1(core::int id) {
 }
 static extension-type-member method IC1|constructor#(core::int id) → self::IC1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method IC1|constructor#_#new#tearOff(core::int id) → self::IC1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method IC1|constructor#_#new#tearOff(core::int id) → self::IC1% /* erasure=core::int, declared=! */
   return self::IC1|constructor#(id);
 static extension-type-member method IC1|constructor#f(core::int id) → self::IC1% /* erasure=core::int, declared=! */ /* redirection-target: self::IC1|constructor# */
   return self::IC1|constructor#(id);
-static extension-type-member method IC1|constructor#_#f#tearOff(core::int id) → self::IC1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method IC1|constructor#_#f#tearOff(core::int id) → self::IC1% /* erasure=core::int, declared=! */
   return self::IC1|constructor#(id);
 static method main() → dynamic
   ;

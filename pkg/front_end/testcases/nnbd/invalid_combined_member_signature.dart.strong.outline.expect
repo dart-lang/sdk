@@ -43,7 +43,7 @@ class C extends core::Object {
 abstract class D extends core::Object implements self::A, self::B {
   synthetic constructor •() → self::D
     ;
-  abstract member-signature method method1(invalid-type c) → void; -> self::A::method1
+  abstract synthetic member-signature method method1(invalid-type c) → void; -> self::A::method1
 }
 static method main() → dynamic
   ;

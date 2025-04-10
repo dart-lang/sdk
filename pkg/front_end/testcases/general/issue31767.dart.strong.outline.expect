@@ -26,7 +26,7 @@ class D = self::C with self::M {
   synthetic constructor foo(core::int x, [core::int y = 0, core::int z = 0]) → self::D
     : super self::C::foo(x, y, z)
     ;
-  mixin-super-stub get w2() → core::int
+  synthetic mixin-super-stub get w2() → core::int
     return super.{self::M::w2};
 }
 abstract class N extends iss::A /*isMixinDeclaration*/  {
@@ -37,7 +37,7 @@ class E = iss::A with self::N {
   synthetic constructor foo(core::int x, [core::int y = iss::_private, core::int z = iss::_private, iss::_A a = const iss::_A::•(5)]) → self::E
     : super iss::A::foo(x, y, z, a)
     ;
-  mixin-super-stub get w2() → core::int
+  synthetic mixin-super-stub get w2() → core::int
     return super.{self::N::w2};
 }
 static field core::StringBuffer sb;

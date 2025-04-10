@@ -65,7 +65,7 @@ static extension-type-member method InlineClass|constructor#(core::int it) → s
   lowered final self::InlineClass% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
   return self::InlineClass|constructor#(it);
 static extension-type-member method InlineClass|test(lowered final self::InlineClass% /* erasure=core::int, declared=! */ #this) → dynamic {
   core::int a = self::InlineClass|+(#this, 2);

@@ -603,7 +603,7 @@ static extension-member method Extension|instanceMethod<T extends core::Object? 
 static extension-member method Extension|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::Extension|get#instanceMethod::T% #this) → <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T%) → self::Extension|get#instanceMethod::T%
   return <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T% t) → self::Extension|get#instanceMethod::T% => self::Extension|instanceMethod<self::Extension|get#instanceMethod::T%, S%>(#this, t);
 static method main() → dynamic {}
-static method _#B#new#tearOff<T extends core::num>() → self::Class<self::_#B#new#tearOff::T>
+static synthetic method _#B#new#tearOff<T extends core::num>() → self::Class<self::_#B#new#tearOff::T>
   return new self::Class::•<self::_#B#new#tearOff::T>();
 
 constants  {

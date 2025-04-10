@@ -101,7 +101,7 @@ static extension-member method Extension|staticTest<S extends core::Object? = dy
   ;
 static extension-type-member method ExtensionType|constructor#_<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */
   ;
-static extension-type-member method ExtensionType|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_#_#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> */
+static extension-type-member synthetic method ExtensionType|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_#_#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> */
   return self::ExtensionType|constructor#_<self::ExtensionType|constructor#_#_#tearOff::T%>(c);
 static extension-type-member method ExtensionType|extensionTypeInstanceMember<T extends core::Object? = dynamic>(lowered final self::ExtensionType<self::ExtensionType|extensionTypeInstanceMember::T%> /* erasure=self::Class<self::ExtensionType|extensionTypeInstanceMember::T%> */ #this) → void
   ;
@@ -115,15 +115,15 @@ static extension-type-member set ExtensionType|extensionTypeStaticSetter(wildcar
   ;
 static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>([dynamic parameter = null]) → self::ExtensionType<self::ExtensionType|constructor#::T%> /* erasure=self::Class<self::ExtensionType|constructor#::T%> */
   ;
-static extension-type-member method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>([dynamic parameter]) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#new#tearOff::T%> */
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>([dynamic parameter]) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#new#tearOff::T%> */
   return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#new#tearOff::T%>(parameter);
 static extension-type-member method ExtensionType|constructor#redirect<T extends core::Object? = dynamic>() → self::ExtensionType<self::ExtensionType|constructor#redirect::T%> /* erasure=self::Class<self::ExtensionType|constructor#redirect::T%> */
   ;
-static extension-type-member method ExtensionType|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>() → self::ExtensionType<self::ExtensionType|constructor#_#redirect#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#redirect#tearOff::T%> */
+static extension-type-member synthetic method ExtensionType|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>() → self::ExtensionType<self::ExtensionType|constructor#_#redirect#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#redirect#tearOff::T%> */
   return self::ExtensionType|constructor#redirect<self::ExtensionType|constructor#_#redirect#tearOff::T%>();
 static extension-type-member method ExtensionType|constructor#factory<T extends core::Object? = dynamic>(dynamic parameter) → self::ExtensionType<self::ExtensionType|constructor#factory::T%> /* erasure=self::Class<self::ExtensionType|constructor#factory::T%> */
   ;
-static extension-type-member method ExtensionType|constructor#_#factory#tearOff<T extends core::Object? = dynamic>(dynamic parameter) → self::ExtensionType<self::ExtensionType|constructor#_#factory#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#factory#tearOff::T%> */
+static extension-type-member synthetic method ExtensionType|constructor#_#factory#tearOff<T extends core::Object? = dynamic>(dynamic parameter) → self::ExtensionType<self::ExtensionType|constructor#_#factory#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#factory#tearOff::T%> */
   return self::ExtensionType|constructor#factory<self::ExtensionType|constructor#_#factory#tearOff::T%>(parameter);
 static extension-type-member method ExtensionType|instanceTest<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::ExtensionType<self::ExtensionType|instanceTest::T%> /* erasure=self::Class<self::ExtensionType|instanceTest::T%> */ #this, dynamic parameter) → dynamic
   ;

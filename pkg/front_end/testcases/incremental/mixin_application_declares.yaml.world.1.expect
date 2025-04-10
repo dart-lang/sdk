@@ -27,7 +27,7 @@ library from "org-dartlang-test:///main_lib1.dart" as mai2 {
     synthetic constructor •() → mai2::_Class&SuperClass&Mixin
       : super mai2::SuperClass::•()
       ;
-    forwarding-stub method method(covariant-by-declaration dart.core::num i) → void
+    forwarding-stub synthetic method method(covariant-by-declaration dart.core::num i) → void
       return super.{mai2::Mixin::method}(i);
   }
 }

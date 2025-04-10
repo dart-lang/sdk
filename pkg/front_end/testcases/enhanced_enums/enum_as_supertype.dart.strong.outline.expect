@@ -77,28 +77,28 @@ abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
   const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get foo() → core::int
+  synthetic mixin-super-stub get foo() → core::int
     return super.{self::A::foo};
 }
 abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get foo() → core::int
+  synthetic mixin-super-stub get foo() → core::int
     return super.{self::B::foo};
 }
 abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get foo() → core::int
+  synthetic mixin-super-stub get foo() → core::int
     return super.{self::M::foo};
 }
 abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get foo() → core::int
+  synthetic mixin-super-stub get foo() → core::int
     return super.{self::N::foo};
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic

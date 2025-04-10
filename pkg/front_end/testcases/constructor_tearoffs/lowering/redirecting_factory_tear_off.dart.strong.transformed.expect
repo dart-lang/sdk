@@ -49,26 +49,26 @@ class Class1 extends core::Object {
   constructor _() → self::Class1
     : super core::Object::•()
     ;
-  static method _#_#tearOff() → self::Class1
+  static synthetic method _#_#tearOff() → self::Class1
     return new self::Class1::_();
   static factory •() → self::Class1 /* redirection-target: self::Class1::_ */
     return new self::Class1::_();
-  static method _#new#tearOff() → self::Class1
+  static synthetic method _#new#tearOff() → self::Class1
     return new self::Class1::_();
 }
 class Class2 extends core::Object {
   constructor __() → self::Class2
     : super core::Object::•()
     ;
-  static method _#__#tearOff() → self::Class2
+  static synthetic method _#__#tearOff() → self::Class2
     return new self::Class2::__();
   static factory _() → self::Class2
     return new self::Class2::__();
-  static method _#_#tearOff() → self::Class2
+  static synthetic method _#_#tearOff() → self::Class2
     return self::Class2::_();
   static factory named() → self::Class2 /* redirection-target: self::Class2::_ */
     return self::Class2::_();
-  static method _#named#tearOff() → self::Class2
+  static synthetic method _#named#tearOff() → self::Class2
     return self::Class2::_();
 }
 class Class3 extends core::Object {
@@ -76,11 +76,11 @@ class Class3 extends core::Object {
   constructor _(core::int field) → self::Class3
     : self::Class3::field = field, super core::Object::•()
     ;
-  static method _#_#tearOff(core::int field) → self::Class3
+  static synthetic method _#_#tearOff(core::int field) → self::Class3
     return new self::Class3::_(field);
   static factory •(core::int field) → self::Class3 /* redirection-target: self::Class3::_ */
     return new self::Class3::_(field);
-  static method _#new#tearOff(core::int field) → self::Class3
+  static synthetic method _#new#tearOff(core::int field) → self::Class3
     return new self::Class3::_(field);
 }
 class Class4 extends core::Object {
@@ -88,11 +88,11 @@ class Class4 extends core::Object {
   constructor _([core::int? field = #C1]) → self::Class4
     : self::Class4::field = field, super core::Object::•()
     ;
-  static method _#_#tearOff([core::int? field = #C1]) → self::Class4
+  static synthetic method _#_#tearOff([core::int? field = #C1]) → self::Class4
     return new self::Class4::_(field);
   static factory •([core::int? field = #C1]) → self::Class4 /* redirection-target: self::Class4::_ */
     return new self::Class4::_(field);
-  static method _#new#tearOff([core::int? field = #C1]) → self::Class4
+  static synthetic method _#new#tearOff([core::int? field = #C1]) → self::Class4
     return new self::Class4::_(field);
 }
 class Class5 extends core::Object {
@@ -101,11 +101,11 @@ class Class5 extends core::Object {
   constructor _(core::int field1, [core::int? field2 = #C1]) → self::Class5
     : self::Class5::field1 = field1, self::Class5::field2 = field2, super core::Object::•()
     ;
-  static method _#_#tearOff(core::int field1, [core::int? field2 = #C1]) → self::Class5
+  static synthetic method _#_#tearOff(core::int field1, [core::int? field2 = #C1]) → self::Class5
     return new self::Class5::_(field1, field2);
   static factory •(core::int field1, [core::int? field2 = #C1]) → self::Class5 /* redirection-target: self::Class5::_ */
     return new self::Class5::_(field1, field2);
-  static method _#new#tearOff(core::int field1, [core::int? field2 = #C1]) → self::Class5
+  static synthetic method _#new#tearOff(core::int field1, [core::int? field2 = #C1]) → self::Class5
     return new self::Class5::_(field1, field2);
 }
 class Class6 extends core::Object {
@@ -115,45 +115,45 @@ class Class6 extends core::Object {
   constructor _(core::int field1, {core::int? field2 = #C1, required core::int field3}) → self::Class6
     : self::Class6::field1 = field1, self::Class6::field2 = field2, self::Class6::field3 = field3, super core::Object::•()
     ;
-  static method _#_#tearOff(core::int field1, {core::int? field2 = #C1, required core::int field3}) → self::Class6
+  static synthetic method _#_#tearOff(core::int field1, {core::int? field2 = #C1, required core::int field3}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);
   static factory •(core::int field1, {core::int? field2 = #C1, required core::int field3}) → self::Class6 /* redirection-target: self::Class6::_ */
     return new self::Class6::_(field1, field2: field2, field3: field3);
-  static method _#new#tearOff(core::int field1, {core::int? field2 = #C1, required core::int field3}) → self::Class6
+  static synthetic method _#new#tearOff(core::int field1, {core::int? field2 = #C1, required core::int field3}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);
 }
 class Class7a extends core::Object implements self::Class7b {
   constructor •() → self::Class7a
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::Class7a
+  static synthetic method _#new#tearOff() → self::Class7a
     return new self::Class7a::•();
 }
 class Class7b extends core::Object {
   static factory •() → self::Class7b /* redirection-target: self::Class7a::• */
     return new self::Class7a::•();
-  static method _#new#tearOff() → self::Class7b
+  static synthetic method _#new#tearOff() → self::Class7b
     return new self::Class7a::•();
 }
 class Class8a<T extends core::Object? = dynamic> extends core::Object implements self::Class8b<self::Class8a::T%> {
   constructor •() → self::Class8a<self::Class8a::T%>
     : super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#new#tearOff::T%>
     return new self::Class8a::•<self::Class8a::_#new#tearOff::T%>();
   static factory fact<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::fact::T%>
     return new self::Class8a::•<self::Class8a::fact::T%>();
-  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#fact#tearOff::T%>
+  static synthetic method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#fact#tearOff::T%>
     return self::Class8a::fact<self::Class8a::_#fact#tearOff::T%>();
 }
 class Class8b<T extends core::Object? = dynamic> extends core::Object {
   static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%> /* redirection-target: self::Class8a::•<self::Class8b::•::T%>*/
     return new self::Class8a::•<self::Class8b::•::T%>();
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#new#tearOff::T%>
     return new self::Class8a::•<self::Class8b::_#new#tearOff::T%>();
   static factory fact<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::fact::T%> /* redirection-target: self::Class8a::fact<self::Class8b::fact::T%>*/
     return self::Class8a::fact<self::Class8b::fact::T%>();
-  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#fact#tearOff::T%>
+  static synthetic method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#fact#tearOff::T%>
     return self::Class8a::fact<self::Class8b::_#fact#tearOff::T%>();
 }
 static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is core::List<core::int>);

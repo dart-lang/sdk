@@ -41,14 +41,14 @@ abstract class _PointerEvent&Object&Diagnosticable = core::Object with self::Dia
   const synthetic constructor •() → self::_PointerEvent&Object&Diagnosticable
     : super core::Object::•()
     ;
-  mixin-super-stub method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void
+  synthetic mixin-super-stub method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void
     return super.{self::Diagnosticable::debugFillProperties}(properties);
 }
 abstract class _PointerScrollEvent&PointerSignalEvent&_PointerEventDescription = self::PointerSignalEvent with self::_PointerEventDescription /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription
     : super self::PointerSignalEvent::•()
     ;
-  mixin-super-stub method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void
+  synthetic mixin-super-stub method debugFillProperties(self::DiagnosticPropertiesBuilder properties) → void
     return super.{self::_PointerEventDescription::debugFillProperties}(properties);
 }
 abstract class _PointerScrollEvent&PointerSignalEvent&_PointerEventDescription&_CopyPointerScrollEvent = self::_PointerScrollEvent&PointerSignalEvent&_PointerEventDescription with self::_CopyPointerScrollEvent /*isAnonymousMixin*/  {

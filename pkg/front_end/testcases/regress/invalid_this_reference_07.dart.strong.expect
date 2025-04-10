@@ -46,7 +46,7 @@ static extension-type-member method Foo|constructor#(dynamic d) → self::Foo% /
   lowered final self::Foo% /* erasure=dynamic, declared=! */ #this = d;
   return #this;
 }
-static extension-type-member method Foo|constructor#_#new#tearOff(dynamic d) → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dynamic d) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(d);
 static abstract extension-type-member method Foo|get#foo(lowered dynamic #this) → invalid-type;
 static abstract extension-type-member method Foo|set#foo(lowered dynamic #this, synthesized invalid-type #externalFieldValue) → void;

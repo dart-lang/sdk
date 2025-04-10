@@ -15,7 +15,7 @@ class Class extends core::Object { // from org-dartlang-testcase:///constructor_
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::Class
+  static synthetic method _#new#tearOff() → self::Class
     return new self::Class::•();
 }
 static method main() → dynamic {}

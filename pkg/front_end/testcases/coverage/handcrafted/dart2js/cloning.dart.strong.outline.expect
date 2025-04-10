@@ -7,7 +7,7 @@ class VariableDeclaration extends core::Object {
   field core::int flags;
   constructor •(core::String? _name, {core::int flags = 1.{core::int::unary-}(){() → core::int}}) → self::VariableDeclaration
     ;
-  static method _#new#tearOff(core::String? _name, {has-declared-initializer core::int flags}) → self::VariableDeclaration
+  static synthetic method _#new#tearOff(core::String? _name, {has-declared-initializer core::int flags}) → self::VariableDeclaration
     return new self::VariableDeclaration::•(_name, flags: flags);
   get name() → core::String?
     ;

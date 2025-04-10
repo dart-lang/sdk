@@ -27,11 +27,11 @@ extension type ET<T extends core::Object? = dynamic>(T% v) {
 }
 static extension-type-member method ET|constructor#<T extends core::Object? = dynamic>(self::ET|constructor#::T% v) → self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% v) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
   return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T%>(v);
 static extension-type-member method ET|constructor#id<T extends core::Object? = dynamic>(self::ET|constructor#id::T% v) → self::ET<self::ET|constructor#id::T%>% /* erasure=self::ET|constructor#id::T%, declared=! */
   ;
-static extension-type-member method ET|constructor#_#id#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#id#tearOff::T% v) → self::ET<self::ET|constructor#_#id#tearOff::T%>% /* erasure=self::ET|constructor#_#id#tearOff::T%, declared=! */
+static extension-type-member synthetic method ET|constructor#_#id#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#id#tearOff::T% v) → self::ET<self::ET|constructor#_#id#tearOff::T%>% /* erasure=self::ET|constructor#_#id#tearOff::T%, declared=! */
   return self::ET|constructor#id<self::ET|constructor#_#id#tearOff::T%>(v);
 static extension-type-member method ET|toInt<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|toInt::T%>% /* erasure=self::ET|toInt::T%, declared=! */ #this, core::int v) → self::ET<core::int>% /* erasure=core::int, declared=! */
   ;

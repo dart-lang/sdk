@@ -255,7 +255,7 @@ class E14 extends core::_Enum implements self::I14 /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E14.${this.{core::_Enum::_name}{core::String}}";
-  abstract member-signature get index() → Never; -> self::I14::index
+  abstract synthetic member-signature get index() → Never; -> self::I14::index
 }
 static method main() → dynamic {}
 

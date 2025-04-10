@@ -24,7 +24,7 @@ static extension-type-member method ExtensionType|constructor#<T extends core::O
   lowered final self::ExtensionType<self::ExtensionType|constructor#::T%>% /* erasure=self::ExtensionType|constructor#::T%, declared=! */ #this = id;
   return #this;
 }
-static extension-type-member method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ExtensionType|constructor#_#new#tearOff::T% id) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T%>% /* erasure=self::ExtensionType|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ExtensionType|constructor#_#new#tearOff::T% id) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T%>% /* erasure=self::ExtensionType|constructor#_#new#tearOff::T%, declared=! */
   return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#new#tearOff::T%>(id);
 static method main() → dynamic
   ;

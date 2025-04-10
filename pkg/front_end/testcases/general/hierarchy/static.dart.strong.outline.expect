@@ -182,11 +182,11 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
   synthetic constructor •() → self::_Class&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub method mixedInInstanceDeclaredStaticMethod() → void
+  synthetic mixin-super-stub method mixedInInstanceDeclaredStaticMethod() → void
     return super.{self::Mixin::mixedInInstanceDeclaredStaticMethod}();
-  mixin-super-stub method mixedInInstanceImplementedStaticMethod() → void
+  synthetic mixin-super-stub method mixedInInstanceImplementedStaticMethod() → void
     return super.{self::Mixin::mixedInInstanceImplementedStaticMethod}();
-  mixin-super-stub method extendedStaticMixedInInstanceMethod() → void
+  synthetic mixin-super-stub method extendedStaticMixedInInstanceMethod() → void
     return super.{self::Mixin::extendedStaticMixedInInstanceMethod}();
 }
 static method main() → dynamic

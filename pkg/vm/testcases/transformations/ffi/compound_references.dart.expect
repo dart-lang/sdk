@@ -43,10 +43,10 @@ final class Coordinate extends ffi::Struct {
     new self::Coordinate::#fromTypedData(ffi::Uint8Pointer|asTypedList(ptr.{ffi::Pointer::cast}<ffi::Uint8>(){() → ffi::Pointer<ffi::Uint8>}, self::Coordinate::#sizeOf, finalizer: finalizer, token: token), #C10, self::Coordinate::#sizeOf);
   }
   @#C8
-  static get x#offsetOf() → core::int
+  static synthetic get x#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
-  static get y#offsetOf() → core::int
+  static synthetic get y#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int
@@ -87,10 +87,10 @@ final class SomeUnion extends ffi::Union {
     new self::SomeUnion::#fromTypedData(ffi::Uint8Pointer|asTypedList(ptr.{ffi::Pointer::cast}<ffi::Uint8>(){() → ffi::Pointer<ffi::Uint8>}, self::SomeUnion::#sizeOf, finalizer: finalizer, token: token), #C10, self::SomeUnion::#sizeOf);
   }
   @#C8
-  static get coordinate#offsetOf() → core::int
+  static synthetic get coordinate#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
-  static get id#offsetOf() → core::int
+  static synthetic get id#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int

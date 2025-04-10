@@ -15,9 +15,9 @@ extension type E2<X extends core::Object? = dynamic>(self::E1<self::E1<X%>% /* e
 }
 static extension-type-member method E1|constructor#<X extends core::Object? = dynamic>(self::E1|constructor#::X% it) → self::E1<self::E1|constructor#::X%>% /* erasure=self::E1|constructor#::X%, declared=! */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%>% /* erasure=self::E1|constructor#_#new#tearOff::X%, declared=! */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%>% /* erasure=self::E1|constructor#_#new#tearOff::X%, declared=! */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::X%>(it);
 static extension-type-member method E2|constructor#<X extends core::Object? = dynamic>(self::E1<self::E1<self::E2|constructor#::X%>% /* erasure=self::E2|constructor#::X%, declared=! */>% /* erasure=self::E2|constructor#::X%, declared=! */ it) → self::E2<self::E2|constructor#::X%>% /* erasure=self::E2|constructor#::X%, declared=! */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E1<self::E2|constructor#_#new#tearOff::X%>% /* erasure=self::E2|constructor#_#new#tearOff::X%, declared=! */>% /* erasure=self::E2|constructor#_#new#tearOff::X%, declared=! */ it) → self::E2<self::E2|constructor#_#new#tearOff::X%>% /* erasure=self::E2|constructor#_#new#tearOff::X%, declared=! */
+static extension-type-member synthetic method E2|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E1<self::E2|constructor#_#new#tearOff::X%>% /* erasure=self::E2|constructor#_#new#tearOff::X%, declared=! */>% /* erasure=self::E2|constructor#_#new#tearOff::X%, declared=! */ it) → self::E2<self::E2|constructor#_#new#tearOff::X%>% /* erasure=self::E2|constructor#_#new#tearOff::X%, declared=! */
   return self::E2|constructor#<self::E2|constructor#_#new#tearOff::X%>(it);

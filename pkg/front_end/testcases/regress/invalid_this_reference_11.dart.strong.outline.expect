@@ -24,9 +24,9 @@ extension type Foo(dynamic _foo) {
 }
 static extension-type-member method Foo|constructor#(dynamic _foo) → self::Foo% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member method Foo|constructor#_#new#tearOff(dynamic _foo) → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dynamic _foo) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(_foo);
 static extension-type-member method Foo|constructor#bar() → self::Foo% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member method Foo|constructor#_#bar#tearOff() → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#bar#tearOff() → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#bar();

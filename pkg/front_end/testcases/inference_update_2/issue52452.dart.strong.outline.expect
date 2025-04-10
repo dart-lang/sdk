@@ -45,15 +45,15 @@ abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int? i) → self::_E&B&M1
     : super self::B::•(i)
     ;
-  mixin-super-stub get _f2() → core::int?
+  synthetic mixin-super-stub get _f2() → core::int?
     return super.{self::M1::_f2};
-  mixin-super-stub set _f2(core::int? value) → void
+  synthetic mixin-super-stub set _f2(core::int? value) → void
     return super.{self::M1::_f2} = value;
-  mixin-super-stub get _f3() → core::int?
+  synthetic mixin-super-stub get _f3() → core::int?
     return super.{self::M1::_f3};
-  mixin-super-stub set _f3(core::int? value) → void
+  synthetic mixin-super-stub set _f3(core::int? value) → void
     return super.{self::M1::_f3} = value;
-  mixin-super-stub get _f4() → core::int?
+  synthetic mixin-super-stub get _f4() → core::int?
     return super.{self::M1::_f4};
 }
 static method acceptsInt(core::int x) → void

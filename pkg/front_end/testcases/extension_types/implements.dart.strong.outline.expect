@@ -39,7 +39,7 @@ extension type D1(core::int it) implements self::C1% /* erasure=core::int, decla
 }
 static extension-type-member method A|constructor#(core::int it) → self::A% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method A|constructor#_#new#tearOff(core::int it) → self::A% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method A|constructor#_#new#tearOff(core::int it) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#(it);
 static extension-type-member method A|methodA(lowered final self::A% /* erasure=core::int, declared=! */ #this) → core::int
   ;
@@ -47,7 +47,7 @@ static extension-type-member method A|get#methodA(lowered final self::A% /* eras
   return () → core::int => self::A|methodA(#this);
 static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(self::B|constructor#::T% it) → self::B<self::B|constructor#::T%>% /* erasure=self::B|constructor#::T%, declared=! */
   ;
-static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::B|constructor#_#new#tearOff::T% it) → self::B<self::B|constructor#_#new#tearOff::T%>% /* erasure=self::B|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::B|constructor#_#new#tearOff::T% it) → self::B<self::B|constructor#_#new#tearOff::T%>% /* erasure=self::B|constructor#_#new#tearOff::T%, declared=! */
   return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method B|methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|methodB::T%>% /* erasure=self::B|methodB::T%, declared=! */ #this) → self::B|methodB::T%
   ;
@@ -55,7 +55,7 @@ static extension-type-member method B|get#methodB<T extends core::Object? = dyna
   return () → self::B|get#methodB::T% => self::B|methodB<self::B|get#methodB::T%>(#this);
 static extension-type-member method C1|constructor#(core::int it) → self::C1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method C1|constructor#_#new#tearOff(core::int it) → self::C1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method C1|constructor#_#new#tearOff(core::int it) → self::C1% /* erasure=core::int, declared=! */
   return self::C1|constructor#(it);
 static extension-type-member method C1|methodC1(lowered final self::C1% /* erasure=core::int, declared=! */ #this) → core::int
   ;
@@ -63,7 +63,7 @@ static extension-type-member method C1|get#methodC1(lowered final self::C1% /* e
   return () → core::int => self::C1|methodC1(#this);
 static extension-type-member method C2|constructor#(core::int it) → self::C2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method C2|constructor#_#new#tearOff(core::int it) → self::C2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method C2|constructor#_#new#tearOff(core::int it) → self::C2% /* erasure=core::int, declared=! */
   return self::C2|constructor#(it);
 static extension-type-member method C2|methodC2(lowered final self::C2% /* erasure=core::int, declared=! */ #this) → core::int
   ;
@@ -71,7 +71,7 @@ static extension-type-member method C2|get#methodC2(lowered final self::C2% /* e
   return () → core::int => self::C2|methodC2(#this);
 static extension-type-member method D1|constructor#(core::int it) → self::D1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method D1|constructor#_#new#tearOff(core::int it) → self::D1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method D1|constructor#_#new#tearOff(core::int it) → self::D1% /* erasure=core::int, declared=! */
   return self::D1|constructor#(it);
 static extension-type-member method D1|methodD1(lowered final self::D1% /* erasure=core::int, declared=! */ #this) → core::int
   ;

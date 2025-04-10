@@ -7,7 +7,7 @@ class Class extends core::Object {
     ;
   method _privateMethod(covariant-by-declaration core::int i) → dynamic
     ;
-  static method _#new#tearOff() → self::Class
+  static synthetic method _#new#tearOff() → self::Class
     return new self::Class::•();
 }
 static method main() → dynamic

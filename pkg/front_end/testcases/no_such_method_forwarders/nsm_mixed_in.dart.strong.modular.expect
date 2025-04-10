@@ -21,7 +21,7 @@ abstract class _B&Object&A = core::Object with self::A /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_B&Object&A
     : super core::Object::•()
     ;
-  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+  synthetic mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
     return super.{self::A::noSuchMethod}(i);
 }
 static method main() → dynamic {}

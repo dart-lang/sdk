@@ -20,7 +20,7 @@ abstract class C extends core::Object implements self::A, self::B {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  abstract forwarding-stub operator +(covariant-by-declaration dynamic b) → dynamic;
+  abstract forwarding-stub synthetic operator +(covariant-by-declaration dynamic b) → dynamic;
 }
 class D extends core::Object {
   synthetic constructor •() → self::D

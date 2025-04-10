@@ -12,7 +12,7 @@ import "dart:js_interop";
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  static method _#new#tearOff() → self::A
+  static synthetic method _#new#tearOff() → self::A
     return new self::A::•();
 }
 @js_::JS::•()
@@ -45,13 +45,13 @@ extension type B(self::A a) {
 }
 static extension-type-member method B|constructor#_(self::A a) → self::B% /* erasure=self::A, declared=! */
   ;
-static extension-type-member method B|constructor#_#_#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member synthetic method B|constructor#_#_#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#_(a);
 external static extension-type-member method B|constructor#(self::A a) → self::B% /* erasure=self::A, declared=! */;
-static extension-type-member method B|constructor#_#new#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member synthetic method B|constructor#_#new#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#(a);
 external static extension-type-member method B|constructor#named(core::int i) → self::B% /* erasure=self::A, declared=! */;
-static extension-type-member method B|constructor#_#named#tearOff(core::int i) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member synthetic method B|constructor#_#named#tearOff(core::int i) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#named(i);
 external static extension-type-member method B|get#field(lowered self::A #this) → self::A;
 external static extension-type-member method B|set#field(lowered self::A #this, synthesized self::A #externalFieldValue) → void;

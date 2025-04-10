@@ -12,14 +12,14 @@ class O1 extends self::B /*hasConstConstructor*/  {
   const constructor •({core::bool autofocus = #C1}) → self::O1
     : super self::B::•(autofocus: autofocus)
     ;
-  static method _#new#tearOff({core::bool autofocus = #C1}) → self::O1
+  static synthetic method _#new#tearOff({core::bool autofocus = #C1}) → self::O1
     return new self::O1::•(autofocus: autofocus);
 }
 class O2 extends self::B /*hasConstConstructor*/  {
   const constructor •({core::bool autofocus = #C1}) → self::O2
     : super self::B::•(autofocus: autofocus)
     ;
-  static method _#new#tearOff({core::bool autofocus = #C1}) → self::O2
+  static synthetic method _#new#tearOff({core::bool autofocus = #C1}) → self::O2
     return new self::O2::•(autofocus: autofocus);
 }
 abstract class C extends core::Object /*hasConstConstructor*/  {
@@ -34,14 +34,14 @@ class P1 extends self::C /*hasConstConstructor*/  {
   const constructor •(core::int c, {core::bool a = #C1, core::bool b = #C2}) → self::P1
     : self::P1::c = c, super self::C::•(a: a, b: b)
     ;
-  static method _#new#tearOff(core::int c, {core::bool a = #C1, core::bool b = #C2}) → self::P1
+  static synthetic method _#new#tearOff(core::int c, {core::bool a = #C1, core::bool b = #C2}) → self::P1
     return new self::P1::•(c, a: a, b: b);
 }
 class P2 extends self::C /*hasConstConstructor*/  {
   const constructor •({core::bool b = #C2, core::bool a = #C1}) → self::P2
     : super self::C::•(b: b, a: a)
     ;
-  static method _#new#tearOff({core::bool b = #C2, core::bool a = #C1}) → self::P2
+  static synthetic method _#new#tearOff({core::bool b = #C2, core::bool a = #C1}) → self::P2
     return new self::P2::•(b: b, a: a);
 }
 static method main() → dynamic {

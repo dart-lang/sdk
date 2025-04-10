@@ -40,7 +40,7 @@ library from "org-dartlang-test:///structs.dart" as str {
     set yy(synthesized str::Y #externalFieldValue) → void
       return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, str::A::yy#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #externalFieldValue.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}, #C10.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int});
     @#C8
-    static get yy#offsetOf() → dart.core::int
+    static synthetic get yy#offsetOf() → dart.core::int
       return #C10.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C8
     static get #sizeOf() → dart.core::int

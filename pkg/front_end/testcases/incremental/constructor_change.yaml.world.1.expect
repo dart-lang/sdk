@@ -6,7 +6,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
       : super dart.core::Object::•()
       ;
     method fooMethod() → void {}
-    static method _#new#tearOff() → lib1::Foo
+    static synthetic method _#new#tearOff() → lib1::Foo
       return new lib1::Foo::•();
   }
 }
@@ -19,7 +19,7 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
       : super lib1::Foo::•()
       ;
     method barMethod() → void {}
-    static method _#new#tearOff() → lib2::Bar
+    static synthetic method _#new#tearOff() → lib2::Bar
       return new lib2::Bar::•();
   }
 }

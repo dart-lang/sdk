@@ -17,9 +17,9 @@ abstract class _Class&Object&Mixin = core::Object with self::Mixin /*isAnonymous
   synthetic constructor •() → self::_Class&Object&Mixin
     : super core::Object::•()
     ;
-  mixin-super-stub get m() → FutureOr<Null>
+  synthetic mixin-super-stub get m() → FutureOr<Null>
     return super.{self::Mixin::m};
-  mixin-super-stub set m(FutureOr<Null>value) → void
+  synthetic mixin-super-stub set m(FutureOr<Null>value) → void
     return super.{self::Mixin::m} = value;
 }
 static method main() → dynamic

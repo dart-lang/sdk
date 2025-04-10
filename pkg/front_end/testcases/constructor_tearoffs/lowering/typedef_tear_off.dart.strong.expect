@@ -92,7 +92,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::A
+  static synthetic method _#new#tearOff() → self::A
     return new self::A::•();
 }
 class B<X extends core::Object? = dynamic> extends core::Object {
@@ -107,15 +107,15 @@ class B<X extends core::Object? = dynamic> extends core::Object {
   constructor foo(core::int field1) → self::B<self::B::X%>
     : self::B::field1 = field1, self::B::field2 = "", super core::Object::•()
     ;
-  static method _#_#tearOff<X extends core::Object? = dynamic>(core::int field1, core::String field2) → self::B<self::B::_#_#tearOff::X%>
+  static synthetic method _#_#tearOff<X extends core::Object? = dynamic>(core::int field1, core::String field2) → self::B<self::B::_#_#tearOff::X%>
     return new self::B::_<self::B::_#_#tearOff::X%>(field1, field2);
-  static method _#new#tearOff<X extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::X%>
+  static synthetic method _#new#tearOff<X extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::X%>
     return new self::B::•<self::B::_#new#tearOff::X%>();
-  static method _#foo#tearOff<X extends core::Object? = dynamic>(core::int field1) → self::B<self::B::_#foo#tearOff::X%>
+  static synthetic method _#foo#tearOff<X extends core::Object? = dynamic>(core::int field1) → self::B<self::B::_#foo#tearOff::X%>
     return new self::B::foo<self::B::_#foo#tearOff::X%>(field1);
   static factory bar<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::bar::X%>
     return new self::B::_<self::B::bar::X%>(i, j);
-  static method _#bar#tearOff<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::_#bar#tearOff::X%>
+  static synthetic method _#bar#tearOff<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::_#bar#tearOff::X%>
     return self::B::bar<self::B::_#bar#tearOff::X%>(i, j);
 }
 static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
@@ -296,23 +296,23 @@ static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C11}) → 
   }
   throw "Expected exception";
 }
-static method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
+static synthetic method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
   return new self::A::•();
-static method _#DB2#_#tearOff<X extends core::num>(core::int field1, core::String field2) → self::B<self::_#DB2#_#tearOff::X>
+static synthetic method _#DB2#_#tearOff<X extends core::num>(core::int field1, core::String field2) → self::B<self::_#DB2#_#tearOff::X>
   return new self::B::_<self::_#DB2#_#tearOff::X>(field1, field2);
-static method _#DB2#new#tearOff<X extends core::num>() → self::B<self::_#DB2#new#tearOff::X>
+static synthetic method _#DB2#new#tearOff<X extends core::num>() → self::B<self::_#DB2#new#tearOff::X>
   return new self::B::•<self::_#DB2#new#tearOff::X>();
-static method _#DB2#foo#tearOff<X extends core::num>(core::int field1) → self::B<self::_#DB2#foo#tearOff::X>
+static synthetic method _#DB2#foo#tearOff<X extends core::num>(core::int field1) → self::B<self::_#DB2#foo#tearOff::X>
   return new self::B::foo<self::_#DB2#foo#tearOff::X>(field1);
-static method _#DB2#bar#tearOff<X extends core::num>(core::int i, core::String j) → self::B<self::_#DB2#bar#tearOff::X>
+static synthetic method _#DB2#bar#tearOff<X extends core::num>(core::int i, core::String j) → self::B<self::_#DB2#bar#tearOff::X>
   return self::B::bar<self::_#DB2#bar#tearOff::X>(i, j);
-static method _#DB3#_#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1, core::String field2) → self::B<self::_#DB3#_#tearOff::X>
+static synthetic method _#DB3#_#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1, core::String field2) → self::B<self::_#DB3#_#tearOff::X>
   return new self::B::_<self::_#DB3#_#tearOff::X>(field1, field2);
-static method _#DB3#new#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#new#tearOff::X>
+static synthetic method _#DB3#new#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#new#tearOff::X>
   return new self::B::•<self::_#DB3#new#tearOff::X>();
-static method _#DB3#foo#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1) → self::B<self::_#DB3#foo#tearOff::X>
+static synthetic method _#DB3#foo#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1) → self::B<self::_#DB3#foo#tearOff::X>
   return new self::B::foo<self::_#DB3#foo#tearOff::X>(field1);
-static method _#DB3#bar#tearOff<X extends core::num, unrelated Y extends core::String>(core::int i, core::String j) → self::B<self::_#DB3#bar#tearOff::X>
+static synthetic method _#DB3#bar#tearOff<X extends core::num, unrelated Y extends core::String>(core::int i, core::String j) → self::B<self::_#DB3#bar#tearOff::X>
   return self::B::bar<self::_#DB3#bar#tearOff::X>(i, j);
 
 constants  {

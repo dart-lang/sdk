@@ -38,11 +38,11 @@ class MA = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::MA
     : super core::Object::•()
     ;
-  mixin-super-stub method noSuchMethod(core::Invocation inv) → dynamic
+  synthetic mixin-super-stub method noSuchMethod(core::Invocation inv) → dynamic
     return super.{self::M::noSuchMethod}(inv);
-  no-such-method-forwarder method m1(core::int v, [core::String s = #C1]) → core::int
+  synthetic no-such-method-forwarder method m1(core::int v, [core::String s = #C1]) → core::int
     return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
-  no-such-method-forwarder method m2(core::int v, {core::String s = #C5}) → core::int
+  synthetic no-such-method-forwarder method m2(core::int v, {core::String s = #C5}) → core::int
     return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 static field core::String log = "";

@@ -25,7 +25,7 @@ class D<S extends core::Object? = dynamic> extends self::A<self::D::S%> implemen
   synthetic constructor •() → self::D<self::D::S%>
     : super self::A::•()
     ;
-  forwarding-stub method method<covariant-by-class T extends self::D::S%>(covariant-by-declaration covariant-by-class self::D::S% s) → void
+  forwarding-stub synthetic method method<covariant-by-class T extends self::D::S%>(covariant-by-declaration covariant-by-class self::D::S% s) → void
     return super.{self::A::method}<self::D::method::T%>(s);
 }
 static method main() → dynamic {}

@@ -15,5 +15,5 @@ extension type Extension(invalid-type it) {
 }
 static extension-type-member method Extension|constructor#(invalid-type it) → self::Extension% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method Extension|constructor#_#new#tearOff(invalid-type it) → self::Extension% /* erasure=invalid-type, declared=! */
+static extension-type-member synthetic method Extension|constructor#_#new#tearOff(invalid-type it) → self::Extension% /* erasure=invalid-type, declared=! */
   return self::Extension|constructor#(it);

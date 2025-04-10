@@ -47,23 +47,23 @@ static extension-type-member method B|constructor#<T extends core::Object? = dyn
   lowered final self::B<self::B|constructor#::T%> /* erasure=self::A<self::B|constructor#::T%> */ #this = it;
   return #this;
 }
-static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::A<self::B|constructor#_#new#tearOff::T%> it) → self::B<self::B|constructor#_#new#tearOff::T%> /* erasure=self::A<self::B|constructor#_#new#tearOff::T%> */
+static extension-type-member synthetic method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::A<self::B|constructor#_#new#tearOff::T%> it) → self::B<self::B|constructor#_#new#tearOff::T%> /* erasure=self::A<self::B|constructor#_#new#tearOff::T%> */
   return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method C|constructor#<T extends core::Object? = dynamic>(self::A<self::C|constructor#::T%> it) → self::C<self::C|constructor#::T%>% /* erasure=self::A<self::C|constructor#::T%>, declared=! */ {
   lowered final self::C<self::C|constructor#::T%>% /* erasure=self::A<self::C|constructor#::T%>, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method C|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::A<self::C|constructor#_#new#tearOff::T%> it) → self::C<self::C|constructor#_#new#tearOff::T%>% /* erasure=self::A<self::C|constructor#_#new#tearOff::T%>, declared=! */
+static extension-type-member synthetic method C|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::A<self::C|constructor#_#new#tearOff::T%> it) → self::C<self::C|constructor#_#new#tearOff::T%>% /* erasure=self::A<self::C|constructor#_#new#tearOff::T%>, declared=! */
   return self::C|constructor#<self::C|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method D|constructor#(self::A<Never> it) → self::D /* erasure=self::A<Never> */ {
   lowered final self::D /* erasure=self::A<Never> */ #this = it;
   return #this;
 }
-static extension-type-member method D|constructor#_#new#tearOff(self::A<Never> it) → self::D /* erasure=self::A<Never> */
+static extension-type-member synthetic method D|constructor#_#new#tearOff(self::A<Never> it) → self::D /* erasure=self::A<Never> */
   return self::D|constructor#(it);
 static extension-type-member method E|constructor#(self::A<Never> it) → self::E% /* erasure=self::A<Never>, declared=! */ {
   lowered final self::E% /* erasure=self::A<Never>, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(self::A<Never> it) → self::E% /* erasure=self::A<Never>, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(self::A<Never> it) → self::E% /* erasure=self::A<Never>, declared=! */
   return self::E|constructor#(it);

@@ -29,7 +29,7 @@ class B extends b_l::_B&A&M {
   constructor •({core::double d = #C1}) → b_l::B
     : super b_l::_B&A&M::•(d: d)
     ;
-  static method _#new#tearOff({core::double d = #C1}) → b_l::B
+  static synthetic method _#new#tearOff({core::double d = #C1}) → b_l::B
     return new b_l::B::•(d: d);
 }
 abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
@@ -39,7 +39,7 @@ abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
   synthetic constructor factoryConstructor({core::double d = #C2, (core::String) → core::String s = #C3}) → b_l::_B&A&M
     : super a_l::A::factoryConstructor(d: d, s: s)
     ;
-  mixin-super-stub method m1() → dynamic
+  synthetic mixin-super-stub method m1() → dynamic
     return super.{m_l::M::m1}();
 }
 

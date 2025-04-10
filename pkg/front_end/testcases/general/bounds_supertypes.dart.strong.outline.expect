@@ -1422,7 +1422,7 @@ extension ExtensionOnS8 on self::G<core::int> {
 }
 static method main() → dynamic
   ;
-static method _#F#new#tearOff<X extends self::Class<self::_#F#new#tearOff::X> = self::Class<dynamic>>() → self::Class<self::_#F#new#tearOff::X>
+static synthetic method _#F#new#tearOff<X extends self::Class<self::_#F#new#tearOff::X> = self::Class<dynamic>>() → self::Class<self::_#F#new#tearOff::X>
   return new self::Class::•<self::_#F#new#tearOff::X>();
 
 

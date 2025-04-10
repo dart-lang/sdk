@@ -135,7 +135,7 @@ extension type D(core::Object o) {
 }
 static extension-type-member method D|constructor#(core::Object o) → self::D% /* erasure=core::Object, declared=! */
   ;
-static extension-type-member method D|constructor#_#new#tearOff(core::Object o) → self::D% /* erasure=core::Object, declared=! */
+static extension-type-member synthetic method D|constructor#_#new#tearOff(core::Object o) → self::D% /* erasure=core::Object, declared=! */
   return self::D|constructor#(o);
 
 

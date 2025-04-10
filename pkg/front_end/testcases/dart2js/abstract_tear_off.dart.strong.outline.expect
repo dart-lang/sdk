@@ -8,16 +8,16 @@ abstract class Class extends core::Object {
     ;
   static factory redirect() → self::Class /* redirection-target: self::ClassImpl::• */
     return new self::ClassImpl::•();
-  static method _#redirect#tearOff() → self::Class
+  static synthetic method _#redirect#tearOff() → self::Class
     return new self::ClassImpl::•();
 }
 class ClassImpl extends core::Object implements self::Class {
   synthetic constructor •() → self::ClassImpl
     ;
-  static method _#new#tearOff() → self::ClassImpl
+  static synthetic method _#new#tearOff() → self::ClassImpl
     return new self::ClassImpl::•();
 }
 static method test() → dynamic
   ;
-static method _#F#redirect#tearOff<unrelated T extends core::Object? = dynamic>() → self::Class
+static synthetic method _#F#redirect#tearOff<unrelated T extends core::Object? = dynamic>() → self::Class
   return self::Class::_#redirect#tearOff();

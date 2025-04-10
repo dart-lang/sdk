@@ -11,7 +11,7 @@ extension type E(core::List<dynamic> it) {
 }
 static extension-type-member method E|constructor#(core::List<dynamic> it) → self::E% /* erasure=core::List<dynamic>, declared=! */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(core::List<dynamic> it) → self::E% /* erasure=core::List<dynamic>, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::List<dynamic> it) → self::E% /* erasure=core::List<dynamic>, declared=! */
   return self::E|constructor#(it);
 
 library;
