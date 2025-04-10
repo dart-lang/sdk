@@ -170,6 +170,8 @@ sealed class InstanceItemMemberItem extends ManifestItem {
         return InstanceItemGetterItem.read(reader);
       case _ManifestItemKind2.instanceMethod:
         return InstanceItemMethodItem.read(reader);
+      case _ManifestItemKind2.instanceSetter:
+        return InstanceItemSetterItem.read(reader);
       case _ManifestItemKind2.interfaceConstructor:
         return InterfaceItemConstructorItem.read(reader);
     }
@@ -236,6 +238,55 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceMethod);
     super.write(sink);
     functionType.writeNoTag(sink);
+  }
+}
+
+class InstanceItemSetterItem extends InstanceItemMemberItem {
+  final ManifestType valueType;
+
+  InstanceItemSetterItem({
+    required super.id,
+    required super.metadata,
+    required super.isStatic,
+    required this.valueType,
+  });
+
+  factory InstanceItemSetterItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required SetterElement2OrMember element,
+  }) {
+    return InstanceItemSetterItem(
+      id: id,
+      metadata: ManifestMetadata.encode(context, element.metadata2),
+      isStatic: element.isStatic,
+      valueType: element.formalParameters[0].type.encode(context),
+    );
+  }
+
+  factory InstanceItemSetterItem.read(SummaryDataReader reader) {
+    return InstanceItemSetterItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
+      valueType: ManifestType.read(reader),
+    );
+  }
+
+  @override
+  bool match(
+    MatchContext context,
+    covariant SetterElement2OrMember element,
+  ) {
+    return super.match(context, element) &&
+        valueType.match(context, element.formalParameters[0].type);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind2.instanceSetter);
+    super.write(sink);
+    valueType.write(sink);
   }
 }
 
@@ -644,6 +695,7 @@ enum _ManifestItemKind {
 enum _ManifestItemKind2 {
   instanceGetter,
   instanceMethod,
+  instanceSetter,
   interfaceConstructor,
 }
 

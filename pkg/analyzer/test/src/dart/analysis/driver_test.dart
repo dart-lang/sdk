@@ -11052,6 +11052,551 @@ class A {}
     );
   }
 
+  test_manifest_class_setter_add_extends() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_extends_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B extends A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+class B extends A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+class B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+class B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_with() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B with A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+class B with A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_with_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B with A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+class B with A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M1
+          foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('1')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M1
+          foo=: #M3
+''',
+    );
+  }
+
+  test_manifest_class_setter_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+          bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+          bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M2
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_static_valueType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_valueType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo=: #M1
+            valueType: int @ dart:core
+''',
+      updatedCode: r'''
+class A {
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo=: #M2
+            valueType: double @ dart:core
+''',
+    );
+  }
+
   test_manifest_constInitializer_adjacentStrings() async {
     await _runLibraryManifestScenario(
       initialCode: r'''

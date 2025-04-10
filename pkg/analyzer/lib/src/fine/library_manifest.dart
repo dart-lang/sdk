@@ -228,7 +228,12 @@ class LibraryManifestBuilder {
           instanceItem: instanceItem,
           element: element,
         );
-      // TODO(scheglov): add setters support
+      case SetterElement2OrMember():
+        _addInstanceElementSetter(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: element,
+        );
     }
   }
 
@@ -244,6 +249,26 @@ class LibraryManifestBuilder {
 
     var item = _getOrBuildElementItem(element, () {
       return InstanceItemMethodItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+    instanceItem.declaredMembers[lookupName] = item;
+  }
+
+  void _addInstanceElementSetter({
+    required EncodeContext encodingContext,
+    required InstanceItem instanceItem,
+    required SetterElement2OrMember element,
+  }) {
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return;
+    }
+
+    var item = _getOrBuildElementItem(element, () {
+      return InstanceItemSetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -273,6 +298,16 @@ class LibraryManifestBuilder {
           encodingContext: encodingContext,
           instanceItem: instanceItem,
           element: method,
+        );
+      }
+    }
+
+    for (var getter in instanceElement.setters2) {
+      if (getter.isStatic) {
+        _addInstanceElementSetter(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: getter,
         );
       }
     }
@@ -762,7 +797,18 @@ class _LibraryMatch {
         refExternalIds.addAll(matchContext.externalIds);
         return true;
       case SetterElement2OrMember():
-        // TODO(scheglov): implement
+        if (item is! InstanceItemSetterItem) {
+          return false;
+        }
+
+        var matchContext = MatchContext(parent: interfaceMatchContext);
+        if (!item.match(matchContext, executable)) {
+          return false;
+        }
+
+        itemMap[executable] = item;
+        refElementsMap[executable] = matchContext.elementList;
+        refExternalIds.addAll(matchContext.externalIds);
         return true;
     }
 
@@ -843,17 +889,17 @@ class _LibraryMatch {
   }) {
     // TODO(scheglov): it looks that we repeat iterations
     // We do it for structural matching, and then for adding.
-    for (var getters in element.getters2) {
-      if (getters.isStatic) {
-        var lookupName = getters.name3?.asLookupName;
+    for (var getter in element.getters2) {
+      if (getter.isStatic) {
+        var lookupName = getter.lookupName?.asLookupName;
         if (lookupName != null) {
           if (!_matchInstanceExecutable(
             interfaceMatchContext: matchContext,
             members: item.declaredMembers,
             lookupName: lookupName,
-            executable: getters,
+            executable: getter,
           )) {
-            structureMismatched.add(getters);
+            structureMismatched.add(getter);
           }
         }
       }
@@ -861,7 +907,7 @@ class _LibraryMatch {
 
     for (var method in element.methods2) {
       if (method.isStatic) {
-        var lookupName = method.name3?.asLookupName;
+        var lookupName = method.lookupName?.asLookupName;
         if (lookupName != null) {
           if (!_matchInstanceExecutable(
             interfaceMatchContext: matchContext,
@@ -870,6 +916,22 @@ class _LibraryMatch {
             executable: method,
           )) {
             structureMismatched.add(method);
+          }
+        }
+      }
+    }
+
+    for (var setter in element.setters2) {
+      if (setter.isStatic) {
+        var lookupName = setter.lookupName?.asLookupName;
+        if (lookupName != null) {
+          if (!_matchInstanceExecutable(
+            interfaceMatchContext: matchContext,
+            members: item.declaredMembers,
+            lookupName: lookupName,
+            executable: setter,
+          )) {
+            structureMismatched.add(setter);
           }
         }
       }

@@ -822,6 +822,9 @@ class LibraryManifestPrinter {
           case InstanceItemMethodItem():
             _writeMetadata(item);
             _writeNamedType('functionType', item.functionType);
+          case InstanceItemSetterItem():
+            _writeMetadata(item);
+            _writeNamedType('valueType', item.valueType);
           case InterfaceItemConstructorItem():
             _writeMetadata(item);
             _writeNamedType('functionType', item.functionType);
