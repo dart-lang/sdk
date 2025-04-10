@@ -22,7 +22,8 @@ class ClassItem extends InterfaceItem {
     required super.supertype,
     required super.interfaces,
     required super.mixins,
-    required super.members,
+    required super.declaredMembers,
+    required super.inheritedMembers,
   });
 
   factory ClassItem.fromElement({
@@ -40,7 +41,8 @@ class ClassItem extends InterfaceItem {
           supertype: element.supertype?.encode(context),
           mixins: element.mixins.encode(context),
           interfaces: element.interfaces.encode(context),
-          members: {},
+          declaredMembers: {},
+          inheritedMembers: {},
         );
       },
     );
@@ -51,10 +53,11 @@ class ClassItem extends InterfaceItem {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      members: InstanceItem._readMembers(reader),
+      declaredMembers: InstanceItem._readDeclaredMembers(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
+      inheritedMembers: InterfaceItem._readInheritedMembers(reader),
     );
   }
 
@@ -68,27 +71,31 @@ class ClassItem extends InterfaceItem {
 /// The item for [InstanceElementImpl2].
 sealed class InstanceItem extends TopLevelItem {
   final List<ManifestTypeParameter> typeParameters;
-  final Map<LookupName, InstanceItemMemberItem> members;
+  final Map<LookupName, InstanceItemMemberItem> declaredMembers;
 
   InstanceItem({
     required super.id,
     required super.metadata,
     required this.typeParameters,
-    required this.members,
+    required this.declaredMembers,
   });
+
+  ManifestItemId? getMemberId(LookupName name) {
+    return declaredMembers[name]?.id;
+  }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
     typeParameters.writeList(sink);
     sink.writeMap(
-      members,
+      declaredMembers,
       writeKey: (name) => name.write(sink),
       writeValue: (member) => member.write(sink),
     );
   }
 
-  static Map<LookupName, InstanceItemMemberItem> _readMembers(
+  static Map<LookupName, InstanceItemMemberItem> _readDeclaredMembers(
     SummaryDataReader reader,
   ) {
     return reader.readMap(
@@ -238,15 +245,30 @@ sealed class InterfaceItem extends InstanceItem {
   final List<ManifestType> interfaces;
   final List<ManifestType> mixins;
 
+  /// We store only IDs of the inherited members, but not type substitutions,
+  /// because in order to invoke any of these members, you need an instance
+  /// of the class for this [InterfaceItem]. And any code that can give such
+  /// instance will reference the class name, directly as a type annotation, or
+  /// indirectly by invoking a function that references the class as a return
+  /// type. So, any such code depends on the header of the class, so includes
+  /// the type arguments for the class that declares the inherited member.
+  final Map<LookupName, ManifestItemId> inheritedMembers;
+
   InterfaceItem({
     required super.id,
     required super.metadata,
     required super.typeParameters,
-    required super.members,
+    required super.declaredMembers,
     required this.supertype,
     required this.interfaces,
     required this.mixins,
+    required this.inheritedMembers,
   });
+
+  @override
+  ManifestItemId? getMemberId(LookupName name) {
+    return declaredMembers[name]?.id ?? inheritedMembers[name];
+  }
 
   @override
   bool match(MatchContext context, covariant InterfaceElementImpl2 element) {
@@ -263,6 +285,20 @@ sealed class InterfaceItem extends InstanceItem {
     supertype.writeOptional(sink);
     mixins.writeList(sink);
     interfaces.writeList(sink);
+    sink.writeMap(
+      inheritedMembers,
+      writeKey: (name) => name.write(sink),
+      writeValue: (member) => member.write(sink),
+    );
+  }
+
+  static Map<LookupName, ManifestItemId> _readInheritedMembers(
+    SummaryDataReader reader,
+  ) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => ManifestItemId.read(reader),
+    );
   }
 }
 
@@ -374,6 +410,7 @@ sealed class ManifestItem {
     return metadata.match(context, element.effectiveMetadata);
   }
 
+  @mustCallSuper
   void write(BufferedSink sink) {
     id.write(sink);
     metadata.write(sink);
