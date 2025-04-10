@@ -375,9 +375,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
     int elementIndex = 0;
     for (EnumElementFragment enumElement in _enumElements) {
       if (!enumElement.builder.isDuplicate) {
-        enumElement.elementIndex = elementIndex++;
+        enumElement.declaration.elementIndex = elementIndex++;
       } else {
-        enumElement.elementIndex = -1;
+        enumElement.declaration.elementIndex = -1;
       }
     }
 
@@ -438,7 +438,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     for (EnumElementFragment enumElement in _enumElements) {
-      enumElement.inferType(classHierarchy);
+      enumElement.declaration.inferType(classHierarchy);
     }
     _enumValuesFieldDeclaration.inferType(classHierarchy);
 
@@ -685,9 +685,9 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
       required bool createFileUriExpression}) {
     List<Expression> values = <Expression>[];
     for (EnumElementFragment enumElement in _sourceEnumBuilder._enumElements) {
-      enumElement.inferType(classHierarchy);
+      enumElement.declaration.inferType(classHierarchy);
       if (!enumElement.builder.isDuplicate) {
-        values.add(new StaticGet(enumElement.readTarget));
+        values.add(new StaticGet(enumElement.declaration.readTarget));
       }
     }
 

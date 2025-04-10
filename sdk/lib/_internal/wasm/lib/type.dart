@@ -107,6 +107,7 @@ class _BottomType extends _Type {
   _Type get _asNullable => _literal<Null>();
 
   @override
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) => false;
 
   @override
@@ -450,6 +451,7 @@ class _FunctionType extends _Type {
   );
 
   @override
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) {
     if (ClassID.getID(o) != ClassID.cid_Closure) return false;
     return _TypeUniverse.isFunctionSubtype(
@@ -581,6 +583,7 @@ class _RecordType extends _Type {
 
   @override
   @pragma('dyn-module:callable')
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) {
     if (!_isRecordClassId(ClassID.getID(o))) return false;
     return unsafeCast<Record>(o)._checkRecordType(fieldTypes, names);
@@ -1210,7 +1213,6 @@ abstract class _TypeUniverse {
     return _checkSubclassRelationshipViaTable(sId, tId);
   }
 
-  @pragma('wasm:prefer-inline')
   static WasmI32 _checkSubclassRelationshipViaTable(WasmI32 sId, WasmI32 tId) {
     final sModuleId = classIdToModuleId(sId);
     final tModuleId = classIdToModuleId(tId);

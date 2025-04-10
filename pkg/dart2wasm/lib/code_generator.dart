@@ -1976,13 +1976,19 @@ abstract class AstCodeGenerator
       }
     }
 
+    final callPolymorphicDispatcher = staticDispatchRanges.isNotEmpty;
+
     // Receiver is already on stack.
     w.Local receiverVar = addLocal(signature.inputs.first);
     assert(!receiverVar.type.nullable);
     b.local_tee(receiverVar);
+    if (callPolymorphicDispatcher) {
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.local_get(receiverVar);
+    }
     pushArguments(signature, selector.paramInfo);
 
-    if (staticDispatchRanges.isNotEmpty) {
+    if (callPolymorphicDispatcher) {
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
           .getPolymorphicDispatcher(selector,

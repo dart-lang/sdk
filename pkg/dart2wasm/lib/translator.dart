@@ -2373,7 +2373,7 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
           .targets(unchecked: useUncheckedEntry)
           .staticDispatchRanges
           .length <=
-      2;
+      1;
 
   @override
   CodeGenerator get inliningCodeGen => PolymorphicDispatcherCodeGenerator(
@@ -2382,8 +2382,8 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   @override
   late final w.BaseFunction function = (() {
     final function = callingModule.functions.define(
-        translator.typesBuilder
-            .defineFunction(signature.inputs, signature.outputs),
+        translator.typesBuilder.defineFunction(
+            [w.NumType.i32, ...signature.inputs], signature.outputs),
         name);
     translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
     return function;
@@ -2413,24 +2413,26 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
     final bool needFallback =
         targets.targetRanges.length > targets.staticDispatchRanges.length;
 
+    // First parameter to the dispatcher is the class id.
+    const int classIdParameterOffset = 1;
+
     void emitDirectCall(Reference target) {
       for (int i = 0; i < signature.inputs.length; ++i) {
-        b.local_get(paramLocals[i]);
+        b.local_get(paramLocals[classIdParameterOffset + i]);
       }
       translator.callReference(target, b);
     }
 
     void emitDispatchTableCall() {
       for (int i = 0; i < signature.inputs.length; ++i) {
-        b.local_get(paramLocals[i]);
+        b.local_get(paramLocals[classIdParameterOffset + i]);
       }
-      b.local_get(paramLocals[0]);
+      b.local_get(paramLocals[1]);
       translator.callDispatchTable(b, selector,
           useUncheckedEntry: useUncheckedEntry);
     }
 
     b.local_get(paramLocals[0]);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
     b.classIdSearch(targetRanges, signature.outputs, emitDirectCall,
         needFallback ? emitDispatchTableCall : null);
 

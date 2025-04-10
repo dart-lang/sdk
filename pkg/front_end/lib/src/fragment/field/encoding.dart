@@ -140,7 +140,7 @@ class RegularFieldEncoding implements _FieldEncoding {
       {required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     bool isImmutable = _fragment.modifiers.isLate
-        ? (_fragment.modifiers.isFinal && _fragment.hasInitializer)
+        ? (_fragment.modifiers.isFinal && _fragment.modifiers.hasInitializer)
         : (_fragment.modifiers.isFinal || _fragment.modifiers.isConst);
     _field = isImmutable
         ? new Field.immutable(dummyName,

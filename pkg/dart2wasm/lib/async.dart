@@ -387,12 +387,16 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
       types.makeType(this, futureTypeParam);
     }
     b.local_get(_suspendStateLocal);
-    translateExpression(node.operand, translator.topInfo.nullableType);
-    if (runtimeType != null) {
-      call(translator.awaitHelperWithTypeCheck.reference);
-    } else {
-      call(translator.awaitHelper.reference);
-    }
+
+    final awaitHelper = runtimeType == null
+        ? translator.awaitHelper
+        : translator.awaitHelperWithTypeCheck;
+
+    final awaitHelperType =
+        translator.functions.getFunctionType(awaitHelper.reference);
+
+    translateExpression(node.operand, awaitHelperType.inputs.last);
+    call(awaitHelper.reference);
     b.return_();
 
     // Generate resume label

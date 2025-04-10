@@ -978,16 +978,8 @@ class BodyBuilder extends StackListenerImpl
       Expression? initializer = pop() as Expression?;
       Identifier identifier = pop() as Identifier;
       FieldFragment fieldFragment = offsetMap.lookupField(identifier);
-      if (initializer != null) {
-        if (!fieldFragment.hasBodyBeenBuilt) {
-          initializer = typeInferrer
-              .inferFieldInitializer(this, fieldFragment.fieldType, initializer)
-              .expression;
-          fieldFragment.buildBody(coreTypes, initializer);
-        }
-      } else if (!fieldFragment.hasBodyBeenBuilt) {
-        fieldFragment.buildBody(coreTypes, null);
-      }
+      fieldFragment.declaration
+          .buildFieldInitializer(this, typeInferrer, coreTypes, initializer);
     }
     assert(checkState(
         null, [ValueKinds.TypeOrNull, ValueKinds.AnnotationListOrNull]));
