@@ -12,23 +12,13 @@ typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 
 _dart_memset? fbMemset;
 
-void _fallbackMemset(Pointer<Uint8> ptr, int byte, int size) {
-  final bytes = ptr.cast<Uint8>();
-  for (var i = 0; i < size; i++) {
-    bytes[i] = byte;
-  }
-}
-
 void main() {
   try {
     fbMemset = DynamicLibrary.process().lookupFunction<_c_memset, _dart_memset>(
       'memset',
     );
   } catch (_) {
-    // This works:
-    // fbMemset = _fallbackMemset;
-
-    // This doesn't: /aot/precompiler.cc: 2761: error: unreachable code
+    // /aot/precompiler.cc: 2761: error: unreachable code
     fbMemset = (Pointer<Uint8> ptr, int byte, int size) {
       final bytes = ptr.cast<Uint8>();
       for (var i = 0; i < size; i++) {
