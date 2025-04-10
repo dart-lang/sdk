@@ -46,14 +46,14 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::A
+  static synthetic method _#new#tearOff() → self::A
     return new self::A::•();
 }
 class C<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T%>
     : super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
     return new self::C::•<self::C::_#new#tearOff::T%>();
 }
 static method main() → dynamic {}

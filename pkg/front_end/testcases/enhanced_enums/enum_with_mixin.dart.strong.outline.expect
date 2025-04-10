@@ -30,7 +30,7 @@ abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self::HasSomeFiel
   const synthetic constructor •(core::int index, core::String _name) → self::_SomeEnum&_Enum&HasSomeField
     : super core::_Enum::•(index, _name)
     ;
-  abstract mixin-stub get someField() → core::String; -> self::HasSomeField::someField
+  abstract synthetic mixin-stub get someField() → core::String; -> self::HasSomeField::someField
 }
 
 

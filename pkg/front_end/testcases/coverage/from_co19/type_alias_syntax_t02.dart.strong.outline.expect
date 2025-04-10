@@ -16,7 +16,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
 static const field core::int meta = 1;
 static method foo() → void
   ;
-static method _#CAlias4#new#tearOff<unrelated T extends core::Object? = dynamic>(core::int t) → self::C<core::int>
+static synthetic method _#CAlias4#new#tearOff<unrelated T extends core::Object? = dynamic>(core::int t) → self::C<core::int>
   return new self::C::•<core::int>(t);
 
 

@@ -54,13 +54,13 @@ class Coordinate extends ffi::Struct {
     } =>#t1;
   }
   @#C9
-  static get x#offsetOf() → core::int
+  static synthetic get x#offsetOf() → core::int
     return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C9
-  static get y#offsetOf() → core::int
+  static synthetic get y#offsetOf() → core::int
     return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C9
-  static get next#offsetOf() → core::int
+  static synthetic get next#offsetOf() → core::int
     return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C9
   get next() → ffi::Pointer<self::Coordinate>

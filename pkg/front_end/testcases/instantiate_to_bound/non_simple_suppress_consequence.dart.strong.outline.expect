@@ -49,7 +49,7 @@ extension E<TypeZ extends self::B<dynamic>> on core::int {
 }
 static method main() → dynamic
   ;
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F#fromEnvironment#tearOff<unrelated TypeY extends self::A<self::A<dynamic>> = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#F#fromEnvironment#tearOff<unrelated TypeY extends self::A<self::A<dynamic>> = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#G#fromEnvironment#tearOff<unrelated TypeZ extends self::B<dynamic>>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#G#fromEnvironment#tearOff<unrelated TypeZ extends self::B<dynamic>>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);

@@ -12,7 +12,7 @@ static extension-type-member method E|constructor#<X extends core::Object? = dyn
   lowered final self::E<self::E|constructor#::X%>% /* erasure=self::E|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%>% /* erasure=self::E|constructor#_#new#tearOff::X%, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%>% /* erasure=self::E|constructor#_#new#tearOff::X%, declared=! */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::X%>(it);
 static method test((self::E<core::int>% /* erasure=core::int, declared=! */) → dynamic f1, (core::int) → dynamic f2) → dynamic
   return core::_GrowableList::_literal2<(Never) → dynamic>(f1, f2);

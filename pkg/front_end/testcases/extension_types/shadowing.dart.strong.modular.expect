@@ -47,7 +47,7 @@ static extension-type-member method ET1|constructor#(core::int i) → self::ET1%
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(i);
 static extension-type-member method ET1|get#getter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → dynamic
   return 42;
@@ -68,7 +68,7 @@ static extension-type-member method ET2|constructor#(self::Class c) → self::ET
   lowered final self::ET2 /* erasure=self::Class */ #this = c;
   return #this;
 }
-static extension-type-member method ET2|constructor#_#new#tearOff(self::Class c) → self::ET2 /* erasure=self::Class */
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(self::Class c) → self::ET2 /* erasure=self::Class */
   return self::ET2|constructor#(c);
 static extension-type-member method ET2|get#getter(lowered final self::ET2 /* erasure=self::Class */ #this) → core::String
   return "42";

@@ -39,13 +39,13 @@ library from "org-dartlang-test:///lib.dart" as lib {
       throw "";
     }
     @#C9
-    static get x#offsetOf() → dart.core::int
+    static synthetic get x#offsetOf() → dart.core::int
       return #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
-    static get y#offsetOf() → dart.core::int
+    static synthetic get y#offsetOf() → dart.core::int
       return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
-    static get next#offsetOf() → dart.core::int
+    static synthetic get next#offsetOf() → dart.core::int
       return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
     @#C9
     static get #sizeOf() → dart.core::int

@@ -61,9 +61,9 @@ abstract class _Foo&B&D = mix::B with mix::D /*isAnonymousMixin*/  {
   synthetic constructor •() → mix::_Foo&B&D
     : super mix::B::•()
     ;
-  mixin-super-stub operator ==(core::Object dynamic) → core::bool
+  synthetic mixin-super-stub operator ==(core::Object dynamic) → core::bool
     return super.{mix::D::==}(dynamic);
-  mixin-super-stub method x() → void
+  synthetic mixin-super-stub method x() → void
     return super.{mix::D::x}();
 }
 
@@ -106,8 +106,8 @@ abstract class _Foo&B&D = mix2::B with mix2::D /*isAnonymousMixin*/  {
   synthetic constructor •() → mix2::_Foo&B&D
     : super mix2::B::•()
     ;
-  mixin-super-stub operator ==(core::Object dynamic) → core::bool
+  synthetic mixin-super-stub operator ==(core::Object dynamic) → core::bool
     return super.{mix2::D::==}(dynamic);
-  mixin-super-stub method x() → void
+  synthetic mixin-super-stub method x() → void
     return super.{mix2::D::x}();
 }

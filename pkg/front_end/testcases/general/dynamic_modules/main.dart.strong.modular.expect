@@ -255,7 +255,7 @@ abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Impl2&Object&Mixin
     : super core::Object::•()
     ;
-  mixin-super-stub method foo() → void
+  synthetic mixin-super-stub method foo() → void
     return super.{mai::Mixin::foo}();
 }
 static field dynamic x;

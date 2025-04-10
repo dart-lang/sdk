@@ -9,9 +9,9 @@ class C extends iss::B {
   synthetic constructor •() → self::C
     : super iss::B::•()
     ;
-  no-such-method-forwarder get _#A#x() → core::int?
+  synthetic no-such-method-forwarder get _#A#x() → core::int?
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  no-such-method-forwarder set _#A#x(core::int? value) → void
+  synthetic no-such-method-forwarder set _#A#x(core::int? value) → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 static method main() → dynamic {

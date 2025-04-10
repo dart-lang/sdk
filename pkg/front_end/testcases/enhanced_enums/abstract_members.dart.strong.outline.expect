@@ -149,7 +149,7 @@ abstract class _E7&_Enum&MethodImplementation = core::_Enum with self::MethodImp
   const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&MethodImplementation
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub method foo() → void
+  synthetic mixin-super-stub method foo() → void
     return super.{self::MethodImplementation::foo}();
 }
 static method main() → dynamic

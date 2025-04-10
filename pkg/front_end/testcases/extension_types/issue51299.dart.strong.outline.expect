@@ -11,7 +11,7 @@ extension type I(core::int _i) {
 }
 static extension-type-member method I|constructor#(core::int _i) → self::I% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I|constructor#_#new#tearOff(core::int _i) → self::I% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method I|constructor#_#new#tearOff(core::int _i) → self::I% /* erasure=core::int, declared=! */
   return self::I|constructor#(_i);
 static extension-type-member method I|get#i(lowered final self::I% /* erasure=core::int, declared=! */ #this) → core::int
   ;

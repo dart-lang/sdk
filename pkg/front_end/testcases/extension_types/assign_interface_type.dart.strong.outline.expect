@@ -47,31 +47,31 @@ extension type G2<T extends core::Object>(T o) implements core::Object {
 }
 static extension-type-member method C|constructor#(core::Object? o) → self::C% /* erasure=core::Object?, declared=! */
   ;
-static extension-type-member method C|constructor#_#new#tearOff(core::Object? o) → self::C% /* erasure=core::Object?, declared=! */
+static extension-type-member synthetic method C|constructor#_#new#tearOff(core::Object? o) → self::C% /* erasure=core::Object?, declared=! */
   return self::C|constructor#(o);
 static extension-type-member method D|constructor#(core::Object o) → self::D /* erasure=core::Object */
   ;
-static extension-type-member method D|constructor#_#new#tearOff(core::Object o) → self::D /* erasure=core::Object */
+static extension-type-member synthetic method D|constructor#_#new#tearOff(core::Object o) → self::D /* erasure=core::Object */
   return self::D|constructor#(o);
 static extension-type-member method D2|constructor#(core::Object o) → self::D2% /* erasure=core::Object, declared=! */
   ;
-static extension-type-member method D2|constructor#_#new#tearOff(core::Object o) → self::D2% /* erasure=core::Object, declared=! */
+static extension-type-member synthetic method D2|constructor#_#new#tearOff(core::Object o) → self::D2% /* erasure=core::Object, declared=! */
   return self::D2|constructor#(o);
 static extension-type-member method E|constructor#(self::B it) → self::E /* erasure=self::B */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(self::B it) → self::E /* erasure=self::B */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(self::B it) → self::E /* erasure=self::B */
   return self::E|constructor#(it);
 static extension-type-member method F|constructor#(self::B it) → self::F /* erasure=self::B */
   ;
-static extension-type-member method F|constructor#_#new#tearOff(self::B it) → self::F /* erasure=self::B */
+static extension-type-member synthetic method F|constructor#_#new#tearOff(self::B it) → self::F /* erasure=self::B */
   return self::F|constructor#(it);
 static extension-type-member method G|constructor#<T extends core::Object? = dynamic>(self::G|constructor#::T% o) → self::G<self::G|constructor#::T%>% /* erasure=self::G|constructor#::T%, declared=! */
   ;
-static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* erasure=self::G|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* erasure=self::G|constructor#_#new#tearOff::T%, declared=! */
   return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(o);
 static extension-type-member method G2|constructor#<T extends core::Object>(self::G2|constructor#::T o) → self::G2<self::G2|constructor#::T> /* erasure=self::G2|constructor#::T */
   ;
-static extension-type-member method G2|constructor#_#new#tearOff<T extends core::Object>(self::G2|constructor#_#new#tearOff::T o) → self::G2<self::G2|constructor#_#new#tearOff::T> /* erasure=self::G2|constructor#_#new#tearOff::T */
+static extension-type-member synthetic method G2|constructor#_#new#tearOff<T extends core::Object>(self::G2|constructor#_#new#tearOff::T o) → self::G2<self::G2|constructor#_#new#tearOff::T> /* erasure=self::G2|constructor#_#new#tearOff::T */
   return self::G2|constructor#<self::G2|constructor#_#new#tearOff::T>(o);
 static method test<T1 extends core::Object? = dynamic, T2 extends self::A, T3 extends core::Object>(core::Object o, self::A a, self::B b, self::C% /* erasure=core::Object?, declared=! */ c, self::D /* erasure=core::Object */ d, self::D2% /* erasure=core::Object, declared=! */ d2, self::E /* erasure=self::B */ e, self::F /* erasure=self::B */ f, self::G<self::test::T1%>% /* erasure=self::test::T1%, declared=! */ g1, self::G<self::test::T2>% /* erasure=self::test::T2, declared=! */ g2, self::G2<self::test::T3> /* erasure=self::test::T3 */ g3) → dynamic
   ;

@@ -68,13 +68,13 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#new#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#new#tearOff::Y%>
   return new typ::A::•<self::_#H#new#tearOff::Y%>();
-static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<self::_#H#named#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<self::_#H#named#tearOff::Y%>
   return new typ::A::named<self::_#H#named#tearOff::Y%>(a, b);
-static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<self::_#H#fact#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<self::_#H#fact#tearOff::Y%>
   return typ::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
-static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
 
 library;
@@ -90,17 +90,17 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   constructor named(typ::A::T% a, [core::int? b = #C9]) → typ::A<typ::A::T%>
     : super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#new#tearOff::T%>
     return new typ::A::•<typ::A::_#new#tearOff::T%>();
-  static method _#named#tearOff<T extends core::Object? = dynamic>(typ::A::_#named#tearOff::T% a, [core::int? b = #C9]) → typ::A<typ::A::_#named#tearOff::T%>
+  static synthetic method _#named#tearOff<T extends core::Object? = dynamic>(typ::A::_#named#tearOff::T% a, [core::int? b = #C9]) → typ::A<typ::A::_#named#tearOff::T%>
     return new typ::A::named<typ::A::_#named#tearOff::T%>(a, b);
   static factory fact<T extends core::Object? = dynamic>(typ::A::fact::T% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::A::fact::T%>
     return new typ::A::•<typ::A::fact::T%>();
-  static method _#fact#tearOff<T extends core::Object? = dynamic>(typ::A::_#fact#tearOff::T% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::A::_#fact#tearOff::T%>
+  static synthetic method _#fact#tearOff<T extends core::Object? = dynamic>(typ::A::_#fact#tearOff::T% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::A::_#fact#tearOff::T%>
     return typ::A::fact<typ::A::_#fact#tearOff::T%>(a, b: b, c: c);
   static factory redirect<T extends core::Object? = dynamic>() → typ::A<typ::A::redirect::T%> /* redirection-target: typ::A::•<typ::A::redirect::T%>*/
     return new typ::A::•<typ::A::redirect::T%>();
-  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#redirect#tearOff::T%>
+  static synthetic method _#redirect#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#redirect#tearOff::T%>
     return new typ::A::•<typ::A::_#redirect#tearOff::T%>();
 }
 static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> F_new_lib = #C5;
@@ -111,21 +111,21 @@ static field <unrelated X extends core::Object? = dynamic, Y extends core::Objec
 static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> G_named_lib = #C12;
 static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> G_fact_lib = #C13;
 static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> G_redirect_lib = #C14;
-static method _#F#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#new#tearOff::Y%>
+static synthetic method _#F#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#new#tearOff::Y%>
   return new typ::A::•<typ::_#F#new#tearOff::Y%>();
-static method _#F#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<typ::_#F#named#tearOff::Y%>
+static synthetic method _#F#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<typ::_#F#named#tearOff::Y%>
   return new typ::A::named<typ::_#F#named#tearOff::Y%>(a, b);
-static method _#F#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::_#F#fact#tearOff::Y%>
+static synthetic method _#F#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::_#F#fact#tearOff::Y%>
   return typ::A::fact<typ::_#F#fact#tearOff::Y%>(a, b: b, c: c);
-static method _#F#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#redirect#tearOff::Y%>
+static synthetic method _#F#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<typ::_#F#redirect#tearOff::Y%>();
-static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#new#tearOff::Y%>
+static synthetic method _#G#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#new#tearOff::Y%>
   return new typ::A::•<typ::_#G#new#tearOff::Y%>();
-static method _#G#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<typ::_#G#named#tearOff::Y%>
+static synthetic method _#G#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<typ::_#G#named#tearOff::Y%>
   return new typ::A::named<typ::_#G#named#tearOff::Y%>(a, b);
-static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::_#G#fact#tearOff::Y%>
+static synthetic method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::_#G#fact#tearOff::Y%>
   return typ::A::fact<typ::_#G#fact#tearOff::Y%>(a, b: b, c: c);
-static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#redirect#tearOff::Y%>
+static synthetic method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<typ::_#G#redirect#tearOff::Y%>();
 
 constants  {

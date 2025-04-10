@@ -20,7 +20,7 @@ extension type ET(core::int id) {
 }
 static extension-type-member method ET|constructor#(core::int id) → self::ET% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff(core::int id) → self::ET% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int id) → self::ET% /* erasure=core::int, declared=! */
   return self::ET|constructor#(id);
 static extension-type-member method ET|set#id(lowered final self::ET% /* erasure=core::int, declared=! */ #this, core::String i) → void
   ;

@@ -43,7 +43,7 @@ abstract class _E&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConst
   const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&M
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub method mixinMethod() → void
+  synthetic mixin-super-stub method mixinMethod() → void
     return super.{self::M::mixinMethod}();
 }
 

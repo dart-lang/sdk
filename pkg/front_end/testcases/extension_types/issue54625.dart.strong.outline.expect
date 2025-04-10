@@ -17,7 +17,7 @@ static method cfeAwait<XF extends self::F /* erasure=asy::Future<core::int> */>(
   ;
 static extension-type-member method F|constructor#(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
   ;
-static extension-type-member method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
+static extension-type-member synthetic method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
   return self::F|constructor#(_);
 static method main() → void
   ;

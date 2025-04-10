@@ -14,7 +14,7 @@ static extension-type-member method E|constructor#(asy::Future<core::String> it)
   lowered final self::E /* erasure=asy::Future<core::String> */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(asy::Future<core::String> it) → self::E /* erasure=asy::Future<core::String> */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(asy::Future<core::String> it) → self::E /* erasure=asy::Future<core::String> */
   return self::E|constructor#(it);
 static method foo(FutureOr<core::String>x) → dynamic {}
 static method bar() → self::E /* erasure=asy::Future<core::String> */

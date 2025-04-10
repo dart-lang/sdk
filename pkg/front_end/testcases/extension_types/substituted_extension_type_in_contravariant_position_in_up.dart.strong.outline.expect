@@ -10,7 +10,7 @@ extension type E<X extends core::Object? = dynamic>(X% it) {
 }
 static extension-type-member method E|constructor#<X extends core::Object? = dynamic>(self::E|constructor#::X% it) → self::E<self::E|constructor#::X%>% /* erasure=self::E|constructor#::X%, declared=! */
   ;
-static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%>% /* erasure=self::E|constructor#_#new#tearOff::X%, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%>% /* erasure=self::E|constructor#_#new#tearOff::X%, declared=! */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::X%>(it);
 static method test((self::E<core::int>% /* erasure=core::int, declared=! */) → dynamic f1, (core::int) → dynamic f2) → dynamic
   ;

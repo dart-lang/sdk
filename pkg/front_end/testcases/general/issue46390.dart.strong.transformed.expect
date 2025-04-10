@@ -23,7 +23,7 @@ abstract class _C&A&B extends self::A implements self::B<core::num> /*isAnonymou
   synthetic constructor •() → self::_C&A&B
     : super self::A::•()
     ;
-  method foo(covariant-by-class core::num x) → core::num
+  synthetic method foo(covariant-by-class core::num x) → core::num
     return super.{self::A::foo}(x);
 }
 static method main() → void {

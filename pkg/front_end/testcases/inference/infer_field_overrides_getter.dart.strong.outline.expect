@@ -42,7 +42,7 @@ abstract class _G&Object&B = core::Object with self::B /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_G&Object&B
     : super core::Object::•()
     ;
-  mixin-super-stub get x() → core::int?
+  synthetic mixin-super-stub get x() → core::int?
     return super.{self::B::x};
 }
 static method main() → dynamic

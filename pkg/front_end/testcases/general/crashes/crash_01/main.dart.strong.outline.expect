@@ -23,7 +23,7 @@ abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildM
   synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin
     : super self::RenderSliver::•()
     ;
-  abstract member-signature get constraints() → invalid-type; -> self::RenderSliver::constraints
+  abstract synthetic member-signature get constraints() → invalid-type; -> self::RenderSliver::constraints
 }
 static method main() → dynamic
   ;

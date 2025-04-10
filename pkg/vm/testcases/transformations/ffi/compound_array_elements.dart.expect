@@ -51,16 +51,16 @@ final class TestStruct extends ffi::Struct {
   set abiSpecificIntegerArray(synthesized ffi::Array<ffi::WChar> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::TestStruct::abiSpecificIntegerArray#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C28.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C18
-  static get structArray#offsetOf() → core::int
+  static synthetic get structArray#offsetOf() → core::int
     return #C30.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C18
-  static get unionArray#offsetOf() → core::int
+  static synthetic get unionArray#offsetOf() → core::int
     return #C32.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C18
-  static get arrayArray#offsetOf() → core::int
+  static synthetic get arrayArray#offsetOf() → core::int
     return #C34.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C18
-  static get abiSpecificIntegerArray#offsetOf() → core::int
+  static synthetic get abiSpecificIntegerArray#offsetOf() → core::int
     return #C37.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C18
   static get #sizeOf() → core::int
@@ -87,7 +87,7 @@ final class MyStruct extends ffi::Struct {
   set structValue(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::structValue#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C18
-  static get structValue#offsetOf() → core::int
+  static synthetic get structValue#offsetOf() → core::int
     return #C30.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C18
   static get #sizeOf() → core::int
@@ -122,10 +122,10 @@ final class MyUnion extends ffi::Union {
   set unionAlt2(synthesized core::double #externalFieldValue) → void
     return ffi::_storeFloat(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::unionAlt2#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C18
-  static get unionAlt1#offsetOf() → core::int
+  static synthetic get unionAlt1#offsetOf() → core::int
     return #C30.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C18
-  static get unionAlt2#offsetOf() → core::int
+  static synthetic get unionAlt2#offsetOf() → core::int
     return #C30.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C18
   static get #sizeOf() → core::int

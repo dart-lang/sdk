@@ -15,7 +15,7 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
     synthetic constructor •() → fra::Key
       : super dart.core::Object::•()
       ;
-    static method _#new#tearOff() → fra::Key
+    static synthetic method _#new#tearOff() → fra::Key
       return new fra::Key::•();
   }
   class StatefulWidget extends fra::Widget /*hasConstConstructor*/  {
@@ -23,7 +23,7 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
     const constructor •({fra::Key? key = #C1}) → fra::StatefulWidget
       : fra::StatefulWidget::key = key, super fra::Widget::•()
       ;
-    static method _#new#tearOff({fra::Key? key = #C1}) → fra::StatefulWidget
+    static synthetic method _#new#tearOff({fra::Key? key = #C1}) → fra::StatefulWidget
       return new fra::StatefulWidget::•(key: key);
   }
 }

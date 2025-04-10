@@ -22,7 +22,7 @@ class Statics extends core::Object {
   synthetic constructor •() → self::Statics
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → self::Statics
+  static synthetic method _#new#tearOff() → self::Statics
     return new self::Statics::•();
   static get a() → core::int
     return self::Statics::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};

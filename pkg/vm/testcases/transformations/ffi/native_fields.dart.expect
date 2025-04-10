@@ -35,10 +35,10 @@ final class Vec2d extends ffi::Struct {
   set y(synthesized core::double #externalFieldValue) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Vec2d::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C8
-  static get x#offsetOf() → core::int
+  static synthetic get x#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
-  static get y#offsetOf() → core::int
+  static synthetic get y#offsetOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int
@@ -65,7 +65,7 @@ final class MyStruct extends ffi::Struct {
   set array(synthesized ffi::Array<ffi::Uint8> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct::array#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C8
-  static get array#offsetOf() → core::int
+  static synthetic get array#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int
@@ -92,7 +92,7 @@ final class MyStruct2 extends ffi::Struct {
   set array(synthesized ffi::Array<ffi::Uint8> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct2::array#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C30.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C8
-  static get array#offsetOf() → core::int
+  static synthetic get array#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int
@@ -119,7 +119,7 @@ final class MyStruct3 extends ffi::Struct {
   set array(synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct3::array#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C8
-  static get array#offsetOf() → core::int
+  static synthetic get array#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int
@@ -146,7 +146,7 @@ final class MyStruct4 extends ffi::Struct {
   set array(synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyStruct4::array#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C39.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C8
-  static get array#offsetOf() → core::int
+  static synthetic get array#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int
@@ -177,10 +177,10 @@ final class MyUnion extends ffi::Union {
   set indirectVector(synthesized ffi::Pointer<self::Vec2d> #externalFieldValue) → void
     return ffi::_storePointer<self::Vec2d>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::MyUnion::indirectVector#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C8
-  static get vector#offsetOf() → core::int
+  static synthetic get vector#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
-  static get indirectVector#offsetOf() → core::int
+  static synthetic get indirectVector#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C8
   static get #sizeOf() → core::int

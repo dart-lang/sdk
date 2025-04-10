@@ -15,7 +15,7 @@ class C extends core::Object {
   late final field core::int d;
   synthetic constructor •() → self::C
     ;
-  static method _#new#tearOff() → self::C
+  static synthetic method _#new#tearOff() → self::C
     return new self::C::•();
 }
 static field self::C c;

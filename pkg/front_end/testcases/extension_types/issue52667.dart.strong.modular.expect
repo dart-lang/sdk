@@ -21,13 +21,13 @@ static extension-type-member method FooBar|constructor#(self::Foo i) → self::F
   lowered final self::FooBar /* erasure=self::Foo */ #this = i;
   return #this;
 }
-static extension-type-member method FooBar|constructor#_#new#tearOff(self::Foo i) → self::FooBar /* erasure=self::Foo */
+static extension-type-member synthetic method FooBar|constructor#_#new#tearOff(self::Foo i) → self::FooBar /* erasure=self::Foo */
   return self::FooBar|constructor#(i);
 static extension-type-member method FooBaz|constructor#(self::Foo i) → self::FooBaz /* erasure=self::Foo */ {
   lowered final self::FooBaz /* erasure=self::Foo */ #this = i;
   return #this;
 }
-static extension-type-member method FooBaz|constructor#_#new#tearOff(self::Foo i) → self::FooBaz /* erasure=self::Foo */
+static extension-type-member synthetic method FooBaz|constructor#_#new#tearOff(self::Foo i) → self::FooBaz /* erasure=self::Foo */
   return self::FooBaz|constructor#(i);
 static method main() → void {
   final self::FooBar /* erasure=self::Foo */ a = self::FooBar|constructor#(new self::Foo::•());

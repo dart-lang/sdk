@@ -41,7 +41,7 @@ extension type Foo2(dynamic _input) {
 }
 static extension-type-member method Foo|constructor#(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member method Foo|constructor#_#new#tearOff(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(x);
 static abstract extension-type-member method Foo|get#foo1(lowered dynamic #this) → invalid-type;
 static abstract extension-type-member method Foo|get#foo2(lowered dynamic #this) → invalid-type;
@@ -51,9 +51,9 @@ static extension-type-member method Foo|get#baz(lowered final self::Foo% /* eras
   return (core::int i) → core::int => self::Foo|baz(#this, i);
 static extension-type-member method Foo2|constructor#_(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member method Foo2|constructor#_#_#tearOff(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo2|constructor#_#_#tearOff(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
   return self::Foo2|constructor#_(_input);
 static extension-type-member method Foo2|constructor#fromInt(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member method Foo2|constructor#_#fromInt#tearOff(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method Foo2|constructor#_#fromInt#tearOff(core::int i) → self::Foo2% /* erasure=dynamic, declared=! */
   return self::Foo2|constructor#fromInt(i);

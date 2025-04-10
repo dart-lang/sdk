@@ -63,13 +63,13 @@ final class Coordinate extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
-  static get x#offsetOf() → core::int
+  static synthetic get x#offsetOf() → core::int
     return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
   [@vm.unboxing-info.metadata=()->i]
   @#C8
-  static get y#offsetOf() → core::int
+  static synthetic get y#offsetOf() → core::int
     return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 16)]

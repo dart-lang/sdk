@@ -13,15 +13,15 @@ extension type X(core::int obj) {
 }
 static extension-type-member method X|constructor#_(core::int obj) → self::X% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method X|constructor#_#_#tearOff(core::int obj) → self::X% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method X|constructor#_#_#tearOff(core::int obj) → self::X% /* erasure=core::int, declared=! */
   return self::X|constructor#_(obj);
 static extension-type-member method X|constructor#() → self::X% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method X|constructor#_#new#tearOff() → self::X% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method X|constructor#_#new#tearOff() → self::X% /* erasure=core::int, declared=! */
   return self::X|constructor#();
 static extension-type-member method X|constructor#named() → self::X% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method X|constructor#_#named#tearOff() → self::X% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method X|constructor#_#named#tearOff() → self::X% /* erasure=core::int, declared=! */
   return self::X|constructor#named();
 static method main() → void
   ;

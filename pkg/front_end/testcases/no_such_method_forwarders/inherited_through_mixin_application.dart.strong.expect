@@ -16,7 +16,7 @@ class C extends core::Object implements self::A {
   method noSuchMethod(core::Invocation i) → dynamic {
     self::console = "C";
   }
-  no-such-method-forwarder get g() → core::String?
+  synthetic no-such-method-forwarder get g() → core::String?
     return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String?;
 }
 abstract class M extends self::A /*isMixinDeclaration*/  {
@@ -36,9 +36,9 @@ abstract class _MA&C&M = self::C with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_MA&C&M
     : super self::C::•()
     ;
-  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+  synthetic mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
     return super.{self::M::noSuchMethod}(i);
-  mixin-super-stub method test() → dynamic
+  synthetic mixin-super-stub method test() → dynamic
     return super.{self::M::test}();
 }
 static field core::String console = "";

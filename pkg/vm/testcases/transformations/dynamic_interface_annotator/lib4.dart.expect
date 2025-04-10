@@ -37,7 +37,7 @@ static extension-type-member method E3|constructor#(core::int _info) → self::E
   return #this;
 }
 @#C3
-static extension-type-member method E3|constructor#_#new#tearOff(core::int _info) → self::E3% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E3|constructor#_#new#tearOff(core::int _info) → self::E3% /* erasure=core::int, declared=! */
   return self::E3|constructor#(_info);
 @#C3
 static extension-type-member method E3|get#info(lowered final self::E3% /* erasure=core::int, declared=! */ #this) → core::int
@@ -46,7 +46,7 @@ static extension-type-member method _E4|constructor#(core::int _info) → self::
   lowered final self::_E4% /* erasure=core::int, declared=! */ #this = _info;
   return #this;
 }
-static extension-type-member method _E4|constructor#_#new#tearOff(core::int _info) → self::_E4% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method _E4|constructor#_#new#tearOff(core::int _info) → self::_E4% /* erasure=core::int, declared=! */
   return self::_E4|constructor#(_info);
 static extension-type-member method _E4|get#info(lowered final self::_E4% /* erasure=core::int, declared=! */ #this) → core::int
   return #this as{Unchecked} core::int;

@@ -21,11 +21,11 @@ extension type C(self::A point) implements self::A {
 }
 static extension-type-member method C|constructor#_(self::A point) → self::C /* erasure=self::A */
   ;
-static extension-type-member method C|constructor#_#_#tearOff(self::A point) → self::C /* erasure=self::A */
+static extension-type-member synthetic method C|constructor#_#_#tearOff(self::A point) → self::C /* erasure=self::A */
   return self::C|constructor#_(point);
 static extension-type-member method C|constructor#() → self::C /* erasure=self::A */
   ;
-static extension-type-member method C|constructor#_#new#tearOff() → self::C /* erasure=self::A */
+static extension-type-member synthetic method C|constructor#_#new#tearOff() → self::C /* erasure=self::A */
   return self::C|constructor#();
 static method main() → void
   ;

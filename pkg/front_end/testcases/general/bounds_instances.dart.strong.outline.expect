@@ -23,5 +23,5 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-static method _#F#new#tearOff<unrelated X extends self::Class<self::_#F#new#tearOff::X> = self::Class<dynamic>>() → self::Class1
+static synthetic method _#F#new#tearOff<unrelated X extends self::Class<self::_#F#new#tearOff::X> = self::Class<dynamic>>() → self::Class1
   return new self::Class1::•();

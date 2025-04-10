@@ -50,7 +50,7 @@ class A<TypeY extends self::A<dynamic>> extends core::Object {
     : super core::Object::•()
     ;
 }
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated TypeY extends invalid-type>(core::String name, {core::int defaultValue = #C1}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated TypeY extends invalid-type>(core::String name, {core::int defaultValue = #C1}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
 
 constants  {

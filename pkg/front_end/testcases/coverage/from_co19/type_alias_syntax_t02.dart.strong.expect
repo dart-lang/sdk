@@ -21,7 +21,7 @@ static method foo() → void {
   self::C<core::String> ca3 = new self::C::•<core::String>("");
   self::C<core::int> ca4 = new self::C::•<core::int>(1);
 }
-static method _#CAlias4#new#tearOff<unrelated T extends core::Object? = dynamic>(core::int t) → self::C<core::int>
+static synthetic method _#CAlias4#new#tearOff<unrelated T extends core::Object? = dynamic>(core::int t) → self::C<core::int>
   return new self::C::•<core::int>(t);
 
 constants  {

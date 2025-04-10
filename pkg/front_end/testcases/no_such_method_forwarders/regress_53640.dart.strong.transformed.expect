@@ -22,7 +22,7 @@ class MA extends core::Object implements self::M /*isEliminatedMixin,hasConstCon
     ;
   method noSuchMethod(core::Invocation i) → dynamic
     return "M";
-  no-such-method-forwarder method m() → core::int
+  synthetic no-such-method-forwarder method m() → core::int
     return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 static method throws(() → void f) → dynamic {

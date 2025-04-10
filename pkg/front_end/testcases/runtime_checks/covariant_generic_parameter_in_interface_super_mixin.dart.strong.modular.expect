@@ -20,7 +20,7 @@ class C = self::B with self::M implements self::I<core::int> {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  forwarding-stub method f(covariant-by-class core::int x) → void
+  forwarding-stub synthetic method f(covariant-by-class core::int x) → void
     return super.{self::B::f}(x);
 }
 static method g1(self::C c) → void {

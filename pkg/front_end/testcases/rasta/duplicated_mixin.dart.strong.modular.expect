@@ -14,17 +14,17 @@ abstract class _A&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixi
   synthetic constructor •() → self::_A&Object&Mixin
     : super core::Object::•()
     ;
-  mixin-super-stub get field() → dynamic
+  synthetic mixin-super-stub get field() → dynamic
     return super.{self::Mixin::field};
-  mixin-super-stub set field(dynamic value) → void
+  synthetic mixin-super-stub set field(dynamic value) → void
     return super.{self::Mixin::field} = value;
 }
 abstract class _A&Object&Mixin&Mixin = self::_A&Object&Mixin with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A&Object&Mixin&Mixin
     : super self::_A&Object&Mixin::•()
     ;
-  mixin-super-stub get field() → dynamic
+  synthetic mixin-super-stub get field() → dynamic
     return super.{self::Mixin::field};
-  mixin-super-stub set field(dynamic value) → void
+  synthetic mixin-super-stub set field(dynamic value) → void
     return super.{self::Mixin::field} = value;
 }

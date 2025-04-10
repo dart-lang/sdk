@@ -10,7 +10,7 @@ import "org-dartlang-testcase:///conditional_import.dart" as c;
 class HttpRequest extends core::Object {
   synthetic constructor •() → self::HttpRequest
     ;
-  static method _#new#tearOff() → self::HttpRequest
+  static synthetic method _#new#tearOff() → self::HttpRequest
     return new self::HttpRequest::•();
 }
 static method testA(html::HttpRequest request) → dynamic

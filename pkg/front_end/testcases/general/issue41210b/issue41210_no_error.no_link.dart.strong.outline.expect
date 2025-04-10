@@ -17,21 +17,21 @@ abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   const synthetic constructor •() → self::_E&Object&A
     : super core::Object::•()
     ;
-  mixin-super-stub method method(core::num i, {has-declared-initializer core::String s}) → core::String
+  synthetic mixin-super-stub method method(core::num i, {has-declared-initializer core::String s}) → core::String
     return super.{iss::A::method}(i, s: s);
 }
 abstract class _E&Object&A&D = self::_E&Object&A with iss::D /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A&D
     : super self::_E&Object&A::•()
     ;
-  forwarding-stub method method(covariant-by-declaration core::num i, {has-declared-initializer core::String s}) → core::String
+  forwarding-stub synthetic method method(covariant-by-declaration core::num i, {has-declared-initializer core::String s}) → core::String
     return super.{self::_E&Object&A::method}(i, s: s);
 }
 abstract class _G&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A
     : super core::Object::•()
     ;
-  mixin-super-stub method method(core::num i, {has-declared-initializer core::String s}) → core::String
+  synthetic mixin-super-stub method method(core::num i, {has-declared-initializer core::String s}) → core::String
     return super.{iss::A::method}(i, s: s);
 }
 abstract class _G&Object&A&F = self::_G&Object&A with iss::F /*isAnonymousMixin,hasConstConstructor*/  {
@@ -64,7 +64,7 @@ abstract class B extends core::Object implements iss::Interface /*isMixinDeclara
   abstract method method(core::num i) → core::String;
 }
 abstract class D extends core::Object implements iss::Interface, iss::Interface2 /*isMixinDeclaration*/  {
-  abstract forwarding-stub method method(covariant-by-declaration core::num i) → core::String;
+  abstract forwarding-stub synthetic method method(covariant-by-declaration core::num i) → core::String;
 }
 abstract class F extends core::Object implements iss::Interface /*isMixinDeclaration*/  {
 }

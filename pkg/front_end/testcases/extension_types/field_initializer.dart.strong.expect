@@ -52,13 +52,13 @@ extension type ET1(int id) {
                        ^^";
   return #this;
 }
-static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(id);
 static extension-type-member method ET2|constructor#(core::int id) → self::ET2% /* erasure=core::int, declared=! */ {
   lowered final self::ET2% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
-static extension-type-member method ET2|constructor#_#new#tearOff(core::int id) → self::ET2% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int id) → self::ET2% /* erasure=core::int, declared=! */
   return self::ET2|constructor#(id);
 static abstract extension-type-member method ET2|get#x(lowered core::int #this) → core::int;
 static abstract extension-type-member method ET2|set#x(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
@@ -66,6 +66,6 @@ static extension-type-member method ET3|constructor#(core::int id) → self::ET3
   lowered final self::ET3% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
-static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(id);
 static abstract extension-type-member method ET3|get#x(lowered core::int #this) → core::int;
