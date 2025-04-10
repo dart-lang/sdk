@@ -938,7 +938,8 @@ class DietListener extends StackListenerImpl {
     // for type inference.
     _parseFields(
         _offsetMap,
-        createListener(fragment.createBodyBuilderContext(), _memberScope,
+        createListener(
+            fragment.declaration.createBodyBuilderContext(), _memberScope,
             inferenceDataForTesting: fragment
                 .builder
                 .dataForTesting

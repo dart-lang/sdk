@@ -2419,6 +2419,7 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
       fieldIsLateWithLowering: fieldIsLateWithLowering,
       isExternal: fragment.modifiers.isExternal);
 
+  FieldFragmentDeclaration declaration = new FieldFragmentDeclaration(fragment);
   SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
@@ -2426,10 +2427,11 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
       libraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder,
       nameScheme: nameScheme,
-      fieldDeclaration: fragment,
+      fieldDeclaration: declaration,
       modifiers: fragment.modifiers,
       references: references);
   fragment.builder = propertyBuilder;
+  declaration.createEncoding(propertyBuilder);
   references.registerReference(loader, propertyBuilder);
   return new _AddBuilder(
       fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
@@ -3180,7 +3182,7 @@ _AddBuilder _createEnumElementBuilder(EnumElementFragment fragment,
       libraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder,
       nameScheme: nameScheme,
-      fieldDeclaration: fragment,
+      fieldDeclaration: new EnumElementDeclaration(fragment),
       modifiers: Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
       references: references);
   fragment.builder = propertyBuilder;

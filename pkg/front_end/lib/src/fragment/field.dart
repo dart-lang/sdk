@@ -4,16 +4,12 @@
 
 part of 'fragment.dart';
 
-class FieldFragment
-    with FieldDeclarationMixin
-    implements Fragment, FieldDeclaration, Inferable, InferredTypeListener {
+class FieldFragment implements Fragment {
   @override
   final String name;
 
-  @override
   final Uri fileUri;
 
-  @override
   final int nameOffset;
 
   final int endOffset;
@@ -21,10 +17,8 @@ class FieldFragment
   Token? _initializerToken;
   Token? _constInitializerToken;
 
-  @override
   final List<MetadataBuilder>? metadata;
 
-  @override
   final TypeBuilder type;
 
   final bool isTopLevel;
@@ -39,8 +33,7 @@ class FieldFragment
   final LibraryFragment enclosingCompilationUnit;
 
   SourcePropertyBuilder? _builder;
-
-  late final _FieldEncoding _encoding;
+  FieldFragmentDeclaration? _declaration;
 
   FieldFragment({
     required this.name,
@@ -60,7 +53,6 @@ class FieldFragment
   })  : _initializerToken = initializerToken,
         _constInitializerToken = constInitializerToken;
 
-  @override
   bool get hasSetter {
     if (modifiers.isConst) {
       return false;
@@ -108,11 +100,40 @@ class FieldFragment
   void set builder(SourcePropertyBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
+  }
 
+  FieldFragmentDeclaration get declaration {
+    assert(
+        _declaration != null, "Declaration has not been computed for $this.");
+    return _declaration!;
+  }
+
+  void set declaration(FieldFragmentDeclaration value) {
+    assert(_declaration == null,
+        "Declaration has already been computed for $this.");
+    _declaration = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
+}
+
+class FieldFragmentDeclaration
+    with FieldDeclarationMixin
+    implements FieldDeclaration, Inferable, InferredTypeListener {
+  final FieldFragment _fragment;
+
+  late final _FieldEncoding _encoding;
+
+  FieldFragmentDeclaration(this._fragment) {
+    _fragment.declaration = this;
+  }
+
+  void createEncoding(SourcePropertyBuilder builder) {
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
 
-    bool isAbstract = modifiers.isAbstract;
-    bool isExternal = modifiers.isExternal;
+    bool isAbstract = _fragment.modifiers.isAbstract;
+    bool isExternal = _fragment.modifiers.isExternal;
     bool isInstanceMember = builder.isDeclarationInstanceMember;
     bool isExtensionMember = builder.isExtensionMember;
     bool isExtensionTypeMember = builder.isExtensionTypeMember;
@@ -122,20 +143,20 @@ class FieldFragment
     late_lowering.IsSetStrategy isSetStrategy =
         late_lowering.computeIsSetStrategy(libraryBuilder);
     if (isAbstract || isExternal) {
-      _encoding = new AbstractOrExternalFieldEncoding(this,
+      _encoding = new AbstractOrExternalFieldEncoding(_fragment,
           isExtensionInstanceMember: isExtensionMember && isInstanceMember,
           isExtensionTypeInstanceMember:
               isExtensionTypeMember && isInstanceMember,
           isAbstract: isAbstract,
           isExternal: isExternal);
     } else if (isExtensionTypeMember && isInstanceMember) {
-      if (isPrimaryConstructorField) {
-        _encoding = new RepresentationFieldEncoding(this);
+      if (_fragment.isPrimaryConstructorField) {
+        _encoding = new RepresentationFieldEncoding(_fragment);
       } else {
         // Field on a extension type. Encode as abstract.
         // TODO(johnniwinther): Should we have an erroneous flag on such
         // members?
-        _encoding = new AbstractOrExternalFieldEncoding(this,
+        _encoding = new AbstractOrExternalFieldEncoding(_fragment,
             isExtensionInstanceMember: isExtensionMember && isInstanceMember,
             isExtensionTypeInstanceMember:
                 isExtensionTypeMember && isInstanceMember,
@@ -150,41 +171,41 @@ class FieldFragment
             isStatic: !isInstanceMember)) {
       if (hasInitializer) {
         if (isFinal) {
-          _encoding = new LateFinalFieldWithInitializerEncoding(this,
+          _encoding = new LateFinalFieldWithInitializerEncoding(_fragment,
               isSetStrategy: isSetStrategy);
         } else {
-          _encoding = new LateFieldWithInitializerEncoding(this,
+          _encoding = new LateFieldWithInitializerEncoding(_fragment,
               isSetStrategy: isSetStrategy);
         }
       } else {
         if (isFinal) {
-          _encoding = new LateFinalFieldWithoutInitializerEncoding(this,
+          _encoding = new LateFinalFieldWithoutInitializerEncoding(_fragment,
               isSetStrategy: isSetStrategy);
         } else {
-          _encoding = new LateFieldWithoutInitializerEncoding(this,
+          _encoding = new LateFieldWithoutInitializerEncoding(_fragment,
               isSetStrategy: isSetStrategy);
         }
       }
     } else if (libraryBuilder
             .loader.target.backendTarget.useStaticFieldLowering &&
         !isInstanceMember &&
-        !modifiers.isConst &&
+        !_fragment.modifiers.isConst &&
         hasInitializer) {
       if (isFinal) {
-        _encoding = new LateFinalFieldWithInitializerEncoding(this,
+        _encoding = new LateFinalFieldWithInitializerEncoding(_fragment,
             isSetStrategy: isSetStrategy);
       } else {
-        _encoding = new LateFieldWithInitializerEncoding(this,
+        _encoding = new LateFieldWithInitializerEncoding(_fragment,
             isSetStrategy: isSetStrategy);
       }
     } else {
-      _encoding = new RegularFieldEncoding(this, isEnumElement: false);
+      _encoding = new RegularFieldEncoding(_fragment, isEnumElement: false);
     }
 
     type.registerInferredTypeListener(this);
-    Token? token = initializerToken;
+    Token? token = _fragment.initializerToken;
     if (type is InferableTypeBuilder) {
-      if (!modifiers.hasInitializer && _isStatic) {
+      if (!_fragment.modifiers.hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred
         // to have type `dynamic`.
         type.registerInferredType(const DynamicType());
@@ -197,9 +218,9 @@ class FieldFragment
             inferType: inferType,
             computeType: _computeInferredType,
             fileUri: fileUri,
-            name: name,
+            name: _fragment.name,
             nameOffset: nameOffset,
-            nameLength: name.length,
+            nameLength: _fragment.name.length,
             token: token);
         type.registerInferable(this);
       }
@@ -218,7 +239,7 @@ class FieldFragment
               .thisInterfaceType(
                   declarationBuilder.cls, libraryBuilder.library.nonNullable)
           : null;
-      LookupScope scope = enclosingScope;
+      LookupScope scope = _fragment.enclosingScope;
       TypeInferrer typeInferrer =
           libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
               fileUri,
@@ -232,10 +253,11 @@ class FieldFragment
       BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
       BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
           libraryBuilder, bodyBuilderContext, scope, typeInferrer, fileUri);
-      bodyBuilder.constantContext =
-          modifiers.isConst ? ConstantContext.inferred : ConstantContext.none;
+      bodyBuilder.constantContext = _fragment.modifiers.isConst
+          ? ConstantContext.inferred
+          : ConstantContext.none;
       bodyBuilder.inFieldInitializer = true;
-      bodyBuilder.inLateFieldInitializer = modifiers.isLate;
+      bodyBuilder.inLateFieldInitializer = _fragment.modifiers.isLate;
       Expression initializer = bodyBuilder.parseFieldInitializer(token);
 
       inferredType =
@@ -251,7 +273,7 @@ class FieldFragment
 
   BodyBuilderContext createBodyBuilderContext() {
     return new _FieldFragmentBodyBuilderContext(
-        this, builder.libraryBuilder, builder.declarationBuilder,
+        this, _fragment, builder.libraryBuilder, builder.declarationBuilder,
         isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
   }
 
@@ -266,7 +288,8 @@ class FieldFragment
       NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
       {required List<TypeParameter>? classTypeParameters}) {
     _encoding.buildOutlineNode(libraryBuilder, nameScheme, references,
-        isAbstractOrExternal: modifiers.isAbstract || modifiers.isExternal,
+        isAbstractOrExternal:
+            _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
         classTypeParameters: classTypeParameters);
     if (type is! InferableTypeBuilder) {
       fieldType = type.build(libraryBuilder, TypeUse.fieldType);
@@ -298,25 +321,25 @@ class FieldFragment
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
-          bodyBuilderContext, annotatable, metadata,
+      buildMetadataForOutlineExpressions(libraryBuilder,
+          _fragment.enclosingScope, bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
-    Token? token = constInitializerToken;
-    if ((modifiers.isConst ||
+    Token? token = _fragment.constInitializerToken;
+    if ((_fragment.modifiers.isConst ||
             (isFinal &&
                 isClassInstanceMember &&
                 (declarationBuilder as SourceClassBuilder)
                     .declaresConstConstructor)) &&
         token != null) {
-      LookupScope scope = enclosingScope;
+      LookupScope scope = _fragment.enclosingScope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
               libraryBuilder, createBodyBuilderContext(), scope, fileUri);
-      bodyBuilder.constantContext = modifiers.isConst
+      bodyBuilder.constantContext = _fragment.modifiers.isConst
           ? ConstantContext.inferred
           : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
@@ -343,8 +366,8 @@ class FieldFragment
         isExternal: isExternal,
         hasInitializer: hasInitializer,
         fieldType: fieldType,
-        name: name,
-        nameLength: name.length,
+        name: _fragment.name,
+        nameLength: _fragment.name.length,
         nameOffset: nameOffset,
         fileUri: fileUri);
   }
@@ -360,10 +383,10 @@ class FieldFragment
           builder.declarationBuilder as SourceClassBuilder,
           type,
           [...?getterOverrideDependencies, ...?setterOverrideDependencies],
-          name: name,
+          name: _fragment.name,
           fileUri: fileUri,
           nameOffset: nameOffset,
-          nameLength: name.length,
+          nameLength: _fragment.name.length,
           isAssignable: hasSetter);
     } else {
       // Coverage-ignore-block(suite): Not run.
@@ -377,9 +400,9 @@ class FieldFragment
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInField(typeEnvironment,
         fieldType: fieldType,
-        isInstanceMember: !_isStatic,
+        isInstanceMember: !isStatic,
         hasSetter: hasSetter,
-        isCovariantByDeclaration: modifiers.isCovariant,
+        isCovariantByDeclaration: _fragment.modifiers.isCovariant,
         fileUri: fileUri,
         fileOffset: nameOffset);
   }
@@ -399,6 +422,20 @@ class FieldFragment
   @override
   Member? get writeTarget => _encoding.writeTarget;
 
+  void buildFieldInitializer(InferenceHelper helper, TypeInferrer typeInferrer,
+      CoreTypes coreTypes, Expression? initializer) {
+    if (initializer != null) {
+      if (!hasBodyBeenBuilt) {
+        initializer = typeInferrer
+            .inferFieldInitializer(helper, fieldType, initializer)
+            .expression;
+        buildBody(coreTypes, initializer);
+      }
+    } else if (!hasBodyBeenBuilt) {
+      buildBody(coreTypes, null);
+    }
+  }
+
   /// Whether the body of this field has been built.
   ///
   /// Constant fields have their initializer built in the outline so we avoid
@@ -410,13 +447,13 @@ class FieldFragment
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
-    if (!modifiers.hasInitializer &&
+    if (!_fragment.modifiers.hasInitializer &&
         initializer != null &&
         initializer is! NullLiteral &&
         // Coverage-ignore(suite): Not run.
-        !modifiers.isConst &&
+        !_fragment.modifiers.isConst &&
         // Coverage-ignore(suite): Not run.
-        !modifiers.isFinal) {
+        !_fragment.modifiers.isFinal) {
       internalProblem(
           messageInternalProblemAlreadyInitialized, nameOffset, fileUri);
     }
@@ -465,30 +502,46 @@ class FieldFragment
   }
 
   @override
-  bool get hasInitializer => modifiers.hasInitializer;
+  bool get hasInitializer => _fragment.modifiers.hasInitializer;
 
   @override
   bool get isExtensionTypeDeclaredInstanceField =>
-      builder.isExtensionTypeInstanceMember && !isPrimaryConstructorField;
+      builder.isExtensionTypeInstanceMember &&
+      !_fragment.isPrimaryConstructorField;
 
   @override
-  bool get isFinal => modifiers.isFinal;
+  bool get isFinal => _fragment.modifiers.isFinal;
 
   @override
-  bool get isConst => modifiers.isConst;
+  bool get isConst => _fragment.modifiers.isConst;
 
   @override
-  bool get isLate => modifiers.isLate;
+  bool get isLate => _fragment.modifiers.isLate;
 
-  bool get _isStatic =>
-      modifiers.isStatic || builder.declarationBuilder == null;
-
-  @override
-  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
+  bool get isStatic =>
+      _fragment.modifiers.isStatic || builder.declarationBuilder == null;
 
   @override
   List<ClassMember> get localMembers => _encoding.localMembers;
 
   @override
   List<ClassMember> get localSetters => _encoding.localSetters;
+
+  @override
+  SourcePropertyBuilder get builder => _fragment.builder;
+
+  @override
+  Uri get fileUri => _fragment.fileUri;
+
+  @override
+  bool get hasSetter => _fragment.hasSetter;
+
+  @override
+  List<MetadataBuilder>? get metadata => _fragment.metadata;
+
+  @override
+  int get nameOffset => _fragment.nameOffset;
+
+  @override
+  TypeBuilder get type => _fragment.type;
 }
