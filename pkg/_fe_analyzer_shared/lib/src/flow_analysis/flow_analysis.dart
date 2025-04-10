@@ -5341,12 +5341,33 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       return false;
     }
 
-    if (operations.classifyType(matchedType) ==
-        TypeClassification.nonNullable) {
-      // The matched type is non-nullable, so promote to a non-nullable type.
-      // This allows for code like `case int? x?` to promote `x` to
-      // non-nullable.
-      knownType = operations.promoteToNonNull(knownType);
+    bool cannotMatch = false;
+    switch (operations.classifyType(matchedType)) {
+      case TypeClassification.nonNullable:
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+            operations.classifyType(knownType) ==
+                TypeClassification.nullOrEquivalent) {
+          // `Null()` cannot match a non-nullable matched value, assuming sound
+          // null safety.
+          cannotMatch = true;
+        }
+        // The matched type is non-nullable, so promote to a non-nullable type.
+        // This allows for code like `case int? x?` to promote `x` to
+        // non-nullable.
+        knownType = operations.promoteToNonNull(knownType);
+      case TypeClassification.nullOrEquivalent:
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+            operations.classifyType(knownType) ==
+                TypeClassification.nonNullable) {
+          // If `T` is a non-nullable type, `T()` cannot match a matched value
+          // of type `Null`. This reasoning step is sound regardless of whether
+          // sound null safety, but it is a new reasoning step that was added to
+          // flow analysis as part of the `sound-flow-analysis` feature.
+          cannotMatch = true;
+        }
+      case TypeClassification.potentiallyNullable:
+        // No conclusions can be drawn about `cannotMatch` or `knownType`.
+        break;
     }
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _Reference<Type> matchedValueReference =
@@ -5384,6 +5405,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .ifFalse;
     }
     _current = ifTrue;
+    if (cannotMatch) {
+      _current = _current.setUnreachable();
+    }
     if (matchFailsIfWrongType && !coversMatchedType) {
       // There's a reachable control flow path where the match might fail due to
       // a type mismatch. Therefore, we must update the `_unmatched` flow state
