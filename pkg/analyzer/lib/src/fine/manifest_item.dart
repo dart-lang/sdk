@@ -120,9 +120,8 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   factory InstanceItemGetterItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required GetterElement2OrMember element,
+    required GetterElementImpl element,
   }) {
-    element as GetterElementImpl; // TODO(scheglov): remove it
     return InstanceItemGetterItem(
       id: id,
       metadata: ManifestMetadata.encode(
@@ -148,9 +147,8 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   @override
   bool match(
     MatchContext context,
-    covariant GetterElement2OrMember element,
+    covariant GetterElementImpl element,
   ) {
-    element as GetterElementImpl; // TODO(scheglov): remove it
     return super.match(context, element) &&
         returnType.match(context, element.returnType) &&
         constInitializer.match(context, element.constInitializer);
@@ -191,7 +189,7 @@ sealed class InstanceItemMemberItem extends ManifestItem {
   @override
   bool match(
     MatchContext context,
-    covariant ExecutableElement2OrMember element,
+    covariant ExecutableElementImpl2 element,
   ) {
     return super.match(context, element) && element.isStatic == isStatic;
   }
@@ -216,7 +214,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   factory InstanceItemMethodItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required MethodElement2OrMember element,
+    required MethodElementImpl2 element,
   }) {
     return InstanceItemMethodItem(
       id: id,
@@ -238,7 +236,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   @override
   bool match(
     MatchContext context,
-    covariant MethodElement2OrMember element,
+    covariant MethodElementImpl2 element,
   ) {
     return super.match(context, element) &&
         functionType.match(context, element.type);
@@ -265,7 +263,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem {
   factory InstanceItemSetterItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required SetterElement2OrMember element,
+    required SetterElementImpl element,
   }) {
     return InstanceItemSetterItem(
       id: id,
@@ -290,7 +288,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem {
   @override
   bool match(
     MatchContext context,
-    covariant SetterElement2OrMember element,
+    covariant SetterElementImpl element,
   ) {
     return super.match(context, element) &&
         valueType.match(context, element.formalParameters[0].type);

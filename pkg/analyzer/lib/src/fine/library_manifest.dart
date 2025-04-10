@@ -193,7 +193,7 @@ class LibraryManifestBuilder {
   void _addInstanceElementGetter({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
-    required GetterElement2OrMember element,
+    required GetterElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -213,22 +213,22 @@ class LibraryManifestBuilder {
   void _addInstanceElementInstanceExecutable({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
-    required ExecutableElement2OrMember element,
+    required ExecutableElementImpl2 element,
   }) {
     switch (element) {
-      case GetterElement2OrMember():
+      case GetterElementImpl():
         _addInstanceElementGetter(
           encodingContext: encodingContext,
           instanceItem: instanceItem,
           element: element,
         );
-      case MethodElement2OrMember():
+      case MethodElementImpl2():
         _addInstanceElementMethod(
           encodingContext: encodingContext,
           instanceItem: instanceItem,
           element: element,
         );
-      case SetterElement2OrMember():
+      case SetterElementImpl():
         _addInstanceElementSetter(
           encodingContext: encodingContext,
           instanceItem: instanceItem,
@@ -240,7 +240,7 @@ class LibraryManifestBuilder {
   void _addInstanceElementMethod({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
-    required MethodElement2OrMember element,
+    required MethodElementImpl2 element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -260,7 +260,7 @@ class LibraryManifestBuilder {
   void _addInstanceElementSetter({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
-    required SetterElement2OrMember element,
+    required SetterElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -763,12 +763,12 @@ class _LibraryMatch {
     required MatchContext interfaceMatchContext,
     required Map<LookupName, InstanceItemMemberItem> members,
     required LookupName lookupName,
-    required ExecutableElement2 executable,
+    required ExecutableElementImpl2 executable,
   }) {
     var item = members[lookupName];
 
     switch (executable) {
-      case GetterElement2OrMember():
+      case GetterElementImpl():
         if (item is! InstanceItemGetterItem) {
           return false;
         }
@@ -782,7 +782,7 @@ class _LibraryMatch {
         refElementsMap[executable] = matchContext.elementList;
         refExternalIds.addAll(matchContext.externalIds);
         return true;
-      case MethodElement2OrMember():
+      case MethodElementImpl2():
         if (item is! InstanceItemMethodItem) {
           return false;
         }
@@ -796,7 +796,7 @@ class _LibraryMatch {
         refElementsMap[executable] = matchContext.elementList;
         refExternalIds.addAll(matchContext.externalIds);
         return true;
-      case SetterElement2OrMember():
+      case SetterElementImpl():
         if (item is! InstanceItemSetterItem) {
           return false;
         }
@@ -810,10 +810,10 @@ class _LibraryMatch {
         refElementsMap[executable] = matchContext.elementList;
         refExternalIds.addAll(matchContext.externalIds);
         return true;
+      default:
+        // SAFETY: the cases above handle all expected executables.
+        throw StateError('(${executable.runtimeType}) $executable');
     }
-
-    // TODO(scheglov): fix it
-    throw UnimplementedError('(${executable.runtimeType}) $executable');
   }
 
   void _matchInstanceExecutables({
