@@ -29,7 +29,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8)),
+      experimentReleasedVersion: defaultLanguageVersion),
 
   constantUpdate2018(
       name: 'constant-update-2018',
@@ -64,7 +64,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8)),
+      experimentReleasedVersion: defaultLanguageVersion),
 
   enhancedEnums(
       name: 'enhanced-enums',
@@ -99,7 +99,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8)),
+      experimentReleasedVersion: defaultLanguageVersion),
 
   inferenceUpdate1(
       name: 'inference-update-1',
@@ -127,7 +127,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8)),
+      experimentReleasedVersion: defaultLanguageVersion),
 
   inferenceUsingBounds(
       name: 'inference-using-bounds',
@@ -274,7 +274,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: const Version(3, 8)),
+      experimentReleasedVersion: defaultLanguageVersion),
 
   wildcardVariables(
       name: 'wildcard-variables',

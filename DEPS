@@ -50,7 +50,7 @@ vars = {
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution
   # in a cipd package used to run Dart scripts in the build and test
   # infrastructure, which is automatically built on the release commits.
-  "sdk_tag": "git_revision:4a4ff9fba9ca67e9406743a24a3c47ad64d9e9c2",
+  "sdk_tag": "git_revision:5a8921e0042c662ea2adbac35ea051dec20a5341",
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
