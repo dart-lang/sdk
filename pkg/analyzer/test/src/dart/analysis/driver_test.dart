@@ -9310,6 +9310,351 @@ class C {}
     );
   }
 
+  test_manifest_class_field_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+class A {
+  final a = 0;
+  final b = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          b: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+class A {
+  final a = 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_value_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+class A {
+  final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_value_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+class A {
+  static const a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_value_static_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+class A {
+  static final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+    );
+  }
+
+  test_manifest_class_field_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('0')
+  var b = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          a=: #M2
+          b: #M3
+          b=: #M4
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('1')
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          a=: #M2
+          b: #M5
+          b=: #M6
+''',
+    );
+  }
+
+  test_manifest_class_field_private_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+''',
+      updatedCode: r'''
+class A {
+  final _a = 0;
+  final b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          b: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_private_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+''',
+      updatedCode: r'''
+class A {
+  static const _a = 0;
+  static const b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          b: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_private_var() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  var _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          _a=: #M2
+''',
+      updatedCode: r'''
+class A {
+  var _a = 0;
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          _a=: #M2
+          b: #M3
+          b=: #M4
+''',
+    );
+  }
+
+  test_manifest_class_field_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int? a;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          a=: #M2
+''',
+      updatedCode: r'''
+class A {
+  double? a;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M3
+          a=: #M4
+''',
+    );
+  }
+
   test_manifest_class_getter_add_extends() async {
     await _runLibraryManifestScenario(
       initialCode: r'''

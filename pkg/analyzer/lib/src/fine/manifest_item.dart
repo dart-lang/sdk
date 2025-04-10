@@ -107,12 +107,14 @@ sealed class InstanceItem extends TopLevelItem {
 
 class InstanceItemGetterItem extends InstanceItemMemberItem {
   final ManifestType returnType;
+  final ManifestNode? constInitializer;
 
   InstanceItemGetterItem({
     required super.id,
     required super.metadata,
     required super.isStatic,
     required this.returnType,
+    required this.constInitializer,
   });
 
   factory InstanceItemGetterItem.fromElement({
@@ -120,11 +122,16 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     required EncodeContext context,
     required GetterElement2OrMember element,
   }) {
+    element as GetterElementImpl; // TODO(scheglov): remove it
     return InstanceItemGetterItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
       isStatic: element.isStatic,
       returnType: element.returnType.encode(context),
+      constInitializer: element.constInitializer?.encode(context),
     );
   }
 
@@ -134,6 +141,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       returnType: ManifestType.read(reader),
+      constInitializer: ManifestNode.readOptional(reader),
     );
   }
 
@@ -142,8 +150,10 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     MatchContext context,
     covariant GetterElement2OrMember element,
   ) {
+    element as GetterElementImpl; // TODO(scheglov): remove it
     return super.match(context, element) &&
-        returnType.match(context, element.returnType);
+        returnType.match(context, element.returnType) &&
+        constInitializer.match(context, element.constInitializer);
   }
 
   @override
@@ -151,6 +161,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceGetter);
     super.write(sink);
     returnType.write(sink);
+    constInitializer.writeOptional(sink);
   }
 }
 
@@ -258,7 +269,10 @@ class InstanceItemSetterItem extends InstanceItemMemberItem {
   }) {
     return InstanceItemSetterItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
       isStatic: element.isStatic,
       valueType: element.formalParameters[0].type.encode(context),
     );
