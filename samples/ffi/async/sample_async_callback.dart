@@ -28,8 +28,11 @@ main() async {
   print("Dart: Setup.");
   Expect.isTrue(NativeApi.majorVersion == 2);
   Expect.isTrue(NativeApi.minorVersion >= 2);
-  final initializeApi = dl.lookupFunction<IntPtr Function(Pointer<Void>),
-      int Function(Pointer<Void>)>("InitDartApiDL");
+  final initializeApi = dl
+      .lookupFunction<
+        IntPtr Function(Pointer<Void>),
+        int Function(Pointer<Void>)
+      >("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
 
   final interactiveCppRequests = ReceivePort()..listen(requestExecuteCallback);
@@ -82,28 +85,42 @@ final callback2FP = Pointer.fromFunction<Void Function(IntPtr)>(callback2);
 
 final dl = dlopenPlatformSpecific("ffi_test_functions");
 
-final registerCallback1 = dl.lookupFunction<
-        Void Function(Int64 sendPort,
-            Pointer<NativeFunction<IntPtr Function(IntPtr)>> functionPointer),
-        void Function(int sendPort,
-            Pointer<NativeFunction<IntPtr Function(IntPtr)>> functionPointer)>(
-    'RegisterMyCallbackBlocking');
+final registerCallback1 = dl
+    .lookupFunction<
+      Void Function(
+        Int64 sendPort,
+        Pointer<NativeFunction<IntPtr Function(IntPtr)>> functionPointer,
+      ),
+      void Function(
+        int sendPort,
+        Pointer<NativeFunction<IntPtr Function(IntPtr)>> functionPointer,
+      )
+    >('RegisterMyCallbackBlocking');
 
-final registerCallback2 = dl.lookupFunction<
-        Void Function(Int64 sendPort,
-            Pointer<NativeFunction<Void Function(IntPtr)>> functionPointer),
-        void Function(int sendPort,
-            Pointer<NativeFunction<Void Function(IntPtr)>> functionPointer)>(
-    'RegisterMyCallbackNonBlocking');
+final registerCallback2 = dl
+    .lookupFunction<
+      Void Function(
+        Int64 sendPort,
+        Pointer<NativeFunction<Void Function(IntPtr)>> functionPointer,
+      ),
+      void Function(
+        int sendPort,
+        Pointer<NativeFunction<Void Function(IntPtr)>> functionPointer,
+      )
+    >('RegisterMyCallbackNonBlocking');
 
-final startWorkSimulator =
-    dl.lookupFunction<Void Function(), void Function()>('StartWorkSimulator');
+final startWorkSimulator = dl.lookupFunction<Void Function(), void Function()>(
+  'StartWorkSimulator',
+);
 
-final stopWorkSimulator =
-    dl.lookupFunction<Void Function(), void Function()>('StopWorkSimulator');
+final stopWorkSimulator = dl.lookupFunction<Void Function(), void Function()>(
+  'StopWorkSimulator',
+);
 
-final executeCallback = dl.lookupFunction<Void Function(Pointer<Work>),
-    void Function(Pointer<Work>)>('ExecuteCallback');
+final executeCallback = dl
+    .lookupFunction<Void Function(Pointer<Work>), void Function(Pointer<Work>)>(
+      'ExecuteCallback',
+    );
 
 final class Work extends Opaque {}
 

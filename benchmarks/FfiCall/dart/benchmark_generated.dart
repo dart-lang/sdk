@@ -632,18 +632,15 @@ class Int8x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Int8x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int8, Function1int>(
-                    'Function1Int8',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int8, Function1int>(
-                    'Function1Int8',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction1Int8, Function1int>(
+              'Function1Int8',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction1Int8, Function1int>(
+              'Function1Int8',
+              isLeaf: false,
+            ),
       super('FfiCall.Int8x01', isLeaf: isLeaf);
 
   @override
@@ -692,18 +689,15 @@ class Int16x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Int16x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int16, Function1int>(
-                    'Function1Int16',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int16, Function1int>(
-                    'Function1Int16',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction1Int16, Function1int>(
+              'Function1Int16',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction1Int16, Function1int>(
+              'Function1Int16',
+              isLeaf: false,
+            ),
       super('FfiCall.Int16x01', isLeaf: isLeaf);
 
   @override
@@ -752,18 +746,15 @@ class Int32x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Int32x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int32, Function1int>(
-                    'Function1Int32',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int32, Function1int>(
-                    'Function1Int32',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction1Int32, Function1int>(
+              'Function1Int32',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction1Int32, Function1int>(
+              'Function1Int32',
+              isLeaf: false,
+            ),
       super('FfiCall.Int32x01', isLeaf: isLeaf);
 
   @override
@@ -812,18 +803,15 @@ class Int32x02 extends FfiBenchmarkBase {
   final Function2int f;
 
   Int32x02({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction2Int32, Function2int>(
-                    'Function2Int32',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction2Int32, Function2int>(
-                    'Function2Int32',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction2Int32, Function2int>(
+              'Function2Int32',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction2Int32, Function2int>(
+              'Function2Int32',
+              isLeaf: false,
+            ),
       super('FfiCall.Int32x02', isLeaf: isLeaf);
 
   @override
@@ -872,18 +860,15 @@ class Int32x04 extends FfiBenchmarkBase {
   final Function4int f;
 
   Int32x04({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction4Int32, Function4int>(
-                    'Function4Int32',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction4Int32, Function4int>(
-                    'Function4Int32',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction4Int32, Function4int>(
+              'Function4Int32',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction4Int32, Function4int>(
+              'Function4Int32',
+              isLeaf: false,
+            ),
       super('FfiCall.Int32x04', isLeaf: isLeaf);
 
   @override
@@ -932,18 +917,17 @@ class Int32x10 extends FfiBenchmarkBase {
   final Function10int f;
 
   Int32x10({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction10Int32, Function10int>(
-                    'Function10Int32',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction10Int32, Function10int>(
-                    'Function10Int32',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction10Int32, Function10int>(
+                  'Function10Int32',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction10Int32, Function10int>(
+                  'Function10Int32',
+                  isLeaf: false,
+                ),
       super('FfiCall.Int32x10', isLeaf: isLeaf);
 
   @override
@@ -1014,18 +998,17 @@ class Int32x20 extends FfiBenchmarkBase {
   final Function20int f;
 
   Int32x20({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction20Int32, Function20int>(
-                    'Function20Int32',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction20Int32, Function20int>(
-                    'Function20Int32',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction20Int32, Function20int>(
+                  'Function20Int32',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction20Int32, Function20int>(
+                  'Function20Int32',
+                  isLeaf: false,
+                ),
       super('FfiCall.Int32x20', isLeaf: isLeaf);
 
   @override
@@ -1158,18 +1141,15 @@ class Int64x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Int64x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int64, Function1int>(
-                    'Function1Int64',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int64, Function1int>(
-                    'Function1Int64',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction1Int64, Function1int>(
+              'Function1Int64',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction1Int64, Function1int>(
+              'Function1Int64',
+              isLeaf: false,
+            ),
       super('FfiCall.Int64x01', isLeaf: isLeaf);
 
   @override
@@ -1218,18 +1198,15 @@ class Int64x02 extends FfiBenchmarkBase {
   final Function2int f;
 
   Int64x02({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction2Int64, Function2int>(
-                    'Function2Int64',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction2Int64, Function2int>(
-                    'Function2Int64',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction2Int64, Function2int>(
+              'Function2Int64',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction2Int64, Function2int>(
+              'Function2Int64',
+              isLeaf: false,
+            ),
       super('FfiCall.Int64x02', isLeaf: isLeaf);
 
   @override
@@ -1278,18 +1255,15 @@ class Int64x04 extends FfiBenchmarkBase {
   final Function4int f;
 
   Int64x04({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction4Int64, Function4int>(
-                    'Function4Int64',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction4Int64, Function4int>(
-                    'Function4Int64',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction4Int64, Function4int>(
+              'Function4Int64',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction4Int64, Function4int>(
+              'Function4Int64',
+              isLeaf: false,
+            ),
       super('FfiCall.Int64x04', isLeaf: isLeaf);
 
   @override
@@ -1338,18 +1312,17 @@ class Int64x10 extends FfiBenchmarkBase {
   final Function10int f;
 
   Int64x10({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction10Int64, Function10int>(
-                    'Function10Int64',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction10Int64, Function10int>(
-                    'Function10Int64',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction10Int64, Function10int>(
+                  'Function10Int64',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction10Int64, Function10int>(
+                  'Function10Int64',
+                  isLeaf: false,
+                ),
       super('FfiCall.Int64x10', isLeaf: isLeaf);
 
   @override
@@ -1420,18 +1393,17 @@ class Int64x20 extends FfiBenchmarkBase {
   final Function20int f;
 
   Int64x20({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction20Int64, Function20int>(
-                    'Function20Int64',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction20Int64, Function20int>(
-                    'Function20Int64',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction20Int64, Function20int>(
+                  'Function20Int64',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction20Int64, Function20int>(
+                  'Function20Int64',
+                  isLeaf: false,
+                ),
       super('FfiCall.Int64x20', isLeaf: isLeaf);
 
   @override
@@ -1564,18 +1536,15 @@ class Uint8x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Uint8x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint8, Function1int>(
-                    'Function1Uint8',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint8, Function1int>(
-                    'Function1Uint8',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction1Uint8, Function1int>(
+              'Function1Uint8',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction1Uint8, Function1int>(
+              'Function1Uint8',
+              isLeaf: false,
+            ),
       super('FfiCall.Uint8x01', isLeaf: isLeaf);
 
   @override
@@ -1624,18 +1593,17 @@ class Uint16x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Uint16x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint16, Function1int>(
-                    'Function1Uint16',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint16, Function1int>(
-                    'Function1Uint16',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction1Uint16, Function1int>(
+                  'Function1Uint16',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction1Uint16, Function1int>(
+                  'Function1Uint16',
+                  isLeaf: false,
+                ),
       super('FfiCall.Uint16x01', isLeaf: isLeaf);
 
   @override
@@ -1684,18 +1652,17 @@ class Uint32x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Uint32x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint32, Function1int>(
-                    'Function1Uint32',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint32, Function1int>(
-                    'Function1Uint32',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction1Uint32, Function1int>(
+                  'Function1Uint32',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction1Uint32, Function1int>(
+                  'Function1Uint32',
+                  isLeaf: false,
+                ),
       super('FfiCall.Uint32x01', isLeaf: isLeaf);
 
   @override
@@ -1744,18 +1711,17 @@ class Uint64x01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Uint64x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint64, Function1int>(
-                    'Function1Uint64',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Uint64, Function1int>(
-                    'Function1Uint64',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction1Uint64, Function1int>(
+                  'Function1Uint64',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction1Uint64, Function1int>(
+                  'Function1Uint64',
+                  isLeaf: false,
+                ),
       super('FfiCall.Uint64x01', isLeaf: isLeaf);
 
   @override
@@ -1804,18 +1770,17 @@ class Floatx01 extends FfiBenchmarkBase {
   final Function1double f;
 
   Floatx01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Float, Function1double>(
-                    'Function1Float',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Float, Function1double>(
-                    'Function1Float',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction1Float, Function1double>(
+                  'Function1Float',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction1Float, Function1double>(
+                  'Function1Float',
+                  isLeaf: false,
+                ),
       super('FfiCall.Floatx01', isLeaf: isLeaf);
 
   @override
@@ -1867,18 +1832,17 @@ class Floatx02 extends FfiBenchmarkBase {
   final Function2double f;
 
   Floatx02({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction2Float, Function2double>(
-                    'Function2Float',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction2Float, Function2double>(
-                    'Function2Float',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction2Float, Function2double>(
+                  'Function2Float',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction2Float, Function2double>(
+                  'Function2Float',
+                  isLeaf: false,
+                ),
       super('FfiCall.Floatx02', isLeaf: isLeaf);
 
   @override
@@ -1930,18 +1894,17 @@ class Floatx04 extends FfiBenchmarkBase {
   final Function4double f;
 
   Floatx04({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction4Float, Function4double>(
-                    'Function4Float',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction4Float, Function4double>(
-                    'Function4Float',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction4Float, Function4double>(
+                  'Function4Float',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction4Float, Function4double>(
+                  'Function4Float',
+                  isLeaf: false,
+                ),
       super('FfiCall.Floatx04', isLeaf: isLeaf);
 
   @override
@@ -1993,18 +1956,17 @@ class Floatx10 extends FfiBenchmarkBase {
   final Function10double f;
 
   Floatx10({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction10Float, Function10double>(
-                    'Function10Float',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction10Float, Function10double>(
-                    'Function10Float',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction10Float, Function10double>(
+                  'Function10Float',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction10Float, Function10double>(
+                  'Function10Float',
+                  isLeaf: false,
+                ),
       super('FfiCall.Floatx10', isLeaf: isLeaf);
 
   @override
@@ -2089,18 +2051,17 @@ class Floatx20 extends FfiBenchmarkBase {
   final Function20double f;
 
   Floatx20({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction20Float, Function20double>(
-                    'Function20Float',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction20Float, Function20double>(
-                    'Function20Float',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction20Float, Function20double>(
+                  'Function20Float',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction20Float, Function20double>(
+                  'Function20Float',
+                  isLeaf: false,
+                ),
       super('FfiCall.Floatx20', isLeaf: isLeaf);
 
   @override
@@ -2257,18 +2218,17 @@ class Doublex01 extends FfiBenchmarkBase {
   final Function1double f;
 
   Doublex01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Double, Function1double>(
-                    'Function1Double',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Double, Function1double>(
-                    'Function1Double',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction1Double, Function1double>(
+                  'Function1Double',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction1Double, Function1double>(
+                  'Function1Double',
+                  isLeaf: false,
+                ),
       super('FfiCall.Doublex01', isLeaf: isLeaf);
 
   @override
@@ -2320,18 +2280,17 @@ class Doublex02 extends FfiBenchmarkBase {
   final Function2double f;
 
   Doublex02({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction2Double, Function2double>(
-                    'Function2Double',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction2Double, Function2double>(
-                    'Function2Double',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction2Double, Function2double>(
+                  'Function2Double',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction2Double, Function2double>(
+                  'Function2Double',
+                  isLeaf: false,
+                ),
       super('FfiCall.Doublex02', isLeaf: isLeaf);
 
   @override
@@ -2383,18 +2342,17 @@ class Doublex04 extends FfiBenchmarkBase {
   final Function4double f;
 
   Doublex04({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction4Double, Function4double>(
-                    'Function4Double',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction4Double, Function4double>(
-                    'Function4Double',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction4Double, Function4double>(
+                  'Function4Double',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction4Double, Function4double>(
+                  'Function4Double',
+                  isLeaf: false,
+                ),
       super('FfiCall.Doublex04', isLeaf: isLeaf);
 
   @override
@@ -2446,18 +2404,17 @@ class Doublex10 extends FfiBenchmarkBase {
   final Function10double f;
 
   Doublex10({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction10Double, Function10double>(
-                    'Function10Double',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction10Double, Function10double>(
-                    'Function10Double',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction10Double, Function10double>(
+                  'Function10Double',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction10Double, Function10double>(
+                  'Function10Double',
+                  isLeaf: false,
+                ),
       super('FfiCall.Doublex10', isLeaf: isLeaf);
 
   @override
@@ -2542,18 +2499,17 @@ class Doublex20 extends FfiBenchmarkBase {
   final Function20double f;
 
   Doublex20({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction20Double, Function20double>(
-                    'Function20Double',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction20Double, Function20double>(
-                    'Function20Double',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions
+                .lookupFunction<NativeFunction20Double, Function20double>(
+                  'Function20Double',
+                  isLeaf: true,
+                )
+          : ffiTestFunctions
+                .lookupFunction<NativeFunction20Double, Function20double>(
+                  'Function20Double',
+                  isLeaf: false,
+                ),
       super('FfiCall.Doublex20', isLeaf: isLeaf);
 
   @override
@@ -2710,16 +2666,15 @@ class PointerUint8x01 extends FfiBenchmarkBase {
   final Function1PointerUint8 f;
 
   PointerUint8x01({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions.lookupFunction<
-                NativeFunction1PointerUint8,
-                Function1PointerUint8
-              >('Function1PointerUint8', isLeaf: true)
-              : ffiTestFunctions.lookupFunction<
-                NativeFunction1PointerUint8,
-                Function1PointerUint8
-              >('Function1PointerUint8', isLeaf: false),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<
+              NativeFunction1PointerUint8,
+              Function1PointerUint8
+            >('Function1PointerUint8', isLeaf: true)
+          : ffiTestFunctions.lookupFunction<
+              NativeFunction1PointerUint8,
+              Function1PointerUint8
+            >('Function1PointerUint8', isLeaf: false),
       super('FfiCall.PointerUint8x01', isLeaf: isLeaf);
 
   Pointer<Uint8> p1 = nullptr;
@@ -2812,16 +2767,15 @@ class PointerUint8x02 extends FfiBenchmarkBase {
   final Function2PointerUint8 f;
 
   PointerUint8x02({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions.lookupFunction<
-                NativeFunction2PointerUint8,
-                Function2PointerUint8
-              >('Function2PointerUint8', isLeaf: true)
-              : ffiTestFunctions.lookupFunction<
-                NativeFunction2PointerUint8,
-                Function2PointerUint8
-              >('Function2PointerUint8', isLeaf: false),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<
+              NativeFunction2PointerUint8,
+              Function2PointerUint8
+            >('Function2PointerUint8', isLeaf: true)
+          : ffiTestFunctions.lookupFunction<
+              NativeFunction2PointerUint8,
+              Function2PointerUint8
+            >('Function2PointerUint8', isLeaf: false),
       super('FfiCall.PointerUint8x02', isLeaf: isLeaf);
 
   Pointer<Uint8> p1 = nullptr;
@@ -2926,16 +2880,15 @@ class PointerUint8x04 extends FfiBenchmarkBase {
   final Function4PointerUint8 f;
 
   PointerUint8x04({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions.lookupFunction<
-                NativeFunction4PointerUint8,
-                Function4PointerUint8
-              >('Function4PointerUint8', isLeaf: true)
-              : ffiTestFunctions.lookupFunction<
-                NativeFunction4PointerUint8,
-                Function4PointerUint8
-              >('Function4PointerUint8', isLeaf: false),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<
+              NativeFunction4PointerUint8,
+              Function4PointerUint8
+            >('Function4PointerUint8', isLeaf: true)
+          : ffiTestFunctions.lookupFunction<
+              NativeFunction4PointerUint8,
+              Function4PointerUint8
+            >('Function4PointerUint8', isLeaf: false),
       super('FfiCall.PointerUint8x04', isLeaf: isLeaf);
 
   Pointer<Uint8> p1 = nullptr;
@@ -3056,16 +3009,15 @@ class PointerUint8x10 extends FfiBenchmarkBase {
   final Function10PointerUint8 f;
 
   PointerUint8x10({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions.lookupFunction<
-                NativeFunction10PointerUint8,
-                Function10PointerUint8
-              >('Function10PointerUint8', isLeaf: true)
-              : ffiTestFunctions.lookupFunction<
-                NativeFunction10PointerUint8,
-                Function10PointerUint8
-              >('Function10PointerUint8', isLeaf: false),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<
+              NativeFunction10PointerUint8,
+              Function10PointerUint8
+            >('Function10PointerUint8', isLeaf: true)
+          : ffiTestFunctions.lookupFunction<
+              NativeFunction10PointerUint8,
+              Function10PointerUint8
+            >('Function10PointerUint8', isLeaf: false),
       super('FfiCall.PointerUint8x10', isLeaf: isLeaf);
 
   Pointer<Uint8> p1 = nullptr;
@@ -3234,16 +3186,15 @@ class PointerUint8x20 extends FfiBenchmarkBase {
   final Function20PointerUint8 f;
 
   PointerUint8x20({bool isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions.lookupFunction<
-                NativeFunction20PointerUint8,
-                Function20PointerUint8
-              >('Function20PointerUint8', isLeaf: true)
-              : ffiTestFunctions.lookupFunction<
-                NativeFunction20PointerUint8,
-                Function20PointerUint8
-              >('Function20PointerUint8', isLeaf: false),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<
+              NativeFunction20PointerUint8,
+              Function20PointerUint8
+            >('Function20PointerUint8', isLeaf: true)
+          : ffiTestFunctions.lookupFunction<
+              NativeFunction20PointerUint8,
+              Function20PointerUint8
+            >('Function20PointerUint8', isLeaf: false),
       super('FfiCall.PointerUint8x20', isLeaf: isLeaf);
 
   Pointer<Uint8> p1 = nullptr;

@@ -46,7 +46,8 @@ extension Utf8Helpers on Pointer<Utf8> {
   /// Returns a Dart string containing the decoded code points.
   String contents() {
     final int length = strlen;
-    return utf8.decode(Uint8List.view(
-        this.cast<Uint8>().asTypedList(length).buffer, 0, length));
+    return utf8.decode(
+      Uint8List.view(this.cast<Uint8>().asTypedList(length).buffer, 0, length),
+    );
   }
 }

@@ -63,18 +63,15 @@ class Int64Mintx01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Int64Mintx01({isLeaf = false})
-    : f =
-          isLeaf
-              ? ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int64, Function1int>(
-                    'Function1Int64',
-                    isLeaf: true,
-                  )
-              : ffiTestFunctions
-                  .lookupFunction<NativeFunction1Int64, Function1int>(
-                    'Function1Int64',
-                    isLeaf: false,
-                  ),
+    : f = isLeaf
+          ? ffiTestFunctions.lookupFunction<NativeFunction1Int64, Function1int>(
+              'Function1Int64',
+              isLeaf: true,
+            )
+          : ffiTestFunctions.lookupFunction<NativeFunction1Int64, Function1int>(
+              'Function1Int64',
+              isLeaf: false,
+            ),
       super('FfiCall.Int64Mintx01', isLeaf: isLeaf);
 
   @override
