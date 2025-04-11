@@ -16,6 +16,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../analysis_server_base.dart';
 import '../../lsp/code_actions_refactor_test.dart';
+import '../../utils/message_scheduler_test_view.dart';
 import '../../utils/test_code_extensions.dart';
 
 void main() {
@@ -25,8 +26,8 @@ void main() {
   });
 }
 
-void _assertLogContents(MessageScheduler messageScheduler, String expected) {
-  var actual = _getLogContents(messageScheduler.testView!.messageLog);
+void _assertLogContents(MessageSchedulerTestView testView, String expected) {
+  var actual = _getLogContents(testView.messageLog);
   if (actual != expected) {
     print('-------- Actual --------');
     print('$actual------------------------');
@@ -58,7 +59,7 @@ class LegacyServerMessageSchedulerTest extends PubPackageAnalysisServerTest {
   Future<void> test_initialize() async {
     await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
-    _assertLogContents(messageScheduler, r'''
+    _assertLogContents(testView!, r'''
 Incoming LegacyMessage: analysis.setAnalysisRoots
 Entering process messages loop
   Start LegacyMessage: analysis.setAnalysisRoots
@@ -78,7 +79,7 @@ Exit process messages loop
     futures.add(handleSuccessfulRequest(request));
     await Future.wait(futures);
     await waitForTasksFinished();
-    _assertLogContents(messageScheduler, r'''
+    _assertLogContents(testView!, r'''
 Incoming LegacyMessage: analysis.setAnalysisRoots
 Entering process messages loop
   Start LegacyMessage: analysis.setAnalysisRoots
@@ -148,7 +149,7 @@ void f() {
       PerformRefactorCommandHandler.delayAfterResolveForTests = null;
     }
 
-    _assertLogContents(messageScheduler, r'''
+    _assertLogContents(testView!, r'''
 Incoming RequestMessage: initialize
 Entering process messages loop
   Start LspMessage: initialize
@@ -208,7 +209,7 @@ class B {
     await Future.wait(futures);
     await pumpEventQueue(times: 5000);
 
-    _assertLogContents(messageScheduler, r'''
+    _assertLogContents(testView!, r'''
 Incoming RequestMessage: initialize
 Entering process messages loop
   Start LspMessage: initialize
@@ -245,7 +246,7 @@ Exit process messages loop
     await initialize();
     await initialAnalysis;
     await pumpEventQueue(times: 5000);
-    _assertLogContents(messageScheduler, r'''
+    _assertLogContents(testView!, r'''
 Incoming RequestMessage: initialize
 Entering process messages loop
   Start LspMessage: initialize
@@ -275,7 +276,7 @@ void main() {
     await Future.wait(futures);
     await pumpEventQueue(times: 5000);
 
-    _assertLogContents(messageScheduler, r'''
+    _assertLogContents(testView!, r'''
 Incoming RequestMessage: initialize
 Entering process messages loop
   Start LspMessage: initialize
@@ -326,7 +327,7 @@ void f() {
     await executeCommand(codeAction.command!);
     await pumpEventQueue(times: 5000);
 
-    _assertLogContents(messageScheduler, r'''
+    _assertLogContents(testView!, r'''
 Incoming RequestMessage: initialize
 Entering process messages loop
   Start LspMessage: initialize

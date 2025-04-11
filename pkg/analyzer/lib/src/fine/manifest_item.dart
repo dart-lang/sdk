@@ -526,6 +526,72 @@ class ManifestMetadata {
   }
 }
 
+class MixinItem extends InterfaceItem {
+  final List<ManifestType> superclassConstraints;
+
+  MixinItem({
+    required super.id,
+    required super.metadata,
+    required super.typeParameters,
+    required super.supertype,
+    required super.interfaces,
+    required super.mixins,
+    required super.declaredMembers,
+    required super.inheritedMembers,
+    required this.superclassConstraints,
+  });
+
+  factory MixinItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required MixinElementImpl2 element,
+  }) {
+    return context.withTypeParameters(
+      element.typeParameters2,
+      (typeParameters) {
+        return MixinItem(
+          id: id,
+          metadata: ManifestMetadata.encode(context, element.metadata2),
+          typeParameters: typeParameters,
+          supertype: element.supertype?.encode(context),
+          mixins: element.mixins.encode(context),
+          interfaces: element.interfaces.encode(context),
+          declaredMembers: {},
+          inheritedMembers: {},
+          superclassConstraints: element.superclassConstraints.encode(context),
+        );
+      },
+    );
+  }
+
+  factory MixinItem.read(SummaryDataReader reader) {
+    return MixinItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      typeParameters: ManifestTypeParameter.readList(reader),
+      declaredMembers: InstanceItem._readDeclaredMembers(reader),
+      supertype: ManifestType.readOptional(reader),
+      mixins: ManifestType.readList(reader),
+      interfaces: ManifestType.readList(reader),
+      inheritedMembers: InterfaceItem._readInheritedMembers(reader),
+      superclassConstraints: ManifestType.readList(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, covariant MixinElementImpl2 element) {
+    return super.match(context, element) &&
+        superclassConstraints.match(context, element.superclassConstraints);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind.mixin_);
+    super.write(sink);
+    superclassConstraints.writeList(sink);
+  }
+}
+
 class TopLevelFunctionItem extends TopLevelItem {
   final ManifestFunctionType functionType;
 
@@ -638,6 +704,8 @@ sealed class TopLevelItem extends ManifestItem {
     switch (kind) {
       case _ManifestItemKind.class_:
         return ClassItem.read(reader);
+      case _ManifestItemKind.mixin_:
+        return MixinItem.read(reader);
       case _ManifestItemKind.topLevelFunction:
         return TopLevelFunctionItem.read(reader);
       case _ManifestItemKind.topLevelGetter:
@@ -699,6 +767,7 @@ class TopLevelSetterItem extends TopLevelItem {
 
 enum _ManifestItemKind {
   class_,
+  mixin_,
   topLevelFunction,
   topLevelGetter,
   topLevelSetter,

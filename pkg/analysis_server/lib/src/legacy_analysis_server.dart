@@ -392,7 +392,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     super.dartFixPromptManager,
     super.providedByteStore,
     super.pluginManager,
-    super.retainDataForTesting,
+    super.messageSchedulerListener,
   }) : lspClientConfiguration = lsp.LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),

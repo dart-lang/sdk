@@ -738,6 +738,8 @@ class LibraryManifestPrinter {
       switch (topLevelItem) {
         case ClassItem():
           _writeClassItem(topLevelItem);
+        case MixinItem():
+          _writeMixinItem(topLevelItem);
         case TopLevelFunctionItem():
           _writeTopLevelFunctionItem(topLevelItem);
         case TopLevelGetterItem():
@@ -773,6 +775,7 @@ class LibraryManifestPrinter {
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);
+        // TODO(scheglov): other types
       });
     }
 
@@ -852,6 +855,46 @@ class LibraryManifestPrinter {
           _writeNode('[${indexed.$1}]', indexed.$2.ast);
         },
       );
+    }
+  }
+
+  void _writeMixinItem(MixinItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
+        // TODO(scheglov): other types
+      });
+    }
+
+    {
+      var declared = item.declaredMembers.sorted;
+      declared = _withoutIgnoredMembers(declared);
+      if (declared.isNotEmpty) {
+        sink.withIndent(() {
+          sink.writelnWithIndent('declaredMembers');
+          sink.withIndent(() {
+            for (var entry in declared) {
+              _writeInstanceItemDeclaredMember(entry.key, entry.value);
+            }
+          });
+        });
+      }
+    }
+
+    {
+      var inherited = item.inheritedMembers.sorted;
+      inherited = _withoutIgnoredMembers(inherited);
+      if (inherited.isNotEmpty) {
+        sink.withIndent(() {
+          sink.writelnWithIndent('inheritedMembers');
+          sink.withIndent(() {
+            for (var entry in inherited) {
+              _writeNamedId(entry.key, entry.value);
+            }
+          });
+        });
+      }
     }
   }
 

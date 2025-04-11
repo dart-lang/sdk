@@ -28,6 +28,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 import 'constants.dart';
 import 'mocks.dart';
 import 'support/configuration_files.dart';
+import 'utils/message_scheduler_test_view.dart';
 
 // TODO(scheglov): This is duplicate with pkg/linter/test/rule_test_support.dart.
 // Keep them as consistent with each other as they are today. Ultimately combine
@@ -96,6 +97,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
+  MessageSchedulerTestView? testView;
   late final LegacyAnalysisServer server;
 
   DartFixPromptManager? dartFixPromptManager;
@@ -198,6 +200,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
     serverChannel.notifications.listen(processNotification);
 
+    testView = retainDataForTesting ? MessageSchedulerTestView() : null;
     server = LegacyAnalysisServer(
       serverChannel,
       resourceProvider,
@@ -209,7 +212,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,
-      retainDataForTesting: retainDataForTesting,
+      messageSchedulerListener: testView,
     );
 
     server.completionState.budgetDuration = const Duration(seconds: 30);

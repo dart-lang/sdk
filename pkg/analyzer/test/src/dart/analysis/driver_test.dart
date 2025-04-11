@@ -13009,6 +13009,2153 @@ int get a => 0;
     );
   }
 
+  test_manifest_mixin_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_field_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final a = 0;
+  final b = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          b: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final a = 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_value_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_value_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static const a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static const a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_value_static_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_field_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('0')
+  var b = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          a=: #M2
+          b: #M3
+          b=: #M4
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('1')
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          a=: #M2
+          b: #M5
+          b=: #M6
+''',
+    );
+  }
+
+  test_manifest_mixin_field_private_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final _a = 0;
+  final b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          b: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_private_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static const _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static const _a = 0;
+  static const b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          b: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_private_var() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  var _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          _a=: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  var _a = 0;
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a: #M1
+          _a=: #M2
+          b: #M3
+          b=: #M4
+''',
+    );
+  }
+
+  test_manifest_mixin_field_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int? a;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          a=: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  double? a;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M3
+          a=: #M4
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+
+mixin B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+mixin B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T get foo => 0;
+}
+
+mixin B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T get foo => 0;
+  T get bar => 0;
+}
+
+mixin B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_on() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+
+mixin B on A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+mixin B on A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_on_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T get foo => 0;
+}
+
+mixin B on A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T get foo => 0;
+  T get bar => 0;
+}
+
+mixin B on A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M1
+          foo: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('1')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M1
+          foo: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get _foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get _foo => 0;
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+          bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get _foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static int get _foo => 0;
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+          bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_returnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+            returnType: int @ dart:core
+''',
+      updatedCode: r'''
+mixin A {
+  double get foo => 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+            returnType: double @ dart:core
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static int get foo => 0;
+  static int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M2
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static double get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_interfacesAdd() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin A implements B {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M2
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_interfacesRemove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A implements B {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M2
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_interfacesReplace() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A implements B {}
+mixin B {}
+mixin C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+''',
+      updatedCode: r'''
+mixin A implements C {}
+mixin B {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M3
+      B: #M1
+      C: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+mixin A {}
+@Deprecated('0')
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+mixin A {}
+@Deprecated('1')
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M2
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+
+mixin B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+
+mixin B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_on() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+
+mixin B on A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+
+mixin B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_on_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B extends A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+mixin B extends A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M3
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          bar: #M3
+          foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M1
+          foo: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('1')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M1
+          foo: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_method_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void _foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void _foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+          bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static void _foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static void _foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo: #M1
+          bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar: #M1
+          foo: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_returnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+            functionType: FunctionType
+              returnType: int @ dart:core
+''',
+      updatedCode: r'''
+mixin A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+            functionType: FunctionType
+              returnType: double @ dart:core
+''',
+    );
+  }
+
+  test_manifest_mixin_method_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_static_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_typeParameter() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  Map<T, U> foo<U>() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        typeParameters
+          bound: <null>
+        declaredMembers
+          foo: #M1
+            functionType: FunctionType
+              typeParameters
+                bound: <null>
+              returnType: Map @ dart:core
+                typeParameter#1
+                typeParameter#0
+''',
+      updatedCode: r'''
+mixin A<T> {
+  Map<T, U> foo<U>() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        typeParameters
+          bound: <null>
+        declaredMembers
+          bar: #M2
+            functionType: FunctionType
+              returnType: void
+          foo: #M1
+            functionType: FunctionType
+              typeParameters
+                bound: <null>
+              returnType: Map @ dart:core
+                typeParameter#1
+                typeParameter#0
+''',
+    );
+  }
+
+  test_manifest_mixin_method_typeParameter_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo<T>() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo<T, U>() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_typeParameter_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo<T, U>() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo<T>() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_onAdd_direct() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin A on B {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M2
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_onAdd_indirect() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A on B {}
+mixin B {}
+mixin C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+''',
+      updatedCode: r'''
+mixin A on B {}
+mixin B on C {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M3
+      B: #M4
+      C: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_onChange() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A on B {}
+mixin B {}
+mixin C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+''',
+      updatedCode: r'''
+mixin A on C {}
+mixin B {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M3
+      B: #M1
+      C: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_private() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin _A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _A: #M0
+''',
+      updatedCode: r'''
+mixin _A {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M1
+      _A: #M0
+''',
+    );
+  }
+
+  test_manifest_mixin_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+
+mixin B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+mixin B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_on() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+
+mixin B on A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+mixin B on A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_on_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B on A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+mixin B on A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M3
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          bar=: #M3
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M1
+          foo=: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('1')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M1
+          foo=: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+          bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo=: #M1
+          bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar=: #M2
+          foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static_valueType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_valueType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+            valueType: int @ dart:core
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+            valueType: double @ dart:core
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
