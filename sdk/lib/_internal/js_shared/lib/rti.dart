@@ -981,7 +981,7 @@ Rti _instanceType(Object? object) {
 
 String instanceTypeName(Object? object) {
   Rti rti = instanceType(object);
-  return _rtiToString(rti, null);
+  return rtiToString(rti);
 }
 
 Rti _instanceTypeFromConstructor(Object? instance) {
@@ -1169,7 +1169,7 @@ class _Type implements Type {
   }
 
   @override
-  String toString() => _rtiToString(_rti, null);
+  String toString() => rtiToString(_rti);
 }
 
 Rti _getTypeRti(Type type) => _Utils.as_Type(type)._rti;
@@ -1467,7 +1467,7 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
 }
 
 _TypeError _errorForAsCheck(Object? object, Rti testRti) {
-  String message = _Error.compose(object, _rtiToString(testRti, null));
+  String message = _Error.compose(object, rtiToString(testRti));
   return _TypeError.fromMessage(message);
 }
 
@@ -1477,7 +1477,7 @@ Rti checkTypeBound(Rti type, Rti bound, String variable, String methodName) {
   if (isSubtype(_theUniverse(), type, bound)) return type;
   String message =
       "The type argument '${_rtiToString(type, null)}' is not"
-      " a subtype of the type variable bound '${_rtiToString(bound, null)}'"
+      " a subtype of the type variable bound '${rtiToString(bound)}'"
       " of type variable '$variable' in '$methodName'.";
   throw _TypeError.fromMessage(message);
 }
@@ -1496,7 +1496,7 @@ class _Error extends Error {
   static String compose(Object? object, String checkedTypeDescription) {
     String objectDescription = Error.safeToString(object);
     Rti objectRti = _structuralTypeOf(object);
-    String objectTypeDescription = _rtiToString(objectRti, null);
+    String objectTypeDescription = rtiToString(objectRti);
     return "${objectDescription}:"
         " type '${objectTypeDescription}'"
         " is not a subtype of type '${checkedTypeDescription}'";
@@ -1829,10 +1829,6 @@ String _functionRtiToString(
 }
 
 /// Returns a human readable version of [rti].
-///
-/// The result is equivalent to `createRuntimeType(rti).toString()`.
-///
-/// Called by the DDC runtime library for type error messages.
 String rtiToString(Object rti) => _rtiToString(_Utils.asRti(rti), null);
 
 String _rtiToString(Rti rti, List<String>? genericContext) {
