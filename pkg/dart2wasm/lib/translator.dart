@@ -294,6 +294,7 @@ class Translator with KernelNodes {
     wasmF64Class: w.NumType.f64,
     wasmAnyRefClass: const w.RefType.any(nullable: false),
     wasmExternRefClass: const w.RefType.extern(nullable: false),
+    wasmI31RefClass: const w.RefType.i31(nullable: false),
     wasmFuncRefClass: const w.RefType.func(nullable: false),
     wasmEqRefClass: const w.RefType.eq(nullable: false),
     wasmStructRefClass: const w.RefType.struct(nullable: false),
