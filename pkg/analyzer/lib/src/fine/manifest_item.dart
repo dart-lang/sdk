@@ -14,7 +14,7 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
-class ClassItem extends InterfaceItem {
+class ClassItem extends InterfaceItem<ClassElementImpl2> {
   ClassItem({
     required super.id,
     required super.metadata,
@@ -69,7 +69,8 @@ class ClassItem extends InterfaceItem {
 }
 
 /// The item for [InstanceElementImpl2].
-sealed class InstanceItem extends TopLevelItem {
+sealed class InstanceItem<E extends InstanceElementImpl2>
+    extends TopLevelItem<E> {
   final List<ManifestTypeParameter> typeParameters;
   final Map<LookupName, InstanceItemMemberItem> declaredMembers;
 
@@ -105,7 +106,7 @@ sealed class InstanceItem extends TopLevelItem {
   }
 }
 
-class InstanceItemGetterItem extends InstanceItemMemberItem {
+class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
   final ManifestType returnType;
   final ManifestNode? constInitializer;
 
@@ -145,10 +146,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   }
 
   @override
-  bool match(
-    MatchContext context,
-    covariant GetterElementImpl element,
-  ) {
+  bool match(MatchContext context, GetterElementImpl element) {
     return super.match(context, element) &&
         returnType.match(context, element.returnType) &&
         constInitializer.match(context, element.constInitializer);
@@ -163,7 +161,8 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
   }
 }
 
-sealed class InstanceItemMemberItem extends ManifestItem {
+sealed class InstanceItemMemberItem<E extends ExecutableElementImpl2>
+    extends ManifestItem<E> {
   final bool isStatic;
 
   InstanceItemMemberItem({
@@ -172,7 +171,19 @@ sealed class InstanceItemMemberItem extends ManifestItem {
     required this.isStatic,
   });
 
-  factory InstanceItemMemberItem.read(SummaryDataReader reader) {
+  @override
+  bool match(MatchContext context, E element) {
+    return super.match(context, element) && element.isStatic == isStatic;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isStatic);
+  }
+
+  static InstanceItemMemberItem<ExecutableElementImpl2> read(
+      SummaryDataReader reader) {
     var kind = reader.readEnum(_ManifestItemKind2.values);
     switch (kind) {
       case _ManifestItemKind2.instanceGetter:
@@ -185,23 +196,10 @@ sealed class InstanceItemMemberItem extends ManifestItem {
         return InterfaceItemConstructorItem.read(reader);
     }
   }
-
-  @override
-  bool match(
-    MatchContext context,
-    covariant ExecutableElementImpl2 element,
-  ) {
-    return super.match(context, element) && element.isStatic == isStatic;
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(isStatic);
-  }
 }
 
-class InstanceItemMethodItem extends InstanceItemMemberItem {
+class InstanceItemMethodItem
+    extends InstanceItemMemberItem<MethodElementImpl2> {
   final ManifestFunctionType functionType;
 
   InstanceItemMethodItem({
@@ -234,10 +232,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   }
 
   @override
-  bool match(
-    MatchContext context,
-    covariant MethodElementImpl2 element,
-  ) {
+  bool match(MatchContext context, MethodElementImpl2 element) {
     return super.match(context, element) &&
         functionType.match(context, element.type);
   }
@@ -250,7 +245,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   }
 }
 
-class InstanceItemSetterItem extends InstanceItemMemberItem {
+class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
   final ManifestType valueType;
 
   InstanceItemSetterItem({
@@ -286,10 +281,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem {
   }
 
   @override
-  bool match(
-    MatchContext context,
-    covariant SetterElementImpl element,
-  ) {
+  bool match(MatchContext context, SetterElementImpl element) {
     return super.match(context, element) &&
         valueType.match(context, element.formalParameters[0].type);
   }
@@ -303,7 +295,8 @@ class InstanceItemSetterItem extends InstanceItemMemberItem {
 }
 
 /// The item for [InterfaceElementImpl2].
-sealed class InterfaceItem extends InstanceItem {
+sealed class InterfaceItem<E extends InterfaceElementImpl2>
+    extends InstanceItem<E> {
   final ManifestType? supertype;
   final List<ManifestType> interfaces;
   final List<ManifestType> mixins;
@@ -334,7 +327,7 @@ sealed class InterfaceItem extends InstanceItem {
   }
 
   @override
-  bool match(MatchContext context, covariant InterfaceElementImpl2 element) {
+  bool match(MatchContext context, E element) {
     context.addTypeParameters(element.typeParameters2);
     return super.match(context, element) &&
         supertype.match(context, element.supertype) &&
@@ -365,7 +358,8 @@ sealed class InterfaceItem extends InstanceItem {
   }
 }
 
-class InterfaceItemConstructorItem extends InstanceItemMemberItem {
+class InterfaceItemConstructorItem
+    extends InstanceItemMemberItem<ConstructorElementImpl2> {
   final bool isConst;
   final bool isFactory;
   final ManifestFunctionType functionType;
@@ -407,10 +401,7 @@ class InterfaceItemConstructorItem extends InstanceItemMemberItem {
   }
 
   @override
-  bool match(
-    MatchContext context,
-    covariant ConstructorElementImpl2 element,
-  ) {
+  bool match(MatchContext context, ConstructorElementImpl2 element) {
     return super.match(context, element) &&
         isConst == element.isConst &&
         isFactory == element.isFactory &&
@@ -458,7 +449,7 @@ class ManifestAnnotation {
   }
 }
 
-sealed class ManifestItem {
+sealed class ManifestItem<E extends AnnotatableElementImpl> {
   /// The unique identifier of this item.
   final ManifestItemId id;
   final ManifestMetadata metadata;
@@ -469,7 +460,7 @@ sealed class ManifestItem {
   });
 
   @mustCallSuper
-  bool match(MatchContext context, AnnotatableElementImpl element) {
+  bool match(MatchContext context, E element) {
     return metadata.match(context, element.effectiveMetadata);
   }
 
@@ -526,7 +517,7 @@ class ManifestMetadata {
   }
 }
 
-class MixinItem extends InterfaceItem {
+class MixinItem extends InterfaceItem<MixinElementImpl2> {
   final List<ManifestType> superclassConstraints;
 
   MixinItem({
@@ -581,7 +572,7 @@ class MixinItem extends InterfaceItem {
   }
 
   @override
-  bool match(MatchContext context, covariant MixinElementImpl2 element) {
+  bool match(MatchContext context, MixinElementImpl2 element) {
     return super.match(context, element) &&
         superclassConstraints.match(context, element.superclassConstraints);
   }
@@ -594,7 +585,7 @@ class MixinItem extends InterfaceItem {
   }
 }
 
-class TopLevelFunctionItem extends TopLevelItem {
+class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
   final ManifestFunctionType functionType;
 
   TopLevelFunctionItem({
@@ -624,10 +615,7 @@ class TopLevelFunctionItem extends TopLevelItem {
   }
 
   @override
-  bool match(
-    MatchContext context,
-    covariant TopLevelFunctionElementImpl element,
-  ) {
+  bool match(MatchContext context, TopLevelFunctionElementImpl element) {
     return super.match(context, element) &&
         functionType.match(context, element.type);
   }
@@ -640,7 +628,7 @@ class TopLevelFunctionItem extends TopLevelItem {
   }
 }
 
-class TopLevelGetterItem extends TopLevelItem {
+class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
   final ManifestType returnType;
   final ManifestNode? constInitializer;
 
@@ -677,10 +665,7 @@ class TopLevelGetterItem extends TopLevelItem {
   }
 
   @override
-  bool match(
-    MatchContext context,
-    covariant GetterElementImpl element,
-  ) {
+  bool match(MatchContext context, GetterElementImpl element) {
     return super.match(context, element) &&
         returnType.match(context, element.returnType) &&
         constInitializer.match(context, element.constInitializer);
@@ -695,13 +680,14 @@ class TopLevelGetterItem extends TopLevelItem {
   }
 }
 
-sealed class TopLevelItem extends ManifestItem {
+sealed class TopLevelItem<E extends AnnotatableElementImpl>
+    extends ManifestItem<E> {
   TopLevelItem({
     required super.id,
     required super.metadata,
   });
 
-  factory TopLevelItem.read(SummaryDataReader reader) {
+  static TopLevelItem<AnnotatableElementImpl> read(SummaryDataReader reader) {
     var kind = reader.readEnum(_ManifestItemKind.values);
     switch (kind) {
       case _ManifestItemKind.class_:
@@ -718,7 +704,7 @@ sealed class TopLevelItem extends ManifestItem {
   }
 }
 
-class TopLevelSetterItem extends TopLevelItem {
+class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   final ManifestType valueType;
 
   TopLevelSetterItem({
@@ -751,10 +737,7 @@ class TopLevelSetterItem extends TopLevelItem {
   }
 
   @override
-  bool match(
-    MatchContext context,
-    covariant SetterElementImpl element,
-  ) {
+  bool match(MatchContext context, SetterElementImpl element) {
     return super.match(context, element) &&
         valueType.match(context, element.formalParameters[0].type);
   }
