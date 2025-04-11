@@ -5496,6 +5496,414 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
     return super.tearDown();
   }
 
+  test_dependency_class_getter_inherited_fromGeneric_extends_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B extends A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B extends A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M5
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_getter_inherited_fromGeneric_implements_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B implements A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B implements A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M5
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_getter_inherited_fromGeneric_with_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B with A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B with A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M5
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_getter_returnType() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -7434,6 +7842,414 @@ class A {
     );
   }
 
+  test_dependency_class_setter_inherited_fromGeneric_extends_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B extends A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B extends A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M5
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_inherited_fromGeneric_implements_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B implements A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B implements A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M5
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_inherited_fromGeneric_with_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B with A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B with A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M5
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_setter_remove() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -8619,6 +9435,142 @@ final a = 1.2;
         a: <null>
       package:test/b.dart
         a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_getter_inherited_fromGeneric_on_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A<T> {
+  T get foo {}
+}
+
+mixin B on A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M2
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A<T> {
+  T get foo {}
+}
+
+mixin B on A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+      B: #M5
+        inheritedMembers
+          foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: #M1
+          foo=: <null>
 [status] idle
 ''',
     );
@@ -10275,6 +11227,142 @@ mixin A {
         A
           foo: <null>
           foo=: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_setter_inherited_fromGeneric_on_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B on A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M2
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B on A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+      B: #M5
+        inheritedMembers
+          foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaceMembers
+      package:test/a.dart
+        B
+          foo: <null>
+          foo=: #M1
 [status] idle
 ''',
     );
