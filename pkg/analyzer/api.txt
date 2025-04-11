@@ -100,6 +100,7 @@ package:analyzer/dart/analysis/features.dart:
     enhanced_parts (static getter: ExperimentalFeature)
     extension_methods (static getter: ExperimentalFeature)
     generic_metadata (static getter: ExperimentalFeature)
+    getter_setter_error (static getter: ExperimentalFeature)
     inference_update_1 (static getter: ExperimentalFeature)
     inference_update_2 (static getter: ExperimentalFeature)
     inference_update_3 (static getter: ExperimentalFeature)
