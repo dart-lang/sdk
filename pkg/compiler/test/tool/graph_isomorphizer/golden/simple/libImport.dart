@@ -19,7 +19,8 @@ mixin M_100 {}
 class T_100 {}
 
 const C_100 iC_100 = const C_100();
-closureC_100(foo) => (C_100 unused) => iC_100.toString() == foo.toString();
+closureC_100(foo) =>
+    (C_100 unused) => iC_100.toString() == foo.toString();
 
 class C_101 {
   const C_101();
@@ -30,7 +31,8 @@ mixin M_101 {}
 class T_101 {}
 
 const C_101 iC_101 = const C_101();
-closureC_101(foo) => (C_101 unused) => iC_101.toString() == foo.toString();
+closureC_101(foo) =>
+    (C_101 unused) => iC_101.toString() == foo.toString();
 
 class C_111 {
   const C_111();
@@ -41,7 +43,8 @@ mixin M_111 {}
 class T_111 {}
 
 const C_111 iC_111 = const C_111();
-closureC_111(foo) => (C_111 unused) => iC_111.toString() == foo.toString();
+closureC_111(foo) =>
+    (C_111 unused) => iC_111.toString() == foo.toString();
 
 class C_010 {
   const C_010();
@@ -52,7 +55,8 @@ mixin M_010 {}
 class T_010 {}
 
 const C_010 iC_010 = const C_010();
-closureC_010(foo) => (C_010 unused) => iC_010.toString() == foo.toString();
+closureC_010(foo) =>
+    (C_010 unused) => iC_010.toString() == foo.toString();
 
 class C_011 {
   const C_011();
@@ -63,7 +67,8 @@ mixin M_011 {}
 class T_011 {}
 
 const C_011 iC_011 = const C_011();
-closureC_011(foo) => (C_011 unused) => iC_011.toString() == foo.toString();
+closureC_011(foo) =>
+    (C_011 unused) => iC_011.toString() == foo.toString();
 
 class C_001 {
   const C_001();
@@ -74,7 +79,8 @@ mixin M_001 {}
 class T_001 {}
 
 const C_001 iC_001 = const C_001();
-closureC_001(foo) => (C_001 unused) => iC_001.toString() == foo.toString();
+closureC_001(foo) =>
+    (C_001 unused) => iC_001.toString() == foo.toString();
 
 class C_101_class_1 extends C_100
     with M_100, M_101, M_111, M_001
