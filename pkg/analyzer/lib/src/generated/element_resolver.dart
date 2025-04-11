@@ -163,6 +163,19 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
+  /// Resolves the dot shorthand invocation, [node].
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
+  FunctionExpressionInvocationImpl? visitDotShorthandInvocation(
+      covariant DotShorthandInvocationImpl node,
+      {List<WhyNotPromotedGetter>? whyNotPromotedArguments,
+      required TypeImpl contextType}) {
+    whyNotPromotedArguments ??= [];
+    return _methodInvocationResolver.resolveDotShorthand(
+        node, whyNotPromotedArguments);
+  }
+
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _resolveAnnotations(node.metadata);
   }

@@ -2281,7 +2281,9 @@ abstract final class CaseClause implements AstNode {
   GuardedPattern get guardedPattern;
 }
 
-final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
+final class CaseClauseImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements CaseClause {
   @override
   final Token caseKeyword;
 
@@ -5407,6 +5409,7 @@ abstract final class DotShorthandInvocation extends InvocationExpression {
 }
 
 final class DotShorthandInvocationImpl extends InvocationExpressionImpl
+    with DotShorthandMixin
     implements DotShorthandInvocation {
   @override
   final Token period;
@@ -5466,6 +5469,13 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 }
 
+base mixin DotShorthandMixin on AstNodeImpl {
+  /// Whether the AST node is a dot shorthand and has a dot shorthand head
+  /// ([DotShorthandInvocation] or [DotShorthandPropertyAccess]) as its
+  /// inner-most target.
+  bool isDotShorthand = false;
+}
+
 /// A node that represents a dot shorthand property access of a field or a
 /// static getter.
 ///
@@ -5483,6 +5493,7 @@ abstract final class DotShorthandPropertyAccess extends Expression {
 }
 
 final class DotShorthandPropertyAccessImpl extends ExpressionImpl
+    with DotShorthandMixin
     implements DotShorthandPropertyAccess {
   @override
   final Token period;

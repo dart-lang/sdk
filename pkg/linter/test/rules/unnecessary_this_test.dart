@@ -166,6 +166,18 @@ class A {
     );
   }
 
+  test_shadowInIfCaseClause() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int? value;
+
+  void m(A a) {
+    if (a case A(:var value) when value != this.value) {}
+  }
+}
+''');
+  }
+
   test_shadowInMethodBody() async {
     await assertNoDiagnostics(r'''
 class C {

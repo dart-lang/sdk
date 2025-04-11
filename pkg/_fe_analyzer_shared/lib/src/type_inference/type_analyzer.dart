@@ -2345,6 +2345,18 @@ mixin TypeAnalyzer<
   /// Queries whether [pattern] is a variable pattern.
   bool isVariablePattern(Node pattern);
 
+  /// Pops the top of the [_dotShorthands] stack when we're finished resolving
+  /// the dot shorthand head that requires the recent-most context.
+  void popDotShorthandContext() {
+    _dotShorthands.removeLast();
+  }
+
+  /// Pushes the [context] onto the stack to use when we resolve the dot
+  /// shorthand head.
+  void pushDotShorthandContext(SharedTypeSchemaView context) {
+    _dotShorthands.add(context);
+  }
+
   /// Returns the type of the property in [receiverType] that corresponds to
   /// the name of the [field].  If the property cannot be resolved, the client
   /// should report an error, and return `dynamic` for recovery.

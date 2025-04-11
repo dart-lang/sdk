@@ -13727,6 +13727,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           foo: #M1
             returnType: int @ dart:core
@@ -13741,6 +13743,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           foo: #M2
             returnType: double @ dart:core
@@ -14368,6 +14372,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           foo: #M1
             functionType: FunctionType
@@ -14383,6 +14389,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           foo: #M2
             functionType: FunctionType
@@ -14503,6 +14511,8 @@ mixin A<T> {
       A: #M0
         typeParameters
           bound: <null>
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           foo: #M1
             functionType: FunctionType
@@ -14525,6 +14535,8 @@ mixin A<T> {
       A: #M0
         typeParameters
           bound: <null>
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           bar: #M2
             functionType: FunctionType
@@ -15180,6 +15192,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           foo=: #M1
             valueType: int @ dart:core
@@ -15194,6 +15208,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         declaredMembers
           foo=: #M2
             valueType: double @ dart:core

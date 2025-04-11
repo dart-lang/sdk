@@ -56,7 +56,7 @@ class MethodInvocationResolver with ScopeHelpers {
   final InvocationInferenceHelper _inferenceHelper;
 
   /// The invocation being resolved.
-  MethodInvocationImpl? _invocation;
+  InvocationExpressionImpl? _invocation;
 
   /// The [Name] object of the invocation being resolved by [resolve].
   Name? _currentName;
@@ -207,6 +207,8 @@ class MethodInvocationResolver with ScopeHelpers {
   FunctionExpressionInvocationImpl? resolveDotShorthand(
       DotShorthandInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments) {
+    _invocation = node;
+
     var contextType = _resolver.getDotShorthandContext().unwrapTypeSchemaView();
     // TODO(kallentu): Dot shorthands work - Support other context types
     if (contextType is InterfaceTypeImpl) {

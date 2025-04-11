@@ -11600,6 +11600,145 @@ main() {
         ]);
       });
     });
+
+    group('Declared variable pattern with matching non-nullable types', () {
+      test('When enabled, guaranteed to match', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('int'), x.pattern(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered `int x` as guaranteed to match a value
+        // with static type `int` since patterns were added to the language
+        // (even though that was not technically guaranteed to be the case when
+        // running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          ifCase(expr('int'), x.pattern(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('List pattern', () {
+      test('When enabled, guaranteed to match non-nullable list', () {
+        h.run([
+          ifCase(expr('List<int>'), listPattern([restPattern()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match non-nullable list', () {
+        // Flow analysis has considered a list pattern as guaranteed to match a
+        // value with static type `List` since patterns were added to the
+        // language (even though that was not technically guaranteed to be the
+        // case when running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('List<int>'), listPattern([restPattern()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Object pattern with matching non-nullable types', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('int'), objectPattern(requiredType: 'int', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered an object pattern as guaranteed to match
+        // a value with a matching static type since patterns were added to the
+        // language (even though that was not technically guaranteed to be the
+        // case when running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), objectPattern(requiredType: 'int', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Record pattern with matching non-nullable type', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('(int,)'),
+              recordPattern([wildcard(type: 'int').recordField()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered a record pattern as guaranteed to match
+        // a value with a matching static type since patterns were added to the
+        // language (even though that was not technically guaranteed to be the
+        // case when running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('(int,)'),
+              recordPattern([wildcard(type: 'int').recordField()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Wildcard pattern with matching non-nullable types', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('int'), wildcard(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered `int _` as guaranteed to match a value
+        // with static type `int` since patterns were added to the language
+        // (even though that was not technically guaranteed to be the case when
+        // running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), wildcard(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
   });
 }
 

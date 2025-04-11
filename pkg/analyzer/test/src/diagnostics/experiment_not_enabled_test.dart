@@ -34,13 +34,13 @@ main() {
 
   test_dotShorthands_disabled() async {
     await assertErrorsInCode(r'''
+// @dart = 3.8
 void main() {
-  Object c = .hash;
+  Object c = .hash(1, 2);
   print(c);
 }
 ''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 27, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 28, 4),
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 42, 1),
     ]);
   }
 
