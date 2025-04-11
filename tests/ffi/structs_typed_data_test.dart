@@ -40,10 +40,9 @@ final class Coordinate extends Struct {
 }
 
 void testStructAllocateDart() {
-  final c1 =
-      Coordinate()
-        ..x = 10.0
-        ..y = 20.0;
+  final c1 = Coordinate()
+    ..x = 10.0
+    ..y = 20.0;
   Expect.equals(10.0, c1.x);
   Expect.equals(20.0, c1.y);
 
@@ -68,10 +67,9 @@ final class SomeStruct extends Struct {
 }
 
 void testUseCreateDirectly() {
-  final c1 =
-      Struct.create<SomeStruct>()
-        ..x = 10.0
-        ..y = 20.0;
+  final c1 = Struct.create<SomeStruct>()
+    ..x = 10.0
+    ..y = 20.0;
   Expect.equals(10.0, c1.x);
   Expect.equals(20.0, c1.y);
 }
@@ -98,10 +96,9 @@ void testOffsets() {
 
 void testOutOfBounds() {
   final typedList = Uint8List(3 * sizeOf<Double>());
-  final c1 =
-      Coordinate.fromTypedList(typedList)
-        ..x = 4
-        ..y = 6;
+  final c1 = Coordinate.fromTypedList(typedList)
+    ..x = 4
+    ..y = 6;
   final view = Uint8List.view(typedList.buffer, 16);
   Expect.equals(8, view.lengthInBytes);
   Expect.throws<RangeError>(() {

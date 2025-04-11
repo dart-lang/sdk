@@ -286,31 +286,40 @@ final handleReadFieldValue = testLibrary
 final trueHandle = testLibrary
     .lookupFunction<Handle Function(), Object Function()>("TrueHandle");
 
-final closureCallbackThroughHandle = testLibrary.lookupFunction<
-  Void Function(Pointer<NativeFunction<Void Function(Handle)>>, Handle),
-  void Function(Pointer<NativeFunction<Void Function(Handle)>>, Object)
->("ClosureCallbackThroughHandle");
+final closureCallbackThroughHandle = testLibrary
+    .lookupFunction<
+      Void Function(Pointer<NativeFunction<Void Function(Handle)>>, Handle),
+      void Function(Pointer<NativeFunction<Void Function(Handle)>>, Object)
+    >("ClosureCallbackThroughHandle");
 
-final returnHandleInCallback = testLibrary.lookupFunction<
-  Handle Function(Pointer<NativeFunction<Handle Function()>>),
-  Object Function(Pointer<NativeFunction<Handle Function()>>)
->("ReturnHandleInCallback");
+final returnHandleInCallback = testLibrary
+    .lookupFunction<
+      Handle Function(Pointer<NativeFunction<Handle Function()>>),
+      Object Function(Pointer<NativeFunction<Handle Function()>>)
+    >("ReturnHandleInCallback");
 
-final handleRecursion = testLibrary.lookupFunction<
-  Handle Function(
-    Handle,
-    Pointer<NativeFunction<Handle Function(Int64)>>,
-    Int64,
-  ),
-  Object Function(Object, Pointer<NativeFunction<Handle Function(Int64)>>, int)
->("HandleRecursion");
+final handleRecursion = testLibrary
+    .lookupFunction<
+      Handle Function(
+        Handle,
+        Pointer<NativeFunction<Handle Function(Int64)>>,
+        Int64,
+      ),
+      Object Function(
+        Object,
+        Pointer<NativeFunction<Handle Function(Int64)>>,
+        int,
+      )
+    >("HandleRecursion");
 
-final propagateErrorWithoutHandle = testLibrary.lookupFunction<
-  Int64 Function(Pointer<NativeFunction<Handle Function()>>),
-  int Function(Pointer<NativeFunction<Handle Function()>>)
->("PropagateErrorWithoutHandle");
+final propagateErrorWithoutHandle = testLibrary
+    .lookupFunction<
+      Int64 Function(Pointer<NativeFunction<Handle Function()>>),
+      int Function(Pointer<NativeFunction<Handle Function()>>)
+    >("PropagateErrorWithoutHandle");
 
-final autoPropagateErrorInHandle = testLibrary.lookupFunction<
-  Handle Function(Pointer<NativeFunction<Handle Function()>>),
-  Object Function(Pointer<NativeFunction<Handle Function()>>)
->("ThrowOnReturnOfError");
+final autoPropagateErrorInHandle = testLibrary
+    .lookupFunction<
+      Handle Function(Pointer<NativeFunction<Handle Function()>>),
+      Object Function(Pointer<NativeFunction<Handle Function()>>)
+    >("ThrowOnReturnOfError");

@@ -40,15 +40,13 @@ void main(List<String> arguments) async {
         simpleAddition,
       );
     case "2":
-      callbackPointer =
-          NativeCallable<SimpleAdditionType>.isolateLocal(
-            simpleAddition,
-          ).nativeFunction;
+      callbackPointer = NativeCallable<SimpleAdditionType>.isolateLocal(
+        simpleAddition,
+      ).nativeFunction;
     case "3":
-      callbackPointer =
-          NativeCallable<SimpleAdditionType>.listener(
-            simpleAddition,
-          ).nativeFunction;
+      callbackPointer = NativeCallable<SimpleAdditionType>.listener(
+        simpleAddition,
+      ).nativeFunction;
     default:
       throw "Unknown";
   }

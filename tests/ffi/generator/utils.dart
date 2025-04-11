@@ -26,16 +26,17 @@ extension TestGeneratorStringExtension on String {
 Future<void> runProcess(String executable, List<String> arguments) async {
   final commandString = [executable, ...arguments].join(' ');
   stdout.writeln('Running `$commandString`.');
-  final process = await Process.start(
-    executable,
-    arguments,
-    runInShell: true,
-    includeParentEnvironment: true,
-  ).then((process) {
-    process.stdout.forEach(stdout.add);
-    process.stderr.forEach(stderr.add);
-    return process;
-  });
+  final process =
+      await Process.start(
+        executable,
+        arguments,
+        runInShell: true,
+        includeParentEnvironment: true,
+      ).then((process) {
+        process.stdout.forEach(stdout.add);
+        process.stderr.forEach(stderr.add);
+        return process;
+      });
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
     final message = 'Command `$commandString` failed with exit code $exitCode.';

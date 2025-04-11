@@ -112,7 +112,8 @@ Future<void> runProcess({
     workingDirectory: workingDirectory?.toFilePath(),
   );
   if (printProcessOutput || result.exitCode != 0) {
-    final processOutputString = '''
+    final processOutputString =
+        '''
 invocation : $executable ${arguments.join(' ')}
 dir        : ${workingDirectory?.toFilePath() ?? Directory.current.path}
 exitCode   : ${result.exitCode}
@@ -189,10 +190,12 @@ Future<void> createDillFile({
           nativeAssetsUri: nativeAssetsUri,
         ),
       ]);
-      final programKernelBytes =
-          await File.fromUri(programDillUri).readAsBytes();
-      final nativeAssetKernelBytes =
-          await File.fromUri(nativeAssetsDillUri).readAsBytes();
+      final programKernelBytes = await File.fromUri(
+        programDillUri,
+      ).readAsBytes();
+      final nativeAssetKernelBytes = await File.fromUri(
+        nativeAssetsDillUri,
+      ).readAsBytes();
       await File.fromUri(
         protobufAwareTreeshaking ? preTreeshakenDill : outputUri,
       ).writeAsBytes([

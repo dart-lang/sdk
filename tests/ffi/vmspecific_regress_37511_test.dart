@@ -66,10 +66,8 @@ final Pointer<Int64> highAddressPointer = Pointer.fromAddress(highAddress);
 // Dynamic library operation helpers.
 final doDlopen = () => dlopenPlatformSpecific("ffi_test_functions");
 
-final doDlsym =
-    () => ffiTestFunctions.lookupFunction<NativeNullaryOp, NullaryOpVoid>(
-      "TriggerGC",
-    );
+final doDlsym = () => ffiTestFunctions
+    .lookupFunction<NativeNullaryOp, NullaryOpVoid>("TriggerGC");
 
 // Trampoline helpers.
 typedef NativeUndenaryOp =
