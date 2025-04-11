@@ -806,6 +806,7 @@ class LibraryBuilder {
     libraryElement.isSynthetic = !libraryFile.exists;
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
     _bindReference(libraryReference, libraryElement);
+    libraryReference.element2 = libraryElement;
 
     var unitContainerRef = libraryReference.getChild('@fragment');
 
