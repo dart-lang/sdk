@@ -26,6 +26,7 @@ import 'constructor_field_initializer_test.dart'
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
+import 'dot_shorthand_invocation_test.dart' as dot_shorthand_invocation;
 import 'enum_test.dart' as enum_resolution;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
@@ -139,6 +140,7 @@ main() {
     constructor_reference.main();
     constructor.main();
     declared_variable_pattern.main();
+    dot_shorthand_invocation.main();
     enum_resolution.main();
     extension_method.main();
     extension_override.main();

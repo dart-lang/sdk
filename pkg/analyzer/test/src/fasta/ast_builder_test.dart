@@ -903,6 +903,28 @@ ConstructorDeclaration
 ''');
   }
 
+  void test_dotShorthand_invocation() {
+    var parseResult = parseStringWithErrors(r'''
+class C {}
+
+void main() {
+  C c = .new();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.dotShorthandInvocation('.new()');
+    assertParsedNodeText(node, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
   void test_enum_base() {
     var parseResult = parseStringWithErrors(r'''
 base enum E { v }

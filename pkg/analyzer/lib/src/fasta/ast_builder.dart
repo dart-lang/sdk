@@ -4066,20 +4066,44 @@ class AstBuilder extends StackListener {
       );
     }
 
-    // TODO(kallentu): Handle dot shorthands.
+    var dotShorthand = pop() as ExpressionImpl;
+    if (dotShorthand is DotShorthandMixin) {
+      (dotShorthand as DotShorthandMixin).isDotShorthand = true;
+    }
+    // TODO(kallentu): Add this assert once we've applied the DotShorthandMixin
+    // on all possible expressions that can be a dot shorthand.
+    // } else {
+    //   assert(
+    //       false,
+    //       "'$dotShorthand' must be a 'DotShorthandMixin' because we "
+    //       "should only call 'handleDotShorthandContext' after parsing "
+    //       "expressions that have a context type we can cache.");
+    // }
+    push(dotShorthand);
   }
 
   @override
-  void handleDotShorthandHead(Token token) {
+  void handleDotShorthandHead(Token periodToken) {
     debugEvent("DotShorthandHead");
     if (!enabledDotShorthands) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.dot_shorthands,
-        startToken: token,
+        startToken: periodToken,
       );
     }
 
-    // TODO(kallentu): Handle dot shorthands.
+    var operand = pop() as ExpressionImpl;
+    // TODO(kallentu): Handle property access case.
+    if (operand is MethodInvocationImpl) {
+      push(DotShorthandInvocationImpl(
+        period: periodToken,
+        memberName: operand.methodName,
+        typeArguments: operand.typeArguments,
+        argumentList: operand.argumentList,
+      ));
+    } else {
+      push(operand);
+    }
   }
 
   @override

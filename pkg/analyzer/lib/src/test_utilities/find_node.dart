@@ -59,6 +59,8 @@ class FindNode {
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
+  DotShorthandInvocation get singleDotShorthandInvocation => _single();
+
   EnumDeclaration get singleEnumDeclaration => _single();
 
   ExportDirective get singleExportDirective => _single();
@@ -358,6 +360,10 @@ class FindNode {
 
   DoStatement doStatement(String search) {
     return _node(search, (n) => n is DoStatement);
+  }
+
+  DotShorthandInvocation dotShorthandInvocation(String search) {
+    return _node(search, (n) => n is DotShorthandInvocation);
   }
 
   DoubleLiteral doubleLiteral(String search) {

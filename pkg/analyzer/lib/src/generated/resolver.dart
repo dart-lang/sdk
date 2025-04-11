@@ -2278,9 +2278,40 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node,
+  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node,
       {TypeImpl contextType = UnknownInferredType.instance}) {
-    throw UnimplementedError('TODO(kallentu)');
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (node.isDotShorthand) {
+      pushDotShorthandContext(SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    var whyNotPromotedArguments =
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
+
+    node.typeArguments?.accept(this);
+    var functionRewrite = elementResolver.visitDotShorthandInvocation(node,
+        whyNotPromotedArguments: whyNotPromotedArguments,
+        contextType: contextType);
+    // TODO(kallentu): Handle constructors.
+    if (functionRewrite is FunctionExpressionInvocationImpl) {
+      _resolveRewrittenFunctionExpressionInvocation(
+          functionRewrite, whyNotPromotedArguments,
+          contextType: contextType);
+    }
+    var replacement =
+        insertGenericFunctionInstantiation(node, contextType: contextType);
+    checkForArgumentTypesNotAssignableInList(
+        node.argumentList, whyNotPromotedArguments);
+    _insertImplicitCallReference(replacement, contextType: contextType);
+
+    if (node.isDotShorthand) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -4279,6 +4310,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       name = nameNodeName is PrefixedIdentifier
           ? nameNodeName.identifier.name
           : '${nameNodeName.name}.new';
+    } else if (nameNode is DotShorthandInvocation) {
+      name = nameNode.memberName.name;
     } else {
       throw UnimplementedError('(${nameNode.runtimeType}) $nameNode');
     }
