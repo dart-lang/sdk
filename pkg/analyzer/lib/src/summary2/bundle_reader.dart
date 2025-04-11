@@ -633,6 +633,7 @@ class LibraryReader {
     _libraryElement = LibraryElementImpl(
         analysisContext, analysisSession, name, -1, 0, featureSet);
     _reference.element = _libraryElement;
+    _reference.element2 = _libraryElement;
     _libraryElement.reference = _reference;
 
     // Read the rest of non-resolution data for the library.

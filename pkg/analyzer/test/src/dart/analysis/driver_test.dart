@@ -1950,6 +1950,51 @@ part of 'b.dart';
 ''');
   }
 
+  test_getLibraryByUri_subsequentCallsDoesNoWork() async {
+    var aUriStr = 'package:test/a.dart';
+    var bUriStr = 'package:test/b.dart';
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+class B {}
+''');
+
+    for (var run = 0; run < 5; run++) {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver);
+
+      var result = await driver.getLibraryByUri(aUriStr);
+      result as LibraryElementResult;
+      expect(result.element2.getClass2('A'), isNotNull);
+      expect(result.element2.getClass2('B'), isNotNull);
+
+      // It is an error to ask for a library when we know that it is a part.
+      expect(
+        await driver.getLibraryByUri(bUriStr),
+        isA<NotLibraryButPartResult>(),
+      );
+
+      if (run == 0) {
+        // First `getLibraryByUri` call does actual work.
+        await assertEventsText(collector, r'''
+[status] working
+[status] idle
+''');
+      } else {
+        // Subsequent `getLibraryByUri` just grabs the result via rootReference
+        // and thus does no actual work.
+        await assertEventsText(collector, '');
+      }
+    }
+  }
+
   test_getLibraryByUri_unresolvedUri() async {
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
