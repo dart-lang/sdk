@@ -630,7 +630,7 @@ Remove debugging information from the output and save it separately to the speci
       );
       if (runPackageName != null) {
         final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
         final Map? pubspec;
         if (pubspecUri == null) {
           pubspec = null;

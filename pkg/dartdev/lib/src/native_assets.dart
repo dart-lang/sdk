@@ -287,6 +287,17 @@ class DartNativeAssetsBuilder {
     }
   }
 
+  static Future<Uri?> findWorkspacePubspec(Uri? workspacePackageConfig) async {
+    if (workspacePackageConfig == null) {
+      return null;
+    }
+    final candidate = workspacePackageConfig.resolve('../pubspec.yaml');
+    if (File.fromUri(candidate).existsSync()) {
+      return candidate;
+    }
+    return null;
+  }
+
   /// Tries to find the package name that [uri] is in.
   ///
   /// Returns `null` if package cannnot be determined.

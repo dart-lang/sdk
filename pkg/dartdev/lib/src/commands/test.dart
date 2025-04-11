@@ -57,7 +57,7 @@ Run "${runner!.executableName} help" to see global options.''');
       );
       if (runPackageName != null) {
         final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
         final Map? pubspec;
         if (pubspecUri == null) {
           pubspec = null;

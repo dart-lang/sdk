@@ -125,28 +125,31 @@ void main(List<String> args) async {
     });
   });
 
-  test(
-    'dart test with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'test',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(
-          result.stdout,
-          stringContainsInOrder(
-            [
-              'All tests passed!',
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart test with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              '--enable-experiment=native-assets',
+              'test',
             ],
-          ),
-        );
-      });
-    },
-  );
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(
+            result.stdout,
+            stringContainsInOrder(
+              [
+                'All tests passed!',
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
 }

@@ -99,33 +99,41 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
     await sourceFile.copy(targetUri.toFilePath());
   }
   final dependencyOverrides = {
-      'native_assets_cli': {
-        'path': sdkRoot
-            .resolve('third_party/pkg/native/pkgs/native_assets_cli/')
-            .toFilePath(),
-      },
-      'native_toolchain_c': {
-        'path': sdkRoot
-            .resolve('third_party/pkg/native/pkgs/native_toolchain_c/')
-            .toFilePath(),
-      },
-      'meta': {
-        'path': sdkRoot.resolve('pkg/meta/').toFilePath(),
-      },
-      'record_use': {
-        'path': sdkRoot.resolve('pkg/record_use/').toFilePath(),
-      },
+    'native_assets_cli': {
+      'path': sdkRoot
+          .resolve('third_party/pkg/native/pkgs/native_assets_cli/')
+          .toFilePath(),
+    },
+    'native_toolchain_c': {
+      'path': sdkRoot
+          .resolve('third_party/pkg/native/pkgs/native_toolchain_c/')
+          .toFilePath(),
+    },
+    'meta': {
+      'path': sdkRoot.resolve('pkg/meta/').toFilePath(),
+    },
+    'record_use': {
+      'path': sdkRoot.resolve('pkg/record_use/').toFilePath(),
+    },
   };
+  final userDefinesWorkspace = {};
   for (final pubspecPath in pubspecPaths) {
     final sourceFile = File.fromUri(testProjectsUri.resolveUri(pubspecPath));
     final targetUri = copyTargetUri.resolveUri(pubspecPath);
     final sourceString = await sourceFile.readAsString();
     final pubspec = YamlEditor(sourceString);
+    final pubspecRead = loadYamlNode(sourceString) as Map;
     if (!usePubWorkspace) {
-      if ((loadYamlNode(sourceString) as Map)['resolution'] != null) {
+      if (pubspecRead['resolution'] != null) {
         pubspec.remove(['resolution']);
       }
       pubspec.update(['dependency_overrides'], dependencyOverrides);
+    } else {
+      final userDefines = pubspecRead['hooks']?['user_defines'];
+      if (userDefines is Map) {
+        pubspec.remove(['hooks', 'user_defines']);
+        userDefinesWorkspace.addAll(userDefines);
+      }
     }
     final modifiedString = pubspec.toString();
     await File.fromUri(targetUri).writeAsString(modifiedString);
@@ -141,6 +149,9 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
             pubspec.toFilePath().replaceAll('pubspec.yaml', ''),
       ],
       'dependency_overrides': dependencyOverrides,
+      'hooks': {
+        'user_defines': userDefinesWorkspace,
+      }
     });
     final pubspecUri = copyTargetUri.resolve('pubspec.yaml');
     await File.fromUri(pubspecUri).writeAsString(workspacePubspec.toString());

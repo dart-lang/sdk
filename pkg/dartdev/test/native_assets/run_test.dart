@@ -193,22 +193,25 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
     });
   });
 
-  test(
-    'dart run with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'run',
-            'bin/user_defines.dart',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(result.stdout, contains('Hello world!'));
-      });
-    },
-  );
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart run with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              '--enable-experiment=native-assets',
+              'run',
+              'bin/user_defines.dart',
+            ],
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(result.stdout, contains('Hello world!'));
+        });
+      },
+    );
+  }
 }
