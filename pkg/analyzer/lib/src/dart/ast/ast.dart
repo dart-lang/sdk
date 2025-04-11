@@ -2281,7 +2281,9 @@ abstract final class CaseClause implements AstNode {
   GuardedPattern get guardedPattern;
 }
 
-final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
+final class CaseClauseImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements CaseClause {
   @override
   final Token caseKeyword;
 

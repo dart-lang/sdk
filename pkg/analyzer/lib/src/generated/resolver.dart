@@ -5236,6 +5236,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
       _withNameScope(() {
+        caseClause.nameScope = nameScope;
+        var variables = guardedPattern.variables;
+        for (var variable in variables.values) {
+          _define(variable);
+        }
         guardedPattern.accept(this);
         node.ifTrue.accept(this);
       });
