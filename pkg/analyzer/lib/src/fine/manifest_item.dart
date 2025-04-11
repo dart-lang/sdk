@@ -22,7 +22,8 @@ class ClassItem extends InterfaceItem {
     required super.supertype,
     required super.interfaces,
     required super.mixins,
-    required super.members,
+    required super.declaredMembers,
+    required super.inheritedMembers,
   });
 
   factory ClassItem.fromElement({
@@ -40,7 +41,8 @@ class ClassItem extends InterfaceItem {
           supertype: element.supertype?.encode(context),
           mixins: element.mixins.encode(context),
           interfaces: element.interfaces.encode(context),
-          members: {},
+          declaredMembers: {},
+          inheritedMembers: {},
         );
       },
     );
@@ -51,10 +53,11 @@ class ClassItem extends InterfaceItem {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      members: InstanceItem._readMembers(reader),
+      declaredMembers: InstanceItem._readDeclaredMembers(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
+      inheritedMembers: InterfaceItem._readInheritedMembers(reader),
     );
   }
 
@@ -68,27 +71,31 @@ class ClassItem extends InterfaceItem {
 /// The item for [InstanceElementImpl2].
 sealed class InstanceItem extends TopLevelItem {
   final List<ManifestTypeParameter> typeParameters;
-  final Map<LookupName, InstanceItemMemberItem> members;
+  final Map<LookupName, InstanceItemMemberItem> declaredMembers;
 
   InstanceItem({
     required super.id,
     required super.metadata,
     required this.typeParameters,
-    required this.members,
+    required this.declaredMembers,
   });
+
+  ManifestItemId? getMemberId(LookupName name) {
+    return declaredMembers[name]?.id;
+  }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
     typeParameters.writeList(sink);
     sink.writeMap(
-      members,
+      declaredMembers,
       writeKey: (name) => name.write(sink),
       writeValue: (member) => member.write(sink),
     );
   }
 
-  static Map<LookupName, InstanceItemMemberItem> _readMembers(
+  static Map<LookupName, InstanceItemMemberItem> _readDeclaredMembers(
     SummaryDataReader reader,
   ) {
     return reader.readMap(
@@ -100,24 +107,30 @@ sealed class InstanceItem extends TopLevelItem {
 
 class InstanceItemGetterItem extends InstanceItemMemberItem {
   final ManifestType returnType;
+  final ManifestNode? constInitializer;
 
   InstanceItemGetterItem({
     required super.id,
     required super.metadata,
     required super.isStatic,
     required this.returnType,
+    required this.constInitializer,
   });
 
   factory InstanceItemGetterItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required GetterElement2OrMember element,
+    required GetterElementImpl element,
   }) {
     return InstanceItemGetterItem(
       id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
       isStatic: element.isStatic,
       returnType: element.returnType.encode(context),
+      constInitializer: element.constInitializer?.encode(context),
     );
   }
 
@@ -127,16 +140,18 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
       metadata: ManifestMetadata.read(reader),
       isStatic: reader.readBool(),
       returnType: ManifestType.read(reader),
+      constInitializer: ManifestNode.readOptional(reader),
     );
   }
 
   @override
   bool match(
     MatchContext context,
-    covariant GetterElement2OrMember element,
+    covariant GetterElementImpl element,
   ) {
     return super.match(context, element) &&
-        returnType.match(context, element.returnType);
+        returnType.match(context, element.returnType) &&
+        constInitializer.match(context, element.constInitializer);
   }
 
   @override
@@ -144,6 +159,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceGetter);
     super.write(sink);
     returnType.write(sink);
+    constInitializer.writeOptional(sink);
   }
 }
 
@@ -163,6 +179,8 @@ sealed class InstanceItemMemberItem extends ManifestItem {
         return InstanceItemGetterItem.read(reader);
       case _ManifestItemKind2.instanceMethod:
         return InstanceItemMethodItem.read(reader);
+      case _ManifestItemKind2.instanceSetter:
+        return InstanceItemSetterItem.read(reader);
       case _ManifestItemKind2.interfaceConstructor:
         return InterfaceItemConstructorItem.read(reader);
     }
@@ -171,7 +189,7 @@ sealed class InstanceItemMemberItem extends ManifestItem {
   @override
   bool match(
     MatchContext context,
-    covariant ExecutableElement2OrMember element,
+    covariant ExecutableElementImpl2 element,
   ) {
     return super.match(context, element) && element.isStatic == isStatic;
   }
@@ -196,7 +214,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   factory InstanceItemMethodItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
-    required MethodElement2OrMember element,
+    required MethodElementImpl2 element,
   }) {
     return InstanceItemMethodItem(
       id: id,
@@ -218,7 +236,7 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   @override
   bool match(
     MatchContext context,
-    covariant MethodElement2OrMember element,
+    covariant MethodElementImpl2 element,
   ) {
     return super.match(context, element) &&
         functionType.match(context, element.type);
@@ -232,21 +250,88 @@ class InstanceItemMethodItem extends InstanceItemMemberItem {
   }
 }
 
+class InstanceItemSetterItem extends InstanceItemMemberItem {
+  final ManifestType valueType;
+
+  InstanceItemSetterItem({
+    required super.id,
+    required super.metadata,
+    required super.isStatic,
+    required this.valueType,
+  });
+
+  factory InstanceItemSetterItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required SetterElementImpl element,
+  }) {
+    return InstanceItemSetterItem(
+      id: id,
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
+      isStatic: element.isStatic,
+      valueType: element.formalParameters[0].type.encode(context),
+    );
+  }
+
+  factory InstanceItemSetterItem.read(SummaryDataReader reader) {
+    return InstanceItemSetterItem(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
+      valueType: ManifestType.read(reader),
+    );
+  }
+
+  @override
+  bool match(
+    MatchContext context,
+    covariant SetterElementImpl element,
+  ) {
+    return super.match(context, element) &&
+        valueType.match(context, element.formalParameters[0].type);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind2.instanceSetter);
+    super.write(sink);
+    valueType.write(sink);
+  }
+}
+
 /// The item for [InterfaceElementImpl2].
 sealed class InterfaceItem extends InstanceItem {
   final ManifestType? supertype;
   final List<ManifestType> interfaces;
   final List<ManifestType> mixins;
 
+  /// We store only IDs of the inherited members, but not type substitutions,
+  /// because in order to invoke any of these members, you need an instance
+  /// of the class for this [InterfaceItem]. And any code that can give such
+  /// instance will reference the class name, directly as a type annotation, or
+  /// indirectly by invoking a function that references the class as a return
+  /// type. So, any such code depends on the header of the class, so includes
+  /// the type arguments for the class that declares the inherited member.
+  final Map<LookupName, ManifestItemId> inheritedMembers;
+
   InterfaceItem({
     required super.id,
     required super.metadata,
     required super.typeParameters,
-    required super.members,
+    required super.declaredMembers,
     required this.supertype,
     required this.interfaces,
     required this.mixins,
+    required this.inheritedMembers,
   });
+
+  @override
+  ManifestItemId? getMemberId(LookupName name) {
+    return declaredMembers[name]?.id ?? inheritedMembers[name];
+  }
 
   @override
   bool match(MatchContext context, covariant InterfaceElementImpl2 element) {
@@ -263,6 +348,20 @@ sealed class InterfaceItem extends InstanceItem {
     supertype.writeOptional(sink);
     mixins.writeList(sink);
     interfaces.writeList(sink);
+    sink.writeMap(
+      inheritedMembers,
+      writeKey: (name) => name.write(sink),
+      writeValue: (member) => member.write(sink),
+    );
+  }
+
+  static Map<LookupName, ManifestItemId> _readInheritedMembers(
+    SummaryDataReader reader,
+  ) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => ManifestItemId.read(reader),
+    );
   }
 }
 
@@ -370,10 +469,11 @@ sealed class ManifestItem {
   });
 
   @mustCallSuper
-  bool match(MatchContext context, AnnotatableElement element) {
+  bool match(MatchContext context, AnnotatableElementImpl element) {
     return metadata.match(context, element.effectiveMetadata);
   }
 
+  @mustCallSuper
   void write(BufferedSink sink) {
     id.write(sink);
     metadata.write(sink);
@@ -607,12 +707,13 @@ enum _ManifestItemKind {
 enum _ManifestItemKind2 {
   instanceGetter,
   instanceMethod,
+  instanceSetter,
   interfaceConstructor,
 }
 
-extension _AnnotatableElementExtension on AnnotatableElement {
+extension _AnnotatableElementExtension on AnnotatableElementImpl {
   MetadataImpl get effectiveMetadata {
-    if (this case PropertyAccessorElement2OrMember accessor) {
+    if (this case PropertyAccessorElementImpl2 accessor) {
       return accessor.thisOrVariableMetadata;
     }
     return metadata2;
@@ -637,7 +738,7 @@ extension _GetterElementImplExtension on GetterElementImpl {
   }
 }
 
-extension _PropertyAccessExtension on PropertyAccessorElement2OrMember {
+extension _PropertyAccessExtension on PropertyAccessorElementImpl2 {
   MetadataImpl get thisOrVariableMetadata {
     if (isSynthetic) {
       return variable3!.metadata2;

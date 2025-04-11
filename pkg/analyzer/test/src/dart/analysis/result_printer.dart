@@ -758,6 +758,15 @@ class LibraryManifestPrinter {
     }
   }
 
+  List<MapEntry<LookupName, V>> _withoutIgnoredMembers<V>(
+    List<MapEntry<LookupName, V>> entries,
+  ) {
+    return entries.whereNot((entry) {
+      return configuration.ignoredManifestInstanceMemberNames
+          .contains(entry.key.asString);
+    }).toList();
+  }
+
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
@@ -766,20 +775,42 @@ class LibraryManifestPrinter {
         _writeNamedType('supertype', item.supertype);
       });
     }
-    sink.withIndent(() {
-      var entries = item.members.sorted;
-      for (var entry in entries) {
-        _writeInstanceItemMember(entry.key, entry.value);
-      }
-    });
-  }
 
-  void _writeInstanceItemMember(LookupName name, InstanceItemMemberItem item) {
-    if (configuration.ignoredManifestInstanceMemberNames
-        .contains(name.asString)) {
-      return;
+    {
+      var declared = item.declaredMembers.sorted;
+      declared = _withoutIgnoredMembers(declared);
+      if (declared.isNotEmpty) {
+        sink.withIndent(() {
+          sink.writelnWithIndent('declaredMembers');
+          sink.withIndent(() {
+            for (var entry in declared) {
+              _writeInstanceItemDeclaredMember(entry.key, entry.value);
+            }
+          });
+        });
+      }
     }
 
+    {
+      var inherited = item.inheritedMembers.sorted;
+      inherited = _withoutIgnoredMembers(inherited);
+      if (inherited.isNotEmpty) {
+        sink.withIndent(() {
+          sink.writelnWithIndent('inheritedMembers');
+          sink.withIndent(() {
+            for (var entry in inherited) {
+              _writeNamedId(entry.key, entry.value);
+            }
+          });
+        });
+      }
+    }
+  }
+
+  void _writeInstanceItemDeclaredMember(
+    LookupName name,
+    InstanceItemMemberItem item,
+  ) {
     _writeNamedId(name, item.id);
 
     if (configuration.withElementManifests) {
@@ -791,6 +822,9 @@ class LibraryManifestPrinter {
           case InstanceItemMethodItem():
             _writeMetadata(item);
             _writeNamedType('functionType', item.functionType);
+          case InstanceItemSetterItem():
+            _writeMetadata(item);
+            _writeNamedType('valueType', item.valueType);
           case InterfaceItemConstructorItem():
             _writeMetadata(item);
             _writeNamedType('functionType', item.functionType);

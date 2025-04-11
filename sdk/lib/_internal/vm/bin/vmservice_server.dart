@@ -196,13 +196,14 @@ class _DebuggingSession {
     _process = process;
 
     // DDS will close stderr once it's finished launching.
-    final launchResult = await _process.stderr.transform(utf8.decoder).join();
+    final launchResultStderr =
+        await _process.stderr.transform(utf8.decoder).join();
 
     void printError(String details) =>
-        stderr.writeln('Could not start the VM service:\n$details');
+        stderr.writeln('Could not start the VM service: $details');
 
     try {
-      final result = json.decode(launchResult) as Map<String, dynamic>;
+      final result = json.decode(launchResultStderr) as Map<String, dynamic>;
       if (result case {'state': 'started'}) {
         if (result case {'devToolsUri': String devToolsUri}) {
           // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
@@ -221,7 +222,7 @@ class _DebuggingSession {
     } catch (_) {
       // Malformed JSON was likely encountered, so output the entirety of
       // stderr in the error message.
-      printError(launchResult);
+      printError("Couldn't parse JSON: ${launchResultStderr}");
       return false;
     }
     return true;

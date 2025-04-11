@@ -9,7 +9,7 @@ import "package:ffi/ffi.dart";
 main() {
   final data = calloc<Uint8>(3);
   for (int i = 0; i < 3; ++i) {
-    data.elementAt(i).value = 1;
+    (data + i).value = 1;
   }
   calloc.free(data);
 }

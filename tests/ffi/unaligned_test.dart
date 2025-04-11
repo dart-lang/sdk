@@ -92,7 +92,7 @@ void _freeAll() {
 Pointer<T> _allocateUnaligned<T extends NativeType>() {
   final pointer = calloc<Int8>(16);
   _pool.add(pointer);
-  final misaligned = pointer.elementAt(1).cast<T>();
+  final misaligned = (pointer + 1).cast<T>();
   Expect.equals(1, misaligned.address % 2);
   return misaligned;
 }

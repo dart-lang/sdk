@@ -138,15 +138,15 @@ class BundleRequirementsManifest {
 
         for (var memberEntry in interfaceEntry.value.entries) {
           var memberName = memberEntry.key;
-          var memberItem = interfaceItem.members[memberName];
+          var memberId = interfaceItem.getMemberId(memberName);
           var expectedId = memberEntry.value;
-          if (expectedId != memberItem?.id) {
+          if (expectedId != memberId) {
             return InstanceMemberIdMismatch(
               libraryUri: libraryUri,
               interfaceName: interfaceName,
               memberName: memberName,
               expectedId: expectedId,
-              actualId: memberItem?.id,
+              actualId: memberId,
             );
           }
         }
@@ -202,8 +202,8 @@ class BundleRequirementsManifest {
     }
 
     var name = nameObj.name.asLookupName;
-    var member = classItem.members[name];
-    interfaceMap[name] = member?.id;
+    var memberId = classItem.getMemberId(name);
+    interfaceMap[name] = memberId;
   }
 
   /// This method is invoked by an import scope to notify the collector that

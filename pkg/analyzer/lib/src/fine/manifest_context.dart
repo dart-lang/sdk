@@ -226,14 +226,14 @@ class MatchContext {
 
 extension LinkedElementFactoryExtension on LinkedElementFactory {
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element2) {
+  ManifestItemId? getElementId(Element2 element) {
     Element2 topLevelElement;
     Element2? memberElement;
-    if (element2.enclosingElement2 is LibraryElement2) {
-      topLevelElement = element2;
+    if (element.enclosingElement2 is LibraryElement2) {
+      topLevelElement = element;
     } else {
-      topLevelElement = element2.enclosingElement2!;
-      memberElement = element2;
+      topLevelElement = element.enclosingElement2!;
+      memberElement = element;
     }
 
     // SAFETY: if we can reference the element, it is in a library.
@@ -261,9 +261,9 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     // TODO(scheglov): When implementation is complete, cast unconditionally.
     if (topLevelItem is InstanceItem) {
       var memberName = memberElement.lookupName!.asLookupName;
-      var memberItem = topLevelItem.members[memberName];
+      var memberId = topLevelItem.getMemberId(memberName);
       // TODO(scheglov): When implementation is complete, null assert.
-      return memberItem?.id;
+      return memberId;
     }
 
     return null;
