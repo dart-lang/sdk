@@ -88,6 +88,7 @@ class SourceReport {
                           const Function& func,
                           const Code& code);
   void PrintCoverageData(JSONObject* jsobj,
+                         intptr_t script_index,
                          const Function& func,
                          const Code& code,
                          bool report_branch_coverage);
@@ -108,6 +109,7 @@ class SourceReport {
                   CompileMode compile_mode);
   void VisitLibrary(JSONArray* jsarr, const Library& lib);
   void VisitClosures(JSONArray* jsarr);
+
   // An entry in the script table.
   struct ScriptTableEntry {
     ScriptTableEntry() : key(nullptr), index(-1), script(nullptr) {}
@@ -115,6 +117,7 @@ class SourceReport {
     const String* key;
     intptr_t index;
     const Script* script;
+    GrowableArray<TokenPosition> const_constructor_hits;
   };
 
   // Needed for DirectChainedHashMap.
@@ -143,8 +146,7 @@ class SourceReport {
       GrowableArray<ScriptTableEntry*>* local_script_table_entries);
 
   void CollectConstConstructorCoverageFromScripts(
-      GrowableArray<ScriptTableEntry*>* local_script_table_entries,
-      JSONArray* ranges);
+      GrowableArray<ScriptTableEntry*>* local_script_table_entries);
 
   intptr_t report_set_;
   CompileMode compile_mode_;
