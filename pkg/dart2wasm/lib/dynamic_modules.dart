@@ -904,6 +904,7 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     translator.wasmI8Class,
     translator.wasmAnyRefClass,
     translator.wasmExternRefClass,
+    translator.wasmI31RefClass,
     translator.wasmFuncRefClass,
     translator.wasmEqRefClass,
     translator.wasmStructRefClass,

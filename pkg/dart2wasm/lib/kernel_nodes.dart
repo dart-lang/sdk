@@ -187,6 +187,7 @@ mixin KernelNodes {
       index.getClass("dart:_wasm", "WasmFunction");
   late final Class wasmVoidClass = index.getClass("dart:_wasm", "WasmVoid");
   late final Class wasmTableClass = index.getClass("dart:_wasm", "WasmTable");
+  late final Class wasmI31RefClass = index.getClass("dart:_wasm", "WasmI31Ref");
   late final Class wasmArrayClass = index.getClass("dart:_wasm", "WasmArray");
   late final Class immutableWasmArrayClass =
       index.getClass("dart:_wasm", "ImmutableWasmArray");
@@ -212,6 +213,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:_js_helper", "getInternalizedString");
   late final Procedure areEqualInJS =
       index.getTopLevelProcedure("dart:_js_helper", "areEqualInJS");
+  late final Procedure toJSNumber =
+      index.getTopLevelProcedure("dart:_js_helper", "toJSNumber");
 
   // dart:_js_types procedures
   late final Procedure jsStringEquals =

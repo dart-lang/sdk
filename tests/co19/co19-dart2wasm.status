@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2wasm ]
+Language/Classes/Instance_Methods/Operators/unary_minus_t01: SkipByDesign # dart:mirrors is not supported
 Language/Expressions/Constants/Constant_Contexts/constant_context_A02_t01: SkipByDesign # dart:mirrors is not supported.
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:isolate is not supported.
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # dart:io is not supported.

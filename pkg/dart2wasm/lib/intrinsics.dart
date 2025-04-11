@@ -191,7 +191,11 @@ enum StaticIntrinsic {
   storeFloatUnaligned('dart:ffi', null, '_storeFloatUnaligned'),
   storeDouble('dart:ffi', null, '_storeDouble'),
   storeDoubleUnaligned('dart:ffi', null, '_storeDoubleUnaligned'),
-  ;
+  wasmI31RefNew('dart:_wasm', 'WasmI31Ref', 'fromI32'),
+  wasmI31RefExtensionsExternalize(
+      'dart:_wasm', null, 'WasmI31RefExtensions|externalize'),
+  wasmI31RefExtensionsGetS('dart:_wasm', null, 'WasmI31RefExtensions|get_s'),
+  wasmI31RefExtensionsGetU('dart:_wasm', null, 'WasmI31RefExtensions|get_u');
 
   final String library;
   final String? cls;
@@ -408,12 +412,17 @@ class Intrinsifier {
     Member target = node.interfaceTarget;
     Class cls = target.enclosingClass!;
 
-    // WasmAnyRef.isObject
+    // WasmAnyRef.isObject, WasmAnyRef.isI31
     if (cls == translator.wasmAnyRefClass) {
-      assert(name == "isObject");
-      codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
-      b.ref_test(translator.topInfo.nonNullableType);
-      return w.NumType.i32;
+      if (name == "isObject") {
+        codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
+        b.ref_test(translator.topInfo.nonNullableType);
+        return w.NumType.i32;
+      } else if (name == "isI31") {
+        codeGen.translateExpression(receiver, w.RefType.any(nullable: false));
+        b.ref_test(w.RefType.i31(nullable: false));
+        return w.NumType.i32;
+      }
     }
 
     // WasmArrayRef.length
@@ -1498,6 +1507,30 @@ class Intrinsifier {
         codeGen.translateExpression(object, w.RefType.any(nullable: false));
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
         b.emitClassIdRangeCheck(ranges);
+        return w.NumType.i32;
+
+      case StaticIntrinsic.wasmI31RefNew:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.i32);
+        b.i31_new();
+        return w.RefType.i31(nullable: false);
+
+      case StaticIntrinsic.wasmI31RefExtensionsExternalize:
+        final value = node.arguments.positional.single;
+        codeGen.translateExpression(value, w.RefType.i31(nullable: false));
+        b.extern_convert_any();
+        return w.RefType.extern(nullable: false);
+
+      case StaticIntrinsic.wasmI31RefExtensionsGetS:
+        final value = node.arguments.positional.single;
+        codeGen.translateExpression(value, w.RefType.i31(nullable: false));
+        b.i31_get_s();
+        return w.NumType.i32;
+
+      case StaticIntrinsic.wasmI31RefExtensionsGetU:
+        final value = node.arguments.positional.single;
+        codeGen.translateExpression(value, w.RefType.i31(nullable: false));
+        b.i31_get_u();
         return w.NumType.i32;
     }
   }

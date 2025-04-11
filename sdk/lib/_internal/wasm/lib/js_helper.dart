@@ -163,6 +163,7 @@ bool areEqualInJS(WasmExternRef? l, WasmExternRef? r) =>
 // trip.
 double toDartNumber(WasmExternRef? o) => JS<double>("o => o", o);
 
+@pragma('wasm:entry-point')
 WasmExternRef? toJSNumber(double o) => JS<WasmExternRef?>("o => o", o);
 
 bool toDartBool(WasmExternRef? o) => JS<bool>("o => o", o);
@@ -331,11 +332,20 @@ WasmExternRef? jsifyRaw(Object? o) {
   }
 }
 
-@pragma('wasm:prefer-inline')
-WasmExternRef? jsifyInt(int o) => toJSNumber(o.toDouble());
+WasmExternRef? jsifyInt(int i) {
+  const int minI31 = -(1 << 30);
+  const int maxI31 = (1 << 30) - 1;
 
-@pragma('wasm:prefer-inline')
-WasmExternRef? jsifyNum(num o) => toJSNumber(o.toDouble());
+  // Pass small ints as `i31ref` to avoid allocation.
+  if (i >= minI31 && i <= maxI31) {
+    return WasmI31Ref.fromI32(WasmI32.fromInt(i)).externalize();
+  }
+
+  return toJSNumber(i.toDouble());
+}
+
+WasmExternRef? jsifyNum(num o) =>
+    o is int ? jsifyInt(o) : toJSNumber(unsafeCast<double>(o));
 
 @pragma('wasm:prefer-inline')
 WasmExternRef? jsifyJSValue(JSValue o) => o.toExternRef;

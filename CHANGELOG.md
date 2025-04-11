@@ -73,7 +73,6 @@
 - (Thanks [@FMorschel](https://github.com/FMorschel) for many of the above
   enhancements!)
 
-
 [`unnecessary_ignore`]: http://dart.dev/lints/unnecessary_ignore
 
 #### Dart Development Compiler (dartdevc)
@@ -89,6 +88,175 @@ disallowed.
 #### Dart to Javascript Compiler (dart2js)
 
 Removed the `--experiment-new-rti` and `--use-old-rti` flags.
+
+#### Dart format
+
+In 3.7.0, we released a largely rewritten formatter supporting a new
+["tall" style][tall style]. Since then, we've gotten a lot of feedback and bug
+reports and made a number of fixes in response to that.
+
+[tall style]: https://github.com/dart-lang/dart_style/issues/1253
+
+### Features
+
+Some users strongly prefer the old behavior where a trailing comma will be
+preserved by the formatter and force the surrounding construct to split. That
+behavior is supported again (but off by default) and can enabled by adding this
+to a surrounding `analysis_options.yaml` file:
+
+```yaml
+formatter:
+  trailing_commas: preserve
+```
+
+This is similar to how trailing commas work in the old short style formatter
+applied to code before language version 3.7.
+
+### Bug fixes
+
+* Don't add a trailing comma in lists that don't allow it, even when there is
+  a trailing comment (#1639).
+
+### Style changes
+
+The following style changes are language versioned and only affect code whose
+language version is 3.8 or later. Dart code at 3.7 or earlier is formatted the
+same as it was before.
+
+* Allow more code on the same line as a named argument or `=>`.
+
+  ```dart
+  // Before:
+  function(
+    name:
+        (param) => another(
+          argument1,
+          argument2,
+        ),
+  );
+
+  // After:
+  function(
+    name: (param) => another(
+      argument1,
+      argument3,
+    ),
+  );
+  ```
+
+* Allow the target or property chain part of a split method chain on the RHS of
+  `=`, `:`, and `=>`.
+
+  ```dart
+  // Before:
+  variable =
+      target.property
+          .method()
+          .another();
+
+  // After:
+  variable = target.property
+      .method()
+      .another();
+  ```
+
+* Allow the condition part of a split conditional expression on the RHS of `=`,
+  `:`, and `=>`.
+
+  ```dart
+  // Before:
+  variable =
+      condition
+      ? longThenBranch
+      : longElseBranch;
+
+  // After:
+  variable = condition
+      ? longThenBranch
+      : longElseBranch;
+  ```
+
+* Don't indent conditional branches redundantly after `=`, `:`, and `=>`.
+
+  ```dart
+  // Before:
+  function(
+    argument:
+        condition
+            ? thenBranch
+            : elseBranch,
+  )
+
+  // After:
+  function(
+    argument:
+        condition
+        ? thenBranch
+        : elseBranch,
+  )
+  ```
+
+* Indent conditional branches past the operators.
+
+  ```dart
+  // Before:
+  condition
+      ? thenBranch +
+          anotherOperand
+      : elseBranch(
+        argument,
+      );
+
+  // After:
+  condition
+      ? thenBranch +
+            anotherOperand
+      : elseBranch(
+          argument,
+        );
+  ```
+
+* Block format record types in typedefs:
+
+  ```dart
+  // Before:
+  typedef ExampleRecordTypedef =
+      (
+        String firstParameter,
+        int secondParameter,
+        String thirdParameter,
+        String fourthParameter,
+      );
+
+  // After:
+  typedef ExampleRecordTypedef = (
+    String firstParameter,
+    int secondParameter,
+    String thirdParameter,
+    String fourthParameter,
+  );
+  ```
+
+* Eagerly split argument lists whose contents are complex enough to be easier
+  to read spread across multiple lines even if they would otherwise fit on a
+  single line.
+
+  The heuristic is that the argument list must contain at least three named
+  arguments, some of which are nested and some of which are not.
+
+  ```dart
+  // Before:
+  TabBar(tabs: [Tab(text: 'A'), Tab(text: 'B')], labelColor: Colors.white70);
+
+  // After:
+  TabBar(
+    tabs: [
+      Tab(text: 'A'),
+      Tab(text: 'B'),
+    ],
+    labelColor: Colors.white70,
+  );
+  ```
 
 ## 3.7.0
 
