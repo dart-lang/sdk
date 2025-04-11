@@ -129,8 +129,8 @@ class BundleRequirementsManifest {
       for (var interfaceEntry in libraryEntry.value.entries) {
         var interfaceName = interfaceEntry.key;
         var interfaceItem = libraryManifest.items[interfaceName];
-        if (interfaceItem is! ClassItem) {
-          return TopLevelNotClass(
+        if (interfaceItem is! InterfaceItem) {
+          return TopLevelNotInterface(
             libraryUri: libraryUri,
             name: interfaceName,
           );
@@ -185,17 +185,12 @@ class BundleRequirementsManifest {
       return;
     }
 
-    // TODO(scheglov): support other elements
-    if (element is! ClassElement2) {
-      return;
-    }
-
     var interfacesMap = interfaceMembers[libraryElement.uri] ??= {};
 
     var interfaceName = element.lookupName!.asLookupName;
     var interfaceMap = interfacesMap[interfaceName] ??= {};
 
-    var classItem = manifest.items[interfaceName] as ClassItem?;
+    var classItem = manifest.items[interfaceName] as InterfaceItem?;
     // TODO(scheglov): can this happen?
     if (classItem == null) {
       return;

@@ -388,7 +388,7 @@ class DriverEventsPrinter {
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });
-      case TopLevelNotClass():
+      case TopLevelNotInterface():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
     }
