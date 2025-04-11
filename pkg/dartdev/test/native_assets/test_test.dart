@@ -24,7 +24,8 @@ void main(List<String> args) async {
     'system_library',
   ]) {
     test('package:$package dart test', timeout: longTimeout, () async {
-      await nativeAssetsTest(package, (packageUri) async {
+      await nativeAssetsTest(package, usePubWorkspace: true,
+          (packageUri) async {
         final result = await runDart(
           arguments: [
             '--enable-experiment=native-assets',
@@ -123,6 +124,7 @@ void main(List<String> args) async {
       );
     });
   });
+
   test(
     'dart test with user defines',
     timeout: longTimeout,
