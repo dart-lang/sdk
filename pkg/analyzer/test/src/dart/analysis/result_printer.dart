@@ -775,38 +775,27 @@ class LibraryManifestPrinter {
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);
-        // TODO(scheglov): other types
+        _writeTypeList('mixins', item.mixins);
+        _writeTypeList('interfaces', item.interfaces);
       });
     }
 
-    {
-      var declared = item.declaredMembers.sorted;
-      declared = _withoutIgnoredMembers(declared);
-      if (declared.isNotEmpty) {
-        sink.withIndent(() {
-          sink.writelnWithIndent('declaredMembers');
-          sink.withIndent(() {
-            for (var entry in declared) {
-              _writeInstanceItemDeclaredMember(entry.key, entry.value);
-            }
-          });
-        });
-      }
-    }
+    _writeInstanceItemDeclaredItems(item);
+    _writeInterfaceItemInheritedItems(item);
+  }
 
-    {
-      var inherited = item.inheritedMembers.sorted;
-      inherited = _withoutIgnoredMembers(inherited);
-      if (inherited.isNotEmpty) {
+  void _writeInstanceItemDeclaredItems(InstanceItem item) {
+    var declared = item.declaredMembers.sorted;
+    declared = _withoutIgnoredMembers(declared);
+    if (declared.isNotEmpty) {
+      sink.withIndent(() {
+        sink.writelnWithIndent('declaredMembers');
         sink.withIndent(() {
-          sink.writelnWithIndent('inheritedMembers');
-          sink.withIndent(() {
-            for (var entry in inherited) {
-              _writeNamedId(entry.key, entry.value);
-            }
-          });
+          for (var entry in declared) {
+            _writeInstanceItemDeclaredMember(entry.key, entry.value);
+          }
         });
-      }
+      });
     }
   }
 
@@ -832,6 +821,21 @@ class LibraryManifestPrinter {
             _writeMetadata(item);
             _writeNamedType('functionType', item.functionType);
         }
+      });
+    }
+  }
+
+  void _writeInterfaceItemInheritedItems(InterfaceItem item) {
+    var inherited = item.inheritedMembers.sorted;
+    inherited = _withoutIgnoredMembers(inherited);
+    if (inherited.isNotEmpty) {
+      sink.withIndent(() {
+        sink.writelnWithIndent('inheritedMembers');
+        sink.withIndent(() {
+          for (var entry in inherited) {
+            _writeNamedId(entry.key, entry.value);
+          }
+        });
       });
     }
   }
@@ -863,39 +867,13 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
-        // TODO(scheglov): other types
+        _writeTypeList('superclassConstraints', item.superclassConstraints);
+        _writeTypeList('interfaces', item.interfaces);
       });
     }
 
-    {
-      var declared = item.declaredMembers.sorted;
-      declared = _withoutIgnoredMembers(declared);
-      if (declared.isNotEmpty) {
-        sink.withIndent(() {
-          sink.writelnWithIndent('declaredMembers');
-          sink.withIndent(() {
-            for (var entry in declared) {
-              _writeInstanceItemDeclaredMember(entry.key, entry.value);
-            }
-          });
-        });
-      }
-    }
-
-    {
-      var inherited = item.inheritedMembers.sorted;
-      inherited = _withoutIgnoredMembers(inherited);
-      if (inherited.isNotEmpty) {
-        sink.withIndent(() {
-          sink.writelnWithIndent('inheritedMembers');
-          sink.withIndent(() {
-            for (var entry in inherited) {
-              _writeNamedId(entry.key, entry.value);
-            }
-          });
-        });
-      }
-    }
+    _writeInstanceItemDeclaredItems(item);
+    _writeInterfaceItemInheritedItems(item);
   }
 
   void _writeNamedId(LookupName name, ManifestItemId id) {
@@ -1034,6 +1012,13 @@ class LibraryManifestPrinter {
       case ManifestVoidType():
         sink.writeln('void');
     }
+  }
+
+  void _writeTypeList(String name, List<ManifestType> types) {
+    sink.writeElements(name, types, (type) {
+      sink.writeIndent();
+      _writeType(type);
+    });
   }
 
   void _writeTypeParameters(

@@ -20,8 +20,8 @@ class ClassItem extends InterfaceItem {
     required super.metadata,
     required super.typeParameters,
     required super.supertype,
-    required super.interfaces,
     required super.mixins,
+    required super.interfaces,
     required super.declaredMembers,
     required super.inheritedMembers,
   });
@@ -323,8 +323,8 @@ sealed class InterfaceItem extends InstanceItem {
     required super.typeParameters,
     required super.declaredMembers,
     required this.supertype,
-    required this.interfaces,
     required this.mixins,
+    required this.interfaces,
     required this.inheritedMembers,
   });
 
@@ -539,7 +539,9 @@ class MixinItem extends InterfaceItem {
     required super.declaredMembers,
     required super.inheritedMembers,
     required this.superclassConstraints,
-  });
+  })  : assert(supertype == null),
+        assert(mixins.isEmpty),
+        assert(superclassConstraints.isNotEmpty);
 
   factory MixinItem.fromElement({
     required ManifestItemId id,
