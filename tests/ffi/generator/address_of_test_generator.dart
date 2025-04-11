@@ -331,10 +331,9 @@ ${elementType.dartType} makeExpectedResult${elementType.dartCType}(int start, in
     }
   }
 
-  final path =
-      Platform.script
-          .resolve("../../ffi/address_of_generated_shared.dart")
-          .toFilePath();
+  final path = Platform.script
+      .resolve("../../ffi/address_of_generated_shared.dart")
+      .toFilePath();
   ;
   await File(path).writeAsString(buffer.toString());
   await runProcess(Platform.resolvedExecutable, ["format", path]);
@@ -452,9 +451,6 @@ result += data$i->a0;'''].join('\n')}
   await runProcess("clang-format", ["-i", ccPath]);
 }
 
-final ccPath =
-    Platform.script
-        .resolve(
-          "../../../runtime/bin/ffi_test/ffi_test_functions_generated_2.cc",
-        )
-        .toFilePath();
+final ccPath = Platform.script
+    .resolve("../../../runtime/bin/ffi_test/ffi_test_functions_generated_2.cc")
+    .toFilePath();

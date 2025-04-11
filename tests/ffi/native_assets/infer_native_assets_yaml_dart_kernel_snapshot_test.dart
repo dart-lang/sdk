@@ -24,7 +24,8 @@ final helperSourceuri = Platform.script.resolve(helperName);
 final packageMetaUri = Platform.script.resolve('../../../pkg/meta');
 
 /// Add an unused import to see that we're using actually the package config.
-final testPackageConfig = '''{
+final testPackageConfig =
+    '''{
   "configVersion": 2,
   "packages": [
     {

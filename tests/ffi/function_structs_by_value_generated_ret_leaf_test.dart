@@ -57,10 +57,11 @@ void main() {
   }
 }
 
-final returnStruct1ByteIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct1ByteInt Function(Int8),
-  Struct1ByteInt Function(int)
->("ReturnStruct1ByteInt", isLeaf: true);
+final returnStruct1ByteIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct1ByteInt Function(Int8),
+      Struct1ByteInt Function(int)
+    >("ReturnStruct1ByteInt", isLeaf: true);
 
 /// Smallest struct with data.
 void testReturnStruct1ByteIntLeaf() {
@@ -75,10 +76,11 @@ void testReturnStruct1ByteIntLeaf() {
   Expect.equals(a0, result.a0);
 }
 
-final returnStruct3BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-  Struct3BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8),
-  Struct3BytesHomogeneousUint8 Function(int, int, int)
->("ReturnStruct3BytesHomogeneousUint8", isLeaf: true);
+final returnStruct3BytesHomogeneousUint8Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct3BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8),
+      Struct3BytesHomogeneousUint8 Function(int, int, int)
+    >("ReturnStruct3BytesHomogeneousUint8", isLeaf: true);
 
 /// Smaller than word size return value on all architectures.
 void testReturnStruct3BytesHomogeneousUint8Leaf() {
@@ -99,10 +101,11 @@ void testReturnStruct3BytesHomogeneousUint8Leaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct3BytesInt2ByteAlignedLeaf = ffiTestFunctions.lookupFunction<
-  Struct3BytesInt2ByteAligned Function(Int16, Int8),
-  Struct3BytesInt2ByteAligned Function(int, int)
->("ReturnStruct3BytesInt2ByteAligned", isLeaf: true);
+final returnStruct3BytesInt2ByteAlignedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct3BytesInt2ByteAligned Function(Int16, Int8),
+      Struct3BytesInt2ByteAligned Function(int, int)
+    >("ReturnStruct3BytesInt2ByteAligned", isLeaf: true);
 
 /// Smaller than word size return value on all architectures.
 /// With alignment rules taken into account size is 4 bytes.
@@ -121,10 +124,11 @@ void testReturnStruct3BytesInt2ByteAlignedLeaf() {
   Expect.equals(a1, result.a1);
 }
 
-final returnStruct4BytesHomogeneousInt16Leaf = ffiTestFunctions.lookupFunction<
-  Struct4BytesHomogeneousInt16 Function(Int16, Int16),
-  Struct4BytesHomogeneousInt16 Function(int, int)
->("ReturnStruct4BytesHomogeneousInt16", isLeaf: true);
+final returnStruct4BytesHomogeneousInt16Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct4BytesHomogeneousInt16 Function(Int16, Int16),
+      Struct4BytesHomogeneousInt16 Function(int, int)
+    >("ReturnStruct4BytesHomogeneousInt16", isLeaf: true);
 
 /// Word size return value on 32 bit architectures..
 void testReturnStruct4BytesHomogeneousInt16Leaf() {
@@ -142,18 +146,19 @@ void testReturnStruct4BytesHomogeneousInt16Leaf() {
   Expect.equals(a1, result.a1);
 }
 
-final returnStruct7BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-  Struct7BytesHomogeneousUint8 Function(
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-  ),
-  Struct7BytesHomogeneousUint8 Function(int, int, int, int, int, int, int)
->("ReturnStruct7BytesHomogeneousUint8", isLeaf: true);
+final returnStruct7BytesHomogeneousUint8Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct7BytesHomogeneousUint8 Function(
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+      ),
+      Struct7BytesHomogeneousUint8 Function(int, int, int, int, int, int, int)
+    >("ReturnStruct7BytesHomogeneousUint8", isLeaf: true);
 
 /// Non-wordsize return value.
 void testReturnStruct7BytesHomogeneousUint8Leaf() {
@@ -194,10 +199,11 @@ void testReturnStruct7BytesHomogeneousUint8Leaf() {
   Expect.equals(a6, result.a6);
 }
 
-final returnStruct7BytesInt4ByteAlignedLeaf = ffiTestFunctions.lookupFunction<
-  Struct7BytesInt4ByteAligned Function(Int32, Int16, Int8),
-  Struct7BytesInt4ByteAligned Function(int, int, int)
->("ReturnStruct7BytesInt4ByteAligned", isLeaf: true);
+final returnStruct7BytesInt4ByteAlignedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct7BytesInt4ByteAligned Function(Int32, Int16, Int8),
+      Struct7BytesInt4ByteAligned Function(int, int, int)
+    >("ReturnStruct7BytesInt4ByteAligned", isLeaf: true);
 
 /// Non-wordsize return value.
 /// With alignment rules taken into account size is 8 bytes.
@@ -219,10 +225,11 @@ void testReturnStruct7BytesInt4ByteAlignedLeaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct8BytesIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesInt Function(Int16, Int16, Int32),
-  Struct8BytesInt Function(int, int, int)
->("ReturnStruct8BytesInt", isLeaf: true);
+final returnStruct8BytesIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesInt Function(Int16, Int16, Int32),
+      Struct8BytesInt Function(int, int, int)
+    >("ReturnStruct8BytesInt", isLeaf: true);
 
 /// Return value in integer registers on many architectures.
 void testReturnStruct8BytesIntLeaf() {
@@ -243,10 +250,11 @@ void testReturnStruct8BytesIntLeaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct8BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesHomogeneousFloat Function(Float, Float),
-  Struct8BytesHomogeneousFloat Function(double, double)
->("ReturnStruct8BytesHomogeneousFloat", isLeaf: true);
+final returnStruct8BytesHomogeneousFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesHomogeneousFloat Function(Float, Float),
+      Struct8BytesHomogeneousFloat Function(double, double)
+    >("ReturnStruct8BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value in FP registers on many architectures.
 void testReturnStruct8BytesHomogeneousFloatLeaf() {
@@ -264,10 +272,11 @@ void testReturnStruct8BytesHomogeneousFloatLeaf() {
   Expect.approxEquals(a1, result.a1);
 }
 
-final returnStruct8BytesMixedLeaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesMixed Function(Float, Int16, Int16),
-  Struct8BytesMixed Function(double, int, int)
->("ReturnStruct8BytesMixed", isLeaf: true);
+final returnStruct8BytesMixedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesMixed Function(Float, Int16, Int16),
+      Struct8BytesMixed Function(double, int, int)
+    >("ReturnStruct8BytesMixed", isLeaf: true);
 
 /// Return value split over FP and integer register in x64.
 void testReturnStruct8BytesMixedLeaf() {
@@ -288,30 +297,31 @@ void testReturnStruct8BytesMixedLeaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct9BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-  Struct9BytesHomogeneousUint8 Function(
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-  ),
-  Struct9BytesHomogeneousUint8 Function(
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-  )
->("ReturnStruct9BytesHomogeneousUint8", isLeaf: true);
+final returnStruct9BytesHomogeneousUint8Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct9BytesHomogeneousUint8 Function(
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+      ),
+      Struct9BytesHomogeneousUint8 Function(
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+      )
+    >("ReturnStruct9BytesHomogeneousUint8", isLeaf: true);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -385,10 +395,11 @@ void testReturnStruct9BytesInt4Or8ByteAlignedLeaf() {
   Expect.equals(a1, result.a1);
 }
 
-final returnStruct12BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-  Struct12BytesHomogeneousFloat Function(Float, Float, Float),
-  Struct12BytesHomogeneousFloat Function(double, double, double)
->("ReturnStruct12BytesHomogeneousFloat", isLeaf: true);
+final returnStruct12BytesHomogeneousFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct12BytesHomogeneousFloat Function(Float, Float, Float),
+      Struct12BytesHomogeneousFloat Function(double, double, double)
+    >("ReturnStruct12BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value in FPU registers, but does not use all registers on arm hardfp
 /// and arm64.
@@ -410,10 +421,11 @@ void testReturnStruct12BytesHomogeneousFloatLeaf() {
   Expect.approxEquals(a2, result.a2);
 }
 
-final returnStruct16BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-  Struct16BytesHomogeneousFloat Function(Float, Float, Float, Float),
-  Struct16BytesHomogeneousFloat Function(double, double, double, double)
->("ReturnStruct16BytesHomogeneousFloat", isLeaf: true);
+final returnStruct16BytesHomogeneousFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct16BytesHomogeneousFloat Function(Float, Float, Float, Float),
+      Struct16BytesHomogeneousFloat Function(double, double, double, double)
+    >("ReturnStruct16BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value in FPU registers on arm hardfp and arm64.
 void testReturnStruct16BytesHomogeneousFloatLeaf() {
@@ -437,10 +449,11 @@ void testReturnStruct16BytesHomogeneousFloatLeaf() {
   Expect.approxEquals(a3, result.a3);
 }
 
-final returnStruct16BytesMixedLeaf = ffiTestFunctions.lookupFunction<
-  Struct16BytesMixed Function(Double, Int64),
-  Struct16BytesMixed Function(double, int)
->("ReturnStruct16BytesMixed", isLeaf: true);
+final returnStruct16BytesMixedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct16BytesMixed Function(Double, Int64),
+      Struct16BytesMixed Function(double, int)
+    >("ReturnStruct16BytesMixed", isLeaf: true);
 
 /// Return value split over FP and integer register in x64.
 void testReturnStruct16BytesMixedLeaf() {
@@ -458,10 +471,11 @@ void testReturnStruct16BytesMixedLeaf() {
   Expect.equals(a1, result.a1);
 }
 
-final returnStruct16BytesMixed2Leaf = ffiTestFunctions.lookupFunction<
-  Struct16BytesMixed2 Function(Float, Float, Float, Int32),
-  Struct16BytesMixed2 Function(double, double, double, int)
->("ReturnStruct16BytesMixed2", isLeaf: true);
+final returnStruct16BytesMixed2Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct16BytesMixed2 Function(Float, Float, Float, Int32),
+      Struct16BytesMixed2 Function(double, double, double, int)
+    >("ReturnStruct16BytesMixed2", isLeaf: true);
 
 /// Return value split over FP and integer register in x64.
 /// The integer register contains half float half int.
@@ -486,10 +500,11 @@ void testReturnStruct16BytesMixed2Leaf() {
   Expect.equals(a3, result.a3);
 }
 
-final returnStruct17BytesIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct17BytesInt Function(Int64, Int64, Int8),
-  Struct17BytesInt Function(int, int, int)
->("ReturnStruct17BytesInt", isLeaf: true);
+final returnStruct17BytesIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct17BytesInt Function(Int64, Int64, Int8),
+      Struct17BytesInt Function(int, int, int)
+    >("ReturnStruct17BytesInt", isLeaf: true);
 
 /// Return value returned in preallocated space passed by pointer on most ABIs.
 /// Is non word size on purpose, to test that structs are rounded up to word size
@@ -512,50 +527,51 @@ void testReturnStruct17BytesIntLeaf() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct19BytesHomogeneousUint8Leaf = ffiTestFunctions.lookupFunction<
-  Struct19BytesHomogeneousUint8 Function(
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-    Uint8,
-  ),
-  Struct19BytesHomogeneousUint8 Function(
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-  )
->("ReturnStruct19BytesHomogeneousUint8", isLeaf: true);
+final returnStruct19BytesHomogeneousUint8Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct19BytesHomogeneousUint8 Function(
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+        Uint8,
+      ),
+      Struct19BytesHomogeneousUint8 Function(
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+      )
+    >("ReturnStruct19BytesHomogeneousUint8", isLeaf: true);
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
@@ -646,10 +662,11 @@ void testReturnStruct19BytesHomogeneousUint8Leaf() {
   Expect.equals(a18, result.a18);
 }
 
-final returnStruct20BytesHomogeneousInt32Leaf = ffiTestFunctions.lookupFunction<
-  Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32, Int32),
-  Struct20BytesHomogeneousInt32 Function(int, int, int, int, int)
->("ReturnStruct20BytesHomogeneousInt32", isLeaf: true);
+final returnStruct20BytesHomogeneousInt32Leaf = ffiTestFunctions
+    .lookupFunction<
+      Struct20BytesHomogeneousInt32 Function(Int32, Int32, Int32, Int32, Int32),
+      Struct20BytesHomogeneousInt32 Function(int, int, int, int, int)
+    >("ReturnStruct20BytesHomogeneousInt32", isLeaf: true);
 
 /// Return value too big to go in cpu registers on arm64.
 void testReturnStruct20BytesHomogeneousInt32Leaf() {
@@ -676,10 +693,17 @@ void testReturnStruct20BytesHomogeneousInt32Leaf() {
   Expect.equals(a4, result.a4);
 }
 
-final returnStruct20BytesHomogeneousFloatLeaf = ffiTestFunctions.lookupFunction<
-  Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float, Float),
-  Struct20BytesHomogeneousFloat Function(double, double, double, double, double)
->("ReturnStruct20BytesHomogeneousFloat", isLeaf: true);
+final returnStruct20BytesHomogeneousFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct20BytesHomogeneousFloat Function(Float, Float, Float, Float, Float),
+      Struct20BytesHomogeneousFloat Function(
+        double,
+        double,
+        double,
+        double,
+        double,
+      )
+    >("ReturnStruct20BytesHomogeneousFloat", isLeaf: true);
 
 /// Return value too big to go in FPU registers on x64, arm hardfp and arm64.
 void testReturnStruct20BytesHomogeneousFloatLeaf() {
@@ -1564,10 +1588,11 @@ void testReturnStruct1024BytesHomogeneousUint64Leaf() {
   Expect.equals(a127, result.a127);
 }
 
-final returnStruct3BytesPackedIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct3BytesPackedInt Function(Int8, Int16),
-  Struct3BytesPackedInt Function(int, int)
->("ReturnStruct3BytesPackedInt", isLeaf: true);
+final returnStruct3BytesPackedIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct3BytesPackedInt Function(Int8, Int16),
+      Struct3BytesPackedInt Function(int, int)
+    >("ReturnStruct3BytesPackedInt", isLeaf: true);
 
 /// Small struct with mis-aligned member.
 void testReturnStruct3BytesPackedIntLeaf() {
@@ -1585,10 +1610,11 @@ void testReturnStruct3BytesPackedIntLeaf() {
   Expect.equals(a1, result.a1);
 }
 
-final returnStruct8BytesPackedIntLeaf = ffiTestFunctions.lookupFunction<
-  Struct8BytesPackedInt Function(Uint8, Uint32, Uint8, Uint8, Uint8),
-  Struct8BytesPackedInt Function(int, int, int, int, int)
->("ReturnStruct8BytesPackedInt", isLeaf: true);
+final returnStruct8BytesPackedIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesPackedInt Function(Uint8, Uint32, Uint8, Uint8, Uint8),
+      Struct8BytesPackedInt Function(int, int, int, int, int)
+    >("ReturnStruct8BytesPackedInt", isLeaf: true);
 
 /// Struct with mis-aligned member.
 void testReturnStruct8BytesPackedIntLeaf() {
@@ -1615,10 +1641,11 @@ void testReturnStruct8BytesPackedIntLeaf() {
   Expect.equals(a4, result.a4);
 }
 
-final returnStruct9BytesPackedMixedLeaf = ffiTestFunctions.lookupFunction<
-  Struct9BytesPackedMixed Function(Uint8, Double),
-  Struct9BytesPackedMixed Function(int, double)
->("ReturnStruct9BytesPackedMixed", isLeaf: true);
+final returnStruct9BytesPackedMixedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Struct9BytesPackedMixed Function(Uint8, Double),
+      Struct9BytesPackedMixed Function(int, double)
+    >("ReturnStruct9BytesPackedMixed", isLeaf: true);
 
 /// Struct with mis-aligned member.
 /// Tests backfilling of CPU and FPU registers.
@@ -1637,10 +1664,11 @@ void testReturnStruct9BytesPackedMixedLeaf() {
   Expect.approxEquals(a1, result.a1);
 }
 
-final returnUnion4BytesMixedLeaf = ffiTestFunctions.lookupFunction<
-  Union4BytesMixed Function(Uint32),
-  Union4BytesMixed Function(int)
->("ReturnUnion4BytesMixed", isLeaf: true);
+final returnUnion4BytesMixedLeaf = ffiTestFunctions
+    .lookupFunction<
+      Union4BytesMixed Function(Uint32),
+      Union4BytesMixed Function(int)
+    >("ReturnUnion4BytesMixed", isLeaf: true);
 
 /// Returning a mixed integer/float union.
 void testReturnUnion4BytesMixedLeaf() {
@@ -1655,10 +1683,11 @@ void testReturnUnion4BytesMixedLeaf() {
   Expect.equals(a0, result.a0);
 }
 
-final returnUnion8BytesNestedFloatLeaf = ffiTestFunctions.lookupFunction<
-  Union8BytesNestedFloat Function(Double),
-  Union8BytesNestedFloat Function(double)
->("ReturnUnion8BytesNestedFloat", isLeaf: true);
+final returnUnion8BytesNestedFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Union8BytesNestedFloat Function(Double),
+      Union8BytesNestedFloat Function(double)
+    >("ReturnUnion8BytesNestedFloat", isLeaf: true);
 
 /// Returning a floating point only union.
 void testReturnUnion8BytesNestedFloatLeaf() {
@@ -1673,10 +1702,11 @@ void testReturnUnion8BytesNestedFloatLeaf() {
   Expect.approxEquals(a0, result.a0);
 }
 
-final returnUnion9BytesNestedIntLeaf = ffiTestFunctions.lookupFunction<
-  Union9BytesNestedInt Function(Struct8BytesInt),
-  Union9BytesNestedInt Function(Struct8BytesInt)
->("ReturnUnion9BytesNestedInt", isLeaf: true);
+final returnUnion9BytesNestedIntLeaf = ffiTestFunctions
+    .lookupFunction<
+      Union9BytesNestedInt Function(Struct8BytesInt),
+      Union9BytesNestedInt Function(Struct8BytesInt)
+    >("ReturnUnion9BytesNestedInt", isLeaf: true);
 
 /// Returning a mixed-size union.
 void testReturnUnion9BytesNestedIntLeaf() {
@@ -1698,10 +1728,11 @@ void testReturnUnion9BytesNestedIntLeaf() {
   calloc.free(a0Pointer);
 }
 
-final returnUnion16BytesNestedFloatLeaf = ffiTestFunctions.lookupFunction<
-  Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat),
-  Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat)
->("ReturnUnion16BytesNestedFloat", isLeaf: true);
+final returnUnion16BytesNestedFloatLeaf = ffiTestFunctions
+    .lookupFunction<
+      Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat),
+      Union16BytesNestedFloat Function(Struct8BytesHomogeneousFloat)
+    >("ReturnUnion16BytesNestedFloat", isLeaf: true);
 
 /// Returning union with homogenous floats.
 void testReturnUnion16BytesNestedFloatLeaf() {

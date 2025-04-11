@@ -27,10 +27,9 @@ void main() async {
     }
   }
 
-  final path =
-      Platform.script
-          .resolve('../array_primitive_elements_generated_test.dart')
-          .toFilePath();
+  final path = Platform.script
+      .resolve('../array_primitive_elements_generated_test.dart')
+      .toFilePath();
   await File(path).writeAsString(buffer.toString());
   await runProcess(Platform.resolvedExecutable, ['format', path]);
 }

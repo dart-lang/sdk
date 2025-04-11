@@ -29,7 +29,8 @@ final helperSourceuri = Platform.script.resolve(helperName);
 final packageMetaUri = Platform.script.resolve('../../../pkg/meta');
 
 /// Add an unused import to see that we're using actually the package config.
-final emptyPackageConfig = '''{
+final emptyPackageConfig =
+    '''{
   "configVersion": 2,
   "packages": [
     {
@@ -45,10 +46,9 @@ final emptyPackageConfig = '''{
 ''';
 
 Future<void> invokeHelper({bool withPackageConfig = true}) async {
-  final test =
-      withPackageConfig
-          ? 'with packageConfig'
-          : 'with automaticPackageResolution';
+  final test = withPackageConfig
+      ? 'with packageConfig'
+      : 'with automaticPackageResolution';
   print('invoke helper $test');
   await withTempDir((tempUri) async {
     await createTestFiles(tempUri);

@@ -104,14 +104,12 @@ void testProcessOrSystem() {
 
 void testProcessOrSystemViaAddressOf() {
   if (Platform.isWindows) {
-    final memAlloc =
-        Native.addressOf<NativeFunction<Pointer Function(Size)>>(
-          CoTaskMemAlloc,
-        ).asFunction<Pointer Function(int)>();
-    final memFree =
-        Native.addressOf<NativeFunction<Void Function(Pointer)>>(
-          CoTaskMemFree,
-        ).asFunction<void Function(Pointer)>();
+    final memAlloc = Native.addressOf<NativeFunction<Pointer Function(Size)>>(
+      CoTaskMemAlloc,
+    ).asFunction<Pointer Function(int)>();
+    final memFree = Native.addressOf<NativeFunction<Void Function(Pointer)>>(
+      CoTaskMemFree,
+    ).asFunction<void Function(Pointer)>();
 
     final pointer = memAlloc(8);
     Expect.notEquals(nullptr, pointer);

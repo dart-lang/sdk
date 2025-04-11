@@ -23,10 +23,11 @@ void main() {
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-final variadicStructVarArgs = ffiTestFunctions.lookupFunction<
-  ffi.Int64 Function(VarArgs, ffi.VarArgs<(VarArgs,)>),
-  int Function(VarArgs, VarArgs)
->('VariadicStructVarArgs');
+final variadicStructVarArgs = ffiTestFunctions
+    .lookupFunction<
+      ffi.Int64 Function(VarArgs, ffi.VarArgs<(VarArgs,)>),
+      int Function(VarArgs, VarArgs)
+    >('VariadicStructVarArgs');
 
 final class VarArgs extends ffi.Struct {
   @ffi.Int32()

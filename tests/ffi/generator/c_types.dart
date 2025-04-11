@@ -309,12 +309,11 @@ abstract class CompositeType extends CType {
   bool get hasInlineArrays =>
       members.map((e) => e.type is FixedLengthArrayType).contains(true);
 
-  bool get hasMultiDimensionalInlineArrays =>
-      members
-          .map((e) => e.type)
-          .whereType<FixedLengthArrayType>()
-          .where((e) => e.isMulti)
-          .isNotEmpty;
+  bool get hasMultiDimensionalInlineArrays => members
+      .map((e) => e.type)
+      .whereType<FixedLengthArrayType>()
+      .where((e) => e.isMulti)
+      .isNotEmpty;
 }
 
 class StructType extends CompositeType {

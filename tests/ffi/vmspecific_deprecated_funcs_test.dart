@@ -9,10 +9,11 @@ import 'dart:ffi';
 import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
-final initializeApi = ffiTestFunctions.lookupFunction<
-  IntPtr Function(Pointer<Void>),
-  int Function(Pointer<Void>)
->("InitDartApiDL");
+final initializeApi = ffiTestFunctions
+    .lookupFunction<
+      IntPtr Function(Pointer<Void>),
+      int Function(Pointer<Void>)
+    >("InitDartApiDL");
 
 main() {
   initializeApi(NativeApi.initializeApiDLData);

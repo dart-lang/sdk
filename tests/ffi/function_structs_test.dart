@@ -33,19 +33,18 @@ void testFunctionWithStruct({bool isLeaf = false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 = ffiTestFunctions.lookup(
     "TransposeCoordinate",
   );
-  NativeCoordinateOp f1 =
-      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
+  NativeCoordinateOp f1 = (isLeaf
+      ? p1.asFunction(isLeaf: true)
+      : p1.asFunction(isLeaf: false));
   ;
 
-  final c1 =
-      calloc<Coordinate>()
-        ..ref.x = 10.0
-        ..ref.y = 20.0;
-  final c2 =
-      calloc<Coordinate>()
-        ..ref.x = 42.0
-        ..ref.y = 84.0
-        ..ref.next = c1;
+  final c1 = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 20.0;
+  final c2 = calloc<Coordinate>()
+    ..ref.x = 42.0
+    ..ref.y = 84.0
+    ..ref.next = c1;
   c1.ref.next = c2;
 
   Coordinate result = f1(c1).ref;
@@ -65,8 +64,9 @@ void testFunctionWithStructArray({bool isLeaf = false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 = ffiTestFunctions.lookup(
     "CoordinateElemAt1",
   );
-  NativeCoordinateOp f1 =
-      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
+  NativeCoordinateOp f1 = (isLeaf
+      ? p1.asFunction(isLeaf: true)
+      : p1.asFunction(isLeaf: false));
   ;
 
   final coordinateArray = calloc<Coordinate>(3);
@@ -96,8 +96,9 @@ typedef NativeVeryLargeStructSum = Int64 Function(Pointer<VeryLargeStruct>);
 void testFunctionWithVeryLargeStruct({bool isLeaf = false}) {
   Pointer<NativeFunction<NativeVeryLargeStructSum>> p1 = ffiTestFunctions
       .lookup("SumVeryLargeStruct");
-  VeryLargeStructSum f =
-      (isLeaf ? p1.asFunction(isLeaf: true) : p1.asFunction(isLeaf: false));
+  VeryLargeStructSum f = (isLeaf
+      ? p1.asFunction(isLeaf: true)
+      : p1.asFunction(isLeaf: false));
   ;
 
   final vlsArray = calloc<VeryLargeStruct>(2);
