@@ -57,7 +57,7 @@ Run "${runner!.executableName} help" to see global options.''');
       );
       if (runPackageName != null) {
         final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
         final Map? pubspec;
         if (pubspecUri == null) {
           pubspec = null;
@@ -90,7 +90,16 @@ Run "${runner!.executableName} help" to see global options.''');
             log.stderr('Error: Compiling native assets failed.');
             return DartdevCommand.errorExitCode;
           }
-          nativeAssets = assetsYamlFileUri.toFilePath();
+          // TODO(https://github.com/dart-lang/sdk/issues/60489): Add a way to
+          // package:test to explicitly provide the native_assets.yaml path
+          // instead of copying to the workspace .dart_tool.
+          final expectedPackageTestLocation =
+              packageConfig.resolve('native_assets.yaml');
+          if (expectedPackageTestLocation != assetsYamlFileUri) {
+            await File.fromUri(assetsYamlFileUri)
+                .copy(expectedPackageTestLocation.toFilePath());
+          }
+          nativeAssets = expectedPackageTestLocation.toFilePath();
         }
       }
     }

@@ -135,7 +135,8 @@ class BuildCommand extends DartdevCommand {
     final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
       sourceUri,
     );
-    final pubspecUri = await DartNativeAssetsBuilder.findPubspec(sourceUri);
+    final pubspecUri =
+        await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
     final Map? pubspec;
     if (pubspecUri == null) {
       pubspec = null;

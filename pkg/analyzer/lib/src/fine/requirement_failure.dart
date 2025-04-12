@@ -94,8 +94,8 @@ class TopLevelIdMismatch extends TopLevelFailure {
   });
 }
 
-class TopLevelNotClass extends TopLevelFailure {
-  TopLevelNotClass({
+class TopLevelNotInterface extends TopLevelFailure {
+  TopLevelNotInterface({
     required super.libraryUri,
     required super.name,
   });

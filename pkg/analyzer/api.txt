@@ -45,7 +45,7 @@ package:analyzer/dart/analysis/analysis_options.dart:
     name (getter: String)
     source (getter: PluginSource)
     sourceYaml (method: String Function())
-  PluginSource (class extends Object, sealed):
+  PluginSource (class extends Object, sealed (immediate subtypes: GitPluginSource, PathPluginSource, VersionedPluginSource)):
     toYaml (method: String Function({required String name}))
   VersionedPluginSource (class extends Object implements PluginSource):
     new (constructor: VersionedPluginSource Function({required String constraint}))
@@ -100,6 +100,7 @@ package:analyzer/dart/analysis/features.dart:
     enhanced_parts (static getter: ExperimentalFeature)
     extension_methods (static getter: ExperimentalFeature)
     generic_metadata (static getter: ExperimentalFeature)
+    getter_setter_error (static getter: ExperimentalFeature)
     inference_update_1 (static getter: ExperimentalFeature)
     inference_update_2 (static getter: ExperimentalFeature)
     inference_update_3 (static getter: ExperimentalFeature)
@@ -593,7 +594,7 @@ package:analyzer/dart/ast/ast.dart:
     sealedKeyword (getter: Token?)
     typeParameters (getter: TypeParameterList?)
     withClause (getter: WithClause?)
-  ClassMember (class extends Object implements Declaration, sealed)
+  ClassMember (class extends Object implements Declaration, sealed (immediate subtypes: ClassMemberImpl, ConstructorDeclaration, FieldDeclaration, MethodDeclaration))
   ClassTypeAlias (class extends Object implements TypeAlias):
     abstractKeyword (getter: Token?)
     baseKeyword (getter: Token?)
@@ -608,8 +609,8 @@ package:analyzer/dart/ast/ast.dart:
     superclass (getter: NamedType)
     typeParameters (getter: TypeParameterList?)
     withClause (getter: WithClause)
-  CollectionElement (class extends Object implements AstNode, sealed)
-  Combinator (class extends Object implements AstNode, sealed):
+  CollectionElement (class extends Object implements AstNode, sealed (immediate subtypes: CollectionElementImpl, Expression, ForElement, IfElement, MapLiteralEntry, NullAwareElement, SpreadElement))
+  Combinator (class extends Object implements AstNode, sealed (immediate subtypes: CombinatorImpl, HideCombinator, ShowCombinator)):
     keyword (getter: Token)
   Comment (class extends Object implements AstNode):
     codeBlocks (getter: List<MdCodeBlock>, experimental)
@@ -682,7 +683,7 @@ package:analyzer/dart/ast/ast.dart:
     fieldName (getter: SimpleIdentifier)
     period (getter: Token?)
     thisKeyword (getter: Token?)
-  ConstructorInitializer (class extends Object implements AstNode, sealed)
+  ConstructorInitializer (class extends Object implements AstNode, sealed (immediate subtypes: AssertInitializer, ConstructorFieldInitializer, ConstructorInitializerImpl, RedirectingConstructorInvocation, SuperConstructorInvocation))
   ConstructorName (class extends Object implements AstNode, ConstructorReferenceNode):
     name (getter: SimpleIdentifier?)
     period (getter: Token?)
@@ -700,7 +701,7 @@ package:analyzer/dart/ast/ast.dart:
     label (getter: SimpleIdentifier?)
     semicolon (getter: Token)
     target (getter: AstNode?)
-  DartPattern (class extends Object implements AstNode, ListPatternElement, sealed):
+  DartPattern (class extends Object implements AstNode, ListPatternElement, sealed (immediate subtypes: CastPattern, ConstantPattern, DartPatternImpl, ListPattern, LogicalAndPattern, LogicalOrPattern, MapPattern, NullAssertPattern, NullCheckPattern, ObjectPattern, ParenthesizedPattern, RecordPattern, RelationalPattern, VariablePattern, WildcardPattern)):
     matchedValueType (getter: DartType?)
     precedence (getter: PatternPrecedence)
     unParenthesized (getter: DartPattern)
@@ -716,7 +717,7 @@ package:analyzer/dart/ast/ast.dart:
     keyword (getter: Token?)
     name (getter: Token)
     type (getter: TypeAnnotation?)
-  DeclaredVariablePattern (class extends Object implements VariablePattern, sealed):
+  DeclaredVariablePattern (class extends Object implements VariablePattern, sealed (immediate subtypes: DeclaredVariablePatternImpl)):
     declaredElement (getter: BindPatternVariableElement?, deprecated)
     declaredElement2 (getter: BindPatternVariableElement2?, experimental)
     declaredFragment (getter: BindPatternVariableFragment?)
@@ -726,7 +727,7 @@ package:analyzer/dart/ast/ast.dart:
     defaultValue (getter: Expression?)
     parameter (getter: NormalFormalParameter)
     separator (getter: Token?)
-  Directive (class extends Object implements AnnotatedNode, sealed):
+  Directive (class extends Object implements AnnotatedNode, sealed (immediate subtypes: DirectiveImpl, LibraryDirective, PartOfDirective, UriBasedDirective)):
     element (getter: Element?, deprecated)
   DoStatement (class extends Object implements Statement):
     body (getter: Statement)
@@ -857,7 +858,7 @@ package:analyzer/dart/ast/ast.dart:
     thisKeyword (getter: Token)
     type (getter: TypeAnnotation?)
     typeParameters (getter: TypeParameterList?)
-  ForEachParts (class extends Object implements ForLoopParts, sealed):
+  ForEachParts (class extends Object implements ForLoopParts, sealed (immediate subtypes: ForEachPartsImpl, ForEachPartsWithDeclaration, ForEachPartsWithIdentifier, ForEachPartsWithPattern)):
     inKeyword (getter: Token)
     iterable (getter: Expression)
   ForEachPartsWithDeclaration (class extends Object implements ForEachParts):
@@ -875,8 +876,8 @@ package:analyzer/dart/ast/ast.dart:
     forLoopParts (getter: ForLoopParts)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
-  ForLoopParts (class extends Object implements AstNode, sealed)
-  ForParts (class extends Object implements ForLoopParts, sealed):
+  ForLoopParts (class extends Object implements AstNode, sealed (immediate subtypes: ForEachParts, ForLoopPartsImpl, ForParts))
+  ForParts (class extends Object implements ForLoopParts, sealed (immediate subtypes: ForPartsImpl, ForPartsWithDeclarations, ForPartsWithExpression, ForPartsWithPattern)):
     condition (getter: Expression?)
     leftSeparator (getter: Token)
     rightSeparator (getter: Token)
@@ -894,7 +895,7 @@ package:analyzer/dart/ast/ast.dart:
     forLoopParts (getter: ForLoopParts)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
-  FormalParameter (class extends Object implements AstNode, sealed):
+  FormalParameter (class extends Object implements AstNode, sealed (immediate subtypes: DefaultFormalParameter, FormalParameterImpl, NormalFormalParameter)):
     covariantKeyword (getter: Token?)
     declaredElement (getter: ParameterElement?, deprecated)
     declaredFragment (getter: FormalParameterFragment?, experimental)
@@ -920,7 +921,7 @@ package:analyzer/dart/ast/ast.dart:
     parameters (getter: NodeList<FormalParameter>)
     rightDelimiter (getter: Token?)
     rightParenthesis (getter: Token)
-  FunctionBody (class extends Object implements AstNode, sealed):
+  FunctionBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockFunctionBody, EmptyFunctionBody, ExpressionFunctionBody, FunctionBodyImpl, NativeFunctionBody)):
     isAsynchronous (getter: bool)
     isGenerator (getter: bool)
     isSynchronous (getter: bool)
@@ -982,7 +983,7 @@ package:analyzer/dart/ast/ast.dart:
     whenClause (getter: WhenClause?)
   HideCombinator (class extends Object implements Combinator):
     hiddenNames (getter: NodeList<SimpleIdentifier>)
-  Identifier (class extends Object implements Expression, CommentReferableExpression, sealed):
+  Identifier (class extends Object implements Expression, CommentReferableExpression, sealed (immediate subtypes: IdentifierImpl, LibraryIdentifier, PrefixedIdentifier, SimpleIdentifier)):
     isPrivateName (static method: bool Function(String))
     element (getter: Element2?, experimental)
     name (getter: String)
@@ -1045,7 +1046,7 @@ package:analyzer/dart/ast/ast.dart:
   IntegerLiteral (class extends Object implements Literal):
     literal (getter: Token)
     value (getter: int?)
-  InterpolationElement (class extends Object implements AstNode, sealed)
+  InterpolationElement (class extends Object implements AstNode, sealed (immediate subtypes: InterpolationElementImpl, InterpolationExpression, InterpolationString))
   InterpolationExpression (class extends Object implements InterpolationElement):
     expression (getter: Expression)
     leftBracket (getter: Token)
@@ -1091,8 +1092,8 @@ package:analyzer/dart/ast/ast.dart:
     requiredType (getter: DartType?)
     rightBracket (getter: Token)
     typeArguments (getter: TypeArgumentList?)
-  ListPatternElement (class extends Object implements AstNode, sealed)
-  Literal (class extends Object implements Expression, sealed)
+  ListPatternElement (class extends Object implements AstNode, sealed (immediate subtypes: DartPattern, ListPatternElementImpl, RestPatternElement))
+  Literal (class extends Object implements Expression, sealed (immediate subtypes: BooleanLiteral, DoubleLiteral, IntegerLiteral, LiteralImpl, NullLiteral, RecordLiteral, StringLiteral, SymbolLiteral, TypedLiteral))
   LogicalAndPattern (class extends Object implements DartPattern):
     leftOperand (getter: DartPattern)
     operator (getter: Token)
@@ -1113,7 +1114,7 @@ package:analyzer/dart/ast/ast.dart:
     requiredType (getter: DartType?)
     rightBracket (getter: Token)
     typeArguments (getter: TypeArgumentList?)
-  MapPatternElement (class extends Object implements AstNode, sealed)
+  MapPatternElement (class extends Object implements AstNode, sealed (immediate subtypes: MapPatternElementImpl, MapPatternEntry, RestPatternElement))
   MapPatternEntry (class extends Object implements AstNode, MapPatternElement):
     key (getter: Expression)
     separator (getter: Token)
@@ -1176,7 +1177,7 @@ package:analyzer/dart/ast/ast.dart:
     name2 (getter: Token)
     type (getter: DartType?)
     typeArguments (getter: TypeArgumentList?)
-  NamespaceDirective (class extends Object implements UriBasedDirective, sealed):
+  NamespaceDirective (class extends Object implements UriBasedDirective, sealed (immediate subtypes: ExportDirective, ImportDirective, NamespaceDirectiveImpl)):
     combinators (getter: NodeList<Combinator>)
     configurations (getter: NodeList<Configuration>)
     semicolon (getter: Token)
@@ -1199,7 +1200,7 @@ package:analyzer/dart/ast/ast.dart:
     clear (method: void Function(), deprecated)
     insert (method: void Function(int, E), deprecated)
     removeAt (method: E Function(int), deprecated)
-  NormalFormalParameter (class extends Object implements FormalParameter, AnnotatedNode, sealed)
+  NormalFormalParameter (class extends Object implements FormalParameter, AnnotatedNode, sealed (immediate subtypes: FieldFormalParameter, FunctionTypedFormalParameter, NormalFormalParameterImpl, SimpleFormalParameter, SuperFormalParameter))
   NullAssertPattern (class extends Object implements DartPattern):
     operator (getter: Token)
     pattern (getter: DartPattern)
@@ -1296,7 +1297,7 @@ package:analyzer/dart/ast/ast.dart:
     namedFields (getter: RecordTypeAnnotationNamedFields?)
     positionalFields (getter: NodeList<RecordTypeAnnotationPositionalField>)
     rightParenthesis (getter: Token)
-  RecordTypeAnnotationField (class extends Object implements AstNode, sealed):
+  RecordTypeAnnotationField (class extends Object implements AstNode, sealed (immediate subtypes: RecordTypeAnnotationFieldImpl, RecordTypeAnnotationNamedField, RecordTypeAnnotationPositionalField)):
     metadata (getter: NodeList<Annotation>)
     name (getter: Token?)
     type (getter: TypeAnnotation)
@@ -1363,7 +1364,7 @@ package:analyzer/dart/ast/ast.dart:
   SimpleStringLiteral (class extends Object implements SingleStringLiteral):
     literal (getter: Token)
     value (getter: String)
-  SingleStringLiteral (class extends Object implements StringLiteral, sealed):
+  SingleStringLiteral (class extends Object implements StringLiteral, sealed (immediate subtypes: SimpleStringLiteral, SingleStringLiteralImpl, StringInterpolation)):
     contentsEnd (getter: int)
     contentsOffset (getter: int)
     isMultiline (getter: bool)
@@ -1379,7 +1380,7 @@ package:analyzer/dart/ast/ast.dart:
     elements (getter: NodeList<InterpolationElement>)
     firstString (getter: InterpolationString)
     lastString (getter: InterpolationString)
-  StringLiteral (class extends Object implements Literal, sealed):
+  StringLiteral (class extends Object implements Literal, sealed (immediate subtypes: AdjacentStrings, SingleStringLiteral, StringLiteralImpl)):
     stringValue (getter: String?)
   SuperConstructorInvocation (class extends Object implements ConstructorInitializer, ConstructorReferenceNode):
     argumentList (getter: ArgumentList)
@@ -1412,7 +1413,7 @@ package:analyzer/dart/ast/ast.dart:
     arrow (getter: Token)
     expression (getter: Expression)
     guardedPattern (getter: GuardedPattern)
-  SwitchMember (class extends Object implements AstNode, sealed):
+  SwitchMember (class extends Object implements AstNode, sealed (immediate subtypes: SwitchCase, SwitchDefault, SwitchMemberImpl, SwitchPatternCase)):
     colon (getter: Token)
     keyword (getter: Token)
     labels (getter: NodeList<Label>)
@@ -1450,7 +1451,7 @@ package:analyzer/dart/ast/ast.dart:
     augmentKeyword (getter: Token?, experimental)
     semicolon (getter: Token)
     typedefKeyword (getter: Token)
-  TypeAnnotation (class extends Object implements AstNode, sealed):
+  TypeAnnotation (class extends Object implements AstNode, sealed (immediate subtypes: GenericFunctionType, NamedType, RecordTypeAnnotation, TypeAnnotationImpl)):
     question (getter: Token?)
     type (getter: DartType?)
   TypeArgumentList (class extends Object implements AstNode):
@@ -1469,11 +1470,11 @@ package:analyzer/dart/ast/ast.dart:
     leftBracket (getter: Token)
     rightBracket (getter: Token)
     typeParameters (getter: NodeList<TypeParameter>)
-  TypedLiteral (class extends Object implements Literal, sealed):
+  TypedLiteral (class extends Object implements Literal, sealed (immediate subtypes: ListLiteral, SetOrMapLiteral, TypedLiteralImpl)):
     constKeyword (getter: Token?)
     isConst (getter: bool)
     typeArguments (getter: TypeArgumentList?)
-  UriBasedDirective (class extends Object implements Directive, sealed):
+  UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
   VariableDeclaration (class extends Object implements Declaration):
     declaredElement (getter: VariableElement?, deprecated)
@@ -1496,7 +1497,7 @@ package:analyzer/dart/ast/ast.dart:
   VariableDeclarationStatement (class extends Object implements Statement):
     semicolon (getter: Token)
     variables (getter: VariableDeclarationList)
-  VariablePattern (class extends Object implements DartPattern, sealed):
+  VariablePattern (class extends Object implements DartPattern, sealed (immediate subtypes: AssignedVariablePattern, DeclaredVariablePattern, VariablePatternImpl)):
     name (getter: Token)
   WhenClause (class extends Object implements AstNode):
     expression (getter: Expression)
@@ -1529,9 +1530,9 @@ package:analyzer/dart/ast/doc_comment.dart:
     fenced (static getter: CodeBlockType)
     indented (static getter: CodeBlockType)
     values (static getter: List<CodeBlockType>)
-  DocDirective (class extends Object, sealed, experimental):
+  DocDirective (class extends Object, sealed (immediate subtypes: BlockDocDirective, SimpleDocDirective), experimental):
     type (getter: DocDirectiveType)
-  DocDirectiveArgument (class extends Object, sealed, experimental):
+  DocDirectiveArgument (class extends Object, sealed (immediate subtypes: DocDirectiveNamedArgument, DocDirectivePositionalArgument), experimental):
     end (getter: int)
     offset (getter: int)
     value (getter: String)
@@ -3430,7 +3431,7 @@ package:analyzer/dart/element/element.dart:
   MultiplyDefinedElement (class extends Object implements Element, deprecated):
     new (constructor: MultiplyDefinedElement Function())
     conflictingElements (getter: List<Element>)
-  NamespaceCombinator (class extends Object, sealed):
+  NamespaceCombinator (class extends Object, sealed (immediate subtypes: HideElementCombinator, ShowElementCombinator)):
     end (getter: int)
     offset (getter: int)
   ParameterElement (class extends Object implements PromotableElement, ConstantEvaluationTarget, deprecated):
@@ -3644,7 +3645,7 @@ package:analyzer/dart/element/element2.dart:
     thisOrAncestorOfType2 (method: E? Function<E extends Element2>())
     visitChildren2 (method: void Function<T>(ElementVisitor2<T>))
   ElementAnnotation (see above)
-  ElementDirective (class extends Object implements Annotatable, sealed):
+  ElementDirective (class extends Object implements Annotatable, sealed (immediate subtypes: LibraryExport, LibraryImport, PartInclude)):
     libraryFragment (getter: LibraryFragment)
     uri (getter: DirectiveUri)
   ElementKind (see above)

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -14,16 +15,25 @@ import 'package:analyzer/src/error/codes.dart';
 /// of the corresponding setter. Where "match" means "subtype" in non-nullable,
 /// and "assignable" in legacy.
 class GetterSetterTypesVerifier {
+  final LibraryElementImpl library;
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
   GetterSetterTypesVerifier({
-    required TypeSystemImpl typeSystem,
+    required this.library,
     required ErrorReporter errorReporter,
-  })  : _typeSystem = typeSystem,
+  })  : _typeSystem = library.typeSystem,
         _errorReporter = errorReporter;
 
+  bool get _skipGetterSetterTypesCheck {
+    return library.featureSet.isEnabled(Feature.getter_setter_error);
+  }
+
   void checkExtension(ExtensionElementImpl2 element) {
+    if (_skipGetterSetterTypesCheck) {
+      return;
+    }
+
     for (var getter in element.getters2) {
       _checkLocalGetter(getter);
     }
@@ -31,11 +41,19 @@ class GetterSetterTypesVerifier {
 
   void checkExtensionType(
       ExtensionTypeElementImpl2 element, Interface interface) {
+    if (_skipGetterSetterTypesCheck) {
+      return;
+    }
+
     checkInterface(element, interface);
     checkStaticGetters(element.getters2);
   }
 
   void checkInterface(InterfaceElementImpl2 element, Interface interface) {
+    if (_skipGetterSetterTypesCheck) {
+      return;
+    }
+
     var libraryUri = element.library2.uri;
 
     var interfaceMap = interface.map2;
@@ -88,6 +106,10 @@ class GetterSetterTypesVerifier {
   }
 
   void checkStaticGetters(List<GetterElement2OrMember> getters) {
+    if (_skipGetterSetterTypesCheck) {
+      return;
+    }
+
     for (var getter in getters) {
       if (getter.isStatic) {
         _checkLocalGetter(getter);

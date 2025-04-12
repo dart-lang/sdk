@@ -282,7 +282,7 @@ class _ClassVerifier {
     _checkIllegalEnumValuesInheritance();
 
     GetterSetterTypesVerifier(
-      typeSystem: typeSystem,
+      library: library,
       errorReporter: reporter,
     ).checkInterface(element, interface);
 

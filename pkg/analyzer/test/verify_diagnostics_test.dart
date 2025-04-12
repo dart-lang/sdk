@@ -46,6 +46,8 @@ class DocumentationValidator {
     // cycle.
     'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF',
     'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+    // Not reported with `getter-setter-error` feature enabled.
+    'CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES',
     // Has code in the example section that needs to be skipped (because it's
     // part of the explanatory text not part of the example), but there's
     // currently no way to do that.

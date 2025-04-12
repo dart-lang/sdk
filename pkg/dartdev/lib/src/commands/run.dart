@@ -393,7 +393,7 @@ class RunCommand extends DartdevCommand {
           );
       if (runPackageName != null) {
         final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
+            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
         final Map? pubspec;
         if (pubspecUri == null) {
           pubspec = null;

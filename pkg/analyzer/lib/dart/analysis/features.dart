@@ -46,6 +46,9 @@ abstract class Feature {
   /// Feature information for generic metadata.
   static final generic_metadata = ExperimentalFeatures.generic_metadata;
 
+  /// Feature information for getter-setter-error.
+  static final getter_setter_error = ExperimentalFeatures.getter_setter_error;
+
   /// Feature information for inference using bounds.
   static final inference_using_bounds =
       ExperimentalFeatures.inference_using_bounds;

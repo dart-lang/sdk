@@ -81,6 +81,11 @@ class ApiDescription {
 
   final _uniqueNamer = UniqueNamer();
 
+  /// Cache of values returned by [_getOrComputeImmediateSubinterfaceMap], to
+  /// avoid unnecessary recomputation.
+  final _immediateSubinterfaceCache =
+      <LibraryElement2, Map<ClassElement2, Set<InterfaceElement2>>>{};
+
   /// Builds a list of [Node] objects representing all the libraries that are
   /// relevant to the analyzer public API.
   ///
@@ -104,6 +109,7 @@ class ApiDescription {
         _dumpLibrary(resolvedLibraryResult.element2, node);
       }
     }
+    // Then dump anything referenced by public libraries.
     while (_potentiallyDanglingReferences.isNotEmpty) {
       var element = _potentiallyDanglingReferences.removeFirst();
       if (!_dumpedTopLevelElements.add(element)) continue;
@@ -280,7 +286,32 @@ class ApiDescription {
             }
             parentheticals.add(instanceDescription);
             if (element is ClassElement2 && element.isSealed) {
-              parentheticals.add(['sealed']);
+              var parenthetical = <Object>['sealed'];
+              parentheticals.add(parenthetical);
+              if (_getOrComputeImmediateSubinterfaceMap(
+                      element.library2)[element]
+                  case var subinterfaces?) {
+                parenthetical.add(' (immediate subtypes: ');
+                // Note: it's tempting to just do
+                // `subinterfaces.map(_uniqueNamer.name).join(', ')`, but that
+                // won't work, because the names returned by
+                // `UniqueName.toString()` aren't finalized until we've visited
+                // the entire API and seen if there are class names that need to
+                // be disambiguated. So we accumulate the `UniqueName` objects
+                // into the `parenthetical` list and rely on `printNodes`
+                // converting everything to a string when the final API
+                // description is being output.
+                var commaNeeded = false;
+                for (var subinterface in subinterfaces) {
+                  if (commaNeeded) {
+                    parenthetical.add(', ');
+                  } else {
+                    commaNeeded = true;
+                  }
+                  parenthetical.add(_uniqueNamer.name(subinterface));
+                }
+                parenthetical.add(')');
+              }
             }
           case ExtensionElement2(:var extendedType):
             parentheticals
@@ -371,6 +402,40 @@ class ApiDescription {
       }
       node.childNodes.add((MemberSortKey(element), childNode));
     }
+  }
+
+  /// Returns a map from each sealed class in [library] to the set of its
+  /// immediate sub-interfaces.
+  ///
+  /// If this method has been called before with the same [library], a cached
+  /// map is returned from [_immediateSubinterfaceCache]. Otherwise a fresh map
+  /// is computed.
+  Map<ClassElement2, Set<InterfaceElement2>>
+      _getOrComputeImmediateSubinterfaceMap(LibraryElement2 library) {
+    if (_immediateSubinterfaceCache[library] case var m?) return m;
+    var result = <ClassElement2, Set<InterfaceElement2>>{};
+    for (var interface in [
+      ...library.classes,
+      ...library.mixins,
+      ...library.enums,
+      ...library.extensionTypes
+    ]..sortBy((e) => e.name3!)) {
+      for (var superinterface in [
+        interface.supertype,
+        ...interface.interfaces,
+        ...interface.mixins,
+        if (interface is MixinElement2) ...interface.superclassConstraints
+      ]) {
+        if (superinterface == null) continue;
+        var superinterfaceElement = superinterface.element3;
+        if (superinterfaceElement is ClassElement2 &&
+            superinterfaceElement.isSealed) {
+          (result[superinterfaceElement] ??= {}).add(interface);
+        }
+      }
+    }
+    _immediateSubinterfaceCache[library] = result;
+    return result;
   }
 
   bool _isDeprecated(ElementAnnotation annotation) {

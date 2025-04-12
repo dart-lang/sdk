@@ -738,17 +738,6 @@ set x(_) {}
 ''');
   }
 
-  test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
-    await assertErrorsInCode(r'''
-class A {
-  static get x => 0;
-  static set x(int p) {}
-}
-''', [
-      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 23, 1),
-    ]);
-  }
-
   test_const_constructor_with_named_generic_parameter() async {
     await assertNoErrorsInCode('''
 class C<T> {

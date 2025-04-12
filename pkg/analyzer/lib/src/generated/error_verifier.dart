@@ -484,7 +484,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
 
       GetterSetterTypesVerifier(
-        typeSystem: typeSystem,
+        library: _currentLibrary,
         errorReporter: errorReporter,
       ).checkStaticGetters(augmented.getters2);
 
@@ -541,7 +541,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForIllegalLanguageOverride(node);
 
     GetterSetterTypesVerifier(
-      typeSystem: typeSystem,
+      library: _currentLibrary,
       errorReporter: errorReporter,
     ).checkStaticGetters(fragment.element.getters);
 
@@ -665,7 +665,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredFragment);
 
       GetterSetterTypesVerifier(
-        typeSystem: typeSystem,
+        library: _currentLibrary,
         errorReporter: errorReporter,
       ).checkStaticGetters(declaredElement.getters2);
 
@@ -709,7 +709,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForFinalNotInitializedInClass(declaredFragment, node.members);
 
     GetterSetterTypesVerifier(
-      typeSystem: typeSystem,
+      library: _currentLibrary,
       errorReporter: errorReporter,
     ).checkExtension(declaredElement);
 
@@ -763,7 +763,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var interface = _inheritanceManager.getInterface(firstFragment);
       GetterSetterTypesVerifier(
-        typeSystem: typeSystem,
+        library: _currentLibrary,
         errorReporter: errorReporter,
       ).checkExtensionType(declaredElement, interface);
 
