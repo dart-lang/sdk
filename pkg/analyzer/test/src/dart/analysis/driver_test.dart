@@ -17253,8 +17253,103 @@ const b = B;
     );
   }
 
-  test_manifest_constInitializer_prefixedIdentifier_importPrefix() async {
-    // TODO(scheglov): also test ClassName.field
+  test_manifest_constInitializer_prefixedIdentifier_className_fieldName() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const a = 0;
+  static const b = 0;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          b: #M2
+      c: #M3
+      d: #M4
+''',
+      updatedCode: r'''
+class A {
+  static const a = 0;
+  static const b = 1;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          b: #M5
+      c: #M3
+      d: #M6
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_className_fieldName() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import '' as self;
+
+class A {
+  static const a = 0;
+  static const b = 0;
+}
+
+const c = self.A.a;
+const d = self.A.b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          b: #M2
+      c: #M3
+      d: #M4
+''',
+      updatedCode: r'''
+import '' as self;
+
+class A {
+  static const a = 0;
+  static const b = 1;
+}
+
+const c = self.A.a;
+const d = self.A.b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a: #M1
+          b: #M5
+      c: #M3
+      d: #M6
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_topVariable() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 import '' as self;
@@ -17292,7 +17387,37 @@ const d = self.b;
     );
   }
 
-  test_manifest_constInitializer_prefixedIdentifier_importPrefix2() async {
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_topVariable_changePrefix() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart' as x;
+const z = x.x + y.y;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M0
+''',
+      updatedCode: r'''
+import 'a.dart' as y;
+const z = x.x + y.y;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_topVariable_changeUri() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const x = 0;
 ''');
@@ -17330,36 +17455,6 @@ const z = p.x;
   package:test/test.dart
     manifest
       z: #M3
-''',
-    );
-  }
-
-  test_manifest_constInitializer_prefixedIdentifier_importPrefix3() async {
-    newFile('$testPackageLibPath/a.dart', '');
-
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-import 'a.dart' as x;
-const z = x.x + y.y;
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/a.dart
-[operation] linkLibraryCycle
-  package:test/test.dart
-    manifest
-      z: #M0
-''',
-      updatedCode: r'''
-import 'a.dart' as y;
-const z = x.x + y.y;
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    manifest
-      z: #M1
 ''',
     );
   }
