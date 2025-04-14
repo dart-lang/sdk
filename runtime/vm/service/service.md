@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 4.16
+# Dart VM Service Protocol 4.17
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -1892,6 +1892,7 @@ Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
 Logging | Logging
 Service | ServiceRegistered, ServiceUnregistered
 HeapSnapshot | HeapSnapshot
+Timer | TimerSignificantlyOverdue
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -2601,6 +2602,17 @@ class Event extends Response {
   //
   // This is provided for the Logging event.
   LogRecord logRecord [optional];
+
+
+  // Details about this event.
+  //
+  // For events of kind TimerSignifcantlyOverdue, this is a message stating how
+  // many milliseconds late the timer fired, and giving possible reasons for why
+  // it fired late.
+  //
+  // Only provided for events of kind TimerSignificantlyOverdue.
+  string details [optional];
+
 
   // The service identifier.
   //
@@ -4981,5 +4993,6 @@ version | comments
 4.14 | Added `Finalizer`, `NativeFinalizer`, and `FinalizerEntry`.
 4.15 | Added `closureReceiver` property to `@Instance` and `Instance`.
 4.16 | Added `reloadFailureReason` property to `Event`. Added `createIdZone`, `deleteIdZone`, and `invalidateIdZone` RPCs. Added optional `idZoneId` parameter to `evaluate`, `evaluateInFrame`, `getInboundReferences`, `getInstances`, `getInstancesAsList`, `getObject`, `getRetainingPath`, `getStack`, and `invoke` RPCs.
+4.17 | Added `Timer` stream, added `TimerSignificantlyOverdue` event kind, and added `details` property to `Event`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

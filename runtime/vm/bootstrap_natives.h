@@ -312,7 +312,8 @@ namespace dart {
   V(DartApiDLMinorVersion, 0)                                                  \
   V(DartNativeApiFunctionPointer, 1)                                           \
   V(TransferableTypedData_factory, 2)                                          \
-  V(TransferableTypedData_materialize, 1)
+  V(TransferableTypedData_materialize, 1)                                      \
+  V(Timer_postTimerEvent, 1)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \

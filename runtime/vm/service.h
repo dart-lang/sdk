@@ -19,7 +19,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 16
+#define SERVICE_PROTOCOL_MINOR_VERSION 17
 
 class Array;
 class EmbedderServiceHandler;
@@ -178,6 +178,9 @@ class Service : public AllStatic {
                            const Object& error,
                            const Instance& stack_trace);
 
+  // Sends an event of kind |kTimerSignificantlyOverdue|.
+  static void SendTimerEvent(Isolate* isolate, intptr_t milliseconds_overdue);
+
   static void SendExtensionEvent(Isolate* isolate,
                                  const String& event_kind,
                                  const String& event_data);
@@ -213,6 +216,7 @@ class Service : public AllStatic {
   static StreamInfo echo_stream;
   static StreamInfo heapsnapshot_stream;
   static StreamInfo logging_stream;
+  static StreamInfo timer_stream;
   static StreamInfo extension_stream;
   static StreamInfo timeline_stream;
   static StreamInfo profiler_stream;

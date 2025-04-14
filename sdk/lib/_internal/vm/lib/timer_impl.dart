@@ -4,6 +4,13 @@
 
 part of "isolate_patch.dart";
 
+/// Posts a VM Service event to the 'Timer' stream of kind
+/// 'TimerSignificantlyOverdue'. The event will contain a 'details' property
+/// whose value will be a message reporting that a timer was
+/// [milliSecondsOverdue] ms overdue.
+@pragma("vm:external-name", "Timer_postTimerEvent")
+external void _postTimerEvent(int millisecondsOverdue);
+
 // Timer heap implemented as a array-based binary heap[0].
 // This allows for O(1) `first`, O(log(n)) `remove`/`removeFirst` and O(log(n))
 // `add`.
@@ -387,6 +394,14 @@ class _Timer implements Timer {
         var timer = pendingTimers[i];
         timer._indexOrNext = null;
 
+        final millisecondsOverdue =
+            VMLibraryHooks.timerMillisecondClock() - timer._wakeupTime;
+
+        if (!const bool.fromEnvironment("dart.vm.product") &&
+            millisecondsOverdue >= 100) {
+          _postTimerEvent(millisecondsOverdue);
+        }
+
         // One of the timers in the pending_timers list can cancel
         // one of the later timers which will set the callback to
         // null. Or the pending zero timer has been canceled earlier.
@@ -397,10 +412,8 @@ class _Timer implements Timer {
             timer._callback = null;
           } else if (timer._milliSeconds > 0) {
             var ms = timer._milliSeconds;
-            int overdue =
-                VMLibraryHooks.timerMillisecondClock() - timer._wakeupTime;
-            if (overdue > ms) {
-              int missedTicks = overdue ~/ ms;
+            if (millisecondsOverdue > ms) {
+              int missedTicks = millisecondsOverdue ~/ ms;
               timer._wakeupTime += missedTicks * ms;
               timer._tick += missedTicks;
             }

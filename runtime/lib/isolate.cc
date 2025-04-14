@@ -1392,4 +1392,16 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   return typed_data.ptr();
 }
 
+DEFINE_NATIVE_ENTRY(Timer_postTimerEvent, 0, 1) {
+#if !defined(PRODUCT)
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, milliseconds_overdue,
+                               arguments->NativeArgAt(0));
+  // |milliseconds_overdue| can get truncated on 32-bit platforms, but in
+  // practice, it should never get close to |INT_MAX|.
+  Service::SendTimerEvent(isolate,
+                          static_cast<intptr_t>(milliseconds_overdue.Value()));
+#endif  // !defined(PRODUCT)
+  return Object::null();
+}
+
 }  // namespace dart

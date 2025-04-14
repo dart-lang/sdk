@@ -6,8 +6,8 @@ import "dart:_internal" show ClassID, VMLibraryHooks, patch;
 
 import "dart:async"
     show Completer, Future, Stream, StreamController, StreamSubscription, Timer;
-
 import "dart:collection" show HashMap;
+import 'dart:developer' show postEvent;
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 /// These are the additional parts of this patch library:

@@ -49,6 +49,7 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
       gc_stats_(nullptr),
       bytes_(nullptr),
       bytes_length_(0),
+      milliseconds_overdue_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
   // We should never generate events for the vm isolate as it is never reported
   // over the service.
@@ -132,6 +133,8 @@ const char* ServiceEvent::KindAsCString() const {
       return embedder_kind();
     case kLogging:
       return "Logging";
+    case kTimerSignificantlyOverdue:
+      return "TimerSignificantlyOverdue";
     case kDebuggerSettingsUpdate:
       return "_DebuggerSettingsUpdate";
     case kIllegal:
@@ -187,6 +190,9 @@ const StreamInfo* ServiceEvent::stream_info() const {
 
     case kLogging:
       return &Service::logging_stream;
+
+    case kTimerSignificantlyOverdue:
+      return &Service::timer_stream;
 
     case kExtension:
       return &Service::extension_stream;
@@ -303,6 +309,17 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     logRecord.AddProperty("zone", *(log_record_.zone));
     logRecord.AddProperty("error", *(log_record_.error));
     logRecord.AddProperty("stackTrace", *(log_record_.stack_trace));
+  }
+  if (kind() == kTimerSignificantlyOverdue) {
+    jsobj.AddPropertyF(
+        "details",
+        "A timer should have fired %" Pd
+        " ms ago, but just fired now. This means that timers were blocked from "
+        "firing for nearly %" Pd
+        " ms. Some possible causes of this are: asynchronous operations were "
+        "blocked by uninterruptible synchronous ones, or your program was "
+        "frozen by the OS to conserve resources.",
+        milliseconds_overdue(), milliseconds_overdue());
   }
   if (kind() == kExtension) {
     js->AppendSerializedObject("extensionData",
