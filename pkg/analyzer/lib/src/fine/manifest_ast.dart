@@ -136,6 +136,10 @@ class ManifestNode {
     sink.writeUint30List(elementIndexList);
   }
 
+  static List<ManifestNode> readList(SummaryDataReader reader) {
+    return reader.readTypedList(() => ManifestNode.read(reader));
+  }
+
   static ManifestNode? readOptional(SummaryDataReader reader) {
     return reader.readOptionalObject(() => ManifestNode.read(reader));
   }
@@ -165,6 +169,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAssertInitializer(AssertInitializer node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     _addElement(node.element);
@@ -172,6 +181,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {}
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    node.visitChildren(this);
+  }
 
   @override
   void visitConstructorName(ConstructorName node) {
@@ -265,6 +279,12 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     node.visitChildren(this);
   }
@@ -293,6 +313,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitTypeArgumentList(TypeArgumentList node) {
     node.visitChildren(this);
   }
@@ -307,6 +332,24 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
         var index = map[element] ??= 2 + map.length;
         elementIndexList.add(index);
     }
+  }
+}
+
+extension ListOfManifestNodeExtension on List<ManifestNode> {
+  bool match(MatchContext context, List<AstNode> nodes) {
+    if (nodes.length != length) {
+      return false;
+    }
+    for (var i = 0; i < length; i++) {
+      if (!this[i].match(context, nodes[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void writeList(BufferedSink sink) {
+    sink.writeList(this, (x) => x.write(sink));
   }
 }
 

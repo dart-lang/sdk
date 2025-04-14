@@ -363,6 +363,7 @@ class InterfaceItemConstructorItem
   final bool isConst;
   final bool isFactory;
   final ManifestFunctionType functionType;
+  final List<ManifestNode> constantInitializers;
 
   InterfaceItemConstructorItem({
     required super.id,
@@ -371,6 +372,7 @@ class InterfaceItemConstructorItem
     required this.isConst,
     required this.isFactory,
     required this.functionType,
+    required this.constantInitializers,
   });
 
   factory InterfaceItemConstructorItem.fromElement({
@@ -378,7 +380,6 @@ class InterfaceItemConstructorItem
     required EncodeContext context,
     required ConstructorElementImpl2 element,
   }) {
-    // TODO(scheglov): initializers
     return InterfaceItemConstructorItem(
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata2),
@@ -386,6 +387,9 @@ class InterfaceItemConstructorItem
       isConst: element.isConst,
       isFactory: element.isFactory,
       functionType: element.type.encode(context),
+      constantInitializers: element.constantInitializers
+          .map((initializer) => ManifestNode.encode(context, initializer))
+          .toFixedList(),
     );
   }
 
@@ -397,6 +401,7 @@ class InterfaceItemConstructorItem
       isConst: reader.readBool(),
       isFactory: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
+      constantInitializers: ManifestNode.readList(reader),
     );
   }
 
@@ -405,7 +410,8 @@ class InterfaceItemConstructorItem
     return super.match(context, element) &&
         isConst == element.isConst &&
         isFactory == element.isFactory &&
-        functionType.match(context, element.type);
+        functionType.match(context, element.type) &&
+        constantInitializers.match(context, element.constantInitializers);
   }
 
   @override
@@ -415,6 +421,7 @@ class InterfaceItemConstructorItem
     sink.writeBool(isConst);
     sink.writeBool(isFactory);
     functionType.writeNoTag(sink);
+    constantInitializers.writeList(sink);
   }
 }
 

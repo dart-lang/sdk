@@ -12390,6 +12390,570 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_initializers_isConst_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int x);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int x) : assert(x > 0);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_assert() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int x) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int x) : assert(x > 1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_fieldInitializer_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  const A.named() : bar = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+          named: #M2
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+          named: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_fieldInitializer_value() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+          named: #M2
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+          named: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_redirect_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.c1(int a) : f = a;
+  const A.c2() : this.c1(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+          f: #M3
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.c1(int a) : f = a;
+  const A.c2() : this.c1(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M4
+          f: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_redirect_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+  const A.c3() : this.c1();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+          c3: #M3
+          f: #M4
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+  const A.c3() : this.c2();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+          c3: #M5
+          f: #M4
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int x) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_super_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  const A.named() : super.named(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+      B: #M2
+        declaredMembers
+          named: #M3
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  const A.named() : super.named(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+      B: #M2
+        declaredMembers
+          named: #M4
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_super_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+}
+
+class B extends A {
+  const A.named() : super.c1(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+          f: #M3
+      B: #M4
+        declaredMembers
+          named: #M5
+        inheritedMembers
+          f: #M3
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+}
+
+class B extends A {
+  const A.named() : super.c2(0);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+          f: #M3
+      B: #M4
+        declaredMembers
+          named: #M6
+        inheritedMembers
+          f: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_super_transitive() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.named() : f = 0;
+}
+
+class B extends A {
+  const A.named() : super.named();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          f: #M1
+          named: #M2
+      B: #M3
+        declaredMembers
+          named: #M4
+        inheritedMembers
+          f: #M1
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.named() : f = 1;
+}
+
+class B extends A {
+  const A.named() : super.named();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          f: #M1
+          named: #M5
+      B: #M3
+        declaredMembers
+          named: #M6
+        inheritedMembers
+          f: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_assert() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.named(int x) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.named(int x) : assert(x > 1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_fieldInitializer_value() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  A.named() : foo = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+          named: #M2
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  A.named() : foo = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+          named: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_redirect_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  A.c1(int a) : f = a;
+  A.c2() : this.c1(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+          f: #M3
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  A.c1(int a) : f = a;
+  A.c2() : this.c1(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+          f: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_super_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  A.named() : super.named(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+      B: #M2
+        declaredMembers
+          named: #M3
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  A.named() : super.named(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+      B: #M2
+        declaredMembers
+          named: #M3
+''',
+    );
+  }
+
   test_manifest_class_constructor_isConst_falseToTrue() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
