@@ -1397,10 +1397,10 @@ class AnalysisDriver {
             libraryElement.typeSystem,
             strictCasts: analysisOptions.strictCasts);
 
-        BundleRequirementsManifest? libraryRequirements;
+        RequirementsManifest? requirements;
         if (withFineDependencies) {
-          libraryRequirements = BundleRequirementsManifest();
-          linkingBundleManifest = libraryRequirements;
+          requirements = RequirementsManifest();
+          globalResultRequirements = requirements;
         }
 
         var results = performance.run('LibraryAnalyzer', (performance) {
@@ -1418,7 +1418,7 @@ class AnalysisDriver {
         });
 
         if (withFineDependencies) {
-          linkingBundleManifest = null;
+          globalResultRequirements = null;
         }
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
@@ -1479,7 +1479,7 @@ class AnalysisDriver {
           _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.errors);
         }
 
-        if (withFineDependencies && libraryRequirements != null) {
+        if (withFineDependencies && requirements != null) {
           performance.run('writeResolvedLibrary', (_) {
             var mapSink = BufferedSink();
             mapSink.writeMap(
@@ -1490,12 +1490,12 @@ class AnalysisDriver {
             var mapBytes = mapSink.takeBytes();
 
             library.lastResolutionResult = LibraryResolutionResult(
-              requirements: libraryRequirements!,
+              requirements: requirements!,
               bytes: mapBytes,
             );
 
             var sink = BufferedSink();
-            libraryRequirements.write(sink);
+            requirements.write(sink);
             sink.writeUint8List(mapBytes);
             var allBytes = sink.takeBytes();
 
@@ -1506,7 +1506,7 @@ class AnalysisDriver {
           _scheduler.eventsController.add(
             events.AnalyzedLibrary(
               library: library,
-              requirements: libraryRequirements,
+              requirements: requirements,
             ),
           );
         }
@@ -1784,7 +1784,7 @@ class AnalysisDriver {
 
             var reader = SummaryDataReader(reqAndUnitBytes);
             var requirements = performance.run('readRequirements', (_) {
-              return BundleRequirementsManifest.read(reader);
+              return RequirementsManifest.read(reader);
             });
 
             var failure = requirements.isSatisfied(
@@ -2099,7 +2099,7 @@ class AnalysisDriver {
               if (reqAndUnitBytes != null) {
                 var reader = SummaryDataReader(reqAndUnitBytes);
                 var requirements = performance.run('readRequirements', (_) {
-                  return BundleRequirementsManifest.read(reader);
+                  return RequirementsManifest.read(reader);
                 });
 
                 var failure = requirements.isSatisfied(

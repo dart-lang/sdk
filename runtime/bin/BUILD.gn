@@ -36,7 +36,8 @@ config("libdart_builtin_config") {
 config("export_api_symbols") {
   if (is_win) {
     ldflags = [ "/EXPORT:Dart_True" ]
-  } else if (is_asan || is_lsan || is_msan || is_tsan || is_ubsan) {
+  } else if (is_asan || is_hwasan || is_lsan || is_msan || is_tsan ||
+             is_ubsan) {
     # Export everything so the sanitizers can intercept whatever they want.
     ldflags = [ "-rdynamic" ]
   } else if (is_mac || is_ios) {

@@ -124,12 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    importedPublicElements = {
-      for (var directive in node.directives)
-        if (directive is ImportDirective &&
-            directive.libraryImport!.importedLibrary2!.uri.isPublic)
-          ...directive.libraryImport!.namespace.definedNames2.values,
-    };
+    importedPublicElements = _computeImportedPublicElements(node);
     node.declaredFragment!.children3.forEach(_checkTopLevelFragment);
   }
 
@@ -346,6 +341,27 @@ class _Visitor extends SimpleAstVisitor<void> {
       default:
         throw StateError('Unexpected type $runtimeType');
     }
+  }
+
+  /// Called during [visitCompilationUnit] to compute the value of
+  /// [importedPublicElements].
+  static Set<Element2> _computeImportedPublicElements(
+    CompilationUnit compilationUnit,
+  ) {
+    var elements = <Element2>{};
+    for (var directive in compilationUnit.directives) {
+      if (directive is! ImportDirective) continue;
+      var libraryImport = directive.libraryImport!;
+      var importedLibrary = libraryImport.importedLibrary2;
+      if (importedLibrary == null) {
+        // Import was unresolved. Ignore.
+        continue;
+      }
+      if (importedLibrary.uri.isPublic) {
+        elements.addAll(libraryImport.namespace.definedNames2.values);
+      }
+    }
+    return elements;
   }
 }
 

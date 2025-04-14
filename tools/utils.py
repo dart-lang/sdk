@@ -50,6 +50,7 @@ BUILD_SANITIZERS = {
     None: '',
     'none': '',
     'asan': 'ASAN',
+    'hwasan': 'HWASAN',
     'lsan': 'LSAN',
     'msan': 'MSAN',
     'tsan': 'TSAN',

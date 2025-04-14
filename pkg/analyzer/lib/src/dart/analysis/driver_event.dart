@@ -15,7 +15,7 @@ sealed class AnalysisDriverEvent {}
 /// The event after [library] analysis.
 final class AnalyzedLibrary extends AnalysisDriverEvent {
   final LibraryFileKind library;
-  final BundleRequirementsManifest? requirements;
+  final RequirementsManifest? requirements;
 
   AnalyzedLibrary({
     required this.library,
@@ -75,17 +75,16 @@ final class GetErrorsFromBytes extends AnalysisDriverEvent {
 }
 
 /// The event that libraries for [cycle] were linked, and accumulated the
-/// [requirementsManifest] to be checked if we try to reuse the summary bundle
-/// later.
+/// [requirements] to be checked if we try to reuse the summary bundle later.
 final class LinkLibraryCycle extends AnalysisDriverEvent {
   final LinkedElementFactory elementFactory;
   final LibraryCycle cycle;
-  final BundleRequirementsManifest? requirementsManifest;
+  final RequirementsManifest? requirements;
 
   LinkLibraryCycle({
     required this.elementFactory,
     required this.cycle,
-    required this.requirementsManifest,
+    required this.requirements,
   });
 }
 

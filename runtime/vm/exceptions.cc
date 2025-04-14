@@ -632,6 +632,14 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
                                     frame_pointer, thread);
 #else
 
+  // Zero out HWASAN tags from the current stack pointer to the destination.
+  //
+  // Stack region is by default tagged with 0 (including SP and all pointers
+  // derived from it via arithmetic), however HWASAN also selectively tags
+  // some stack allocations - which means these tags need to be zeroed out
+  // when the stack is unwound so that it could be safely reused later.
+  HWASAN_HANDLE_LONGJMP(reinterpret_cast<void*>(stack_pointer));
+
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = OSThread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),

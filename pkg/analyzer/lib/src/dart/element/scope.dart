@@ -580,9 +580,9 @@ class PrefixScope implements Scope {
       );
     }
 
-    if (linkingBundleManifest case var linkingBundleManifest?) {
+    if (globalResultRequirements case var resultRequirements?) {
       for (var importedLibrary in _importedLibraries) {
-        linkingBundleManifest.notifyRequest(
+        resultRequirements.notifyRequest(
           importedLibrary: importedLibrary,
           nameStr: id,
         );

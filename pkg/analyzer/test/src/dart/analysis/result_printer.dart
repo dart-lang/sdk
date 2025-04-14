@@ -42,7 +42,7 @@ class BundleRequirementsPrinter {
     required this.idProvider,
   });
 
-  void write(BundleRequirementsManifest requirements) {
+  void write(RequirementsManifest requirements) {
     sink.writelnWithIndent('requirements');
     sink.withIndent(() {
       _writeTopLevels(requirements);
@@ -64,7 +64,7 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeExportRequirements(BundleRequirementsManifest requirements) {
+  void _writeExportRequirements(RequirementsManifest requirements) {
     var exportRequirements = requirements.exportRequirements.sortedBy(
       (requirement) => requirement.exportedUri.toString(),
     );
@@ -82,7 +82,7 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeInterfaceMembers(BundleRequirementsManifest requirements) {
+  void _writeInterfaceMembers(RequirementsManifest requirements) {
     var libEntries = requirements.interfaceMembers.sorted;
     sink.writeElements('interfaceMembers', libEntries, (libEntry) {
       var topEntries = libEntry.value.sorted;
@@ -104,7 +104,7 @@ class BundleRequirementsPrinter {
     }
   }
 
-  void _writeTopLevels(BundleRequirementsManifest requirements) {
+  void _writeTopLevels(RequirementsManifest requirements) {
     var libEntries = requirements.topLevels.sorted;
     sink.writeElements('topLevels', libEntries, (libEntry) {
       var topEntries = libEntry.value.sorted;
@@ -335,7 +335,7 @@ class DriverEventsPrinter {
           });
         }
       }
-      _writeRequirements(object.requirementsManifest);
+      _writeRequirements(object.requirements);
     });
   }
 
@@ -394,8 +394,8 @@ class DriverEventsPrinter {
     }
   }
 
-  void _writeRequirements(BundleRequirementsManifest? requirements) {
-    if (!configuration.withBundleRequirements) {
+  void _writeRequirements(RequirementsManifest? requirements) {
+    if (!configuration.withResultRequirements) {
       return;
     }
 
@@ -561,7 +561,7 @@ class DriverEventsPrinterConfiguration {
   var unitElementConfiguration = UnitElementPrinterConfiguration();
   var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var elementTextConfiguration = ElementTextConfiguration();
-  var withBundleRequirements = false;
+  var withResultRequirements = false;
   var withGetLibraryByUri = true;
   var withElementManifests = false;
   var withLibraryManifest = false;

@@ -546,7 +546,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "FZdRtNwH7jmADecj60ClOK69AHHnfTvvuwKLUgY0_AoC",
+      "version": "mApUsju36efRytN4WFdopPYMfYgAI8ODzTmYq3zNEqsC",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -681,16 +681,6 @@ hooks = [
     'action': ['python3', 'sdk/third_party/emsdk/emsdk.py', 'activate',
         Var('emsdk_ver')],
     'condition': 'download_emscripten'
-  },
-  {
-    'name': 'Erase arch/ from fuchsia sdk',
-    'pattern': '.',
-    'action': [
-      'rm',
-      '-rf',
-      'sdk/third_party/fuchsia/sdk/linux/arch',
-    ],
-    'condition': 'download_fuchsia_deps'
   },
   {
     'name': 'Download Fuchsia system images',

@@ -43,6 +43,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -6626,6 +6627,8 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   ConstructorElementImpl2? getNamedConstructor2(String name) {
+    globalResultRequirements?.notify_interfaceElement_getNamedConstructor(
+        element: this, name: name);
     return constructors2.firstWhereOrNull((e) => e.name3 == name);
   }
 
