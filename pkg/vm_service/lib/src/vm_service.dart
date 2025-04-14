@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.16.0';
+const String vmServiceVersion = '4.17.0';
 
 /// @optional
 const String optional = 'optional';
@@ -384,6 +384,9 @@ class VmService {
   // HeapSnapshot
   Stream<Event> get onHeapSnapshotEvent =>
       _getEventController('HeapSnapshot').stream;
+
+  // TimerSignificantlyOverdue
+  Stream<Event> get onTimerEvent => _getEventController('Timer').stream;
 
   // WriteEvent
   Stream<Event> get onStdoutEvent => _getEventController('Stdout').stream;
@@ -1830,6 +1833,7 @@ class VmService {
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
   /// HeapSnapshot | HeapSnapshot
+  /// Timer | TimerSignificantlyOverdue
   ///
   /// Additionally, some embedders provide the `Stdout` and `Stderr` streams.
   /// These streams allow the client to subscribe to writes to stdout and
@@ -2292,6 +2296,7 @@ abstract class EventStreams {
   static const String kLogging = 'Logging';
   static const String kService = 'Service';
   static const String kHeapSnapshot = 'HeapSnapshot';
+  static const String kTimer = 'Timer';
   static const String kStdout = 'Stdout';
   static const String kStderr = 'Stderr';
 }
@@ -3950,6 +3955,16 @@ class Event extends Response {
   @optional
   LogRecord? logRecord;
 
+  /// Details about this event.
+  ///
+  /// For events of kind TimerSignifcantlyOverdue, this is a message stating how
+  /// many milliseconds late the timer fired, and giving possible reasons for
+  /// why it fired late.
+  ///
+  /// Only provided for events of kind TimerSignificantlyOverdue.
+  @optional
+  String? details;
+
   /// The service identifier.
   ///
   /// This is provided for the event kinds:
@@ -4035,6 +4050,7 @@ class Event extends Response {
     this.status,
     this.reloadFailureReason,
     this.logRecord,
+    this.details,
     this.service,
     this.method,
     this.alias,
@@ -4085,6 +4101,7 @@ class Event extends Response {
     reloadFailureReason = json['reloadFailureReason'];
     logRecord = createServiceObject(json['logRecord'], const ['LogRecord'])
         as LogRecord?;
+    details = json['details'];
     service = json['service'];
     method = json['method'];
     alias = json['alias'];
@@ -4143,6 +4160,7 @@ class Event extends Response {
           'reloadFailureReason': reloadFailureReasonValue,
         if (logRecord?.toJson() case final logRecordValue?)
           'logRecord': logRecordValue,
+        if (details case final detailsValue?) 'details': detailsValue,
         if (service case final serviceValue?) 'service': serviceValue,
         if (method case final methodValue?) 'method': methodValue,
         if (alias case final aliasValue?) 'alias': aliasValue,

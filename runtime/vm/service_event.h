@@ -55,6 +55,8 @@ class ServiceEvent {
 
     kLogging,
 
+    kTimerSignificantlyOverdue,
+
     kExtension,
 
     kTimelineEvents,
@@ -199,6 +201,11 @@ class ServiceEvent {
 
   void set_log_record(const LogRecord& log_record) { log_record_ = log_record; }
 
+  intptr_t milliseconds_overdue() const { return milliseconds_overdue_; }
+  void set_milliseconds_overdue(int64_t milliseconds_overdue) {
+    milliseconds_overdue_ = milliseconds_overdue;
+  }
+
   void set_extension_event(const ExtensionEvent& extension_event) {
     extension_event_ = extension_event;
   }
@@ -251,6 +258,7 @@ class ServiceEvent {
   const uint8_t* bytes_;
   intptr_t bytes_length_;
   LogRecord log_record_;
+  intptr_t milliseconds_overdue_;
   ExtensionEvent extension_event_;
   Profile* cpu_profile_;
   int64_t timestamp_;
