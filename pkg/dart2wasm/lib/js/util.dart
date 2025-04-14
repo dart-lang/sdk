@@ -285,18 +285,15 @@ class CoreTypesUtil {
   /// Cast the [invocation] if needed to conform to the expected [returnType].
   Expression castInvocationForReturn(
       Expression invocation, DartType returnType) {
-    if (returnType is VoidType) {
+    Expression expression;
+    if (returnType is VoidType || isJSValueType(returnType)) {
       // Technically a `void` return value can still be used, by casting the
       // return type to `dynamic` or `Object?`. However this case should be
       // extremely rare, and `dartifyRaw` overhead for return values that will
       // never be used in practice is too much, so we avoid `dartifyRaw` on
       // `void` returns. We still box the `externref` as the value can be passed
       // around as a Dart object.
-      return StaticInvocation(jsValueBoxTarget, Arguments([invocation]));
-    }
 
-    Expression expression;
-    if (isJSValueType(returnType)) {
       // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
       // code after migrating existing users of js interop on Dart2Wasm.
       // expression = _createJSValue(invocation);
