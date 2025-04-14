@@ -18,14 +18,180 @@ import 'package:meta/meta.dart';
 
 /// When [withFineDependencies], this variable might be set to accumulate
 /// requirements for the analysis result being computed.
-BundleRequirementsManifest? linkingBundleManifest;
+RequirementsManifest? globalResultRequirements;
 
-/// Whether fine grained dependencies feature is enabled.
+/// Whether fine-grained dependencies feature is enabled.
 ///
 /// This cannot be `const` because we change it in tests.
 bool withFineDependencies = false;
 
-class BundleRequirementsManifest {
+@visibleForTesting
+class ExportRequirement {
+  final Uri fragmentUri;
+  final Uri exportedUri;
+  final List<ExportRequirementCombinator> combinators;
+  final Map<LookupName, ManifestItemId> exportedIds;
+
+  ExportRequirement({
+    required this.fragmentUri,
+    required this.exportedUri,
+    required this.combinators,
+    required this.exportedIds,
+  });
+
+  factory ExportRequirement.read(SummaryDataReader reader) {
+    return ExportRequirement(
+      fragmentUri: reader.readUri(),
+      exportedUri: reader.readUri(),
+      combinators: reader.readTypedList(
+        () => ExportRequirementCombinator.read(reader),
+      ),
+      exportedIds: reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => ManifestItemId.read(reader),
+      ),
+    );
+  }
+
+  ExportFailure? isSatisfied({
+    required LinkedElementFactory elementFactory,
+  }) {
+    var libraryElement = elementFactory.libraryOfUri(exportedUri);
+    var libraryManifest = libraryElement?.manifest;
+    if (libraryManifest == null) {
+      return ExportLibraryMissing(uri: exportedUri);
+    }
+
+    // Every now exported ID must be previously exported.
+    var actualCount = 0;
+    for (var topEntry in libraryManifest.items.entries) {
+      var name = topEntry.key;
+      if (name.isPrivate) {
+        continue;
+      }
+
+      if (!_passCombinators(name)) {
+        continue;
+      }
+
+      actualCount++;
+      var actualId = topEntry.value.id;
+      var expectedId = exportedIds[topEntry.key];
+      if (actualId != expectedId) {
+        return ExportIdMismatch(
+          fragmentUri: fragmentUri,
+          exportedUri: exportedUri,
+          name: name,
+          expectedId: expectedId,
+          actualId: actualId,
+        );
+      }
+    }
+
+    // Every now previously ID must be now exported.
+    if (exportedIds.length != actualCount) {
+      return ExportCountMismatch(
+        fragmentUri: fragmentUri,
+        exportedUri: exportedUri,
+        actualCount: actualCount,
+        requiredCount: exportedIds.length,
+      );
+    }
+
+    return null;
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUri(fragmentUri);
+    sink.writeUri(exportedUri);
+    sink.writeList(combinators, (combinator) => combinator.write(sink));
+    sink.writeMap(
+      exportedIds,
+      writeKey: (lookupName) => lookupName.write(sink),
+      writeValue: (id) => id.write(sink),
+    );
+  }
+
+  bool _passCombinators(LookupName lookupName) {
+    var baseName = lookupName.asBaseName;
+    for (var combinator in combinators) {
+      switch (combinator) {
+        case ExportRequirementHideCombinator():
+          if (combinator.hiddenBaseNames.contains(baseName)) {
+            return false;
+          }
+        case ExportRequirementShowCombinator():
+          if (!combinator.shownBaseNames.contains(baseName)) {
+            return false;
+          }
+      }
+    }
+    return true;
+  }
+}
+
+@visibleForTesting
+sealed class ExportRequirementCombinator {
+  ExportRequirementCombinator();
+
+  factory ExportRequirementCombinator.read(SummaryDataReader reader) {
+    var kind = reader.readEnum(_ExportRequirementCombinatorKind.values);
+    switch (kind) {
+      case _ExportRequirementCombinatorKind.hide:
+        return ExportRequirementHideCombinator.read(reader);
+      case _ExportRequirementCombinatorKind.show:
+        return ExportRequirementShowCombinator.read(reader);
+    }
+  }
+
+  void write(BufferedSink sink);
+}
+
+@visibleForTesting
+final class ExportRequirementHideCombinator
+    extends ExportRequirementCombinator {
+  final Set<BaseName> hiddenBaseNames;
+
+  ExportRequirementHideCombinator({
+    required this.hiddenBaseNames,
+  });
+
+  factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
+    return ExportRequirementHideCombinator(
+      hiddenBaseNames: reader.readBaseNameSet(),
+    );
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ExportRequirementCombinatorKind.hide);
+    sink.writeBaseNameIterable(hiddenBaseNames);
+  }
+}
+
+@visibleForTesting
+final class ExportRequirementShowCombinator
+    extends ExportRequirementCombinator {
+  final Set<BaseName> shownBaseNames;
+
+  ExportRequirementShowCombinator({
+    required this.shownBaseNames,
+  });
+
+  factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
+    return ExportRequirementShowCombinator(
+      shownBaseNames: reader.readBaseNameSet(),
+    );
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ExportRequirementCombinatorKind.show);
+    sink.writeBaseNameIterable(shownBaseNames);
+  }
+}
+
+class RequirementsManifest {
   /// LibraryUri => TopName => ID
   final Map<Uri, Map<LookupName, ManifestItemId?>> topLevels = {};
 
@@ -35,10 +201,10 @@ class BundleRequirementsManifest {
 
   final List<ExportRequirement> exportRequirements = [];
 
-  BundleRequirementsManifest();
+  RequirementsManifest();
 
-  factory BundleRequirementsManifest.read(SummaryDataReader reader) {
-    var result = BundleRequirementsManifest();
+  factory RequirementsManifest.read(SummaryDataReader reader) {
+    var result = RequirementsManifest();
 
     Map<LookupName, ManifestItemId?> readNameToIdMap() {
       return reader.readMap(
@@ -319,172 +485,6 @@ class BundleRequirementsManifest {
         );
       }
     }
-  }
-}
-
-@visibleForTesting
-class ExportRequirement {
-  final Uri fragmentUri;
-  final Uri exportedUri;
-  final List<ExportRequirementCombinator> combinators;
-  final Map<LookupName, ManifestItemId> exportedIds;
-
-  ExportRequirement({
-    required this.fragmentUri,
-    required this.exportedUri,
-    required this.combinators,
-    required this.exportedIds,
-  });
-
-  factory ExportRequirement.read(SummaryDataReader reader) {
-    return ExportRequirement(
-      fragmentUri: reader.readUri(),
-      exportedUri: reader.readUri(),
-      combinators: reader.readTypedList(
-        () => ExportRequirementCombinator.read(reader),
-      ),
-      exportedIds: reader.readMap(
-        readKey: () => LookupName.read(reader),
-        readValue: () => ManifestItemId.read(reader),
-      ),
-    );
-  }
-
-  ExportFailure? isSatisfied({
-    required LinkedElementFactory elementFactory,
-  }) {
-    var libraryElement = elementFactory.libraryOfUri(exportedUri);
-    var libraryManifest = libraryElement?.manifest;
-    if (libraryManifest == null) {
-      return ExportLibraryMissing(uri: exportedUri);
-    }
-
-    // Every now exported ID must be previously exported.
-    var actualCount = 0;
-    for (var topEntry in libraryManifest.items.entries) {
-      var name = topEntry.key;
-      if (name.isPrivate) {
-        continue;
-      }
-
-      if (!_passCombinators(name)) {
-        continue;
-      }
-
-      actualCount++;
-      var actualId = topEntry.value.id;
-      var expectedId = exportedIds[topEntry.key];
-      if (actualId != expectedId) {
-        return ExportIdMismatch(
-          fragmentUri: fragmentUri,
-          exportedUri: exportedUri,
-          name: name,
-          expectedId: expectedId,
-          actualId: actualId,
-        );
-      }
-    }
-
-    // Every now previously ID must be now exported.
-    if (exportedIds.length != actualCount) {
-      return ExportCountMismatch(
-        fragmentUri: fragmentUri,
-        exportedUri: exportedUri,
-        actualCount: actualCount,
-        requiredCount: exportedIds.length,
-      );
-    }
-
-    return null;
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeUri(fragmentUri);
-    sink.writeUri(exportedUri);
-    sink.writeList(combinators, (combinator) => combinator.write(sink));
-    sink.writeMap(
-      exportedIds,
-      writeKey: (lookupName) => lookupName.write(sink),
-      writeValue: (id) => id.write(sink),
-    );
-  }
-
-  bool _passCombinators(LookupName lookupName) {
-    var baseName = lookupName.asBaseName;
-    for (var combinator in combinators) {
-      switch (combinator) {
-        case ExportRequirementHideCombinator():
-          if (combinator.hiddenBaseNames.contains(baseName)) {
-            return false;
-          }
-        case ExportRequirementShowCombinator():
-          if (!combinator.shownBaseNames.contains(baseName)) {
-            return false;
-          }
-      }
-    }
-    return true;
-  }
-}
-
-@visibleForTesting
-sealed class ExportRequirementCombinator {
-  ExportRequirementCombinator();
-
-  factory ExportRequirementCombinator.read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_ExportRequirementCombinatorKind.values);
-    switch (kind) {
-      case _ExportRequirementCombinatorKind.hide:
-        return ExportRequirementHideCombinator.read(reader);
-      case _ExportRequirementCombinatorKind.show:
-        return ExportRequirementShowCombinator.read(reader);
-    }
-  }
-
-  void write(BufferedSink sink);
-}
-
-@visibleForTesting
-final class ExportRequirementHideCombinator
-    extends ExportRequirementCombinator {
-  final Set<BaseName> hiddenBaseNames;
-
-  ExportRequirementHideCombinator({
-    required this.hiddenBaseNames,
-  });
-
-  factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
-    return ExportRequirementHideCombinator(
-      hiddenBaseNames: reader.readBaseNameSet(),
-    );
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ExportRequirementCombinatorKind.hide);
-    sink.writeBaseNameIterable(hiddenBaseNames);
-  }
-}
-
-@visibleForTesting
-final class ExportRequirementShowCombinator
-    extends ExportRequirementCombinator {
-  final Set<BaseName> shownBaseNames;
-
-  ExportRequirementShowCombinator({
-    required this.shownBaseNames,
-  });
-
-  factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
-    return ExportRequirementShowCombinator(
-      shownBaseNames: reader.readBaseNameSet(),
-    );
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ExportRequirementCombinatorKind.show);
-    sink.writeBaseNameIterable(shownBaseNames);
   }
 }
 

@@ -328,7 +328,7 @@ class InheritanceManager3 {
     int forMixinIndex = -1,
     bool forSuper = false,
   }) {
-    linkingBundleManifest?.notifyInterfaceRequest(
+    globalResultRequirements?.notifyInterfaceRequest(
         element: element.asElement2, nameObj: name);
     var interface = getInterface(element);
     if (forSuper) {

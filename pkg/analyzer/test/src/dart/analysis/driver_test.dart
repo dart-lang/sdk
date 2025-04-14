@@ -21753,7 +21753,7 @@ int get b => 0;
 
     withFineDependencies = true;
     configuration
-      ..withBundleRequirements = true
+      ..withResultRequirements = true
       ..withLibraryManifest = true
       ..withLinkBundleEvents = true;
 

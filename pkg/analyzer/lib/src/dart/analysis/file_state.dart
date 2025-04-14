@@ -2135,7 +2135,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
 /// The resolution result for a library.
 class LibraryResolutionResult {
-  final BundleRequirementsManifest requirements;
+  final RequirementsManifest requirements;
 
   /// Approximately serialized map of file URIs to diagnostics.
   /// See uses for precise details.

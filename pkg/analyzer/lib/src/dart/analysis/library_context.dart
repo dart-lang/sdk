@@ -207,8 +207,8 @@ class LibraryContext {
         Uint8List linkedBytes;
         try {
           if (withFineDependencies) {
-            var requirementsManifest = BundleRequirementsManifest();
-            linkingBundleManifest = requirementsManifest;
+            var requirements = RequirementsManifest();
+            globalResultRequirements = requirements;
 
             var linkResult = performance.run('link', (performance) {
               return link(
@@ -219,7 +219,7 @@ class LibraryContext {
                 inputLibraryManifests: inputLibraryManifests,
               );
             });
-            linkingBundleManifest = null;
+            globalResultRequirements = null;
             linkedBytes = linkResult.resolutionBytes;
 
             var newLibraryManifests = <Uri, LibraryManifest>{};
@@ -234,16 +234,16 @@ class LibraryContext {
               elementFactory.libraryManifests.addAll(newLibraryManifests);
             });
 
-            requirementsManifest.addExports(
+            requirements.addExports(
               elementFactory: elementFactory,
               libraryUriSet: cycle.libraryUris,
             );
-            requirementsManifest.removeReqForLibs(cycle.libraryUris);
+            requirements.removeReqForLibs(cycle.libraryUris);
 
             bundleEntry = LinkedBundleEntry(
               apiSignature: cycle.nonTransitiveApiSignature,
               libraryManifests: newLibraryManifests,
-              requirements: requirementsManifest,
+              requirements: requirements,
               linkedBytes: linkedBytes,
             );
             linkedBundleProvider.put(
@@ -255,7 +255,7 @@ class LibraryContext {
               LinkLibraryCycle(
                 elementFactory: elementFactory,
                 cycle: cycle,
-                requirementsManifest: requirementsManifest,
+                requirements: requirements,
               ),
             );
           } else {
@@ -273,7 +273,7 @@ class LibraryContext {
             bundleEntry = LinkedBundleEntry(
               apiSignature: cycle.nonTransitiveApiSignature,
               libraryManifests: {},
-              requirements: BundleRequirementsManifest(),
+              requirements: RequirementsManifest(),
               linkedBytes: linkedBytes,
             );
             linkedBundleProvider.put(
@@ -285,7 +285,7 @@ class LibraryContext {
               LinkLibraryCycle(
                 elementFactory: elementFactory,
                 cycle: cycle,
-                requirementsManifest: null,
+                requirements: null,
               ),
             );
           }
@@ -472,7 +472,7 @@ class LinkedBundleEntry {
   /// These requirements are to the libraries in dependencies.
   ///
   /// If [withFineDependencies] is `false`, the requirements are empty.
-  final BundleRequirementsManifest requirements;
+  final RequirementsManifest requirements;
 
   /// The serialized libraries, for [BundleReader].
   final Uint8List linkedBytes;
@@ -523,7 +523,7 @@ class LinkedBundleProvider {
       readKey: () => reader.readUri(),
       readValue: () => LibraryManifest.read(reader),
     );
-    var requirements = BundleRequirementsManifest.read(reader);
+    var requirements = RequirementsManifest.read(reader);
     var linkedBytes = reader.readUint8List();
 
     var result = LinkedBundleEntry(
