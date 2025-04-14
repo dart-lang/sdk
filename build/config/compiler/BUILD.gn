@@ -39,7 +39,8 @@ config("default_include_dirs") {
 }
 
 if (!is_win) {
-  using_sanitizer = is_asan || is_lsan || is_msan || is_tsan || is_ubsan
+  using_sanitizer =
+      is_asan || is_hwasan || is_lsan || is_msan || is_tsan || is_ubsan
 }
 
 # compiler ---------------------------------------------------------------------
@@ -116,6 +117,10 @@ config("compiler") {
     if (is_asan) {
       cflags += [ "-fsanitize=address" ]
       ldflags += [ "-fsanitize=address" ]
+    }
+    if (is_hwasan && is_android && current_cpu == "arm64") {
+      cflags += [ "-fsanitize=hwaddress" ]
+      ldflags += [ "-fsanitize=hwaddress" ]
     }
     if (is_lsan) {
       cflags += [ "-fsanitize=leak" ]

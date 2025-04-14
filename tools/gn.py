@@ -266,6 +266,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     gn_args['is_msan'] = sanitizer == 'msan'
     gn_args['is_tsan'] = sanitizer == 'tsan'
     gn_args['is_ubsan'] = sanitizer == 'ubsan'
+    gn_args['is_hwasan'] = sanitizer == 'hwasan'
     gn_args['is_qemu'] = args.use_qemu
 
     if not args.platform_sdk:
@@ -569,7 +570,7 @@ def AddCommonConfigurationArgs(parser):
     parser.add_argument('--sanitizer',
                         type=str,
                         help='Build variants (comma-separated).',
-                        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
+                        metavar='[all,none,asan,hwasan,lsan,msan,tsan,ubsan]',
                         default='none')
 
 
