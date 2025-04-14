@@ -947,8 +947,14 @@ void IsolateGroup::RunWithCachedCatchEntryMoves(
   }
 }
 
-void IsolateGroup::ClearCatchEntryMovesCache() {
-  SafepointMutexLocker ml(&cache_mutex_);
+void IsolateGroup::ClearCatchEntryMovesCacheLocked() {
+  auto thread = Thread::Current();
+  ASSERT(thread->OwnsSafepoint() ||
+         (thread->task_kind() == Thread::kMutatorTask) ||
+         (thread->task_kind() == Thread::kMarkerTask) ||
+         (thread->task_kind() == Thread::kCompactorTask) ||
+         (thread->task_kind() == Thread::kScavengerTask) ||
+         (thread->task_kind() == Thread::kIncrementalCompactorTask));
   catch_entry_moves_cache_.Clear();
 }
 
