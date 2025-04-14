@@ -16573,6 +16573,480 @@ class A {
     );
   }
 
+  test_manifest_classTypeAlias_constructors_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+      M: #M2
+      X: #M3
+        declaredMembers
+          c1: #M4
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M5
+      M: #M2
+      X: #M3
+        declaredMembers
+          c1: #M4
+          c2: #M6
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+  A.c2(int _);
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1: #M5
+          c2: #M6
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2(double _);
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M7
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1: #M5
+          c2: #M8
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M2
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1: #M5
+          c2: #M6
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_extends() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+mixin M {}
+class X = A with M;
+class Y = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      M: #M2
+      X: #M3
+      Y: #M4
+''',
+      updatedCode: r'''
+class A {}
+class B {}
+mixin M {}
+class X = A with M;
+class Y = B with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      M: #M2
+      X: #M3
+      Y: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo1 => 0;
+  int get foo2 => 0;
+}
+
+mixin M {
+  int get foo3 => 0;
+  int get foo4 => 0;
+}
+
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1: #M1
+          foo2: #M2
+      M: #M3
+        declaredMembers
+          foo3: #M4
+          foo4: #M5
+      X: #M6
+        inheritedMembers
+          foo1: #M1
+          foo2: #M2
+          foo3: #M4
+          foo4: #M5
+''',
+      updatedCode: r'''
+class A {
+  int get foo1 => 0;
+  double get foo2 => 0;
+}
+
+mixin M {
+  int get foo3 => 0;
+  double get foo4 => 0;
+}
+
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1: #M1
+          foo2: #M7
+      M: #M3
+        declaredMembers
+          foo3: #M4
+          foo4: #M8
+      X: #M6
+        inheritedMembers
+          foo1: #M1
+          foo2: #M7
+          foo3: #M4
+          foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_interfaces() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+mixin M {}
+class X1 = Object with M;
+class X2 = Object with M implements A;
+class X3 = Object with M;
+class X4 = Object with M implements A;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      M: #M1
+      X1: #M2
+      X2: #M3
+      X3: #M4
+      X4: #M5
+''',
+      updatedCode: r'''
+class A {}
+mixin M {}
+class X1 = Object with M;
+class X2 = Object with M implements A;
+class X3 = Object with M implements A;
+class X4 = Object with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      M: #M1
+      X1: #M2
+      X2: #M3
+      X3: #M6
+      X4: #M7
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+@Deprecated('0')
+class X = Object with M;
+@Deprecated('0')
+class Y = Object with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      M: #M0
+      X: #M1
+      Y: #M2
+''',
+      updatedCode: r'''
+mixin M {}
+@Deprecated('0')
+class X = Object with M;
+@Deprecated('1')
+class Y = Object with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      M: #M0
+      X: #M1
+      Y: #M3
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo1(int _) {}
+  void foo2(int _) {}
+}
+
+mixin M {
+  void foo3(int _) {}
+  void foo4(int _) {}
+}
+
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1: #M1
+          foo2: #M2
+      M: #M3
+        declaredMembers
+          foo3: #M4
+          foo4: #M5
+      X: #M6
+        inheritedMembers
+          foo1: #M1
+          foo2: #M2
+          foo3: #M4
+          foo4: #M5
+''',
+      updatedCode: r'''
+class A {
+  void foo1(int _) {}
+  void foo2(double _) {}
+}
+
+mixin M {
+  void foo3(int _) {}
+  void foo4(double _) {}
+}
+
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1: #M1
+          foo2: #M7
+      M: #M3
+        declaredMembers
+          foo3: #M4
+          foo4: #M8
+      X: #M6
+        inheritedMembers
+          foo1: #M1
+          foo2: #M7
+          foo3: #M4
+          foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo1(int _) {}
+  set foo2(int _) {}
+}
+
+mixin M {
+  set foo3(int _) {}
+  set foo4(int _) {}
+}
+
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1=: #M1
+          foo2=: #M2
+      M: #M3
+        declaredMembers
+          foo3=: #M4
+          foo4=: #M5
+      X: #M6
+        inheritedMembers
+          foo1=: #M1
+          foo2=: #M2
+          foo3=: #M4
+          foo4=: #M5
+''',
+      updatedCode: r'''
+class A {
+  set foo1(int _) {}
+  set foo2(double _) {}
+}
+
+mixin M {
+  set foo3(int _) {}
+  set foo4(double _) {}
+}
+
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1=: #M1
+          foo2=: #M7
+      M: #M3
+        declaredMembers
+          foo3=: #M4
+          foo4=: #M8
+      X: #M6
+        inheritedMembers
+          foo1=: #M1
+          foo2=: #M7
+          foo3=: #M4
+          foo4=: #M8
+''',
+    );
+  }
+
   test_manifest_constInitializer_adjacentStrings() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
