@@ -169,6 +169,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAsExpression(AsExpression node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitAssertInitializer(AssertInitializer node) {
     node.visitChildren(this);
   }
@@ -181,6 +186,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {}
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    node.visitChildren(this);
+  }
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {

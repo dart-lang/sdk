@@ -17087,6 +17087,42 @@ const e = '$b' 'x';
     );
   }
 
+  test_manifest_constInitializer_asExpression() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = a as int;
+const d = b as int;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = 0;
+const b = 1;
+const c = a as int;
+const d = b as int;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M4
+      c: #M2
+      d: #M5
+''',
+    );
+  }
+
   test_manifest_constInitializer_binaryExpression() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -17373,6 +17409,42 @@ const b = false;
     manifest
       a: #M0
       b: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_conditionalExpression() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = true;
+const b = true;
+const c = a ? 0 : 1;
+const d = b ? 0 : 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = true;
+const b = false;
+const c = a ? 0 : 1;
+const d = b ? 0 : 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M4
+      c: #M2
+      d: #M5
 ''',
     );
   }
