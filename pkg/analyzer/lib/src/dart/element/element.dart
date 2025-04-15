@@ -477,25 +477,43 @@ class ClassElementImpl extends ClassOrMixinElementImpl
           ConstructorMember.from(superclassConstructor, superType);
 
       var isNamed = superclassConstructor.name.isNotEmpty;
-      implicitConstructor.constantInitializers = [
-        SuperConstructorInvocationImpl(
-          superKeyword: Tokens.super_(),
-          period: isNamed ? Tokens.period() : null,
-          constructorName: isNamed
-              ? (SimpleIdentifierImpl(
-                  StringToken(TokenType.STRING, superclassConstructor.name, -1),
-                )..element = superclassConstructor.asElement2)
-              : null,
-          argumentList: ArgumentListImpl(
-            leftParenthesis: Tokens.openParenthesis(),
-            arguments: argumentsForSuperInvocation,
-            rightParenthesis: Tokens.closeParenthesis(),
-          ),
-        )..element = superclassConstructor.asElement2,
-      ];
+      var superInvocation = SuperConstructorInvocationImpl(
+        superKeyword: Tokens.super_(),
+        period: isNamed ? Tokens.period() : null,
+        constructorName: isNamed
+            ? (SimpleIdentifierImpl(
+                StringToken(TokenType.STRING, superclassConstructor.name, -1),
+              )..element = superclassConstructor.asElement2)
+            : null,
+        argumentList: ArgumentListImpl(
+          leftParenthesis: Tokens.openParenthesis(),
+          arguments: argumentsForSuperInvocation,
+          rightParenthesis: Tokens.closeParenthesis(),
+        ),
+      );
+      _linkTokens(superInvocation);
+      superInvocation.element = superclassConstructor.asElement2;
+      implicitConstructor.constantInitializers = [superInvocation];
 
       return implicitConstructor;
     }).toList(growable: false);
+  }
+
+  static void _linkTokens(AstNode parent) {
+    Token? lastToken;
+    for (var entity in parent.childEntities) {
+      switch (entity) {
+        case Token token:
+          lastToken?.next = token;
+          token.previous = lastToken;
+          lastToken = token;
+        case AstNode node:
+          _linkTokens(node);
+          lastToken?.next = node.beginToken;
+          node.beginToken.previous = lastToken;
+          lastToken = node.endToken;
+      }
+    }
   }
 }
 

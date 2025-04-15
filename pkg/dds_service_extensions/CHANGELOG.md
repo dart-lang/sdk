@@ -1,5 +1,6 @@
 # 2.0.2-wip
 - Require dart sdk v. 3.5.0 or higher.
+- Add `DdsExtension.onTimerEventWithHistory`.
 
 # 2.0.1
 - Update `vm_service` to `>=14.0.0 <16.0.0`.

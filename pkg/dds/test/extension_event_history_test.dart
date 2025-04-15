@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -22,7 +23,6 @@ Future testMain() async {
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
-  resumeIsolate,
   (VmService service, IsolateRef isolateRef) async {
     final completer = Completer<void>();
     int i = 1;
@@ -39,8 +39,31 @@ final tests = <IsolateTest>[
       }
     });
     await service.streamListen(EventStreams.kExtension);
+
+    resumeIsolate(service, isolateRef);
     await completer.future;
   },
+  (VmService service, _) async {
+    // Confirm that all events in the history buffer get sent on a stream
+    // returned by [service.onExtensionEventWithHistory].
+    final completer = Completer<void>();
+    int i = 1;
+    late final StreamSubscription subscription;
+    subscription = service.onExtensionEventWithHistory.listen((event) async {
+      expect(event.extensionKind, 'Test');
+      expect(event.extensionData!.data['id'], i);
+      i++;
+
+      if (i == 10) {
+        await subscription.cancel();
+        completer.complete();
+      } else if (i > 10) {
+        fail('Too many "Test" extension events');
+      }
+    });
+    await service.streamListen(EventStreams.kExtension);
+    await completer.future;
+  }
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

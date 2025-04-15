@@ -202,6 +202,13 @@ extension DdsExtension on VmService {
   Stream<Event> get onExtensionEventWithHistory =>
       onEventWithHistory('Extension');
 
+  /// Returns a new [Stream<Event>] of events sent on the `Timer` stream which
+  /// outputs historical events before streaming real-time events.
+  ///
+  /// Note: unlike [onTimerEvent], the returned stream is a single subscription
+  /// stream and a new stream is created for each invocation of this getter.
+  Stream<Event> get onTimerEventWithHistory => onEventWithHistory('Timer');
+
   /// The [getClientName] RPC is used to retrieve the name associated with the
   /// currently connected VM service client.
   ///
