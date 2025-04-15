@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
@@ -146,9 +147,6 @@ class ManifestNode {
 }
 
 class _ElementCollector extends ThrowingAstVisitor<void> {
-  static const int _nullIndex = 0;
-  static const int _importPrefixIndex = 1;
-
   final Map<Element2, int> map = Map.identity();
   final List<int> elementIndexList = [];
 
@@ -335,14 +333,24 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   void _addElement(Element2? element) {
     switch (element) {
       case null:
-        elementIndexList.add(_nullIndex);
+        elementIndexList.add(_ElementKind.null_.index);
+      case DynamicElementImpl2():
+        elementIndexList.add(_ElementKind.dynamic_.index);
       case PrefixElement2():
-        elementIndexList.add(_importPrefixIndex);
+        elementIndexList.add(_ElementKind.importPrefix.index);
       default:
-        var index = map[element] ??= 2 + map.length;
+        var base = _ElementKind.firstRegular.index;
+        var index = map[element] ??= base + map.length;
         elementIndexList.add(index);
     }
   }
+}
+
+enum _ElementKind {
+  null_,
+  dynamic_,
+  importPrefix,
+  firstRegular,
 }
 
 extension ListOfManifestNodeExtension on List<ManifestNode> {

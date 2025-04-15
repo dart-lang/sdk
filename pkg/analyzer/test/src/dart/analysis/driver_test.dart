@@ -17313,7 +17313,7 @@ const b = 0 + a;
           tokenLengthList: [1, 1, 1]
           elements
             [2] (dart:core, num, +) #M1
-          elementIndexList: [0, 2]
+          elementIndexList: [0, 3]
 ''',
       updatedCode: r'''
 const a = 1;
@@ -17336,7 +17336,7 @@ const b = 0 + a;
           elements
             [2] (package:test/test.dart, a) <null>
             [3] (dart:core, num, +) #M1
-          elementIndexList: [2, 3]
+          elementIndexList: [3, 4]
 ''',
     );
   }
@@ -17366,7 +17366,7 @@ const b = 1 + a;
           elements
             [2] (package:test/test.dart, a) <null>
             [3] (dart:core, num, +) #M2
-          elementIndexList: [2, 3]
+          elementIndexList: [3, 4]
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -17382,7 +17382,7 @@ const b = 1 + a;
           tokenLengthList: [1, 1, 1]
           elements
             [2] (dart:core, num, +) #M2
-          elementIndexList: [0, 2]
+          elementIndexList: [0, 3]
 ''',
     );
   }
@@ -17557,6 +17557,34 @@ const a = A();
           foo: #M3
           new: #M1
       a: #M2
+''',
+    );
+  }
+
+  test_manifest_constInitializer_dynamicElement() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0 as dynamic;
+const b = 0 as dynamic;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+const a = 0 as dynamic;
+const b = 0 as int;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M2
 ''',
     );
   }
