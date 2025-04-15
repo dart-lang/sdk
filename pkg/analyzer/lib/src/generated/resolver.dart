@@ -2315,9 +2315,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node,
+  void visitDotShorthandPropertyAccess(
+      covariant DotShorthandPropertyAccessImpl node,
       {TypeImpl contextType = UnknownInferredType.instance}) {
-    throw UnimplementedError('TODO(kallentu)');
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (node.isDotShorthand) {
+      pushDotShorthandContext(SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    var result = _propertyElementResolver.resolveDotShorthand(node);
+    _resolvePropertyAccessRhs_common(
+        result, node, node.propertyName, contextType);
+
+    if (node.isDotShorthand) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -3982,21 +3999,34 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       hasWrite: false,
     );
 
-    var element = result.readElement2;
+    _resolvePropertyAccessRhs_common(
+        result, node, node.propertyName, contextType);
+    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
+  }
 
-    var propertyName = node.propertyName;
+  /// Common logic for resolving dot shorthands property accesses and
+  /// [_resolvePropertyAccessRhs].
+  void _resolvePropertyAccessRhs_common(
+      PropertyElementResolverResult resolverResult,
+      ExpressionImpl node,
+      SimpleIdentifierImpl propertyName,
+      TypeImpl contextType) {
+    var element = resolverResult.readElement2;
+
     propertyName.element = element;
 
     DartType type;
     if (element is MethodElement2) {
       type = element.type;
+    } else if (element is ConstructorElementImpl2) {
+      type = element.type;
     } else if (element is GetterElement) {
-      type = result.getType!;
-    } else if (result.functionTypeCallType != null) {
-      type = result.functionTypeCallType!;
-    } else if (result.recordField != null) {
-      type = result.recordField!.type;
-    } else if (result.atDynamicTarget) {
+      type = resolverResult.getType!;
+    } else if (resolverResult.functionTypeCallType != null) {
+      type = resolverResult.functionTypeCallType!;
+    } else if (resolverResult.recordField != null) {
+      type = resolverResult.recordField!.type;
+    } else if (resolverResult.atDynamicTarget) {
       type = DynamicTypeImpl.instance;
     } else {
       type = InvalidTypeImpl.instance;
@@ -4020,7 +4050,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     nullShortingTermination(node, rewrittenExpression: replacement);
     _insertImplicitCallReference(replacement, contextType: contextType);
-    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
   }
 
   /// Continues resolution of a [FunctionExpressionInvocation] that was created

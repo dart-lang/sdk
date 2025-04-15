@@ -481,6 +481,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(PRODUCT)
 
+  bool has_seen_oom() const {
+    return HasSeenOOMBit::decode(isolate_group_flags_);
+  }
+  void set_has_seen_oom(bool value) {
+    isolate_group_flags_ = HasSeenOOMBit::update(value, isolate_group_flags_);
+  }
+
 #if defined(PRODUCT)
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else   // defined(PRODUCT)
@@ -801,6 +808,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(AllClassesFinalized)                                                       \
   V(EnableAsserts)                                                             \
   V(HasAttemptedReload)                                                        \
+  V(HasSeenOOM)                                                                \
   V(RemappingCids)                                                             \
   V(ShouldLoadVmService)                                                       \
   V(Obfuscate)                                                                 \

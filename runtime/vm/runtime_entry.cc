@@ -3216,7 +3216,8 @@ static void HandleStackOverflowTestCases(Thread* thread) {
         do_gc = true;
       }
       if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
-        do_reload = isolate->group()->CanReload();
+        do_reload =
+            isolate_group->CanReload() && !isolate_group->has_seen_oom();
       }
     }
   }
@@ -3275,7 +3276,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     JSONStream js;
     const bool success =
         isolate_group->ReloadSources(&js, /*force_reload=*/true, script_uri);
-    if (!success && !Dart::IsShuttingDown()) {
+    if (!success && !Dart::IsShuttingDown() && !isolate_group->has_seen_oom()) {
       FATAL("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
   }

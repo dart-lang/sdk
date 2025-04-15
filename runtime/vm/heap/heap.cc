@@ -83,7 +83,8 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
   if (LIKELY(addr != 0)) {
     return addr;
   }
-  if (!assume_scavenge_will_fail_ && !thread->force_growth()) {
+  if (!assume_scavenge_will_fail_ && !thread->force_growth() &&
+      old_space_.HasReservation()) {
     GcSafepointOperationScope safepoint_operation(thread);
 
     // Another thread may have won the race to the safepoint and performed a GC
@@ -174,6 +175,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
   // Give up allocating this object.
   OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
                size);
+  isolate_group_->set_has_seen_oom(true);
   return 0;
 }
 

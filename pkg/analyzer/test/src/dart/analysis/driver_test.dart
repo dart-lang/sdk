@@ -9154,6 +9154,125 @@ class A {
     );
   }
 
+  test_dependency_classTypaAlias_constructor_named() async {
+    configuration
+      .withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.named(int _);
+}
+mixin M {}
+class B = A with M;
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  B.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+      B: #M2
+        inheritedMembers
+          named: #M1
+      M: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          named: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.named(double _);
+}
+mixin M {}
+class B = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M6
+      B: #M2
+        inheritedMembers
+          named: #M6
+      M: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMemberIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: B
+    memberName: named
+    expectedId: #M1
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        B
+          named: #M6
+[status] idle
+''',
+    );
+  }
+
   test_dependency_export_noLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 final a = 0;
@@ -16592,8 +16711,8 @@ class X = A with M;
           c1: #M1
       M: #M2
       X: #M3
-        declaredMembers
-          c1: #M4
+        inheritedMembers
+          c1: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16610,12 +16729,124 @@ class X = A with M;
       A: #M0
         declaredMembers
           c1: #M1
-          c2: #M5
+          c2: #M4
       M: #M2
       X: #M3
+        inheritedMembers
+          c1: #M1
+          c2: #M4
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_add_chain_backward() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X1 = X2 with M;
+class X2 = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
         declaredMembers
-          c1: #M4
-          c2: #M6
+          c1: #M1
+      M: #M2
+      X1: #M3
+        inheritedMembers
+          c1: #M1
+      X2: #M4
+        inheritedMembers
+          c1: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X1 = X2 with M;
+class X2 = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M5
+      M: #M2
+      X1: #M3
+        inheritedMembers
+          c1: #M1
+          c2: #M5
+      X2: #M4
+        inheritedMembers
+          c1: #M1
+          c2: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_add_chain_forward() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X1 = A with M;
+class X2 = X1 with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+      M: #M2
+      X1: #M3
+        inheritedMembers
+          c1: #M1
+      X2: #M4
+        inheritedMembers
+          c1: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X1 = A with M;
+class X2 = X1 with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1: #M1
+          c2: #M5
+      M: #M2
+      X1: #M3
+        inheritedMembers
+          c1: #M1
+          c2: #M5
+      X2: #M4
+        inheritedMembers
+          c1: #M1
+          c2: #M5
 ''',
     );
   }
@@ -16641,9 +16872,9 @@ class X = A with M;
           c2: #M2
       M: #M3
       X: #M4
-        declaredMembers
-          c1: #M5
-          c2: #M6
+        inheritedMembers
+          c1: #M1
+          c2: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -16660,12 +16891,12 @@ class X = A with M;
       A: #M0
         declaredMembers
           c1: #M1
-          c2: #M7
+          c2: #M5
       M: #M3
       X: #M4
-        declaredMembers
-          c1: #M5
-          c2: #M8
+        inheritedMembers
+          c1: #M1
+          c2: #M5
 ''',
     );
   }
@@ -16691,9 +16922,9 @@ class X = A with M;
           c2: #M2
       M: #M3
       X: #M4
-        declaredMembers
-          c1: #M5
-          c2: #M6
+        inheritedMembers
+          c1: #M1
+          c2: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -16711,8 +16942,8 @@ class X = A with M;
           c1: #M1
       M: #M3
       X: #M4
-        declaredMembers
-          c1: #M5
+        inheritedMembers
+          c1: #M1
 ''',
     );
   }

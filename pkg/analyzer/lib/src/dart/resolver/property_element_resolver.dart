@@ -38,6 +38,49 @@ class PropertyElementResolver with ScopeHelpers {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
+  PropertyElementResolverResult resolveDotShorthand(
+      DotShorthandPropertyAccessImpl node) {
+    if (_resolver.isDotShorthandContextEmpty) {
+      // TODO(kallentu): Produce an error here for not being able to find a
+      // context type.
+      return PropertyElementResolverResult();
+    }
+    TypeImpl context =
+        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    context = _resolver.typeSystem.futureOrBase(context);
+
+    // TODO(kallentu): Support other context types
+    if (context is InterfaceTypeImpl) {
+      var identifier = node.propertyName;
+      if (identifier.name == 'new') {
+        var element =
+            context.lookUpConstructor2(identifier.name, _definingLibrary);
+        if (element != null) {
+          return PropertyElementResolverResult(
+            readElementRequested2: element,
+            getType: element.returnType,
+          );
+        }
+      } else {
+        var contextElement = context.element3;
+        return _resolveTargetInterfaceElement(
+          typeReference: contextElement,
+          isCascaded: false,
+          propertyName: identifier,
+          hasRead: true,
+          hasWrite: false,
+        );
+      }
+    }
+
+    // TODO(kallentu): Produce an error here for not being able to find a
+    // property.
+    return PropertyElementResolverResult();
+  }
+
   PropertyElementResolverResult resolveIndexExpression({
     required IndexExpressionImpl node,
     required bool hasRead,

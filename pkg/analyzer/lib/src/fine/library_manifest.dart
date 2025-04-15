@@ -154,6 +154,64 @@ class LibraryManifestBuilder {
     );
   }
 
+  /// Class type aliases like `class B = A with M;` cannot explicitly declare
+  /// any members. They have constructors, but these are based on the
+  /// constructors of the supertype, and change if the supertype constructors
+  /// change. So, it is enough to record that supertype constructors into
+  /// the manifest.
+  void _addClassTypeAliasConstructors() {
+    var hasConstructors = <ClassElementImpl2>{};
+    var inheritedMap = <ConstructorElementImpl2, ManifestItemId>{};
+
+    void addForElement(ClassElementImpl2 element) {
+      if (!element.isMixinApplication) {
+        return;
+      }
+
+      // We might have already processed this element due to recursion.
+      if (!hasConstructors.add(element)) {
+        return;
+      }
+
+      // SAFETY: all items are already created.
+      var item = declaredItems[element] as ClassItem;
+
+      // SAFETY: we set `Object` during linking if it is not a class.
+      var superElement = element.supertype!.element3;
+      superElement as ClassElementImpl2;
+
+      // The supertype could be a mixin application itself.
+      addForElement(superElement);
+
+      for (var constructor in element.constructors2) {
+        var lookupName = constructor.lookupName?.asLookupName;
+        if (lookupName == null) {
+          continue;
+        }
+
+        // SAFETY: we build inherited constructors from existing super.
+        var superConstructor = constructor.superConstructor2!.baseElement;
+
+        // Maybe the super constructor is "inherited" itself.
+        var id = inheritedMap[superConstructor];
+
+        // If not inherited, then must be declared.
+        id ??= _getInterfaceElementMemberId(superConstructor);
+
+        item.inheritedMembers[lookupName] = id;
+        inheritedMap[constructor] = id;
+      }
+    }
+
+    for (var libraryElement in libraryElements) {
+      for (var element in libraryElement.children2) {
+        if (element is ClassElementImpl2) {
+          addForElement(element);
+        }
+      }
+    }
+  }
+
   void _addInheritedInterfaceElementExecutables(InterfaceElementImpl2 element) {
     // We don't create items for elements without name.
     if (element.lookupName == null) {
@@ -361,6 +419,13 @@ class LibraryManifestBuilder {
     required InterfaceElementImpl2 instanceElement,
     required InterfaceItem interfaceItem,
   }) {
+    // Class type aliases don't have declared members.
+    // We don't consider constructors as declared.
+    if (instanceElement is ClassElementImpl2 &&
+        instanceElement.isMixinApplication) {
+      return;
+    }
+
     for (var constructor in instanceElement.constructors2) {
       _addInterfaceElementConstructor(
         encodingContext: encodingContext,
@@ -596,6 +661,7 @@ class LibraryManifestBuilder {
     }
 
     _addInheritedInterfaceElementsExecutables();
+    _addClassTypeAliasConstructors();
 
     return newManifests;
   }

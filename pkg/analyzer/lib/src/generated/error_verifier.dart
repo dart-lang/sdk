@@ -5378,6 +5378,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
+    if (name.parent is DotShorthandPropertyAccessImpl ||
+        name.parent is DotShorthandInvocationImpl) {
+      return;
+    }
+
     var element = name.writeOrReadElement2;
     if (element == null || element is TypeParameterElement2) {
       return;

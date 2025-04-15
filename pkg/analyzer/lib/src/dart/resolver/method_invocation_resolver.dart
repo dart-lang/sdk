@@ -209,7 +209,13 @@ class MethodInvocationResolver with ScopeHelpers {
       List<WhyNotPromotedGetter> whyNotPromotedArguments) {
     _invocation = node;
 
-    var contextType = _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+    TypeImpl contextType =
+        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    contextType = _resolver.typeSystem.futureOrBase(contextType);
+
     // TODO(kallentu): Dot shorthands work - Support other context types
     if (contextType is InterfaceTypeImpl) {
       var contextElement = contextType.element3;

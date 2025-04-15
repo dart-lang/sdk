@@ -4093,8 +4093,12 @@ class AstBuilder extends StackListener {
     }
 
     var operand = pop() as ExpressionImpl;
-    // TODO(kallentu): Handle property access case.
-    if (operand is MethodInvocationImpl) {
+    if (operand is SimpleIdentifierImpl) {
+      push(DotShorthandPropertyAccessImpl(
+        period: periodToken,
+        propertyName: operand,
+      ));
+    } else if (operand is MethodInvocationImpl) {
       push(DotShorthandInvocationImpl(
         period: periodToken,
         memberName: operand.methodName,
