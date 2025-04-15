@@ -15,6 +15,9 @@ void main() {
 @reflectiveTest
 class UnreachableFromMainTest extends LintRuleTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   bool get addMetaPackageDep => true;
 
   @override
@@ -1411,6 +1414,8 @@ void f() {}
 
   test_topLevelFunction_vmEntryPoint() async {
     await assertNoDiagnostics(r'''
+void main() {}
+
 @pragma('vm:entry-point')
 void f6() {}
 ''');
@@ -1418,6 +1423,8 @@ void f6() {}
 
   test_topLevelFunction_vmEntryPoint_const() async {
     await assertNoDiagnostics(r'''
+void main() {}
+
 const entryPoint = pragma('vm:entry-point');
 @entryPoint
 void f6() {}
@@ -1628,6 +1635,145 @@ void main() {}
 typedef T = String;
 ''',
       [lint(24, 1)],
+    );
+  }
+
+  test_widgetPreview_classInstanceMethod() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+void main() {}
+
+class B {
+  // Widget previews can't be defined with instance methods.
+  @Preview()
+  Widget foo() => Text('');
+}
+''',
+      [lint(109, 1), lint(196, 3)],
+    );
+  }
+
+  test_widgetPreview_classStaticMethod() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+void main() {}
+
+class B {
+  @Preview()
+  static Widget foo() => Text('');
+}
+''',
+      [lint(109, 1)],
+    );
+  }
+
+  test_widgetPreview_constructor() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widget_previews.dart';
+
+void main() {}
+
+class B {
+  @Preview()
+  const B();
+}
+''',
+      [lint(70, 1)],
+    );
+  }
+
+  test_widgetPreview_factoryConstructor() async {
+    await assertDiagnostics(
+      r'''
+import 'package:flutter/widget_previews.dart';
+
+void main() {}
+
+class B {
+  @Preview()
+  factory B.foo() => B();
+
+  const B();
+}
+''',
+      [lint(70, 1), lint(122, 1)],
+    );
+  }
+
+  test_widgetPreview_privatePreview() async {
+    await assertDiagnostics(
+      r'''
+// Widget previews can't be defined with private functions.
+import 'package:flutter/widget_previews.dart';
+import 'package:flutter/widgets.dart';
+void main() {}
+
+class B {
+  @Preview()
+  factory B._foo() => B._();
+
+  @Preview()
+  B._();
+
+  @Preview()
+  static Widget _bar() => Text('');
+}
+
+@Preview()
+void _f6() {}
+''',
+      [
+        lint(168, 1),
+        error(WarningCode.UNUSED_ELEMENT, 197, 4),
+        error(WarningCode.UNUSED_ELEMENT, 267, 4),
+        error(WarningCode.UNUSED_ELEMENT, 306, 3),
+      ],
+    );
+  }
+
+  test_widgetPreview_topLevelFunction() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widget_previews.dart';
+
+void main() {}
+
+@Preview()
+void f6() {}
+''');
+  }
+
+  test_widgetPreview_topLevelFunction_const() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widget_previews.dart';
+void main() {}
+
+const preview = Preview();
+@preview
+void f6() {}
+''');
+  }
+
+  test_widgetPreview_topLevelFunction_customPreviewClass() async {
+    await assertDiagnostics(
+      r'''
+void main() {}
+
+class Preview {
+  const Preview();
+}
+
+// This isn't from package:flutter/widget_previews.dart and shouldn't be exempt.
+@Preview()
+void f6() {}
+''',
+      [lint(22, 7), lint(40, 7), lint(151, 2)],
     );
   }
 }

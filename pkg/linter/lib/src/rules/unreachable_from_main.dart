@@ -523,7 +523,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           var element = declaration.declaredFragment?.element;
           return element != null &&
               element.isPublic &&
-              !element.hasVisibleForTesting;
+              !element.hasVisibleForTesting &&
+              !element.hasWidgetPreview;
         }).toList();
 
     for (var member in unusedMembers) {
@@ -556,10 +557,18 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _isEntryPoint(Declaration e) =>
       e is FunctionDeclaration &&
-      (e.name.lexeme == 'main' || e.metadata.any(_isPragmaVmEntry));
+      (e.name.lexeme == 'main' || e.metadata.any(_isExemptingAnnotation));
 
-  bool _isPragmaVmEntry(Annotation annotation) {
-    if (!annotation.isPragma) return false;
+  bool _isExemptingAnnotation(Annotation annotation) {
+    if (annotation.isPragma) {
+      return _isValidVmEntryPoint(annotation);
+    } else if (annotation.isWidgetPreview) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _isValidVmEntryPoint(Annotation annotation) {
     var value = annotation.elementAnnotation?.computeConstantValue();
     if (value == null) return false;
     var name = value.getField('name');
@@ -569,27 +578,91 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
+extension on Metadata {
+  bool get hasWidgetPreview {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isWidgetPreview) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+extension on ElementAnnotation {
+  /// The URI of the Flutter widget previews library.
+  static final Uri _flutterWidgetPreviewLibraryUri = Uri.parse(
+    'package:flutter/src/widget_previews/widget_previews.dart',
+  );
+
+  bool get isWidgetPreview {
+    var element2 = this.element2;
+    return element2 is ConstructorElement2 &&
+        element2.enclosingElement2.name3 == 'Preview' &&
+        element2.library2.uri == _flutterWidgetPreviewLibraryUri;
+  }
+}
+
+extension on LibraryElement2 {
+  bool get isWidgetPreviews =>
+      uri ==
+      Uri.parse('package:flutter/src/widget_previews/widget_previews.dart');
+}
+
 extension on Element2 {
   bool get hasVisibleForTesting => switch (this) {
     Annotatable(:var metadata2) => metadata2.hasVisibleForTesting,
     _ => false,
   };
+  bool get hasWidgetPreview => switch (this) {
+    Annotatable(:var metadata2) =>
+      // Widget previews can be applied to public:
+      //   - Constructors (generative and factory)
+      //   - Top-level functions
+      //   - Static member functions
+      (this is ConstructorElement2 ||
+              this is TopLevelFunctionElement ||
+              (this is ExecutableElement2 &&
+                  (this as ExecutableElement2).isStatic)) &&
+          !isPrivate &&
+          metadata2.hasWidgetPreview,
+    _ => false,
+  };
   bool get isPragma => (library2?.isDartCore ?? false) && name3 == 'pragma';
+  bool get isWidgetPreview =>
+      (library2?.isWidgetPreviews ?? false) && name3 == 'Preview';
 }
 
 extension on Annotation {
   bool get isPragma {
-    var element = elementAnnotation?.element2;
-    DartType type;
-    if (element is ConstructorElement2) {
-      type = element.returnType;
-    } else if (element is GetterElement) {
-      type = element.returnType;
-    } else {
+    DartType? type = _elementType;
+    if (type == null) {
       // Dunno what this is.
       return false;
     }
     return type is InterfaceType && type.element3.isPragma;
+  }
+
+  bool get isWidgetPreview {
+    DartType? type = _elementType;
+    if (type == null) {
+      // Dunno what this is.
+      return false;
+    }
+    return type is InterfaceType && type.element3.isWidgetPreview;
+  }
+
+  DartType? get _elementType {
+    var element = elementAnnotation?.element2;
+    DartType? type;
+    if (element is ConstructorElement2) {
+      type = element.returnType;
+    } else if (element is GetterElement) {
+      type = element.returnType;
+    }
+    return type;
   }
 }
 
