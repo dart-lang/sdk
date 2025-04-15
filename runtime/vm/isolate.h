@@ -780,7 +780,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
       const Code& code,
       intptr_t pc,
       std::function<void(const CatchEntryMoves&)> action);
-  void ClearCatchEntryMovesCache();
+  void ClearCatchEntryMovesCacheLocked();
 
   void SetNativeAssetsCallbacks(NativeAssetsApi* native_assets_api) {
     native_assets_api_ = *native_assets_api;

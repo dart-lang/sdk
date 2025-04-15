@@ -546,7 +546,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
 
     // Some Code objects may have been collected so invalidate handler cache.
     thread->isolate_group()->handler_info_cache()->Clear();
-    thread->isolate_group()->ClearCatchEntryMovesCache();
+    thread->isolate_group()->ClearCatchEntryMovesCacheLocked();
     assume_scavenge_will_fail_ = false;
   }
 }
