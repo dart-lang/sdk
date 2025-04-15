@@ -354,6 +354,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
                                                  /*isolate_group=*/nullptr)),
       shared_field_table_(new FieldTable(/*isolate=*/nullptr, this)),
+      isolate_group_flags_(),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
@@ -1825,7 +1826,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
       isolate_object_store_(new IsolateObjectStore()),
-      isolate_flags_(0),
+      isolate_flags_(),
 #if !defined(PRODUCT)
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       vm_tag_counters_(),

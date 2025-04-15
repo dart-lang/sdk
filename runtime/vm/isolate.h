@@ -442,35 +442,31 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #undef DECLARE_GETTER
 
   bool should_load_vmservice() const {
-    return ShouldLoadVmServiceBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<ShouldLoadVmServiceBit>();
   }
   void set_should_load_vmservice(bool value) {
-    isolate_group_flags_ =
-        ShouldLoadVmServiceBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<ShouldLoadVmServiceBit>(value);
   }
 
   void set_asserts(bool value) {
-    isolate_group_flags_ =
-        EnableAssertsBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<EnableAssertsBit>(value);
   }
 
   void set_branch_coverage(bool value) {
-    isolate_group_flags_ =
-        BranchCoverageBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<BranchCoverageBit>(value);
   }
 
   void set_coverage(bool value) {
-    isolate_group_flags_ = CoverageBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<CoverageBit>(value);
   }
 
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasAttemptedReload() const {
-    return HasAttemptedReloadBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<HasAttemptedReloadBit>();
   }
   void SetHasAttemptedReload(bool value) {
-    isolate_group_flags_ =
-        HasAttemptedReloadBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<HasAttemptedReloadBit>(value);
   }
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
   intptr_t reload_every_n_stack_overflow_checks() const {
@@ -482,17 +478,17 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #endif  // !defined(PRODUCT)
 
   bool has_seen_oom() const {
-    return HasSeenOOMBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<HasSeenOOMBit>();
   }
   void set_has_seen_oom(bool value) {
-    isolate_group_flags_ = HasSeenOOMBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<HasSeenOOMBit>(value);
   }
 
 #if defined(PRODUCT)
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else   // defined(PRODUCT)
   void set_use_osr(bool use_osr) {
-    isolate_group_flags_ = UseOsrBit::update(use_osr, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<UseOsrBit>(use_osr);
   }
 #endif  // defined(PRODUCT)
 
@@ -717,26 +713,23 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   // In precompilation we finalize all regular classes before compiling.
   bool all_classes_finalized() const {
-    return AllClassesFinalizedBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<AllClassesFinalizedBit>();
   }
   void set_all_classes_finalized(bool value) {
-    isolate_group_flags_ =
-        AllClassesFinalizedBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<AllClassesFinalizedBit>(value);
   }
   bool has_dynamically_extendable_classes() const {
-    return HasDynamicallyExtendableClassesBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<HasDynamicallyExtendableClassesBit>();
   }
   void set_has_dynamically_extendable_classes(bool value) {
-    isolate_group_flags_ =
-        HasDynamicallyExtendableClassesBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<HasDynamicallyExtendableClassesBit>(value);
   }
 
   bool remapping_cids() const {
-    return RemappingCidsBit::decode(isolate_group_flags_);
+    return isolate_group_flags_.Read<RemappingCidsBit>();
   }
   void set_remapping_cids(bool value) {
-    isolate_group_flags_ =
-        RemappingCidsBit::update(value, isolate_group_flags_);
+    isolate_group_flags_.UpdateBool<RemappingCidsBit>(value);
   }
 
   void RememberLiveTemporaries();
@@ -904,7 +897,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::shared_ptr<FieldTable> initial_field_table_;
   std::shared_ptr<FieldTable> shared_initial_field_table_;
   std::shared_ptr<FieldTable> shared_field_table_;
-  uint32_t isolate_group_flags_ = 0;
+  AtomicBitFieldContainer<uint32_t> isolate_group_flags_;
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
 
@@ -1114,9 +1107,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   MessageHandler* message_handler() const;
 
-  bool is_runnable() const { return LoadIsolateFlagsBit<IsRunnableBit>(); }
+  bool is_runnable() const { return isolate_flags_.Read<IsRunnableBit>(); }
   void set_is_runnable(bool value) {
-    UpdateIsolateFlagsBit<IsRunnableBit>(value);
+    isolate_flags_.UpdateBool<IsRunnableBit>(value);
 #if !defined(PRODUCT)
     if (is_runnable()) {
       set_last_resume_timestamp();
@@ -1165,10 +1158,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, has_resumption_breakpoints_);
   }
 
-  bool ResumeRequest() const { return LoadIsolateFlagsBit<ResumeRequestBit>(); }
+  bool ResumeRequest() const { return isolate_flags_.Read<ResumeRequestBit>(); }
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
-    UpdateIsolateFlagsBit<ResumeRequestBit>(true);
+    isolate_flags_.UpdateBool<ResumeRequestBit>(true);
     set_last_resume_timestamp();
   }
 
@@ -1181,7 +1174,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // Returns whether the vm service has requested that the debugger
   // resume execution.
   bool GetAndClearResumeRequest() {
-    return UpdateIsolateFlagsBit<ResumeRequestBit>(false);
+    return isolate_flags_.TryClear<ResumeRequestBit>();
   }
 #endif
 
@@ -1203,9 +1196,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void RemoveErrorListener(const SendPort& listener);
   bool NotifyErrorListeners(const char* msg, const char* stacktrace);
 
-  bool ErrorsFatal() const { return LoadIsolateFlagsBit<ErrorsFatalBit>(); }
+  bool ErrorsFatal() const { return isolate_flags_.Read<ErrorsFatalBit>(); }
   void SetErrorsFatal(bool value) {
-    UpdateIsolateFlagsBit<ErrorsFatalBit>(value);
+    isolate_flags_.UpdateBool<ErrorsFatalBit>(value);
   }
 
   Random* random() { return &random_; }
@@ -1336,10 +1329,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
   bool should_pause_post_service_request() const {
-    return LoadIsolateFlagsBit<ShouldPausePostServiceRequestBit>();
+    return isolate_flags_.Read<ShouldPausePostServiceRequestBit>();
   }
   void set_should_pause_post_service_request(bool value) {
-    UpdateIsolateFlagsBit<ShouldPausePostServiceRequestBit>(value);
+    isolate_flags_.UpdateBool<ShouldPausePostServiceRequestBit>(value);
   }
 #endif  // !defined(PRODUCT)
 
@@ -1398,16 +1391,16 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void PauseEventHandler();
 #endif
 
-  bool is_vm_isolate() const { return LoadIsolateFlagsBit<IsVMIsolateBit>(); }
+  bool is_vm_isolate() const { return isolate_flags_.Read<IsVMIsolateBit>(); }
   void set_is_vm_isolate(bool value) {
-    UpdateIsolateFlagsBit<IsVMIsolateBit>(value);
+    isolate_flags_.UpdateBool<IsVMIsolateBit>(value);
   }
 
   bool is_service_registered() const {
-    return LoadIsolateFlagsBit<IsServiceRegisteredBit>();
+    return isolate_flags_.Read<IsServiceRegisteredBit>();
   }
   void set_is_service_registered(bool value) {
-    UpdateIsolateFlagsBit<IsServiceRegisteredBit>(value);
+    isolate_flags_.UpdateBool<IsServiceRegisteredBit>(value);
   }
 
   // Isolate-specific flag handling.
@@ -1431,7 +1424,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
 #define DECLARE_GETTER(when, name, bitname, isolate_flag_name, flag_name)      \
   bool name() const {                                                          \
-    return FLAG_FOR_##when(LoadIsolateFlagsBit<bitname##Bit>(), flag_name);    \
+    return FLAG_FOR_##when(isolate_flags_.Read<bitname##Bit>(), flag_name);    \
   }
   BOOL_ISOLATE_FLAG_LIST(DECLARE_GETTER)
 #undef FLAG_FOR_NONPRODUCT
@@ -1440,10 +1433,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #undef DECLARE_GETTER
 
   bool has_attempted_stepping() const {
-    return LoadIsolateFlagsBit<HasAttemptedSteppingBit>();
+    return isolate_flags_.Read<HasAttemptedSteppingBit>();
   }
   void set_has_attempted_stepping(bool value) {
-    UpdateIsolateFlagsBit<HasAttemptedSteppingBit>(value);
+    isolate_flags_.UpdateBool<HasAttemptedSteppingBit>(value);
   }
 
   // Kills all non-system isolates.
@@ -1614,18 +1607,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   ISOLATE_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 
-  template <class T>
-  bool UpdateIsolateFlagsBit(bool value) {
-    return T::decode(value ? isolate_flags_.fetch_or(T::encode(true),
-                                                     std::memory_order_relaxed)
-                           : isolate_flags_.fetch_and(
-                                 ~T::encode(true), std::memory_order_relaxed));
-  }
-  template <class T>
-  bool LoadIsolateFlagsBit() const {
-    return T::decode(isolate_flags_.load(std::memory_order_relaxed));
-  }
-  std::atomic<uint32_t> isolate_flags_;
+  AtomicBitFieldContainer<uint32_t> isolate_flags_;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
