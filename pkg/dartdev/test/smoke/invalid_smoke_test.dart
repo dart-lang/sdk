@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 const numRuns = 10;
-final script = Platform.script.resolve('smoke.dart').toString();
 
 void main() {
   group(

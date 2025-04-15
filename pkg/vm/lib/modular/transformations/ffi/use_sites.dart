@@ -221,7 +221,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             (node == allocationTearoff ||
                 node == asFunctionTearoff ||
                 node == lookupFunctionTearoff ||
+                node == abiSpecificIntegerPointerElementAtTearoff ||
+                node == structPointerElementAtTearoff ||
                 node == structPointerRefWithFinalizerTearoff ||
+                node == unionPointerElementAtTearoff ||
                 node == unionPointerRefWithFinalizerTearoff))) ||
         // Dart2wasm uses enabledConstructorTearOffLowerings but these are not
         // users trying to call constructors.
@@ -371,7 +374,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         return _replaceRefWithFinalizer(node);
-      } else if (target == abiSpecificIntegerPointerPlusOperator ||
+      } else if (target == abiSpecificIntegerPointerElementAt ||
+          target == structPointerElementAt ||
+          target == unionPointerElementAt ||
+          target == abiSpecificIntegerPointerPlusOperator ||
           target == structPointerPlusOperator ||
           target == unionPointerPlusOperator ||
           target == abiSpecificIntegerPointerMinusOperator ||

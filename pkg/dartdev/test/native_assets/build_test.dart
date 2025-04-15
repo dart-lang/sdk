@@ -21,10 +21,12 @@ String crossOSNotAllowedError(String format) =>
 final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
 String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
   }
+
+  final dartDevEntryScriptUri = resolveDartDevUri('bin/dartdev.dart');
 
   final bool fromDartdevSource = args.contains('--source');
   final hostOS = Platform.operatingSystem;
@@ -48,8 +50,7 @@ void main(List<String> args) async {
           final result = await runDart(
             arguments: [
               '--enable-experiment=native-assets',
-              if (fromDartdevSource)
-                Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+              if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
               'build',
               if (targetOS != null) ...[
                 '--target-os',
@@ -219,8 +220,7 @@ void main(List<String> args) {
       final result = await runDart(
         arguments: [
           '--enable-experiment=native-assets',
-          if (fromDartdevSource)
-            Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+          if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
           'build',
           'bin/dart_app.dart',
           '.'
