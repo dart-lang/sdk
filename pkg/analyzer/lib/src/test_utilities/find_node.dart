@@ -61,6 +61,8 @@ class FindNode {
 
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
 
+  DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
+
   EnumDeclaration get singleEnumDeclaration => _single();
 
   ExportDirective get singleExportDirective => _single();
@@ -364,6 +366,10 @@ class FindNode {
 
   DotShorthandInvocation dotShorthandInvocation(String search) {
     return _node(search, (n) => n is DotShorthandInvocation);
+  }
+
+  DotShorthandPropertyAccess dotShorthandPropertyAccess(String search) {
+    return _node(search, (n) => n is DotShorthandPropertyAccess);
   }
 
   DoubleLiteral doubleLiteral(String search) {

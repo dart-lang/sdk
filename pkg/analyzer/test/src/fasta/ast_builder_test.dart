@@ -925,6 +925,25 @@ DotShorthandInvocation
 ''');
   }
 
+  void test_dotShorthand_propertyAccess() {
+    var parseResult = parseStringWithErrors(r'''
+enum E { a }
+
+void main() {
+  E e = .a;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.dotShorthandPropertyAccess('.a');
+    assertParsedNodeText(node, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: a
+''');
+  }
+
   void test_enum_base() {
     var parseResult = parseStringWithErrors(r'''
 base enum E { v }
