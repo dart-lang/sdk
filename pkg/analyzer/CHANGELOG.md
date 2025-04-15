@@ -1,5 +1,7 @@
-## 7.3.1-wip
+## 7.4.0
 * Updated SDK constraint to `^3.5.0`.
+* Deprecated element model V1.
+  See [migration guide](https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/element_model_migration_guide.md).
 
 ## 7.3.0
 * Add `flags` optional named parameter to `FeatureSet.latestLanguageVersion()`.
