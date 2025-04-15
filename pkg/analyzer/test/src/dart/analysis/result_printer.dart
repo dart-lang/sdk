@@ -901,14 +901,34 @@ class LibraryManifestPrinter {
           sink.writelnWithIndent('elements');
           sink.withIndent(() {
             for (var (index, element) in node.elements.indexed) {
-              sink.writeWithIndent('[${2 + index}] ');
+              sink.writeWithIndent('[$index] ');
               _writelnElement(element);
             }
           });
         }
 
         if (node.elementIndexList.isNotEmpty) {
-          sink.writelnWithIndent('elementIndexList: ${node.elementIndexList}');
+          sink.writeElements(
+            'elementIndexList',
+            node.elementIndexList,
+            (index) {
+              var (kind, rawIndex) = ManifestAstElementKind.decode(index);
+              switch (kind) {
+                case ManifestAstElementKind.null_:
+                  sink.writelnWithIndent('$index = null');
+                case ManifestAstElementKind.dynamic_:
+                  sink.writelnWithIndent('$index = dynamic');
+                case ManifestAstElementKind.formalParameter:
+                  sink.writelnWithIndent('$index = formalParameter $rawIndex');
+                case ManifestAstElementKind.importPrefix:
+                  sink.writelnWithIndent('$index = importPrefix');
+                case ManifestAstElementKind.typeParameter:
+                  sink.writelnWithIndent('$index = typeParameter $rawIndex');
+                case ManifestAstElementKind.regular:
+                  sink.writelnWithIndent('$index = element $rawIndex');
+              }
+            },
+          );
         }
       });
     }

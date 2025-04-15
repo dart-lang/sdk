@@ -14,6 +14,32 @@ import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+enum ManifestAstElementKind {
+  null_,
+  dynamic_,
+  formalParameter,
+  importPrefix,
+  typeParameter,
+  regular;
+
+  static final _bitCount = values.length.bitLength;
+  static final _bitMask = (1 << _bitCount) - 1;
+
+  int encodeRawIndex(int rawIndex) {
+    assert(rawIndex < (1 << 16));
+    return (rawIndex << _bitCount) | index;
+  }
+
+  static (ManifestAstElementKind, int) decode(int index) {
+    var kindIndex = index & _bitMask;
+    var kind = ManifestAstElementKind.values[kindIndex];
+    var rawIndex = index >> _bitCount;
+    return (kind, rawIndex);
+  }
+}
 
 /// Enough information to decide if the node is the same.
 ///
@@ -33,10 +59,8 @@ class ManifestNode {
   final List<ManifestElement> elements;
 
   /// For each property in the AST structure summarized by this manifest that
-  /// might point to an element:
-  ///   - `0` if the element pointer is `null`;
-  ///   - `1` if the element is an import prefix;
-  ///   - otherwise `2 + ` the index of the element in [elements].
+  /// might point to an element, [ManifestAstElementKind.encodeRawIndex]
+  /// produces the corresponding value.
   ///
   /// The order of this list reflects the AST structure, according to the
   /// behavior of [_ElementCollector].
@@ -56,7 +80,10 @@ class ManifestNode {
       token = token.next ?? (throw StateError('endToken not found'));
     }
 
-    var collector = _ElementCollector();
+    var collector = _ElementCollector(
+      indexOfTypeParameter: context.indexOfTypeParameter,
+      indexOfFormalParameter: context.indexOfFormalParameter,
+    );
     node.accept(collector);
 
     return ManifestNode._(
@@ -106,7 +133,10 @@ class ManifestNode {
       token = token.next ?? (throw StateError('endToken not found'));
     }
 
-    var collector = _ElementCollector();
+    var collector = _ElementCollector(
+      indexOfTypeParameter: context.indexOfTypeParameter,
+      indexOfFormalParameter: context.indexOfFormalParameter,
+    );
     node.accept(collector);
 
     // Must reference the same elements.
@@ -147,8 +177,15 @@ class ManifestNode {
 }
 
 class _ElementCollector extends ThrowingAstVisitor<void> {
+  final int Function(TypeParameterElementImpl2) indexOfTypeParameter;
+  final int Function(FormalParameterElementImpl) indexOfFormalParameter;
   final Map<Element2, int> map = Map.identity();
   final List<int> elementIndexList = [];
+
+  _ElementCollector({
+    required this.indexOfTypeParameter,
+    required this.indexOfFormalParameter,
+  });
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -331,26 +368,32 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   void _addElement(Element2? element) {
+    ManifestAstElementKind kind;
+    int rawIndex;
     switch (element) {
       case null:
-        elementIndexList.add(_ElementKind.null_.index);
+        kind = ManifestAstElementKind.null_;
+        rawIndex = 0;
       case DynamicElementImpl2():
-        elementIndexList.add(_ElementKind.dynamic_.index);
+        kind = ManifestAstElementKind.dynamic_;
+        rawIndex = 0;
+      case FormalParameterElementImpl():
+        kind = ManifestAstElementKind.formalParameter;
+        rawIndex = indexOfFormalParameter(element);
+      case TypeParameterElementImpl2():
+        kind = ManifestAstElementKind.typeParameter;
+        rawIndex = indexOfTypeParameter(element);
       case PrefixElement2():
-        elementIndexList.add(_ElementKind.importPrefix.index);
+        kind = ManifestAstElementKind.importPrefix;
+        rawIndex = 0;
       default:
-        var base = _ElementKind.firstRegular.index;
-        var index = map[element] ??= base + map.length;
-        elementIndexList.add(index);
+        kind = ManifestAstElementKind.regular;
+        rawIndex = map[element] ??= map.length;
     }
-  }
-}
 
-enum _ElementKind {
-  null_,
-  dynamic_,
-  importPrefix,
-  firstRegular,
+    var index = kind.encodeRawIndex(rawIndex);
+    elementIndexList.add(index);
+  }
 }
 
 extension ListOfManifestNodeExtension on List<ManifestNode> {

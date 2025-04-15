@@ -13204,7 +13204,8 @@ class A {
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
-  const A.named(int x) : assert(x > 0);
+  const A.c1(int x) : assert(x > 0);
+  const A.c2(int x) : assert(x > 0);
 }
 ''',
       expectedInitialEvents: r'''
@@ -13214,11 +13215,13 @@ class A {
     manifest
       A: #M0
         declaredMembers
-          named: #M1
+          c1: #M1
+          c2: #M2
 ''',
       updatedCode: r'''
 class A {
-  const A.named(int x) : assert(x > 1);
+  const A.c1(int x) : assert(x > 0);
+  const A.c2(int x) : assert(x > 1);
 }
 ''',
       expectedUpdatedEvents: r'''
@@ -13227,7 +13230,8 @@ class A {
     manifest
       A: #M0
         declaredMembers
-          named: #M2
+          c1: #M1
+          c2: #M3
 ''',
     );
   }
@@ -13300,6 +13304,38 @@ class A {
         declaredMembers
           foo: #M1
           named: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_formalParameter_exchange() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int x, int y) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int y, int x) : assert(x > 0);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named: #M2
 ''',
     );
   }
@@ -17543,8 +17579,10 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (dart:core, num, +) #M1
-          elementIndexList: [0, 3]
+            [0] (dart:core, num, +) #M1
+          elementIndexList
+            0 = null
+            5 = element 0
 ''',
       updatedCode: r'''
 const a = 1;
@@ -17565,9 +17603,11 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (package:test/test.dart, a) <null>
-            [3] (dart:core, num, +) #M1
-          elementIndexList: [3, 4]
+            [0] (package:test/test.dart, a) <null>
+            [1] (dart:core, num, +) #M1
+          elementIndexList
+            5 = element 0
+            13 = element 1
 ''',
     );
   }
@@ -17595,9 +17635,11 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (package:test/test.dart, a) <null>
-            [3] (dart:core, num, +) #M2
-          elementIndexList: [3, 4]
+            [0] (package:test/test.dart, a) <null>
+            [1] (dart:core, num, +) #M2
+          elementIndexList
+            5 = element 0
+            13 = element 1
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -17612,8 +17654,10 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (dart:core, num, +) #M2
-          elementIndexList: [0, 3]
+            [0] (dart:core, num, +) #M2
+          elementIndexList
+            0 = null
+            5 = element 0
 ''',
     );
   }
