@@ -54,7 +54,7 @@ sealed class CompilationResult {}
 
 class CompilationSuccess extends CompilationResult {
   final Map<String, ({Uint8List moduleBytes, String? sourceMap})> wasmModules;
-  final String? jsRuntime;
+  final String jsRuntime;
   final String supportJs;
 
   CompilationSuccess(this.wasmModules, this.jsRuntime, this.supportJs);
@@ -234,16 +234,16 @@ Future<CompilationResult> compileToModule(
   }
 
   final librariesToTransform = isDynamicModule
-      ? component.getMainModuleLibraries(coreTypes)
+      ? component.getDynamicModuleLibraries(coreTypes)
       : component.libraries;
   ConstantEvaluator constantEvaluator = ConstantEvaluator(
       options, target, component, coreTypes, classHierarchy, libraryIndex);
   unreachable_code_elimination.transformLibraries(target, librariesToTransform,
       constantEvaluator, options.translatorOptions.enableAsserts);
 
-  js.RuntimeFinalizer? jsRuntimeFinalizer = isDynamicModule
-      ? null
-      : js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
+  js.RuntimeFinalizer? jsRuntimeFinalizer = js.RuntimeFinalizer(
+      js.performJSInteropTransformations(
+          librariesToTransform, coreTypes, classHierarchy));
 
   final Map<RecordShape, Class> recordClasses = generateRecordClasses(
       component, coreTypes, isDynamicMainModule || isDynamicModule);
@@ -328,14 +328,17 @@ Future<CompilationResult> compileToModule(
         (moduleBytes: wasmModuleSerialized, sourceMap: sourceMap);
   });
 
-  final jsRuntime = jsRuntimeFinalizer?.generate(
-      translator.functions.translatedProcedures,
-      translator.internalizedStringsForJSRuntime,
-      translator.options.requireJsStringBuiltin,
-      translator.options.enableDeferredLoading ||
-          translator.options.enableMultiModuleStressTestMode ||
-          translator.dynamicModuleSupportEnabled,
-      mode);
+  final jsRuntime = translator.isDynamicModule
+      ? jsRuntimeFinalizer.generateDynamicModule(
+          translator.functions.translatedProcedures,
+          translator.internalizedStringsForJSRuntime)
+      : jsRuntimeFinalizer.generate(
+          translator.functions.translatedProcedures,
+          translator.internalizedStringsForJSRuntime,
+          translator.options.requireJsStringBuiltin,
+          translator.options.enableDeferredLoading ||
+              translator.options.enableMultiModuleStressTestMode ||
+              translator.dynamicModuleSupportEnabled);
 
   final supportJs = _generateSupportJs(options.translatorOptions);
   if (isDynamicMainModule) {
