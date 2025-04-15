@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 import 'helpers.dart';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
   }

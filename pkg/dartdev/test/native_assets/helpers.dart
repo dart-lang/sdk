@@ -15,6 +15,8 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
+import '../utils.dart';
+
 extension UriExtension on Uri {
   Uri get parent {
     return File(toFilePath()).parent.uri;
@@ -243,9 +245,8 @@ Future<void> nativeAssetsTest(
         'treeshaking_native_libs',
         'user_defines',
       ],
-      Platform.script.resolve(
-          '../../../../third_party/pkg/native/pkgs/native_assets_builder/'),
-      Platform.script.resolve('../../../../'),
+      sdkRootUri.resolve('third_party/pkg/native/pkgs/native_assets_builder/'),
+      sdkRootUri,
       usePubWorkspace,
     );
 
@@ -259,8 +260,8 @@ Future<void> recordUseTest(
       skipPubGet,
       fun,
       const ['drop_dylib_recording'],
-      Platform.script.resolve('../../../record_use/'),
-      Platform.script.resolve('../../../../'),
+      sdkRootUri.resolve('pkg/record_use/'),
+      sdkRootUri,
       false,
     );
 
