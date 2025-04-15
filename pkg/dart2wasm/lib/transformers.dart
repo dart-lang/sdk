@@ -619,6 +619,34 @@ class _WasmTransformer extends Transformer {
         dartAsyncMarker: AsyncMarker.Sync);
   }
 
+  void _lowerAsync(FunctionNode functionNode) {
+    /*
+    Convert `async` functions with "simple" bodies to `sync` functions, using
+    `Future.value`.
+
+    "Simple" means: constant or basic literal. In general, this transformation
+    can be done on any function body that doesn't `await` and doesn't throw.
+
+    Example:
+
+    foo() async { return const ...; }
+    ==>
+    foo() { return Future.value(const ...); }
+    */
+    final functionBody = functionNode.body!;
+    final simpleReturn = _getSimpleReturn(functionBody);
+    if (simpleReturn is BasicLiteral || simpleReturn is ConstantExpression) {
+      final futureValueType = functionNode.emittedValueType!;
+      final newBody = ReturnStatement(StaticInvocation(
+        coreTypes.futureValueFactory,
+        Arguments([simpleReturn!], types: [futureValueType]),
+      ));
+      newBody.parent = functionNode;
+      functionNode.body = newBody;
+      functionNode.asyncMarker = AsyncMarker.Sync;
+    }
+  }
+
   @override
   TreeNode visitYieldStatement(YieldStatement yield) {
     // We currently ignore yields in 'sync*'.
@@ -716,17 +744,24 @@ class _WasmTransformer extends Transformer {
   @override
   TreeNode visitFunctionNode(FunctionNode functionNode) {
     final previousEnclosing = _enclosingIsAsyncStar;
-    if (functionNode.dartAsyncMarker == AsyncMarker.AsyncStar) {
+    final FunctionNode transformed;
+
+    if (functionNode.asyncMarker == AsyncMarker.AsyncStar) {
       _enclosingIsAsyncStar = true;
       functionNode = _lowerAsyncStar(functionNode) as FunctionNode;
       _enclosingIsAsyncStar = previousEnclosing;
-      return super.visitFunctionNode(functionNode);
+      transformed = super.visitFunctionNode(functionNode) as FunctionNode;
     } else {
       _enclosingIsAsyncStar = false;
-      TreeNode result = super.visitFunctionNode(functionNode);
+      transformed = super.visitFunctionNode(functionNode) as FunctionNode;
       _enclosingIsAsyncStar = previousEnclosing;
-      return result;
     }
+
+    if (transformed.asyncMarker == AsyncMarker.Async) {
+      _lowerAsync(transformed);
+    }
+
+    return transformed;
   }
 
   @override
@@ -1050,4 +1085,27 @@ class _VariableCollector extends RecursiveVisitor {
   void visitVariableGet(VariableGet node) {
     variables.add(node.variable);
   }
+}
+
+Expression? _getSimpleReturn(Statement functionBody) {
+  if (functionBody is ReturnStatement) {
+    if (functionBody.expression == null) {
+      return NullLiteral();
+    }
+    return functionBody.expression;
+  }
+
+  if (functionBody is Block) {
+    if (functionBody.statements.isEmpty) {
+      return NullLiteral();
+    }
+    if (functionBody.statements.length == 1) {
+      final statement = functionBody.statements.single;
+      if (statement is ReturnStatement) {
+        return statement.expression;
+      }
+    }
+  }
+
+  return null;
 }
