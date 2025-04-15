@@ -65,6 +65,54 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_futureOr() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+enum C { red }
+
+void main() {
+  FutureOr<C> c = .red;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: red
+    element: <testLibraryFragment>::@enum::C::@getter::red#element
+    staticType: C
+  staticType: C
+''');
+  }
+
+  test_futureOr_nested() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+enum C { red }
+
+void main() {
+  FutureOr<FutureOr<C>> c = .red;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: red
+    element: <testLibraryFragment>::@enum::C::@getter::red#element
+    staticType: C
+  staticType: C
+''');
+  }
+
   test_object_new() async {
     await assertNoErrorsInCode('''
 void main() {

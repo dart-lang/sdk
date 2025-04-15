@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class DotShorthandInvocationResolutionTest extends PubPackageResolutionTest {
-  test_dotShorthand_basic() async {
+  test_basic() async {
     await assertNoErrorsInCode(r'''
 class C {
   static C member() => C(1);
@@ -46,7 +46,7 @@ DotShorthandInvocation
 ''');
   }
 
-  test_dotShorthand_basic_generic() async {
+  test_basic_generic() async {
     await assertNoErrorsInCode(r'''
 class C<T> {
   static C member<U>(U x) => C(x);
@@ -93,7 +93,7 @@ DotShorthandInvocation
 ''');
   }
 
-  test_dotShorthand_basic_parameter() async {
+  test_basic_parameter() async {
     await assertNoErrorsInCode(r'''
 class C {
   static C member(int x) => C(x);
@@ -124,6 +124,70 @@ DotShorthandInvocation
         staticType: int
     rightParenthesis: )
   staticInvokeType: C Function(int)
+  staticType: C
+''');
+  }
+
+  test_futureOr() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  FutureOr<C> c = .member();
+  print(c);
+}
+''');
+
+    var node = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@method::member#element
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_futureOr_nested() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  FutureOr<FutureOr<C>> c = .member();
+  print(c);
+}
+''');
+
+    var node = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@method::member#element
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
   staticType: C
 ''');
   }

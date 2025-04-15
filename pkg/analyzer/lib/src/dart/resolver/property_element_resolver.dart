@@ -47,6 +47,11 @@ class PropertyElementResolver with ScopeHelpers {
     }
     TypeImpl context =
         _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    context = _resolver.typeSystem.futureOrBase(context);
+
     // TODO(kallentu): Support other context types
     if (context is InterfaceTypeImpl) {
       var identifier = node.propertyName;
