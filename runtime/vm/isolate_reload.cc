@@ -1220,7 +1220,8 @@ ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
-  LongJumpScope jump;
+  HANDLESCOPE(thread);
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
     if (tmp.IsError()) {
