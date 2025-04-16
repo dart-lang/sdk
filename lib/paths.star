@@ -12,6 +12,7 @@ _STANDARD_PATHS = [
     # build files
     "build/.+",
     "BUILD.gn",
+    "utils/.*/BUILD.gn",
     "sdk_args.gni",
     "tools/gn.py",
     "tools/build.py",
