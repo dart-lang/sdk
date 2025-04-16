@@ -2891,9 +2891,6 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       Report::LongJump(Object::out_of_memory_error());
       UNREACHABLE();
     } else if (thread->top_exit_frame_info() != 0) {
-      if (thread->IsInNoThrowOOMScope()) {
-        return Object::null();
-      }
       Exceptions::ThrowOOM();
       UNREACHABLE();
     } else {
