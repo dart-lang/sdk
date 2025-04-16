@@ -528,6 +528,7 @@ def Update(force=False, no_download=False):
                     'get_toolchain_if_necessary.py'),
         '--output-json', json_data_file,
         '--toolchain-dir', toolchain_dir,
+        '--no-junction',
       ] + _GetDesiredVsToolchainHashes()
     if force:
       get_toolchain_args.append('--force')
