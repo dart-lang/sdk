@@ -2698,6 +2698,11 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(VMIsolateImmutability, "Crash") {
+  // Try writing into the null object, expected to crash.
+  *reinterpret_cast<uword*>(UntaggedObject::ToAddr(Object::null())) = 0xBAD;
+}
+
 class CodeTestHelper {
  public:
   static void SetInstructions(const Code& code,

@@ -1165,14 +1165,14 @@ ForceGrowthScope::~ForceGrowthScope() {
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : ThreadStackResource(thread) {
-  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate_group()->heap()->WriteProtect(false);
   }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate_group()->heap()->UsedInWords(Heap::kNew) == 0);
-  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate_group()->heap()->WriteProtect(true);
   }
 }
