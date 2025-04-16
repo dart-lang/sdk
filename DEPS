@@ -132,7 +132,7 @@ vars = {
   # EOL comment after a dependency to instead pin at the current revision.
   "core_rev": "635dfa32c261ba078438b74de397f2207904ca78", # https://github.com/dart-lang/core/pull/734
   "dartdoc_rev": "62aefbb788baf5b73b2d704d66d9735a7ca56a69",
-  "ecosystem_rev": "7f6f1c1d53173307bde1aa4f4ee851d260cc7e69",
+  "ecosystem_rev": "815d4ba2e7d11f8695a26f6cbe1262e3b8ff8d0d",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "http_rev": "e4ddd3e3d3a3d0ba7c9e48506e9d2e8620af30a8",
   "i18n_rev": "de1943629469719bf34269bf90fcdbe9334a73f3",
@@ -144,11 +144,11 @@ vars = {
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "8643fbf375330cd1099cdc7434306532b4bcaaf1",
-  "tools_rev": "d74f9e13dc02736f12ae57d5984c57024113cf5a",
-  "vector_math_rev": "f08d7d2652e9ecf7d8f8605d9983335174511c95",
+  "test_rev": "84eba115521b74e848f096572a2d3e4d3607e8fa",
+  "tools_rev": "4a284152c263a5d3429d5ab6acfdb70eca2ebcfb",
+  "vector_math_rev": "dc9d379674f50bb5559e99ee3a9f64729df9d3c8",
   "web_rev": "5a39fdc396ae40344308975140343c23b6863261",
-  "webdev_rev": "c8b1cfa9d12c680b612eb1ed7a6b9f99fcce3ac3",
+  "webdev_rev": "5bf833d0c277a384ab8bbfc10e7d3d71b8022560",
   "webdriver_rev": "f52afbf72895ae980bd4129d877305c2182d6cbc",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
