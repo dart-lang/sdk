@@ -351,7 +351,26 @@ class InteropSpecializerFactory {
   /// should be called with `numberOfArgs` arguments.
   final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
 
+  /// Maps an interop procedure for a JS object literal to trampolines based on
+  /// named arguments that are passed at invocation sites. For example:
+  ///
+  /// ```
+  /// extension type Literal._(JSObject _) implements JSObject {
+  ///   external factory Literal.fact({double a, String b, bool c});
+  /// }
+  ///
+  /// Literal.fact(a: 1.2);
+  /// Literal.fact(a: 3.4, b: 'a');
+  /// Literal.fact(a: 5.6, b: 'b');
+  /// ```
+  ///
+  /// Here we map the procedure for `Literal.fact` to interop procedures, based
+  /// on the named arguments passed.
+  ///
+  /// The `String` keys are named arguments passed in the call sites, joined by
+  /// `|`. E.g. `"a|b"` in the second and third calls above.
   final Map<Procedure, Map<String, Procedure>> _jsObjectLiteralMethods = {};
+
   late final ExtensionIndex _extensionIndex;
 
   InteropSpecializerFactory(this._staticTypeContext, this._util,
