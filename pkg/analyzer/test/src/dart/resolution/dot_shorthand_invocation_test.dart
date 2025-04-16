@@ -128,6 +128,34 @@ DotShorthandInvocation
 ''');
   }
 
+  test_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type C(int integer) {
+  static C one() => C(1);
+}
+
+void main() {
+  C c = .one();
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: one
+    element: <testLibraryFragment>::@extensionType::C::@method::one#element
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
   test_futureOr() async {
     await assertNoErrorsInCode(r'''
 import 'dart:async';
@@ -189,6 +217,45 @@ DotShorthandInvocation
     rightParenthesis: )
   staticInvokeType: C Function()
   staticType: C
+''');
+  }
+
+  test_mixin() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member(int x) => C(x);
+  int x;
+  C(this.x);
+}
+
+mixin CMixin on C {
+  static CMixin mixinOne() => _CWithMixin(1);
+}
+
+class _CWithMixin extends C with CMixin {
+  _CWithMixin(super.x);
+}
+
+void main() {
+  CMixin c = .mixinOne();
+  print(c);
+}
+
+''');
+
+    var identifier = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: mixinOne
+    element: <testLibraryFragment>::@mixin::CMixin::@method::mixinOne#element
+    staticType: CMixin Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: CMixin Function()
+  staticType: CMixin
 ''');
   }
 }
