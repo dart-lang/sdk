@@ -54,12 +54,19 @@ group("runtime") {
   ]
 
   # The following dependencies allow dartdev to start the resident frontend
-  # server.
+  # server and DDS.
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    deps += [ "utils/kernel-service:frontend_server_aot_product" ]
-    deps += [ "runtime/bin:dartaotruntime_product" ]
+    deps += [
+      "runtime/bin:dartaotruntime",
+      "runtime/bin:dartaotruntime_product",
+      "utils/dds:dds_aot",
+      "utils/kernel-service:frontend_server_aot_product",
+    ]
   } else {
-    deps += [ "utils/kernel-service:frontend_server" ]
+    deps += [
+      "utils/dds:dds",
+      "utils/kernel-service:frontend_server",
+    ]
   }
 
   # AOT samples use dlopen to load AOT snapshots and it works only on
