@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dartdev/src/experiments.dart';
 import 'package:pub/pub.dart';
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -58,23 +57,8 @@ Run "${runner!.executableName} help" to see global options.''');
       if (runPackageName != null) {
         final pubspecUri =
             await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
-        final Map? pubspec;
-        if (pubspecUri == null) {
-          pubspec = null;
-        } else {
-          pubspec =
-              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-          final pubspecErrors =
-              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
-                  pubspec);
-          if (pubspecErrors.isNotEmpty) {
-            log.stderr('Errors in pubspec:');
-            pubspecErrors.forEach(log.stderr);
-            return DartdevCommand.errorExitCode;
-          }
-        }
         final builder = DartNativeAssetsBuilder(
-          pubspec: pubspec,
+          pubspecUri: pubspecUri,
           packageConfigUri: packageConfig,
           runPackageName: runPackageName,
           verbose: verbose,

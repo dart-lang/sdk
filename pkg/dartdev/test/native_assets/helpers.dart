@@ -133,8 +133,26 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
     } else {
       final userDefines = pubspecRead['hooks']?['user_defines'];
       if (userDefines is Map) {
+        // Remove the user defines from the root package pubspec.
         pubspec.remove(['hooks', 'user_defines']);
-        userDefinesWorkspace.addAll(userDefines);
+
+        // Add the user defines to the workspace pubspec.
+        // But make sure to rewrite relative paths to point to the right place.
+        // Deep-copy the map because the read map is unmodifiable.
+        for (final MapEntry(:key, :value) in userDefines.entries) {
+          final packageName = key;
+          final defines = value as Map;
+          userDefinesWorkspace[packageName] = <String, Object?>{};
+          for (final MapEntry(:key, :value) in defines.entries) {
+            if (value == 'assets/data.json') {
+              // We're constructing a workspace, so the paths in the workspace pubspec must point to the right place.
+              userDefinesWorkspace[packageName]![key] =
+                  '$packageName/assets/data.json';
+            } else {
+              userDefinesWorkspace[packageName]![key] = value;
+            }
+          }
+        }
       }
     }
     final modifiedString = pubspec.toString();
