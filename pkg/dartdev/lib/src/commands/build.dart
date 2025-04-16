@@ -15,7 +15,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -137,21 +136,8 @@ class BuildCommand extends DartdevCommand {
     );
     final pubspecUri =
         await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
-    final Map? pubspec;
-    if (pubspecUri == null) {
-      pubspec = null;
-    } else {
-      pubspec = loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-      final pubspecErrors =
-          DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(pubspec);
-      if (pubspecErrors.isNotEmpty) {
-        log.stderr('Errors in pubspec:');
-        pubspecErrors.forEach(log.stderr);
-        return 255;
-      }
-    }
     final builder = DartNativeAssetsBuilder(
-      pubspec: pubspec,
+      pubspecUri: pubspecUri,
       packageConfigUri: packageConfig!,
       runPackageName: runPackageName!,
       verbose: verbose,

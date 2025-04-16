@@ -19,7 +19,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 import 'core.dart';
 
 class DartNativeAssetsBuilder {
-  final Map<Object?, Object?>? pubspec;
+  final Uri? pubspecUri;
   final Uri packageConfigUri;
   final String runPackageName;
   final bool verbose;
@@ -51,29 +51,18 @@ class DartNativeAssetsBuilder {
 
   late final Future<NativeAssetsBuildRunner> _nativeAssetsBuildRunner =
       () async {
-    final Map<String, Map<String, Object?>?> userDefines;
-    if (pubspec == null) {
-      userDefines = {};
-    } else {
-      userDefines =
-          NativeAssetsBuildRunner.readHooksUserDefinesFromPubspec(pubspec!);
-    }
     return NativeAssetsBuildRunner(
       // This always runs in JIT mode.
       dartExecutable: Uri.file(sdk.dart),
       logger: _logger,
       fileSystem: const LocalFileSystem(),
       packageLayout: await _packageLayout,
-      userDefines: userDefines,
+      userDefines: UserDefines(workspacePubspec: pubspecUri),
     );
   }();
 
-  static List<String> validateHooksUserDefinesFromPubspec(
-          Map<Object?, Object?> pubspec) =>
-      NativeAssetsBuildRunner.validateHooksUserDefinesFromPubspec(pubspec);
-
   DartNativeAssetsBuilder({
-    this.pubspec,
+    this.pubspecUri,
     required this.packageConfigUri,
     required this.runPackageName,
     required this.verbose,

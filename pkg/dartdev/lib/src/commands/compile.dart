@@ -15,7 +15,6 @@ import 'package:native_assets_cli/code_assets_builder.dart'
     show Architecture, OS, Target;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart';
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -631,23 +630,8 @@ Remove debugging information from the output and save it separately to the speci
       if (runPackageName != null) {
         final pubspecUri =
             await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
-        final Map? pubspec;
-        if (pubspecUri == null) {
-          pubspec = null;
-        } else {
-          pubspec =
-              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-          final pubspecErrors =
-              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
-                  pubspec);
-          if (pubspecErrors.isNotEmpty) {
-            log.stderr('Errors in pubspec:');
-            pubspecErrors.forEach(log.stderr);
-            return 255;
-          }
-        }
         final builder = DartNativeAssetsBuilder(
-            pubspec: pubspec,
+            pubspecUri: pubspecUri,
             packageConfigUri: packageConfig,
             runPackageName: runPackageName,
             verbose: verbose,
