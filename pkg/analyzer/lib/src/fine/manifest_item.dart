@@ -380,17 +380,19 @@ class InterfaceItemConstructorItem
     required EncodeContext context,
     required ConstructorElementImpl2 element,
   }) {
-    return InterfaceItemConstructorItem(
-      id: id,
-      metadata: ManifestMetadata.encode(context, element.metadata2),
-      isStatic: false,
-      isConst: element.isConst,
-      isFactory: element.isFactory,
-      functionType: element.type.encode(context),
-      constantInitializers: element.constantInitializers
-          .map((initializer) => ManifestNode.encode(context, initializer))
-          .toFixedList(),
-    );
+    return context.withFormalParameters(element.formalParameters, () {
+      return InterfaceItemConstructorItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        isStatic: false,
+        isConst: element.isConst,
+        isFactory: element.isFactory,
+        functionType: element.type.encode(context),
+        constantInitializers: element.constantInitializers
+            .map((initializer) => ManifestNode.encode(context, initializer))
+            .toFixedList(),
+      );
+    });
   }
 
   factory InterfaceItemConstructorItem.read(SummaryDataReader reader) {
@@ -407,11 +409,13 @@ class InterfaceItemConstructorItem
 
   @override
   bool match(MatchContext context, ConstructorElementImpl2 element) {
-    return super.match(context, element) &&
-        isConst == element.isConst &&
-        isFactory == element.isFactory &&
-        functionType.match(context, element.type) &&
-        constantInitializers.match(context, element.constantInitializers);
+    return context.withFormalParameters(element.formalParameters, () {
+      return super.match(context, element) &&
+          isConst == element.isConst &&
+          isFactory == element.isFactory &&
+          functionType.match(context, element.type) &&
+          constantInitializers.match(context, element.constantInitializers);
+    });
   }
 
   @override

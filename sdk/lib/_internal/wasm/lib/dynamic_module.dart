@@ -5,26 +5,29 @@
 part of "internal_patch.dart";
 
 @pragma("wasm:import", "moduleLoadingHelper.loadDynamicModuleFromUri")
-external WasmExternRef _loadModuleFromUri(WasmExternRef moduleUri);
-
-@pragma("wasm:import", "moduleLoadingHelper.loadDynamicModuleFromBytes")
-external WasmExternRef _loadModuleFromBytes(WasmExternRef moduleUri);
+external WasmExternRef _loadModuleFromUri(
+  WasmExternRef moduleUri,
+  WasmExternRef jsUri,
+);
 
 @patch
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
   JSPromise loadPromise;
   if (uri != null) {
     final uriString = '$uri';
+    if (!uriString.endsWith('.wasm')) {
+      throw ArgumentError('Malformed dynamic module URI.');
+    }
+    final jsUriString =
+        '${uriString.substring(0, uriString.length - '.wasm'.length)}.mjs';
     loadPromise =
-        (_loadModuleFromUri(uriString.toJS.toExternRef!).toJS as JSPromise);
-  } else if (bytes != null) {
-    loadPromise =
-        (_loadModuleFromBytes(bytes.buffer.toJS.toExternRef!).toJS
+        (_loadModuleFromUri(
+              uriString.toJS.toExternRef!,
+              jsUriString.toJS.toExternRef!,
+            ).toJS
             as JSPromise);
   } else {
-    throw ArgumentError(
-      'Must provide either `uri` or `bytes` to `loadDynamicModule`',
-    );
+    throw ArgumentError('Wasm only supports `uri` for `loadDynamicModule`');
   }
   return loadPromise.toDart.then(
     (entryPoint) =>
@@ -128,11 +131,10 @@ class WasmArrayConstCache {
     WasmArrayRef value,
     WasmFunction<bool Function(WasmArrayRef val1, WasmArrayRef val2)> check,
   ) {
-    var data =
-        _data ??= WasmArray<WasmArrayRef>.filled(
-          2,
-          WasmArray.filled(0, WasmAnyRef.fromObject(Object())),
-        );
+    var data = _data ??= WasmArray<WasmArrayRef>.filled(
+      2,
+      WasmArray.filled(0, WasmAnyRef.fromObject(Object())),
+    );
     for (int i = 0; i < _nextIndex; i++) {
       final cachedValue = data[i];
       if (value.length != cachedValue.length) continue;

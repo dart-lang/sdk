@@ -40,8 +40,8 @@ extension DynamicModuleComponent on Component {
       Expando<Procedure>();
 
   Procedure? get dynamicModuleEntryPoint => _dynamicModuleEntryPoint[this];
-  List<Library> getMainModuleLibraries(CoreTypes coreTypes) =>
-      [...libraries.where((l) => l.isFromMainModule(coreTypes))];
+  List<Library> getDynamicModuleLibraries(CoreTypes coreTypes) =>
+      [...libraries.where((l) => !l.isFromMainModule(coreTypes))];
 }
 
 extension DynamicModuleLibrary on Library {

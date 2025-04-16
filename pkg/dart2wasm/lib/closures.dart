@@ -223,39 +223,37 @@ class ClosureLayouter extends RecursiveVisitor {
   // Base struct for vtables without the dynamic call entry added. Referenced
   // by [closureBaseStruct] instead of the fully initialized version
   // ([vtableBaseStruct]) to break the type cycle.
-  late final w.StructType _vtableBaseStructBare =
-      translator.typesBuilder.defineStruct("#VtableBase");
+  late final w.StructType _vtableBaseStructBase = _defineStruct("#VtableBase");
 
   /// Base struct for instantiation closure contexts. Type tests against this
   /// type is used in `_Closure._equals` to check if a closure is an
   /// instantiation.
-  late final w.StructType instantiationContextBaseStruct = translator
-      .typesBuilder
-      .defineStruct("#InstantiationClosureContextBase", fields: [
+  late final w.StructType instantiationContextBaseStruct =
+      _defineStruct("#InstantiationClosureContextBase", fields: [
     w.FieldType(w.RefType.def(closureBaseStruct, nullable: false),
         mutable: false),
   ]);
 
   /// Base struct for non-generic closure vtables.
-  late final w.StructType vtableBaseStruct = _vtableBaseStructBare
+  late final w.StructType vtableBaseStruct = _vtableBaseStructBase
     ..fields.add(w.FieldType(
         w.RefType.def(translator.dynamicCallVtableEntryFunctionType,
             nullable: false),
         mutable: false));
 
   /// Base struct for generic closure vtables.
-  late final w.StructType genericVtableBaseStruct = translator.typesBuilder
-      .defineStruct("#GenericVtableBase",
-          fields: vtableBaseStruct.fields.toList()
-            ..add(w.FieldType(
-                w.RefType.def(instantiationClosureTypeComparisonFunctionType,
-                    nullable: false),
-                mutable: false))
-            ..add(w.FieldType(
-                w.RefType.def(instantiationClosureTypeHashFunctionType,
-                    nullable: false),
-                mutable: false)),
-          superType: vtableBaseStruct);
+  late final w.StructType genericVtableBaseStruct = _defineStruct(
+      "#GenericVtableBase",
+      fields: vtableBaseStruct.fields.toList()
+        ..add(w.FieldType(
+            w.RefType.def(instantiationClosureTypeComparisonFunctionType,
+                nullable: false),
+            mutable: false))
+        ..add(w.FieldType(
+            w.RefType.def(instantiationClosureTypeHashFunctionType,
+                nullable: false),
+            mutable: false)),
+      superType: vtableBaseStruct);
 
   /// Type of [ClosureRepresentation._instantiationTypeComparisonFunction].
   late final w.FunctionType instantiationClosureTypeComparisonFunctionType =
@@ -275,7 +273,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
   // Base struct for closures.
   late final w.StructType closureBaseStruct = _makeClosureStruct(
-      "#ClosureBase", _vtableBaseStructBare, translator.closureInfo.struct);
+      "#ClosureBase", _vtableBaseStructBase, translator.closureInfo.struct);
 
   w.RefType get typeType => translator.types.nonNullableTypeType;
 
@@ -287,8 +285,7 @@ class ClosureLayouter extends RecursiveVisitor {
   w.StructType _getInstantiationContextBaseStruct(int numTypes) =>
       _instantiationContextBaseStructs.putIfAbsent(
           numTypes,
-          () => translator.typesBuilder.defineStruct(
-              "#InstantiationClosureContextBase-$numTypes",
+          () => _defineStruct("#InstantiationClosureContextBase-$numTypes",
               fields: [
                 w.FieldType(w.RefType.def(closureBaseStruct, nullable: false),
                     mutable: false),
@@ -318,6 +315,18 @@ class ClosureLayouter extends RecursiveVisitor {
           .putIfAbsent(module,
               () => _createInstantiationTypeHashFunction(module, numTypes));
 
+  w.StructType _defineStruct(String name,
+      {Iterable<w.FieldType>? fields, w.StructType? superType}) {
+    final type = translator.typesBuilder
+        .defineStruct(name, fields: fields, superType: superType);
+    if (translator.dynamicModuleSupportEnabled) {
+      // Pessimistically assume there will be subtypes in a dynamic module. This
+      // ensures the struct is not final in all modules so the types are equal.
+      type.hasAnySubtypes = true;
+    }
+    return type;
+  }
+
   w.StructType _makeClosureStruct(
       String name, w.StructType vtableStruct, w.StructType superType) {
     // A closure contains:
@@ -326,7 +335,7 @@ class ClosureLayouter extends RecursiveVisitor {
     //  - A context reference (used for `this` in tear-offs)
     //  - A vtable reference
     //  - A `_FunctionType`
-    return translator.typesBuilder.defineStruct(name,
+    return _defineStruct(name,
         fields: [
           w.FieldType(w.NumType.i32, mutable: false),
           w.FieldType(w.NumType.i32),
@@ -421,7 +430,7 @@ class ClosureLayouter extends RecursiveVisitor {
     String closureName = ["#Closure", ...nameTags].join("-");
     w.StructType parentVtableStruct = parent?.vtableStruct ??
         (typeCount == 0 ? vtableBaseStruct : genericVtableBaseStruct);
-    w.StructType vtableStruct = translator.typesBuilder.defineStruct(vtableName,
+    w.StructType vtableStruct = _defineStruct(vtableName,
         fields: parentVtableStruct.fields, superType: parentVtableStruct);
     w.StructType closureStruct = _makeClosureStruct(
         closureName, vtableStruct, parent?.closureStruct ?? closureBaseStruct);

@@ -1076,15 +1076,11 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   void InitializeAbstractOrigins(intptr_t size) {}
   void RegisterAbstractOrigin(intptr_t index) {
     // Label for DW_AT_abstract_origin references
-    stream_->Printf(".Lfunc%" Pd ":\n", index);
+    stream_->Printf("Lfunc%" Pd " = .-%s\n", index, kDebugInfoLabel);
   }
   void AbstractOrigin(intptr_t index) {
-    // Assignment to temp works around buggy Mac assembler.
-    stream_->Printf("Ltemp%" Pd " = .Lfunc%" Pd " - %s\n", temp_, index,
-                    kDebugInfoLabel);
-    stream_->Printf("%s Ltemp%" Pd "\n", kSizeDirectives[kInt32SizeLog2],
-                    temp_);
-    temp_++;
+    stream_->Printf("%s Lfunc%" Pd "\n", kSizeDirectives[kInt32SizeLog2],
+                    index);
   }
 
   // Methods for writing the assembly prologues for various DWARF sections.

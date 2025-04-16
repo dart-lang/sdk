@@ -13,7 +13,8 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 class EncodeContext {
   final LinkedElementFactory elementFactory;
-  final Map<TypeParameterElement2, int> _typeParameters = {};
+  final Map<TypeParameterElement2, int> _typeParameters = Map.identity();
+  final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
   EncodeContext({
     required this.elementFactory,
@@ -24,12 +25,36 @@ class EncodeContext {
     return elementFactory.getElementId(element);
   }
 
+  int indexOfFormalParameter(FormalParameterElement element) {
+    if (_formalParameters[element] case var result?) {
+      return result;
+    }
+
+    throw StateError('No formal parameter $element');
+  }
+
   int indexOfTypeParameter(TypeParameterElement2 element) {
     if (_typeParameters[element] case var bottomIndex?) {
       return _typeParameters.length - 1 - bottomIndex;
     }
 
     return throw StateError('No type parameter $element');
+  }
+
+  T withFormalParameters<T>(
+    List<FormalParameterElement> formalParameters,
+    T Function() operation,
+  ) {
+    for (var formalParameter in formalParameters) {
+      _formalParameters[formalParameter] = _formalParameters.length;
+    }
+    try {
+      return operation();
+    } finally {
+      for (var formalParameter in formalParameters) {
+        _formalParameters.remove(formalParameter);
+      }
+    }
   }
 
   T withTypeParameters<T>(
@@ -155,6 +180,7 @@ final class ManifestElement {
       topLevelElement = element;
     } else {
       topLevelElement = enclosingElement;
+      assert(topLevelElement.enclosingElement2 is LibraryElement2);
       memberElement = element;
     }
 
@@ -181,7 +207,8 @@ class MatchContext {
   /// bundle.
   final Map<Element2, ManifestItemId> externalIds = {};
 
-  final Map<TypeParameterElement2, int> _typeParameters = {};
+  final Map<TypeParameterElement2, int> _typeParameters = Map.identity();
+  final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
   MatchContext({
     required this.parent,
@@ -196,6 +223,14 @@ class MatchContext {
     }
   }
 
+  int indexOfFormalParameter(FormalParameterElement element) {
+    if (_formalParameters[element] case var result?) {
+      return result;
+    }
+
+    throw StateError('No formal parameter $element');
+  }
+
   int indexOfTypeParameter(TypeParameterElement2 element) {
     if (_typeParameters[element] case var result?) {
       return _typeParameters.length - 1 - result;
@@ -207,6 +242,22 @@ class MatchContext {
     }
 
     throw StateError('No type parameter $element');
+  }
+
+  T withFormalParameters<T>(
+    List<FormalParameterElement> formalParameters,
+    T Function() operation,
+  ) {
+    for (var formalParameter in formalParameters) {
+      _formalParameters[formalParameter] = _formalParameters.length;
+    }
+    try {
+      return operation();
+    } finally {
+      for (var formalParameter in formalParameters) {
+        _formalParameters.remove(formalParameter);
+      }
+    }
   }
 
   T withTypeParameters<T>(
