@@ -3883,6 +3883,7 @@ package:analyzer/dart/element/element2.dart:
   HideElementCombinator (see above)
   InstanceElement2 (class extends Object implements TypeDefiningElement2, TypeParameterizedElement2, HasSinceSdkVersion):
     new (constructor: InstanceElement2 Function())
+    baseElement (getter: InstanceElement2)
     enclosingElement2 (getter: LibraryElement2)
     fields2 (getter: List<FieldElement2>)
     firstFragment (getter: InstanceFragment)

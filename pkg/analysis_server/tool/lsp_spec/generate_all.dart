@@ -388,19 +388,6 @@ List<LspEntity> getCustomClasses() {
       field('valid', type: 'boolean'),
       field('message', type: 'string', canBeUndefined: true),
     ]),
-    interface('TypeHierarchyAnchor', [
-      field(
-        'ref',
-        type: 'string',
-        comment: 'The ElementLocation for this anchor element.',
-      ),
-      field(
-        'path',
-        type: 'int',
-        array: true,
-        comment: 'Indices used to navigate from this anchor to the element.',
-      ),
-    ]),
     interface('TypeHierarchyItemInfo', [
       field(
         'ref',
@@ -409,14 +396,6 @@ List<LspEntity> getCustomClasses() {
             'The ElementLocation for this element, used to re-locate the '
             'element when subtypes/supertypes are '
             'fetched later.',
-      ),
-      field(
-        'anchor',
-        type: 'TypeHierarchyAnchor',
-        comment:
-            'An anchor element that can be used to navigate to this element '
-            'preserving type arguments.',
-        canBeUndefined: true,
       ),
     ]),
     interface('EditableArguments', [
