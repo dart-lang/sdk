@@ -712,46 +712,44 @@ StackTracePtr Exceptions::CurrentStackTrace() {
   return GetStackTraceForException();
 }
 
-static StackTracePtr CreateStackTrace(Zone* zone) {
-  const Array& code_array = Array::Handle(
-      zone, Array::New(StackTrace::kFixedOOMStackdepth, Heap::kOld));
-  if (code_array.IsNull()) {
+static StackTracePtr TryCreateStackTrace(Thread* thread, Zone* zone) {
+  LongJumpScope jump(thread);
+  if (DART_SETJMP(*jump.Set()) == 0) {
+    const Array& code_array = Array::Handle(
+        zone, Array::New(StackTrace::kFixedOOMStackdepth, Heap::kOld));
+    const TypedData& pc_offset_array = TypedData::Handle(
+        zone, TypedData::New(kUintPtrCid, StackTrace::kFixedOOMStackdepth,
+                             Heap::kOld));
+    const StackTrace& stack_trace =
+        StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
+    // Expansion of inlined functions requires additional memory at run time,
+    // avoid it.
+    stack_trace.set_expand_inlined(false);
+    return stack_trace.ptr();
+  } else {
+    RELEASE_ASSERT(thread->StealStickyError() ==
+                   Object::out_of_memory_error().ptr());
     return StackTrace::null();
   }
-  const TypedData& pc_offset_array = TypedData::Handle(
-      zone,
-      TypedData::New(kUintPtrCid, StackTrace::kFixedOOMStackdepth, Heap::kOld));
-  if (pc_offset_array.IsNull()) {
-    return StackTrace::null();
-  }
-  const StackTrace& stack_trace =
-      StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
-  // Expansion of inlined functions requires additional memory at run time,
-  // avoid it.
-  if (stack_trace.IsNull()) {
-    return StackTrace::null();
-  }
-  stack_trace.set_expand_inlined(false);
-  return stack_trace.ptr();
 }
 
 static UnhandledExceptionPtr CreateUnhandledExceptionOrUsePrecanned(
     Thread* thread,
     const Instance& exception,
     const Instance& stacktrace) {
-  UnhandledException& unhandled = UnhandledException::Handle(thread->zone());
-  {
-    NoThrowOOMScope no_throw_oom_scope(thread);
-    unhandled ^= UnhandledException::New(Heap::kOld);
-  }
-  if (unhandled.IsNull()) {
-    // If we failed to create new instance, use pre-canned one.
-    unhandled ^= Object::unhandled_oom_exception().ptr();
-  } else {
+  LongJumpScope jump(thread);
+  if (DART_SETJMP(*jump.Set()) == 0) {
+    UnhandledException& unhandled =
+        UnhandledException::Handle(UnhandledException::New(Heap::kOld));
     unhandled.set_exception(exception);
     unhandled.set_stacktrace(stacktrace);
+    return unhandled.ptr();
+  } else {
+    RELEASE_ASSERT(thread->StealStickyError() ==
+                   Object::out_of_memory_error().ptr());
+    // If we failed to create new instance, use pre-canned one.
+    return Object::unhandled_oom_exception().ptr();
   }
-  return unhandled.ptr();
 }
 
 DART_NORETURN
@@ -802,12 +800,9 @@ static void ThrowExceptionHelper(Thread* thread,
   bool handler_needs_stacktrace = finder.needs_stacktrace;
   Instance& stacktrace = Instance::Handle(zone);
   if (create_stacktrace) {
-    {
-      NoThrowOOMScope no_throw_oom_scope(thread);
-      stacktrace = CreateStackTrace(zone);
-    }
     // Ensure we have enough memory to create stacktrace,
     // otherwise fallback to reporting OOM without stacktrace.
+    stacktrace = TryCreateStackTrace(thread, zone);
     if (!stacktrace.IsNull()) {
       if (handler_pc == 0) {
         // No Dart frame.

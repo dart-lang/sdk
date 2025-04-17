@@ -1,3 +1,10 @@
+## 7.4.1
+* Restore `InstanceElement.augmented` getter.
+  This API was removed in 7.4.0 under the assumption that its removal would
+  not be a breaking change, because it was marked as `@experimental`.
+  But it turns out that some clients had been published to pub that relied
+  on it. So, these APIs were restored, and implemented on top of `Element2`.
+
 ## 7.4.0
 * Updated SDK constraint to `^3.5.0`.
 * Deprecated element model V1.

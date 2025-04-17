@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -951,8 +952,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @Deprecated('Use lookUpConstructor2() instead')
   @override
   ConstructorElementMixin? lookUpConstructor(
-      String? constructorName, covariant LibraryElementImpl library) {
-    return lookUpConstructor2(constructorName ?? 'new', library)?.asElement;
+      String? name, covariant LibraryElementImpl library) {
+    var name2 = (name ?? 'new').ifNotEmptyOrElse('new');
+    return lookUpConstructor2(name2, library)?.asElement;
   }
 
   @override

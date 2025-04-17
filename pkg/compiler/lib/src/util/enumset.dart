@@ -136,12 +136,20 @@ class EnumSetDomain<E extends Enum> {
   /// is equivalent to using an [EnumSet] directly.
   final int offset;
 
-  final Iterable<E> values;
+  final List<E> values;
+
+  late final Bitset singletonMask;
+
+  EnumSetDomain(
+    this.offset,
+    this.values, {
+    Iterable<E> singletonBits = const [],
+  }) {
+    singletonMask = fromValues(singletonBits);
+  }
 
   /// A bitset containing all enum values in [E].
   late final Bitset allValues = Bitset(((1 << values.length) - 1) << offset);
-
-  EnumSetDomain(this.offset, this.values);
 
   /// When composing [EnumSetDomain]s, the [offset] to use for the next domain.
   int get nextOffset => offset + values.length;
@@ -201,8 +209,14 @@ class ComposedEnumSetDomains {
   final int bitWidth;
   late final Bitset mask;
   late final Bitset notMask;
+  final Bitset singletonsMask;
 
-  ComposedEnumSetDomains(this.domains) : bitWidth = domains.last.nextOffset {
+  ComposedEnumSetDomains(this.domains)
+    : bitWidth = domains.last.nextOffset,
+      singletonsMask = domains.fold(
+        Bitset.empty(),
+        (mask, domain) => mask.union(domain.singletonMask),
+      ) {
     final maskBits = (1 << bitWidth) - 1;
     mask = Bitset(maskBits);
     notMask = Bitset(~maskBits);

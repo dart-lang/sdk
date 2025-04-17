@@ -119,12 +119,65 @@ enum TypeMaskKind {
 /// Specific values that are independently tracked.
 enum TypeMaskSpecialValue { null_, lateSentinel }
 
+enum TypeMaskInterceptorProperty {
+  interceptor('I'),
+  notInterceptor('N');
+
+  final String _mnemonic;
+
+  const TypeMaskInterceptorProperty(this._mnemonic);
+
+  @override
+  String toString() => _mnemonic;
+}
+
+// This domain is unique in that it tracks specific values which are not
+// otherwise encompassed in the [FlatTypeMask] representation. It is possible
+// for this domain to be empty if the type mask does not contain any special
+// values, even if the type mask is nonempty overall.
+//
+// This domain occupies the least significant bits.
 final _specialValueDomain = EnumSetDomain<TypeMaskSpecialValue>(
   0,
   TypeMaskSpecialValue.values,
+  singletonBits: TypeMaskSpecialValue.values,
 );
 
-final _powersetDomains = ComposedEnumSetDomains([_specialValueDomain]);
+// Every other domain must be able to represent any non-special value - that is,
+// any single concrete non-special value should map to exactly one bit in the
+// domain. In many cases, this will mean the domain should contain an "other"
+// bit to represent any values not otherwise covered by the domain's bits.
+//
+// Special values should not result in any bits being set in these domains. In
+// particular, these domains are empty if and only if the type mask is empty or
+// contains only special values.
+
+final _interceptorDomain = EnumSetDomain<TypeMaskInterceptorProperty>(
+  _specialValueDomain.nextOffset,
+  TypeMaskInterceptorProperty.values,
+);
+
+final _powersetDomains = ComposedEnumSetDomains([
+  _specialValueDomain,
+  _interceptorDomain,
+]);
+
+Bitset _intersectPowersets(Bitset a, Bitset b) {
+  final intersection = a.intersection(b);
+  // With the exception of the special value domain, every domain is guaranteed
+  // to have at least one bit set if the powerset corresponds to a value other
+  // than one of the special values. Therefore, if any domain is empty, all
+  // domains (except the special value domain) must be empty.
+  if (_powersetDomains.domains
+      .skip(1)
+      .any((domain) => domain.restrict(intersection).isEmpty)) {
+    return _specialValueDomain.restrict(intersection);
+  }
+  return intersection;
+}
+
+bool _isEmptyOrSpecialPowerset(Bitset powerset) =>
+    powerset.bits <= _specialValueDomain.allValues.bits;
 
 /// A type mask represents a set of contained classes, but the
 /// operations on it are not guaranteed to be precise and they may
@@ -455,6 +508,16 @@ abstract class TypeMask implements AbstractValue {
     domain,
   );
 
+  TypeMask withInterceptorProperty(
+    TypeMaskInterceptorProperty property,
+    CommonMasks domain,
+  ) => withPowerset(_interceptorDomain.add(powerset, property), domain);
+
+  TypeMask withoutInterceptorProperty(
+    TypeMaskInterceptorProperty property,
+    CommonMasks domain,
+  ) => withPowerset(_interceptorDomain.remove(powerset, property), domain);
+
   /// Whether nothing matches this mask, not even null.
   bool get isEmpty;
 
@@ -516,11 +579,30 @@ abstract class TypeMask implements AbstractValue {
   TypeMask union(TypeMask other, CommonMasks domain);
 
   /// Returns whether the intersection of this and [other] is empty.
-  bool isDisjoint(TypeMask other, JClosedWorld closedWorld);
+  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
+    final powerset = _intersectPowersets(this.powerset, other.powerset);
+    if (powerset.isEmpty) return true;
+    if (powerset.intersection(_powersetDomains.singletonsMask).isNotEmpty) {
+      // There is at least one singleton bit set in both masks, which means both
+      // masks contain the corresponding value, hence they are not disjoint.
+      return false;
+    }
+    return _isNonTriviallyDisjoint(other, closedWorld);
+  }
+
+  bool _isNonTriviallyDisjoint(TypeMask other, JClosedWorld closedWorld);
 
   /// Returns a type mask representing the intersection of this [TypeMask] and
   /// [other].
-  TypeMask intersection(TypeMask other, CommonMasks domain);
+  TypeMask intersection(TypeMask other, CommonMasks domain) {
+    final powerset = _intersectPowersets(this.powerset, other.powerset);
+    if (_isEmptyOrSpecialPowerset(powerset)) {
+      return FlatTypeMask._emptyOrSpecial(domain, powerset);
+    }
+    return _nonEmptyIntersection(other, domain);
+  }
+
+  TypeMask _nonEmptyIntersection(TypeMask other, CommonMasks domain);
 
   /// Returns whether [element] is a potential target when being invoked on this
   /// type mask.
@@ -546,5 +628,50 @@ abstract class TypeMask implements AbstractValue {
     JClosedWorld closedWorld,
   );
 
-  static String powersetToString(Bitset powerset) => '$powerset';
+  /// If the powerset is empty, returns 'empty'. Otherwise, returns the
+  /// concatenated representations of domains from LSB to MSB. Each domain is
+  /// brace-delimited.
+  ///
+  /// The special values domain is omitted if no special values are present.
+  /// Otherwise, it contains the strings 'null' and 'late' as appropriate,
+  /// separated by a comma if both are present.
+  ///
+  /// All other domains are omitted if the powerset only contains special
+  /// values. Otherwise, each domain contains the concatenation of mnemonic
+  /// characters for each bit present in the domain, from LSB to MSB. The
+  /// mnemonics are defined by each enum's `toString` method.
+  static String powersetToString(Bitset powerset) {
+    if (powerset.isEmpty) return 'empty';
+
+    String specialValuesToString() {
+      if (_specialValueDomain.isEmpty(powerset)) return '';
+      final specialValues = [
+        if (_specialValueDomain.contains(powerset, TypeMaskSpecialValue.null_))
+          'null',
+        if (_specialValueDomain.contains(
+          powerset,
+          TypeMaskSpecialValue.lateSentinel,
+        ))
+          'late',
+      ].join(',');
+      return '{$specialValues}';
+    }
+
+    String domainToString(EnumSetDomain domain) {
+      final mnemonics =
+          domain
+              .toEnumSet(powerset)
+              .iterable(domain.values)
+              .toList()
+              .reversed
+              .join();
+      return '{$mnemonics}';
+    }
+
+    return [
+      specialValuesToString(),
+      if (!_isEmptyOrSpecialPowerset(powerset))
+        _powersetDomains.domains.skip(1).map(domainToString).join(),
+    ].join();
+  }
 }

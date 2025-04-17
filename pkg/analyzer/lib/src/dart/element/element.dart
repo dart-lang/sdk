@@ -89,6 +89,185 @@ mixin AugmentableFragment on ElementImpl {
   }
 }
 
+@Deprecated(elementModelDeprecationMsg)
+class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedClassElement {
+  AugmentedClassElementImpl(super.firstFragment);
+
+  @override
+  ClassElementImpl get firstFragment {
+    return super.firstFragment as ClassElementImpl;
+  }
+}
+
+@Deprecated(elementModelDeprecationMsg)
+class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedEnumElement {
+  AugmentedEnumElementImpl(super.firstFragment);
+
+  @override
+  List<FieldElement> get constants => firstFragment.constants;
+
+  @override
+  EnumElementImpl get firstFragment {
+    return super.firstFragment as EnumElementImpl;
+  }
+}
+
+@Deprecated(elementModelDeprecationMsg)
+class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
+    implements AugmentedExtensionElement {
+  AugmentedExtensionElementImpl(super.firstFragment);
+
+  @override
+  DartType get extendedType => firstFragment.extendedType;
+
+  @override
+  ExtensionElementImpl get firstFragment {
+    return super.firstFragment as ExtensionElementImpl;
+  }
+}
+
+@Deprecated(elementModelDeprecationMsg)
+class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedExtensionTypeElement {
+  AugmentedExtensionTypeElementImpl(super.firstFragment);
+
+  @override
+  ExtensionTypeElementImpl get firstFragment {
+    return super.firstFragment as ExtensionTypeElementImpl;
+  }
+
+  @override
+  ConstructorElement get primaryConstructor => firstFragment.primaryConstructor;
+
+  @override
+  FieldElement get representation => firstFragment.representation;
+
+  @override
+  DartType get typeErasure => firstFragment.typeErasure;
+}
+
+@Deprecated(elementModelDeprecationMsg)
+class AugmentedInstanceElementImpl implements AugmentedInstanceElement {
+  @override
+  final InstanceElementImpl firstFragment;
+
+  AugmentedInstanceElementImpl(this.firstFragment);
+
+  @override
+  List<PropertyAccessorElement> get accessors => firstFragment.accessors;
+
+  @override
+  List<FieldElement> get fields => firstFragment.fields;
+
+  @override
+  List<ElementAnnotation> get metadata => firstFragment.metadata;
+
+  @override
+  List<MethodElement> get methods => firstFragment.methods;
+
+  @override
+  DartType get thisType => firstFragment.thisType;
+
+  @override
+  FieldElement? getField(String name) {
+    return fields.firstWhereOrNull((e) => e.name == name);
+  }
+
+  @override
+  PropertyAccessorElement? getGetter(String name) {
+    return accessors
+        .where((e) => e.isGetter)
+        .firstWhereOrNull((e) => e.name == name);
+  }
+
+  @override
+  MethodElement? getMethod(String name) {
+    return methods.firstWhereOrNull((e) => e.name == name);
+  }
+
+  @override
+  PropertyAccessorElement? getSetter(String name) {
+    return accessors
+        .where((e) => e.isSetter)
+        .firstWhereOrNull((e) => e.name == name);
+  }
+
+  @override
+  PropertyAccessorElement? lookUpGetter(
+      {required String name, required LibraryElement library}) {
+    return firstFragment.element
+        .lookUpGetter2(name: name, library: library as LibraryElement2)
+        ?.asElement as PropertyAccessorElement?;
+  }
+
+  @override
+  MethodElement? lookUpMethod(
+      {required String name, required LibraryElement library}) {
+    return firstFragment.element
+        .lookUpMethod2(name: name, library: library as LibraryElement2)
+        ?.asElement;
+  }
+
+  @override
+  PropertyAccessorElement? lookUpSetter(
+      {required String name, required LibraryElement library}) {
+    return firstFragment.element
+        .lookUpSetter2(name: name, library: library as LibraryElement2)
+        ?.asElement as PropertyAccessorElement?;
+  }
+}
+
+@Deprecated(elementModelDeprecationMsg)
+class AugmentedInterfaceElementImpl extends AugmentedInstanceElementImpl
+    implements AugmentedInterfaceElement {
+  AugmentedInterfaceElementImpl(super.firstFragment);
+
+  @override
+  List<ConstructorElement> get constructors => firstFragment.constructors;
+
+  @override
+  InterfaceElementImpl get firstFragment {
+    return super.firstFragment as InterfaceElementImpl;
+  }
+
+  @override
+  List<InterfaceType> get interfaces => firstFragment.interfaces;
+
+  @override
+  List<InterfaceType> get mixins => firstFragment.mixins;
+
+  @override
+  InterfaceType get thisType {
+    return super.thisType as InterfaceType;
+  }
+
+  @override
+  ConstructorElement? get unnamedConstructor =>
+      firstFragment.unnamedConstructor;
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    return constructors.firstWhereOrNull((e) => e.name == name);
+  }
+}
+
+@Deprecated(elementModelDeprecationMsg)
+class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedMixinElement {
+  AugmentedMixinElementImpl(super.firstFragment);
+
+  @override
+  MixinElementImpl get firstFragment {
+    return super.firstFragment as MixinElementImpl;
+  }
+
+  @override
+  List<InterfaceType> get superclassConstraints =>
+      firstFragment.superclassConstraints;
+}
+
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements
         // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
@@ -167,6 +346,10 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     assert(!isMixinApplication);
     super.accessors = accessors;
   }
+
+  @Deprecated(elementModelDeprecationMsg)
+  @override
+  AugmentedClassElement get augmented => AugmentedClassElementImpl(this);
 
   @override
   set constructors(List<ConstructorElementImpl> constructors) {
@@ -3550,6 +3733,10 @@ class EnumElementImpl extends InterfaceElementImpl
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
 
+  @Deprecated(elementModelDeprecationMsg)
+  @override
+  AugmentedEnumElement get augmented => AugmentedEnumElementImpl(this);
+
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
@@ -3940,6 +4127,11 @@ class ExtensionElementImpl extends InstanceElementImpl
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
 
+  @Deprecated(elementModelDeprecationMsg)
+  @override
+  AugmentedExtensionElement get augmented =>
+      AugmentedExtensionElementImpl(this);
+
   @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
@@ -4110,6 +4302,11 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   bool hasImplementsSelfReference = false;
 
   ExtensionTypeElementImpl(super.name, super.nameOffset);
+
+  @Deprecated(elementModelDeprecationMsg)
+  @override
+  AugmentedExtensionTypeElement get augmented =>
+      AugmentedExtensionTypeElementImpl(this);
 
   @override
   ExtensionTypeElementImpl2 get element {
@@ -5707,6 +5904,10 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
     _accessors = accessors;
   }
 
+  @Deprecated(elementModelDeprecationMsg)
+  @override
+  AugmentedInstanceElement get augmented => AugmentedInstanceElementImpl(this);
+
   @override
   InstanceElementImpl2 get element;
 
@@ -6090,6 +6291,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return _allSupertypes ??=
         library.session.classHierarchy.implementedInterfaces(element);
   }
+
+  @Deprecated(elementModelDeprecationMsg)
+  @override
+  AugmentedInterfaceElement get augmented =>
+      AugmentedInterfaceElementImpl(this);
 
   @Deprecated('Use Element2 instead')
   @override
@@ -8625,6 +8831,10 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
+
+  @Deprecated(elementModelDeprecationMsg)
+  @override
+  AugmentedMixinElement get augmented => AugmentedMixinElementImpl(this);
 
   @override
   MixinElementImpl2 get element {

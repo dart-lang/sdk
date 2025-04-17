@@ -6,28 +6,28 @@
 
 import "package:expect/expect.dart";
 
-/*member: f:[subclass=JSInt|powerset=0]*/
+/*member: f:[subclass=JSInt|powerset={I}]*/
 int f(
   int
-  /*spec.[null|subclass=Object|powerset=1]*/
-  /*prod.[subclass=JSInt|powerset=0]*/
+  /*spec.[null|subclass=Object|powerset={null}{IN}]*/
+  /*prod.[subclass=JSInt|powerset={I}]*/
   i,
-) => 2 /*invoke: [exact=JSUInt31|powerset=0]*/ * i;
+) => 2 /*invoke: [exact=JSUInt31|powerset={I}]*/ * i;
 
 typedef int IntToInt(int x);
 
-/*member: test:[null|powerset=1]*/
+/*member: test:[null|powerset={null}]*/
 test(
-  /*[null|subclass=Object|powerset=1]*/ a,
-  /*[subclass=Closure|powerset=0]*/ b,
+  /*[null|subclass=Object|powerset={null}{IN}]*/ a,
+  /*[subclass=Closure|powerset={N}]*/ b,
 ) => Expect.identical(a, b);
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   // It is possible to use `.call` on a function-typed value (even though it is
   // redundant).  Similarly, it is possible to tear off `.call` on a
   // function-typed value (but it is a no-op).
   IntToInt f2 = f;
 
-  test(f2. /*[subclass=Closure|powerset=0]*/ call, f);
+  test(f2. /*[subclass=Closure|powerset={N}]*/ call, f);
 }

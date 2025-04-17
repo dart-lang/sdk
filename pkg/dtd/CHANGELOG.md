@@ -1,4 +1,4 @@
-## 2.5.1-wip
+## 2.5.1
 
 - Widen the dependency on `unified_analytics` to include 8.0.0.
 

@@ -46,7 +46,7 @@ class A {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
