@@ -417,6 +417,9 @@ abstract class ExecutableMember extends Member
       combined = Substitution.fromMap2(map);
     } else {
       declaration = element as ExecutableElementImpl;
+      if (!declaration.hasEnclosingTypeParameterReference) {
+        return declaration;
+      }
     }
 
     switch (declaration) {
