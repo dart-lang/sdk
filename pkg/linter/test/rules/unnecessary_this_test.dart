@@ -166,6 +166,38 @@ class A {
     );
   }
 
+  test_method_ofGenericClass_noShadow_fromSelf() async {
+    await assertDiagnostics(
+      r'''
+class A<T> {
+  T foo() => throw 0;
+
+  void bar() {
+    this.foo();
+  }
+}
+''',
+      [lint(55, 4)],
+    );
+  }
+
+  test_method_ofGenericClass_noShadow_fromSuper() async {
+    await assertDiagnostics(
+      r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+class B extends A<int> {
+  void bar() {
+    this.foo();
+  }
+}
+''',
+      [lint(82, 4)],
+    );
+  }
+
   test_shadowInIfCaseClause() async {
     await assertNoDiagnostics(r'''
 class A {

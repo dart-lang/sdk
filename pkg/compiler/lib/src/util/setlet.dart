@@ -264,7 +264,7 @@ class Setlet<E> extends SetBase<E> {
   @override
   bool containsAll(Iterable<Object?> other) {
     for (final e in other) {
-      if (!this.contains(e)) return false;
+      if (!contains(e)) return false;
     }
     return true;
   }
