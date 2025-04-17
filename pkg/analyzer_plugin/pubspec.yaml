@@ -9,7 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  analyzer: ^7.2.0
+  analyzer: ^7.4.0
   collection: ^1.15.0
   dart_style: '>=2.3.7 <4.0.0'
   pub_semver: ^2.1.0

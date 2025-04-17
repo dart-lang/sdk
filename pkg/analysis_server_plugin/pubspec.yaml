@@ -1,6 +1,6 @@
 name: analysis_server_plugin
 description: A framework and support code for building plugins for the analysis server.
-version: 0.1.0-dev
+version: 0.2.0-dev
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server_plugin
 
 environment:
@@ -9,7 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  analyzer: ^7.3.0
+  analyzer: ^7.4.0
   analyzer_plugin: ^0.13.0
   meta: ^1.16.0
   yaml: ^3.1.0
