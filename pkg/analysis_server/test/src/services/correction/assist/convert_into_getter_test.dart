@@ -171,10 +171,10 @@ class ConvertIntoGetterTest extends AssistProcessorTest {
   Future<void> test_extension_static() async {
     await resolveTestCode('''
 extension E on int {
-  static int a = 0;
+  static int ^a = 0;
 }
 ''');
-    await assertHasAssistAt('a =', '''
+    await assertHasAssist('''
 extension E on int {
   static int get a => 0;
 }
@@ -184,10 +184,10 @@ extension E on int {
   Future<void> test_extensionType_static() async {
     await resolveTestCode('''
 extension type A(int i) {
-  static int a = 0;
+  static int ^a = 0;
 }
 ''');
-    await assertHasAssistAt('a =', '''
+    await assertHasAssist('''
 extension type A(int i) {
   static int get a => 0;
 }
@@ -197,10 +197,10 @@ extension type A(int i) {
   Future<void> test_late() async {
     await resolveTestCode('''
 class A {
-  late final int f = 1 + 2;
+  late final int ^f = 1 + 2;
 }
 ''');
-    await assertHasAssistAt('f =', '''
+    await assertHasAssist('''
 class A {
   int get f => 1 + 2;
 }
@@ -210,10 +210,10 @@ class A {
   Future<void> test_mixin() async {
     await resolveTestCode('''
 mixin M {
-  final int v = 1;
+  final int ^v = 1;
 }
 ''');
-    await assertHasAssistAt('v =', '''
+    await assertHasAssist('''
 mixin M {
   int get v => 1;
 }
@@ -223,10 +223,10 @@ mixin M {
   Future<void> test_mixin_static() async {
     await resolveTestCode('''
 mixin M {
-  static int a = 0;
+  static int ^a = 0;
 }
 ''');
-    await assertHasAssistAt('a =', '''
+    await assertHasAssist('''
 mixin M {
   static int get a => 0;
 }
@@ -237,10 +237,10 @@ mixin M {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class A {
-  final int foo;
+  final int ^foo;
 }
 ''');
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 class A {
   int get foo => null;
 }
@@ -250,10 +250,10 @@ class A {
   Future<void> test_notFinal() async {
     await resolveTestCode('''
 class A {
-  int foo = 1;
+  int ^foo = 1;
 }
 ''');
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 class A {
   int get foo => 1;
 }
@@ -263,19 +263,19 @@ class A {
   Future<void> test_notSingleField() async {
     await resolveTestCode('''
 class A {
-  final int foo = 1, bar = 2;
+  final int ^foo = 1, bar = 2;
 }
 ''');
-    await assertNoAssistAt('foo');
+    await assertNoAssist();
   }
 
   Future<void> test_noType() async {
     await resolveTestCode('''
 class A {
-  final foo = 42;
+  final ^foo = 42;
 }
 ''');
-    await assertHasAssistAt('foo =', '''
+    await assertHasAssist('''
 class A {
   get foo => 42;
 }
@@ -285,10 +285,10 @@ class A {
   Future<void> test_static() async {
     await resolveTestCode('''
 class A {
-  static int foo = 1;
+  static int ^foo = 1;
 }
 ''');
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 class A {
   static int get foo => 1;
 }
@@ -300,10 +300,10 @@ class A {
 const myAnnotation = const Object();
 class A {
   @myAnnotation
-  final int foo = 1 + 2;
+  final int ^foo = 1 + 2;
 }
 ''');
-    await assertHasAssistAt('foo =', '''
+    await assertHasAssist('''
 const myAnnotation = const Object();
 class A {
   @myAnnotation

@@ -28,10 +28,10 @@ class A { }
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
 }
 ''');
-    await assertHasAssistAt('obj', r'''
+    await assertHasAssist(r'''
 class A { }
 
 A f() => A();
@@ -51,11 +51,11 @@ class A {
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   obj.a = 1;
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_propertyPostIncremented_noAssist() async {
@@ -67,11 +67,11 @@ class A {
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   obj.a++;
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_propertyPreIncremented_noAssist() async {
@@ -83,11 +83,11 @@ class A {
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   ++obj.a;
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_reassigned_noAssist() async {
@@ -97,11 +97,11 @@ class A { }
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   obj = A();
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 
   Future<void> test_object_referenced() async {
@@ -115,7 +115,7 @@ class A {
 A f() => A();
 
 m(var c) {
-  var obj = f();
+  var ^obj = f();
   var b = 0;
   print(obj.a);
   print(obj.b);
@@ -123,7 +123,7 @@ m(var c) {
   print(obj.c);
 }
 ''');
-    await assertHasAssistAt('obj', r'''
+    await assertHasAssist(r'''
 class A { 
   String get a => '';
   String get b => '';
@@ -150,11 +150,11 @@ class A { }
 A f() => A();
 
 m() {
-  var obj = f();
+  var ^obj = f();
   print(obj);
 }
 ''');
-    await assertNoAssistAt('obj');
+    await assertNoAssist();
   }
 }
 
@@ -168,10 +168,10 @@ class DestructureLocalVariableAssignmentRecordTest extends AssistProcessorTest {
 ({int n, String s}) f() => (n: 1, s: '');
 
 m() {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 ({int n, String s}) f() => (n: 1, s: '');
 
 m() {
@@ -185,10 +185,10 @@ m() {
 ({int n, String s}) f() => (n: 1, s: '');
 
 m(int n) {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 ({int n, String s}) f() => (n: 1, s: '');
 
 m(int n) {
@@ -206,10 +206,10 @@ m(int n) {
 (bool, {int n, String s}) f() => (false, n: 1, s: '');
 
 m() {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 (bool, {int n, String s}) f() => (false, n: 1, s: '');
 
 m() {
@@ -227,10 +227,10 @@ m() {
 (int, String name) f() => (1, '');
 
 m() {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 (int, String name) f() => (1, '');
 
 m() {
@@ -247,10 +247,10 @@ m() {
 (int, String) f() => (1, '');
 
 m(var $1) {
-  var rec = f();
+  var ^rec = f();
 }
 ''');
-    await assertHasAssistAt('rec', r'''
+    await assertHasAssist(r'''
 (int, String) f() => (1, '');
 
 m(var $1) {

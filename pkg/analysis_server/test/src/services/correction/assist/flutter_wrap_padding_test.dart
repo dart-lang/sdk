@@ -74,7 +74,7 @@ void f() {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  Padding(
+  Padd^ing(
     padding: const EdgeInsets.all(8.0),
     child: Container(),
   );

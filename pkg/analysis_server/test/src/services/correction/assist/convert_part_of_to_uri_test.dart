@@ -31,12 +31,12 @@ part 'src/bar.dart';
     addTestSource('''
 // @dart = 3.4
 // preEnhancedParts
-part of foo;
+part of f^oo;
 ''');
 
     await analyzeTestPackageFiles();
     await resolveTestFile();
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 // @dart = 3.4
 // preEnhancedParts
 part of '../foo.dart';
@@ -55,12 +55,12 @@ part 'bar.dart';
     addTestSource('''
 // @dart = 3.4
 // preEnhancedParts
-part of foo;
+part of f^oo;
 ''');
 
     await analyzeTestPackageFiles();
     await resolveTestFile();
-    await assertHasAssistAt('foo', '''
+    await assertHasAssist('''
 // @dart = 3.4
 // preEnhancedParts
 part of 'foo.dart';

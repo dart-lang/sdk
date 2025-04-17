@@ -23,11 +23,11 @@ class ConvertToNormalParameterTest extends AssistProcessorTest {
     await resolveTestCode('''
 class A {
   var test;
-  A(this.test) {
+  A(this.t^est) {
   }
 }
 ''');
-    await assertHasAssistAt('test)', '''
+    await assertHasAssist('''
 class A {
   var test;
   A(test) : test = test {
@@ -40,11 +40,11 @@ class A {
     await resolveTestCode('''
 class A {
   int test;
-  A(this.test) {
+  A(this.te^st) {
   }
 }
 ''');
-    await assertHasAssistAt('test)', '''
+    await assertHasAssist('''
 class A {
   int test;
   A(int test) : test = test {
@@ -58,10 +58,10 @@ class A {
 class A {
   double aaa;
   int bbb;
-  A(this.bbb) : aaa = 1.0;
+  A(this.bb^b) : aaa = 1.0;
 }
 ''');
-    await assertHasAssistAt('bbb)', '''
+    await assertHasAssist('''
 class A {
   double aaa;
   int bbb;

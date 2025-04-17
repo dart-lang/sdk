@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
@@ -38,21 +40,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   @override
   void addTestSource(String code) {
-    code = normalizeSource(code);
-    var parsedCode = TestCode.parse(code);
-    code = parsedCode.code;
-    if (parsedCode.positions.isNotEmpty) {
-      _offset = parsedCode.position.offset;
-      _length = 0;
-    } else if (parsedCode.ranges.isNotEmpty) {
-      var range = parsedCode.range.sourceRange;
-      _offset = range.offset;
-      _length = range.length;
-    } else {
-      _offset = 0;
-      _length = 0;
-    }
     super.addTestSource(code);
+    _setPositionOrRange(0);
   }
 
   void assertExitPosition({String? before, String? after}) {
@@ -79,7 +68,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   Future<SourceChange> assertHasAssist(
     String expected, {
     Map<String, List<String>>? additionallyChangedFiles,
+    int index = 0,
   }) async {
+    _setPositionOrRange(index);
     if (useLineEndingsForPlatform) {
       expected = normalizeNewlinesForPlatform(expected);
       additionallyChangedFiles = additionallyChangedFiles?.map(
@@ -115,26 +106,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     return _change;
   }
 
-  /// Asserts that there is an [Assist] of the given [kind] at the offset of the
-  /// given [snippet] which produces the [expected] code when applied to [testCode].
-  Future<void> assertHasAssistAt(
-    String snippet,
-    String expected, {
-    int length = 0,
-  }) async {
-    expected = normalizeSource(expected);
-    _offset = findOffset(snippet);
-    _length = length;
-    var assist = await _assertHasAssist();
-    _change = assist.change;
-    expect(_change.id, kind.id);
-    // apply to "file"
-    var fileEdits = _change.edits;
-    expect(fileEdits, hasLength(1));
-    _resultCode = SourceEdit.applySequence(testCode, _change.edits[0].edits);
-    expect(_resultCode, expected);
-  }
-
   void assertLinkedGroup(
     int groupIndex,
     List<String> expectedStrings, [
@@ -149,20 +120,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Asserts that there is no [Assist] of the given [kind] at [_offset].
-  Future<void> assertNoAssist() async {
-    var assists = await _computeAssists();
-    for (var assist in assists) {
-      if (assist.kind == kind) {
-        fail('Unexpected assist $kind in\n${assists.join('\n')}');
-      }
-    }
-  }
-
-  /// Asserts that there is no [Assist] of the given [kind] at the offset of the
-  /// given [snippet].
-  Future<void> assertNoAssistAt(String snippet, {int length = 0}) async {
-    _offset = findOffset(snippet);
-    _length = length;
+  Future<void> assertNoAssist([int index = 0]) async {
+    _setPositionOrRange(index);
     var assists = await _computeAssists();
     for (var assist in assists) {
       if (assist.kind == kind) {
@@ -220,5 +179,25 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       positions.add(Position(testFile.path, offset));
     }
     return positions;
+  }
+
+  void _setPositionOrRange(int index) {
+    if (index < 0) {
+      throw ArgumentError('Index must be non-negative.');
+    }
+    if (index >
+        max(parsedTestCode.positions.length, parsedTestCode.ranges.length)) {
+      throw ArgumentError('Index exceeds the number of positions and ranges.');
+    }
+    if (parsedTestCode.positions.isNotEmpty) {
+      _offset = parsedTestCode.positions[index].offset;
+      _length = 0;
+    } else if (parsedTestCode.ranges.isNotEmpty) {
+      var range = parsedTestCode.ranges[index].sourceRange;
+      _offset = range.offset;
+      _length = range.length;
+    } else {
+      throw ArgumentError('Test code must contain a position or range marker.');
+    }
   }
 }
