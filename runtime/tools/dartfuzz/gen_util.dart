@@ -52,21 +52,21 @@ extension DartTypeExtension on DartType {
     if (type is DynamicType) {
       return 'dynamic';
     } else if (type is FunctionType) {
-      final parameters = type.parameters.map((e) => e.type.asCode);
+      final parameters = type.formalParameters.map((e) => e.type.asCode);
       return type.returnType.asCode + ' Function($parameters)';
     } else if (type is InterfaceType) {
       final typeArguments = type.typeArguments;
       if (typeArguments.isEmpty ||
           typeArguments.every((t) => t is DynamicType)) {
-        return type.element.name;
+        return type.element3.name3!;
       } else {
         final typeArgumentsStr = typeArguments.map((t) => t.asCode).join(', ');
-        return '${type.element.name}<$typeArgumentsStr>';
+        return '${type.element3.name3!}<$typeArgumentsStr>';
       }
     } else if (type is NeverType) {
       return 'Never';
     } else if (type is TypeParameterType) {
-      return type.element.name;
+      return type.element3.name3!;
     } else if (type is VoidType) {
       return 'void';
     } else {
