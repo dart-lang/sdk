@@ -140,14 +140,9 @@ class LibraryManifestBuilder {
       (typeParameters) {
         classItem.declaredMembers.clear();
         classItem.inheritedMembers.clear();
-        _addInterfaceElementStaticExecutables(
+        _addInterfaceElementExecutables(
           encodingContext: encodingContext,
           instanceElement: element,
-          interfaceItem: classItem,
-        );
-        _addInterfaceElementInstanceExecutables(
-          encodingContext: encodingContext,
-          interfaceElement: element,
           interfaceItem: classItem,
         );
       },
@@ -250,6 +245,36 @@ class LibraryManifestBuilder {
     }
   }
 
+  void _addInstanceElementExecutables({
+    required EncodeContext encodingContext,
+    required InstanceElementImpl2 instanceElement,
+    required InstanceItem instanceItem,
+  }) {
+    for (var getter in instanceElement.getters2) {
+      _addInstanceElementGetter(
+        encodingContext: encodingContext,
+        instanceItem: instanceItem,
+        element: getter,
+      );
+    }
+
+    for (var method in instanceElement.methods2) {
+      _addInstanceElementMethod(
+        encodingContext: encodingContext,
+        instanceItem: instanceItem,
+        element: method,
+      );
+    }
+
+    for (var setter in instanceElement.setters2) {
+      _addInstanceElementSetter(
+        encodingContext: encodingContext,
+        instanceItem: instanceItem,
+        element: setter,
+      );
+    }
+  }
+
   void _addInstanceElementGetter({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
@@ -322,42 +347,6 @@ class LibraryManifestBuilder {
     instanceItem.declaredMembers[lookupName] = item;
   }
 
-  void _addInstanceElementStaticExecutables({
-    required EncodeContext encodingContext,
-    required InstanceElementImpl2 instanceElement,
-    required InstanceItem instanceItem,
-  }) {
-    for (var getter in instanceElement.getters2) {
-      if (getter.isStatic) {
-        _addInstanceElementGetter(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: getter,
-        );
-      }
-    }
-
-    for (var method in instanceElement.methods2) {
-      if (method.isStatic) {
-        _addInstanceElementMethod(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: method,
-        );
-      }
-    }
-
-    for (var getter in instanceElement.setters2) {
-      if (getter.isStatic) {
-        _addInstanceElementSetter(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: getter,
-        );
-      }
-    }
-  }
-
   void _addInterfaceElementConstructor({
     required EncodeContext encodingContext,
     required InterfaceItem interfaceItem,
@@ -378,43 +367,7 @@ class LibraryManifestBuilder {
     interfaceItem.declaredMembers[lookupName] = item;
   }
 
-  void _addInterfaceElementInstanceExecutables({
-    required EncodeContext encodingContext,
-    required InterfaceElementImpl2 interfaceElement,
-    required InterfaceItem interfaceItem,
-  }) {
-    for (var getter in interfaceElement.getters2) {
-      if (!getter.isStatic) {
-        _addInstanceElementGetter(
-          encodingContext: encodingContext,
-          instanceItem: interfaceItem,
-          element: getter,
-        );
-      }
-    }
-
-    for (var method in interfaceElement.methods2) {
-      if (!method.isStatic) {
-        _addInstanceElementMethod(
-          encodingContext: encodingContext,
-          instanceItem: interfaceItem,
-          element: method,
-        );
-      }
-    }
-
-    for (var setter in interfaceElement.setters2) {
-      if (!setter.isStatic) {
-        _addInstanceElementSetter(
-          encodingContext: encodingContext,
-          instanceItem: interfaceItem,
-          element: setter,
-        );
-      }
-    }
-  }
-
-  void _addInterfaceElementStaticExecutables({
+  void _addInterfaceElementExecutables({
     required EncodeContext encodingContext,
     required InterfaceElementImpl2 instanceElement,
     required InterfaceItem interfaceItem,
@@ -434,7 +387,7 @@ class LibraryManifestBuilder {
       );
     }
 
-    _addInstanceElementStaticExecutables(
+    _addInstanceElementExecutables(
       encodingContext: encodingContext,
       instanceElement: instanceElement,
       instanceItem: interfaceItem,
@@ -461,14 +414,9 @@ class LibraryManifestBuilder {
       (typeParameters) {
         mixinItem.declaredMembers.clear();
         mixinItem.inheritedMembers.clear();
-        _addInterfaceElementStaticExecutables(
+        _addInterfaceElementExecutables(
           encodingContext: encodingContext,
           instanceElement: element,
-          interfaceItem: mixinItem,
-        );
-        _addInterfaceElementInstanceExecutables(
-          encodingContext: encodingContext,
-          interfaceElement: element,
           interfaceItem: mixinItem,
         );
       },
