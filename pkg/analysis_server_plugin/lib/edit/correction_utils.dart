@@ -12,10 +12,10 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -57,7 +57,7 @@ final class CorrectionUtils {
   String get twoIndents => _twoIndents;
 
   /// Returns the [AstNode] that encloses the given [offset].
-  AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(_unit);
+  AstNode? findNode(int offset) => _unit.nodeCovering(offset: offset);
 
   /// Skips whitespace characters and single EOL on the right from [index].
   ///

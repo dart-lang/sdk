@@ -13,7 +13,7 @@ import 'package:analyzer/dart/element/element2.dart' hide ElementLocation;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// A lazy computer for Type Hierarchies.
 ///
