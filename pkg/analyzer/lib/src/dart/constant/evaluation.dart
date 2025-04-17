@@ -869,6 +869,17 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
+  Constant visitDotShorthandPropertyAccess(
+      covariant DotShorthandPropertyAccessImpl node) {
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: node.propertyName,
+      element: node.propertyName.element,
+    );
+  }
+
+  @override
   Constant visitDoubleLiteral(DoubleLiteral node) {
     return DartObjectImpl(
       typeSystem,

@@ -43,6 +43,80 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_const_class() async {
+    await assertNoErrorsInCode('''
+class C {
+  static const C member = const C._(1);
+  final int x;
+  C(this.x);
+  const C._(this.x);
+}
+
+void main() {
+  const C c = .member;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@getter::member#element
+    staticType: C
+  staticType: C
+''');
+  }
+
+  test_const_enum() async {
+    await assertNoErrorsInCode('''
+enum Color { red, green, blue }
+
+void main() {
+  const Color c = .blue;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: blue
+    element: <testLibraryFragment>::@enum::Color::@getter::blue#element
+    staticType: Color
+  staticType: Color
+''');
+  }
+
+  test_const_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type C(int x) {
+  static const C member = const C._(1);
+  const C._(this.x);
+}
+
+void main() {
+  const C c = .member;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@extensionType::C::@getter::member#element
+    staticType: C
+  staticType: C
+''');
+  }
+
   test_enum_basic() async {
     await assertNoErrorsInCode('''
 enum C { red }
