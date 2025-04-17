@@ -346,9 +346,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: g
-    element: GetterMember
-      baseElement: <testLibraryFragment>::@extension::E::@getter::g#element
-      substitution: {T: int}
+    element: <testLibraryFragment>::@extension::E::@getter::g#element
     staticType: int
   staticType: int
 ''');
@@ -446,9 +444,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: g
-    element: GetterMember
-      baseElement: package:test/lib.dart::<fragment>::@extension::E::@getter::g#element
-      substitution: {T: int}
+    element: package:test/lib.dart::<fragment>::@extension::E::@getter::g#element
     staticType: int
   staticType: int
 ''');
@@ -624,9 +620,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: m
-    element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::m#element
-      substitution: {T: int}
+    element: <testLibraryFragment>::@extension::E::@method::m#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -732,9 +726,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: m
-    element: MethodMember
-      baseElement: package:test/lib.dart::<fragment>::@extension::E::@method::m#element
-      substitution: {T: int}
+    element: package:test/lib.dart::<fragment>::@extension::E::@method::m#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1192,15 +1184,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: ParameterMember
-      baseElement: <testLibraryFragment>::@extension::E::@setter::s::@parameter::x#element
-      substitution: {T: int}
+    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::s::@parameter::x#element
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: SetterMember
-    baseElement: <testLibraryFragment>::@extension::E::@setter::s#element
-    substitution: {T: int}
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::s#element
   writeType: int
   element: <null>
   staticType: int
@@ -1318,15 +1306,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: ParameterMember
-      baseElement: package:test/lib.dart::<fragment>::@extension::E::@setter::s::@parameter::x#element
-      substitution: {T: int}
+    correspondingParameter: package:test/lib.dart::<fragment>::@extension::E::@setter::s::@parameter::x#element
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: SetterMember
-    baseElement: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
-    substitution: {T: int}
+  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
   writeType: int
   element: <null>
   staticType: int
@@ -1434,13 +1418,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
     staticType: int
-  readElement2: GetterMember
-    baseElement: <testLibraryFragment>::@extension::E::@getter::s#element
-    substitution: {T: int}
+  readElement2: <testLibraryFragment>::@extension::E::@getter::s#element
   readType: int
-  writeElement2: SetterMember
-    baseElement: <testLibraryFragment>::@extension::E::@setter::s#element
-    substitution: {T: int}
+  writeElement2: <testLibraryFragment>::@extension::E::@setter::s#element
   writeType: int
   element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: int
@@ -1562,13 +1542,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
     staticType: int
-  readElement2: GetterMember
-    baseElement: package:test/lib.dart::<fragment>::@extension::E::@getter::s#element
-    substitution: {T: int}
+  readElement2: package:test/lib.dart::<fragment>::@extension::E::@getter::s#element
   readType: int
-  writeElement2: SetterMember
-    baseElement: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
-    substitution: {T: int}
+  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
   writeType: int
   element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: int

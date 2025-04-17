@@ -1548,9 +1548,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    element: MethodMember
-      baseElement: <testLibraryFragment>::@extension::E::@method::foo#element
-      substitution: {T: Null}
+    element: <testLibraryFragment>::@extension::E::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (

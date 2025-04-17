@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// A computer for the signature at the specified offset of a Dart
 /// [CompilationUnit].

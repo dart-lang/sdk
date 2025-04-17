@@ -1020,6 +1020,74 @@ PropertyAccess
 ''');
   }
 
+  test_ofClass_inheritedGetter_ofGenericClass_usesTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  T get foo => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  (b).foo;
+}
+''');
+
+    var node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
+      staticType: B
+    rightParenthesis: )
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: GetterMember
+      baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofClass_inheritedGetter_ofGenericClass_usesTypeParameterNot() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  double get foo => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  (b).foo;
+}
+''');
+
+    var node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
+      staticType: B
+    rightParenthesis: )
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    staticType: double
+  staticType: double
+''');
+  }
+
   test_ofDynamic_read_hash() async {
     await assertNoErrorsInCode('''
 void f(dynamic a) {

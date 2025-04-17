@@ -4679,6 +4679,74 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  b.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@class::A::@method::foo#element
+      substitution: {T: int}
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameterNot() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  double foo() => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  b.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
+    staticType: double Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: double Function()
+  staticType: double
+''');
+  }
+
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_interfaceType_mixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''

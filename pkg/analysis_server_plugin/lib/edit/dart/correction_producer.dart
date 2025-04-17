@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -294,9 +295,8 @@ final class CorrectionProducerContext {
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
-    var selectionEnd = selectionOffset + selectionLength;
-    var locator = NodeLocator(selectionOffset, selectionEnd);
-    var node = locator.searchWithin(unitResult.unit);
+    var node = unitResult.unit
+        .nodeCovering(offset: selectionOffset, length: selectionLength);
     node ??= unitResult.unit;
 
     var token = _tokenAt(node, selectionOffset) ?? node.beginToken;

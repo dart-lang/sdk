@@ -12,8 +12,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/results.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 class ImportsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>?> {
