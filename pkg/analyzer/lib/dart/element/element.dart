@@ -60,15 +60,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// The result of applying augmentations to a [ClassElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedClassElement implements AugmentedInterfaceElement {
-  @override
-  ClassElement get firstFragment;
-}
-
 /// The result of applying augmentations to an [EnumElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -247,105 +238,6 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
     'Use BindPatternVariableFragment and BindPatternVariableElement2 instead')
 abstract class BindPatternVariableElement implements PatternVariableElement {}
 
-/// An element that represents a class or a mixin. The class can be defined by
-/// either a class declaration (with a class body), a mixin application (without
-/// a class body), a mixin declaration, or an enum declaration.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ClassElement2 instead')
-abstract class ClassElement implements InterfaceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedClassElement get augmented;
-
-  /// Whether the class or its superclass declares a non-final instance field.
-  bool get hasNonFinalField;
-
-  /// Whether the class is abstract. A class is abstract if it has an
-  /// explicit `abstract` modifier. Note, that this definition of
-  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
-  bool get isAbstract;
-
-  /// Whether this class is a base class.
-  ///
-  /// A class is a base class if it has an explicit `base` modifier, or the
-  /// class has a `base` induced modifier and [isSealed] is `true` as well.
-  /// The base modifier allows the class to be extended but not implemented.
-  bool get isBase;
-
-  /// Whether the class can be instantiated.
-  bool get isConstructable;
-
-  /// Whether the class represents the class 'Enum' defined in `dart:core`.
-  bool get isDartCoreEnum;
-
-  /// Whether the class represents the class 'Object' defined in `dart:core`.
-  bool get isDartCoreObject;
-
-  /// Whether the class has the property where, in a switch, if you cover all
-  /// of the subtypes of this element, then the compiler knows that you have
-  /// covered all possible instances of the type.
-  bool get isExhaustive;
-
-  /// Whether the class is a final class.
-  ///
-  /// A class is a final class if it has an explicit `final` modifier, or the
-  /// class has a `final` induced modifier and [isSealed] is `true` as well.
-  /// The final modifier prohibits this class from being extended, implemented,
-  /// or mixed in.
-  bool get isFinal;
-
-  /// Whether the class is an interface class.
-  ///
-  /// A class is an interface class if it has an explicit `interface` modifier,
-  /// or the class has an `interface` induced modifier and [isSealed] is `true`
-  /// as well. The interface modifier allows the class to be implemented, but
-  /// not extended or mixed in.
-  bool get isInterface;
-
-  /// Whether the class is a mixin application.
-  ///
-  /// A class is a mixin application if it was declared using the syntax
-  /// `class A = B with C;`.
-  bool get isMixinApplication;
-
-  /// Whether the class is a mixin class.
-  ///
-  /// A class is a mixin class if it has an explicit `mixin` modifier.
-  bool get isMixinClass;
-
-  /// Whether the class is a sealed class.
-  ///
-  /// A class is a sealed class if it has an explicit `sealed` modifier.
-  bool get isSealed;
-
-  /// Whether the class can validly be used as a mixin when defining
-  /// another class.
-  ///
-  /// For classes defined by a class declaration or a mixin application, the
-  /// behavior of this method is defined by the Dart Language Specification
-  /// in section 9:
-  /// <blockquote>
-  /// It is a compile-time error if a declared or derived mixin refers to super.
-  /// It is a compile-time error if a declared or derived mixin explicitly
-  /// declares a constructor. It is a compile-time error if a mixin is derived
-  /// from a class whose superclass is not Object.
-  /// </blockquote>
-  bool get isValidMixin;
-
-  /// Whether the class, assuming that it is within scope, is extendable to
-  /// classes in the given [library].
-  bool isExtendableIn(LibraryElement library);
-
-  /// Whether the class, assuming that it is within scope, is
-  /// implementable to classes, mixins, and enums in the given [library].
-  bool isImplementableIn(LibraryElement library);
-
-  /// Whether the class, assuming that it is within scope, is able to be
-  /// mixed-in by classes and enums in the given [library].
-  bool isMixableIn(LibraryElement library);
-}
-
 /// An element that is contained within a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -381,9 +273,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The top-level accessors (getters and setters) declared in this
   /// compilation unit.
   List<PropertyAccessorElement> get accessors;
-
-  /// The classes declared in this compilation unit.
-  List<ClassElement> get classes;
 
   /// The [CompilationUnitElement] that uses `part` directive to include this
   /// element, or `null` if this element is the defining unit of the library.
@@ -437,11 +326,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The type aliases declared in this compilation unit.
   List<TypeAliasElement> get typeAliases;
-
-  /// Returns the class defined in this compilation unit that has the given
-  /// [name], or `null` if this compilation unit does not define a class with
-  /// the given name.
-  ClassElement? getClass(String name);
 
   /// Returns the enum defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define an enum with
@@ -1855,11 +1739,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// `part` directive.
   @Deprecated(elementModelDeprecationMsg)
   List<CompilationUnitElement> get units;
-
-  /// The class defined in this library that has the given [name], or
-  /// `null` if this library does not define a class with the given name.
-  @Deprecated(elementModelDeprecationMsg)
-  ClassElement? getClass(String name);
 }
 
 /// A single export directive within a library.

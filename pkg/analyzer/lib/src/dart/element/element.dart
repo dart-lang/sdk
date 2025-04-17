@@ -90,17 +90,6 @@ mixin AugmentableFragment on ElementImpl {
 }
 
 @Deprecated(elementModelDeprecationMsg)
-class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedClassElement {
-  AugmentedClassElementImpl(super.firstFragment);
-
-  @override
-  ClassElementImpl get firstFragment {
-    return super.firstFragment as ClassElementImpl;
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
 class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
     implements AugmentedEnumElement {
   AugmentedEnumElementImpl(super.firstFragment);
@@ -331,10 +320,7 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
 
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ClassElement,
-        ClassFragment {
+    implements ClassFragment {
   late ClassElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -346,10 +332,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     assert(!isMixinApplication);
     super.accessors = accessors;
   }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedClassElement get augmented => AugmentedClassElementImpl(this);
 
   @override
   set constructors(List<ConstructorElementImpl> constructors) {
@@ -381,12 +363,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return constructors.any((c) => !c.isFactory && c.isConst);
   }
 
-  @override
-  bool get hasNonFinalField {
-    return element.hasNonFinalField;
-  }
-
-  @override
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
@@ -400,15 +376,12 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return hasModifier(Modifier.BASE);
   }
 
-  @override
   bool get isConstructable => !isSealed && !isAbstract;
 
-  @override
   bool get isDartCoreEnum {
     return name == 'Enum' && library.isDartCore;
   }
 
-  @override
   bool get isDartCoreObject {
     return name == 'Object' && library.isDartCore;
   }
@@ -417,10 +390,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return name == 'Record' && library.isDartCore;
   }
 
-  @override
   bool get isExhaustive => isSealed;
 
-  @override
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
   }
@@ -429,7 +400,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.FINAL, isFinal);
   }
 
-  @override
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
   }
@@ -438,7 +408,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.INTERFACE, isInterface);
   }
 
-  @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);
   }
@@ -448,7 +417,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
-  @override
   bool get isMixinClass {
     return hasModifier(Modifier.MIXIN_CLASS);
   }
@@ -457,7 +425,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.MIXIN_CLASS, isMixinClass);
   }
 
-  @override
   bool get isSealed {
     return hasModifier(Modifier.SEALED);
   }
@@ -466,7 +433,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.SEALED, isSealed);
   }
 
-  @override
   bool get isValidMixin {
     var supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {
@@ -502,35 +468,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
-  }
-
-  @Deprecated('Use ClassElement2 instead')
-  @override
-  bool isExtendableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isInterface && !isFinal && !isSealed;
-  }
-
-  @Deprecated('Use ClassElement2 instead')
-  @override
-  bool isImplementableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isBase && !isFinal && !isSealed;
-  }
-
-  @Deprecated('Use ClassElement2 instead')
-  @override
-  bool isMixableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    } else if (this.library.featureSet.isEnabled(Feature.class_modifiers)) {
-      return isMixinClass && !isInterface && !isFinal && !isSealed;
-    }
-    return true;
   }
 
   @override
@@ -1053,7 +990,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     ];
   }
 
-  @override
   List<ClassElementImpl> get classes {
     return _classes;
   }
@@ -1365,16 +1301,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeCompilationUnitElement(this);
-  }
-
-  @override
-  ClassElementImpl? getClass(String className) {
-    for (var class_ in classes) {
-      if (class_.name == className) {
-        return class_;
-      }
-    }
-    return null;
   }
 
   @Deprecated(elementModelDeprecationMsg)
@@ -7606,17 +7532,6 @@ class LibraryElementImpl extends ElementImpl
     );
     appendTo(builder);
     return builder.toString();
-  }
-
-  @override
-  ClassElementImpl? getClass(String name) {
-    for (var unitElement in units) {
-      var element = unitElement.getClass(name);
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
   }
 
   @override

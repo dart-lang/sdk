@@ -2958,9 +2958,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  AugmentedClassElement (class extends Object implements AugmentedInterfaceElement, deprecated):
-    new (constructor: AugmentedClassElement Function())
-    firstFragment (getter: ClassElement)
   AugmentedEnumElement (class extends Object implements AugmentedInterfaceElement, deprecated):
     new (constructor: AugmentedEnumElement Function())
     constants (getter: List<FieldElement>)
@@ -3003,25 +3000,6 @@ package:analyzer/dart/element/element.dart:
     superclassConstraints (getter: List<InterfaceType>)
   BindPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: BindPatternVariableElement Function())
-  ClassElement (class extends Object implements InterfaceElement, deprecated):
-    new (constructor: ClassElement Function())
-    augmented (getter: AugmentedClassElement, deprecated)
-    hasNonFinalField (getter: bool)
-    isAbstract (getter: bool)
-    isBase (getter: bool)
-    isConstructable (getter: bool)
-    isDartCoreEnum (getter: bool)
-    isDartCoreObject (getter: bool)
-    isExhaustive (getter: bool)
-    isFinal (getter: bool)
-    isInterface (getter: bool)
-    isMixinApplication (getter: bool)
-    isMixinClass (getter: bool)
-    isSealed (getter: bool)
-    isValidMixin (getter: bool)
-    isExtendableIn (method: bool Function(LibraryElement))
-    isImplementableIn (method: bool Function(LibraryElement))
-    isMixableIn (method: bool Function(LibraryElement))
   ClassMemberElement (class extends Object implements Element, deprecated):
     new (constructor: ClassMemberElement Function())
     enclosingElement3 (getter: Element)
@@ -3030,7 +3008,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: CompilationUnitElement Function())
     accessibleExtensions (getter: List<ExtensionElement>)
     accessors (getter: List<PropertyAccessorElement>)
-    classes (getter: List<ClassElement>)
     enclosingElement3 (getter: CompilationUnitElement?)
     enums (getter: List<EnumElement>)
     extensionTypes (getter: List<ExtensionTypeElement>, experimental)
@@ -3046,7 +3023,6 @@ package:analyzer/dart/element/element.dart:
     session (getter: AnalysisSession)
     topLevelVariables (getter: List<TopLevelVariableElement>)
     typeAliases (getter: List<TypeAliasElement>)
-    getClass (method: ClassElement? Function(String))
     getEnum (method: EnumElement? Function(String))
   ConstructorElement (class extends Object implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget, deprecated):
     new (constructor: ConstructorElement Function())
@@ -3355,7 +3331,6 @@ package:analyzer/dart/element/element.dart:
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
     units (getter: List<CompilationUnitElement>, deprecated)
-    getClass (method: ClassElement? Function(String), deprecated)
   LibraryExportElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryExportElement Function())
     combinators (getter: List<NamespaceCombinator>)
