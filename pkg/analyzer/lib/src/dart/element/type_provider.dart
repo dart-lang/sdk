@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 const Map<String, Set<String>> _nonSubtypableClassMap = {
   'dart:async': _nonSubtypableDartAsyncClassNames,
@@ -161,12 +159,6 @@ class TypeProviderImpl extends TypeProviderBase {
   })  : _coreLibrary = coreLibrary,
         _asyncLibrary = asyncLibrary;
 
-  @Deprecated('Use boolElement2 instead')
-  @override
-  ClassElementImpl get boolElement {
-    return boolElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get boolElement2 {
     return _boolElement ??= _getClassElement(_coreLibrary, 'bool');
@@ -197,12 +189,6 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use doubleElement2 instead')
-  @override
-  ClassElementImpl get doubleElement {
-    return doubleElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get doubleElement2 {
     return _doubleElement ??= _getClassElement(_coreLibrary, "double");
@@ -221,12 +207,6 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
-
-  @Deprecated('Use enumElement2 instead')
-  @override
-  ClassElementImpl? get enumElement {
-    return enumElement2?.asElement;
-  }
 
   @override
   ClassElementImpl2? get enumElement2 {
@@ -272,12 +252,6 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use futureElement2 instead')
-  @override
-  ClassElementImpl get futureElement {
-    return futureElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get futureElement2 {
     return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
@@ -291,12 +265,6 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use futureOrElement2 instead')
-  @override
-  ClassElementImpl get futureOrElement {
-    return futureOrElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get futureOrElement2 {
     return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
@@ -308,12 +276,6 @@ class TypeProviderImpl extends TypeProviderBase {
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  @Deprecated('Use intElement2 instead')
-  @override
-  ClassElementImpl get intElement {
-    return intElement2.asElement;
   }
 
   @override
@@ -340,12 +302,6 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use iterableElement2 instead')
-  @override
-  ClassElementImpl get iterableElement {
-    return iterableElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get iterableElement2 {
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
@@ -359,21 +315,9 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use listElement2 instead')
-  @override
-  ClassElementImpl get listElement {
-    return listElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get listElement2 {
     return _listElement ??= _getClassElement(_coreLibrary, 'List');
-  }
-
-  @Deprecated('Use mapElement2 instead')
-  @override
-  ClassElementImpl get mapElement {
-    return mapElement2.asElement;
   }
 
   @override
@@ -392,12 +336,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   NeverTypeImpl get neverType => NeverTypeImpl.instance;
 
-  @Deprecated('Use nullElement2 instead')
-  @override
-  ClassElementImpl get nullElement {
-    return nullElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get nullElement2 {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
@@ -409,12 +347,6 @@ class TypeProviderImpl extends TypeProviderBase {
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  @Deprecated('Use numElement2 instead')
-  @override
-  ClassElementImpl get numElement {
-    return numElement2.asElement;
   }
 
   @override
@@ -432,12 +364,6 @@ class TypeProviderImpl extends TypeProviderBase {
 
   InterfaceTypeImpl get numTypeQuestion =>
       _numTypeQuestion ??= numType.withNullability(NullabilitySuffix.question);
-
-  @Deprecated('Use objectElement2 instead')
-  @override
-  ClassElementImpl get objectElement {
-    return objectElement2.asElement;
-  }
 
   @override
   ClassElementImpl2 get objectElement2 {
@@ -460,12 +386,6 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use recordElement2 instead')
-  @override
-  ClassElementImpl get recordElement {
-    return recordElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get recordElement2 {
     return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
@@ -477,12 +397,6 @@ class TypeProviderImpl extends TypeProviderBase {
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  @Deprecated('Use setElement2 instead')
-  @override
-  ClassElementImpl get setElement {
-    return setElement2.asElement;
   }
 
   @override
@@ -510,21 +424,9 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use streamElement2 instead')
-  @override
-  ClassElementImpl get streamElement {
-    return streamElement2.asElement;
-  }
-
   @override
   ClassElementImpl2 get streamElement2 {
     return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
-  }
-
-  @Deprecated('Use stringElement2 instead')
-  @override
-  ClassElementImpl get stringElement {
-    return stringElement2.asElement;
   }
 
   @override
@@ -538,12 +440,6 @@ class TypeProviderImpl extends TypeProviderBase {
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  @Deprecated('Use symbolElement2 instead')
-  @override
-  ClassElementImpl get symbolElement {
-    return symbolElement2.asElement;
   }
 
   @override
@@ -588,13 +484,6 @@ class TypeProviderImpl extends TypeProviderBase {
       typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  @Deprecated('Use isNonSubtypableClass2() instead')
-  @override
-  bool isNonSubtypableClass(InterfaceElement element) {
-    element as InterfaceElementImpl;
-    return isNonSubtypableClass2(element.element);
   }
 
   @override
