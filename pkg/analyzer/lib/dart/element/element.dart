@@ -60,18 +60,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// The result of applying augmentations to an [EnumElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
-  /// The enum constants declared in this element.
-  List<FieldElement> get constants;
-
-  @override
-  EnumElement get firstFragment;
-}
-
 /// The result of applying augmentations to an [ExtensionElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -279,9 +267,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   @override
   CompilationUnitElement? get enclosingElement3;
 
-  /// The enums declared in this compilation unit.
-  List<EnumElement> get enums;
-
   /// The extensions declared in this compilation unit.
   List<ExtensionElement> get extensions;
 
@@ -326,11 +311,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The type aliases declared in this compilation unit.
   List<TypeAliasElement> get typeAliases;
-
-  /// Returns the enum defined in this compilation unit that has the given
-  /// [name], or `null` if this compilation unit does not define an enum with
-  /// the given name.
-  EnumElement? getEnum(String name);
 }
 
 /// An element representing a constructor or a factory method defined within a
@@ -1063,16 +1043,6 @@ abstract class ElementLocation {
   /// The encoded representation of this location that can be used to create a
   /// location that is equal to this location.
   String get encoding;
-}
-
-/// An element that represents an enum.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use EnumElement2 instead')
-abstract class EnumElement implements InterfaceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedEnumElement get augmented;
 }
 
 /// An element representing an executable object, including functions, methods,

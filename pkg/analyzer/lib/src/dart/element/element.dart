@@ -90,20 +90,6 @@ mixin AugmentableFragment on ElementImpl {
 }
 
 @Deprecated(elementModelDeprecationMsg)
-class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedEnumElement {
-  AugmentedEnumElementImpl(super.firstFragment);
-
-  @override
-  List<FieldElement> get constants => firstFragment.constants;
-
-  @override
-  EnumElementImpl get firstFragment {
-    return super.firstFragment as EnumElementImpl;
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
 class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
     implements AugmentedExtensionElement {
   AugmentedExtensionElementImpl(super.firstFragment);
@@ -1023,7 +1009,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return this;
   }
 
-  @override
   List<EnumElementImpl> get enums {
     return _enums;
   }
@@ -1301,17 +1286,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeCompilationUnitElement(this);
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  EnumElement? getEnum(String name) {
-    for (var element in enums) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
   }
 
   /// Returns the mixin defined in this compilation unit that has the given
@@ -3618,20 +3592,12 @@ class ElementLocationImpl implements ElementLocation {
 abstract class ElementOrMember {}
 
 /// An [InterfaceElementImpl] which is an enum.
-class EnumElementImpl extends InterfaceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        EnumElement,
-        EnumFragment {
+class EnumElementImpl extends InterfaceElementImpl implements EnumFragment {
   late EnumElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedEnumElement get augmented => AugmentedEnumElementImpl(this);
 
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
@@ -7537,17 +7503,6 @@ class LibraryElementImpl extends ElementImpl
   @override
   ClassElementImpl2? getClass2(String name) {
     return _getElementByName(classes, name);
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  EnumElement? getEnum(String name) {
-    for (var unitElement in units) {
-      var element = unitElement.getEnum(name);
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
   }
 
   @override

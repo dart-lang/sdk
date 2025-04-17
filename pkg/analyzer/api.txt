@@ -2958,10 +2958,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  AugmentedEnumElement (class extends Object implements AugmentedInterfaceElement, deprecated):
-    new (constructor: AugmentedEnumElement Function())
-    constants (getter: List<FieldElement>)
-    firstFragment (getter: EnumElement)
   AugmentedExtensionElement (class extends Object implements AugmentedInstanceElement, deprecated):
     new (constructor: AugmentedExtensionElement Function())
     extendedType (getter: DartType)
@@ -3009,7 +3005,6 @@ package:analyzer/dart/element/element.dart:
     accessibleExtensions (getter: List<ExtensionElement>)
     accessors (getter: List<PropertyAccessorElement>)
     enclosingElement3 (getter: CompilationUnitElement?)
-    enums (getter: List<EnumElement>)
     extensionTypes (getter: List<ExtensionTypeElement>, experimental)
     extensions (getter: List<ExtensionElement>)
     functions (getter: List<FunctionElement>)
@@ -3023,7 +3018,6 @@ package:analyzer/dart/element/element.dart:
     session (getter: AnalysisSession)
     topLevelVariables (getter: List<TopLevelVariableElement>)
     typeAliases (getter: List<TypeAliasElement>)
-    getEnum (method: EnumElement? Function(String))
   ConstructorElement (class extends Object implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget, deprecated):
     new (constructor: ConstructorElement Function())
     declaration (getter: ConstructorElement)
@@ -3200,9 +3194,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: ElementLocation Function())
     components (getter: List<String>)
     encoding (getter: String)
-  EnumElement (class extends Object implements InterfaceElement, deprecated):
-    new (constructor: EnumElement Function())
-    augmented (getter: AugmentedEnumElement, deprecated)
   ExecutableElement (class extends Object implements FunctionTypedElement, deprecated):
     new (constructor: ExecutableElement Function())
     declaration (getter: ExecutableElement)
