@@ -74,9 +74,10 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
             i >= superPositionalParameters.length ||
             parameter.name.lexeme != superPositionalParameters[i].name3) {
           arePositionalOrdered = false;
-          break;
         }
         lastPositionalParameter = parameter;
+      } else {
+        break;
       }
     }
 
@@ -102,13 +103,11 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
             needsInitialComma: false,
           );
 
-          if (missingNamedParameters.isNotEmpty) {
-            _writeNamed(
-              builder,
-              missingNamedParameters,
-              needsInitialComma: missingPositionalParameters.isNotEmpty,
-            );
-          }
+          _writeNamed(
+            builder,
+            missingNamedParameters,
+            needsInitialComma: missingPositionalParameters.isNotEmpty,
+          );
         });
       });
     } else {
@@ -171,6 +170,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     FormalParameter? lastNamedParameter,
     required bool needsInitialComma,
   }) {
+    if (parameters.isEmpty) return;
     var firstParameter = true;
     void writeComma() {
       if (firstParameter) {
@@ -214,6 +214,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     List<FormalParameterElement> parameters, {
     required bool needsInitialComma,
   }) {
+    if (parameters.isEmpty) return;
     var firstParameter = true;
     void writeComma() {
       if (firstParameter && !needsInitialComma) {
