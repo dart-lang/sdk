@@ -14,6 +14,8 @@ import 'package:compiler/src/util/memory_compiler.dart';
 
 late TypeMask nullType;
 late TypeMask objectType;
+late TypeMask interceptedObjectType;
+late TypeMask nonInterceptedObjectType;
 late TypeMask jsBoolean;
 late TypeMask jsNumber;
 late TypeMask jsInteger;
@@ -24,6 +26,7 @@ late TypeMask jsIntegerOrNull;
 late TypeMask jsNumNotIntOrNull;
 late TypeMask emptyType;
 late TypeMask dynamicType;
+late TypeMask interceptedType;
 
 var patternClass;
 late TypeMask nonPrimitive1;
@@ -174,7 +177,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsBoolean, jsNumber, jsInterceptor);
   rule(jsBoolean, jsInteger, jsTrustedGetRuntimeType);
   rule(jsBoolean, jsNumNotInt, jsTrustedGetRuntimeType);
-  rule(jsBoolean, jsIndexable, objectType);
+  rule(jsBoolean, jsIndexable, interceptedObjectType);
   rule(jsBoolean, jsString, jsTrustedGetRuntimeType);
   rule(jsBoolean, jsReadableArray, jsInterceptor);
   rule(jsBoolean, jsMutableArray, jsInterceptor);
@@ -195,7 +198,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsNumber, jsNumber, jsNumber);
   rule(jsNumber, jsInteger, jsNumber);
   rule(jsNumber, jsNumNotInt, jsNumber);
-  rule(jsNumber, jsIndexable, objectType);
+  rule(jsNumber, jsIndexable, interceptedObjectType);
   rule(jsNumber, jsString, jsInterceptorOrComparable);
   rule(jsNumber, jsReadableArray, jsInterceptor);
   rule(jsNumber, jsMutableArray, jsInterceptor);
@@ -215,7 +218,7 @@ void testUnion(JClosedWorld closedWorld) {
 
   rule(jsInteger, jsInteger, jsInteger);
   rule(jsInteger, jsNumNotInt, jsNumber);
-  rule(jsInteger, jsIndexable, objectType);
+  rule(jsInteger, jsIndexable, interceptedObjectType);
   rule(jsInteger, jsString, jsInterceptorOrComparable);
   rule(jsInteger, jsReadableArray, jsInterceptor);
   rule(jsInteger, jsMutableArray, jsInterceptor);
@@ -234,7 +237,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsInteger, jsFixedArray, jsInterceptor);
 
   rule(jsNumNotInt, jsNumNotInt, jsNumNotInt);
-  rule(jsNumNotInt, jsIndexable, objectType);
+  rule(jsNumNotInt, jsIndexable, interceptedObjectType);
   rule(jsNumNotInt, jsString, jsInterceptorOrComparable);
   rule(jsNumNotInt, jsReadableArray, jsInterceptor);
   rule(jsNumNotInt, jsMutableArray, jsInterceptor);
@@ -262,10 +265,10 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsIndexable, nonPrimitive2, objectType);
   rule(jsIndexable, potentialArray, dynamicType);
   rule(jsIndexable, potentialString, dynamicType);
-  rule(jsIndexable, jsBooleanOrNull, dynamicType);
-  rule(jsIndexable, jsNumberOrNull, dynamicType);
-  rule(jsIndexable, jsIntegerOrNull, dynamicType);
-  rule(jsIndexable, jsNumNotIntOrNull, dynamicType);
+  rule(jsIndexable, jsBooleanOrNull, interceptedType);
+  rule(jsIndexable, jsNumberOrNull, interceptedType);
+  rule(jsIndexable, jsIntegerOrNull, interceptedType);
+  rule(jsIndexable, jsNumNotIntOrNull, interceptedType);
   rule(jsIndexable, jsStringOrNull, jsIndexableOrNull);
   rule(jsIndexable, nullType, jsIndexableOrNull);
   rule(jsIndexable, jsFixedArray, jsIndexable);
@@ -346,7 +349,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsUnmodifiableArray, jsFixedArray, jsReadableArray);
 
   rule(nonPrimitive1, nonPrimitive1, nonPrimitive1);
-  rule(nonPrimitive1, nonPrimitive2, objectType);
+  rule(nonPrimitive1, nonPrimitive2, nonInterceptedObjectType);
   rule(nonPrimitive1, potentialArray, dynamicType);
   rule(nonPrimitive1, potentialString, dynamicType);
   rule(nonPrimitive1, jsBooleanOrNull, dynamicType);
@@ -841,9 +844,15 @@ runTests() async {
   jsInterceptor = TypeMask.nonNullSubclass(
     closedWorld.commonElements.jsInterceptorClass,
     commonMasks,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
+    commonMasks,
   );
   jsTrustedGetRuntimeType = TypeMask.nonNullSubtype(
     trustedGetRuntimeTypeInterface,
+    commonMasks,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
   jsArrayOrNull = TypeMask.subclass(
@@ -889,17 +898,29 @@ runTests() async {
   jsIndexableOrNull = TypeMask.subtype(
     closedWorld.commonElements.jsIndexableClass,
     commonMasks,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
+    commonMasks,
   );
   jsIndexable = TypeMask.nonNullSubtype(
     closedWorld.commonElements.jsIndexableClass,
+    commonMasks,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
   jsInterceptorOrNull = TypeMask.subclass(
     closedWorld.commonElements.jsInterceptorClass,
     commonMasks,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
+    commonMasks,
   );
   jsTrustedGetRuntimeTypeOrNull = TypeMask.subtype(
     trustedGetRuntimeTypeInterface,
+    commonMasks,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
   jsStringOrNull = TypeMask.exact(
@@ -947,19 +968,37 @@ runTests() async {
     closedWorld.commonElements.objectClass,
     commonMasks,
   );
+  interceptedObjectType = objectType.withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
+    commonMasks,
+  );
+  nonInterceptedObjectType = objectType.withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.interceptor,
+    commonMasks,
+  );
   emptyType = TypeMask.nonNullEmpty(commonMasks);
   dynamicType = TypeMask.subclass(
     closedWorld.commonElements.objectClass,
+    commonMasks,
+  );
+  interceptedType = dynamicType.withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
     commonMasks,
   );
 
   jsInterceptorOrComparable = interceptorOrComparable(
     closedWorld,
     nullable: false,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
+    commonMasks,
   );
   jsInterceptorOrComparableOrNull = interceptorOrComparable(
     closedWorld,
     nullable: true,
+  ).withoutInterceptorProperty(
+    TypeMaskInterceptorProperty.notInterceptor,
+    commonMasks,
   );
 
   Expect.notEquals(

@@ -2,56 +2,56 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: A.:[exact=A|powerset=0]*/
+/*member: A.:[exact=A|powerset={N}]*/
 class A {
   // We may ignore this for type inference because it forwards to a default
   // noSuchMethod implementation, which always throws an exception.
   noSuchMethod(im) => super.noSuchMethod(im);
 }
 
-/*member: B.:[exact=B|powerset=0]*/
+/*member: B.:[exact=B|powerset={N}]*/
 class B extends A {
-  /*member: B.foo:Dictionary([exact=JsLinkedHashMap|powerset=0], key: [empty|powerset=0], value: [null|powerset=1], map: {}, powerset: 0)*/
+  /*member: B.foo:Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N})*/
   foo() => {};
 }
 
-/*member: C.:[exact=C|powerset=0]*/
+/*member: C.:[exact=C|powerset={N}]*/
 class C extends B {
-  /*member: C.foo:Dictionary([exact=JsLinkedHashMap|powerset=0], key: [empty|powerset=0], value: [null|powerset=1], map: {}, powerset: 0)*/
+  /*member: C.foo:Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N})*/
   foo() => {};
 }
 
-/*member: a:[null|subclass=B|powerset=1]*/
+/*member: a:[null|subclass=B|powerset={null}{N}]*/
 dynamic a =
     [new B(), C()]
-    /*Container([exact=JSExtendableArray|powerset=0], element: [subclass=B|powerset=0], length: 2, powerset: 0)*/
+    /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=B|powerset={N}], length: 2, powerset: {I})*/
     [0];
 
-/*member: test1:[empty|powerset=0]*/
+/*member: test1:[empty|powerset=empty]*/
 test1() {
   dynamic e = A();
-  return e. /*invoke: [exact=A|powerset=0]*/ foo();
+  return e. /*invoke: [exact=A|powerset={N}]*/ foo();
 }
 
-/*member: test2:Dictionary([exact=JsLinkedHashMap|powerset=0], key: [empty|powerset=0], value: [null|powerset=1], map: {}, powerset: 0)*/
-test2() => a. /*invoke: [null|subclass=B|powerset=1]*/ foo();
+/*member: test2:Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N})*/
+test2() => a. /*invoke: [null|subclass=B|powerset={null}{N}]*/ foo();
 
-/*member: test3:Dictionary([exact=JsLinkedHashMap|powerset=0], key: [empty|powerset=0], value: [null|powerset=1], map: {}, powerset: 0)*/
-test3() => B(). /*invoke: [exact=B|powerset=0]*/ foo();
+/*member: test3:Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N})*/
+test3() => B(). /*invoke: [exact=B|powerset={N}]*/ foo();
 
-/*member: test4:Dictionary([exact=JsLinkedHashMap|powerset=0], key: [empty|powerset=0], value: [null|powerset=1], map: {}, powerset: 0)*/
-test4() => C(). /*invoke: [exact=C|powerset=0]*/ foo();
+/*member: test4:Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N})*/
+test4() => C(). /*invoke: [exact=C|powerset={N}]*/ foo();
 
-/*member: test5:Dictionary([exact=JsLinkedHashMap|powerset=0], key: [empty|powerset=0], value: [null|powerset=1], map: {}, powerset: 0)*/
+/*member: test5:Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N})*/
 test5() {
   dynamic e = (a ? A() : B());
-  return e. /*invoke: [subclass=A|powerset=0]*/ foo();
+  return e. /*invoke: [subclass=A|powerset={N}]*/ foo();
 }
 
-/*member: test6:Dictionary([exact=JsLinkedHashMap|powerset=0], key: [empty|powerset=0], value: [null|powerset=1], map: {}, powerset: 0)*/
-test6() => (a ? B() : C()). /*invoke: [subclass=B|powerset=0]*/ foo();
+/*member: test6:Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N})*/
+test6() => (a ? B() : C()). /*invoke: [subclass=B|powerset={N}]*/ foo();
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   test1();
   test2();

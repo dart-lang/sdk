@@ -2,22 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: method:Union([exact=JSNumNotInt|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: method:Union([exact=JSNumNotInt|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 // Called only via [foo2] with a small integer.
 method(
-  /*Union([exact=JSNumNotInt|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ a,
+  /*Union([exact=JSNumNotInt|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ a,
 ) {
   return a;
 }
 
 const foo = method;
 
-/*member: returnInt:[null|subclass=Object|powerset=1]*/
+/*member: returnInt:[null|subclass=Object|powerset={null}{IN}]*/
 returnInt() {
   return foo(54);
 }
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   returnInt();
   method(55.2);

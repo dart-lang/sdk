@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: returnInt1:[exact=JSUInt31|powerset=0]*/
+/*member: returnInt1:[exact=JSUInt31|powerset={I}]*/
 returnInt1() {
   var a = 42;
   try {
@@ -11,7 +11,7 @@ returnInt1() {
   return a;
 }
 
-/*member: returnDyn1:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: returnDyn1:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 returnDyn1() {
   dynamic a = 42;
   try {
@@ -20,7 +20,7 @@ returnDyn1() {
   return a;
 }
 
-/*member: returnInt2:[exact=JSUInt31|powerset=0]*/
+/*member: returnInt2:[exact=JSUInt31|powerset={I}]*/
 returnInt2() {
   var a = 42;
   try {
@@ -31,7 +31,7 @@ returnInt2() {
   return a;
 }
 
-/*member: returnDyn2:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: returnDyn2:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 returnDyn2() {
   dynamic a = 42;
   try {
@@ -42,7 +42,7 @@ returnDyn2() {
   return a;
 }
 
-/*member: returnInt3:[exact=JSUInt31|powerset=0]*/
+/*member: returnInt3:[exact=JSUInt31|powerset={I}]*/
 returnInt3() {
   dynamic a = 42;
   try {
@@ -55,7 +55,7 @@ returnInt3() {
   return a;
 }
 
-/*member: returnDyn3:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: returnDyn3:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 returnDyn3() {
   dynamic a = 42;
   try {
@@ -70,7 +70,7 @@ returnDyn3() {
   return a;
 }
 
-/*member: returnInt4:[exact=JSUInt31|powerset=0]*/
+/*member: returnInt4:[exact=JSUInt31|powerset={I}]*/
 returnInt4() {
   var a = 42;
   try {
@@ -85,10 +85,10 @@ returnInt4() {
   return a;
 }
 
-/*member: returnDyn4:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: returnDyn4:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 returnDyn4() {
   dynamic a = 42;
-  if (a /*invoke: [exact=JSUInt31|powerset=0]*/ == 54) {
+  if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ == 54) {
     try {
       a = 'foo';
     } catch (e) {}
@@ -96,10 +96,10 @@ returnDyn4() {
   return a;
 }
 
-/*member: returnInt5:[exact=JSUInt31|powerset=0]*/
+/*member: returnInt5:[exact=JSUInt31|powerset={I}]*/
 returnInt5() {
   var a = 42;
-  if (a /*invoke: [exact=JSUInt31|powerset=0]*/ == 54) {
+  if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ == 54) {
     try {
       a = 42;
     } catch (e) {}
@@ -107,10 +107,10 @@ returnInt5() {
   return a;
 }
 
-/*member: returnDyn5:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: returnDyn5:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 returnDyn5() {
   dynamic a = 42;
-  if (a /*invoke: [exact=JSUInt31|powerset=0]*/ == 54) {
+  if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ == 54) {
     try {
       a = 'foo';
       print(a);
@@ -120,7 +120,7 @@ returnDyn5() {
   return a;
 }
 
-/*member: returnInt6:[subclass=JSInt|powerset=0]*/
+/*member: returnInt6:[subclass=JSInt|powerset={I}]*/
 returnInt6() {
   try {
     throw 42;
@@ -131,7 +131,7 @@ returnInt6() {
   return 42;
 }
 
-/*member: returnDyn6:[subclass=Object|powerset=0]*/
+/*member: returnDyn6:[subclass=Object|powerset={IN}]*/
 returnDyn6() {
   try {
     throw 42;
@@ -140,7 +140,7 @@ returnDyn6() {
   }
 }
 
-/*member: returnDyn7:[null|subclass=Object|powerset=1]*/
+/*member: returnDyn7:[null|subclass=Object|powerset={null}{IN}]*/
 returnDyn7() {
   try {
     // Do nothing
@@ -149,7 +149,7 @@ returnDyn7() {
   }
 }
 
-/*member: returnInt7:[exact=JSUInt31|powerset=0]*/
+/*member: returnInt7:[exact=JSUInt31|powerset={I}]*/
 returnInt7() {
   dynamic a = 'foo';
   try {
@@ -159,7 +159,7 @@ returnInt7() {
   return 2;
 }
 
-/*member: returnInt8:[exact=JSUInt31|powerset=0]*/
+/*member: returnInt8:[exact=JSUInt31|powerset={I}]*/
 returnInt8() {
   dynamic a = 'foo';
   try {
@@ -174,10 +174,10 @@ returnInt8() {
   return a;
 }
 
-/*member: returnUnion1:[null|exact=JSUInt31|powerset=1]*/
+/*member: returnUnion1:[null|exact=JSUInt31|powerset={null}{I}]*/
 returnUnion1() {
   dynamic a = 42;
-  if (a /*invoke: [exact=JSUInt31|powerset=0]*/ == 54) {
+  if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ == 54) {
     try {
       a = 'foo';
       throw a;
@@ -188,7 +188,7 @@ returnUnion1() {
   return a;
 }
 
-/*member: returnUnion2:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 1)*/
+/*member: returnUnion2:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {null}{I})*/
 returnUnion2() {
   dynamic a = 42;
   try {
@@ -200,10 +200,10 @@ returnUnion2() {
   return a;
 }
 
-/*member: returnUnion3:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: returnUnion3:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 returnUnion3() {
   dynamic a = 42;
-  if (a /*invoke: [exact=JSUInt31|powerset=0]*/ == 54) {
+  if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ == 54) {
     try {
       a = 'foo';
       a = null;
@@ -216,10 +216,10 @@ returnUnion3() {
   return a;
 }
 
-/*member: returnUnion4:Union(null, [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 1)*/
+/*member: returnUnion4:Union(null, [exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {null}{I})*/
 returnUnion4() {
   dynamic a = 42;
-  if (a /*invoke: [exact=JSUInt31|powerset=0]*/ == 54) {
+  if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ == 54) {
     try {
       a = 'foo';
       a = null;
@@ -228,10 +228,10 @@ returnUnion4() {
   return a;
 }
 
-/*member: returnUnion5:Union([exact=JSBool|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+/*member: returnUnion5:Union([exact=JSBool|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
 returnUnion5() {
   dynamic a = 42;
-  if (a /*invoke: [exact=JSUInt31|powerset=0]*/ == 54) {
+  if (a /*invoke: [exact=JSUInt31|powerset={I}]*/ == 54) {
     try {
       a = 'foo';
     } catch (e) {
@@ -243,7 +243,7 @@ returnUnion5() {
   return a;
 }
 
-/*member: returnUnion6:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 1)*/
+/*member: returnUnion6:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {null}{I})*/
 returnUnion6() {
   dynamic a = 42;
   try {
@@ -257,7 +257,7 @@ returnUnion6() {
   return a;
 }
 
-/*member: returnUnion7:Union([exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 0)*/
+/*member: returnUnion7:Union([exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {I})*/
 returnUnion7() {
   dynamic a = 42;
   try {
@@ -269,7 +269,7 @@ returnUnion7() {
   }
 }
 
-/*member: returnUnion8:[null|exact=JSUInt31|powerset=1]*/
+/*member: returnUnion8:[null|exact=JSUInt31|powerset={null}{I}]*/
 returnUnion8() {
   dynamic a = 5.5;
   try {
@@ -284,7 +284,7 @@ returnUnion8() {
   return a;
 }
 
-/*member: returnUnion9:[exact=JSBool|powerset=0]*/
+/*member: returnUnion9:[exact=JSBool|powerset={I}]*/
 returnUnion9() {
   dynamic a = 5.5;
   try {
@@ -298,7 +298,7 @@ returnUnion9() {
   return a;
 }
 
-/*member: returnUnion10:Value([exact=JSBool|powerset=0], value: true, powerset: 0)*/
+/*member: returnUnion10:Value([exact=JSBool|powerset={I}], value: true, powerset: {I})*/
 returnUnion10() {
   dynamic a = 5;
   try {
@@ -314,7 +314,7 @@ returnUnion10() {
   }
 }
 
-/*member: returnNull1:[null|powerset=1]*/
+/*member: returnNull1:[null|powerset={null}]*/
 returnNull1() {
   dynamic a = 42;
   try {
@@ -327,7 +327,7 @@ returnNull1() {
   return a;
 }
 
-/*member: returnNull2:[null|powerset=1]*/
+/*member: returnNull2:[null|powerset={null}]*/
 returnNull2() {
   dynamic a = 5.5;
   try {
@@ -342,118 +342,118 @@ returnNull2() {
   return a;
 }
 
-/*member: A.:[exact=A|powerset=0]*/
+/*member: A.:[exact=A|powerset={N}]*/
 class A {
-  /*member: A.a:[null|exact=JSUInt31|powerset=1]*/
+  /*member: A.a:[null|exact=JSUInt31|powerset={null}{I}]*/
   dynamic a;
-  /*member: A.b:Union(null, [exact=JSUInt31|powerset=0], [exact=JsLinkedHashMap|powerset=0], powerset: 1)*/
+  /*member: A.b:Union(null, [exact=JSUInt31|powerset={I}], [exact=JsLinkedHashMap|powerset={N}], powerset: {null}{IN})*/
   dynamic b;
-  /*member: A.c:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 1)*/
+  /*member: A.c:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {null}{I})*/
   dynamic c;
-  /*member: A.d:Value([null|exact=JSString|powerset=1], value: "foo", powerset: 1)*/
+  /*member: A.d:Value([null|exact=JSString|powerset={null}{I}], value: "foo", powerset: {null}{I})*/
   dynamic d;
-  /*member: A.e:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 1)*/
+  /*member: A.e:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {null}{I})*/
   dynamic e;
-  /*member: A.f:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 1)*/
+  /*member: A.f:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {null}{I})*/
   dynamic f;
-  /*member: A.g:Union(null, [exact=JSExtendableArray|powerset=0], [exact=JSNumNotInt|powerset=0], [exact=JSString|powerset=0], powerset: 1)*/
+  /*member: A.g:Union(null, [exact=JSExtendableArray|powerset={I}], [exact=JSNumNotInt|powerset={I}], [exact=JSString|powerset={I}], powerset: {null}{I})*/
   dynamic g;
 
-  /*member: A.testa:Union([exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 0)*/
+  /*member: A.testa:Union([exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {I})*/
   testa() {
     try {
       return 'foo';
     } catch (e) {
       return true;
     } finally {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       a = 55;
     }
   }
 
-  /*member: A.testb:Union([exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 0)*/
+  /*member: A.testb:Union([exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {I})*/
   testb() {
     try {
       return 'foo';
     } catch (e) {
       return true;
     } finally {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       b = 55;
     }
     return b;
   }
 
-  /*member: A.testc:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 1)*/
+  /*member: A.testc:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {null}{I})*/
   testc() {
     try {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       c = 'foo';
-      throw /*[exact=A|powerset=0]*/ c;
+      throw /*[exact=A|powerset={N}]*/ c;
     } catch (e) {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       c = false;
     } catch (e) {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       c = true;
     }
-    return /*[exact=A|powerset=0]*/ c;
+    return /*[exact=A|powerset={N}]*/ c;
   }
 
-  /*member: A.testd:Value([null|exact=JSString|powerset=1], value: "foo", powerset: 1)*/
+  /*member: A.testd:Value([null|exact=JSString|powerset={null}{I}], value: "foo", powerset: {null}{I})*/
   testd() {
     try {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       d = 'foo';
     } catch (e) {
       // Do nothing
     }
-    return /*[exact=A|powerset=0]*/ d;
+    return /*[exact=A|powerset={N}]*/ d;
   }
 
-  /*member: A.teste:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], powerset: 1)*/
+  /*member: A.teste:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], powerset: {null}{I})*/
   teste() {
     try {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       e = 'foo';
     } catch (_) {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       e = true;
     }
-    return /*[exact=A|powerset=0]*/ e;
+    return /*[exact=A|powerset={N}]*/ e;
   }
 
-  /*member: A.testf:Union(null, [exact=JSBool|powerset=0], [exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 1)*/
+  /*member: A.testf:Union(null, [exact=JSBool|powerset={I}], [exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {null}{I})*/
   testf() {
     try {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       f = 'foo';
       return 3;
     } catch (e) {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       f = true;
     }
-    return /*[exact=A|powerset=0]*/ f;
+    return /*[exact=A|powerset={N}]*/ f;
   }
 
-  /*member: A.testg:Union(null, [exact=JSUInt31|powerset=0], [exact=JsLinkedHashMap|powerset=0], powerset: 1)*/
+  /*member: A.testg:Union(null, [exact=JSUInt31|powerset={I}], [exact=JsLinkedHashMap|powerset={N}], powerset: {null}{IN})*/
   testg() {
     try {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       g = 'foo';
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       g = 5.5;
     } catch (e) {
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       g = [];
-      /*update: [exact=A|powerset=0]*/
+      /*update: [exact=A|powerset={N}]*/
       b = {};
     }
-    return /*[exact=A|powerset=0]*/ b;
+    return /*[exact=A|powerset={N}]*/ b;
   }
 }
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   returnInt1();
   returnDyn1();
@@ -484,11 +484,11 @@ main() {
   returnNull2();
 
   final a = A();
-  a. /*invoke: [exact=A|powerset=0]*/ testa();
-  a. /*invoke: [exact=A|powerset=0]*/ testb();
-  a. /*invoke: [exact=A|powerset=0]*/ testc();
-  a. /*invoke: [exact=A|powerset=0]*/ testd();
-  a. /*invoke: [exact=A|powerset=0]*/ teste();
-  a. /*invoke: [exact=A|powerset=0]*/ testf();
-  a. /*invoke: [exact=A|powerset=0]*/ testg();
+  a. /*invoke: [exact=A|powerset={N}]*/ testa();
+  a. /*invoke: [exact=A|powerset={N}]*/ testb();
+  a. /*invoke: [exact=A|powerset={N}]*/ testc();
+  a. /*invoke: [exact=A|powerset={N}]*/ testd();
+  a. /*invoke: [exact=A|powerset={N}]*/ teste();
+  a. /*invoke: [exact=A|powerset={N}]*/ testf();
+  a. /*invoke: [exact=A|powerset={N}]*/ testg();
 }

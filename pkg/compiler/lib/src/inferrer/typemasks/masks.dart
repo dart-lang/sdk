@@ -47,8 +47,9 @@ class CommonMasks with AbstractValueDomain {
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
   final JClosedWorld closedWorld;
+  final _PowersetCache _powersetCache;
 
-  CommonMasks(this.closedWorld);
+  CommonMasks(this.closedWorld) : _powersetCache = _PowersetCache(closedWorld);
 
   ClassHierarchy get classHierarchy => closedWorld.classHierarchy;
   CommonElements get commonElements => closedWorld.commonElements;
@@ -907,28 +908,22 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractBool isInterceptor(TypeMask value) {
-    // TODO(39874): Remove cache when [TypeMask.isDisjoint] is faster.
-    var result = _isInterceptorCache[value];
-    if (result == null) {
-      result = _isInterceptorCacheSecondChance[value] ?? _isInterceptor(value);
-      if (_isInterceptorCache.length >= _kIsInterceptorCacheLimit) {
-        _isInterceptorCacheSecondChance = _isInterceptorCache;
-        _isInterceptorCache = {};
-      }
-      _isInterceptorCache[value] = result;
+    if (!_interceptorDomain.contains(
+      value.powerset,
+      TypeMaskInterceptorProperty.interceptor,
+    )) {
+      return AbstractBool.false_;
     }
-    return result;
-  }
 
-  AbstractBool _isInterceptor(TypeMask value) {
-    return AbstractBool.maybeOrFalse(
-      !interceptorType.isDisjoint(value, closedWorld),
-    );
-  }
+    if (!_interceptorDomain.contains(
+      value.powerset,
+      TypeMaskInterceptorProperty.notInterceptor,
+    )) {
+      return AbstractBool.true_;
+    }
 
-  static const _kIsInterceptorCacheLimit = 500;
-  Map<TypeMask, AbstractBool> _isInterceptorCache = {};
-  Map<TypeMask, AbstractBool> _isInterceptorCacheSecondChance = {};
+    return AbstractBool.maybe;
+  }
 
   @override
   bool isMap(TypeMask value) => value is MapTypeMask;
