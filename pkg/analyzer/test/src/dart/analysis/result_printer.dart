@@ -808,6 +808,8 @@ class LibraryManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         switch (item) {
+          case InstanceItemDuplicateItem():
+            sink.writelnWithIndent('duplicate');
           case InstanceItemGetterItem():
             _writeMetadata(item);
             _writeNamedType('returnType', item.returnType);

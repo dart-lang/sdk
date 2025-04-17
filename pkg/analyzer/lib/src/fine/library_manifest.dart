@@ -260,6 +260,10 @@ class LibraryManifestBuilder {
       return;
     }
 
+    if (instanceItem.replaceDuplicate(lookupName)) {
+      return;
+    }
+
     var item = _getOrBuildElementItem(element, () {
       return InstanceItemGetterItem.fromElement(
         id: ManifestItemId.generate(),
@@ -270,33 +274,6 @@ class LibraryManifestBuilder {
     instanceItem.declaredMembers[lookupName] = item;
   }
 
-  void _addInstanceElementInstanceExecutable({
-    required EncodeContext encodingContext,
-    required InstanceItem instanceItem,
-    required ExecutableElementImpl2 element,
-  }) {
-    switch (element) {
-      case GetterElementImpl():
-        _addInstanceElementGetter(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: element,
-        );
-      case MethodElementImpl2():
-        _addInstanceElementMethod(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: element,
-        );
-      case SetterElementImpl():
-        _addInstanceElementSetter(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: element,
-        );
-    }
-  }
-
   void _addInstanceElementMethod({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
@@ -304,6 +281,10 @@ class LibraryManifestBuilder {
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
+      return;
+    }
+
+    if (instanceItem.replaceDuplicate(lookupName)) {
       return;
     }
 
@@ -324,6 +305,10 @@ class LibraryManifestBuilder {
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
+      return;
+    }
+
+    if (instanceItem.replaceDuplicate(lookupName)) {
       return;
     }
 
@@ -398,17 +383,32 @@ class LibraryManifestBuilder {
     required InterfaceElementImpl2 interfaceElement,
     required InterfaceItem interfaceItem,
   }) {
-    var inheritance = interfaceElement.inheritanceManager;
-    var map = inheritance.getInterface2(interfaceElement).map2;
-    for (var entry in map.entries) {
-      var executable = entry.value;
-      if (executable.enclosingElement2 == interfaceElement) {
-        // SAFETY: declared in the element are always impl.
-        executable as ExecutableElementImpl2;
-        _addInstanceElementInstanceExecutable(
+    for (var getter in interfaceElement.getters2) {
+      if (!getter.isStatic) {
+        _addInstanceElementGetter(
           encodingContext: encodingContext,
           instanceItem: interfaceItem,
-          element: executable,
+          element: getter,
+        );
+      }
+    }
+
+    for (var method in interfaceElement.methods2) {
+      if (!method.isStatic) {
+        _addInstanceElementMethod(
+          encodingContext: encodingContext,
+          instanceItem: interfaceItem,
+          element: method,
+        );
+      }
+    }
+
+    for (var setter in interfaceElement.setters2) {
+      if (!setter.isStatic) {
+        _addInstanceElementSetter(
+          encodingContext: encodingContext,
+          instanceItem: interfaceItem,
+          element: setter,
         );
       }
     }

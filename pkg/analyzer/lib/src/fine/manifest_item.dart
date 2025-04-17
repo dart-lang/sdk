@@ -85,6 +85,17 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     return declaredMembers[name]?.id;
   }
 
+  /// If there is already a declared member with [name], replace it with a
+  /// fresh instance of [InstanceItemDuplicateItem] and return `true`.
+  /// Otherwise return `false`.
+  bool replaceDuplicate(LookupName name) {
+    if (declaredMembers.containsKey(name)) {
+      declaredMembers[name] = InstanceItemDuplicateItem();
+      return true;
+    }
+    return false;
+  }
+
   @override
   void write(BufferedSink sink) {
     super.write(sink);
@@ -103,6 +114,54 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
       readKey: () => LookupName.read(reader),
       readValue: () => InstanceItemMemberItem.read(reader),
     );
+  }
+}
+
+/// Placeholder for a name that has duplicate declared member.
+/// It is always given a new ID.
+class InstanceItemDuplicateItem
+    extends InstanceItemMemberItem<ExecutableElementImpl2> {
+  factory InstanceItemDuplicateItem() {
+    return InstanceItemDuplicateItem._(
+      id: ManifestItemId.generate(),
+      metadata: ManifestMetadata(annotations: []),
+      isStatic: false,
+    );
+  }
+
+  factory InstanceItemDuplicateItem.read(SummaryDataReader reader) {
+    return InstanceItemDuplicateItem._(
+      id: ManifestItemId.read(reader),
+      metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
+    );
+  }
+
+  InstanceItemDuplicateItem._({
+    required super.id,
+    required super.metadata,
+    required super.isStatic,
+  });
+
+  @override
+  bool match(MatchContext context, ExecutableElementImpl2 element) {
+    super.match(context, element); // we ignore it
+    // Duplicate items don't have any specific information, they are just
+    // a flag, that previously the same name was declared twice. So, there is
+    // no way to meaningfully match them. We always return `false`, and
+    // build a new item (and ID) for this name.
+    //
+    // The reason is that we don't want to prefer first or last duplicated
+    // element, we just wait until there is no error. And once it is fixed,
+    // we will build the actual item, with a new ID, and recompute all uses
+    // once again.
+    return false;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind2.instanceDuplicate);
+    super.write(sink);
   }
 }
 
@@ -186,6 +245,8 @@ sealed class InstanceItemMemberItem<E extends ExecutableElementImpl2>
       SummaryDataReader reader) {
     var kind = reader.readEnum(_ManifestItemKind2.values);
     switch (kind) {
+      case _ManifestItemKind2.instanceDuplicate:
+        return InstanceItemDuplicateItem.read(reader);
       case _ManifestItemKind2.instanceGetter:
         return InstanceItemGetterItem.read(reader);
       case _ManifestItemKind2.instanceMethod:
@@ -770,6 +831,7 @@ enum _ManifestItemKind {
 }
 
 enum _ManifestItemKind2 {
+  instanceDuplicate,
   instanceGetter,
   instanceMethod,
   instanceSetter,
