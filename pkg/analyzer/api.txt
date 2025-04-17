@@ -2958,15 +2958,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  AugmentedExtensionElement (class extends Object implements AugmentedInstanceElement, deprecated):
-    new (constructor: AugmentedExtensionElement Function())
-    extendedType (getter: DartType)
-  AugmentedExtensionTypeElement (class extends Object implements AugmentedInterfaceElement, deprecated):
-    new (constructor: AugmentedExtensionTypeElement Function())
-    firstFragment (getter: ExtensionTypeElement)
-    primaryConstructor (getter: ConstructorElement)
-    representation (getter: FieldElement)
-    typeErasure (getter: DartType)
   AugmentedInstanceElement (class extends Object, deprecated):
     new (constructor: AugmentedInstanceElement Function())
     accessors (getter: List<PropertyAccessorElement>)
@@ -3002,11 +2993,8 @@ package:analyzer/dart/element/element.dart:
     isStatic (getter: bool)
   CompilationUnitElement (class extends Object implements UriReferencedElement, deprecated):
     new (constructor: CompilationUnitElement Function())
-    accessibleExtensions (getter: List<ExtensionElement>)
     accessors (getter: List<PropertyAccessorElement>)
     enclosingElement3 (getter: CompilationUnitElement?)
-    extensionTypes (getter: List<ExtensionTypeElement>, experimental)
-    extensions (getter: List<ExtensionElement>)
     functions (getter: List<FunctionElement>)
     libraryExports (getter: List<LibraryExportElement>)
     libraryImportPrefixes (getter: List<PrefixElement>)
@@ -3209,20 +3197,6 @@ package:analyzer/dart/element/element.dart:
     isStatic (getter: bool)
     isSynchronous (getter: bool)
     name (getter: String)
-  ExtensionElement (class extends Object implements InstanceElement, deprecated):
-    new (constructor: ExtensionElement Function())
-    augmented (getter: AugmentedExtensionElement, deprecated)
-    extendedType (getter: DartType)
-    getField (method: FieldElement? Function(String))
-    getGetter (method: PropertyAccessorElement? Function(String))
-    getMethod (method: MethodElement? Function(String))
-    getSetter (method: PropertyAccessorElement? Function(String))
-  ExtensionTypeElement (class extends Object implements InterfaceElement, deprecated):
-    new (constructor: ExtensionTypeElement Function())
-    augmented (getter: AugmentedExtensionTypeElement, deprecated)
-    primaryConstructor (getter: ConstructorElement, deprecated)
-    representation (getter: FieldElement)
-    typeErasure (getter: DartType)
   FieldElement (class extends Object implements ClassMemberElement, PropertyInducingElement, deprecated):
     new (constructor: FieldElement Function())
     declaration (getter: FieldElement)

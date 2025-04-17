@@ -90,40 +90,6 @@ mixin AugmentableFragment on ElementImpl {
 }
 
 @Deprecated(elementModelDeprecationMsg)
-class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedExtensionElement {
-  AugmentedExtensionElementImpl(super.firstFragment);
-
-  @override
-  DartType get extendedType => firstFragment.extendedType;
-
-  @override
-  ExtensionElementImpl get firstFragment {
-    return super.firstFragment as ExtensionElementImpl;
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedExtensionTypeElement {
-  AugmentedExtensionTypeElementImpl(super.firstFragment);
-
-  @override
-  ExtensionTypeElementImpl get firstFragment {
-    return super.firstFragment as ExtensionTypeElementImpl;
-  }
-
-  @override
-  ConstructorElement get primaryConstructor => firstFragment.primaryConstructor;
-
-  @override
-  FieldElement get representation => firstFragment.representation;
-
-  @override
-  DartType get typeErasure => firstFragment.typeErasure;
-}
-
-@Deprecated(elementModelDeprecationMsg)
 class AugmentedInstanceElementImpl implements AugmentedInstanceElement {
   @override
   final InstanceElementImpl firstFragment;
@@ -902,14 +868,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     required this.lineInfo,
   }) : super(null, -1);
 
-  @Deprecated('Use accessibleExtensions2 instead')
-  @override
-  List<ExtensionElement> get accessibleExtensions {
-    return scope.accessibleExtensions
-        .map((e) => e.firstFragment as ExtensionElement)
-        .toList();
-  }
-
   @override
   List<ExtensionElement2> get accessibleExtensions2 {
     return scope.accessibleExtensions;
@@ -1009,7 +967,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<EnumFragment> get enums2 => enums.cast<EnumFragment>();
 
-  @override
   List<ExtensionElementImpl> get extensions {
     return _extensions;
   }
@@ -1027,7 +984,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ExtensionFragment> get extensions2 =>
       extensions.cast<ExtensionFragment>();
 
-  @override
   List<ExtensionTypeElementImpl> get extensionTypes {
     return _extensionTypes;
   }
@@ -3943,21 +3899,13 @@ abstract class ExecutableElementOrMember
 }
 
 class ExtensionElementImpl extends InstanceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ExtensionElement,
-        ExtensionFragment {
+    implements ExtensionFragment {
   late ExtensionElementImpl2 augmentedInternal;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionElement get augmented =>
-      AugmentedExtensionElementImpl(this);
 
   @Deprecated('Use Element2 instead')
   @override
@@ -3986,7 +3934,6 @@ class ExtensionElementImpl extends InstanceElementImpl
     return augmentedInternal;
   }
 
-  @override
   TypeImpl get extendedType {
     return element.extendedType;
   }
@@ -4029,43 +3976,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
   }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  FieldElement? getField(String name) {
-    for (FieldElement fieldElement in fields) {
-      if (name == fieldElement.name) {
-        return fieldElement;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElementOrMember? getGetter(String getterName) {
-    for (var accessor in accessors) {
-      if (accessor.isGetter && accessor.name == getterName) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElementOrMember? getMethod(String methodName) {
-    for (var method in methods) {
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  PropertyAccessorElement? getSetter(String setterName) {
-    return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
-  }
 }
 
 class ExtensionElementImpl2 extends InstanceElementImpl2
@@ -4105,13 +4015,9 @@ class ExtensionElementImpl2 extends InstanceElementImpl2
 }
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ExtensionTypeElement,
-        ExtensionTypeFragment {
+    implements ExtensionTypeFragment {
   late ExtensionTypeElementImpl2 augmentedInternal;
 
-  @override
   late DartType typeErasure;
 
   /// Whether the element has direct or indirect reference to itself,
@@ -4123,11 +4029,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   bool hasImplementsSelfReference = false;
 
   ExtensionTypeElementImpl(super.name, super.nameOffset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionTypeElement get augmented =>
-      AugmentedExtensionTypeElementImpl(this);
 
   @override
   ExtensionTypeElementImpl2 get element {
@@ -4148,7 +4049,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl? get previousFragment =>
       super.previousFragment as ExtensionTypeElementImpl?;
 
-  @override
   ConstructorElementImpl get primaryConstructor {
     return constructors.first;
   }
@@ -4157,7 +4057,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ConstructorFragment get primaryConstructor2 =>
       primaryConstructor as ConstructorFragment;
 
-  @override
   FieldElementImpl get representation {
     return fields.first;
   }

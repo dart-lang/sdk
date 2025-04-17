@@ -60,36 +60,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// The result of applying augmentations to an [ExtensionElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
-  /// The type that is extended by this extension.
-  DartType get extendedType;
-}
-
-/// The result of applying augmentations to an [ExtensionTypeElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedExtensionTypeElement
-    implements AugmentedInterfaceElement {
-  @override
-  ExtensionTypeElement get firstFragment;
-
-  /// The primary constructor of this extension.
-  ConstructorElement get primaryConstructor;
-
-  /// The representation of this extension.
-  FieldElement get representation;
-
-  /// The extension type erasure, obtained by recursively replacing every
-  /// subterm which is an extension type by the corresponding representation
-  /// type.
-  DartType get typeErasure;
-}
-
 /// The result of applying augmentations to a [InstanceElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -255,9 +225,6 @@ abstract class ClassMemberElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated(elementModelDeprecationMsg)
 abstract class CompilationUnitElement implements UriReferencedElement {
-  /// The extension elements accessible within this unit.
-  List<ExtensionElement> get accessibleExtensions;
-
   /// The top-level accessors (getters and setters) declared in this
   /// compilation unit.
   List<PropertyAccessorElement> get accessors;
@@ -266,13 +233,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// element, or `null` if this element is the defining unit of the library.
   @override
   CompilationUnitElement? get enclosingElement3;
-
-  /// The extensions declared in this compilation unit.
-  List<ExtensionElement> get extensions;
-
-  /// The extension types declared in this compilation unit.
-  @experimental
-  List<ExtensionTypeElement> get extensionTypes;
 
   /// The top-level functions declared in this compilation unit.
   List<FunctionElement> get functions;
@@ -1104,61 +1064,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
 
   @override
   String get name;
-}
-
-/// An element that represents an extension.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ExtensionElement2 instead')
-abstract class ExtensionElement implements InstanceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionElement get augmented;
-
-  /// The type that is extended by this extension.
-  DartType get extendedType;
-
-  /// Returns the element representing the field with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// field with the given name.
-  FieldElement? getField(String name);
-
-  /// Returns the element representing the getter with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// getter with the given name.
-  PropertyAccessorElement? getGetter(String name);
-
-  /// Returns the element representing the method with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// method with the given name.
-  MethodElement? getMethod(String name);
-
-  /// Returns the element representing the setter with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// setter with the given name.
-  PropertyAccessorElement? getSetter(String name);
-}
-
-/// An element that represents an extension type.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ExtensionTypeElement2 instead')
-abstract class ExtensionTypeElement implements InterfaceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionTypeElement get augmented;
-
-  /// The primary constructor of this extension.
-  @Deprecated(elementModelDeprecationMsg)
-  ConstructorElement get primaryConstructor;
-
-  /// The representation of this extension.
-  FieldElement get representation;
-
-  /// The extension type erasure, obtained by recursively replacing every
-  /// subterm which is an extension type by the corresponding representation
-  /// type.
-  DartType get typeErasure;
 }
 
 /// A field defined within a class.
