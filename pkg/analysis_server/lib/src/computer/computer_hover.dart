@@ -10,8 +10,8 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:path/path.dart' as path;
 
 /// Information about a library to display in a hover.
@@ -35,7 +35,7 @@ class DartUnitHoverComputer {
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
-    var node = NodeLocator(_offset).searchWithin(_unit);
+    var node = _unit.nodeCovering(offset: _offset);
     if (node == null) {
       return null;
     }

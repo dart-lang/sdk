@@ -8,7 +8,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// The handler for the `edit.getAvailableRefactorings` request.
@@ -74,7 +74,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     // check elements
     var resolvedUnit = await server.getResolvedUnit(file);
     if (resolvedUnit != null) {
-      var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+      var node = resolvedUnit.unit.nodeCovering(offset: offset);
       var element = server.getElementOfNode(node);
       if (element != null) {
         var refactoringWorkspace = server.refactoringWorkspace;

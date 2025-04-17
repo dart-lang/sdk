@@ -11,8 +11,8 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 typedef StaticOptions =
     Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
@@ -62,7 +62,7 @@ class ImplementationHandler
     CancellationToken token,
     OperationPerformanceImpl performance,
   ) async {
-    var node = NodeLocator(offset).searchWithin(result.unit);
+    var node = result.unit.nodeCovering(offset: offset);
     var element = server.getElementOfNode(node);
     if (element == null) {
       return success([]);

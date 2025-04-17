@@ -26,8 +26,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -400,7 +400,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
         timer.restart();
 
-        var node = NodeLocator(offset).searchWithin(unitResult.unit);
+        var node = unitResult.unit.nodeCovering(offset: offset);
         var element = server.getElementOfNode(node);
 
         // Getter to Method
