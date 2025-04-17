@@ -156,7 +156,6 @@ package:analyzer/dart/analysis/results.dart:
     new (constructor: DisposedAnalysisContextResult Function())
   ElementDeclarationResult (class extends Object, deprecated):
     new (constructor: ElementDeclarationResult Function())
-    element (getter: Element, deprecated)
     fragment (getter: Fragment)
     node (getter: AstNode)
     parsedUnit (getter: ParsedUnitResult?)
@@ -185,7 +184,6 @@ package:analyzer/dart/analysis/results.dart:
     new (constructor: InvalidResult Function())
   LibraryElementResult (class extends Object implements SomeLibraryElementResult):
     new (constructor: LibraryElementResult Function())
-    element (getter: LibraryElement, deprecated)
     element2 (getter: LibraryElement2, experimental)
   NotElementOfThisSessionResult (class extends Object implements InvalidResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: NotElementOfThisSessionResult Function())
@@ -202,7 +200,6 @@ package:analyzer/dart/analysis/results.dart:
   ParsedLibraryResult (class extends Object implements SomeParsedLibraryResult, AnalysisResult):
     new (constructor: ParsedLibraryResult Function())
     units (getter: List<ParsedUnitResult>)
-    getElementDeclaration (method: ElementDeclarationResult? Function(Element), deprecated)
     getElementDeclaration2 (method: ElementDeclarationResult? Function(Fragment), deprecated, experimental)
     getFragmentDeclaration (method: FragmentDeclarationResult? Function(Fragment), experimental)
   ParsedUnitResult (class extends Object implements SomeParsedUnitResult, AnalysisResultWithErrors):
@@ -210,7 +207,6 @@ package:analyzer/dart/analysis/results.dart:
     unit (getter: CompilationUnit)
   ResolvedLibraryResult (class extends Object implements ParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: ResolvedLibraryResult Function())
-    element (getter: LibraryElement, deprecated)
     element2 (getter: LibraryElement2, experimental)
     typeProvider (getter: TypeProvider)
     units (getter: List<ResolvedUnitResult>)
@@ -218,7 +214,6 @@ package:analyzer/dart/analysis/results.dart:
   ResolvedUnitResult (class extends Object implements ParsedUnitResult, SomeResolvedUnitResult):
     new (constructor: ResolvedUnitResult Function())
     exists (getter: bool)
-    libraryElement (getter: LibraryElement, deprecated)
     libraryElement2 (getter: LibraryElement2, experimental)
     libraryFragment (getter: LibraryFragment, experimental)
     typeProvider (getter: TypeProvider)
@@ -241,7 +236,6 @@ package:analyzer/dart/analysis/results.dart:
     new (constructor: SomeUnitElementResult Function())
   UnitElementResult (class extends Object implements SomeUnitElementResult, FileResult):
     new (constructor: UnitElementResult Function())
-    element (getter: CompilationUnitElement, deprecated)
     fragment (getter: LibraryFragment, experimental)
   UnspecifiedInvalidResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult):
     new (constructor: UnspecifiedInvalidResult Function())

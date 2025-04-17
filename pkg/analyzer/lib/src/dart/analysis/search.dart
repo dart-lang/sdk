@@ -347,7 +347,7 @@ class Search {
       if (searchedFiles.add(file.path, this)) {
         var libraryResult = await _driver.getLibraryByUri(file.uriStr);
         if (libraryResult is LibraryElementResultImpl) {
-          var element = libraryResult.element;
+          var element = libraryResult.element2;
           element.classes.forEach(addElements);
           element.enums.forEach(addElements);
           element.extensionTypes.forEach(addElements);
@@ -1147,7 +1147,7 @@ class _FindDeclarations {
           (performance) async {
             var result = await analysisDriver.getLibraryByUri('$uri');
             if (result is LibraryElementResultImpl) {
-              return result.element;
+              return result.element2;
             }
             return null;
           },

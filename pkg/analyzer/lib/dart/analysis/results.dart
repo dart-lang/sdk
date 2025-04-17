@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -59,10 +58,6 @@ class DisposedAnalysisContextResult
 /// The declaration of an [Element].
 @Deprecated('Use FragmentDeclarationResult instead')
 abstract class ElementDeclarationResult {
-  /// The [Element] that this object describes.
-  @Deprecated('Use fragment instead')
-  Element get element;
-
   /// The [Fragment] that this object describes.
   Fragment get fragment;
 
@@ -167,10 +162,6 @@ abstract class InvalidResult {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElementResult implements SomeLibraryElementResult {
-  /// The element of the library.
-  @Deprecated('Use element2 instead')
-  LibraryElement get element;
-
   /// The element representing the library.
   @experimental
   LibraryElement2 get element2;
@@ -221,12 +212,6 @@ abstract class ParsedLibraryResult
     implements SomeParsedLibraryResult, AnalysisResult {
   /// The parsed units of the library.
   List<ParsedUnitResult> get units;
-
-  /// Return the declaration of the [element], or `null` if the [element]
-  /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
-  /// this library.
-  @Deprecated('Use getFragmentDeclaration() instead')
-  ElementDeclarationResult? getElementDeclaration(Element element);
 
   /// Returns the declaration of the [fragment].
   ///
@@ -283,10 +268,6 @@ abstract class ParseStringResult {
 abstract class ResolvedLibraryResult
     implements ParsedLibraryResult, SomeResolvedLibraryResult {
   /// The element representing this library.
-  @Deprecated('Use element2 instead')
-  LibraryElement get element;
-
-  /// The element representing this library.
   @experimental
   LibraryElement2 get element2;
 
@@ -310,10 +291,6 @@ abstract class ResolvedUnitResult
     implements ParsedUnitResult, SomeResolvedUnitResult {
   /// Return `true` if the file exists.
   bool get exists;
-
-  /// The element representing the library containing the compilation [unit].
-  @Deprecated('Use libraryElement2 instead')
-  LibraryElement get libraryElement;
 
   /// The element representing the library containing the compilation [unit].
   @experimental
@@ -404,10 +381,6 @@ abstract class SomeUnitElementResult {}
 ///
 // TODO(scheglov): Stop implementing [FileResult].
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
-  /// The element of the file.
-  @Deprecated('Use fragment instead')
-  CompilationUnitElement get element;
-
   /// The fragment representing the content of the file.
   @experimental
   LibraryFragment get fragment;
