@@ -2986,7 +2986,7 @@ class _InstanceCreationEvaluator {
       } else if (initializer is RedirectingConstructorInvocationImpl) {
         // This is a redirecting constructor, so just evaluate the constructor
         // it redirects to.
-        var baseElement = initializer.staticElement;
+        var baseElement = initializer.element?.lastFragment;
         if (baseElement != null && baseElement.isConst) {
           // Instantiate the constructor with the in-scope type arguments.
           var constructor = ConstructorMember.from(baseElement, definingType);

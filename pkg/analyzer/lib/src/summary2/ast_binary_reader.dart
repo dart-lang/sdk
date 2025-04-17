@@ -270,7 +270,7 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       rightHandSide: rightHandSide,
     );
-    node.staticElement = _reader.readElement() as MethodElementOrMember?;
+    node.element = _reader.readElement2() as MethodElement2OrMember?;
     node.readElement2 = _reader.readElement2();
     node.readType = _reader.readType();
     node.writeElement2 = _reader.readElement2();
