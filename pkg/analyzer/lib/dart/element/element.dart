@@ -807,13 +807,6 @@ abstract class Element implements AnalysisTarget {
   @override
   Source? get source;
 
-  /// Uses the given [visitor] to visit this element.
-  ///
-  /// Returns the value returned by the visitor as a result of visiting this
-  /// element.
-  @Deprecated('Use Element2 and accept2() instead')
-  T? accept<T>(ElementVisitor<T> visitor);
-
   /// Returns the presentation of this element as it should appear when
   /// presented to users.
   ///
@@ -879,11 +872,6 @@ abstract class Element implements AnalysisTarget {
   /// that has the given type, or `null` if there is no such element.
   @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorOfType3<E extends Element>();
-
-  /// Uses the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use Element2 and visitChildren2() instead')
-  void visitChildren(ElementVisitor visitor);
 }
 
 /// A single annotation associated with an element.
@@ -1191,72 +1179,6 @@ abstract class ElementLocation {
   /// The encoded representation of this location that can be used to create a
   /// location that is equal to this location.
   String get encoding;
-}
-
-/// An object that can be used to visit an element structure.
-///
-/// Clients may not extend, implement or mix-in this class. There are classes
-/// that implement this interface that provide useful default behaviors in
-/// `package:analyzer/dart/element/visitor.dart`. A couple of the most useful
-/// include
-/// * SimpleElementVisitor which implements every visit method by doing nothing,
-/// * RecursiveElementVisitor which will cause every node in a structure to be
-///   visited, and
-/// * ThrowingElementVisitor which implements every visit method by throwing an
-///   exception.
-@Deprecated('Use ElementVisitor2 instead')
-abstract class ElementVisitor<R> {
-  R? visitClassElement(ClassElement element);
-
-  R? visitCompilationUnitElement(CompilationUnitElement element);
-
-  R? visitConstructorElement(ConstructorElement element);
-
-  R? visitEnumElement(EnumElement element);
-
-  R? visitExtensionElement(ExtensionElement element);
-
-  R? visitExtensionTypeElement(ExtensionTypeElement element);
-
-  R? visitFieldElement(FieldElement element);
-
-  R? visitFieldFormalParameterElement(FieldFormalParameterElement element);
-
-  R? visitFunctionElement(FunctionElement element);
-
-  R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
-
-  R? visitLabelElement(LabelElement element);
-
-  R? visitLibraryElement(LibraryElement element);
-
-  R? visitLibraryExportElement(LibraryExportElement element);
-
-  R? visitLibraryImportElement(LibraryImportElement element);
-
-  R? visitLocalVariableElement(LocalVariableElement element);
-
-  R? visitMethodElement(MethodElement element);
-
-  R? visitMixinElement(MixinElement element);
-
-  R? visitMultiplyDefinedElement(MultiplyDefinedElement element);
-
-  R? visitParameterElement(ParameterElement element);
-
-  R? visitPartElement(PartElement element);
-
-  R? visitPrefixElement(PrefixElement element);
-
-  R? visitPropertyAccessorElement(PropertyAccessorElement element);
-
-  R? visitSuperFormalParameterElement(SuperFormalParameterElement element);
-
-  R? visitTopLevelVariableElement(TopLevelVariableElement element);
-
-  R? visitTypeAliasElement(TypeAliasElement element);
-
-  R? visitTypeParameterElement(TypeParameterElement element);
 }
 
 /// An element that represents an enum.

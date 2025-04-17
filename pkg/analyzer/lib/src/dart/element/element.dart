@@ -499,12 +499,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return super.previousFragment as ClassElementImpl?;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitClassElement(this);
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
@@ -1368,11 +1362,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TypeAliasFragment> get typeAliases2 =>
       typeAliases.cast<TypeAliasFragment>();
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitCompilationUnitElement(this);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeCompilationUnitElement(this);
@@ -1768,11 +1757,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   set type(FunctionType type) {
     assert(false);
   }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitConstructorElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -2290,10 +2274,6 @@ class DynamicElementImpl extends ElementImpl
 
   @override
   Null get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => null;
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -3416,16 +3396,6 @@ abstract class ElementImpl
     return getDisplayString();
   }
 
-  /// Use the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use Element2 and visitChildren2() instead')
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    for (Element child in children) {
-      child.accept(visitor);
-    }
-  }
-
   /// Return flags that denote presence of a few specific annotations.
   int _getMetadataFlags() {
     var result = _metadataFlags;
@@ -3770,12 +3740,6 @@ class EnumElementImpl extends InterfaceElementImpl
       }
     }
     return null;
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitEnumElement(this);
   }
 
   @override
@@ -4198,12 +4162,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   @override
   DartType get thisType => extendedType;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitExtensionElement(this);
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
@@ -4343,12 +4301,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   FieldFragment get representation2 => representation as FieldFragment;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitExtensionTypeElement(this);
-  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -4539,10 +4491,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   FieldElementImpl? get previousFragment =>
       super.previousFragment as FieldElementImpl?;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 }
 
 class FieldElementImpl2 extends PropertyInducingElementImpl2
@@ -4703,11 +4651,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   FieldFormalParameterElementImpl? get previousFragment =>
       super.previousFragment as FieldFormalParameterElementImpl?;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitFieldFormalParameterElement(this);
 
   @override
   FieldFormalParameterElementImpl2 _createElement(
@@ -5458,10 +5401,6 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 }
 
 /// Common internal interface shared by elements whose type is a function type.
@@ -5617,12 +5556,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   /// [type].
   set type(FunctionTypeImpl type) {
     _type = type;
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitGenericFunctionTypeElement(this);
   }
 
   @override
@@ -7208,10 +7141,6 @@ class LabelElementImpl extends ElementImpl
 
   @override
   LabelElementImpl? get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLabelElement(this);
 }
 
 class LabelElementImpl2 extends ElementImpl2
@@ -7656,10 +7585,6 @@ class LibraryElementImpl extends ElementImpl
     return result;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLibraryElement(this);
-
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitLibraryElement(this);
@@ -7889,12 +7814,6 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingElement3;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitLibraryExportElement(this);
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExportElement(this);
@@ -7974,12 +7893,6 @@ class LibraryImportElementImpl extends _ExistingElementImpl
       );
     }
     return Namespace.EMPTY;
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitLibraryImportElement(this);
   }
 
   @override
@@ -8193,11 +8106,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   LocalVariableElementImpl? get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitLocalVariableElement(this);
 }
 
 class LocalVariableElementImpl2 extends PromotableElementImpl2
@@ -8731,10 +8639,6 @@ class MethodElementImpl extends ExecutableElementImpl
     }
     return this;
   }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 }
 
 class MethodElementImpl2 extends ExecutableElementImpl2
@@ -8883,12 +8787,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   @override
   set supertype(InterfaceType? supertype) {
     throw StateError('Attempt to set a supertype for a mixin declaration.');
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitMixinElement(this);
   }
 
   @override
@@ -9254,11 +9152,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   Source? get source => null;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitMultiplyDefinedElement(this);
-
   @override
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
@@ -9330,16 +9223,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     writeList(conflictingElements);
     buffer.write("]");
     return buffer.toString();
-  }
-
-  /// Use the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use Element2 and visitChildren2() instead')
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    for (Element child in children) {
-      child.accept(visitor);
-    }
   }
 }
 
@@ -9551,10 +9434,6 @@ class NeverElementImpl extends ElementImpl
 
   @override
   Null get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => null;
 
   DartType instantiate({
     required NullabilitySuffix nullabilitySuffix,
@@ -9829,11 +9708,6 @@ class ParameterElementImpl extends VariableElementImpl
     _typeParameters = typeParameters;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitParameterElement(this);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
@@ -10019,10 +9893,6 @@ class PartElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingUnit;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPartElement(this);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writePartElement(this);
@@ -10166,10 +10036,6 @@ class PrefixElementImpl extends _ExistingElementImpl
   set scope(PrefixScope value) {
     _scope = value;
   }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -10415,11 +10281,6 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   PropertyInducingFragment? get variable3 => variable2;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitPropertyAccessorElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -11074,11 +10935,6 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
     return null;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitSuperFormalParameterElement(this);
-
   /// Return the index of this super-formal parameter among other super-formals.
   int indexIn(ConstructorElementImpl enclosingElement) {
     return enclosingElement.parameters
@@ -11272,11 +11128,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   TopLevelVariableElementImpl? get previousFragment =>
       super.previousFragment as TopLevelVariableElementImpl?;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitTopLevelVariableElement(this);
 }
 
 class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
@@ -11490,12 +11341,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitTypeAliasElement(this);
   }
 
   @override
@@ -11848,11 +11693,6 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   set variance(shared.Variance? newVariance) => _variance = newVariance;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitTypeParameterElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

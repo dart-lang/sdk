@@ -129,11 +129,6 @@ class ConstructorMember extends ExecutableMember
   @override
   ConstructorElementImpl2 get _element2 => declaration.asElement2;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitConstructorElement(this);
-
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitConstructorElement(this);
@@ -492,11 +487,6 @@ class FieldFormalParameterMember extends ParameterMember
 
   @override
   bool get isCovariant => declaration.isCovariant;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitFieldFormalParameterElement(this);
 }
 
 /// A field element defined in a parameterized type where the values of the type
@@ -643,10 +633,6 @@ class FieldMember extends VariableMember
 
   @override
   FieldElement2 get _element2 => declaration.asElement2;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -1031,16 +1017,6 @@ abstract class Member
   String toString() {
     return getDisplayString();
   }
-
-  /// Use the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use Element2 and visitChildren2() instead')
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    for (Element child in children) {
-      child.accept(visitor);
-    }
-  }
 }
 
 /// A method element defined in a parameterized type where the values of the
@@ -1109,10 +1085,6 @@ class MethodMember extends ExecutableMember
 
   @override
   MethodElementImpl2 get _element2 => declaration.asElement2;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -1282,11 +1254,6 @@ class ParameterMember extends VariableMember
   @override
   FormalParameterElementImpl get _element2 => declaration.asElement2;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitParameterElement(this);
-
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitFormalParameterElement(this);
@@ -1453,11 +1420,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
     }
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitPropertyAccessorElement(this);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(
@@ -1610,11 +1572,6 @@ class SuperFormalParameterMember extends ParameterMember
 
   FormalParameterElement? get superConstructorParameter2 =>
       superConstructorParameter?.asElement2;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitSuperFormalParameterElement(this);
 }
 
 /// A variable element defined in a parameterized type where the values of the
