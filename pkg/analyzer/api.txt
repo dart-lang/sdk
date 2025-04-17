@@ -3014,10 +3014,54 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
+  AugmentedClassElement (class extends Object implements AugmentedInterfaceElement, deprecated):
+    new (constructor: AugmentedClassElement Function())
+    firstFragment (getter: ClassElement)
+  AugmentedEnumElement (class extends Object implements AugmentedInterfaceElement, deprecated):
+    new (constructor: AugmentedEnumElement Function())
+    constants (getter: List<FieldElement>)
+    firstFragment (getter: EnumElement)
+  AugmentedExtensionElement (class extends Object implements AugmentedInstanceElement, deprecated):
+    new (constructor: AugmentedExtensionElement Function())
+    extendedType (getter: DartType)
+  AugmentedExtensionTypeElement (class extends Object implements AugmentedInterfaceElement, deprecated):
+    new (constructor: AugmentedExtensionTypeElement Function())
+    firstFragment (getter: ExtensionTypeElement)
+    primaryConstructor (getter: ConstructorElement)
+    representation (getter: FieldElement)
+    typeErasure (getter: DartType)
+  AugmentedInstanceElement (class extends Object, deprecated):
+    new (constructor: AugmentedInstanceElement Function())
+    accessors (getter: List<PropertyAccessorElement>)
+    fields (getter: List<FieldElement>)
+    firstFragment (getter: InstanceElement)
+    metadata (getter: List<ElementAnnotation>)
+    methods (getter: List<MethodElement>)
+    thisType (getter: DartType)
+    getField (method: FieldElement? Function(String))
+    getGetter (method: PropertyAccessorElement? Function(String))
+    getMethod (method: MethodElement? Function(String))
+    getSetter (method: PropertyAccessorElement? Function(String))
+    lookUpGetter (method: PropertyAccessorElement? Function({required LibraryElement library, required String name}))
+    lookUpMethod (method: MethodElement? Function({required LibraryElement library, required String name}))
+    lookUpSetter (method: PropertyAccessorElement? Function({required LibraryElement library, required String name}))
+  AugmentedInterfaceElement (class extends Object implements AugmentedInstanceElement, deprecated):
+    new (constructor: AugmentedInterfaceElement Function())
+    constructors (getter: List<ConstructorElement>)
+    firstFragment (getter: InterfaceElement)
+    interfaces (getter: List<InterfaceType>)
+    mixins (getter: List<InterfaceType>)
+    thisType (getter: InterfaceType)
+    unnamedConstructor (getter: ConstructorElement?)
+    getNamedConstructor (method: ConstructorElement? Function(String))
+  AugmentedMixinElement (class extends AugmentedInterfaceElement, deprecated):
+    new (constructor: AugmentedMixinElement Function())
+    superclassConstraints (getter: List<InterfaceType>)
   BindPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: BindPatternVariableElement Function())
   ClassElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: ClassElement Function())
+    augmented (getter: AugmentedClassElement, deprecated)
     hasNonFinalField (getter: bool)
     isAbstract (getter: bool)
     isBase (getter: bool)
@@ -3268,6 +3312,7 @@ package:analyzer/dart/element/element.dart:
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
   EnumElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: EnumElement Function())
+    augmented (getter: AugmentedEnumElement, deprecated)
   ExecutableElement (class extends Object implements FunctionTypedElement, deprecated):
     new (constructor: ExecutableElement Function())
     declaration (getter: ExecutableElement)
@@ -3286,6 +3331,7 @@ package:analyzer/dart/element/element.dart:
     name (getter: String)
   ExtensionElement (class extends Object implements InstanceElement, deprecated):
     new (constructor: ExtensionElement Function())
+    augmented (getter: AugmentedExtensionElement, deprecated)
     extendedType (getter: DartType)
     getField (method: FieldElement? Function(String))
     getGetter (method: PropertyAccessorElement? Function(String))
@@ -3293,6 +3339,7 @@ package:analyzer/dart/element/element.dart:
     getSetter (method: PropertyAccessorElement? Function(String))
   ExtensionTypeElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: ExtensionTypeElement Function())
+    augmented (getter: AugmentedExtensionTypeElement, deprecated)
     primaryConstructor (getter: ConstructorElement, deprecated)
     representation (getter: FieldElement)
     typeErasure (getter: DartType)
@@ -3332,6 +3379,7 @@ package:analyzer/dart/element/element.dart:
   InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement, deprecated):
     new (constructor: InstanceElement Function())
     accessors (getter: List<PropertyAccessorElement>)
+    augmented (getter: AugmentedInstanceElement, deprecated)
     enclosingElement3 (getter: CompilationUnitElement, deprecated)
     fields (getter: List<FieldElement>)
     isAugmentation (getter: bool)
@@ -3340,6 +3388,7 @@ package:analyzer/dart/element/element.dart:
   InterfaceElement (class extends Object implements InstanceElement, deprecated):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
+    augmented (getter: AugmentedInterfaceElement, deprecated)
     constructors (getter: List<ConstructorElement>, deprecated)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>, deprecated)
@@ -3425,6 +3474,7 @@ package:analyzer/dart/element/element.dart:
     declaration (getter: MethodElement)
   MixinElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: MixinElement Function())
+    augmented (getter: AugmentedMixinElement, deprecated)
     isBase (getter: bool)
     superclassConstraints (getter: List<InterfaceType>)
     isImplementableIn (method: bool Function(LibraryElement))
