@@ -228,21 +228,6 @@ class AugmentedInterfaceElementImpl extends AugmentedInstanceElementImpl
   }
 }
 
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedMixinElement {
-  AugmentedMixinElementImpl(super.firstFragment);
-
-  @override
-  MixinElementImpl get firstFragment {
-    return super.firstFragment as MixinElementImpl;
-  }
-
-  @override
-  List<InterfaceType> get superclassConstraints =>
-      firstFragment.superclassConstraints;
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements
         // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
@@ -1160,7 +1145,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return super.metadata;
   }
 
-  @override
   List<MixinElementImpl> get mixins {
     return _mixins;
   }
@@ -1286,19 +1270,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeCompilationUnitElement(this);
-  }
-
-  /// Returns the mixin defined in this compilation unit that has the given
-  /// [name], or `null` if this compilation unit does not define a mixin with
-  /// the given name.
-  @Deprecated(elementModelDeprecationMsg)
-  MixinElement? getMixin(String name) {
-    for (var mixin in mixins) {
-      if (mixin.name == name) {
-        return mixin;
-      }
-    }
-    return null;
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -7532,17 +7503,6 @@ class LibraryElementImpl extends ElementImpl
     return _getElementByName(getters, name);
   }
 
-  @Deprecated(elementModelDeprecationMsg)
-  MixinElement? getMixin(String name) {
-    for (var unitElement in units) {
-      var element = unitElement.getMixin(name);
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
-  }
-
   @override
   MixinElement2? getMixin2(String name) {
     return _getElementByName(mixins, name);
@@ -8589,10 +8549,7 @@ abstract class MethodElementOrMember
 
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        MixinElement,
-        MixinFragment {
+    implements MixinFragment {
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
   /// Names of methods, getters, setters, and operators that this mixin
@@ -8605,10 +8562,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedMixinElement get augmented => AugmentedMixinElementImpl(this);
 
   @override
   MixinElementImpl2 get element {
@@ -8662,15 +8615,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMixinElement(this);
-  }
-
-  @Deprecated('Use MixinElement2 instead')
-  @override
-  bool isImplementableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isBase;
   }
 }
 

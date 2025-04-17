@@ -3012,7 +3012,6 @@ package:analyzer/dart/element/element.dart:
     libraryImportPrefixes (getter: List<PrefixElement>)
     libraryImports (getter: List<LibraryImportElement>)
     lineInfo (getter: LineInfo)
-    mixins (getter: List<MixinElement>)
     parts (getter: List<PartElement>)
     scope (getter: Scope)
     session (getter: AnalysisSession)
@@ -3352,12 +3351,6 @@ package:analyzer/dart/element/element.dart:
   MethodElement (class extends Object implements ClassMemberElement, ExecutableElement, deprecated):
     new (constructor: MethodElement Function())
     declaration (getter: MethodElement)
-  MixinElement (class extends Object implements InterfaceElement, deprecated):
-    new (constructor: MixinElement Function())
-    augmented (getter: AugmentedMixinElement, deprecated)
-    isBase (getter: bool)
-    superclassConstraints (getter: List<InterfaceType>)
-    isImplementableIn (method: bool Function(LibraryElement))
   MultiplyDefinedElement (class extends Object implements Element, deprecated):
     new (constructor: MultiplyDefinedElement Function())
     conflictingElements (getter: List<Element>)
