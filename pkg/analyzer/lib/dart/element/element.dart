@@ -1271,43 +1271,6 @@ abstract class PromotableElement implements LocalElement, VariableElement {
   String get name;
 }
 
-/// A variable that has an associated getter and possibly a setter. Note that
-/// explicitly defined variables implicitly define a synthetic getter and that
-/// non-`final` explicitly defined variables implicitly define a synthetic
-/// setter. Symmetrically, synthetic fields are implicitly created for
-/// explicitly defined getters and setters. The following rules apply:
-///
-/// * Every explicit variable is represented by a non-synthetic
-///   [PropertyInducingElement].
-/// * Every explicit variable induces a getter and possibly a setter, both of
-///   which are represented by synthetic [PropertyAccessorElement]s.
-/// * Every explicit getter or setter is represented by a non-synthetic
-///   [PropertyAccessorElement].
-/// * Every explicit getter or setter (or pair thereof if they have the same
-///   name) induces a variable that is represented by a synthetic
-///   [PropertyInducingElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PropertyInducingElement2 instead')
-abstract class PropertyInducingElement implements VariableElement {
-  @override
-  String get displayName;
-
-  /// Whether the variable has an initializer at declaration.
-  bool get hasInitializer;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  @override
-  LibraryElement get library;
-
-  @override
-  String get name;
-}
-
 /// A combinator that cause some of the names in a namespace to be visible (and
 /// the rest hidden) when being imported.
 ///

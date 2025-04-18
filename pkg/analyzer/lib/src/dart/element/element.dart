@@ -9676,10 +9676,7 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyInducingElement`.
 abstract class PropertyInducingElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PropertyInducingElement,
-        VariableElementOrMember {
+    implements VariableElementOrMember {
   @override
   TypeImpl get type;
 }

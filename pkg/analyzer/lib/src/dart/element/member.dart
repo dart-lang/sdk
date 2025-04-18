@@ -542,9 +542,6 @@ class FieldMember extends VariableMember
   bool get isAbstract => declaration.isAbstract;
 
   @override
-  bool get isAugmentation => declaration.isAugmentation;
-
-  @override
   bool get isCovariant => declaration.isCovariant;
 
   @override

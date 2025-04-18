@@ -3267,13 +3267,6 @@ package:analyzer/dart/element/element.dart:
   PromotableElement (class extends Object implements LocalElement, VariableElement, deprecated):
     new (constructor: PromotableElement Function())
     name (getter: String)
-  PropertyInducingElement (class extends Object implements VariableElement, deprecated):
-    new (constructor: PropertyInducingElement Function())
-    displayName (getter: String)
-    hasInitializer (getter: bool)
-    isAugmentation (getter: bool)
-    library (getter: LibraryElement)
-    name (getter: String)
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)
