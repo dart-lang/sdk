@@ -877,7 +877,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ExtensionTypeFragment> get extensionTypes2 =>
       extensionTypes.cast<ExtensionTypeFragment>();
 
-  @override
   List<TopLevelFunctionFragmentImpl> get functions {
     return _functions;
   }
@@ -4961,11 +4960,7 @@ mixin FragmentedTypeParameterizedElementMixin<
 }
 
 sealed class FunctionElementImpl extends ExecutableElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FunctionElement,
-        FunctionTypedElementImpl,
-        ExecutableElementOrMember {
+    implements FunctionTypedElementImpl, ExecutableElementOrMember {
   @override
   String? name2;
 
@@ -6630,12 +6625,6 @@ class LibraryElementImpl extends ElementImpl
     return _definingCompilationUnit;
   }
 
-  @Deprecated('Use entryPoint2 instead')
-  @override
-  FunctionElement? get entryPoint {
-    return entryPoint2?.lastFragment;
-  }
-
   @override
   TopLevelFunctionElementImpl? get entryPoint2 {
     linkedData?.read(this);
@@ -6780,11 +6769,6 @@ class LibraryElementImpl extends ElementImpl
 
   LibraryDeclarations get libraryDeclarations {
     return _libraryDeclarations ??= LibraryDeclarations(this);
-  }
-
-  @override
-  TopLevelFunctionFragmentImpl get loadLibraryFunction {
-    return loadLibraryFunction2.firstFragment;
   }
 
   @override
@@ -7292,12 +7276,6 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
   LocalFunctionFragmentImpl(super.name, super.offset);
 
   LocalFunctionFragmentImpl.forOffset(super.nameOffset) : super.forOffset();
-
-  @override
-  bool get isDartCoreIdentical => false;
-
-  @override
-  bool get isEntryPoint => false;
 
   @override
   bool get _includeNameOffsetInIdentifier {
@@ -10017,10 +9995,14 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   }
 
   @override
-  bool get isDartCoreIdentical => firstFragment.isDartCoreIdentical;
+  bool get isDartCoreIdentical {
+    return name3 == 'identical' && library2.isDartCore;
+  }
 
   @override
-  bool get isEntryPoint => firstFragment.isEntryPoint;
+  bool get isEntryPoint {
+    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
+  }
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
@@ -10065,16 +10047,6 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
 
   @override
   set enclosingElement3(covariant CompilationUnitElementImpl element);
-
-  @override
-  bool get isDartCoreIdentical {
-    return name == 'identical' && library.isDartCore;
-  }
-
-  @override
-  bool get isEntryPoint {
-    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
-  }
 }
 
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl

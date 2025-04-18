@@ -105,9 +105,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   @override
   CompilationUnitElement? get enclosingElement3;
 
-  /// The top-level functions declared in this compilation unit.
-  List<FunctionElement> get functions;
-
   /// The libraries exported by this unit.
   List<LibraryExportElement> get libraryExports;
 
@@ -915,36 +912,6 @@ abstract class FieldFormalParameterElement implements ParameterElement {
   FieldElement? get field;
 }
 
-/// A (non-method) function. This can be either a top-level function, a local
-/// function, a closure, or the initialization expression for a field or
-/// variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TopLevelFunctionElement or LocalFunctionElement')
-abstract class FunctionElement implements ExecutableElement, LocalElement {
-  /// The name of the method that can be implemented by a class to allow its
-  /// instances to be invoked as if they were a function.
-  static final String CALL_METHOD_NAME = "call";
-
-  /// The name of the synthetic function defined for libraries that are
-  /// deferred.
-  static final String LOAD_LIBRARY_NAME = "loadLibrary";
-
-  /// The name of the function used as an entry point.
-  static const String MAIN_FUNCTION_NAME = "main";
-
-  /// The name of the method that will be invoked if an attempt is made to
-  /// invoke an undefined method on an object.
-  static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
-
-  /// Whether the function represents `identical` from the `dart:core` library.
-  bool get isDartCoreIdentical;
-
-  /// Whether the function is an entry point, i.e. a top-level function and
-  /// has the name `main`.
-  bool get isEntryPoint;
-}
-
 /// An element that has a [FunctionType] as its [type].
 ///
 /// This also provides convenient access to the parameters and return type.
@@ -1059,14 +1026,6 @@ abstract class LibraryElement implements _ExistingElement {
   @override
   Null get enclosingElement3;
 
-  /// The entry point for this library, or `null` if this library does
-  /// not have an entry point.
-  ///
-  /// The entry point is defined to be a zero argument top-level function
-  /// whose name is `main`.
-  @Deprecated(elementModelDeprecationMsg)
-  FunctionElement? get entryPoint;
-
   /// The libraries that are exported from this library.
   List<LibraryElement> get exportedLibraries;
 
@@ -1104,12 +1063,6 @@ abstract class LibraryElement implements _ExistingElement {
 
   @override
   LibraryElement get library;
-
-  /// The element representing the synthetic function `loadLibrary` that is
-  /// implicitly defined for this library if the library is imported using a
-  /// deferred import.
-  @Deprecated(elementModelDeprecationMsg)
-  FunctionElement get loadLibraryFunction;
 
   /// The name of this library, possibly the empty string if this library does
   /// not have an explicit name.

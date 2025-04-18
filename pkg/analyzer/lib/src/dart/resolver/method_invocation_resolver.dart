@@ -780,9 +780,9 @@ class MethodInvocationResolver with ScopeHelpers {
         var firstPrefix = imports[0].prefix2;
         if (firstPrefix != null && firstPrefix.isDeferred) {
           var importedLibrary = imports[0].importedLibrary;
-          var element = importedLibrary?.loadLibraryFunction;
+          var element = importedLibrary?.loadLibraryFunction2;
           if (element != null) {
-            nameNode.element = element.asElement2;
+            nameNode.element = element;
             _setResolution(node, element.type, whyNotPromotedArguments,
                 contextType: contextType);
             return null;

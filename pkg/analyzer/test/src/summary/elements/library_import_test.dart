@@ -1127,7 +1127,7 @@ library
     var library = await buildLibrary("import 'foo.dart';");
     var libraryImports = library.definingCompilationUnit.libraryImports;
     var importedLibrary = libraryImports[0].importedLibrary!;
-    expect(importedLibrary.loadLibraryFunction, isNotNull);
+    expect(importedLibrary.loadLibraryFunction2, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);
     checkElementText(library, r'''

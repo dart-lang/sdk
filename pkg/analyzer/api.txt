@@ -2978,7 +2978,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: CompilationUnitElement Function())
     accessors (getter: List<PropertyAccessorElement>)
     enclosingElement3 (getter: CompilationUnitElement?)
-    functions (getter: List<FunctionElement>)
     libraryExports (getter: List<LibraryExportElement>)
     libraryImportPrefixes (getter: List<PrefixElement>)
     libraryImports (getter: List<LibraryImportElement>)
@@ -3174,14 +3173,6 @@ package:analyzer/dart/element/element.dart:
   FieldFormalParameterElement (class extends Object implements ParameterElement, deprecated):
     new (constructor: FieldFormalParameterElement Function())
     field (getter: FieldElement?, deprecated)
-  FunctionElement (class extends Object implements ExecutableElement, LocalElement, deprecated):
-    CALL_METHOD_NAME (static getter: String)
-    LOAD_LIBRARY_NAME (static getter: String)
-    MAIN_FUNCTION_NAME (static getter: String)
-    NO_SUCH_METHOD_METHOD_NAME (static getter: String)
-    new (constructor: FunctionElement Function())
-    isDartCoreIdentical (getter: bool)
-    isEntryPoint (getter: bool)
   FunctionTypedElement (class extends Object implements TypeParameterizedElement, deprecated):
     new (constructor: FunctionTypedElement Function())
     parameters (getter: List<ParameterElement>)
@@ -3215,7 +3206,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: LibraryElement Function())
     definingCompilationUnit (getter: CompilationUnitElement, deprecated)
     enclosingElement3 (getter: Null)
-    entryPoint (getter: FunctionElement?, deprecated)
     exportNamespace (getter: Namespace)
     exportedLibraries (getter: List<LibraryElement>)
     featureSet (getter: FeatureSet)
@@ -3226,7 +3216,6 @@ package:analyzer/dart/element/element.dart:
     isInSdk (getter: bool)
     languageVersion (getter: LibraryLanguageVersion)
     library (getter: LibraryElement)
-    loadLibraryFunction (getter: FunctionElement, deprecated)
     name (getter: String)
     publicNamespace (getter: Namespace)
     session (getter: AnalysisSession)
