@@ -12,7 +12,6 @@ import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -425,7 +424,7 @@ class CiderRenameComputer {
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
-    var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+    var node = resolvedUnit.unit.nodeCovering(offset: offset);
     var element = getElementOfNode2(node);
 
     if (node == null || element == null) {

@@ -161,6 +161,14 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element2> {
       } else if (parent.name == node.endToken) {
         return parent.declaredFragment?.element;
       }
+    } else if (parent is ConstructorSelector) {
+      var parent2 = parent.parent;
+      if (parent2 is EnumConstantArguments) {
+        var parent3 = parent2.parent;
+        if (parent3 is EnumConstantDeclaration) {
+          return parent3.constructorElement2;
+        }
+      }
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
       if (grandParent is LibraryDirective) {
