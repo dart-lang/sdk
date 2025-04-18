@@ -9,7 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  analyzer: ^7.4.0
+  analyzer: ^8.0.0-0
   analyzer_plugin: ^0.13.0
   meta: ^1.16.0
   yaml: ^3.1.0

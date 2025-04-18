@@ -1281,6 +1281,9 @@ abstract class InstanceElement2
         TypeParameterizedElement2,
         HasSinceSdkVersion {
   @override
+  InstanceElement2 get baseElement;
+
+  @override
   LibraryElement2 get enclosingElement2;
 
   /// The fields declared in this element.

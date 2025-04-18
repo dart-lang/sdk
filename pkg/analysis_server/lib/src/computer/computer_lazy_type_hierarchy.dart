@@ -49,36 +49,16 @@ class DartLazyTypeHierarchyComputer {
   }
 
   /// Finds supertypes for the [Element2] at [location].
-  ///
-  /// If [anchor] is provided, it will be used to navigate to the element at
-  /// [location] to preserve type arguments that have been provided along the
-  /// way.
-  ///
-  /// Anchors are included in returned types (where necessary to preserve type
-  /// arguments) that can be used when calling for the next level of types.
   Future<List<TypeHierarchyRelatedItem>?> findSupertypes(
-    ElementLocation location, {
-    TypeHierarchyAnchor? anchor,
-  }) async {
+    ElementLocation location,
+  ) async {
     var targetElement = await _findTargetElement(location);
     if (targetElement == null) {
       return null;
     }
     var targetType = targetElement.thisType;
 
-    // If we were provided an anchor, use it to re-locate the target type so
-    // that any type arguments supplied along the way will be preserved in the
-    // new node.
-    if (anchor != null) {
-      targetType =
-          await _locateTargetFromAnchor(anchor, targetType) ?? targetType;
-    }
-
-    // If we had no existing anchor, create one that starts from this target as
-    // the starting point for the new supertypes.
-    anchor ??= TypeHierarchyAnchor(location: location, path: []);
-
-    return _getSupertypes(targetType, anchor: anchor);
+    return _getSupertypes(targetType);
   }
 
   /// Finds a target for starting type hierarchy navigation at [offset].
@@ -101,7 +81,9 @@ class DartLazyTypeHierarchyComputer {
       }
     }
 
-    return type is InterfaceType ? TypeHierarchyItem.forType(type) : null;
+    return type is InterfaceType
+        ? TypeHierarchyItem.forElement(type.element3)
+        : null;
   }
 
   /// Locate the [Element2] referenced by [location].
@@ -153,10 +135,7 @@ class DartLazyTypeHierarchyComputer {
   /// Includes all elements that contribute implementation to the type
   /// such as supertypes and mixins, but not interfaces, constraints or
   /// extended types.
-  List<TypeHierarchyRelatedItem> _getSupertypes(
-    InterfaceType type, {
-    TypeHierarchyAnchor? anchor,
-  }) {
+  List<TypeHierarchyRelatedItem> _getSupertypes(InterfaceType type) {
     var supertype = type.superclass;
     var interfaces = type.interfaces;
     var mixins = type.mixins;
@@ -170,19 +149,6 @@ class DartLazyTypeHierarchyComputer {
           ...mixins.map(TypeHierarchyRelatedItem.mixesIn),
         ].nonNulls.toList();
 
-    if (anchor != null) {
-      for (var (index, item) in supertypes.indexed) {
-        // We only need to carry the anchor along if the supertype has type
-        // arguments that we may be populating.
-        if (item._type.typeArguments.isNotEmpty) {
-          item._anchor = TypeHierarchyAnchor(
-            location: anchor.location,
-            path: [...anchor.path, index],
-          );
-        }
-      }
-    }
-
     return supertypes;
   }
 
@@ -193,29 +159,6 @@ class DartLazyTypeHierarchyComputer {
       declaration is MixinDeclaration ||
       declaration is ExtensionTypeDeclaration ||
       declaration is EnumDeclaration;
-
-  /// Navigate to [target] from [anchor], preserving type arguments supplied
-  /// along the way.
-  Future<InterfaceType?> _locateTargetFromAnchor(
-    TypeHierarchyAnchor anchor,
-    InterfaceType target,
-  ) async {
-    // Start from the anchor.
-    var anchorElement = await _findTargetElement(anchor.location);
-    var anchorPath = anchor.path;
-
-    // Follow the provided path.
-    var type = anchorElement?.thisType;
-    for (int i = 0; i < anchorPath.length && type != null; i++) {
-      var index = anchorPath[i];
-      var supertypes = _getSupertypes(type);
-      type = supertypes.length >= index + 1 ? supertypes[index]._type : null;
-    }
-
-    // Verify the element we arrived at matches the targetElement to guard
-    // against code changes that made the path from the anchor invalid.
-    return type != null && type.element3 == target.element3 ? type : null;
-  }
 }
 
 class TypeHierarchyAnchor {
@@ -241,9 +184,6 @@ class TypeHierarchyItem {
   /// names/identifiers have not changed).
   final ElementLocation location;
 
-  /// The type being displayed.
-  final InterfaceType _type;
-
   /// The file that contains the declaration of this item.
   final String file;
 
@@ -254,28 +194,26 @@ class TypeHierarchyItem {
   final SourceRange codeRange;
 
   TypeHierarchyItem({
-    required InterfaceType type,
     required this.displayName,
     required this.location,
     required this.file,
     required this.nameRange,
     required this.codeRange,
-  }) : _type = type;
+  });
 
-  TypeHierarchyItem._forType({
-    required InterfaceType type,
+  TypeHierarchyItem._forElement({
+    required InterfaceElement2 element,
     required this.location,
-  }) : _type = type,
-       displayName = _displayNameForType(type),
-       nameRange = _nameRangeForElement(type.element3),
-       codeRange = _codeRangeForElement(type.element3),
-       file = type.element3.firstFragment.libraryFragment.source.fullName;
+  }) : displayName = _displayNameForElement(element),
+       nameRange = _nameRangeForElement(element),
+       codeRange = _codeRangeForElement(element),
+       file = element.firstFragment.libraryFragment.source.fullName;
 
-  static TypeHierarchyItem? forType(InterfaceType type) {
-    var location = ElementLocation.forElement(type.element3);
+  static TypeHierarchyItem? forElement(InterfaceElement2 element) {
+    var location = ElementLocation.forElement(element);
     if (location == null) return null;
 
-    return TypeHierarchyItem._forType(type: type, location: location);
+    return TypeHierarchyItem._forElement(element: element, location: location);
   }
 
   /// Returns the [SourceRange] of the code for [element].
@@ -285,9 +223,9 @@ class TypeHierarchyItem {
     return SourceRange(firstFragment.codeOffset!, firstFragment.codeLength!);
   }
 
-  /// Returns a name to display in the hierarchy for [type].
-  static String _displayNameForType(InterfaceType type) {
-    return type.getDisplayString();
+  /// Returns a name to display in the hierarchy for [element].
+  static String _displayNameForElement(InterfaceElement2 element) {
+    return element.baseElement.thisType.getDisplayString();
   }
 
   /// Returns the [SourceRange] of the name for [element].
@@ -316,51 +254,48 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
   /// The relationship this item has with the target item.
   final TypeHierarchyItemRelationship relationship;
 
-  TypeHierarchyAnchor? _anchor;
-
-  TypeHierarchyRelatedItem({
-    required super.type,
-    required this.relationship,
-    required super.displayName,
-    required super.location,
-    required super.file,
-    required super.nameRange,
-    required super.codeRange,
-  });
-
-  TypeHierarchyRelatedItem.forType({
-    required super.type,
+  TypeHierarchyRelatedItem.forElement({
+    required super.element,
     required this.relationship,
     required super.location,
-  }) : super._forType();
-
-  /// An optional anchor element used to preserve type args.
-  TypeHierarchyAnchor? get anchor => _anchor;
+  }) : super._forElement();
 
   static TypeHierarchyRelatedItem? constrainedTo(InterfaceType type) =>
-      _forType(type, relationship: TypeHierarchyItemRelationship.constrainedTo);
+      _forElement(
+        type.element3,
+        relationship: TypeHierarchyItemRelationship.constrainedTo,
+      );
 
-  static TypeHierarchyRelatedItem? extends_(InterfaceType type) =>
-      _forType(type, relationship: TypeHierarchyItemRelationship.extends_);
+  static TypeHierarchyRelatedItem? extends_(InterfaceType type) => _forElement(
+    type.element3,
+    relationship: TypeHierarchyItemRelationship.extends_,
+  );
 
   static TypeHierarchyRelatedItem? implements(InterfaceType type) =>
-      _forType(type, relationship: TypeHierarchyItemRelationship.implements);
+      _forElement(
+        type.element3,
+        relationship: TypeHierarchyItemRelationship.implements,
+      );
 
-  static TypeHierarchyRelatedItem? mixesIn(InterfaceType type) =>
-      _forType(type, relationship: TypeHierarchyItemRelationship.mixesIn);
+  static TypeHierarchyRelatedItem? mixesIn(InterfaceType type) => _forElement(
+    type.element3,
+    relationship: TypeHierarchyItemRelationship.mixesIn,
+  );
 
-  static TypeHierarchyRelatedItem? unknown(InterfaceType type) =>
-      _forType(type, relationship: TypeHierarchyItemRelationship.unknown);
+  static TypeHierarchyRelatedItem? unknown(InterfaceType type) => _forElement(
+    type.element3,
+    relationship: TypeHierarchyItemRelationship.unknown,
+  );
 
-  static TypeHierarchyRelatedItem? _forType(
-    InterfaceType type, {
+  static TypeHierarchyRelatedItem? _forElement(
+    InterfaceElement2 element, {
     required TypeHierarchyItemRelationship relationship,
   }) {
-    var location = ElementLocation.forElement(type.element3);
+    var location = ElementLocation.forElement(element);
     if (location == null) return null;
 
-    return TypeHierarchyRelatedItem.forType(
-      type: type,
+    return TypeHierarchyRelatedItem.forElement(
+      element: element,
       relationship: relationship,
       location: location,
     );

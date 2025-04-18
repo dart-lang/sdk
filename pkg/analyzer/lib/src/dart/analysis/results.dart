@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -187,15 +186,6 @@ class ElementDeclarationResultImpl
 
   ElementDeclarationResultImpl(
       this.fragment, this.node, this.parsedUnit, this.resolvedUnit);
-
-  @Deprecated('Use fragment instead')
-  @override
-  Element get element {
-    if (fragment case Element element) {
-      return element;
-    }
-    throw UnsupportedError('${fragment.runtimeType}');
-  }
 }
 
 class ErrorsResultImpl implements ErrorsResult {
@@ -280,12 +270,9 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
 class LibraryElementResultImpl implements LibraryElementResult {
   @override
-  final LibraryElementImpl element;
+  final LibraryElementImpl element2;
 
-  LibraryElementResultImpl(this.element);
-
-  @override
-  LibraryElementImpl get element2 => element;
+  LibraryElementResultImpl(this.element2);
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -297,15 +284,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     required super.session,
     required this.units,
   });
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration(Element element) {
-    if (element case Fragment fragment) {
-      return getFragmentDeclaration(fragment);
-    }
-    throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
-  }
 
   @Deprecated('Use getFragmentDeclaration() instead')
   @override
@@ -432,21 +410,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     required this.units,
   });
 
-  @Deprecated('Use element2 instead')
-  @override
-  LibraryElement get element => element2;
-
   @override
   TypeProviderImpl get typeProvider => element2.typeProvider;
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration(Element element) {
-    if (element case Fragment fragment) {
-      return getFragmentDeclaration(fragment);
-    }
-    throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
-  }
 
   @Deprecated('Use getFragmentDeclaration() instead')
   @override
@@ -512,12 +477,6 @@ class ResolvedUnitResultImpl extends FileResultImpl
   @override
   bool get exists => fileState.exists;
 
-  @Deprecated('Use libraryElement2 instead')
-  @override
-  LibraryElementImpl get libraryElement {
-    return libraryElement2;
-  }
-
   @override
   LibraryElementImpl get libraryElement2 {
     return libraryFragment.element;
@@ -536,14 +495,11 @@ class ResolvedUnitResultImpl extends FileResultImpl
 class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
-  final CompilationUnitElementImpl element;
+  final CompilationUnitElementImpl fragment;
 
   UnitElementResultImpl({
     required super.session,
     required super.fileState,
-    required this.element,
+    required this.fragment,
   });
-
-  @override
-  CompilationUnitElementImpl get fragment => element;
 }

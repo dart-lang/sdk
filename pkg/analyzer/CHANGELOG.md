@@ -1,3 +1,6 @@
+## 8.0.0-dev
+* Remove deprecated element model V1.
+
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.
   This API was removed in 7.4.0 under the assumption that its removal would

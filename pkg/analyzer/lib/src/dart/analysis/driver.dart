@@ -926,7 +926,7 @@ class AnalysisDriver {
 
         var unitResult = await getUnitElement(file.path);
         if (unitResult is UnitElementResultImpl) {
-          return LibraryElementResultImpl(unitResult.element.library);
+          return LibraryElementResultImpl(unitResult.fragment.element);
         }
 
         // Some invalid results are invalid results for this request.
@@ -1964,7 +1964,7 @@ class AnalysisDriver {
         var result = UnitElementResultImpl(
           session: currentSession,
           fileState: file,
-          element: element,
+          fragment: element,
         );
 
         _unitElementRequestedFiles.completeAll(path, result);
