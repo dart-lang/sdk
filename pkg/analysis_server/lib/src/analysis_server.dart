@@ -646,19 +646,14 @@ abstract class AnalysisServer {
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
   Future<Element2?> getElementAtOffset(String file, int offset) async {
+    var unitResult = await getResolvedUnit(file);
+    if (unitResult == null) {
+      return null;
+    }
+
     if (!priorityFiles.contains(file)) {
-      var driver = getAnalysisDriver(file);
-      if (driver == null) {
-        return null;
-      }
-
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult is! UnitElementResult) {
-        return null;
-      }
-
       var fragment = findFragmentByNameOffset(
-        unitElementResult.fragment,
+        unitResult.libraryFragment,
         offset,
       );
       if (fragment != null) {
@@ -666,8 +661,8 @@ abstract class AnalysisServer {
       }
     }
 
-    var node = await getNodeAtOffset(file, offset);
-    return getElementOfNode(node);
+    var unit = unitResult.unit;
+    return getElementOfNode(unit.nodeCovering(offset: offset));
   }
 
   /// Returns the element associated with the [node].
@@ -731,18 +726,6 @@ abstract class AnalysisServer {
 
       return null;
     }
-  }
-
-  /// Return a [Future] that completes with the resolved [AstNode] at the
-  /// given [offset] of the given [file], or with `null` if there is no node as
-  /// the [offset].
-  Future<AstNode?> getNodeAtOffset(String file, int offset) async {
-    var result = await getResolvedUnit(file);
-    var unit = result?.unit;
-    if (unit != null) {
-      return unit.nodeCovering(offset: offset);
-    }
-    return null;
   }
 
   /// Return the unresolved unit for the file with the given [path].
