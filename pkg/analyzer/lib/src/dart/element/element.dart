@@ -10885,14 +10885,14 @@ abstract class TypeParameterizedElementImpl2 extends ElementImpl2
 
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedElementMixin on ElementImpl
-    implements
-        _ExistingElementImpl,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeParameterizedElement,
-        TypeParameterizedFragment {
+    implements _ExistingElementImpl, TypeParameterizedFragment {
   List<TypeParameterElementImpl> _typeParameters = const [];
 
-  @override
+  /// If the element defines a type, indicates whether the type may safely
+  /// appear without explicit type parameters as the bounds of a type parameter
+  /// declaration.
+  ///
+  /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded => true;
 
   @override
@@ -10900,7 +10900,10 @@ mixin TypeParameterizedElementMixin on ElementImpl
 
   ElementLinkedData? get linkedData;
 
-  @override
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
   List<TypeParameterElementImpl> get typeParameters {
     linkedData?.read(this);
     return _typeParameters;

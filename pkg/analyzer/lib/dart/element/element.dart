@@ -1220,27 +1220,6 @@ abstract class TypeParameterElement implements TypeDefiningElement {
   });
 }
 
-/// An element that has type parameters, such as a class or a typedef. This also
-/// includes functions and methods if support for generic methods is enabled.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeParameterizedElement2 instead')
-abstract class TypeParameterizedElement implements _ExistingElement {
-  /// If the element defines a type, indicates whether the type may safely
-  /// appear without explicit type parameters as the bounds of a type parameter
-  /// declaration.
-  ///
-  /// If the element does not define a type, returns `true`.
-  bool get isSimplyBounded;
-
-  /// The type parameters declared by this element directly.
-  ///
-  /// This does not include type parameters that are declared by any enclosing
-  /// elements.
-  @Deprecated(elementModelDeprecationMsg)
-  List<TypeParameterElement> get typeParameters;
-}
-
 /// A pseudo-elements that represents names that are undefined. This situation
 /// is not allowed by the language, so objects implementing this interface
 /// always represent an error. As a result, most of the normal operations on
