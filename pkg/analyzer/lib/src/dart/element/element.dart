@@ -3378,7 +3378,51 @@ class ElementLocationImpl implements ElementLocation {
 
 /// A shared internal interface of `Element` and [Member].
 /// Used during migration to avoid referencing `Element`.
-abstract class ElementOrMember {}
+abstract class ElementOrMember {
+  /// The declaration of this element.
+  ///
+  /// If the element is a view on an element, e.g. a method from an interface
+  /// type, with substituted type parameters, return the corresponding element
+  /// from the class, without any substitutions. If this element is already a
+  /// declaration (or a synthetic element, e.g. a synthetic property accessor),
+  /// return itself.
+  ElementOrMember? get declaration;
+
+  /// The display name of this element, possibly the empty string if the
+  /// element does not have a name.
+  ///
+  /// In most cases the name and the display name are the same. Differences
+  /// though are cases such as setters where the name of some setter `set f(x)`
+  /// is `f=`, instead of `f`.
+  String get displayName;
+
+  /// The element that either physically or logically encloses this element.
+  ///
+  /// For [LibraryElement] returns `null`, because libraries are the top-level
+  /// elements in the model.
+  ///
+  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
+  /// uses `part` directive to include this element, or `null` if this element
+  /// is the defining unit of the library.
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
+  Element? get enclosingElement3;
+
+  /// The kind of element that this is.
+  ElementKind get kind;
+
+  /// The name of this element, or `null` if this element does not have a name.
+  String? get name;
+
+  /// The length of the name of this element in the file that contains the
+  /// declaration of this element, or `0` if this element does not have a name.
+  int get nameLength;
+
+  /// The offset of the name of this element in the file that contains the
+  /// declaration of this element, or `-1` if this element is synthetic, does
+  /// not have a name, or otherwise does not have an offset.
+  int get nameOffset;
+}
 
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl implements EnumFragment {
@@ -3734,21 +3778,79 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement`.
-abstract class ExecutableElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ExecutableElement,
-        ElementOrMember {
+abstract class ExecutableElementOrMember implements ElementOrMember {
   @override
+  ExecutableElementOrMember get declaration;
+
+  @override
+  String get displayName;
+
+  /// Whether the executable element did not have an explicit return type
+  /// specified for it in the original source.
+  bool get hasImplicitReturnType;
+
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
+  bool get isAbstract;
+
+  /// Whether the executable element has body marked as being asynchronous.
+  bool get isAsynchronous;
+
+  /// Whether the element is an augmentation.
+  ///
+  /// If `true`, declaration has the explicit `augment` modifier.
+  bool get isAugmentation;
+
+  /// Whether the executable element is an extension type member.
+  bool get isExtensionTypeMember;
+
+  /// Whether the executable element is external.
+  ///
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
+  bool get isExternal;
+
+  /// Whether the executable element has a body marked as being a generator.
+  bool get isGenerator;
+
+  /// Whether the executable element is an operator.
+  ///
+  /// The test may be based on the name of the executable element, in which
+  /// case the result will be correct when the name is legal.
+  bool get isOperator;
+
+  /// Whether the element is a static element.
+  ///
+  /// A static element is an element that is not associated with a particular
+  /// instance, but rather with an entire library or class.
+  bool get isStatic;
+
+  /// Whether the executable element has a body marked as being synchronous.
+  bool get isSynchronous;
+
+  /// The name of this element, or `null` if this element does not have a name.
+  @override
+  String get name;
+
+  /// The parameters defined by this executable element.
   List<ParameterElementMixin> get parameters;
 
-  @override
+  /// The return type defined by this element.
   TypeImpl get returnType;
 
-  @override
+  /// Return the source associated with this target, or `null` if this target is
+  /// not associated with a source.
+  Source get source;
+
+  /// The type defined by this element.
   FunctionTypeImpl get type;
 
-  @override
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
   List<TypeParameterElementImpl> get typeParameters;
 }
 

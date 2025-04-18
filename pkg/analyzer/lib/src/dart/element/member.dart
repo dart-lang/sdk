@@ -672,7 +672,7 @@ class GetterMember extends PropertyAccessorMember
     if (setter is SetterMember) {
       return setter;
     }
-    return setter.asElement2 as SetterElementImpl?;
+    return setter?.asElement2 as SetterElementImpl?;
   }
 
   @override
@@ -1416,7 +1416,7 @@ class SetterMember extends PropertyAccessorMember
     if (getter is GetterMember) {
       return getter;
     }
-    return getter.asElement2 as GetterElementImpl?;
+    return getter?.asElement2 as GetterElementImpl?;
   }
 
   @override

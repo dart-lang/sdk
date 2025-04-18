@@ -188,8 +188,6 @@ extension Element2OrNullExtension on Element2? {
         return element2.asElement;
       case DynamicElementImpl2():
         return self.firstFragment;
-      case ExecutableMember element2:
-        return element2.asElement;
       case ExtensionElementImpl2 element2:
         return element2.asElement;
       case FieldElementImpl2 element2:
