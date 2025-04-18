@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Computes selection ranges for a specific offset of a Dart [CompilationUnit].
 ///
@@ -19,7 +19,7 @@ class DartSelectionRangeComputer {
   /// Returns selection ranges for nodes containing [_offset], starting with the
   /// closest working up to the outer-most node.
   List<SelectionRange> compute() {
-    var node = NodeLocator(_offset).searchWithin(_unit);
+    var node = _unit.nodeCovering(offset: _offset);
     if (node == null) {
       return [];
     }

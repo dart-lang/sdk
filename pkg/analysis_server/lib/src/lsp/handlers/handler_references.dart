@@ -13,8 +13,8 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
@@ -63,7 +63,7 @@ class ReferencesHandler
     ReferenceParams params,
     OperationPerformanceImpl performance,
   ) async {
-    var node = NodeLocator(offset).searchWithin(result.unit);
+    var node = result.unit.nodeCovering(offset: offset);
     node = _getReferenceTargetNode(node);
 
     var element = switch (server.getElementOfNode(node)) {

@@ -32,13 +32,14 @@ const a = const A();
     ]);
 
     var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
-    var aConstructor = aLib.getClass('A')!.constructors.single;
-    var p = aConstructor.parameters.single as DefaultParameterElementImpl;
+    var aConstructor = aLib.getClass2('A')!.constructors2.single;
+    var p = aConstructor.formalParameters.single;
+    var pf = p.firstFragment as DefaultParameterElementImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
-    expect(p.isConstantEvaluated, isTrue);
-    expect(p.computeConstantValue()!.isNull, isTrue);
+    expect(pf.isConstantEvaluated, isTrue);
+    expect(pf.computeConstantValue()!.isNull, isTrue);
   }
 
   test_constFactoryRedirection_super() async {

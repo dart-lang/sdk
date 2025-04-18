@@ -869,6 +869,17 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
+  Constant visitDotShorthandPropertyAccess(
+      covariant DotShorthandPropertyAccessImpl node) {
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: node.propertyName,
+      element: node.propertyName.element,
+    );
+  }
+
+  @override
   Constant visitDoubleLiteral(DoubleLiteral node) {
     return DartObjectImpl(
       typeSystem,
@@ -2975,7 +2986,7 @@ class _InstanceCreationEvaluator {
       } else if (initializer is RedirectingConstructorInvocationImpl) {
         // This is a redirecting constructor, so just evaluate the constructor
         // it redirects to.
-        var baseElement = initializer.staticElement;
+        var baseElement = initializer.element?.lastFragment;
         if (baseElement != null && baseElement.isConst) {
           // Instantiate the constructor with the in-scope type arguments.
           var constructor = ConstructorMember.from(baseElement, definingType);

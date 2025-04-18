@@ -9155,8 +9155,7 @@ class A {
   }
 
   test_dependency_classTypaAlias_constructor_named() async {
-    configuration
-      .withStreamResolvedUnitResults = false;
+    configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
       initialA: r'''
 class A {
@@ -14986,6 +14985,204 @@ class A {
     );
   }
 
+  test_manifest_class_getter_toDuplicate_hasInstance_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasInstance_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  double get foo {}
+  int get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasInstance_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasInstance_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double get foo {}
+  int get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasStatic_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int get foo {}
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasStatic_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double get foo {}
+  static int get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
   test_manifest_class_interfacesAdd() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -15741,6 +15938,270 @@ class A {
     );
   }
 
+  test_manifest_class_method_fromDuplicate_hasInstanceInstance_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasInstanceInstance_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasInstanceStatic_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasInstanceStatic_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticInstance_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticInstance_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticStatic_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticStatic_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
   test_manifest_class_method_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -16005,6 +16466,270 @@ class A {
       updatedCode: r'''
 class A {
   void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+  static int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+  static int foo() {}
 }
 ''',
       expectedUpdatedEvents: r'''
@@ -16678,6 +17403,204 @@ class A {
       updatedCode: r'''
 class A {
   static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(double _) {}
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(double _) {}
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasStatic_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(int _) {}
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasStatic_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(double _) {}
+  static set foo(int _) {}
 }
 ''',
       expectedUpdatedEvents: r'''

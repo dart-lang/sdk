@@ -13,8 +13,8 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 typedef StaticOptions =
     Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>;
@@ -75,7 +75,7 @@ class TypeDefinitionHandler
 
       var offset = toOffset(result.lineInfo, pos);
       return offset.mapResult((offset) async {
-        var node = NodeLocator(offset).searchWithin(result.unit);
+        var node = result.unit.nodeCovering(offset: offset);
         if (node == null) {
           return success(_emptyResult);
         }

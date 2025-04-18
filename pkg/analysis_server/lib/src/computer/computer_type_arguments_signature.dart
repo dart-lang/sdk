@@ -9,8 +9,8 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// A computer for the signature help information about the type parameters for
 /// the [TypeArgumentList] surrounding the specified offset of a Dart
@@ -29,7 +29,7 @@ class DartTypeArgumentsSignatureComputer {
     this.preferredFormats, {
     this.documentationPreference = DocumentationPreference.full,
   }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
-       _node = NodeLocator(offset).searchWithin(unit);
+       _node = unit.nodeCovering(offset: offset);
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;

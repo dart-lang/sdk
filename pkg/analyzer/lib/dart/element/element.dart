@@ -60,57 +60,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// The result of applying augmentations to a [ClassElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedClassElement implements AugmentedInterfaceElement {
-  @override
-  ClassElement get firstFragment;
-}
-
-/// The result of applying augmentations to an [EnumElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
-  /// The enum constants declared in this element.
-  List<FieldElement> get constants;
-
-  @override
-  EnumElement get firstFragment;
-}
-
-/// The result of applying augmentations to an [ExtensionElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
-  /// The type that is extended by this extension.
-  DartType get extendedType;
-}
-
-/// The result of applying augmentations to an [ExtensionTypeElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedExtensionTypeElement
-    implements AugmentedInterfaceElement {
-  @override
-  ExtensionTypeElement get firstFragment;
-
-  /// The primary constructor of this extension.
-  ConstructorElement get primaryConstructor;
-
-  /// The representation of this extension.
-  FieldElement get representation;
-
-  /// The extension type erasure, obtained by recursively replacing every
-  /// subterm which is an extension type by the corresponding representation
-  /// type.
-  DartType get typeErasure;
-}
-
 /// The result of applying augmentations to a [InstanceElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -247,105 +196,6 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
     'Use BindPatternVariableFragment and BindPatternVariableElement2 instead')
 abstract class BindPatternVariableElement implements PatternVariableElement {}
 
-/// An element that represents a class or a mixin. The class can be defined by
-/// either a class declaration (with a class body), a mixin application (without
-/// a class body), a mixin declaration, or an enum declaration.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ClassElement2 instead')
-abstract class ClassElement implements InterfaceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedClassElement get augmented;
-
-  /// Whether the class or its superclass declares a non-final instance field.
-  bool get hasNonFinalField;
-
-  /// Whether the class is abstract. A class is abstract if it has an
-  /// explicit `abstract` modifier. Note, that this definition of
-  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
-  bool get isAbstract;
-
-  /// Whether this class is a base class.
-  ///
-  /// A class is a base class if it has an explicit `base` modifier, or the
-  /// class has a `base` induced modifier and [isSealed] is `true` as well.
-  /// The base modifier allows the class to be extended but not implemented.
-  bool get isBase;
-
-  /// Whether the class can be instantiated.
-  bool get isConstructable;
-
-  /// Whether the class represents the class 'Enum' defined in `dart:core`.
-  bool get isDartCoreEnum;
-
-  /// Whether the class represents the class 'Object' defined in `dart:core`.
-  bool get isDartCoreObject;
-
-  /// Whether the class has the property where, in a switch, if you cover all
-  /// of the subtypes of this element, then the compiler knows that you have
-  /// covered all possible instances of the type.
-  bool get isExhaustive;
-
-  /// Whether the class is a final class.
-  ///
-  /// A class is a final class if it has an explicit `final` modifier, or the
-  /// class has a `final` induced modifier and [isSealed] is `true` as well.
-  /// The final modifier prohibits this class from being extended, implemented,
-  /// or mixed in.
-  bool get isFinal;
-
-  /// Whether the class is an interface class.
-  ///
-  /// A class is an interface class if it has an explicit `interface` modifier,
-  /// or the class has an `interface` induced modifier and [isSealed] is `true`
-  /// as well. The interface modifier allows the class to be implemented, but
-  /// not extended or mixed in.
-  bool get isInterface;
-
-  /// Whether the class is a mixin application.
-  ///
-  /// A class is a mixin application if it was declared using the syntax
-  /// `class A = B with C;`.
-  bool get isMixinApplication;
-
-  /// Whether the class is a mixin class.
-  ///
-  /// A class is a mixin class if it has an explicit `mixin` modifier.
-  bool get isMixinClass;
-
-  /// Whether the class is a sealed class.
-  ///
-  /// A class is a sealed class if it has an explicit `sealed` modifier.
-  bool get isSealed;
-
-  /// Whether the class can validly be used as a mixin when defining
-  /// another class.
-  ///
-  /// For classes defined by a class declaration or a mixin application, the
-  /// behavior of this method is defined by the Dart Language Specification
-  /// in section 9:
-  /// <blockquote>
-  /// It is a compile-time error if a declared or derived mixin refers to super.
-  /// It is a compile-time error if a declared or derived mixin explicitly
-  /// declares a constructor. It is a compile-time error if a mixin is derived
-  /// from a class whose superclass is not Object.
-  /// </blockquote>
-  bool get isValidMixin;
-
-  /// Whether the class, assuming that it is within scope, is extendable to
-  /// classes in the given [library].
-  bool isExtendableIn(LibraryElement library);
-
-  /// Whether the class, assuming that it is within scope, is
-  /// implementable to classes, mixins, and enums in the given [library].
-  bool isImplementableIn(LibraryElement library);
-
-  /// Whether the class, assuming that it is within scope, is able to be
-  /// mixed-in by classes and enums in the given [library].
-  bool isMixableIn(LibraryElement library);
-}
-
 /// An element that is contained within a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -375,30 +225,14 @@ abstract class ClassMemberElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated(elementModelDeprecationMsg)
 abstract class CompilationUnitElement implements UriReferencedElement {
-  /// The extension elements accessible within this unit.
-  List<ExtensionElement> get accessibleExtensions;
-
   /// The top-level accessors (getters and setters) declared in this
   /// compilation unit.
   List<PropertyAccessorElement> get accessors;
-
-  /// The classes declared in this compilation unit.
-  List<ClassElement> get classes;
 
   /// The [CompilationUnitElement] that uses `part` directive to include this
   /// element, or `null` if this element is the defining unit of the library.
   @override
   CompilationUnitElement? get enclosingElement3;
-
-  /// The enums declared in this compilation unit.
-  List<EnumElement> get enums;
-
-  /// The extensions declared in this compilation unit.
-  List<ExtensionElement> get extensions;
-
-  /// The extension types declared in this compilation unit.
-  @experimental
-  List<ExtensionTypeElement> get extensionTypes;
 
   /// The top-level functions declared in this compilation unit.
   List<FunctionElement> get functions;
@@ -417,9 +251,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The [LineInfo] for the [source].
   LineInfo get lineInfo;
 
-  /// The mixins declared in this compilation unit.
-  List<MixinElement> get mixins;
-
   /// The parts included by this unit.
   List<PartElement> get parts;
 
@@ -437,16 +268,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The type aliases declared in this compilation unit.
   List<TypeAliasElement> get typeAliases;
-
-  /// Returns the class defined in this compilation unit that has the given
-  /// [name], or `null` if this compilation unit does not define a class with
-  /// the given name.
-  ClassElement? getClass(String name);
-
-  /// Returns the enum defined in this compilation unit that has the given
-  /// [name], or `null` if this compilation unit does not define an enum with
-  /// the given name.
-  EnumElement? getEnum(String name);
 }
 
 /// An element representing a constructor or a factory method defined within a
@@ -807,13 +628,6 @@ abstract class Element implements AnalysisTarget {
   @override
   Source? get source;
 
-  /// Uses the given [visitor] to visit this element.
-  ///
-  /// Returns the value returned by the visitor as a result of visiting this
-  /// element.
-  @Deprecated('Use Element2 and accept2() instead')
-  T? accept<T>(ElementVisitor<T> visitor);
-
   /// Returns the presentation of this element as it should appear when
   /// presented to users.
   ///
@@ -879,11 +693,6 @@ abstract class Element implements AnalysisTarget {
   /// that has the given type, or `null` if there is no such element.
   @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorOfType3<E extends Element>();
-
-  /// Uses the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use Element2 and visitChildren2() instead')
-  void visitChildren(ElementVisitor visitor);
 }
 
 /// A single annotation associated with an element.
@@ -1193,82 +1002,6 @@ abstract class ElementLocation {
   String get encoding;
 }
 
-/// An object that can be used to visit an element structure.
-///
-/// Clients may not extend, implement or mix-in this class. There are classes
-/// that implement this interface that provide useful default behaviors in
-/// `package:analyzer/dart/element/visitor.dart`. A couple of the most useful
-/// include
-/// * SimpleElementVisitor which implements every visit method by doing nothing,
-/// * RecursiveElementVisitor which will cause every node in a structure to be
-///   visited, and
-/// * ThrowingElementVisitor which implements every visit method by throwing an
-///   exception.
-@Deprecated('Use ElementVisitor2 instead')
-abstract class ElementVisitor<R> {
-  R? visitClassElement(ClassElement element);
-
-  R? visitCompilationUnitElement(CompilationUnitElement element);
-
-  R? visitConstructorElement(ConstructorElement element);
-
-  R? visitEnumElement(EnumElement element);
-
-  R? visitExtensionElement(ExtensionElement element);
-
-  R? visitExtensionTypeElement(ExtensionTypeElement element);
-
-  R? visitFieldElement(FieldElement element);
-
-  R? visitFieldFormalParameterElement(FieldFormalParameterElement element);
-
-  R? visitFunctionElement(FunctionElement element);
-
-  R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
-
-  R? visitLabelElement(LabelElement element);
-
-  R? visitLibraryElement(LibraryElement element);
-
-  R? visitLibraryExportElement(LibraryExportElement element);
-
-  R? visitLibraryImportElement(LibraryImportElement element);
-
-  R? visitLocalVariableElement(LocalVariableElement element);
-
-  R? visitMethodElement(MethodElement element);
-
-  R? visitMixinElement(MixinElement element);
-
-  R? visitMultiplyDefinedElement(MultiplyDefinedElement element);
-
-  R? visitParameterElement(ParameterElement element);
-
-  R? visitPartElement(PartElement element);
-
-  R? visitPrefixElement(PrefixElement element);
-
-  R? visitPropertyAccessorElement(PropertyAccessorElement element);
-
-  R? visitSuperFormalParameterElement(SuperFormalParameterElement element);
-
-  R? visitTopLevelVariableElement(TopLevelVariableElement element);
-
-  R? visitTypeAliasElement(TypeAliasElement element);
-
-  R? visitTypeParameterElement(TypeParameterElement element);
-}
-
-/// An element that represents an enum.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use EnumElement2 instead')
-abstract class EnumElement implements InterfaceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedEnumElement get augmented;
-}
-
 /// An element representing an executable object, including functions, methods,
 /// constructors, getters, and setters.
 ///
@@ -1331,61 +1064,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
 
   @override
   String get name;
-}
-
-/// An element that represents an extension.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ExtensionElement2 instead')
-abstract class ExtensionElement implements InstanceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionElement get augmented;
-
-  /// The type that is extended by this extension.
-  DartType get extendedType;
-
-  /// Returns the element representing the field with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// field with the given name.
-  FieldElement? getField(String name);
-
-  /// Returns the element representing the getter with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// getter with the given name.
-  PropertyAccessorElement? getGetter(String name);
-
-  /// Returns the element representing the method with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// method with the given name.
-  MethodElement? getMethod(String name);
-
-  /// Returns the element representing the setter with the given [name] that is
-  /// declared in this extension, or `null` if this extension does not declare a
-  /// setter with the given name.
-  PropertyAccessorElement? getSetter(String name);
-}
-
-/// An element that represents an extension type.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ExtensionTypeElement2 instead')
-abstract class ExtensionTypeElement implements InterfaceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionTypeElement get augmented;
-
-  /// The primary constructor of this extension.
-  @Deprecated(elementModelDeprecationMsg)
-  ConstructorElement get primaryConstructor;
-
-  /// The representation of this extension.
-  FieldElement get representation;
-
-  /// The extension type erasure, obtained by recursively replacing every
-  /// subterm which is an extension type by the corresponding representation
-  /// type.
-  DartType get typeErasure;
 }
 
 /// A field defined within a class.
@@ -1933,11 +1611,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// `part` directive.
   @Deprecated(elementModelDeprecationMsg)
   List<CompilationUnitElement> get units;
-
-  /// The class defined in this library that has the given [name], or
-  /// `null` if this library does not define a class with the given name.
-  @Deprecated(elementModelDeprecationMsg)
-  ClassElement? getClass(String name);
 }
 
 /// A single export directive within a library.
@@ -2038,38 +1711,6 @@ abstract class LocalVariableElement implements PromotableElement {
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   @override
   MethodElement get declaration;
-}
-
-/// An element that represents a mixin.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use MixinElement2 instead')
-abstract class MixinElement implements InterfaceElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedMixinElement get augmented;
-
-  /// Whether the mixin is a base mixin.
-  ///
-  /// A mixin is a base mixin if it has an explicit `base` modifier.
-  /// The base modifier allows a mixin to be mixed in, but not implemented.
-  bool get isBase;
-
-  /// The superclass constraints defined for this mixin.
-  ///
-  /// If the declaration does not have an `on` clause, then the list will
-  /// contain the type for the class `Object`.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get superclassConstraints;
-
-  /// Whether the element, assuming that it is within scope, is
-  /// implementable to classes, mixins, and enums in the given [library].
-  bool isImplementableIn(LibraryElement library);
 }
 
 /// A pseudo-element that represents multiple elements defined within a single

@@ -32,7 +32,7 @@ import 'package:flutter/material.dart';
 void f() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
-    children: <Widget>[
+    c^hildren: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),
@@ -48,7 +48,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    children: <Widget>[
+    childr^en: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),
@@ -64,7 +64,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
+    cro^ssAxisAlignment: CrossAxisAlignment.center,
   );
 }
 ''');

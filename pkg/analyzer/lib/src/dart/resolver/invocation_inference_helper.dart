@@ -6,6 +6,7 @@
 library;
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -86,17 +87,16 @@ class InvocationInferenceHelper {
   /// and the [constructorName] does not have explicit type arguments,
   /// return the element and type parameters to infer. Otherwise return `null`.
   ConstructorElementToInfer? constructorElementToInfer({
-    required ConstructorName constructorName,
+    required Element2? typeElement,
+    required SimpleIdentifierImpl? constructorName,
     required LibraryElementImpl definingLibrary,
   }) {
     List<TypeParameterElementImpl2> typeParameters;
     ConstructorElementMixin2? rawElement;
 
-    var typeName = constructorName.type;
-    var typeElement = typeName.element2;
     if (typeElement is InterfaceElementImpl2) {
       typeParameters = typeElement.typeParameters2;
-      var constructorIdentifier = constructorName.name;
+      var constructorIdentifier = constructorName;
       if (constructorIdentifier == null) {
         rawElement = typeElement.unnamedConstructor2;
       } else {
@@ -111,7 +111,7 @@ class InvocationInferenceHelper {
       typeParameters = typeElement.typeParameters2;
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {
-        var constructorIdentifier = constructorName.name;
+        var constructorIdentifier = constructorName;
         rawElement = aliasedType.lookUpConstructor2(
           constructorIdentifier?.name,
           definingLibrary,

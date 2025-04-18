@@ -90,65 +90,6 @@ mixin AugmentableFragment on ElementImpl {
 }
 
 @Deprecated(elementModelDeprecationMsg)
-class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedClassElement {
-  AugmentedClassElementImpl(super.firstFragment);
-
-  @override
-  ClassElementImpl get firstFragment {
-    return super.firstFragment as ClassElementImpl;
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedEnumElement {
-  AugmentedEnumElementImpl(super.firstFragment);
-
-  @override
-  List<FieldElement> get constants => firstFragment.constants;
-
-  @override
-  EnumElementImpl get firstFragment {
-    return super.firstFragment as EnumElementImpl;
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedExtensionElement {
-  AugmentedExtensionElementImpl(super.firstFragment);
-
-  @override
-  DartType get extendedType => firstFragment.extendedType;
-
-  @override
-  ExtensionElementImpl get firstFragment {
-    return super.firstFragment as ExtensionElementImpl;
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedExtensionTypeElement {
-  AugmentedExtensionTypeElementImpl(super.firstFragment);
-
-  @override
-  ExtensionTypeElementImpl get firstFragment {
-    return super.firstFragment as ExtensionTypeElementImpl;
-  }
-
-  @override
-  ConstructorElement get primaryConstructor => firstFragment.primaryConstructor;
-
-  @override
-  FieldElement get representation => firstFragment.representation;
-
-  @override
-  DartType get typeErasure => firstFragment.typeErasure;
-}
-
-@Deprecated(elementModelDeprecationMsg)
 class AugmentedInstanceElementImpl implements AugmentedInstanceElement {
   @override
   final InstanceElementImpl firstFragment;
@@ -253,21 +194,6 @@ class AugmentedInterfaceElementImpl extends AugmentedInstanceElementImpl
   }
 }
 
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedMixinElement {
-  AugmentedMixinElementImpl(super.firstFragment);
-
-  @override
-  MixinElementImpl get firstFragment {
-    return super.firstFragment as MixinElementImpl;
-  }
-
-  @override
-  List<InterfaceType> get superclassConstraints =>
-      firstFragment.superclassConstraints;
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements
         // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
@@ -331,10 +257,7 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
 
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ClassElement,
-        ClassFragment {
+    implements ClassFragment {
   late ClassElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -346,10 +269,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     assert(!isMixinApplication);
     super.accessors = accessors;
   }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedClassElement get augmented => AugmentedClassElementImpl(this);
 
   @override
   set constructors(List<ConstructorElementImpl> constructors) {
@@ -381,12 +300,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return constructors.any((c) => !c.isFactory && c.isConst);
   }
 
-  @override
-  bool get hasNonFinalField {
-    return element.hasNonFinalField;
-  }
-
-  @override
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
@@ -400,15 +313,12 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return hasModifier(Modifier.BASE);
   }
 
-  @override
   bool get isConstructable => !isSealed && !isAbstract;
 
-  @override
   bool get isDartCoreEnum {
     return name == 'Enum' && library.isDartCore;
   }
 
-  @override
   bool get isDartCoreObject {
     return name == 'Object' && library.isDartCore;
   }
@@ -417,10 +327,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return name == 'Record' && library.isDartCore;
   }
 
-  @override
   bool get isExhaustive => isSealed;
 
-  @override
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
   }
@@ -429,7 +337,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.FINAL, isFinal);
   }
 
-  @override
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
   }
@@ -438,7 +345,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.INTERFACE, isInterface);
   }
 
-  @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);
   }
@@ -448,7 +354,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
-  @override
   bool get isMixinClass {
     return hasModifier(Modifier.MIXIN_CLASS);
   }
@@ -457,7 +362,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.MIXIN_CLASS, isMixinClass);
   }
 
-  @override
   bool get isSealed {
     return hasModifier(Modifier.SEALED);
   }
@@ -466,7 +370,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     setModifier(Modifier.SEALED, isSealed);
   }
 
-  @override
   bool get isValidMixin {
     var supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {
@@ -499,44 +402,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return super.previousFragment as ClassElementImpl?;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitClassElement(this);
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
-  }
-
-  @Deprecated('Use ClassElement2 instead')
-  @override
-  bool isExtendableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isInterface && !isFinal && !isSealed;
-  }
-
-  @Deprecated('Use ClassElement2 instead')
-  @override
-  bool isImplementableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isBase && !isFinal && !isSealed;
-  }
-
-  @Deprecated('Use ClassElement2 instead')
-  @override
-  bool isMixableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    } else if (this.library.featureSet.isEnabled(Feature.class_modifiers)) {
-      return isMixinClass && !isInterface && !isFinal && !isSealed;
-    }
-    return true;
   }
 
   @override
@@ -1000,14 +868,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     required this.lineInfo,
   }) : super(null, -1);
 
-  @Deprecated('Use accessibleExtensions2 instead')
-  @override
-  List<ExtensionElement> get accessibleExtensions {
-    return scope.accessibleExtensions
-        .map((e) => e.firstFragment as ExtensionElement)
-        .toList();
-  }
-
   @override
   List<ExtensionElement2> get accessibleExtensions2 {
     return scope.accessibleExtensions;
@@ -1059,7 +919,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     ];
   }
 
-  @override
   List<ClassElementImpl> get classes {
     return _classes;
   }
@@ -1093,7 +952,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return this;
   }
 
-  @override
   List<EnumElementImpl> get enums {
     return _enums;
   }
@@ -1109,7 +967,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<EnumFragment> get enums2 => enums.cast<EnumFragment>();
 
-  @override
   List<ExtensionElementImpl> get extensions {
     return _extensions;
   }
@@ -1127,7 +984,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ExtensionFragment> get extensions2 =>
       extensions.cast<ExtensionFragment>();
 
-  @override
   List<ExtensionTypeElementImpl> get extensionTypes {
     return _extensionTypes;
   }
@@ -1245,7 +1101,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return super.metadata;
   }
 
-  @override
   List<MixinElementImpl> get mixins {
     return _mixins;
   }
@@ -1368,48 +1223,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TypeAliasFragment> get typeAliases2 =>
       typeAliases.cast<TypeAliasFragment>();
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitCompilationUnitElement(this);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeCompilationUnitElement(this);
-  }
-
-  @override
-  ClassElementImpl? getClass(String className) {
-    for (var class_ in classes) {
-      if (class_.name == className) {
-        return class_;
-      }
-    }
-    return null;
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  EnumElement? getEnum(String name) {
-    for (var element in enums) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  /// Returns the mixin defined in this compilation unit that has the given
-  /// [name], or `null` if this compilation unit does not define a mixin with
-  /// the given name.
-  @Deprecated(elementModelDeprecationMsg)
-  MixinElement? getMixin(String name) {
-    for (var mixin in mixins) {
-      if (mixin.name == name) {
-        return mixin;
-      }
-    }
-    return null;
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -1768,11 +1584,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   set type(FunctionType type) {
     assert(false);
   }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitConstructorElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -2290,10 +2101,6 @@ class DynamicElementImpl extends ElementImpl
 
   @override
   Null get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => null;
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -3416,16 +3223,6 @@ abstract class ElementImpl
     return getDisplayString();
   }
 
-  /// Use the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use Element2 and visitChildren2() instead')
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    for (Element child in children) {
-      child.accept(visitor);
-    }
-  }
-
   /// Return flags that denote presence of a few specific annotations.
   int _getMetadataFlags() {
     var result = _metadataFlags;
@@ -3722,20 +3519,12 @@ class ElementLocationImpl implements ElementLocation {
 abstract class ElementOrMember {}
 
 /// An [InterfaceElementImpl] which is an enum.
-class EnumElementImpl extends InterfaceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        EnumElement,
-        EnumFragment {
+class EnumElementImpl extends InterfaceElementImpl implements EnumFragment {
   late EnumElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedEnumElement get augmented => AugmentedEnumElementImpl(this);
 
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
@@ -3770,12 +3559,6 @@ class EnumElementImpl extends InterfaceElementImpl
       }
     }
     return null;
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitEnumElement(this);
   }
 
   @override
@@ -4116,21 +3899,13 @@ abstract class ExecutableElementOrMember
 }
 
 class ExtensionElementImpl extends InstanceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ExtensionElement,
-        ExtensionFragment {
+    implements ExtensionFragment {
   late ExtensionElementImpl2 augmentedInternal;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionElement get augmented =>
-      AugmentedExtensionElementImpl(this);
 
   @Deprecated('Use Element2 instead')
   @override
@@ -4159,7 +3934,6 @@ class ExtensionElementImpl extends InstanceElementImpl
     return augmentedInternal;
   }
 
-  @override
   TypeImpl get extendedType {
     return element.extendedType;
   }
@@ -4198,52 +3972,9 @@ class ExtensionElementImpl extends InstanceElementImpl
   @override
   DartType get thisType => extendedType;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitExtensionElement(this);
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  FieldElement? getField(String name) {
-    for (FieldElement fieldElement in fields) {
-      if (name == fieldElement.name) {
-        return fieldElement;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElementOrMember? getGetter(String getterName) {
-    for (var accessor in accessors) {
-      if (accessor.isGetter && accessor.name == getterName) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElementOrMember? getMethod(String methodName) {
-    for (var method in methods) {
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  PropertyAccessorElement? getSetter(String setterName) {
-    return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
   }
 }
 
@@ -4284,13 +4015,9 @@ class ExtensionElementImpl2 extends InstanceElementImpl2
 }
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ExtensionTypeElement,
-        ExtensionTypeFragment {
+    implements ExtensionTypeFragment {
   late ExtensionTypeElementImpl2 augmentedInternal;
 
-  @override
   late DartType typeErasure;
 
   /// Whether the element has direct or indirect reference to itself,
@@ -4302,11 +4029,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   bool hasImplementsSelfReference = false;
 
   ExtensionTypeElementImpl(super.name, super.nameOffset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedExtensionTypeElement get augmented =>
-      AugmentedExtensionTypeElementImpl(this);
 
   @override
   ExtensionTypeElementImpl2 get element {
@@ -4327,7 +4049,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl? get previousFragment =>
       super.previousFragment as ExtensionTypeElementImpl?;
 
-  @override
   ConstructorElementImpl get primaryConstructor {
     return constructors.first;
   }
@@ -4336,19 +4057,12 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ConstructorFragment get primaryConstructor2 =>
       primaryConstructor as ConstructorFragment;
 
-  @override
   FieldElementImpl get representation {
     return fields.first;
   }
 
   @override
   FieldFragment get representation2 => representation as FieldFragment;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitExtensionTypeElement(this);
-  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -4539,10 +4253,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   FieldElementImpl? get previousFragment =>
       super.previousFragment as FieldElementImpl?;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 }
 
 class FieldElementImpl2 extends PropertyInducingElementImpl2
@@ -4703,11 +4413,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   FieldFormalParameterElementImpl? get previousFragment =>
       super.previousFragment as FieldFormalParameterElementImpl?;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitFieldFormalParameterElement(this);
 
   @override
   FieldFormalParameterElementImpl2 _createElement(
@@ -5458,10 +5163,6 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 }
 
 /// Common internal interface shared by elements whose type is a function type.
@@ -5617,12 +5318,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   /// [type].
   set type(FunctionTypeImpl type) {
     _type = type;
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitGenericFunctionTypeElement(this);
   }
 
   @override
@@ -7208,10 +6903,6 @@ class LabelElementImpl extends ElementImpl
 
   @override
   LabelElementImpl? get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLabelElement(this);
 }
 
 class LabelElementImpl2 extends ElementImpl2
@@ -7656,10 +7347,6 @@ class LibraryElementImpl extends ElementImpl
     return result;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLibraryElement(this);
-
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitLibraryElement(this);
@@ -7684,30 +7371,8 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  ClassElementImpl? getClass(String name) {
-    for (var unitElement in units) {
-      var element = unitElement.getClass(name);
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  @override
   ClassElementImpl2? getClass2(String name) {
     return _getElementByName(classes, name);
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  EnumElement? getEnum(String name) {
-    for (var unitElement in units) {
-      var element = unitElement.getEnum(name);
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
   }
 
   @override
@@ -7735,17 +7400,6 @@ class LibraryElementImpl extends ElementImpl
   @override
   GetterElement? getGetter(String name) {
     return _getElementByName(getters, name);
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  MixinElement? getMixin(String name) {
-    for (var unitElement in units) {
-      var element = unitElement.getMixin(name);
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
   }
 
   @override
@@ -7889,12 +7543,6 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingElement3;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitLibraryExportElement(this);
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExportElement(this);
@@ -7974,12 +7622,6 @@ class LibraryImportElementImpl extends _ExistingElementImpl
       );
     }
     return Namespace.EMPTY;
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitLibraryImportElement(this);
   }
 
   @override
@@ -8193,11 +7835,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   LocalVariableElementImpl? get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitLocalVariableElement(this);
 }
 
 class LocalVariableElementImpl2 extends PromotableElementImpl2
@@ -8731,10 +8368,6 @@ class MethodElementImpl extends ExecutableElementImpl
     }
     return this;
   }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 }
 
 class MethodElementImpl2 extends ExecutableElementImpl2
@@ -8815,10 +8448,7 @@ abstract class MethodElementOrMember
 
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        MixinElement,
-        MixinFragment {
+    implements MixinFragment {
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
   /// Names of methods, getters, setters, and operators that this mixin
@@ -8831,10 +8461,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedMixinElement get augmented => AugmentedMixinElementImpl(this);
 
   @override
   MixinElementImpl2 get element {
@@ -8885,24 +8511,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl
     throw StateError('Attempt to set a supertype for a mixin declaration.');
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitMixinElement(this);
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMixinElement(this);
-  }
-
-  @Deprecated('Use MixinElement2 instead')
-  @override
-  bool isImplementableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isBase;
   }
 }
 
@@ -9254,11 +8865,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   Source? get source => null;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitMultiplyDefinedElement(this);
-
   @override
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
@@ -9330,16 +8936,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     writeList(conflictingElements);
     buffer.write("]");
     return buffer.toString();
-  }
-
-  /// Use the given [visitor] to visit all of the children of this element.
-  /// There is no guarantee of the order in which the children will be visited.
-  @Deprecated('Use Element2 and visitChildren2() instead')
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    for (Element child in children) {
-      child.accept(visitor);
-    }
   }
 }
 
@@ -9551,10 +9147,6 @@ class NeverElementImpl extends ElementImpl
 
   @override
   Null get previousFragment => null;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => null;
 
   DartType instantiate({
     required NullabilitySuffix nullabilitySuffix,
@@ -9829,11 +9421,6 @@ class ParameterElementImpl extends VariableElementImpl
     _typeParameters = typeParameters;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitParameterElement(this);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
@@ -10019,10 +9606,6 @@ class PartElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingUnit;
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPartElement(this);
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writePartElement(this);
@@ -10166,10 +9749,6 @@ class PrefixElementImpl extends _ExistingElementImpl
   set scope(PrefixScope value) {
     _scope = value;
   }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -10415,11 +9994,6 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   PropertyInducingFragment? get variable3 => variable2;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitPropertyAccessorElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -11074,11 +10648,6 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
     return null;
   }
 
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitSuperFormalParameterElement(this);
-
   /// Return the index of this super-formal parameter among other super-formals.
   int indexIn(ConstructorElementImpl enclosingElement) {
     return enclosingElement.parameters
@@ -11272,11 +10841,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   TopLevelVariableElementImpl? get previousFragment =>
       super.previousFragment as TopLevelVariableElementImpl?;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitTopLevelVariableElement(this);
 }
 
 class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
@@ -11490,12 +11054,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitTypeAliasElement(this);
   }
 
   @override
@@ -11848,11 +11406,6 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   set variance(shared.Variance? newVariance) => _variance = newVariance;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitTypeParameterElement(this);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

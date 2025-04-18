@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 class CanRenameResponse {
   final LineInfo lineInfo;
@@ -349,9 +350,9 @@ class CheckNameResponse {
   ) async {
     var resolvedUnit = await canRename._fileResolver.resolve(path: path);
     var lineInfo = resolvedUnit.lineInfo;
-    var node = NodeLocator(
-      lineInfo.getOffsetOfLine(loc.lineNumber - 1) + loc.columnNumber,
-    ).searchWithin(resolvedUnit.unit);
+    var node = resolvedUnit.unit.nodeCovering(
+      offset: lineInfo.getOffsetOfLine(loc.lineNumber - 1) + loc.columnNumber,
+    );
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is InterpolationExpression && parent.rightBracket == null) {

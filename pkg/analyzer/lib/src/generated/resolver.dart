@@ -2292,20 +2292,28 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
 
     node.typeArguments?.accept(this);
-    var functionRewrite = elementResolver.visitDotShorthandInvocation(node,
+    var rewrittenExpression = elementResolver.visitDotShorthandInvocation(node,
         whyNotPromotedArguments: whyNotPromotedArguments,
         contextType: contextType);
-    // TODO(kallentu): Handle constructors.
-    if (functionRewrite is FunctionExpressionInvocationImpl) {
-      _resolveRewrittenFunctionExpressionInvocation(
-          functionRewrite, whyNotPromotedArguments,
-          contextType: contextType);
+    switch (rewrittenExpression) {
+      case null:
+        // TODO(kallentu): Report an error here.
+        break;
+      case FunctionExpressionInvocationImpl():
+        _resolveRewrittenFunctionExpressionInvocation(
+            rewrittenExpression, whyNotPromotedArguments,
+            contextType: contextType);
+
+        var replacement =
+            insertGenericFunctionInstantiation(node, contextType: contextType);
+        checkForArgumentTypesNotAssignableInList(
+            node.argumentList, whyNotPromotedArguments);
+        _insertImplicitCallReference(replacement, contextType: contextType);
+
+      case DotShorthandConstructorInvocationImpl():
+        _instanceCreationExpressionResolver
+            .resolveDotShorthand(rewrittenExpression);
     }
-    var replacement =
-        insertGenericFunctionInstantiation(node, contextType: contextType);
-    checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedArguments);
-    _insertImplicitCallReference(replacement, contextType: contextType);
 
     if (node.isDotShorthand) {
       popDotShorthandContext();

@@ -10,8 +10,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Returns the container for [element] that should be used in Call Hierarchy.
 ///
@@ -330,7 +330,7 @@ class DartCallHierarchyComputer {
 
   /// Finds a target node for call hierarchy navigation at [offset].
   AstNode? _findTargetNode(int offset) {
-    var node = NodeLocator(offset).searchWithin(_result.unit);
+    var node = _result.unit.nodeCovering(offset: offset);
     if (node is SimpleIdentifier &&
         node.parent != null &&
         node.parent is! VariableDeclaration &&
@@ -436,7 +436,7 @@ class DartCallHierarchyComputer {
     );
 
     if (result is ParsedUnitResult) {
-      var node = NodeLocator(offset).searchWithin(result.unit);
+      var node = result.unit.nodeCovering(offset: offset);
       if (node != null && !node.isSynthetic) {
         var parent = node.parent;
         // Handle named constructors which have their `.` included in the

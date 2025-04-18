@@ -93,6 +93,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         Directive,
         DoStatement,
         DotShorthandInvocation,
+        DotShorthandConstructorInvocation,
         DotShorthandPropertyAccess,
         DottedName,
         DoubleLiteral,

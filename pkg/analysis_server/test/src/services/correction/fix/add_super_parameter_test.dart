@@ -43,6 +43,29 @@ class B extends A {
   Future<void> test_named_first_existingPositional() async {
     await resolveTestCode('''
 class A {
+  A({required int a, required int b});
+}
+class B extends A {
+  B(this.i);
+
+  final int i;
+}
+''');
+    await assertHasFix('''
+class A {
+  A({required int a, required int b});
+}
+class B extends A {
+  B(this.i, {required super.a, required super.b});
+
+  final int i;
+}
+''');
+  }
+
+  Future<void> test_named_first_existingPositional2() async {
+    await resolveTestCode('''
+class A {
   A(int i, {required int a, required int b});
 }
 class B extends A {

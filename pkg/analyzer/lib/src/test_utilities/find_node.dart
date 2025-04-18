@@ -59,6 +59,9 @@ class FindNode {
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
+  DotShorthandConstructorInvocation
+      get singleDotShorthandConstructorInvocation => _single();
+
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();

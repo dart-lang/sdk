@@ -132,6 +132,47 @@ class AugmentedInvocationInferrer
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
+/// nodes of type [DotShorthandConstructorInvocation].
+class DotShorthandConstructorInvocationInferrer
+    extends FullInvocationInferrer<DotShorthandConstructorInvocationImpl> {
+  DotShorthandConstructorInvocationInferrer(
+      {required super.resolver,
+      required super.node,
+      required super.argumentList,
+      required super.contextType,
+      required super.whyNotPromotedArguments})
+      : super._();
+
+  @override
+  SimpleIdentifierImpl get _errorEntity => node.constructorName;
+
+  // TODO(kallentu): Implement const constructors.
+  @override
+  bool get _isConst => false;
+
+  @override
+  bool get _needsTypeArgumentBoundsCheck => true;
+
+  @override
+  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  List<FormalParameterElement>? _storeResult(
+      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
+    if (invokeType != null) {
+      var constructedType = invokeType.returnType;
+      var constructorElement = ConstructorMember.from2(
+        node.element!.baseElement,
+        constructedType as InterfaceType,
+      );
+      node.constructorName.element = constructorElement;
+      return constructorElement.formalParameters;
+    }
+    return null;
+  }
+}
+
+/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes of type [DotShorthandInvocation].
 class DotShorthandInvocationInferrer
     extends InvocationExpressionInferrer<DotShorthandInvocationImpl> {
