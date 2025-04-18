@@ -90,10 +90,7 @@ mixin AugmentableFragment on ElementImpl {
 }
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        BindPatternVariableElement,
-        BindPatternVariableFragment {
+    implements BindPatternVariableFragment {
   final DeclaredVariablePatternImpl node;
 
   /// This flag is set to `true` if this variable clashes with another
@@ -6326,11 +6323,8 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        JoinPatternVariableElement,
-        JoinPatternVariableFragment {
-  @override
+    implements JoinPatternVariableFragment {
+  /// The variables that join into this variable.
   final List<PatternVariableElementImpl> variables;
 
   shared.JoinedPatternVariableInconsistency inconsistency;
@@ -8942,11 +8936,9 @@ class PartElementImpl extends _ExistingElementImpl
 }
 
 class PatternVariableElementImpl extends LocalVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PatternVariableElement,
-        PatternVariableFragment {
-  @override
+    implements PatternVariableFragment {
+  /// The variable in which this variable joins with other pattern variables
+  /// with the same name, in a logical-or pattern, or shared case scope.
   JoinPatternVariableElementImpl? join;
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of

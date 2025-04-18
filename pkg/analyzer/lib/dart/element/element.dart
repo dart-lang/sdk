@@ -60,13 +60,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// A pattern variable that is explicitly declared.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(
-    'Use BindPatternVariableFragment and BindPatternVariableElement2 instead')
-abstract class BindPatternVariableElement implements PatternVariableElement {}
-
 /// An element that is contained within a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -818,21 +811,6 @@ abstract class ImportElementPrefix {
   PrefixElement get element;
 }
 
-/// A pattern variable that is a join of other pattern variables, created
-/// for a logical-or patterns, or shared `case` bodies in `switch` statements.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(
-    'Use JoinPatternVariableFragment and JoinPatternVariableElement2 instead')
-abstract class JoinPatternVariableElement implements PatternVariableElement {
-  /// Whether the [variables] are consistent, present in all branches,
-  /// and have the same type and finality.
-  bool get isConsistent;
-
-  /// The variables that join into this variable.
-  List<PatternVariableElement> get variables;
-}
-
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1124,16 +1102,6 @@ abstract class ParameterElement
 abstract class PartElement implements _ExistingElement {
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
-}
-
-/// A pattern variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PatternVariableFragment and PatternVariableElement2 instead')
-abstract class PatternVariableElement implements LocalVariableElement {
-  /// The variable in which this variable joins with other pattern variables
-  /// with the same name, in a logical-or pattern, or shared case scope.
-  JoinPatternVariableElement? get join;
 }
 
 /// A prefix used to import one or more libraries into another library.
