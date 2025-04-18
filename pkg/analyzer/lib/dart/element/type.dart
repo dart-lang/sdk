@@ -39,11 +39,6 @@ abstract class DartType {
 
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
-  @Deprecated('Use element3 instead')
-  Element? get element;
-
-  /// Return the element representing the declaration of this type, or `null`
-  /// if the type is not associated with an element.
   @experimental
   Element2? get element3;
 
@@ -238,7 +233,7 @@ abstract class DynamicType implements DartType {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionType implements DartType {
   @override
-  Null get element;
+  Null get element3;
 
   /// The formal parameters.
   @experimental
@@ -355,10 +350,6 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the constructors declared in this type.
   @experimental
   List<ConstructorElement2> get constructors2;
-
-  @Deprecated('Use element3 instead')
-  @override
-  InterfaceElement get element;
 
   @experimental
   @override
@@ -607,7 +598,7 @@ abstract class RecordType implements DartType {
   }) = RecordTypeImpl.fromApi;
 
   @override
-  Null get element;
+  Null get element3;
 
   /// The named fields (might be empty).
   List<RecordTypeNamedField> get namedFields;
@@ -663,18 +654,6 @@ abstract class TypeParameterType implements DartType {
   /// or `dynamic` if there was no explicit bound.
   DartType get bound;
 
-  /// An object that can be used to identify this type parameter with `==`.
-  ///
-  /// Depending on the use, [bound] may also need to be taken into account.
-  /// A given type parameter, it may have different bounds in different scopes.
-  /// Always consult the bound if that could be relevant.
-  @Deprecated('Elements are equal when they are identical')
-  ElementLocation get definition;
-
-  @Deprecated('Use element3 instead')
-  @override
-  TypeParameterElement get element;
-
   @experimental
   @override
   TypeParameterElement2 get element3;
@@ -684,5 +663,5 @@ abstract class TypeParameterType implements DartType {
 /// expression is meaningless, and intended to be discarded.
 abstract class VoidType implements DartType {
   @override
-  Null get element;
+  Null get element3;
 }

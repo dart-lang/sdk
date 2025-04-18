@@ -40,10 +40,6 @@ class DynamicTypeImpl extends TypeImpl
   /// Prevent the creation of instances of this class.
   DynamicTypeImpl._();
 
-  @Deprecated('Use element2 instead')
-  @override
-  DynamicElementImpl get element => DynamicElementImpl.instance;
-
   @override
   DynamicElementImpl2 get element3 => DynamicElementImpl2.instance;
 
@@ -193,10 +189,6 @@ class FunctionTypeImpl extends TypeImpl
     required this.sortedNamedParameters,
     super.alias,
   });
-
-  @Deprecated('Use element2 instead')
-  @override
-  Null get element => null;
 
   @override
   Null get element3 => null;
@@ -666,10 +658,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }).toFixedList();
   }
 
-  @Deprecated('Use element3 instead')
-  @override
-  InterfaceElementImpl get element => element3.asElement;
-
   @override
   List<GetterElement2OrMember> get getters {
     return _getters ??= element3.getters2.map((e) {
@@ -793,7 +781,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
-  String get name => element.name;
+  String get name => element3.name3!;
 
   /// The instantiated representation type, if [element3] is an extension type.
   TypeImpl? get representationType {
@@ -871,23 +859,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeInterfaceType(this);
-  }
-
-  @Deprecated('Use asInstanceOf2() instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
-    if (element == targetElement) {
-      return this;
-    }
-
-    for (var rawInterface in element.allSupertypes) {
-      if (rawInterface.element == targetElement) {
-        var substitution = Substitution.fromInterfaceType(this);
-        return substitution.mapInterfaceType(rawInterface);
-      }
-    }
-
-    return null;
   }
 
   @override
@@ -1182,10 +1153,6 @@ class InvalidTypeImpl extends TypeImpl
   /// Prevent the creation of instances of this class.
   InvalidTypeImpl._();
 
-  @Deprecated('Use element2 instead')
-  @override
-  Null get element => null;
-
   @override
   Null get element3 => null;
 
@@ -1234,9 +1201,6 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 
   /// The unique instance of this class, non-nullable.
   static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
-
-  @override
-  final NeverElementImpl element = NeverElementImpl.instance;
 
   @override
   final NeverElementImpl2 element3 = NeverElementImpl2.instance;
@@ -1363,10 +1327,6 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
       nullabilitySuffix: nullabilitySuffix,
     );
   }
-
-  @Deprecated('Use element2 instead')
-  @override
-  Null get element => null;
 
   @override
   Null get element3 => null;
@@ -1523,10 +1483,6 @@ abstract class TypeImpl implements DartType, SharedType {
 
   /// Initialize a newly created type.
   const TypeImpl({this.alias});
-
-  @Deprecated('Use element3 instead')
-  @override
-  Element? get element => element3?.asElement;
 
   @override
   TypeImpl get extensionTypeErasure {
@@ -1702,14 +1658,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl get bound =>
       promotedBound ?? element3.bound ?? DynamicTypeImpl.instance;
 
-  @Deprecated('Elements are equal when they are identical')
-  @override
-  ElementLocation get definition => element.location;
-
-  @Deprecated('Use element3 instead')
-  @override
-  TypeParameterElementImpl get element => element3.asElement;
-
   @override
   int get hashCode => element3.hashCode;
 
@@ -1737,7 +1685,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
-  String get name => element.name;
+  String get name => element3.name3!;
 
   TypeParameterTypeImpl get withoutPromotedBound {
     return TypeParameterTypeImpl(
@@ -1791,12 +1739,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return bound.asInstanceOf2(targetElement);
   }
 
-  @Deprecated('Use referencesAny2() instead')
-  @override
-  bool referencesAny(Set<TypeParameterElement> parameters) {
-    return parameters.contains(element);
-  }
-
   @override
   bool referencesAny2(Set<TypeParameterElementImpl2> parameters) {
     return parameters.contains(element3);
@@ -1820,10 +1762,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
 
   /// Prevent the creation of instances of this class.
   VoidTypeImpl._();
-
-  @Deprecated('Use element2 instead')
-  @override
-  Null get element => null;
 
   @override
   Null get element3 => null;
