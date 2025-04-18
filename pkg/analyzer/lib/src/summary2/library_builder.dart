@@ -693,7 +693,7 @@ class LibraryBuilder {
           directiveUri = DirectiveUriWithUnitImpl(
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
-            unit: unitElement,
+            libraryFragment: unitElement,
           );
         } else {
           directiveUri = DirectiveUriWithSourceImpl(

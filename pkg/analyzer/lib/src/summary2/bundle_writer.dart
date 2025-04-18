@@ -196,7 +196,7 @@ class BundleWriter {
     } else if (element is DirectiveUriWithUnitImpl) {
       _sink.writeByte(DirectiveUriKind.withUnit.index);
       writeWithSource(element);
-      _writeUnitElement(element.unit);
+      _writeUnitElement(element.libraryFragment);
     } else if (element is DirectiveUriWithSource) {
       _sink.writeByte(DirectiveUriKind.withSource.index);
       writeWithSource(element);

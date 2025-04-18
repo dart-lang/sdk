@@ -47,7 +47,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart'
@@ -82,43 +81,6 @@ abstract class ClassMemberElement implements Element {
   /// A static element is an element that is not associated with a particular
   /// instance, but rather with an entire library or class.
   bool get isStatic;
-}
-
-/// An element representing a compilation unit.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class CompilationUnitElement implements UriReferencedElement {
-  /// The [CompilationUnitElement] that uses `part` directive to include this
-  /// element, or `null` if this element is the defining unit of the library.
-  @override
-  CompilationUnitElement? get enclosingElement3;
-
-  /// The libraries exported by this unit.
-  List<LibraryExportElement> get libraryExports;
-
-  /// The prefixes used by [libraryImports].
-  ///
-  /// Each prefix can be used in more than one `import` directive.
-  List<PrefixElement> get libraryImportPrefixes;
-
-  /// The libraries imported by this unit.
-  List<LibraryImportElement> get libraryImports;
-
-  /// The [LineInfo] for the [source].
-  LineInfo get lineInfo;
-
-  /// The parts included by this unit.
-  List<PartElement> get parts;
-
-  /// The scope used to resolve names within this compilation unit.
-  ///
-  /// It includes all of the elements that are declared in the library, and all
-  /// of the elements imported into this unit or parent units.
-  Scope get scope;
-
-  @override
-  AnalysisSession get session;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -176,10 +138,6 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
   /// The library fragment referenced by the [source].
   @experimental
   LibraryFragment get libraryFragment;
-
-  /// The unit referenced by the [source].
-  @Deprecated('Use libraryFragment instead')
-  CompilationUnitElement get unit;
 }
 
 /// The base class for all of the elements in the element model. Generally
@@ -816,10 +774,6 @@ abstract class ImportElementPrefix {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated('Use LibraryElement2 instead')
 abstract class LibraryElement implements _ExistingElement {
-  /// The compilation unit that defines this library.
-  @Deprecated(elementModelDeprecationMsg)
-  CompilationUnitElement get definingCompilationUnit;
-
   /// Returns `null`, because libraries are the top-level elements in the model.
   @override
   Null get enclosingElement3;
@@ -883,13 +837,6 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// The [TypeSystem] that is used in this library.
   TypeSystem get typeSystem;
-
-  /// The compilation units this library consists of.
-  ///
-  /// This includes the defining compilation unit and units included using the
-  /// `part` directive.
-  @Deprecated(elementModelDeprecationMsg)
-  List<CompilationUnitElement> get units;
 }
 
 /// A single export directive within a library.
@@ -900,10 +847,6 @@ abstract class LibraryExportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `export` directive in
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
 
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get exportedLibrary;
@@ -923,10 +866,6 @@ abstract class LibraryImportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `import` directive in
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
 
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get importedLibrary;
@@ -1109,10 +1048,6 @@ abstract class PartElement implements _ExistingElement {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated('Use PrefixElement2 instead')
 abstract class PrefixElement implements _ExistingElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
-
   /// The imports that share this prefix.
   List<LibraryImportElement> get imports;
 

@@ -2971,16 +2971,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: ClassMemberElement Function())
     enclosingElement3 (getter: Element)
     isStatic (getter: bool)
-  CompilationUnitElement (class extends Object implements UriReferencedElement, deprecated):
-    new (constructor: CompilationUnitElement Function())
-    enclosingElement3 (getter: CompilationUnitElement?)
-    libraryExports (getter: List<LibraryExportElement>)
-    libraryImportPrefixes (getter: List<PrefixElement>)
-    libraryImports (getter: List<LibraryImportElement>)
-    lineInfo (getter: LineInfo)
-    parts (getter: List<PartElement>)
-    scope (getter: Scope)
-    session (getter: AnalysisSession)
   DeferredImportElementPrefix (class extends Object implements ImportElementPrefix, deprecated):
     new (constructor: DeferredImportElementPrefix Function())
   DirectiveUri (class extends Object):
@@ -3001,7 +2991,6 @@ package:analyzer/dart/element/element.dart:
   DirectiveUriWithUnit (class extends DirectiveUriWithSource):
     new (constructor: DirectiveUriWithUnit Function())
     libraryFragment (getter: LibraryFragment, experimental)
-    unit (getter: CompilationUnitElement, deprecated)
   Element (class extends Object implements AnalysisTarget, deprecated):
     new (constructor: Element Function())
     context (getter: AnalysisContext@2)
@@ -3149,7 +3138,6 @@ package:analyzer/dart/element/element.dart:
     element (getter: PrefixElement)
   LibraryElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryElement Function())
-    definingCompilationUnit (getter: CompilationUnitElement, deprecated)
     enclosingElement3 (getter: Null)
     exportNamespace (getter: Namespace)
     exportedLibraries (getter: List<LibraryElement>)
@@ -3167,18 +3155,15 @@ package:analyzer/dart/element/element.dart:
     topLevelElements (getter: Iterable<Element>)
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
-    units (getter: List<CompilationUnitElement>, deprecated)
   LibraryExportElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryExportElement Function())
     combinators (getter: List<NamespaceCombinator>)
-    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     exportKeywordOffset (getter: int)
     exportedLibrary (getter: LibraryElement?)
     uri (getter: DirectiveUri)
   LibraryImportElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryImportElement Function())
     combinators (getter: List<NamespaceCombinator>)
-    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     importKeywordOffset (getter: int)
     importedLibrary (getter: LibraryElement?)
     namespace (getter: Namespace)
@@ -3224,7 +3209,6 @@ package:analyzer/dart/element/element.dart:
     uri (getter: DirectiveUri)
   PrefixElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: PrefixElement Function())
-    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     imports (getter: List<LibraryImportElement>)
     name (getter: String)
     scope (getter: Scope)
