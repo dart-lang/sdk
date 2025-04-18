@@ -1948,11 +1948,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicElementImpl extends ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeDefiningElement,
-        TypeDefiningFragment {
+class DynamicElementImpl extends ElementImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
@@ -8753,11 +8749,7 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeDefiningElement,
-        TypeDefiningFragment {
+class NeverElementImpl extends ElementImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
