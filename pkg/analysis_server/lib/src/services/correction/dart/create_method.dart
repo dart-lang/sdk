@@ -150,6 +150,9 @@ class CreateMethod extends ResolvedCorrectionProducer {
       } else if (targetClassElement is ExtensionTypeElement2) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getExtensionTypeDeclaration(fragment);
+      } else if (targetClassElement is EnumElement2) {
+        var fragment = targetClassElement.firstFragment;
+        targetNode = await getEnumDeclaration(fragment);
       }
       if (targetNode == null) {
         return;
@@ -158,6 +161,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (target is Identifier) {
         staticModifier =
             target.element?.kind == ElementKind.CLASS ||
+            target.element?.kind == ElementKind.ENUM ||
             target.element?.kind == ElementKind.EXTENSION_TYPE ||
             target.element?.kind == ElementKind.MIXIN;
       }

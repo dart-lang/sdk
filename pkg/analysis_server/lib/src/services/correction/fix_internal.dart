@@ -965,6 +965,7 @@ final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,
+    CreateMethodOrFunction.new,
   ],
   CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED: [
     CreateConstructor.new,

@@ -36,6 +36,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var isStatic = false;
     var nameNode = node;
     if (nameNode is SimpleIdentifier) {
       // prepare argument expression (to get parameter)
@@ -47,6 +48,13 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         if (targetType is InterfaceType) {
           targetElement = targetType.element3;
           argument = target.parent as Expression;
+        } else if (target case SimpleIdentifier(
+          :InterfaceElement2? element,
+          :Expression parent,
+        )) {
+          isStatic = true;
+          targetElement = element;
+          argument = parent;
         } else {
           return;
         }
@@ -107,7 +115,12 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       }
       // add proposal
       if (targetElement != null) {
-        await _createMethod(builder, targetElement, parameterType);
+        await _createMethod(
+          builder,
+          targetElement,
+          parameterType,
+          isStatic: isStatic,
+        );
       } else {
         await _createFunction(builder, parameterType);
       }
@@ -195,8 +208,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   Future<void> _createMethod(
     ChangeBuilder builder,
     InterfaceElement2 targetClassElement,
-    FunctionType functionType,
-  ) async {
+    FunctionType functionType, {
+    required bool isStatic,
+  }) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var targetSource = targetClassElement.firstFragment.libraryFragment.source;
@@ -210,6 +224,14 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     } else if (targetClassElement is ClassElement2) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getClassDeclaration(fragment);
+      classMembers = node?.members;
+    } else if (targetClassElement is ExtensionTypeElement2) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getExtensionTypeDeclaration(fragment);
+      classMembers = node?.members;
+    } else if (targetClassElement is EnumElement2) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getEnumDeclaration(fragment);
       classMembers = node?.members;
     }
     if (targetNode == null || classMembers == null) {
@@ -231,7 +253,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       name,
       targetSource.fullName,
       insertOffset,
-      inStaticContext,
+      isStatic || inStaticContext,
       prefix,
       sourcePrefix,
       sourceSuffix,

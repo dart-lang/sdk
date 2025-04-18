@@ -429,6 +429,17 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Returns the class declaration for the given [fragment], or `null` if there
+  /// is no such class.
+  Future<EnumDeclaration?> getEnumDeclaration(EnumFragment fragment) async {
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
+    var node = result?.node;
+    if (node is EnumDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
   /// Returns the extension declaration for the given [fragment], or `null` if
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
