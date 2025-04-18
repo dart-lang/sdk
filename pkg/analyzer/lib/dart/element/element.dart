@@ -1180,12 +1180,6 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
   List<String> get shownNames;
 }
 
-/// An element that defines a type.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeDefiningElement2 instead')
-abstract class TypeDefiningElement implements Element {}
-
 /// A pseudo-elements that represents names that are undefined. This situation
 /// is not allowed by the language, so objects implementing this interface
 /// always represent an error. As a result, most of the normal operations on

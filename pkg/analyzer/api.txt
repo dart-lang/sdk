@@ -3243,8 +3243,6 @@ package:analyzer/dart/element/element.dart:
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)
-  TypeDefiningElement (class extends Object implements Element, deprecated):
-    new (constructor: TypeDefiningElement Function())
   UndefinedElement (class extends Object implements Element, deprecated):
     new (constructor: UndefinedElement Function())
   UriReferencedElement (class extends Object implements _ExistingElement, deprecated):
