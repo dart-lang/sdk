@@ -499,16 +499,6 @@ extension LocalVariableElementImplExtension on LocalVariableElementImpl {
   }
 }
 
-extension MethodElement2Extension on MethodElement2 {
-  @Deprecated('Use MethodElement2 instead')
-  MethodElement get asElement {
-    if (this case MethodMember member) {
-      return member;
-    }
-    return (this as MethodElementImpl2).lastFragment;
-  }
-}
-
 extension MethodElement2OrMemberExtension on MethodElement2OrMember {
   MethodElementOrMember get asElement {
     if (this case MethodMember member) {

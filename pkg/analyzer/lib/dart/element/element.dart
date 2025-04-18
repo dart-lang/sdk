@@ -1149,15 +1149,6 @@ abstract class LocalVariableElement implements PromotableElement {
   String get name;
 }
 
-/// An element that represents a method defined within a class.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use MethodElement2 instead')
-abstract class MethodElement implements ClassMemberElement, ExecutableElement {
-  @override
-  MethodElement get declaration;
-}
-
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.

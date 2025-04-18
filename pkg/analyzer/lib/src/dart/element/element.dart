@@ -7927,11 +7927,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `MethodElement`.
-abstract class MethodElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        MethodElement,
-        ExecutableElementOrMember {
+abstract class MethodElementOrMember implements ExecutableElementOrMember {
   @override
   TypeImpl get returnType;
 

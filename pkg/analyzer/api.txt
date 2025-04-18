@@ -3240,9 +3240,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: LocalVariableElement Function())
     hasInitializer (getter: bool)
     name (getter: String)
-  MethodElement (class extends Object implements ClassMemberElement, ExecutableElement, deprecated):
-    new (constructor: MethodElement Function())
-    declaration (getter: MethodElement)
   NamespaceCombinator (class extends Object, sealed (immediate subtypes: HideElementCombinator, ShowElementCombinator)):
     end (getter: int)
     offset (getter: int)
