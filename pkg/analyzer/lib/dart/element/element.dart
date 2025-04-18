@@ -955,36 +955,6 @@ abstract class ImportElementPrefix {
   PrefixElement get element;
 }
 
-/// An element that has `this`.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use InstanceElement2 instead')
-abstract class InstanceElement
-    implements TypeDefiningElement, TypeParameterizedElement {
-  /// The declared accessors (getters and setters).
-  List<PropertyAccessorElement> get accessors;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
-
-  /// The declared fields.
-  List<FieldElement> get fields;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  /// The declared methods.
-  List<MethodElement> get methods;
-
-  /// The type of `this` expression.
-  ///
-  /// Same as `augmented.thisType`.
-  DartType get thisType;
-}
-
 /// A pattern variable that is a join of other pattern variables, created
 /// for a logical-or patterns, or shared `case` bodies in `switch` statements.
 ///

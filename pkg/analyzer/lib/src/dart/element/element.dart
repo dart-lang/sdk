@@ -1419,8 +1419,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return result as InterfaceTypeImpl;
     }
 
-    var augmentedDeclaration = enclosingElement3.element.firstFragment;
-    result = augmentedDeclaration.thisType;
+    result = enclosingElement3.element.thisType;
     return _returnType = result as InterfaceTypeImpl;
   }
 
@@ -3816,9 +3815,6 @@ class ExtensionElementImpl extends InstanceElementImpl
       super.previousFragment as ExtensionElementImpl?;
 
   @override
-  DartType get thisType => extendedType;
-
-  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
   }
@@ -5385,13 +5381,8 @@ class ImportElementPrefixImpl
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with
-        AugmentableFragment,
-        TypeParameterizedElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        InstanceElement,
-        InstanceFragment {
+    with AugmentableFragment, TypeParameterizedElementMixin
+    implements InstanceFragment {
   @override
   ElementLinkedData? linkedData;
 
@@ -5416,7 +5407,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   InstanceElementImpl(super.name, super.nameOffset);
 
-  @override
+  /// The declared accessors (getters and setters).
   List<PropertyAccessorElementImpl> get accessors {
     if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
       return _accessors;
@@ -5444,7 +5435,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   @override
   LibraryFragment? get enclosingFragment => enclosingElement3;
 
-  @override
+  /// The declared fields.
   List<FieldElementImpl> get fields {
     if (!identical(_fields, _Sentinel.fieldElement)) {
       return _fields;
@@ -5474,7 +5465,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
     return super.metadata;
   }
 
-  @override
+  /// The declared methods.
   List<MethodElementImpl> get methods {
     if (!identical(_methods, _Sentinel.methodElement)) {
       return _methods;
@@ -5920,11 +5911,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     // TODO(paulberry): eliminate this cast by changing the type of the `value`
     // parameter.
     _supertype = value as InterfaceTypeImpl?;
-  }
-
-  @override
-  InterfaceTypeImpl get thisType {
-    return element.thisType;
   }
 
   InterfaceTypeImpl instantiateImpl({

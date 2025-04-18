@@ -3186,14 +3186,6 @@ package:analyzer/dart/element/element.dart:
   ImportElementPrefix (class extends Object, deprecated):
     new (constructor: ImportElementPrefix Function())
     element (getter: PrefixElement)
-  InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement, deprecated):
-    new (constructor: InstanceElement Function())
-    accessors (getter: List<PropertyAccessorElement>)
-    enclosingElement3 (getter: CompilationUnitElement, deprecated)
-    fields (getter: List<FieldElement>)
-    isAugmentation (getter: bool)
-    methods (getter: List<MethodElement>)
-    thisType (getter: DartType)
   JoinPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: JoinPatternVariableElement Function())
     isConsistent (getter: bool)

@@ -260,7 +260,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
 
   test_hash_nullabilitySuffix() {
     _testHashesSometimesDifferPairwise((i) {
-      var c = class_(name: 'C$i');
+      var cf = class_(name: 'C$i');
+      var c = cf.element;
       return (
         FunctionTypeImpl(
             typeFormals: const [],
@@ -294,7 +295,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     _testHashesSometimesDiffer((i) => FunctionTypeImpl(
             typeFormals: const [],
             parameters: [
-              namedParameter(name: 'x', type: class_(name: 'C$i').thisType)
+              namedParameter(
+                      name: 'x', type: class_(name: 'C$i').element.thisType)
                   .asElement
             ],
             returnType: typeProvider.voidType,
@@ -317,7 +319,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     _testHashesAlwaysEqual((i) => FunctionTypeImpl(
             typeFormals: const [],
             parameters: [
-              positionalParameter(name: 'x', type: class_(name: 'C$i').thisType)
+              positionalParameter(
+                      name: 'x', type: class_(name: 'C$i').element.thisType)
                   .asElement
             ],
             returnType: typeProvider.voidType,
@@ -361,7 +364,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               namedRequiredParameter(
-                      name: 'x', type: class_(name: 'C$i').thisType)
+                      name: 'x', type: class_(name: 'C$i').element.thisType)
                   .asElement
             ],
             returnType: typeProvider.voidType,
@@ -384,7 +387,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     _testHashesAlwaysEqual((i) => FunctionTypeImpl(
             typeFormals: const [],
             parameters: [
-              requiredParameter(name: 'x', type: class_(name: 'C$i').thisType)
+              requiredParameter(
+                      name: 'x', type: class_(name: 'C$i').element.thisType)
                   .asElement
             ],
             returnType: typeProvider.voidType,
@@ -395,7 +399,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     _testHashesSometimesDiffer((i) => FunctionTypeImpl(
         typeFormals: const [],
         parameters: const [],
-        returnType: class_(name: 'C$i').thisType,
+        returnType: class_(name: 'C$i').element.thisType,
         nullabilitySuffix: NullabilitySuffix.none));
   }
 
