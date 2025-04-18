@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -736,10 +733,6 @@ NamedType
     package:test/b.dart::@class::A
   type: InvalidType
 ''');
-
-    // TODO(scheglov): Should not crash. Remove it after migration.
-    // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-    expect(node.element2.asElement, isA<MultiplyDefinedElementImpl>());
   }
 
   test_never() async {

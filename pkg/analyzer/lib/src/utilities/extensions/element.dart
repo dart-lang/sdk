@@ -212,12 +212,6 @@ extension Element2OrNullExtension on Element2? {
         return self.wrappedElement as Element;
       case MethodElementImpl2 element2:
         return element2.asElement;
-      case MultiplyDefinedElementImpl2():
-        return MultiplyDefinedElementImpl(
-          self.libraryFragment,
-          self.name3,
-          self.conflictingElements2.map((e) => e.asElement).nonNulls.toList(),
-        );
       case NeverElementImpl2():
         return NeverElementImpl.instance;
       case PrefixElement2 element2:

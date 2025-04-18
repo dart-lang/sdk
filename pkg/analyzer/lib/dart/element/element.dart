@@ -1339,19 +1339,6 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   MethodElement get declaration;
 }
 
-/// A pseudo-element that represents multiple elements defined within a single
-/// scope that have the same name. This situation is not allowed by the
-/// language, so objects implementing this interface always represent an error.
-/// As a result, most of the normal operations on elements do not make sense
-/// and will return useless results.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use MultiplyDefinedElement2 instead')
-abstract class MultiplyDefinedElement implements Element {
-  /// The elements that were defined within the scope to have the same name.
-  List<Element> get conflictingElements;
-}
-
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
