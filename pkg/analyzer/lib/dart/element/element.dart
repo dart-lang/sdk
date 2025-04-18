@@ -133,9 +133,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   @override
   AnalysisSession get session;
-
-  /// The type aliases declared in this compilation unit.
-  List<TypeAliasElement> get typeAliases;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -1541,54 +1538,6 @@ abstract class SuperFormalParameterElement implements ParameterElement {
   /// Can be `null` for erroneous code - not existing super-constructor,
   /// no corresponding parameter in the super-constructor.
   ParameterElement? get superConstructorParameter;
-}
-
-/// A type alias (`typedef`).
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeAliasElement2 instead')
-abstract class TypeAliasElement
-    implements TypeParameterizedElement, TypeDefiningElement {
-  /// If the aliased type has structure, return the corresponding element.
-  /// For example it could be [GenericFunctionTypeElement].
-  ///
-  /// If there is no structure, return `null`.
-  @Deprecated(elementModelDeprecationMsg)
-  Element? get aliasedElement;
-
-  /// The aliased type.
-  ///
-  /// If non-function type aliases feature is enabled for the enclosing library,
-  /// this type might be just anything. If the feature is disabled, return
-  /// a [FunctionType].
-  DartType get aliasedType;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  @override
-  String get name;
-
-  /// Produces the type resulting from instantiating this typedef with the given
-  /// [typeArguments] and [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [TypeAliasElement] the returned [DartType] might still be a generic
-  /// type, with type formals. For example, if the typedef is:
-  ///
-  ///     typedef F<T> = void Function<U>(T, U);
-  ///
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
-  DartType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  });
 }
 
 /// An element that defines a type.

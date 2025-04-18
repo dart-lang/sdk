@@ -540,20 +540,6 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
     required this.element2,
     required this.typeArguments,
   });
-
-  factory InstantiatedTypeAliasElementImpl.v2({
-    required TypeAliasElementImpl2 element,
-    required List<TypeImpl> typeArguments,
-  }) {
-    return InstantiatedTypeAliasElementImpl(
-      element2: element,
-      typeArguments: typeArguments,
-    );
-  }
-
-  @Deprecated('Use element2 instead')
-  @override
-  TypeAliasElementImpl get element => element2.firstFragment;
 }
 
 /// A concrete implementation of an [InterfaceType].

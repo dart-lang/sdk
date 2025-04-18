@@ -700,18 +700,6 @@ class TypeSystemImpl implements TypeSystem {
     }
   }
 
-  @Deprecated('Use instantiateTypeAliasToBounds2() instead')
-  @override
-  TypeImpl instantiateTypeAliasToBounds({
-    required covariant TypeAliasElementImpl element,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiateTypeAliasToBounds2(
-      element: element.asElement2,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   @override
   TypeImpl instantiateTypeAliasToBounds2({
     required covariant TypeAliasElementImpl2 element,

@@ -1083,7 +1083,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TopLevelVariableFragment> get topLevelVariables2 =>
       topLevelVariables.cast<TopLevelVariableFragment>();
 
-  @override
   List<TypeAliasElementImpl> get typeAliases {
     return _typeAliases;
   }
@@ -10205,13 +10204,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with
-        AugmentableFragment,
-        TypeParameterizedElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeAliasElement,
-        TypeAliasFragment {
+    with AugmentableFragment, TypeParameterizedElementMixin
+    implements TypeAliasFragment {
   @override
   String? name2;
 
@@ -10241,7 +10235,10 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   TypeAliasElementImpl(String super.name, super.nameOffset);
 
-  @override
+  /// If the aliased type has structure, return the corresponding element.
+  /// For example it could be [GenericFunctionTypeElement2].
+  ///
+  /// If there is no structure, return `null`.
   ElementImpl? get aliasedElement {
     linkedData?.read(this);
     return _aliasedElement;
@@ -10252,7 +10249,11 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     aliasedElement?.enclosingElement3 = this;
   }
 
-  @override
+  /// The aliased type.
+  ///
+  /// If non-function type aliases feature is enabled for the enclosing library,
+  /// this type might be just anything. If the feature is disabled, return
+  /// a [FunctionType].
   TypeImpl get aliasedType {
     linkedData?.read(this);
     return _aliasedType!;
@@ -10313,38 +10314,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   int get offset => nameOffset;
 
-  /// Instantiates this type alias with its type parameters as arguments.
-  DartType get rawType {
-    List<DartType> typeArguments;
-    if (typeParameters.isNotEmpty) {
-      typeArguments = typeParameters.map<DartType>((t) {
-        return t.instantiate(
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      }).toList();
-    } else {
-      typeArguments = const <DartType>[];
-    }
-    return instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeAliasElement(this);
-  }
-
-  @override
-  TypeImpl instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {

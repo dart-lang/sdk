@@ -231,8 +231,8 @@ class ReplacementVisitor
         }
       }
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl.v2(
-          element: alias.element2,
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element2: alias.element2,
           typeArguments: newArguments,
         );
       }
@@ -370,8 +370,8 @@ class ReplacementVisitor
         alias.typeArguments,
       );
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl.v2(
-          element: alias.element2,
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element2: alias.element2,
           typeArguments: newArguments,
         );
       }
@@ -445,8 +445,8 @@ class ReplacementVisitor
         alias.typeArguments,
       );
       if (newArguments != null) {
-        newAlias = InstantiatedTypeAliasElementImpl.v2(
-          element: alias.element2,
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element2: alias.element2,
           typeArguments: newArguments,
         );
       }

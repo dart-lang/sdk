@@ -2986,7 +2986,6 @@ package:analyzer/dart/element/element.dart:
     parts (getter: List<PartElement>)
     scope (getter: Scope)
     session (getter: AnalysisSession)
-    typeAliases (getter: List<TypeAliasElement>)
   DeferredImportElementPrefix (class extends Object implements ImportElementPrefix, deprecated):
     new (constructor: DeferredImportElementPrefix Function())
   DirectiveUri (class extends Object):
@@ -3329,14 +3328,6 @@ package:analyzer/dart/element/element.dart:
   SuperFormalParameterElement (class extends Object implements ParameterElement, deprecated):
     new (constructor: SuperFormalParameterElement Function())
     superConstructorParameter (getter: ParameterElement?)
-  TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement, deprecated):
-    new (constructor: TypeAliasElement Function())
-    aliasedElement (getter: Element?, deprecated)
-    aliasedType (getter: DartType)
-    enclosingElement3 (getter: CompilationUnitElement, deprecated)
-    isAugmentation (getter: bool)
-    name (getter: String)
-    instantiate (method: DartType Function({required NullabilitySuffix nullabilitySuffix, required List<DartType> typeArguments}))
   TypeDefiningElement (class extends Object implements Element, deprecated):
     new (constructor: TypeDefiningElement Function())
   TypeParameterElement (class extends Object implements TypeDefiningElement, deprecated):
@@ -4195,7 +4186,6 @@ package:analyzer/dart/element/type.dart:
     instantiate (method: FunctionType Function(List<DartType>))
   InstantiatedTypeAliasElement (class extends Object):
     new (constructor: InstantiatedTypeAliasElement Function())
-    element (getter: TypeAliasElement, deprecated)
     element2 (getter: TypeAliasElement2, experimental)
     typeArguments (getter: List<DartType>)
   InterfaceType (class extends Object implements ParameterizedType):
@@ -4317,7 +4307,6 @@ package:analyzer/dart/element/type_system.dart:
     flatten (method: DartType Function(DartType))
     greatestLowerBound (method: DartType Function(DartType, DartType))
     instantiateInterfaceToBounds2 (method: InterfaceType Function({required InterfaceElement2 element, required NullabilitySuffix nullabilitySuffix}), experimental)
-    instantiateTypeAliasToBounds (method: DartType Function({required TypeAliasElement element, required NullabilitySuffix nullabilitySuffix}), deprecated)
     instantiateTypeAliasToBounds2 (method: DartType Function({required TypeAliasElement2 element, required NullabilitySuffix nullabilitySuffix}), experimental)
     isAssignableTo (method: bool Function(DartType, DartType, {bool strictCasts}))
     isNonNullable (method: bool Function(DartType))
