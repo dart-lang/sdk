@@ -8875,7 +8875,10 @@ mixin ParameterElementMixin
   @override
   TypeImpl get type;
 
-  @override
+  /// The type parameters defined by this parameter.
+  ///
+  /// A parameter will only define type parameters if it is a function typed
+  /// parameter.
   List<TypeParameterElementImpl> get typeParameters;
 
   @override
@@ -10603,10 +10606,7 @@ abstract class TypeDefiningElementImpl2 extends ElementImpl2
     implements TypeDefiningElement2 {}
 
 class TypeParameterElementImpl extends ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeParameterElement,
-        TypeParameterFragment {
+    implements TypeParameterFragment {
   @override
   String? name2;
 
@@ -10639,7 +10639,10 @@ class TypeParameterElementImpl extends ElementImpl
     isSynthetic = true;
   }
 
-  @override
+  /// The type representing the bound associated with this parameter, or `null`
+  /// if this parameter does not have an explicit bound. Being able to
+  /// distinguish between an implicit and explicit bound is needed by the
+  /// instantiate to bounds algorithm.
   TypeImpl? get bound {
     return _bound;
   }
@@ -10774,7 +10777,8 @@ class TypeParameterElementImpl extends ElementImpl
     return shared.Variance.unrelated;
   }
 
-  @override
+  /// Creates the [TypeParameterType] with the given [nullabilitySuffix] for
+  /// this type parameter.
   TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {

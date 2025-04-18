@@ -1108,13 +1108,6 @@ abstract class ParameterElement
   /// parameter.
   List<ParameterElement> get parameters;
 
-  /// The type parameters defined by this parameter.
-  ///
-  /// A parameter will only define type parameters if it is a function typed
-  /// parameter.
-  @Deprecated(elementModelDeprecationMsg)
-  List<TypeParameterElement> get typeParameters;
-
   /// Appends the type, name and possibly the default value of this parameter
   /// to the given [buffer].
   void appendToWithoutDelimiters(
@@ -1192,33 +1185,6 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated('Use TypeDefiningElement2 instead')
 abstract class TypeDefiningElement implements Element {}
-
-/// A type parameter.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeParameterElement2 instead')
-abstract class TypeParameterElement implements TypeDefiningElement {
-  /// The type representing the bound associated with this parameter, or `null`
-  /// if this parameter does not have an explicit bound. Being able to
-  /// distinguish between an implicit and explicit bound is needed by the
-  /// instantiate to bounds algorithm.
-  DartType? get bound;
-
-  @override
-  TypeParameterElement get declaration;
-
-  @override
-  String get displayName;
-
-  @override
-  String get name;
-
-  /// Creates the [TypeParameterType] with the given [nullabilitySuffix] for
-  /// this type parameter.
-  TypeParameterType instantiate({
-    required NullabilitySuffix nullabilitySuffix,
-  });
-}
 
 /// A pseudo-elements that represents names that are undefined. This situation
 /// is not allowed by the language, so objects implementing this interface
