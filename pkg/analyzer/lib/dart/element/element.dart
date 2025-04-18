@@ -96,10 +96,6 @@ abstract class ClassMemberElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated(elementModelDeprecationMsg)
 abstract class CompilationUnitElement implements UriReferencedElement {
-  /// The top-level accessors (getters and setters) declared in this
-  /// compilation unit.
-  List<PropertyAccessorElement> get accessors;
-
   /// The [CompilationUnitElement] that uses `part` directive to include this
   /// element, or `null` if this element is the defining unit of the library.
   @override
@@ -1321,53 +1317,6 @@ abstract class PromotableElement implements LocalElement, VariableElement {
   String get name;
 }
 
-/// A getter or a setter. Note that explicitly defined property accessors
-/// implicitly define a synthetic field. Symmetrically, synthetic accessors are
-/// implicitly created for explicitly defined fields. The following rules apply:
-///
-/// * Every explicit field is represented by a non-synthetic [FieldElement].
-/// * Every explicit field induces a getter and possibly a setter, both of which
-///   are represented by synthetic [PropertyAccessorElement]s.
-/// * Every explicit getter or setter is represented by a non-synthetic
-///   [PropertyAccessorElement].
-/// * Every explicit getter or setter (or pair thereof if they have the same
-///   name) induces a field that is represented by a synthetic [FieldElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PropertyAccessorElement2 instead')
-abstract class PropertyAccessorElement implements ExecutableElement {
-  /// The accessor representing the getter that corresponds to (has the same
-  /// name as) this setter, or `null` if this accessor is not a setter or
-  /// if there is no corresponding getter.
-  PropertyAccessorElement? get correspondingGetter;
-
-  /// The accessor representing the setter that corresponds to (has the same
-  /// name as) this getter, or `null` if this accessor is not a getter or
-  /// if there is no corresponding setter.
-  PropertyAccessorElement? get correspondingSetter;
-
-  @override
-  PropertyAccessorElement get declaration;
-
-  @override
-  Element get enclosingElement3;
-
-  /// Whether the accessor represents a getter.
-  bool get isGetter;
-
-  /// Whether the accessor represents a setter.
-  bool get isSetter;
-
-  /// The field or top-level variable associated with this accessor.
-  ///
-  /// If this accessor was explicitly defined (is not synthetic) then the
-  /// variable associated with it will be synthetic.
-  ///
-  /// If this accessor is an augmentation, and [augmentationTarget] is `null`,
-  /// the variable is `null`.
-  PropertyInducingElement? get variable2;
-}
-
 /// A variable that has an associated getter and possibly a setter. Note that
 /// explicitly defined variables implicitly define a synthetic getter and that
 /// non-`final` explicitly defined variables implicitly define a synthetic
@@ -1390,13 +1339,6 @@ abstract class PropertyInducingElement implements VariableElement {
   @override
   String get displayName;
 
-  /// The getter associated with this variable.
-  ///
-  /// If this variable was explicitly defined (is not synthetic) then the
-  /// getter associated with it will be synthetic.
-  @Deprecated(elementModelDeprecationMsg)
-  PropertyAccessorElement? get getter;
-
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
 
@@ -1410,18 +1352,6 @@ abstract class PropertyInducingElement implements VariableElement {
 
   @override
   String get name;
-
-  /// The setter associated with this variable, or `null` if the variable
-  /// is effectively `final` and therefore does not have a setter associated
-  /// with it.
-  ///
-  /// This can happen either because the variable is explicitly defined as
-  /// being `final` or because the variable is induced by an explicit getter
-  /// that does not have a corresponding setter. If this variable was
-  /// explicitly defined (is not synthetic) then the setter associated with
-  /// it will be synthetic.
-  @Deprecated(elementModelDeprecationMsg)
-  PropertyAccessorElement? get setter;
 }
 
 /// A combinator that cause some of the names in a namespace to be visible (and

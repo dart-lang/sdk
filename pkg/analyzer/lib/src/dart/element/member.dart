@@ -523,18 +523,6 @@ class FieldMember extends VariableMember
   }
 
   @override
-  PropertyAccessorElementOrMember? get getter {
-    var baseGetter = declaration.getter;
-    if (baseGetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-      declaration: baseGetter,
-      substitution: substitution,
-    );
-  }
-
-  @override
   GetterElement2OrMember? get getter2 {
     var baseGetter = declaration.getter;
     if (baseGetter == null) {
@@ -586,18 +574,6 @@ class FieldMember extends VariableMember
 
   @override
   Element2 get nonSynthetic2 => _element2.nonSynthetic2;
-
-  @override
-  PropertyAccessorElementOrMember? get setter {
-    var baseSetter = declaration.setter;
-    if (baseSetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-      declaration: baseSetter,
-      substitution: substitution,
-    );
-  }
 
   @override
   SetterElement2OrMember? get setter2 {

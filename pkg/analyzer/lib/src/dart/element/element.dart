@@ -768,7 +768,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return scope.accessibleExtensions;
   }
 
-  @override
   List<PropertyAccessorElementImpl> get accessors {
     return _accessors;
   }
@@ -9407,14 +9406,33 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PropertyAccessorElement,
-        ExecutableElementOrMember {
+    implements ExecutableElementOrMember {
+  /// The accessor representing the getter that corresponds to (has the same
+  /// name as) this setter, or `null` if this accessor is not a setter or
+  /// if there is no corresponding getter.
+  PropertyAccessorElementOrMember? get correspondingGetter;
+
+  /// The accessor representing the setter that corresponds to (has the same
+  /// name as) this getter, or `null` if this accessor is not a getter or
+  /// if there is no corresponding setter.
+  PropertyAccessorElementOrMember? get correspondingSetter;
+
+  /// Whether the accessor represents a getter.
+  bool get isGetter;
+
+  /// Whether the accessor represents a setter.
+  bool get isSetter;
+
   @override
   TypeImpl get returnType;
 
-  @override
+  /// The field or top-level variable associated with this accessor.
+  ///
+  /// If this accessor was explicitly defined (is not synthetic) then the
+  /// variable associated with it will be synthetic.
+  ///
+  /// If this accessor is an augmentation, and [augmentationTarget] is `null`,
+  /// the variable is `null`.
   PropertyInducingElementOrMember? get variable2;
 }
 
@@ -9448,14 +9466,21 @@ abstract class PropertyInducingElementImpl
   @override
   PropertyInducingElementImpl? nextFragment;
 
-  /// The getter associated with this element.
-  @override
+  /// The getter associated with this variable.
+  ///
+  /// If this variable was explicitly defined (is not synthetic) then the
+  /// getter associated with it will be synthetic.
   GetterFragmentImpl? getter;
 
-  /// The setter associated with this element, or `null` if the element is
-  /// effectively `final` and therefore does not have a setter associated with
-  /// it.
-  @override
+  /// The setter associated with this variable, or `null` if the variable
+  /// is effectively `final` and therefore does not have a setter associated
+  /// with it.
+  ///
+  /// This can happen either because the variable is explicitly defined as
+  /// being `final` or because the variable is induced by an explicit getter
+  /// that does not have a corresponding setter. If this variable was
+  /// explicitly defined (is not synthetic) then the setter associated with
+  /// it will be synthetic.
   SetterFragmentImpl? setter;
 
   /// This field is set during linking, and performs type inference for
