@@ -262,6 +262,13 @@ if (typeof global != "undefined") self = global;  // Node.js.
     delete timerIds[id];
   }
 
+  function cancelAllTimers() {
+    for (const id in timerIds) {
+      timerIds[id].$timerId = undefined;
+    }
+    timerIds = {};
+  }
+
   function eventLoop(action) {
     while (action) {
       try {
@@ -290,6 +297,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   self.setInterval = addInterval;
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
+  self.clearAllTimers = cancelAllTimers;
 
   // Some js-interop code accesses 'window' as 'self.window'
   if (typeof self.window == "undefined") self.window = self;

@@ -173,8 +173,8 @@ self.\$injectedFilesAndLibrariesToReload = function(fileGeneration) {
   return [fileUrls, libraryIds];
 }
 
-// D8 does not support the core Timer API methods beside `setTimeout` so our
-// D8 preambles provide a custom implementation.
+// D8 does not support the core Timer API methods, so our D8 preamble provides
+// a custom implementation.
 //
 // Timers in this implementation are simulated, so they all complete before
 // native JS `await` boundaries. If this boundary occurs before our runtime's
@@ -183,17 +183,37 @@ self.\$injectedFilesAndLibrariesToReload = function(fileGeneration) {
 //
 // To resolve this, we record and increment hot restart generations early
 // and wrap timer functions with custom cancellation logic.
-self.setTimeout = function(setTimeout) {
-  let currentHotRestartIteration =
-    self.\$dartLoader.loader.intendedHotRestartGeneration;
+self.setInterval = function(setInterval) {
   return function(f, ms) {
+    var timerId;
+    let currentHotRestartIteration =
+      self.\$dartLoader.loader.intendedHotRestartGeneration;
     var internalCallback = function() {
       if (currentHotRestartIteration ==
-            self.\$dartLoader.loader.intendedHotRestartGeneration) {
+        self.\$dartLoader.loader.intendedHotRestartGeneration) {
         f();
+      } else {
+        self.clearInterval(timerId);
       }
     }
-    setTimeout(internalCallback, ms);
+    timerId = setInterval(internalCallback, ms);
+  };
+}(self.setInterval);
+
+self.setTimeout = function(setTimeout) {
+  return function(f, ms) {
+    var timerId;
+    let currentHotRestartIteration =
+      self.\$dartLoader.loader.intendedHotRestartGeneration;
+    var internalCallback = function() {
+      if (currentHotRestartIteration ==
+        self.\$dartLoader.loader.intendedHotRestartGeneration) {
+        f();
+      } else {
+        self.clearTimeout(timerId);
+      }
+    }
+    timerId = setTimeout(internalCallback, ms);
   };
 }(self.setTimeout);
 
@@ -202,15 +222,33 @@ self.setTimeout = function(setTimeout) {
 // by deleting the our custom implementation in D8's preamble.
 self.scheduleImmediate = void 0;
 
+// Set embedder configurations.
+
+// Invoke main through the d8 preamble to ensure the code is running within the
+// fake event loop.
+dartDevEmbedder.config.capturedMainHandler =
+  dartDevEmbedder.config.capturedHotRestartMainHandler =
+  (runMain) => {
+    self.dartMainRunner((_) => {
+      runMain();
+    }, []);
+  };
+
+
+// D8 timers execute synchronously, so periodic timers must be explicitly
+// cancelled when an async main reaches an error state.
+dartDevEmbedder.config.mainErrorCallback =
+  dartDevEmbedder.config.hotRestartMainErrorCallback =
+  () => {
+    self.clearAllTimers();
+  }
+
 // Begin loading libraries
 loader.nextAttempt();
 
-// Invoke main through the d8 preamble to ensure the code is running
-// within the fake event loop.
-self.dartMainRunner(function () {
-  dartDevEmbedder.runMain("$entrypointModuleName", {});
-});
+dartDevEmbedder.runMain("$entrypointModuleName", {});
 ''';
+
   return d8BootstrapJS;
 }
 
