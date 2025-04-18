@@ -23,8 +23,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
@@ -285,11 +285,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       selectionRange = SourceRange(offset, end - offset);
     }
 
-    // get covering node
-    var coveringNode = NodeLocator(
-      selectionRange.offset,
-      selectionRange.end,
-    ).searchWithin(unit);
+    var coveringNode = unit.nodeCovering(
+      offset: selectionRange.offset,
+      length: selectionRange.length,
+    );
 
     // We need an enclosing function.
     // If it has a block body, we can add a new variable declaration statement
@@ -480,7 +479,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   List<AstNode> _findNodes(List<SourceRange> ranges) {
     var nodes = <AstNode>[];
     for (var range in ranges) {
-      var node = NodeLocator(range.offset).searchWithin(unit)!;
+      var node = unit.nodeCovering(offset: range.offset)!;
       nodes.add(node);
     }
     return nodes;

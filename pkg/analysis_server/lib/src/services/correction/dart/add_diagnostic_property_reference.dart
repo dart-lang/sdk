@@ -9,8 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -253,10 +253,10 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
     // Compute the information for all the properties to be added.
     for (var error in propertyErrors) {
-      var selectionOffset = error.offset;
-      var selectionEnd = selectionOffset + error.length;
-      var locator = NodeLocator(selectionOffset, selectionEnd);
-      var node = locator.searchWithin(unitResult.unit);
+      var node = unitResult.unit.nodeCovering(
+        offset: error.offset,
+        length: error.length,
+      );
       if (node == null) {
         continue;
       }

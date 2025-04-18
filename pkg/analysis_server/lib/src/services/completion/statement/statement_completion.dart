@@ -20,10 +20,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
@@ -922,8 +922,7 @@ class StatementCompletionProcessor {
     var argList =
         _selectedNode(
           at: selectionOffset,
-        )?.thisOrAncestorOfType<ArgumentList>();
-    argList ??=
+        )?.thisOrAncestorOfType<ArgumentList>() ??
         _selectedNode(
           at: parenError.offset,
         )?.thisOrAncestorOfType<ArgumentList>();
@@ -1273,7 +1272,7 @@ class StatementCompletionProcessor {
   }
 
   AstNode? _selectedNode({int? at}) =>
-      NodeLocator(at ?? selectionOffset).searchWithin(unit);
+      unit.nodeCovering(offset: at ?? selectionOffset);
 
   void _setCompletion(StatementCompletionKind kind) {
     assert(exitPosition != null);
