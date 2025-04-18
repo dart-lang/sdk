@@ -88,22 +88,37 @@ class FunctionTypeImpl extends TypeImpl
   @override
   final TypeImpl returnType;
 
-  @override
+  /// The formal type parameters of this generic function; for example,
+  /// `<T> T -> T`.
   final List<TypeParameterElementImpl> typeFormals;
 
-  @override
+  /// A list containing the parameters elements of this type of function.
+  ///
+  /// The parameter types are not necessarily in the same order as they appear
+  /// in the declaration of the function.
   final List<ParameterElementMixin> parameters;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  @override
+  /// All the positional parameter types, starting with the required ones, and
+  /// followed by the optional ones.
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use
+  /// [normalParameterTypes] and [optionalParameterTypes] instead.
   final List<TypeImpl> positionalParameterTypes;
 
   @override
   final int requiredPositionalParameterCount;
 
-  @override
+  /// All the named parameters, sorted by name.
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use [parameters]
+  /// instead.
   final List<ParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({

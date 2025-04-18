@@ -4155,12 +4155,7 @@ package:analyzer/dart/element/type.dart:
     namedParameterTypes (getter: Map<String, DartType>)
     normalParameterTypes (getter: List<DartType>)
     optionalParameterTypes (getter: List<DartType>)
-    parameters (getter: List<ParameterElement>, deprecated)
-    positionalParameterTypes (getter: List<DartType>, deprecated)
-    requiredPositionalParameterCount (getter: int, deprecated)
     returnType (getter: DartType)
-    sortedNamedParameters (getter: List<ParameterElement>, deprecated)
-    typeFormals (getter: List<TypeParameterElement>, deprecated)
     typeParameters (getter: List<TypeParameterElement2>, experimental)
     instantiate (method: FunctionType Function(List<DartType>))
   InstantiatedTypeAliasElement (class extends Object):

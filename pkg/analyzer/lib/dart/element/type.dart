@@ -21,7 +21,6 @@
 /// the references to `String` and `int` are type arguments.
 library;
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -244,49 +243,8 @@ abstract class FunctionType implements DartType {
   /// optional parameters declared, then the map is empty.
   List<DartType> get optionalParameterTypes;
 
-  /// A list containing the parameters elements of this type of function.
-  ///
-  /// The parameter types are not necessarily in the same order as they appear
-  /// in the declaration of the function.
-  @Deprecated('Use formalParameters instead')
-  List<ParameterElement> get parameters;
-
-  /// All the positional parameter types, starting with the required ones, and
-  /// followed by the optional ones.
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use
-  /// [normalParameterTypes] and [optionalParameterTypes] instead.
-  @Deprecated('Please use normalParameterTypes and optionalParameterTypes')
-  List<DartType> get positionalParameterTypes;
-
-  /// The number of elements of [positionalParameterTypes] that are required
-  /// parameters.
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use
-  /// [normalParameterTypes].length instead.
-  @Deprecated('Please use normalParameterTypes.length')
-  int get requiredPositionalParameterCount;
-
   /// The type of object returned by this type of function.
   DartType get returnType;
-
-  /// All the named parameters, sorted by name.
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use [parameters]
-  /// instead.
-  @Deprecated('Please use parameters')
-  List<ParameterElement> get sortedNamedParameters;
-
-  /// The formal type parameters of this generic function; for example,
-  /// `<T> T -> T`.
-  @Deprecated('Use typeParameters instead')
-  List<TypeParameterElement> get typeFormals;
 
   /// The type parameters.
   @experimental
