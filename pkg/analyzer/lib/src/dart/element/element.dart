@@ -166,9 +166,6 @@ class AugmentedInterfaceElementImpl extends AugmentedInstanceElementImpl
   AugmentedInterfaceElementImpl(super.firstFragment);
 
   @override
-  List<ConstructorElement> get constructors => firstFragment.constructors;
-
-  @override
   InterfaceElementImpl get firstFragment {
     return super.firstFragment as InterfaceElementImpl;
   }
@@ -182,15 +179,6 @@ class AugmentedInterfaceElementImpl extends AugmentedInstanceElementImpl
   @override
   InterfaceType get thisType {
     return super.thisType as InterfaceType;
-  }
-
-  @override
-  ConstructorElement? get unnamedConstructor =>
-      firstFragment.unnamedConstructor;
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    return constructors.firstWhereOrNull((e) => e.name == name);
   }
 }
 
@@ -1386,12 +1374,8 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 
 /// A concrete implementation of a [ConstructorFragment].
 class ConstructorElementImpl extends ExecutableElementImpl
-    with
-        ConstructorElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ConstructorElement,
-        ConstructorFragment {
+    with ConstructorElementMixin
+    implements ConstructorFragment {
   late final ConstructorElementImpl2 element =
       ConstructorElementImpl2(name.ifNotEmptyOrElse('new'), this);
 
@@ -1419,7 +1403,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   int? periodOffset;
 
-  @override
   int? nameEnd;
 
   @override
@@ -1559,7 +1542,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     assert(false);
   }
 
-  @override
   ConstructorElementMixin? get superConstructor {
     linkedData?.read(this);
     return _superConstructor;
@@ -1728,17 +1710,18 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
 }
 
 mixin ConstructorElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ConstructorElement,
-        ExecutableElementOrMember {
+    implements ConstantEvaluationTarget, ExecutableElementOrMember {
   @override
   ConstructorElementImpl get declaration;
 
   @override
   InterfaceElementImpl get enclosingElement3;
 
-  @override
+  /// Whether the constructor is a const constructor.
+  bool get isConst;
+
+  /// Whether the constructor can be used as a default constructor - unnamed,
+  /// and has no required parameters.
   bool get isDefaultConstructor {
     // unnamed
     if (name.isNotEmpty) {
@@ -1754,7 +1737,10 @@ mixin ConstructorElementMixin
     return true;
   }
 
-  @override
+  /// Whether the constructor represents a factory constructor.
+  bool get isFactory;
+
+  /// Whether the constructor represents a generative constructor.
   bool get isGenerative {
     return !isFactory;
   }
@@ -1762,7 +1748,6 @@ mixin ConstructorElementMixin
   @override
   LibraryElementImpl get library;
 
-  @override
   ConstructorElementMixin? get redirectedConstructor;
 
   @override
@@ -6012,7 +5997,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         ...typeParameters,
       ];
 
-  @override
   List<ConstructorElementImpl> get constructors {
     if (!identical(_constructors, _Sentinel.constructorElement)) {
       return _constructors;
@@ -6126,11 +6110,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return element.thisType;
   }
 
-  @override
-  ConstructorElementMixin? get unnamedConstructor {
-    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
-  }
-
   @Deprecated(elementModelDeprecationMsg)
   @override
   FieldElement? getField(String name) {
@@ -6146,15 +6125,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   MethodElementOrMember? getMethod(String methodName) {
     return methods.firstWhereOrNull((method) => method.name == methodName);
-  }
-
-  @override
-  ConstructorElementMixin? getNamedConstructor(String name) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    return constructors.firstWhereOrNull((element) => element.name == name);
   }
 
   @override

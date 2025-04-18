@@ -13,7 +13,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -156,9 +155,6 @@ class ConstructorInvocation {
 
   ConstructorInvocation(
       this.constructor2, this._argumentValues, this.namedArguments);
-
-  @Deprecated('Use constructor2 instead')
-  ConstructorElement get constructor => constructor2.asElement;
 
   /// The positional arguments passed to the constructor.
   List<DartObjectImpl> get positionalArguments {

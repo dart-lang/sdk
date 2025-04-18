@@ -146,12 +146,6 @@ abstract class AugmentedInstanceElement {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated(elementModelDeprecationMsg)
 abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
-  /// The constructors declared in this element.
-  ///
-  /// `ConstructorAugmentationElement`s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
-  List<ConstructorElement> get constructors;
-
   @override
   InterfaceElement get firstFragment;
 
@@ -169,12 +163,6 @@ abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
 
   @override
   InterfaceType get thisType;
-
-  /// The unnamed constructor from [constructors].
-  ConstructorElement? get unnamedConstructor;
-
-  /// Returns the constructor from [constructors] that has the given [name].
-  ConstructorElement? getNamedConstructor(String name);
 }
 
 /// The result of applying augmentations to a [MixinElement].
@@ -268,62 +256,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The type aliases declared in this compilation unit.
   List<TypeAliasElement> get typeAliases;
-}
-
-/// An element representing a constructor or a factory method defined within a
-/// class.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ConstructorElement2 instead')
-abstract class ConstructorElement
-    implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
-  @override
-  ConstructorElement get declaration;
-
-  @override
-  String get displayName;
-
-  @override
-  InterfaceElement get enclosingElement3;
-
-  /// Whether the constructor is a const constructor.
-  bool get isConst;
-
-  /// Whether the constructor can be used as a default constructor - unnamed,
-  /// and has no required parameters.
-  bool get isDefaultConstructor;
-
-  /// Whether the constructor represents a factory constructor.
-  bool get isFactory;
-
-  /// Whether the constructor represents a generative constructor.
-  bool get isGenerative;
-
-  @override
-  String get name;
-
-  /// The offset of the character immediately following the last character of
-  /// this constructor's name, or `null` if not named.
-  ///
-  // TODO(migration): encapsulate [nameEnd] and [periodOffset]?
-  int? get nameEnd;
-
-  /// The offset of the `.` before this constructor name, or `null` if not
-  /// named.
-  int? get periodOffset;
-
-  /// The constructor to which this constructor is redirecting, or `null` if
-  /// this constructor does not redirect to another constructor or if the
-  /// library containing this constructor has not yet been resolved.
-  ConstructorElement? get redirectedConstructor;
-
-  @override
-  InterfaceType get returnType;
-
-  /// The constructor of the superclass that this constructor invokes, or
-  /// `null` if this constructor redirects to another constructor, or if the
-  /// library containing this constructor has not yet been resolved.
-  ConstructorElement? get superConstructor;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -1236,12 +1168,6 @@ abstract class InterfaceElement implements InstanceElement {
   @override
   AugmentedInterfaceElement get augmented;
 
-  /// The declared constructors.
-  ///
-  /// The list is empty for [MixinElement].
-  @Deprecated(elementModelDeprecationMsg)
-  List<ConstructorElement> get constructors;
-
   /// The interfaces that are implemented by this class.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
@@ -1290,14 +1216,6 @@ abstract class InterfaceElement implements InstanceElement {
   @override
   InterfaceType get thisType;
 
-  /// The unnamed constructor declared directly in this class.
-  ///
-  /// If the class does not declare any constructors, a synthetic default
-  /// constructor will be returned.
-  // TODO(scheglov): Deprecate and remove it.
-  @Deprecated(elementModelDeprecationMsg)
-  ConstructorElement? get unnamedConstructor;
-
   /// The field (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
   // TODO(scheglov): Deprecate and remove it.
@@ -1312,12 +1230,6 @@ abstract class InterfaceElement implements InstanceElement {
   /// given [name].
   // TODO(scheglov): Deprecate and remove it.
   MethodElement? getMethod(String name);
-
-  /// The constructor defined directly in this class or augmentation
-  /// that has the given [name].
-  // TODO(scheglov): Deprecate and remove it.
-  @Deprecated(elementModelDeprecationMsg)
-  ConstructorElement? getNamedConstructor(String name);
 
   /// The setter (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].

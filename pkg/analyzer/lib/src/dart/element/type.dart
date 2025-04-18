@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -660,12 +659,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }).toList();
   }
 
-  @Deprecated('Use constructors2 instead')
-  @override
-  List<ConstructorElementMixin> get constructors {
-    return constructors2.map((e) => e.asElement).toList();
-  }
-
   @override
   List<ConstructorElementMixin2> get constructors2 {
     return _constructors ??= element3.constructors2.map((constructor) {
@@ -947,14 +940,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   SetterElement2OrMember? getSetter2(String setterName) {
     var element = element3.getSetter2(setterName);
     return element != null ? SetterMember.from(element, this) : null;
-  }
-
-  @Deprecated('Use lookUpConstructor2() instead')
-  @override
-  ConstructorElementMixin? lookUpConstructor(
-      String? name, covariant LibraryElementImpl library) {
-    var name2 = (name ?? 'new').ifNotEmptyOrElse('new');
-    return lookUpConstructor2(name2, library)?.asElement;
   }
 
   @override

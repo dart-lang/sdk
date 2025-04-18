@@ -21,13 +21,8 @@ import 'package:pub_semver/pub_semver.dart';
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
-    with
-        ConstructorElementMixin,
-        ConstructorElementMixin2
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ConstructorElement,
-        ConstructorElement2 {
+    with ConstructorElementMixin, ConstructorElementMixin2
+    implements ConstructorElement2 {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({
@@ -90,12 +85,6 @@ class ConstructorMember extends ExecutableMember
   String? get name3 => _element2.name3;
 
   @override
-  int? get nameEnd => declaration.nameEnd;
-
-  @override
-  int? get periodOffset => declaration.periodOffset;
-
-  @override
   ConstructorElementMixin? get redirectedConstructor {
     var element = declaration.redirectedConstructor;
     return _redirect(element);
@@ -115,7 +104,6 @@ class ConstructorMember extends ExecutableMember
   @override
   Source get source => _declaration.source!;
 
-  @override
   ConstructorElementMixin? get superConstructor {
     var element = declaration.superConstructor;
     return _redirect(element);

@@ -2278,14 +2278,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingExtensionTypeTypeVariableErrorCodes(
-    ExtensionTypeElementImpl element,
+    ExtensionTypeElementImpl fragment,
   ) {
-    for (var typeParameter in element.typeParameters) {
+    for (var typeParameter in fragment.typeParameters) {
       if (typeParameter.isWildcardVariable) continue;
 
       var name = typeParameter.name;
       // name is same as the name of the enclosing class
-      if (element.name == name) {
+      if (fragment.name == name) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
@@ -2293,10 +2293,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
       // check members
-      if (element.getNamedConstructor(name) != null ||
-          element.getMethod(name) != null ||
-          element.getGetter(name) != null ||
-          element.getSetter(name) != null) {
+      var element = fragment.element;
+      if (element.getNamedConstructor2(name) != null ||
+          element.getMethod2(name) != null ||
+          element.getGetter2(name) != null ||
+          element.getSetter2(name) != null) {
         errorReporter.atElement2(
           typeParameter.asElement2,
           CompileTimeErrorCode
