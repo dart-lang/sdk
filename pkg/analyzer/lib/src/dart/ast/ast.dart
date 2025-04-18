@@ -3971,7 +3971,7 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///        'external'? constructorName formalParameterList initializerList?
 ///      | 'external'? 'factory' factoryName formalParameterList
 ///        initializerList?
-///      | 'external'? 'const'  constructorName formalParameterList
+///      | 'external'? 'const' constructorName formalParameterList
 ///        initializerList?
 ///
 ///    constructorName ::=
@@ -4024,10 +4024,6 @@ abstract final class ConstructorDeclaration implements ClassMember {
   ConstructorName? get redirectedConstructor;
 
   /// The type of object being created.
-  ///
-  /// This can be different than the type in which the constructor is being
-  /// declared if the constructor is the implementation of a factory
-  /// constructor.
   Identifier get returnType;
 
   /// The token for the separator (colon or equals) before the initializer list
