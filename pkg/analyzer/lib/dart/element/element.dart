@@ -897,17 +897,6 @@ abstract class FieldElement
   bool get isStatic;
 }
 
-/// A field formal parameter defined within a constructor element.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use FieldFormalParameterElement2 instead')
-abstract class FieldFormalParameterElement implements ParameterElement {
-  /// The field element associated with this field formal parameter, or `null`
-  /// if the parameter references a field that doesn't exist.
-  @Deprecated(elementModelDeprecationMsg)
-  FieldElement? get field;
-}
-
 /// An element that has a [FunctionType] as its [type].
 ///
 /// This also provides convenient access to the parameters and return type.
@@ -1362,20 +1351,6 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
   /// The names that are to be made visible in the importing library if they
   /// are defined in the imported library.
   List<String> get shownNames;
-}
-
-/// A super formal parameter defined within a constructor element.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use SuperFormalParameterElement2 instead')
-abstract class SuperFormalParameterElement implements ParameterElement {
-  /// The associated super-constructor parameter, from the super-constructor
-  /// that is referenced by the implicit or explicit super-constructor
-  /// invocation.
-  ///
-  /// Can be `null` for erroneous code - not existing super-constructor,
-  /// no corresponding parameter in the super-constructor.
-  ParameterElement? get superConstructorParameter;
 }
 
 /// An element that defines a type.

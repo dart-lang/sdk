@@ -4288,11 +4288,9 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class FieldFormalParameterElementOrMember
-    implements
-        ParameterElementMixin,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FieldFormalParameterElement {
-  @override
+    implements ParameterElementMixin {
+  /// The field element associated with this field formal parameter, or `null`
+  /// if the parameter references a field that doesn't exist.
   FieldElementOrMember? get field;
 }
 
@@ -9953,10 +9951,15 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class SuperFormalParameterElementOrMember
-    implements
-        ParameterElementMixin,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        SuperFormalParameterElement {}
+    implements ParameterElementMixin {
+  /// The associated super-constructor parameter, from the super-constructor
+  /// that is referenced by the implicit or explicit super-constructor
+  /// invocation.
+  ///
+  /// Can be `null` for erroneous code - not existing super-constructor,
+  /// no corresponding parameter in the super-constructor.
+  ParameterElementMixin? get superConstructorParameter;
+}
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
     with

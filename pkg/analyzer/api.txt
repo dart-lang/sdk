@@ -3169,9 +3169,6 @@ package:analyzer/dart/element/element.dart:
     isExternal (getter: bool)
     isPromotable (getter: bool)
     isStatic (getter: bool)
-  FieldFormalParameterElement (class extends Object implements ParameterElement, deprecated):
-    new (constructor: FieldFormalParameterElement Function())
-    field (getter: FieldElement?, deprecated)
   FunctionTypedElement (class extends Object implements TypeParameterizedElement, deprecated):
     new (constructor: FunctionTypedElement Function())
     parameters (getter: List<ParameterElement>)
@@ -3289,9 +3286,6 @@ package:analyzer/dart/element/element.dart:
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)
-  SuperFormalParameterElement (class extends Object implements ParameterElement, deprecated):
-    new (constructor: SuperFormalParameterElement Function())
-    superConstructorParameter (getter: ParameterElement?)
   TypeDefiningElement (class extends Object implements Element, deprecated):
     new (constructor: TypeDefiningElement Function())
   TypeParameterElement (class extends Object implements TypeDefiningElement, deprecated):
