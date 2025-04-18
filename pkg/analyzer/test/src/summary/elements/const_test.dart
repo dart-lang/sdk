@@ -591,6 +591,104 @@ library
 ''');
   }
 
+  test_const_dotShorthand_property() async {
+    var library = await buildLibrary(r'''
+class A {
+  static const A a = A();
+  const A();
+}
+
+const A a = .a;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibrary>::@class::A
+          fields
+            hasInitializer a @27
+              reference: <testLibraryFragment>::@class::A::@field::a
+              element: <testLibraryFragment>::@class::A::@field::a#element
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @31
+                      element2: <testLibrary>::@class::A
+                      type: A
+                    element: <testLibraryFragment>::@class::A::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @32
+                    rightParenthesis: ) @33
+                  staticType: A
+              getter2: <testLibraryFragment>::@class::A::@getter::a
+          constructors
+            const new
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 44
+          getters
+            synthetic get a
+              reference: <testLibraryFragment>::@class::A::@getter::a
+              element: <testLibraryFragment>::@class::A::@getter::a#element
+      topLevelVariables
+        hasInitializer a @60
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_1
+            DotShorthandPropertyAccess
+              period: . @64
+              propertyName: SimpleIdentifier
+                token: a @65
+                element: <testLibraryFragment>::@class::A::@getter::a#element
+                staticType: A
+              staticType: A
+          getter2: <testLibraryFragment>::@getter::a
+      getters
+        synthetic get a
+          reference: <testLibraryFragment>::@getter::a
+          element: <testLibraryFragment>::@getter::a#element
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
+      fields
+        static const hasInitializer a
+          firstFragment: <testLibraryFragment>::@class::A::@field::a
+          type: A
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::A::@field::a
+            expression: expression_0
+          getter: <testLibraryFragment>::@class::A::@getter::a#element
+      constructors
+        const new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        synthetic static get a
+          firstFragment: <testLibraryFragment>::@class::A::@getter::a
+          returnType: A
+  topLevelVariables
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: A
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_1
+      getter: <testLibraryFragment>::@getter::a#element
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
+      returnType: A
+''');
+  }
+
   test_const_finalField_hasConstConstructor() async {
     var library = await buildLibrary(r'''
 class C {

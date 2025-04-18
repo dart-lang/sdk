@@ -65,6 +65,8 @@ class AstBinaryReader {
         return _readDeclaredIdentifier();
       case Tag.DefaultFormalParameter:
         return _readDefaultFormalParameter();
+      case Tag.DotShorthandPropertyAccess:
+        return _readDotShorthandPropertyAccess();
       case Tag.DottedName:
         return _readDottedName();
       case Tag.DoubleLiteral:
@@ -464,6 +466,16 @@ class AstBinaryReader {
     node.declaredFragment = fragment;
     fragment.type = nonDefaultElement.type;
 
+    return node;
+  }
+
+  DotShorthandPropertyAccess _readDotShorthandPropertyAccess() {
+    var propertyName = readNode() as SimpleIdentifierImpl;
+    var node = DotShorthandPropertyAccessImpl(
+      period: Tokens.period(),
+      propertyName: propertyName,
+    );
+    _readExpressionResolution(node);
     return node;
   }
 
