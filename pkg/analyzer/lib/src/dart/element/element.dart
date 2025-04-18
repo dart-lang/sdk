@@ -4021,12 +4021,15 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   set element(FieldElementImpl2 element) => _element = element;
 
-  @override
+  /// Whether the field is abstract.
+  ///
+  /// Executable fields are abstract if they are declared with the `abstract`
+  /// keyword.
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
 
-  @override
+  /// Whether the field was explicitly marked as being covariant.
   bool get isCovariant {
     return hasModifier(Modifier.COVARIANT);
   }
@@ -4036,7 +4039,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
     setModifier(Modifier.COVARIANT, isCovariant);
   }
 
-  @override
+  /// Whether the element is an enum constant.
   bool get isEnumConstant {
     return hasModifier(Modifier.ENUM_CONSTANT);
   }
@@ -4045,12 +4048,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
     setModifier(Modifier.ENUM_CONSTANT, isEnumConstant);
   }
 
-  @override
+  /// Whether the field was explicitly marked as being external.
   bool get isExternal {
     return hasModifier(Modifier.EXTERNAL);
   }
 
-  @override
+  /// Whether the field can be type promoted.
   bool get isPromotable {
     return hasModifier(Modifier.PROMOTABLE);
   }
@@ -4202,11 +4205,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `FieldElement`.
-abstract class FieldElementOrMember
-    implements
-        PropertyInducingElementOrMember,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FieldElement {
+abstract class FieldElementOrMember implements PropertyInducingElementOrMember {
   @override
   FieldElementImpl get declaration;
 

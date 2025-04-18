@@ -3160,15 +3160,6 @@ package:analyzer/dart/element/element.dart:
     isStatic (getter: bool)
     isSynchronous (getter: bool)
     name (getter: String)
-  FieldElement (class extends Object implements ClassMemberElement, PropertyInducingElement, deprecated):
-    new (constructor: FieldElement Function())
-    declaration (getter: FieldElement)
-    isAbstract (getter: bool)
-    isCovariant (getter: bool)
-    isEnumConstant (getter: bool)
-    isExternal (getter: bool)
-    isPromotable (getter: bool)
-    isStatic (getter: bool)
   FunctionTypedElement (class extends Object implements TypeParameterizedElement, deprecated):
     new (constructor: FunctionTypedElement Function())
     parameters (getter: List<ParameterElement>)

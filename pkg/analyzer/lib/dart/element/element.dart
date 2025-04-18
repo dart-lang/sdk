@@ -862,41 +862,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
   String get name;
 }
 
-/// A field defined within a class.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use FieldElement2 instead')
-abstract class FieldElement
-    implements ClassMemberElement, PropertyInducingElement {
-  @override
-  FieldElement get declaration;
-
-  /// Whether the field is abstract.
-  ///
-  /// Executable fields are abstract if they are declared with the `abstract`
-  /// keyword.
-  bool get isAbstract;
-
-  /// Whether the field was explicitly marked as being covariant.
-  bool get isCovariant;
-
-  /// Whether the element is an enum constant.
-  bool get isEnumConstant;
-
-  /// Whether the field was explicitly marked as being external.
-  bool get isExternal;
-
-  /// Whether the field can be type promoted.
-  bool get isPromotable;
-
-  /// Whether the element is a static element.
-  ///
-  /// A static element is an element that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  @override
-  bool get isStatic;
-}
-
 /// An element that has a [FunctionType] as its [type].
 ///
 /// This also provides convenient access to the parameters and return type.
