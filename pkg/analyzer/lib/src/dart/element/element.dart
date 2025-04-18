@@ -89,111 +89,6 @@ mixin AugmentableFragment on ElementImpl {
   }
 }
 
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedInstanceElementImpl implements AugmentedInstanceElement {
-  @override
-  final InstanceElementImpl firstFragment;
-
-  AugmentedInstanceElementImpl(this.firstFragment);
-
-  @override
-  List<PropertyAccessorElement> get accessors => firstFragment.accessors;
-
-  @override
-  List<FieldElement> get fields => firstFragment.fields;
-
-  @override
-  List<ElementAnnotation> get metadata => firstFragment.metadata;
-
-  @override
-  List<MethodElement> get methods => firstFragment.methods;
-
-  @override
-  DartType get thisType => firstFragment.thisType;
-
-  @override
-  FieldElement? getField(String name) {
-    return fields.firstWhereOrNull((e) => e.name == name);
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    return accessors
-        .where((e) => e.isGetter)
-        .firstWhereOrNull((e) => e.name == name);
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    return methods.firstWhereOrNull((e) => e.name == name);
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    return accessors
-        .where((e) => e.isSetter)
-        .firstWhereOrNull((e) => e.name == name);
-  }
-
-  @override
-  PropertyAccessorElement? lookUpGetter(
-      {required String name, required LibraryElement library}) {
-    return firstFragment.element
-        .lookUpGetter2(name: name, library: library as LibraryElement2)
-        ?.asElement as PropertyAccessorElement?;
-  }
-
-  @override
-  MethodElement? lookUpMethod(
-      {required String name, required LibraryElement library}) {
-    return firstFragment.element
-        .lookUpMethod2(name: name, library: library as LibraryElement2)
-        ?.asElement;
-  }
-
-  @override
-  PropertyAccessorElement? lookUpSetter(
-      {required String name, required LibraryElement library}) {
-    return firstFragment.element
-        .lookUpSetter2(name: name, library: library as LibraryElement2)
-        ?.asElement as PropertyAccessorElement?;
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedInterfaceElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedInterfaceElement {
-  AugmentedInterfaceElementImpl(super.firstFragment);
-
-  @override
-  List<ConstructorElement> get constructors => firstFragment.constructors;
-
-  @override
-  InterfaceElementImpl get firstFragment {
-    return super.firstFragment as InterfaceElementImpl;
-  }
-
-  @override
-  List<InterfaceType> get interfaces => firstFragment.interfaces;
-
-  @override
-  List<InterfaceType> get mixins => firstFragment.mixins;
-
-  @override
-  InterfaceType get thisType {
-    return super.thisType as InterfaceType;
-  }
-
-  @override
-  ConstructorElement? get unnamedConstructor =>
-      firstFragment.unnamedConstructor;
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    return constructors.firstWhereOrNull((e) => e.name == name);
-  }
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements
         // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
@@ -1386,12 +1281,8 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 
 /// A concrete implementation of a [ConstructorFragment].
 class ConstructorElementImpl extends ExecutableElementImpl
-    with
-        ConstructorElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ConstructorElement,
-        ConstructorFragment {
+    with ConstructorElementMixin
+    implements ConstructorFragment {
   late final ConstructorElementImpl2 element =
       ConstructorElementImpl2(name.ifNotEmptyOrElse('new'), this);
 
@@ -1419,7 +1310,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   int? periodOffset;
 
-  @override
   int? nameEnd;
 
   @override
@@ -1559,7 +1449,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     assert(false);
   }
 
-  @override
   ConstructorElementMixin? get superConstructor {
     linkedData?.read(this);
     return _superConstructor;
@@ -1728,17 +1617,18 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
 }
 
 mixin ConstructorElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ConstructorElement,
-        ExecutableElementOrMember {
+    implements ConstantEvaluationTarget, ExecutableElementOrMember {
   @override
   ConstructorElementImpl get declaration;
 
   @override
   InterfaceElementImpl get enclosingElement3;
 
-  @override
+  /// Whether the constructor is a const constructor.
+  bool get isConst;
+
+  /// Whether the constructor can be used as a default constructor - unnamed,
+  /// and has no required parameters.
   bool get isDefaultConstructor {
     // unnamed
     if (name.isNotEmpty) {
@@ -1754,7 +1644,10 @@ mixin ConstructorElementMixin
     return true;
   }
 
-  @override
+  /// Whether the constructor represents a factory constructor.
+  bool get isFactory;
+
+  /// Whether the constructor represents a generative constructor.
   bool get isGenerative {
     return !isFactory;
   }
@@ -1762,7 +1655,6 @@ mixin ConstructorElementMixin
   @override
   LibraryElementImpl get library;
 
-  @override
   ConstructorElementMixin? get redirectedConstructor;
 
   @override
@@ -2056,11 +1948,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicElementImpl extends ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeDefiningElement,
-        TypeDefiningFragment {
+class DynamicElementImpl extends ElementImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
@@ -5599,10 +5487,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
     _accessors = accessors;
   }
 
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedInstanceElement get augmented => AugmentedInstanceElementImpl(this);
-
   @override
   InstanceElementImpl2 get element;
 
@@ -5987,11 +5871,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         library.session.classHierarchy.implementedInterfaces(element);
   }
 
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedInterfaceElement get augmented =>
-      AugmentedInterfaceElementImpl(this);
-
   @Deprecated('Use Element2 instead')
   @override
   List<Element> get children => [
@@ -6012,7 +5891,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         ...typeParameters,
       ];
 
-  @override
   List<ConstructorElementImpl> get constructors {
     if (!identical(_constructors, _Sentinel.constructorElement)) {
       return _constructors;
@@ -6126,11 +6004,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return element.thisType;
   }
 
-  @override
-  ConstructorElementMixin? get unnamedConstructor {
-    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
-  }
-
   @Deprecated(elementModelDeprecationMsg)
   @override
   FieldElement? getField(String name) {
@@ -6146,15 +6019,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   MethodElementOrMember? getMethod(String methodName) {
     return methods.firstWhereOrNull((method) => method.name == methodName);
-  }
-
-  @override
-  ConstructorElementMixin? getNamedConstructor(String name) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    return constructors.firstWhereOrNull((element) => element.name == name);
   }
 
   @override
@@ -6183,229 +6047,12 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  @override
-  MethodElement? lookUpConcreteMethod(
-      String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull(
-        (method) => !method.isAbstract && method.isAccessibleIn(library));
-  }
-
-  @Deprecated('Use `element.augmented.lookUpGetter`.')
-  @override
-  PropertyAccessorElement? lookUpGetter(
-      String getterName, LibraryElement library) {
-    return _implementationsOfGetter(getterName)
-        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
-  }
-
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  @override
-  PropertyAccessorElement? lookUpInheritedConcreteGetter(
-      String getterName, LibraryElement library) {
-    return _implementationsOfGetter(getterName).firstWhereOrNull((getter) =>
-        !getter.isAbstract &&
-        !getter.isStatic &&
-        getter.isAccessibleIn(library) &&
-        getter.enclosingElement3 != this);
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  ExecutableElement? lookUpInheritedConcreteMember(
-      String name, LibraryElement library) {
-    if (name.endsWith('=')) {
-      return lookUpInheritedConcreteSetter(name, library);
-    } else {
-      return lookUpInheritedConcreteMethod(name, library) ??
-          lookUpInheritedConcreteGetter(name, library);
-    }
-  }
-
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  @override
-  MethodElement? lookUpInheritedConcreteMethod(
-      String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
-        !method.isAbstract &&
-        !method.isStatic &&
-        method.isAccessibleIn(library) &&
-        method.enclosingElement3 != this);
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  PropertyAccessorElement? lookUpInheritedConcreteSetter(
-      String setterName, LibraryElement library) {
-    return _implementationsOfSetter(setterName).firstWhereOrNull((setter) =>
-        !setter.isAbstract &&
-        !setter.isStatic &&
-        setter.isAccessibleIn(library) &&
-        setter.enclosingElement3 != this);
-  }
-
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  @override
-  MethodElement? lookUpInheritedMethod(
-      String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
-        !method.isStatic &&
-        method.isAccessibleIn(library) &&
-        method.enclosingElement3 != this);
-  }
-
-  @Deprecated('Use `element.augmented.lookUpMethod`.')
-  @override
-  MethodElement? lookUpMethod(String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull(
-        (MethodElement method) => method.isAccessibleIn(library));
-  }
-
-  @Deprecated('Use `element.augmented.lookUpSetter`.')
-  @override
-  PropertyAccessorElement? lookUpSetter(
-      String setterName, LibraryElement library) {
-    return _implementationsOfSetter(setterName).firstWhereOrNull(
-        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
-  }
-
-  /// Return the static getter with the [name], accessible to the [library].
-  ///
-  /// This method should be used only for error recovery during analysis,
-  /// when instance access to a static class member, defined in this class,
-  /// or a superclass.
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  PropertyAccessorElementOrMember? lookupStaticGetter(
-      String name, LibraryElement library) {
-    return _implementationsOfGetter(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn(library));
-  }
-
-  /// Return the static method with the [name], accessible to the [library].
-  ///
-  /// This method should be used only for error recovery during analysis,
-  /// when instance access to a static class member, defined in this class,
-  /// or a superclass.
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  MethodElementOrMember? lookupStaticMethod(
-      String name, LibraryElement library) {
-    return _implementationsOfMethod(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn(library));
-  }
-
-  /// Return the static setter with the [name], accessible to the [library].
-  ///
-  /// This method should be used only for error recovery during analysis,
-  /// when instance access to a static class member, defined in this class,
-  /// or a superclass.
-  @Deprecated(elementModelDeprecationMsg)
-  PropertyAccessorElement? lookupStaticSetter(
-      String name, LibraryElement library) {
-    return _implementationsOfSetter(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn(library));
-  }
-
   void resetCachedAllSupertypes() {
     _allSupertypes = null;
   }
 
   /// Builds constructors for this mixin application.
   void _buildMixinAppConstructors() {}
-
-  /// Return an iterable containing all of the implementations of a getter with
-  /// the given [getterName] that are defined in this class and any superclass
-  /// of this class (but not in interfaces).
-  ///
-  /// The getters that are returned are not filtered in any way. In particular,
-  /// they can include getters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The getters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the getter it will occur first, if
-  /// Object contains a definition of the getter it will occur last.
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  Iterable<PropertyAccessorElementOrMember> _implementationsOfGetter(
-      String getterName) sync* {
-    var visitedClasses = <InterfaceElement>{};
-    InterfaceElementImpl? classElement = this;
-    while (classElement != null && visitedClasses.add(classElement)) {
-      var getter = classElement.getGetter(getterName);
-      if (getter != null) {
-        yield getter;
-      }
-      for (var mixin in classElement.mixins.reversed) {
-        getter = mixin.element.getGetter(getterName);
-        if (getter != null) {
-          yield getter;
-        }
-      }
-      classElement = classElement.supertype?.element;
-    }
-  }
-
-  /// Return an iterable containing all of the implementations of a method with
-  /// the given [methodName] that are defined in this class and any superclass
-  /// of this class (but not in interfaces).
-  ///
-  /// The methods that are returned are not filtered in any way. In particular,
-  /// they can include methods that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The methods are returned based on the depth of their defining class; if
-  /// this class contains a definition of the method it will occur first, if
-  /// Object contains a definition of the method it will occur last.
-  @Deprecated('Use InterfaceElementImpl2 instead')
-  Iterable<MethodElementOrMember> _implementationsOfMethod(
-      String methodName) sync* {
-    var visitedClasses = <InterfaceElement>{};
-    InterfaceElementImpl? classElement = this;
-    while (classElement != null && visitedClasses.add(classElement)) {
-      var method = classElement.getMethod(methodName);
-      if (method != null) {
-        yield method;
-      }
-      for (var mixin in classElement.mixins.reversed) {
-        method = mixin.element.getMethod(methodName);
-        if (method != null) {
-          yield method;
-        }
-      }
-      classElement = classElement.supertype?.element;
-    }
-  }
-
-  /// Return an iterable containing all of the implementations of a setter with
-  /// the given [setterName] that are defined in this class and any superclass
-  /// of this class (but not in interfaces).
-  ///
-  /// The setters that are returned are not filtered in any way. In particular,
-  /// they can include setters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The setters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the setter it will occur first, if
-  /// Object contains a definition of the setter it will occur last.
-  @Deprecated(elementModelDeprecationMsg)
-  Iterable<PropertyAccessorElement> _implementationsOfSetter(
-      String setterName) sync* {
-    var visitedClasses = <InterfaceElement>{};
-    InterfaceElement? classElement = this;
-    while (classElement != null && visitedClasses.add(classElement)) {
-      var setter = classElement.getSetter(setterName);
-      if (setter != null) {
-        yield setter;
-      }
-      for (var mixin in classElement.mixins.reversed) {
-        mixin as InterfaceTypeImpl;
-        setter = mixin.element.getSetter(setterName);
-        if (setter != null) {
-          yield setter;
-        }
-      }
-      var supertype = classElement.supertype;
-      supertype as InterfaceTypeImpl?;
-      classElement = supertype?.element;
-    }
-  }
 
   static PropertyAccessorElementOrMember? getSetterFromAccessors(
       String setterName, List<PropertyAccessorElementOrMember> accessors) {
@@ -8688,257 +8335,6 @@ enum Modifier {
   SYNTHETIC
 }
 
-@Deprecated('Use MultiplyDefinedElement2 instead')
-class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
-  /// The unique integer identifier of this element.
-  @override
-  final int id = ElementImpl._NEXT_ID++;
-
-  final CompilationUnitElementImpl libraryFragment;
-
-  /// The name of the conflicting elements.
-  @override
-  final String name;
-
-  @override
-  final List<Element> conflictingElements;
-
-  /// Initialize a newly created element in the given [context] to represent
-  /// the given non-empty [conflictingElements].
-  MultiplyDefinedElementImpl(
-    this.libraryFragment,
-    this.name,
-    this.conflictingElements,
-  );
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => const [];
-
-  @override
-  AnalysisContext get context {
-    return libraryFragment.context;
-  }
-
-  @override
-  ElementImpl? get declaration => null;
-
-  @override
-  String get displayName => name;
-
-  @override
-  String? get documentationComment => null;
-
-  @override
-  Element? get enclosingElement3 => null;
-
-  @override
-  bool get hasAlwaysThrows => false;
-
-  @override
-  bool get hasDeprecated => false;
-
-  @override
-  bool get hasDoNotStore => false;
-
-  @override
-  bool get hasDoNotSubmit => false;
-
-  @override
-  bool get hasFactory => false;
-
-  @override
-  bool get hasImmutable => false;
-
-  @override
-  bool get hasInternal => false;
-
-  @override
-  bool get hasIsTest => false;
-
-  @override
-  bool get hasIsTestGroup => false;
-
-  @override
-  bool get hasJS => false;
-
-  @override
-  bool get hasLiteral => false;
-
-  @override
-  bool get hasMustBeConst => false;
-
-  @override
-  bool get hasMustBeOverridden => false;
-
-  @override
-  bool get hasMustCallSuper => false;
-
-  @override
-  bool get hasNonVirtual => false;
-
-  @override
-  bool get hasOptionalTypeArgs => false;
-
-  @override
-  bool get hasOverride => false;
-
-  @override
-  bool get hasProtected => false;
-
-  @override
-  bool get hasRedeclare => false;
-
-  @override
-  bool get hasReopen => false;
-
-  @override
-  bool get hasRequired => false;
-
-  @override
-  bool get hasSealed => false;
-
-  @override
-  bool get hasUseResult => false;
-
-  @override
-  bool get hasVisibleForOverriding => false;
-
-  @override
-  bool get hasVisibleForTemplate => false;
-
-  @override
-  bool get hasVisibleForTesting => false;
-
-  @override
-  bool get hasVisibleOutsideTemplate => false;
-
-  @override
-  bool get isPrivate {
-    throw UnimplementedError();
-  }
-
-  @override
-  bool get isPublic => !isPrivate;
-
-  @override
-  bool get isSynthetic => true;
-
-  bool get isVisibleForTemplate => false;
-
-  bool get isVisibleOutsideTemplate => false;
-
-  @override
-  ElementKind get kind => ElementKind.ERROR;
-
-  @override
-  LibraryElement? get library => null;
-
-  @override
-  Source? get librarySource => null;
-
-  @override
-  ElementLocation? get location => null;
-
-  @override
-  List<ElementAnnotationImpl> get metadata {
-    return const <ElementAnnotationImpl>[];
-  }
-
-  @override
-  int get nameLength => 0;
-
-  @override
-  int get nameOffset => -1;
-
-  @override
-  Element get nonSynthetic => this;
-
-  @override
-  AnalysisSession get session {
-    return libraryFragment.session;
-  }
-
-  @override
-  Version? get sinceSdkVersion => null;
-
-  @override
-  Source? get source => null;
-
-  @override
-  String getDisplayString({
-    @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-    bool multiline = false,
-  }) {
-    var elementsStr = conflictingElements.map((e) {
-      return e.getDisplayString();
-    }).join(', ');
-    return '[$elementsStr]';
-  }
-
-  @override
-  String getExtendedDisplayName(String? shortName) {
-    if (shortName != null) {
-      return shortName;
-    }
-    return displayName;
-  }
-
-  @override
-  bool isAccessibleIn(LibraryElement library) {
-    for (Element element in conflictingElements) {
-      if (element.isAccessibleIn(library)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  E? thisOrAncestorMatching<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    return null;
-  }
-
-  @override
-  E? thisOrAncestorMatching3<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    return null;
-  }
-
-  @override
-  E? thisOrAncestorOfType<E extends Element>() => null;
-
-  @override
-  E? thisOrAncestorOfType3<E extends Element>() => null;
-
-  @override
-  String toString() {
-    StringBuffer buffer = StringBuffer();
-    bool needsSeparator = false;
-    void writeList(List<Element> elements) {
-      for (Element element in elements) {
-        if (needsSeparator) {
-          buffer.write(", ");
-        } else {
-          needsSeparator = true;
-        }
-        buffer.write(
-          element.getDisplayString(),
-        );
-      }
-    }
-
-    buffer.write("[");
-    writeList(conflictingElements);
-    buffer.write("]");
-    return buffer.toString();
-  }
-}
-
 class MultiplyDefinedElementImpl2 extends ElementImpl2
     implements MultiplyDefinedElement2 {
   final CompilationUnitElementImpl libraryFragment;
@@ -9102,11 +8498,7 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeDefiningElement,
-        TypeDefiningFragment {
+class NeverElementImpl extends ElementImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 

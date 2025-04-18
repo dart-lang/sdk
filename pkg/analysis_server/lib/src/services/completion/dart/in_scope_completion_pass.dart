@@ -2273,7 +2273,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               if (element is InterfaceElement2) {
                 helper.addInstanceMembersOfType(element.thisType);
               } else if (element is ExtensionElement2) {
-                helper.addMembersFromExtensionElement(element);
+                helper.addMembersFromExtensionElement(
+                  element,
+                  excludedGetters: {},
+                  includeMethods: true,
+                  includeSetters: true,
+                );
               }
             }
             helper.addStaticMembersOfElement(element);
@@ -2328,7 +2333,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
       }
       if (type == null && target is ExtensionOverride) {
-        declarationHelper().addMembersFromExtensionElement(target.element2);
+        declarationHelper().addMembersFromExtensionElement(
+          target.element2,
+          excludedGetters: {},
+          includeMethods: true,
+          includeSetters: true,
+        );
       }
     }
   }

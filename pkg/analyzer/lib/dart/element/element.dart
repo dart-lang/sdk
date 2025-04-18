@@ -60,135 +60,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// The result of applying augmentations to a [InstanceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedInstanceElement {
-  /// The accessors (getters and setters) declared in this element.
-  ///
-  /// [PropertyAccessorElement]s replace corresponding elements,
-  /// other [PropertyAccessorElement]s are appended.
-  List<PropertyAccessorElement> get accessors;
-
-  /// The fields declared in this element.
-  ///
-  /// `FieldAugmentationElement`s replace corresponding elements, other
-  /// [FieldElement]s are appended.
-  List<FieldElement> get fields;
-
-  /// The declaration (not augmentation) that owns this result.
-  InstanceElement get firstFragment;
-
-  /// The metadata associated with this element.
-  ///
-  /// This is a union of annotations associated with the class declaration and
-  /// all its augmentations.
-  List<ElementAnnotation> get metadata;
-
-  /// The methods declared in this element.
-  ///
-  /// `MethodAugmentationElement`s replace corresponding elements, other
-  /// [MethodElement]s are appended.
-  List<MethodElement> get methods;
-
-  /// The type of `this` expression.
-  DartType get thisType;
-
-  /// Returns the field from [fields] that has the given [name].
-  FieldElement? getField(String name);
-
-  /// Returns the getter from [accessors] that has the given [name].
-  PropertyAccessorElement? getGetter(String name);
-
-  /// Returns the method from [methods] that has the given [name].
-  MethodElement? getMethod(String name);
-
-  /// Returns the setter from [accessors] that has the given [name].
-  PropertyAccessorElement? getSetter(String name);
-
-  /// Returns the element representing the getter that results from looking up
-  /// the given [name] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 17.18 Lookup.
-  PropertyAccessorElement? lookUpGetter({
-    required String name,
-    required LibraryElement library,
-  });
-
-  /// Returns the element representing the method that results from looking up
-  /// the given [name] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 17.18 Lookup.
-  MethodElement? lookUpMethod({
-    required String name,
-    required LibraryElement library,
-  });
-
-  /// Returns the element representing the setter that results from looking up
-  /// the given [name] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 17.18 Lookup.
-  PropertyAccessorElement? lookUpSetter({
-    required String name,
-    required LibraryElement library,
-  });
-}
-
-/// The result of applying augmentations to a [InterfaceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
-  /// The constructors declared in this element.
-  ///
-  /// `ConstructorAugmentationElement`s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
-  List<ConstructorElement> get constructors;
-
-  @override
-  InterfaceElement get firstFragment;
-
-  /// The interfaces implemented by this element.
-  ///
-  /// This is a union of interfaces declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get interfaces;
-
-  /// The mixins applied by this class or in its augmentations.
-  ///
-  /// This is a union of mixins applied by the class declaration and all its
-  /// augmentations.
-  List<InterfaceType> get mixins;
-
-  @override
-  InterfaceType get thisType;
-
-  /// The unnamed constructor from [constructors].
-  ConstructorElement? get unnamedConstructor;
-
-  /// Returns the constructor from [constructors] that has the given [name].
-  ConstructorElement? getNamedConstructor(String name);
-}
-
-/// The result of applying augmentations to a [MixinElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
-  /// The superclass constraints of this element.
-  ///
-  /// This is a union of constraints declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get superclassConstraints;
-}
-
 /// A pattern variable that is explicitly declared.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -268,62 +139,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The type aliases declared in this compilation unit.
   List<TypeAliasElement> get typeAliases;
-}
-
-/// An element representing a constructor or a factory method defined within a
-/// class.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ConstructorElement2 instead')
-abstract class ConstructorElement
-    implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
-  @override
-  ConstructorElement get declaration;
-
-  @override
-  String get displayName;
-
-  @override
-  InterfaceElement get enclosingElement3;
-
-  /// Whether the constructor is a const constructor.
-  bool get isConst;
-
-  /// Whether the constructor can be used as a default constructor - unnamed,
-  /// and has no required parameters.
-  bool get isDefaultConstructor;
-
-  /// Whether the constructor represents a factory constructor.
-  bool get isFactory;
-
-  /// Whether the constructor represents a generative constructor.
-  bool get isGenerative;
-
-  @override
-  String get name;
-
-  /// The offset of the character immediately following the last character of
-  /// this constructor's name, or `null` if not named.
-  ///
-  // TODO(migration): encapsulate [nameEnd] and [periodOffset]?
-  int? get nameEnd;
-
-  /// The offset of the `.` before this constructor name, or `null` if not
-  /// named.
-  int? get periodOffset;
-
-  /// The constructor to which this constructor is redirecting, or `null` if
-  /// this constructor does not redirect to another constructor or if the
-  /// library containing this constructor has not yet been resolved.
-  ConstructorElement? get redirectedConstructor;
-
-  @override
-  InterfaceType get returnType;
-
-  /// The constructor of the superclass that this constructor invokes, or
-  /// `null` if this constructor redirects to another constructor, or if the
-  /// library containing this constructor has not yet been resolved.
-  ConstructorElement? get superConstructor;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -1194,13 +1009,6 @@ abstract class InstanceElement
   /// The declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
 
-  /// The result of merging augmentations.
-  ///
-  /// It includes the members of the base element and its augmentations as
-  /// specified by the merge operations.
-  @Deprecated(elementModelDeprecationMsg)
-  AugmentedInstanceElement get augmented;
-
   @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
@@ -1231,16 +1039,6 @@ abstract class InterfaceElement implements InstanceElement {
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedInterfaceElement get augmented;
-
-  /// The declared constructors.
-  ///
-  /// The list is empty for [MixinElement].
-  @Deprecated(elementModelDeprecationMsg)
-  List<ConstructorElement> get constructors;
 
   /// The interfaces that are implemented by this class.
   ///
@@ -1290,14 +1088,6 @@ abstract class InterfaceElement implements InstanceElement {
   @override
   InterfaceType get thisType;
 
-  /// The unnamed constructor declared directly in this class.
-  ///
-  /// If the class does not declare any constructors, a synthetic default
-  /// constructor will be returned.
-  // TODO(scheglov): Deprecate and remove it.
-  @Deprecated(elementModelDeprecationMsg)
-  ConstructorElement? get unnamedConstructor;
-
   /// The field (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
   // TODO(scheglov): Deprecate and remove it.
@@ -1313,12 +1103,6 @@ abstract class InterfaceElement implements InstanceElement {
   // TODO(scheglov): Deprecate and remove it.
   MethodElement? getMethod(String name);
 
-  /// The constructor defined directly in this class or augmentation
-  /// that has the given [name].
-  // TODO(scheglov): Deprecate and remove it.
-  @Deprecated(elementModelDeprecationMsg)
-  ConstructorElement? getNamedConstructor(String name);
-
   /// The setter (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
   // TODO(scheglov): Deprecate and remove it.
@@ -1330,164 +1114,6 @@ abstract class InterfaceElement implements InstanceElement {
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   });
-
-  /// Returns the element representing the method that results from looking up
-  /// the given [methodName] in this class with respect to the given [library],
-  /// ignoring abstract methods, or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is: If <i>C</i> declares an instance method named
-  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
-  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
-  /// result of the lookup is the result of looking up method <i>m</i> in
-  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
-  /// failed.
-  /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
-  MethodElement? lookUpConcreteMethod(
-      String methodName, LibraryElement library);
-
-  /// Returns the element representing the getter that results from looking up
-  /// the given [getterName] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use `element.augmented.lookUpGetter`.')
-  PropertyAccessorElement? lookUpGetter(
-      String getterName, LibraryElement library);
-
-  /// Returns the element representing the getter that results from looking up
-  /// the given [getterName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract getters, or `null` if the look up
-  /// fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
-  PropertyAccessorElement? lookUpInheritedConcreteGetter(
-      String getterName, LibraryElement library);
-
-  /// Returns the element representing the method that results from looking up
-  /// the given [methodName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract methods, or `null` if the look up
-  /// fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
-  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
-  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
-  /// result of the lookup is the result of looking up method <i>m</i> in
-  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
-  /// failed.
-  /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
-  MethodElement? lookUpInheritedConcreteMethod(
-      String methodName, LibraryElement library);
-
-  /// Returns the element representing the setter that results from looking up
-  /// the given [setterName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract setters, or `null` if the look up
-  /// fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is:  If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
-  PropertyAccessorElement? lookUpInheritedConcreteSetter(
-      String setterName, LibraryElement library);
-
-  /// Returns the element representing the method that results from looking up
-  /// the given [methodName] in the superclass of this class with respect to the
-  /// given [library], or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
-  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
-  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
-  /// result of the lookup is the result of looking up method <i>m</i> in
-  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
-  /// failed.
-  /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
-  MethodElement? lookUpInheritedMethod(
-      String methodName, LibraryElement library);
-
-  /// Returns the element representing the method that results from looking up
-  /// the given [methodName] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
-  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
-  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
-  /// result of the lookup is the result of looking up method <i>m</i> in
-  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
-  /// failed.
-  /// </blockquote>
-  @Deprecated('Use `element.augmented.lookUpMethod`.')
-  MethodElement? lookUpMethod(String methodName, LibraryElement library);
-
-  /// Returns the element representing the setter that results from looking up
-  /// the given [setterName] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use `element.augmented.lookUpSetter`.')
-  PropertyAccessorElement? lookUpSetter(
-      String setterName, LibraryElement library);
 }
 
 /// A pattern variable that is a join of other pattern variables, created
@@ -1711,19 +1337,6 @@ abstract class LocalVariableElement implements PromotableElement {
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   @override
   MethodElement get declaration;
-}
-
-/// A pseudo-element that represents multiple elements defined within a single
-/// scope that have the same name. This situation is not allowed by the
-/// language, so objects implementing this interface always represent an error.
-/// As a result, most of the normal operations on elements do not make sense
-/// and will return useless results.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use MultiplyDefinedElement2 instead')
-abstract class MultiplyDefinedElement implements Element {
-  /// The elements that were defined within the scope to have the same name.
-  List<Element> get conflictingElements;
 }
 
 /// An object that controls how namespaces are combined.

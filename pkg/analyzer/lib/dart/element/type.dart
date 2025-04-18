@@ -39,11 +39,6 @@ abstract class DartType {
 
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
-  @Deprecated('Use element3 instead')
-  Element? get element;
-
-  /// Return the element representing the declaration of this type, or `null`
-  /// if the type is not associated with an element.
   @experimental
   Element2? get element3;
 
@@ -238,7 +233,7 @@ abstract class DynamicType implements DartType {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionType implements DartType {
   @override
-  Null get element;
+  Null get element3;
 
   /// The formal parameters.
   @experimental
@@ -353,16 +348,8 @@ abstract class InterfaceType implements ParameterizedType {
   List<InterfaceType> get allSupertypes;
 
   /// Return a list containing all of the constructors declared in this type.
-  @Deprecated('Use constructors2 instead')
-  List<ConstructorElement> get constructors;
-
-  /// Return a list containing all of the constructors declared in this type.
   @experimental
   List<ConstructorElement2> get constructors2;
-
-  @Deprecated('Use element3 instead')
-  @override
-  InterfaceElement get element;
 
   @experimental
   @override
@@ -441,19 +428,6 @@ abstract class InterfaceType implements ParameterizedType {
   /// declared in this class, or `null` if this class does not declare a setter
   /// with the given name.
   SetterElement? getSetter2(String name);
-
-  /// Return the element representing the constructor that results from looking
-  /// up the constructor with the given [name] in this class with respect to the
-  /// given [library], or `null` if the look up fails. The behavior of this
-  /// method is defined by the Dart Language Specification in section 12.11.1:
-  /// <blockquote>
-  /// If <i>e</i> is of the form <b>new</b> <i>T.id()</i> then let <i>q<i> be
-  /// the constructor <i>T.id</i>, otherwise let <i>q<i> be the constructor
-  /// <i>T<i>. Otherwise, if <i>q</i> is not defined or not accessible, a
-  /// NoSuchMethodException is thrown.
-  /// </blockquote>
-  @Deprecated('Use lookUpConstructor2() instead')
-  ConstructorElement? lookUpConstructor(String? name, LibraryElement library);
 
   /// Return the element representing the constructor that results from looking
   /// up the constructor with the given [name] in this class with respect to the
@@ -624,7 +598,7 @@ abstract class RecordType implements DartType {
   }) = RecordTypeImpl.fromApi;
 
   @override
-  Null get element;
+  Null get element3;
 
   /// The named fields (might be empty).
   List<RecordTypeNamedField> get namedFields;
@@ -680,18 +654,6 @@ abstract class TypeParameterType implements DartType {
   /// or `dynamic` if there was no explicit bound.
   DartType get bound;
 
-  /// An object that can be used to identify this type parameter with `==`.
-  ///
-  /// Depending on the use, [bound] may also need to be taken into account.
-  /// A given type parameter, it may have different bounds in different scopes.
-  /// Always consult the bound if that could be relevant.
-  @Deprecated('Elements are equal when they are identical')
-  ElementLocation get definition;
-
-  @Deprecated('Use element3 instead')
-  @override
-  TypeParameterElement get element;
-
   @experimental
   @override
   TypeParameterElement2 get element3;
@@ -701,5 +663,5 @@ abstract class TypeParameterType implements DartType {
 /// expression is meaningless, and intended to be discarded.
 abstract class VoidType implements DartType {
   @override
-  Null get element;
+  Null get element3;
 }

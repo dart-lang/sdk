@@ -434,20 +434,31 @@ class DeclarationHelper {
   void addMembersFromExtensionElement(
     ExtensionElement2 extension, {
     ImportData? importData,
+    required Set<String> excludedGetters,
+    required bool includeMethods,
+    required bool includeSetters,
   }) {
     var extendedType = extension.extendedType;
     var referencingInterface =
         (extendedType is InterfaceType) ? extendedType.element3 : null;
-    for (var method in extension.methods2) {
-      if (!method.isStatic) {
-        _suggestMethod(
-          method: method,
-          importData: importData,
-          referencingInterface: referencingInterface,
-        );
+    if (includeMethods) {
+      for (var method in extension.methods2) {
+        if (!method.isStatic) {
+          if (method.isOperator) {
+            continue;
+          }
+          _suggestMethod(
+            method: method,
+            importData: importData,
+            referencingInterface: referencingInterface,
+          );
+        }
       }
     }
     for (var accessor in extension.getters2) {
+      if (excludedGetters.contains(accessor.name3)) {
+        continue;
+      }
       if (!accessor.isStatic) {
         _suggestProperty(
           accessor: accessor,
@@ -456,13 +467,15 @@ class DeclarationHelper {
         );
       }
     }
-    for (var accessor in extension.setters2) {
-      if (!accessor.isStatic) {
-        _suggestProperty(
-          accessor: accessor,
-          referencingInterface: referencingInterface,
-          importData: importData,
-        );
+    if (includeSetters) {
+      for (var accessor in extension.setters2) {
+        if (!accessor.isStatic) {
+          _suggestProperty(
+            accessor: accessor,
+            referencingInterface: referencingInterface,
+            importData: importData,
+          );
+        }
       }
     }
   }
@@ -508,7 +521,13 @@ class DeclarationHelper {
     for (var instantiatedExtension in applicableExtensions) {
       var extension = instantiatedExtension.extension;
       if (extension.isVisibleIn(request.libraryElement)) {
-        addMembersFromExtensionElement(extension, importData: importData);
+        addMembersFromExtensionElement(
+          extension,
+          importData: importData,
+          excludedGetters: excludedGetters,
+          includeMethods: includeMethods,
+          includeSetters: includeSetters,
+        );
       }
     }
   }
@@ -764,11 +783,17 @@ class DeclarationHelper {
       if (includeMethods) {
         for (var method in extension.methods2) {
           if (!method.isStatic) {
+            if (method.isOperator) {
+              continue;
+            }
             _suggestMethod(method: method);
           }
         }
       }
       for (var getter in extension.getters2) {
+        if (excludedGetters.contains(getter.name3)) {
+          continue;
+        }
         if (!getter.isSynthetic) {
           _suggestProperty(accessor: getter);
         } else {
@@ -1054,6 +1079,9 @@ class DeclarationHelper {
       var rawMember = members.bestMember;
       if (rawMember is MethodElement2) {
         if (includeMethods) {
+          if (rawMember.isOperator) {
+            continue;
+          }
           // Exclude static methods when completion on an instance.
           var member = ExecutableMember.from(rawMember, substitution);
           _suggestMethod(

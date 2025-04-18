@@ -80,16 +80,6 @@ extension CompilationUnitElementImplExtension on CompilationUnitElementImpl {
   }
 }
 
-@Deprecated('Use ConstructorElement2 instead')
-extension ConstructorElement2Extension on ConstructorElement2 {
-  ConstructorElement get asElement {
-    if (this case ConstructorMember member) {
-      return member;
-    }
-    return (this as ConstructorElementImpl2).lastFragment;
-  }
-}
-
 extension ConstructorElementImpl2Extension on ConstructorElementImpl2 {
   ConstructorElementImpl get asElement {
     return lastFragment;
@@ -222,12 +212,6 @@ extension Element2OrNullExtension on Element2? {
         return self.wrappedElement as Element;
       case MethodElementImpl2 element2:
         return element2.asElement;
-      case MultiplyDefinedElementImpl2():
-        return MultiplyDefinedElementImpl(
-          self.libraryFragment,
-          self.name3,
-          self.conflictingElements2.map((e) => e.asElement).nonNulls.toList(),
-        );
       case NeverElementImpl2():
         return NeverElementImpl.instance;
       case PrefixElement2 element2:
