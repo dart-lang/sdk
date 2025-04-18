@@ -209,10 +209,6 @@ abstract class ExecutableMember extends Member
     required this.typeParameters,
   });
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => parameters;
-
   @override
   List<Element2> get children2 {
     return [
@@ -789,10 +785,6 @@ abstract class Member
 
   Element2 get baseElement;
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => const [];
-
   @override
   AnalysisContext get context => _declaration.context;
 
@@ -1133,10 +1125,6 @@ class ParameterMember extends VariableMember
 
   @override
   FormalParameterElement get baseElement => _element2;
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => parameters;
 
   @override
   List<Element2> get children2 {

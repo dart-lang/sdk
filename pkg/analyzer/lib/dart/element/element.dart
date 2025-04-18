@@ -223,12 +223,6 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated(elementModelDeprecationMsg)
 abstract class Element implements AnalysisTarget {
-  /// A list of this element's children.
-  ///
-  /// There is no guarantee of the order in which the children will be included.
-  @Deprecated(elementModelDeprecationMsg)
-  List<Element> get children;
-
   /// The analysis context in which this element is defined.
   AnalysisContext get context;
 

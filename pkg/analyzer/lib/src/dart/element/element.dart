@@ -782,23 +782,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     _accessors = accessors;
   }
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...libraryImports,
-        ...libraryExports,
-        ...accessors,
-        ...classes,
-        ...enums,
-        ...extensions,
-        ...extensionTypes,
-        ...functions,
-        ...mixins,
-        ...typeAliases,
-        ...topLevelVariables,
-      ];
-
   @override
   List<Fragment> get children3 {
     return [
@@ -2504,10 +2487,6 @@ abstract class ElementImpl
     reference?.element = this;
   }
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => const [];
-
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
 
@@ -3532,14 +3511,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// [offset].
   ExecutableElementImpl(String super.name, super.offset, {super.reference});
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...typeParameters,
-        ...parameters,
-      ];
-
   @override
   List<Fragment> get children3 => [
         ...typeParameters,
@@ -3793,16 +3764,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...accessors,
-        ...fields,
-        ...methods,
-        ...typeParameters,
-      ];
 
   @override
   List<Fragment> get children3 => [
@@ -5113,14 +5074,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   GenericFunctionTypeElementImpl.forOffset(int nameOffset)
       : super("", nameOffset);
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...typeParameters,
-        ...parameters,
-      ];
-
   @override
   List<Fragment> get children3 => [
         ...typeParameters,
@@ -5857,17 +5810,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   InterfaceElementImpl(super.name, super.offset);
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...accessors,
-        ...fields,
-        ...constructors,
-        ...methods,
-        ...typeParameters,
-      ];
 
   @override
   List<Fragment> get children3 => [
@@ -6651,13 +6593,6 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   LibraryElementImpl get baseElement => this;
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        definingCompilationUnit,
-        ..._partUnits,
-      ];
 
   @override
   List<Element2> get children2 {
@@ -8657,10 +8592,6 @@ class ParameterElementImpl extends VariableElementImpl
     element.isSynthetic = true;
     return element;
   }
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => parameters;
 
   @override
   List<Fragment> get children3 => const [];

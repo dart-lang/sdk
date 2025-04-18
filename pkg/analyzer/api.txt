@@ -3010,7 +3010,6 @@ package:analyzer/dart/element/element.dart:
     unit (getter: CompilationUnitElement, deprecated)
   Element (class extends Object implements AnalysisTarget, deprecated):
     new (constructor: Element Function())
-    children (getter: List<Element>, deprecated)
     context (getter: AnalysisContext@2)
     declaration (getter: Element?, deprecated)
     displayName (getter: String)
