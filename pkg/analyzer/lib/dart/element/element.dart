@@ -914,19 +914,6 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
   List<PatternVariableElement> get variables;
 }
 
-/// A label associated with a statement.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use LabelElement2 instead')
-abstract class LabelElement implements Element {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  ExecutableElement get enclosingElement3;
-
-  @override
-  String get name;
-}
-
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
