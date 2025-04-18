@@ -7,7 +7,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// A resolver for [InstanceCreationExpression] nodes.
+/// A resolver for [InstanceCreationExpression] and
+/// [DotShorthandConstructorInvocation] nodes.
 ///
 /// This resolver is responsible for rewriting a given
 /// [InstanceCreationExpression] as a [MethodInvocation] if the parsed
@@ -49,6 +50,48 @@ class InstanceCreationExpressionResolver {
     _resolveInstanceCreationExpression(node, contextType: contextType);
   }
 
+  /// Resolves a [DotShorthandConstructorInvocation] node.
+  void resolveDotShorthand(DotShorthandConstructorInvocationImpl node) {
+    TypeImpl contextType =
+        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    contextType = _resolver.typeSystem.futureOrBase(contextType);
+
+    // TODO(kallentu): Support other context types
+    if (contextType is InterfaceTypeImpl) {
+      _resolveDotShorthandConstructorInvocation(node, contextType: contextType);
+    }
+
+    // TODO(kallentu): Report error.
+  }
+
+  void _resolveDotShorthandConstructorInvocation(
+      DotShorthandConstructorInvocationImpl node,
+      {required TypeImpl contextType}) {
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    _resolver.elementResolver.visitDotShorthandConstructorInvocation(node);
+    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
+      typeElement: contextType.element3,
+      constructorName: node.constructorName,
+      definingLibrary: _resolver.definingLibrary,
+    );
+    DotShorthandConstructorInvocationInferrer(
+            resolver: _resolver,
+            node: node,
+            argumentList: node.argumentList,
+            contextType: contextType,
+            whyNotPromotedArguments: whyNotPromotedArguments)
+        .resolveInvocation(
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            rawType: elementToInfer?.asType as FunctionTypeImpl?);
+    node.recordStaticType(contextType, resolver: _resolver);
+    _resolver.checkForArgumentTypesNotAssignableInList(
+        node.argumentList, whyNotPromotedArguments);
+  }
+
   void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node,
       {required TypeImpl contextType}) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
@@ -58,7 +101,8 @@ class InstanceCreationExpressionResolver {
     constructorName = node.constructorName;
     _resolver.elementResolver.visitInstanceCreationExpression(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      constructorName: constructorName,
+      typeElement: constructorName.type.element2,
+      constructorName: node.constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );
     InstanceCreationInferrer(

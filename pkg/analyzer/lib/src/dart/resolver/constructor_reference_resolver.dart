@@ -91,7 +91,8 @@ class ConstructorReferenceResolver {
       {required DartType contextType}) {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      constructorName: constructorName,
+      typeElement: constructorName.type.element2,
+      constructorName: constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );
 

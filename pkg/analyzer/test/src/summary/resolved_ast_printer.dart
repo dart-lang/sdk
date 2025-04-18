@@ -466,6 +466,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+      DotShorthandConstructorInvocation node) {
+    _sink.writeln('DotShorthandConstructorInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _sink.writeln('DotShorthandInvocation');
     _sink.withIndent(() {

@@ -280,6 +280,11 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitDoStatement(DoStatement node) => visitStatement(node);
 
   @override
+  R? visitDotShorthandConstructorInvocation(
+          DotShorthandConstructorInvocation node) =>
+      visitExpression(node);
+
+  @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) =>
       visitExpression(node);
 
@@ -1039,6 +1044,13 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+      DotShorthandConstructorInvocation node) {
     node.visitChildren(this);
     return null;
   }
@@ -1986,6 +1998,11 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitDoStatement(DoStatement node) => null;
 
   @override
+  R? visitDotShorthandConstructorInvocation(
+          DotShorthandConstructorInvocation node) =>
+      null;
+
+  @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) => null;
 
   @override
@@ -2533,6 +2550,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) => _throw(node);
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+          DotShorthandConstructorInvocation node) =>
+      _throw(node);
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) => _throw(node);
@@ -3295,6 +3317,15 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitDoStatement(DoStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitDoStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitDotShorthandConstructorInvocation(
+      DotShorthandConstructorInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitDotShorthandConstructorInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -4520,6 +4551,11 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDoStatement(DoStatement node) => visitNode(node);
+
+  @override
+  R? visitDotShorthandConstructorInvocation(
+          DotShorthandConstructorInvocation node) =>
+      visitNode(node);
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) =>

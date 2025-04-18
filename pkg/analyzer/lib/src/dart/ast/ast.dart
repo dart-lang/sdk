@@ -1233,6 +1233,9 @@ abstract class AstVisitor<R> {
 
   R? visitDoStatement(DoStatement node);
 
+  R? visitDotShorthandConstructorInvocation(
+      DotShorthandConstructorInvocation node);
+
   R? visitDotShorthandInvocation(DotShorthandInvocation node);
 
   R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
@@ -5192,6 +5195,91 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 }
 
+/// A node that represents a dot shorthand constructor invocation.
+///
+/// For example, `.fromCharCode(42)`.
+///
+///    dotShorthandHead ::=
+///        '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandConstructorInvocation
+    extends InvocationExpression implements ConstructorReferenceNode {
+  /// The name of the constructor invocation.
+  SimpleIdentifier get constructorName;
+
+  /// The token representing the period.
+  Token get period;
+}
+
+final class DotShorthandConstructorInvocationImpl
+    extends InvocationExpressionImpl
+    implements
+        DotShorthandConstructorInvocation,
+        RewrittenMethodInvocationImpl {
+  @override
+  final Token period;
+
+  SimpleIdentifierImpl _constructorName;
+
+  @override
+  ConstructorElementImpl2? element;
+
+  /// Initializes a newly created dot shorthand constructor invocation.
+  DotShorthandConstructorInvocationImpl({
+    required this.period,
+    required SimpleIdentifierImpl constructorName,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _constructorName = constructorName {
+    _becomeParentOf(_constructorName);
+  }
+
+  @override
+  Token get beginToken => period;
+
+  @override
+  SimpleIdentifierImpl get constructorName => _constructorName;
+
+  set constructorName(SimpleIdentifierImpl identifier) {
+    _constructorName = _becomeParentOf(identifier);
+  }
+
+  @override
+  Token get endToken => argumentList.endToken;
+
+  @override
+  ExpressionImpl get function => constructorName;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('constructorName', constructorName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandConstructorInvocation(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError(
+        'DotShorthandConstructorInvocationImpl should only appear in fully'
+        ' resolved ASTs');
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constructorName.accept(visitor);
+    typeArguments?.accept(visitor);
+    argumentList.accept(visitor);
+  }
+}
+
 /// A node that represents a dot shorthand static method or constructor
 /// invocation.
 ///
@@ -8488,7 +8576,7 @@ abstract final class FunctionExpressionInvocation
 
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     with NullShortableExpressionImpl
-    implements FunctionExpressionInvocation {
+    implements FunctionExpressionInvocation, RewrittenMethodInvocationImpl {
   ExpressionImpl _function;
 
   @override
@@ -10562,8 +10650,8 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
 /// The invocation of a function or method.
 ///
-/// This will either be a [FunctionExpressionInvocation], [MethodInvocation],
-/// or a [DotShorthandInvocation].
+/// This will either be a [FunctionExpressionInvocation], a [MethodInvocation],
+/// a [DotShorthandConstructorInvocation], or a [DotShorthandInvocation].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvocationExpression implements Expression {
   /// The list of arguments to the method.
@@ -15344,6 +15432,12 @@ final class ReturnStatementImpl extends StatementImpl
     _expression?.accept(visitor);
   }
 }
+
+/// A resolved dot shorthand invocation.
+///
+/// Either a [FunctionExpressionInvocationImpl], a static method invocation, or
+/// a [DotShorthandConstructorInvocationImpl], a constructor invocation.
+sealed class RewrittenMethodInvocationImpl implements ExpressionImpl {}
 
 /// A script tag that can optionally occur at the beginning of a compilation
 /// unit.

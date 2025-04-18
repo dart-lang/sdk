@@ -26,6 +26,8 @@ import 'constructor_field_initializer_test.dart'
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
+import 'dot_shorthand_constructor_invocation_test.dart'
+    as dot_shorthand_constructor_invocation;
 import 'dot_shorthand_invocation_test.dart' as dot_shorthand_invocation;
 import 'dot_shorthand_property_access_test.dart'
     as dot_shorthand_property_access;
@@ -142,6 +144,7 @@ main() {
     constructor_reference.main();
     constructor.main();
     declared_variable_pattern.main();
+    dot_shorthand_constructor_invocation.main();
     dot_shorthand_invocation.main();
     dot_shorthand_property_access.main();
     enum_resolution.main();

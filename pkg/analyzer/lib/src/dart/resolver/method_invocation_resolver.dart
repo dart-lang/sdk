@@ -202,9 +202,10 @@ class MethodInvocationResolver with ScopeHelpers {
 
   /// Resolves the dot shorthand invocation, [node].
   ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
-  /// process, then returns that new node. Otherwise, returns `null`.
-  FunctionExpressionInvocationImpl? resolveDotShorthand(
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] or a
+  /// [DotShorthandConstructorInvocation] in the process, then returns that new
+  /// node. Otherwise, returns `null`.
+  RewrittenMethodInvocationImpl? resolveDotShorthand(
       DotShorthandInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedArguments) {
     _invocation = node;
@@ -1072,9 +1073,10 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Resolves the dot shorthand invocation, [node], as an method invocation
   /// with a type literal target.
   ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
-  /// process, then returns that new node. Otherwise, returns `null`.
-  FunctionExpressionInvocationImpl? _resolveReceiverTypeLiteralForDotShorthand(
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] or a
+  /// [DotShorthandConstructorInvocation] in the process, then returns that new
+  /// node. Otherwise, returns `null`.
+  RewrittenMethodInvocationImpl? _resolveReceiverTypeLiteralForDotShorthand(
       DotShorthandInvocationImpl node,
       InterfaceElement2 receiver,
       SimpleIdentifierImpl nameNode,
@@ -1109,8 +1111,23 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
-    // TODO(kallentu): Dot shorthands - Could be constructor, replace with
-    // InstanceCreationExpressionImpl.
+    // The dot shorthand is a constructor invocation so we rewrite to a
+    // [DotShorthandConstructorInvocation].
+    if (receiver.getNamedConstructor2(name)
+        case ConstructorElementImpl2 element?
+        when element.isAccessibleIn2(_resolver.definingLibrary)) {
+      nameNode.element = element;
+      var replacement = DotShorthandConstructorInvocationImpl(
+          period: node.period,
+          constructorName: nameNode,
+          typeArguments: node.typeArguments,
+          argumentList: node.argumentList)
+        ..element = element;
+      _resolver.replaceExpression(node, replacement);
+      _resolver.flowAnalysis.transferTestData(node, replacement);
+      return replacement;
+    }
+
     _setInvalidTypeResolutionForDotShorthand(node,
         whyNotPromotedArguments: whyNotPromotedArguments,
         contextType: contextType);
