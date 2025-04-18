@@ -2967,10 +2967,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  ClassMemberElement (class extends Object implements Element, deprecated):
-    new (constructor: ClassMemberElement Function())
-    enclosingElement3 (getter: Element)
-    isStatic (getter: bool)
   DeferredImportElementPrefix (class extends Object implements ImportElementPrefix, deprecated):
     new (constructor: DeferredImportElementPrefix Function())
   DirectiveUri (class extends Object):

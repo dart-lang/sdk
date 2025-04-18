@@ -59,30 +59,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// An element that is contained within a [ClassElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('''
-There is no common interface for class members in the new analyzer element
-model. If you are using this class in an `is` test or a pattern match, replace
-it with checks for the specific element types you are interested in (e.g.,
-`ConstructorElement2`, `MethodElement2`, etc.). If you are using this class as
-a type annotation for a variable that could hold any kind of class member, use
-`Element2` instead.''')
-abstract class ClassMemberElement implements Element {
-  // TODO(brianwilkerson): Either remove this class or rename it to something
-  //  more correct.
-
-  @override
-  Element get enclosingElement3;
-
-  /// Whether the element is a static element.
-  ///
-  /// A static element is an element that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  bool get isStatic;
-}
-
 /// [ImportElementPrefix] that is used together with `deferred`.
 ///
 /// Clients may not extend, implement or mix-in this class.
