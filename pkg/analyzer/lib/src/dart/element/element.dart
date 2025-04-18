@@ -5037,13 +5037,8 @@ abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeElementImpl extends _ExistingElementImpl
-    with
-        TypeParameterizedElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        GenericFunctionTypeElement,
-        FunctionTypedElementImpl,
-        GenericFunctionTypeFragment {
+    with TypeParameterizedElementMixin
+    implements FunctionTypedElementImpl, GenericFunctionTypeFragment {
   /// The declared return type of the function.
   TypeImpl? _returnType;
 

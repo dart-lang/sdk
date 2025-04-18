@@ -929,12 +929,6 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
   FunctionType get type;
 }
 
-/// The pseudo-declaration that defines a generic function type.
-///
-/// Clients may not extend, implement, or mix-in this class.
-@Deprecated('Use GenericFunctionTypeElement2 instead')
-abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
-
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.
 ///

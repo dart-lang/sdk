@@ -3178,8 +3178,6 @@ package:analyzer/dart/element/element.dart:
     parameters (getter: List<ParameterElement>)
     returnType (getter: DartType)
     type (getter: FunctionType)
-  GenericFunctionTypeElement (class extends Object implements FunctionTypedElement, deprecated):
-    new (constructor: GenericFunctionTypeElement Function())
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
     hiddenNames (getter: List<String>)
