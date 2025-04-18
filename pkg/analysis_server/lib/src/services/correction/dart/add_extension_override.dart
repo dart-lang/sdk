@@ -23,10 +23,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
       target = parent.target;
     } else if (parent is PropertyAccess) {
       target = parent.target;
-    } else {
-      return const [];
     }
-    if (target == null) return const [];
     var dartFixContext = context.dartFixContext;
     if (dartFixContext == null) return const [];
 
@@ -51,7 +48,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
 /// the [AddExtensionOverride] producer.
 class _AddOverride extends ResolvedCorrectionProducer {
   /// The expression around which to add the override.
-  final Expression _expression;
+  final Expression? _expression;
 
   /// The extension name to be inserted.
   final String _name;
@@ -72,15 +69,23 @@ class _AddOverride extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var needsParentheses = _expression is! ParenthesizedExpression;
+    var offset = _expression?.offset ?? node.offset;
+    var endOffset = _expression?.end ?? node.offset;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(_expression.offset, (builder) {
+      builder.addInsertion(offset, (builder) {
         builder.write(_name);
         if (needsParentheses) {
           builder.write('(');
         }
+        if (_expression == null) {
+          builder.write('this');
+        }
+        if (offset == endOffset && needsParentheses) {
+          builder.write(').');
+        }
       });
-      if (needsParentheses) {
-        builder.addSimpleInsertion(_expression.end, ')');
+      if (needsParentheses && offset != endOffset) {
+        builder.addSimpleInsertion(endOffset, ')');
       }
     });
   }
