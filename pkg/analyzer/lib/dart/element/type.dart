@@ -316,11 +316,6 @@ abstract class InstantiatedTypeAliasElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceType implements ParameterizedType {
-  /// Return a list containing all of the accessors (getters and setters)
-  /// declared in this type.
-  @Deprecated('Use getters or setters instead')
-  List<PropertyAccessorElement> get accessors;
-
   /// Return all the super-interfaces implemented by this interface. This
   /// includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
@@ -342,10 +337,6 @@ abstract class InterfaceType implements ParameterizedType {
   /// getting the interfaces from this type's element because the types returned
   /// by this method will have had their type parameters replaced.
   List<InterfaceType> get interfaces;
-
-  /// Return a list containing all of the methods declared in this type.
-  @Deprecated('Use methods2 instead')
-  List<MethodElement> get methods;
 
   /// Return a list containing all of the methods declared in this type.
   @experimental
@@ -377,30 +368,12 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return the element representing the getter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a getter
   /// with the given name.
-  @Deprecated('Use getGetter2() instead')
-  PropertyAccessorElement? getGetter(String name);
-
-  /// Return the element representing the getter with the given [name] that is
-  /// declared in this class, or `null` if this class does not declare a getter
-  /// with the given name.
   GetterElement? getGetter2(String name);
 
   /// Return the element representing the method with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a method
   /// with the given name.
-  @Deprecated('Use getMethod2() instead')
-  MethodElement? getMethod(String name);
-
-  /// Return the element representing the method with the given [name] that is
-  /// declared in this class, or `null` if this class does not declare a method
-  /// with the given name.
   MethodElement2? getMethod2(String name);
-
-  /// Return the element representing the setter with the given [name] that is
-  /// declared in this class, or `null` if this class does not declare a setter
-  /// with the given name.
-  @Deprecated('Use getSetter2() instead')
-  PropertyAccessorElement? getSetter(String name);
 
   /// Return the element representing the setter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a setter
@@ -430,25 +403,6 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static getters of the class,
   /// and its superclasses are considered. Clients should not use it.
-  @Deprecated('Use lookUpGetter3() instead')
-  PropertyAccessorElement? lookUpGetter2(
-    String name,
-    LibraryElement library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  });
-
-  /// Return the getter with the given [name].
-  ///
-  /// If [concrete] is `true`, then the concrete implementation is returned,
-  /// from this type, or its superclass.
-  ///
-  /// If [inherited] is `true`, then only getters from the superclass are
-  /// considered.
-  ///
-  /// If [recoveryStatic] is `true`, then static getters of the class,
-  /// and its superclasses are considered. Clients should not use it.
   GetterElement? lookUpGetter3(
     String name,
     LibraryElement2 library, {
@@ -467,47 +421,9 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static methods of the class,
   /// and its superclasses are considered. Clients should not use it.
-  @Deprecated('Use lookUpMethod3() instead')
-  MethodElement? lookUpMethod2(
-    String name,
-    LibraryElement library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  });
-
-  /// Return the method with the given [name].
-  ///
-  /// If [concrete] is `true`, then the concrete implementation is returned,
-  /// from this type, or its superclass.
-  ///
-  /// If [inherited] is `true`, then only methods from the superclass are
-  /// considered.
-  ///
-  /// If [recoveryStatic] is `true`, then static methods of the class,
-  /// and its superclasses are considered. Clients should not use it.
   MethodElement2? lookUpMethod3(
     String name,
     LibraryElement2 library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  });
-
-  /// Return the setter with the given [name].
-  ///
-  /// If [concrete] is `true`, then the concrete implementation is returned,
-  /// from this type, or its superclass.
-  ///
-  /// If [inherited] is `true`, then only setters from the superclass are
-  /// considered.
-  ///
-  /// If [recoveryStatic] is `true`, then static setters of the class,
-  /// and its superclasses are considered. Clients should not use it.
-  @Deprecated('Use lookUpSetter3() instead')
-  PropertyAccessorElement? lookUpSetter2(
-    String name,
-    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,

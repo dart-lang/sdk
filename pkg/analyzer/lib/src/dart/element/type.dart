@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -17,7 +16,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -621,12 +619,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     assert(this is NullTypeImpl);
   }
 
-  @Deprecated('Use getters / setters instead')
-  @override
-  List<PropertyAccessorElementOrMember> get accessors {
-    return [...getters, ...setters].map((e) => e.asElement).toList();
-  }
-
   @override
   List<InterfaceTypeImpl> get allSupertypes {
     var substitution = Substitution.fromInterfaceType(this);
@@ -747,12 +739,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element3.name3 == "Type" && element3.library2.isDartCore;
   }
 
-  @Deprecated('Use methods2 instead')
-  @override
-  List<MethodElementOrMember> get methods {
-    return methods2.map((e) => e.asElement).toList();
-  }
-
   @override
   List<MethodElement2OrMember> get methods2 {
     return _methods ??= element3.methods2.map((e) {
@@ -863,34 +849,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  @Deprecated('Use getGetter2() instead')
-  @override
-  PropertyAccessorElementOrMember? getGetter(String getterName) {
-    return getGetter2(getterName)?.asElement;
-  }
-
   @override
   GetterElement2OrMember? getGetter2(String getterName) {
     var element = element3.getGetter2(getterName);
     return element != null ? GetterMember.from(element, this) : null;
   }
 
-  @Deprecated('Use getMethod2() instead')
-  @override
-  MethodElementOrMember? getMethod(String methodName) {
-    return getMethod2(methodName)?.asElement;
-  }
-
   @override
   MethodElement2OrMember? getMethod2(String methodName) {
     var element = element3.getMethod2(methodName);
     return element != null ? MethodMember.from2(element, this) : null;
-  }
-
-  @Deprecated('Use getSetter2() instead')
-  @override
-  PropertyAccessorElement? getSetter(String setterName) {
-    return getSetter2(setterName)?.asElement;
   }
 
   @override
@@ -916,24 +884,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     // return member
     return ConstructorMember.from2(constructorElement, this);
-  }
-
-  @Deprecated('Use lookUpGetter3() instead')
-  @override
-  PropertyAccessorElement? lookUpGetter2(
-    String name,
-    covariant LibraryElementImpl library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpGetter3(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement;
   }
 
   @override
@@ -974,24 +924,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  @Deprecated('Use lookUpMethod3() instead')
-  @override
-  MethodElementOrMember? lookUpMethod2(
-    String name,
-    covariant LibraryElementImpl library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpMethod3(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement;
-  }
-
   @override
   MethodElement2OrMember? lookUpMethod3(
     String name,
@@ -1028,24 +960,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
-  }
-
-  @Deprecated('Use lookUpSetter3() instead')
-  @override
-  PropertyAccessorElement? lookUpSetter2(
-    String name,
-    covariant LibraryElementImpl library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpSetter3(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement.ifTypeOrNull();
   }
 
   @override
