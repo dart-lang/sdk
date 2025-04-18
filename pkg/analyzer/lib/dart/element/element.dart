@@ -134,9 +134,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   @override
   AnalysisSession get session;
 
-  /// The top-level variables declared in this compilation unit.
-  List<TopLevelVariableElement> get topLevelVariables;
-
   /// The type aliases declared in this compilation unit.
   List<TypeAliasElement> get typeAliases;
 }
@@ -1550,18 +1547,6 @@ abstract class SuperFormalParameterElement implements ParameterElement {
   /// Can be `null` for erroneous code - not existing super-constructor,
   /// no corresponding parameter in the super-constructor.
   ParameterElement? get superConstructorParameter;
-}
-
-/// A top-level variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TopLevelVariableElement2 instead')
-abstract class TopLevelVariableElement implements PropertyInducingElement {
-  @override
-  TopLevelVariableElement get declaration;
-
-  /// Whether the field was explicitly marked as being external.
-  bool get isExternal;
 }
 
 /// A type alias (`typedef`).

@@ -2986,7 +2986,6 @@ package:analyzer/dart/element/element.dart:
     parts (getter: List<PartElement>)
     scope (getter: Scope)
     session (getter: AnalysisSession)
-    topLevelVariables (getter: List<TopLevelVariableElement>)
     typeAliases (getter: List<TypeAliasElement>)
   DeferredImportElementPrefix (class extends Object implements ImportElementPrefix, deprecated):
     new (constructor: DeferredImportElementPrefix Function())
@@ -3331,10 +3330,6 @@ package:analyzer/dart/element/element.dart:
   SuperFormalParameterElement (class extends Object implements ParameterElement, deprecated):
     new (constructor: SuperFormalParameterElement Function())
     superConstructorParameter (getter: ParameterElement?)
-  TopLevelVariableElement (class extends Object implements PropertyInducingElement, deprecated):
-    new (constructor: TopLevelVariableElement Function())
-    declaration (getter: TopLevelVariableElement)
-    isExternal (getter: bool)
   TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement, deprecated):
     new (constructor: TypeAliasElement Function())
     aliasedElement (getter: Element?, deprecated)

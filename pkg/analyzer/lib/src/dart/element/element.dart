@@ -1083,7 +1083,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       .cast<SetterFragment>()
       .toList();
 
-  @override
   List<TopLevelVariableElementImpl> get topLevelVariables {
     return _variables;
   }
@@ -10149,10 +10148,7 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
 }
 
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TopLevelVariableElement,
-        TopLevelVariableFragment {
+    implements TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl2 element;
 
@@ -10163,7 +10159,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   TopLevelVariableElementImpl get declaration => this;
 
-  @override
   bool get isExternal {
     return hasModifier(Modifier.EXTERNAL);
   }
