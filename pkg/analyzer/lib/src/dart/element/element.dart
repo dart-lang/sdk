@@ -89,75 +89,6 @@ mixin AugmentableFragment on ElementImpl {
   }
 }
 
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedInstanceElementImpl implements AugmentedInstanceElement {
-  @override
-  final InstanceElementImpl firstFragment;
-
-  AugmentedInstanceElementImpl(this.firstFragment);
-
-  @override
-  List<PropertyAccessorElement> get accessors => firstFragment.accessors;
-
-  @override
-  List<FieldElement> get fields => firstFragment.fields;
-
-  @override
-  List<ElementAnnotation> get metadata => firstFragment.metadata;
-
-  @override
-  List<MethodElement> get methods => firstFragment.methods;
-
-  @override
-  DartType get thisType => firstFragment.thisType;
-
-  @override
-  FieldElement? getField(String name) {
-    return fields.firstWhereOrNull((e) => e.name == name);
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    return accessors
-        .where((e) => e.isGetter)
-        .firstWhereOrNull((e) => e.name == name);
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    return methods.firstWhereOrNull((e) => e.name == name);
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    return accessors
-        .where((e) => e.isSetter)
-        .firstWhereOrNull((e) => e.name == name);
-  }
-}
-
-@Deprecated(elementModelDeprecationMsg)
-class AugmentedInterfaceElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedInterfaceElement {
-  AugmentedInterfaceElementImpl(super.firstFragment);
-
-  @override
-  InterfaceElementImpl get firstFragment {
-    return super.firstFragment as InterfaceElementImpl;
-  }
-
-  @override
-  List<InterfaceType> get interfaces => firstFragment.interfaces;
-
-  @override
-  List<InterfaceType> get mixins => firstFragment.mixins;
-
-  @override
-  InterfaceType get thisType {
-    return super.thisType as InterfaceType;
-  }
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements
         // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
@@ -5560,10 +5491,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
     _accessors = accessors;
   }
 
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedInstanceElement get augmented => AugmentedInstanceElementImpl(this);
-
   @override
   InstanceElementImpl2 get element;
 
@@ -5947,11 +5874,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return _allSupertypes ??=
         library.session.classHierarchy.implementedInterfaces(element);
   }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedInterfaceElement get augmented =>
-      AugmentedInterfaceElementImpl(this);
 
   @Deprecated('Use Element2 instead')
   @override

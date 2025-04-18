@@ -2968,27 +2968,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  AugmentedInstanceElement (class extends Object, deprecated):
-    new (constructor: AugmentedInstanceElement Function())
-    accessors (getter: List<PropertyAccessorElement>)
-    fields (getter: List<FieldElement>)
-    firstFragment (getter: InstanceElement)
-    metadata (getter: List<ElementAnnotation>)
-    methods (getter: List<MethodElement>)
-    thisType (getter: DartType)
-    getField (method: FieldElement? Function(String))
-    getGetter (method: PropertyAccessorElement? Function(String))
-    getMethod (method: MethodElement? Function(String))
-    getSetter (method: PropertyAccessorElement? Function(String))
-  AugmentedInterfaceElement (class extends Object implements AugmentedInstanceElement, deprecated):
-    new (constructor: AugmentedInterfaceElement Function())
-    firstFragment (getter: InterfaceElement)
-    interfaces (getter: List<InterfaceType>)
-    mixins (getter: List<InterfaceType>)
-    thisType (getter: InterfaceType)
-  AugmentedMixinElement (class extends AugmentedInterfaceElement, deprecated):
-    new (constructor: AugmentedMixinElement Function())
-    superclassConstraints (getter: List<InterfaceType>)
   BindPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: BindPatternVariableElement Function())
   ClassMemberElement (class extends Object implements Element, deprecated):
@@ -3222,7 +3201,6 @@ package:analyzer/dart/element/element.dart:
   InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement, deprecated):
     new (constructor: InstanceElement Function())
     accessors (getter: List<PropertyAccessorElement>)
-    augmented (getter: AugmentedInstanceElement, deprecated)
     enclosingElement3 (getter: CompilationUnitElement, deprecated)
     fields (getter: List<FieldElement>)
     isAugmentation (getter: bool)
@@ -3231,7 +3209,6 @@ package:analyzer/dart/element/element.dart:
   InterfaceElement (class extends Object implements InstanceElement, deprecated):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
-    augmented (getter: AugmentedInterfaceElement, deprecated)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>, deprecated)
     name (getter: String)

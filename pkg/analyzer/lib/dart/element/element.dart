@@ -60,90 +60,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// The result of applying augmentations to a [InstanceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedInstanceElement {
-  /// The accessors (getters and setters) declared in this element.
-  ///
-  /// [PropertyAccessorElement]s replace corresponding elements,
-  /// other [PropertyAccessorElement]s are appended.
-  List<PropertyAccessorElement> get accessors;
-
-  /// The fields declared in this element.
-  ///
-  /// `FieldAugmentationElement`s replace corresponding elements, other
-  /// [FieldElement]s are appended.
-  List<FieldElement> get fields;
-
-  /// The declaration (not augmentation) that owns this result.
-  InstanceElement get firstFragment;
-
-  /// The metadata associated with this element.
-  ///
-  /// This is a union of annotations associated with the class declaration and
-  /// all its augmentations.
-  List<ElementAnnotation> get metadata;
-
-  /// The methods declared in this element.
-  ///
-  /// `MethodAugmentationElement`s replace corresponding elements, other
-  /// [MethodElement]s are appended.
-  List<MethodElement> get methods;
-
-  /// The type of `this` expression.
-  DartType get thisType;
-
-  /// Returns the field from [fields] that has the given [name].
-  FieldElement? getField(String name);
-
-  /// Returns the getter from [accessors] that has the given [name].
-  PropertyAccessorElement? getGetter(String name);
-
-  /// Returns the method from [methods] that has the given [name].
-  MethodElement? getMethod(String name);
-
-  /// Returns the setter from [accessors] that has the given [name].
-  PropertyAccessorElement? getSetter(String name);
-}
-
-/// The result of applying augmentations to a [InterfaceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
-  @override
-  InterfaceElement get firstFragment;
-
-  /// The interfaces implemented by this element.
-  ///
-  /// This is a union of interfaces declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get interfaces;
-
-  /// The mixins applied by this class or in its augmentations.
-  ///
-  /// This is a union of mixins applied by the class declaration and all its
-  /// augmentations.
-  List<InterfaceType> get mixins;
-
-  @override
-  InterfaceType get thisType;
-}
-
-/// The result of applying augmentations to a [MixinElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
-  /// The superclass constraints of this element.
-  ///
-  /// This is a union of constraints declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get superclassConstraints;
-}
-
 /// A pattern variable that is explicitly declared.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1093,13 +1009,6 @@ abstract class InstanceElement
   /// The declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
 
-  /// The result of merging augmentations.
-  ///
-  /// It includes the members of the base element and its augmentations as
-  /// specified by the merge operations.
-  @Deprecated(elementModelDeprecationMsg)
-  AugmentedInstanceElement get augmented;
-
   @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
@@ -1130,10 +1039,6 @@ abstract class InterfaceElement implements InstanceElement {
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  AugmentedInterfaceElement get augmented;
 
   /// The interfaces that are implemented by this class.
   ///
