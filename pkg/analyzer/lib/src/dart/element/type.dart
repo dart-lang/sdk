@@ -1558,10 +1558,6 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Append a textual representation of this type to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
-  @Deprecated('Use asInstanceOf2() instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) => null;
-
   @override
   InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) => null;
 
@@ -1726,12 +1722,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameterType(this);
-  }
-
-  @Deprecated('Use asInstanceOf2() instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
-    return bound.asInstanceOf(targetElement);
   }
 
   @override

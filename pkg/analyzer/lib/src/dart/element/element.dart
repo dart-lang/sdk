@@ -5835,10 +5835,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        InterfaceElement,
-        InterfaceFragment {
+    implements InterfaceFragment {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
   List<InterfaceTypeImpl> _mixins = const [];
@@ -5852,9 +5849,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   InterfaceTypeImpl? _supertype;
 
-  /// The cached result of [allSupertypes].
-  List<InterfaceType>? _allSupertypes;
-
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
   bool hasBeenInferred = false;
@@ -5864,12 +5858,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   InterfaceElementImpl(super.name, super.offset);
-
-  @override
-  List<InterfaceType> get allSupertypes {
-    return _allSupertypes ??=
-        library.session.classHierarchy.implementedInterfaces(element);
-  }
 
   @Deprecated('Use Element2 instead')
   @override
@@ -6004,39 +5992,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return element.thisType;
   }
 
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  FieldElement? getField(String name) {
-    return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
-  }
-
-  @override
-  PropertyAccessorElementOrMember? getGetter(String getterName) {
-    return accessors.firstWhereOrNull(
-        (accessor) => accessor.isGetter && accessor.name == getterName);
-  }
-
-  @override
-  MethodElementOrMember? getMethod(String methodName) {
-    return methods.firstWhereOrNull((method) => method.name == methodName);
-  }
-
-  @override
-  PropertyAccessorElementOrMember? getSetter(String setterName) {
-    return getSetterFromAccessors(setterName, accessors);
-  }
-
-  @override
-  InterfaceTypeImpl instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   InterfaceTypeImpl instantiateImpl({
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -6045,10 +6000,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-  }
-
-  void resetCachedAllSupertypes() {
-    _allSupertypes = null;
   }
 
   /// Builds constructors for this mixin application.
@@ -6078,8 +6029,14 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   InterfaceTypeImpl? _thisType;
 
+  /// The cached result of [allSupertypes].
+  List<InterfaceType>? _allSupertypes;
+
   @override
-  List<InterfaceType> get allSupertypes => firstFragment.allSupertypes;
+  List<InterfaceType> get allSupertypes {
+    return _allSupertypes ??=
+        library2.session.classHierarchy.implementedInterfaces(this);
+  }
 
   @override
   List<Element2> get children2 {
@@ -6351,7 +6308,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   void resetCachedAllSupertypes() {
-    firstFragment._allSupertypes = null;
+    _allSupertypes = null;
   }
 }
 

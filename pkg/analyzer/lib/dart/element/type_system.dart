@@ -43,13 +43,6 @@ abstract class TypeSystem {
   DartType greatestLowerBound(DartType T1, DartType T2);
 
   /// Instantiate the given [element] with default type arguments.
-  @Deprecated('Use instantiateInterfaceToBounds2() instead')
-  InterfaceType instantiateInterfaceToBounds({
-    required InterfaceElement element,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Instantiate the given [element] with default type arguments.
   @experimental
   InterfaceType instantiateInterfaceToBounds2({
     required InterfaceElement2 element,
