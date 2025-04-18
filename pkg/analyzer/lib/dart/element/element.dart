@@ -798,23 +798,6 @@ abstract class ElementLocation {
   String get encoding;
 }
 
-/// An element that has a [FunctionType] as its [type].
-///
-/// This also provides convenient access to the parameters and return type.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use FunctionTypedElement2 instead')
-abstract class FunctionTypedElement implements TypeParameterizedElement {
-  /// The parameters defined by this executable element.
-  List<ParameterElement> get parameters;
-
-  /// The return type defined by this element.
-  DartType get returnType;
-
-  /// The type defined by this element.
-  FunctionType get type;
-}
-
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.
 ///

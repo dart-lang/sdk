@@ -3143,11 +3143,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: ElementLocation Function())
     components (getter: List<String>)
     encoding (getter: String)
-  FunctionTypedElement (class extends Object implements TypeParameterizedElement, deprecated):
-    new (constructor: FunctionTypedElement Function())
-    parameters (getter: List<ParameterElement>)
-    returnType (getter: DartType)
-    type (getter: FunctionType)
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
     hiddenNames (getter: List<String>)

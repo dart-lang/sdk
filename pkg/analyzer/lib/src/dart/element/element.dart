@@ -5104,20 +5104,19 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionTypedElementImpl
-    implements
-        _ExistingElementImpl,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FunctionTypedElement {
-  @override
+abstract class FunctionTypedElementImpl implements _ExistingElementImpl {
+  /// The parameters defined by this executable element.
   List<ParameterElementImpl> get parameters;
 
   set returnType(DartType returnType);
 
-  @override
+  /// The type defined by this element.
   FunctionTypeImpl get type;
 
-  @override
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
   List<TypeParameterElementImpl> get typeParameters;
 }
 
@@ -5210,7 +5209,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   @override
   GenericFunctionTypeElementImpl? get previousFragment => null;
 
-  @override
+  /// The return type defined by this element.
   TypeImpl get returnType {
     return _returnType!;
   }
