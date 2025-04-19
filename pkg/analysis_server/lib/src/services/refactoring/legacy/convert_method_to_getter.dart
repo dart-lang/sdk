@@ -13,7 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// [ConvertMethodToGetterRefactoring] implementation.
@@ -149,7 +149,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       );
       var refUnit = resolvedUnit?.unit;
       if (refUnit == null) continue;
-      var refNode = NodeLocator(refRange.offset).searchWithin(refUnit);
+      var refNode = refUnit.nodeCovering(offset: refRange.offset);
       var invocation = refNode?.thisOrAncestorOfType<MethodInvocation>();
 
       // we need invocation

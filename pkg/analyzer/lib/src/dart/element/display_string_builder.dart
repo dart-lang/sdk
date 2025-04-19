@@ -433,7 +433,7 @@ class ElementDisplayStringBuilder {
 
   void _writeDirectiveUri(DirectiveUri uri) {
     if (uri is DirectiveUriWithUnitImpl) {
-      _write('unit ${uri.unit.source.uri}');
+      _write('unit ${uri.libraryFragment.source.uri}');
     } else if (uri is DirectiveUriWithSourceImpl) {
       _write('source ${uri.source}');
     } else {

@@ -19,9 +19,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -177,10 +177,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
-    var node = NodeLocator(
-      offset,
-      offset + length,
-    ).searchWithin(resolveResult.unit);
+    var node = resolveResult.unit.nodeCovering(offset: offset, length: length);
 
     // Treat single ReturnStatement as its expression.
     if (node is ReturnStatement) {

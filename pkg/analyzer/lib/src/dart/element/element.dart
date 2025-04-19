@@ -90,10 +90,7 @@ mixin AugmentableFragment on ElementImpl {
 }
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        BindPatternVariableElement,
-        BindPatternVariableFragment {
+    implements BindPatternVariableFragment {
   final DeclaredVariablePatternImpl node;
 
   /// This flag is set to `true` if this variable clashes with another
@@ -691,10 +688,7 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
 
 /// A concrete implementation of [LibraryFragment].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        CompilationUnitElement,
-        LibraryFragment {
+    implements LibraryFragment {
   /// The source that corresponds to this compilation unit.
   @override
   final Source source;
@@ -917,7 +911,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
-  @override
+  /// The libraries exported by this unit.
   List<LibraryExportElementImpl> get libraryExports {
     linkedData?.read(this);
     return _libraryExports;
@@ -941,12 +935,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   LibraryFragment get libraryFragment => this;
 
-  @override
+  /// The prefixes used by [libraryImports].
+  ///
+  /// Each prefix can be used in more than one `import` directive.
   List<PrefixElementImpl> get libraryImportPrefixes {
     return _libraryImportPrefixes ??= _buildLibraryImportPrefixes();
   }
 
-  @override
+  /// The libraries imported by this unit.
   List<LibraryImportElementImpl> get libraryImports {
     linkedData?.read(this);
     return _libraryImports;
@@ -1021,7 +1017,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<PartInclude> get partIncludes => parts.cast<PartInclude>();
 
-  @override
+  /// The parts included by this unit.
   List<PartElementImpl> get parts => _parts;
 
   set parts(List<PartElementImpl> parts) {
@@ -1029,7 +1025,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       part.enclosingElement3 = this;
       var uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {
-        uri.unit.enclosingElement3 = this;
+        uri.libraryFragment.enclosingElement3 = this;
       }
     }
     _parts = parts;
@@ -1910,19 +1906,16 @@ class DirectiveUriWithSourceImpl extends DirectiveUriWithRelativeUriImpl
 class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
     implements DirectiveUriWithUnit {
   @override
-  final CompilationUnitElementImpl unit;
+  final CompilationUnitElementImpl libraryFragment;
 
   DirectiveUriWithUnitImpl({
     required super.relativeUriString,
     required super.relativeUri,
-    required this.unit,
+    required this.libraryFragment,
   });
 
   @override
-  CompilationUnitElementImpl get libraryFragment => unit;
-
-  @override
-  Source get source => unit.source;
+  Source get source => libraryFragment.source;
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -6326,11 +6319,8 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        JoinPatternVariableElement,
-        JoinPatternVariableFragment {
-  @override
+    implements JoinPatternVariableFragment {
+  /// The variables that join into this variable.
   final List<PatternVariableElementImpl> variables;
 
   shared.JoinedPatternVariableInconsistency inconsistency;
@@ -6574,7 +6564,7 @@ class LibraryElementImpl extends ElementImpl
   AnalysisSessionImpl session;
 
   /// The compilation unit that defines this library.
-  late CompilationUnitElementImpl _definingCompilationUnit;
+  late CompilationUnitElementImpl definingCompilationUnit;
 
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;
@@ -6679,16 +6669,6 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  CompilationUnitElementImpl get definingCompilationUnit =>
-      _definingCompilationUnit;
-
-  /// Set the compilation unit that defines this library to the given
-  ///  compilation[unit].
-  set definingCompilationUnit(CompilationUnitElementImpl unit) {
-    _definingCompilationUnit = unit;
-  }
-
-  @override
   Null get enclosingElement2 => null;
 
   @override
@@ -6696,7 +6676,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
-    return _definingCompilationUnit;
+    return definingCompilationUnit;
   }
 
   @override
@@ -6771,7 +6751,7 @@ class LibraryElementImpl extends ElementImpl
   @override
   List<CompilationUnitElementImpl> get fragments {
     return [
-      _definingCompilationUnit,
+      definingCompilationUnit,
       ..._partUnits,
     ];
   }
@@ -6796,7 +6776,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  String get identifier => '${_definingCompilationUnit.source.uri}';
+  String get identifier => '${definingCompilationUnit.source.uri}';
 
   @override
   List<LibraryElementImpl> get importedLibraries {
@@ -6896,7 +6876,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   Source get source {
-    return _definingCompilationUnit.source;
+    return definingCompilationUnit.source;
   }
 
   @override
@@ -6914,10 +6894,13 @@ class LibraryElementImpl extends ElementImpl
     }
   }
 
-  @override
+  /// The compilation units this library consists of.
+  ///
+  /// This includes the defining compilation unit and units included using the
+  /// `part` directive.
   List<CompilationUnitElementImpl> get units {
     return [
-      _definingCompilationUnit,
+      definingCompilationUnit,
       ..._partUnits,
     ];
   }
@@ -6931,7 +6914,7 @@ class LibraryElementImpl extends ElementImpl
     void visitParts(CompilationUnitElementImpl unit) {
       for (var part in unit.parts) {
         if (part.uri case DirectiveUriWithUnitImpl uri) {
-          var unit = uri.unit;
+          var unit = uri.libraryFragment;
           result.add(unit);
           visitParts(unit);
         }
@@ -8942,11 +8925,9 @@ class PartElementImpl extends _ExistingElementImpl
 }
 
 class PatternVariableElementImpl extends LocalVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PatternVariableElement,
-        PatternVariableFragment {
-  @override
+    implements PatternVariableFragment {
+  /// The variable in which this variable joins with other pattern variables
+  /// with the same name, in a logical-or pattern, or shared case scope.
   JoinPatternVariableElementImpl? join;
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of

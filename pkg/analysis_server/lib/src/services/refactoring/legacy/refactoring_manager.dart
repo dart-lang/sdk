@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/utilities/extensions/ast.dart';
 
@@ -223,7 +222,7 @@ class RefactoringManager {
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+        var node = resolvedUnit.unit.nodeCovering(offset: offset);
         var element = server.getElementOfNode(node);
         if (element is GetterElement) {
           refactoring = ConvertGetterToMethodRefactoring(
@@ -236,7 +235,7 @@ class RefactoringManager {
     } else if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+        var node = resolvedUnit.unit.nodeCovering(offset: offset);
         var element = server.getElementOfNode(node);
         if (element is ExecutableElement2) {
           refactoring = ConvertMethodToGetterRefactoring(

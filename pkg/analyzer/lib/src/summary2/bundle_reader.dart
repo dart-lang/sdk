@@ -842,7 +842,7 @@ class LibraryReader {
         return DirectiveUriWithUnitImpl(
           relativeUriString: parent.relativeUriString,
           relativeUri: parent.relativeUri,
-          unit: unitElement,
+          libraryFragment: unitElement,
         );
       case DirectiveUriKind.withSource:
         return readWithSource();

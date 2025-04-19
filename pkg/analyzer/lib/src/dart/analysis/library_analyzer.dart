@@ -266,7 +266,7 @@ class LibraryAnalyzer {
       if (directive is PartDirectiveImpl) {
         var uri = directive.partInclude?.uri;
         if (uri is DirectiveUriWithUnitImpl) {
-          var partUnit = elementToUnit[uri.unit];
+          var partUnit = elementToUnit[uri.libraryFragment];
           if (partUnit != null) {
             var shouldReport = false;
             var partOverrideToken = partUnit.languageVersionToken;
@@ -1102,7 +1102,7 @@ class LibraryAnalyzer {
     _resolveDirectives(
       enclosingFile: enclosingFile,
       fileKind: includedKind,
-      fileElement: partElementUri.unit,
+      fileElement: partElementUri.libraryFragment,
     );
   }
 

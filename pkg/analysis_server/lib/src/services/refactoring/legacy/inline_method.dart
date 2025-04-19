@@ -22,7 +22,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -356,7 +356,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       'Method declaration or reference must be selected to activate this refactoring.',
     );
 
-    var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    var selectedNode = resolveResult.unit.nodeCovering(offset: offset);
     Element2? element;
 
     if (selectedNode is FunctionDeclaration) {
@@ -412,7 +412,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     );
 
     // prepare selected SimpleIdentifier
-    var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    var selectedNode = resolveResult.unit.nodeCovering(offset: offset);
     Element2? element;
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredFragment?.element;

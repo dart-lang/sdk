@@ -47,7 +47,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart'
@@ -59,74 +58,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-/// A pattern variable that is explicitly declared.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(
-    'Use BindPatternVariableFragment and BindPatternVariableElement2 instead')
-abstract class BindPatternVariableElement implements PatternVariableElement {}
-
-/// An element that is contained within a [ClassElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('''
-There is no common interface for class members in the new analyzer element
-model. If you are using this class in an `is` test or a pattern match, replace
-it with checks for the specific element types you are interested in (e.g.,
-`ConstructorElement2`, `MethodElement2`, etc.). If you are using this class as
-a type annotation for a variable that could hold any kind of class member, use
-`Element2` instead.''')
-abstract class ClassMemberElement implements Element {
-  // TODO(brianwilkerson): Either remove this class or rename it to something
-  //  more correct.
-
-  @override
-  Element get enclosingElement3;
-
-  /// Whether the element is a static element.
-  ///
-  /// A static element is an element that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  bool get isStatic;
-}
-
-/// An element representing a compilation unit.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(elementModelDeprecationMsg)
-abstract class CompilationUnitElement implements UriReferencedElement {
-  /// The [CompilationUnitElement] that uses `part` directive to include this
-  /// element, or `null` if this element is the defining unit of the library.
-  @override
-  CompilationUnitElement? get enclosingElement3;
-
-  /// The libraries exported by this unit.
-  List<LibraryExportElement> get libraryExports;
-
-  /// The prefixes used by [libraryImports].
-  ///
-  /// Each prefix can be used in more than one `import` directive.
-  List<PrefixElement> get libraryImportPrefixes;
-
-  /// The libraries imported by this unit.
-  List<LibraryImportElement> get libraryImports;
-
-  /// The [LineInfo] for the [source].
-  LineInfo get lineInfo;
-
-  /// The parts included by this unit.
-  List<PartElement> get parts;
-
-  /// The scope used to resolve names within this compilation unit.
-  ///
-  /// It includes all of the elements that are declared in the library, and all
-  /// of the elements imported into this unit or parent units.
-  Scope get scope;
-
-  @override
-  AnalysisSession get session;
-}
 
 /// [ImportElementPrefix] that is used together with `deferred`.
 ///
@@ -183,10 +114,6 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
   /// The library fragment referenced by the [source].
   @experimental
   LibraryFragment get libraryFragment;
-
-  /// The unit referenced by the [source].
-  @Deprecated('Use libraryFragment instead')
-  CompilationUnitElement get unit;
 }
 
 /// The base class for all of the elements in the element model. Generally
@@ -818,30 +745,11 @@ abstract class ImportElementPrefix {
   PrefixElement get element;
 }
 
-/// A pattern variable that is a join of other pattern variables, created
-/// for a logical-or patterns, or shared `case` bodies in `switch` statements.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated(
-    'Use JoinPatternVariableFragment and JoinPatternVariableElement2 instead')
-abstract class JoinPatternVariableElement implements PatternVariableElement {
-  /// Whether the [variables] are consistent, present in all branches,
-  /// and have the same type and finality.
-  bool get isConsistent;
-
-  /// The variables that join into this variable.
-  List<PatternVariableElement> get variables;
-}
-
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated('Use LibraryElement2 instead')
 abstract class LibraryElement implements _ExistingElement {
-  /// The compilation unit that defines this library.
-  @Deprecated(elementModelDeprecationMsg)
-  CompilationUnitElement get definingCompilationUnit;
-
   /// Returns `null`, because libraries are the top-level elements in the model.
   @override
   Null get enclosingElement3;
@@ -905,13 +813,6 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// The [TypeSystem] that is used in this library.
   TypeSystem get typeSystem;
-
-  /// The compilation units this library consists of.
-  ///
-  /// This includes the defining compilation unit and units included using the
-  /// `part` directive.
-  @Deprecated(elementModelDeprecationMsg)
-  List<CompilationUnitElement> get units;
 }
 
 /// A single export directive within a library.
@@ -922,10 +823,6 @@ abstract class LibraryExportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `export` directive in
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
 
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get exportedLibrary;
@@ -945,10 +842,6 @@ abstract class LibraryImportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `import` directive in
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
 
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get importedLibrary;
@@ -1126,25 +1019,11 @@ abstract class PartElement implements _ExistingElement {
   DirectiveUri get uri;
 }
 
-/// A pattern variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PatternVariableFragment and PatternVariableElement2 instead')
-abstract class PatternVariableElement implements LocalVariableElement {
-  /// The variable in which this variable joins with other pattern variables
-  /// with the same name, in a logical-or pattern, or shared case scope.
-  JoinPatternVariableElement? get join;
-}
-
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated('Use PrefixElement2 instead')
 abstract class PrefixElement implements _ExistingElement {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
-
   /// The imports that share this prefix.
   List<LibraryImportElement> get imports;
 

@@ -35,6 +35,7 @@ import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
@@ -314,7 +315,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String get refactoringName {
-    var node = NodeLocator(_selectionOffset).searchWithin(_resolveResult.unit);
+    var node = _resolveResult.unit.nodeCovering(offset: _selectionOffset);
     if (node != null && node.thisOrAncestorOfType<ClassDeclaration>() != null) {
       return 'Extract Method';
     }

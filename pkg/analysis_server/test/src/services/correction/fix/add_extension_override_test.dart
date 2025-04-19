@@ -118,6 +118,46 @@ f() {
     );
   }
 
+  Future<void> test_noTarget() async {
+    await resolveTestCode('''
+abstract class A {
+  void m() {
+    value;
+  }
+}
+
+extension E on A {
+  int value() => 0;
+}
+
+extension E2 on A {
+  int get value => 0;
+}
+''');
+    await assertHasFix(
+      '''
+abstract class A {
+  void m() {
+    E2(this).value;
+  }
+}
+
+extension E on A {
+  int value() => 0;
+}
+
+extension E2 on A {
+  int get value => 0;
+}
+''',
+      matchFixMessage: "Add an extension override for 'E2'",
+      errorFilter:
+          (error) =>
+              error.errorCode ==
+              CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+    );
+  }
+
   Future<void> test_parentheses() async {
     await resolveTestCode('''
 extension E on int {
