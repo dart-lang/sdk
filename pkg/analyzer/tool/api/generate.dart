@@ -249,6 +249,15 @@ class ApiDescription {
     }
     var parentheticals = <List<Object?>>[];
     switch (element) {
+      case TypeAliasElement2(:var aliasedType, :var typeParameters2):
+        List<Object?> description = ['type alias'];
+        if (typeParameters2.isNotEmpty) {
+          description.addAll(typeParameters2
+              .map(_describeTypeParameter)
+              .separate(prefix: '<', suffix: '>'));
+        }
+        description.addAll([' for ', ..._describeType(aliasedType)]);
+        parentheticals.add(description);
       case InstanceElement2():
         switch (element) {
           case InterfaceElement2(
@@ -464,7 +473,8 @@ enum MemberCategory {
   propertyAccessor,
   topLevelFunctionOrMethod,
   interface,
-  extension
+  extension,
+  typeAlias
 }
 
 /// Sort key used to sort elements in the output.
@@ -498,6 +508,7 @@ class MemberSortKey implements Comparable<MemberSortKey> {
         MethodElement2() => MemberCategory.topLevelFunctionOrMethod,
         InterfaceElement2() => MemberCategory.interface,
         ExtensionElement2() => MemberCategory.extension,
+        TypeAliasElement2() => MemberCategory.typeAlias,
         dynamic(:var runtimeType) =>
           throw UnimplementedError('Unexpected element: $runtimeType')
       };
