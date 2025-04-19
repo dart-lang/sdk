@@ -20,6 +20,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 int test_resetCount = 0;
 
@@ -315,7 +316,7 @@ class RefactoringManager {
     } else if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
-        var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+        var node = resolvedUnit.unit.nodeCovering(offset: offset);
         var element = server.getElementOfNode(node, useMockForImport: true);
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;

@@ -188,8 +188,6 @@ extension Element2OrNullExtension on Element2? {
         return element2.asElement;
       case DynamicElementImpl2():
         return self.firstFragment;
-      case ExecutableMember element2:
-        return element2.asElement;
       case ExtensionElementImpl2 element2:
         return element2.asElement;
       case FieldElementImpl2 element2:
@@ -496,16 +494,6 @@ extension ListOfTypeParameterElement2Extension on List<TypeParameterElement2> {
 extension LocalVariableElementImplExtension on LocalVariableElementImpl {
   LocalVariableElementImpl2 get asElement2 {
     return element;
-  }
-}
-
-extension MethodElement2Extension on MethodElement2 {
-  @Deprecated('Use MethodElement2 instead')
-  MethodElement get asElement {
-    if (this case MethodMember member) {
-      return member;
-    }
-    return (this as MethodElementImpl2).lastFragment;
   }
 }
 

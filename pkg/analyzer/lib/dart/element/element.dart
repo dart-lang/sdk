@@ -96,17 +96,10 @@ abstract class ClassMemberElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated(elementModelDeprecationMsg)
 abstract class CompilationUnitElement implements UriReferencedElement {
-  /// The top-level accessors (getters and setters) declared in this
-  /// compilation unit.
-  List<PropertyAccessorElement> get accessors;
-
   /// The [CompilationUnitElement] that uses `part` directive to include this
   /// element, or `null` if this element is the defining unit of the library.
   @override
   CompilationUnitElement? get enclosingElement3;
-
-  /// The top-level functions declared in this compilation unit.
-  List<FunctionElement> get functions;
 
   /// The libraries exported by this unit.
   List<LibraryExportElement> get libraryExports;
@@ -133,12 +126,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   @override
   AnalysisSession get session;
-
-  /// The top-level variables declared in this compilation unit.
-  List<TopLevelVariableElement> get topLevelVariables;
-
-  /// The type aliases declared in this compilation unit.
-  List<TypeAliasElement> get typeAliases;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -226,12 +213,6 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated(elementModelDeprecationMsg)
 abstract class Element implements AnalysisTarget {
-  /// A list of this element's children.
-  ///
-  /// There is no guarantee of the order in which the children will be included.
-  @Deprecated(elementModelDeprecationMsg)
-  List<Element> get children;
-
   /// The analysis context in which this element is defined.
   AnalysisContext get context;
 
@@ -817,169 +798,6 @@ abstract class ElementLocation {
   String get encoding;
 }
 
-/// An element representing an executable object, including functions, methods,
-/// constructors, getters, and setters.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ExecutableElement2 instead')
-abstract class ExecutableElement implements FunctionTypedElement {
-  @override
-  ExecutableElement get declaration;
-
-  @override
-  String get displayName;
-
-  @override
-  Element get enclosingElement3;
-
-  /// Whether the executable element did not have an explicit return type
-  /// specified for it in the original source.
-  bool get hasImplicitReturnType;
-
-  /// Whether the executable element is abstract.
-  ///
-  /// Executable elements are abstract if they are not external, and have no
-  /// body.
-  bool get isAbstract;
-
-  /// Whether the executable element has body marked as being asynchronous.
-  bool get isAsynchronous;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  /// Whether the executable element is an extension type member.
-  bool get isExtensionTypeMember;
-
-  /// Whether the executable element is external.
-  ///
-  /// Executable elements are external if they are explicitly marked as such
-  /// using the 'external' keyword.
-  bool get isExternal;
-
-  /// Whether the executable element has a body marked as being a generator.
-  bool get isGenerator;
-
-  /// Whether the executable element is an operator.
-  ///
-  /// The test may be based on the name of the executable element, in which
-  /// case the result will be correct when the name is legal.
-  bool get isOperator;
-
-  /// Whether the element is a static element.
-  ///
-  /// A static element is an element that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  bool get isStatic;
-
-  /// Whether the executable element has a body marked as being synchronous.
-  bool get isSynchronous;
-
-  @override
-  String get name;
-}
-
-/// A field defined within a class.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use FieldElement2 instead')
-abstract class FieldElement
-    implements ClassMemberElement, PropertyInducingElement {
-  @override
-  FieldElement get declaration;
-
-  /// Whether the field is abstract.
-  ///
-  /// Executable fields are abstract if they are declared with the `abstract`
-  /// keyword.
-  bool get isAbstract;
-
-  /// Whether the field was explicitly marked as being covariant.
-  bool get isCovariant;
-
-  /// Whether the element is an enum constant.
-  bool get isEnumConstant;
-
-  /// Whether the field was explicitly marked as being external.
-  bool get isExternal;
-
-  /// Whether the field can be type promoted.
-  bool get isPromotable;
-
-  /// Whether the element is a static element.
-  ///
-  /// A static element is an element that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  @override
-  bool get isStatic;
-}
-
-/// A field formal parameter defined within a constructor element.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use FieldFormalParameterElement2 instead')
-abstract class FieldFormalParameterElement implements ParameterElement {
-  /// The field element associated with this field formal parameter, or `null`
-  /// if the parameter references a field that doesn't exist.
-  @Deprecated(elementModelDeprecationMsg)
-  FieldElement? get field;
-}
-
-/// A (non-method) function. This can be either a top-level function, a local
-/// function, a closure, or the initialization expression for a field or
-/// variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TopLevelFunctionElement or LocalFunctionElement')
-abstract class FunctionElement implements ExecutableElement, LocalElement {
-  /// The name of the method that can be implemented by a class to allow its
-  /// instances to be invoked as if they were a function.
-  static final String CALL_METHOD_NAME = "call";
-
-  /// The name of the synthetic function defined for libraries that are
-  /// deferred.
-  static final String LOAD_LIBRARY_NAME = "loadLibrary";
-
-  /// The name of the function used as an entry point.
-  static const String MAIN_FUNCTION_NAME = "main";
-
-  /// The name of the method that will be invoked if an attempt is made to
-  /// invoke an undefined method on an object.
-  static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
-
-  /// Whether the function represents `identical` from the `dart:core` library.
-  bool get isDartCoreIdentical;
-
-  /// Whether the function is an entry point, i.e. a top-level function and
-  /// has the name `main`.
-  bool get isEntryPoint;
-}
-
-/// An element that has a [FunctionType] as its [type].
-///
-/// This also provides convenient access to the parameters and return type.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use FunctionTypedElement2 instead')
-abstract class FunctionTypedElement implements TypeParameterizedElement {
-  /// The parameters defined by this executable element.
-  List<ParameterElement> get parameters;
-
-  /// The return type defined by this element.
-  DartType get returnType;
-
-  /// The type defined by this element.
-  FunctionType get type;
-}
-
-/// The pseudo-declaration that defines a generic function type.
-///
-/// Clients may not extend, implement, or mix-in this class.
-@Deprecated('Use GenericFunctionTypeElement2 instead')
-abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
-
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.
 ///
@@ -1000,122 +818,6 @@ abstract class ImportElementPrefix {
   PrefixElement get element;
 }
 
-/// An element that has `this`.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use InstanceElement2 instead')
-abstract class InstanceElement
-    implements TypeDefiningElement, TypeParameterizedElement {
-  /// The declared accessors (getters and setters).
-  List<PropertyAccessorElement> get accessors;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
-
-  /// The declared fields.
-  List<FieldElement> get fields;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  /// The declared methods.
-  List<MethodElement> get methods;
-
-  /// The type of `this` expression.
-  ///
-  /// Same as `augmented.thisType`.
-  DartType get thisType;
-}
-
-/// An element that defines an [InterfaceType].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use InterfaceElement2 instead')
-abstract class InterfaceElement implements InstanceElement {
-  /// All the supertypes defined for this element and its supertypes.
-  ///
-  /// This includes superclasses, mixins, interfaces, and superclass constraints.
-  List<InterfaceType> get allSupertypes;
-
-  /// The interfaces that are implemented by this class.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get interfaces;
-
-  /// The mixins that are applied to the class being extended in order to
-  /// derive the superclass of this class.
-  ///
-  /// [ClassElement] and [EnumElement] can have mixins.
-  ///
-  /// [MixinElement] cannot have mixins, so the empty list is returned.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  @Deprecated(elementModelDeprecationMsg)
-  List<InterfaceType> get mixins;
-
-  @override
-  String get name;
-
-  /// The superclass of this element.
-  ///
-  /// For [ClassElement] returns `null` only if this class is `Object`. If the
-  /// superclass is not explicitly specified, or the superclass cannot be
-  /// resolved, then the implicit superclass `Object` is returned.
-  ///
-  /// For [EnumElement] returns `Enum` from `dart:core`.
-  ///
-  /// For [MixinElement] always returns `null`.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  @Deprecated(elementModelDeprecationMsg)
-  InterfaceType? get supertype;
-
-  @override
-  InterfaceType get thisType;
-
-  /// The field (synthetic or explicit) defined directly in this class or
-  /// augmentation that has the given [name].
-  // TODO(scheglov): Deprecate and remove it.
-  FieldElement? getField(String name);
-
-  /// The getter (synthetic or explicit) defined directly in this class or
-  /// augmentation that has the given [name].
-  // TODO(scheglov): Deprecate and remove it.
-  PropertyAccessorElement? getGetter(String name);
-
-  /// The method defined directly in this class or augmentation that has the
-  /// given [name].
-  // TODO(scheglov): Deprecate and remove it.
-  MethodElement? getMethod(String name);
-
-  /// The setter (synthetic or explicit) defined directly in this class or
-  /// augmentation that has the given [name].
-  // TODO(scheglov): Deprecate and remove it.
-  PropertyAccessorElement? getSetter(String name);
-
-  /// Create the [InterfaceType] for this element with the given
-  /// [typeArguments] and [nullabilitySuffix].
-  InterfaceType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-}
-
 /// A pattern variable that is a join of other pattern variables, created
 /// for a logical-or patterns, or shared `case` bodies in `switch` statements.
 ///
@@ -1131,19 +833,6 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
   List<PatternVariableElement> get variables;
 }
 
-/// A label associated with a statement.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use LabelElement2 instead')
-abstract class LabelElement implements Element {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  ExecutableElement get enclosingElement3;
-
-  @override
-  String get name;
-}
-
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1156,14 +845,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// Returns `null`, because libraries are the top-level elements in the model.
   @override
   Null get enclosingElement3;
-
-  /// The entry point for this library, or `null` if this library does
-  /// not have an entry point.
-  ///
-  /// The entry point is defined to be a zero argument top-level function
-  /// whose name is `main`.
-  @Deprecated(elementModelDeprecationMsg)
-  FunctionElement? get entryPoint;
 
   /// The libraries that are exported from this library.
   List<LibraryElement> get exportedLibraries;
@@ -1202,12 +883,6 @@ abstract class LibraryElement implements _ExistingElement {
 
   @override
   LibraryElement get library;
-
-  /// The element representing the synthetic function `loadLibrary` that is
-  /// implicitly defined for this library if the library is imported using a
-  /// deferred import.
-  @Deprecated(elementModelDeprecationMsg)
-  FunctionElement get loadLibraryFunction;
 
   /// The name of this library, possibly the empty string if this library does
   /// not have an explicit name.
@@ -1330,15 +1005,6 @@ abstract class LocalVariableElement implements PromotableElement {
   String get name;
 }
 
-/// An element that represents a method defined within a class.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use MethodElement2 instead')
-abstract class MethodElement implements ClassMemberElement, ExecutableElement {
-  @override
-  MethodElement get declaration;
-}
-
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1442,13 +1108,6 @@ abstract class ParameterElement
   /// parameter.
   List<ParameterElement> get parameters;
 
-  /// The type parameters defined by this parameter.
-  ///
-  /// A parameter will only define type parameters if it is a function typed
-  /// parameter.
-  @Deprecated(elementModelDeprecationMsg)
-  List<TypeParameterElement> get typeParameters;
-
   /// Appends the type, name and possibly the default value of this parameter
   /// to the given [buffer].
   void appendToWithoutDelimiters(
@@ -1511,109 +1170,6 @@ abstract class PromotableElement implements LocalElement, VariableElement {
   String get name;
 }
 
-/// A getter or a setter. Note that explicitly defined property accessors
-/// implicitly define a synthetic field. Symmetrically, synthetic accessors are
-/// implicitly created for explicitly defined fields. The following rules apply:
-///
-/// * Every explicit field is represented by a non-synthetic [FieldElement].
-/// * Every explicit field induces a getter and possibly a setter, both of which
-///   are represented by synthetic [PropertyAccessorElement]s.
-/// * Every explicit getter or setter is represented by a non-synthetic
-///   [PropertyAccessorElement].
-/// * Every explicit getter or setter (or pair thereof if they have the same
-///   name) induces a field that is represented by a synthetic [FieldElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PropertyAccessorElement2 instead')
-abstract class PropertyAccessorElement implements ExecutableElement {
-  /// The accessor representing the getter that corresponds to (has the same
-  /// name as) this setter, or `null` if this accessor is not a setter or
-  /// if there is no corresponding getter.
-  PropertyAccessorElement? get correspondingGetter;
-
-  /// The accessor representing the setter that corresponds to (has the same
-  /// name as) this getter, or `null` if this accessor is not a getter or
-  /// if there is no corresponding setter.
-  PropertyAccessorElement? get correspondingSetter;
-
-  @override
-  PropertyAccessorElement get declaration;
-
-  @override
-  Element get enclosingElement3;
-
-  /// Whether the accessor represents a getter.
-  bool get isGetter;
-
-  /// Whether the accessor represents a setter.
-  bool get isSetter;
-
-  /// The field or top-level variable associated with this accessor.
-  ///
-  /// If this accessor was explicitly defined (is not synthetic) then the
-  /// variable associated with it will be synthetic.
-  ///
-  /// If this accessor is an augmentation, and [augmentationTarget] is `null`,
-  /// the variable is `null`.
-  PropertyInducingElement? get variable2;
-}
-
-/// A variable that has an associated getter and possibly a setter. Note that
-/// explicitly defined variables implicitly define a synthetic getter and that
-/// non-`final` explicitly defined variables implicitly define a synthetic
-/// setter. Symmetrically, synthetic fields are implicitly created for
-/// explicitly defined getters and setters. The following rules apply:
-///
-/// * Every explicit variable is represented by a non-synthetic
-///   [PropertyInducingElement].
-/// * Every explicit variable induces a getter and possibly a setter, both of
-///   which are represented by synthetic [PropertyAccessorElement]s.
-/// * Every explicit getter or setter is represented by a non-synthetic
-///   [PropertyAccessorElement].
-/// * Every explicit getter or setter (or pair thereof if they have the same
-///   name) induces a variable that is represented by a synthetic
-///   [PropertyInducingElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PropertyInducingElement2 instead')
-abstract class PropertyInducingElement implements VariableElement {
-  @override
-  String get displayName;
-
-  /// The getter associated with this variable.
-  ///
-  /// If this variable was explicitly defined (is not synthetic) then the
-  /// getter associated with it will be synthetic.
-  @Deprecated(elementModelDeprecationMsg)
-  PropertyAccessorElement? get getter;
-
-  /// Whether the variable has an initializer at declaration.
-  bool get hasInitializer;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  @override
-  LibraryElement get library;
-
-  @override
-  String get name;
-
-  /// The setter associated with this variable, or `null` if the variable
-  /// is effectively `final` and therefore does not have a setter associated
-  /// with it.
-  ///
-  /// This can happen either because the variable is explicitly defined as
-  /// being `final` or because the variable is induced by an explicit getter
-  /// that does not have a corresponding setter. If this variable was
-  /// explicitly defined (is not synthetic) then the setter associated with
-  /// it will be synthetic.
-  @Deprecated(elementModelDeprecationMsg)
-  PropertyAccessorElement? get setter;
-}
-
 /// A combinator that cause some of the names in a namespace to be visible (and
 /// the rest hidden) when being imported.
 ///
@@ -1622,134 +1178,6 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
   /// The names that are to be made visible in the importing library if they
   /// are defined in the imported library.
   List<String> get shownNames;
-}
-
-/// A super formal parameter defined within a constructor element.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use SuperFormalParameterElement2 instead')
-abstract class SuperFormalParameterElement implements ParameterElement {
-  /// The associated super-constructor parameter, from the super-constructor
-  /// that is referenced by the implicit or explicit super-constructor
-  /// invocation.
-  ///
-  /// Can be `null` for erroneous code - not existing super-constructor,
-  /// no corresponding parameter in the super-constructor.
-  ParameterElement? get superConstructorParameter;
-}
-
-/// A top-level variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TopLevelVariableElement2 instead')
-abstract class TopLevelVariableElement implements PropertyInducingElement {
-  @override
-  TopLevelVariableElement get declaration;
-
-  /// Whether the field was explicitly marked as being external.
-  bool get isExternal;
-}
-
-/// A type alias (`typedef`).
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeAliasElement2 instead')
-abstract class TypeAliasElement
-    implements TypeParameterizedElement, TypeDefiningElement {
-  /// If the aliased type has structure, return the corresponding element.
-  /// For example it could be [GenericFunctionTypeElement].
-  ///
-  /// If there is no structure, return `null`.
-  @Deprecated(elementModelDeprecationMsg)
-  Element? get aliasedElement;
-
-  /// The aliased type.
-  ///
-  /// If non-function type aliases feature is enabled for the enclosing library,
-  /// this type might be just anything. If the feature is disabled, return
-  /// a [FunctionType].
-  DartType get aliasedType;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  CompilationUnitElement get enclosingElement3;
-
-  /// Whether the element is an augmentation.
-  ///
-  /// If `true`, declaration has the explicit `augment` modifier.
-  bool get isAugmentation;
-
-  @override
-  String get name;
-
-  /// Produces the type resulting from instantiating this typedef with the given
-  /// [typeArguments] and [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [TypeAliasElement] the returned [DartType] might still be a generic
-  /// type, with type formals. For example, if the typedef is:
-  ///
-  ///     typedef F<T> = void Function<U>(T, U);
-  ///
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
-  DartType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-}
-
-/// An element that defines a type.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeDefiningElement2 instead')
-abstract class TypeDefiningElement implements Element {}
-
-/// A type parameter.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeParameterElement2 instead')
-abstract class TypeParameterElement implements TypeDefiningElement {
-  /// The type representing the bound associated with this parameter, or `null`
-  /// if this parameter does not have an explicit bound. Being able to
-  /// distinguish between an implicit and explicit bound is needed by the
-  /// instantiate to bounds algorithm.
-  DartType? get bound;
-
-  @override
-  TypeParameterElement get declaration;
-
-  @override
-  String get displayName;
-
-  @override
-  String get name;
-
-  /// Creates the [TypeParameterType] with the given [nullabilitySuffix] for
-  /// this type parameter.
-  TypeParameterType instantiate({
-    required NullabilitySuffix nullabilitySuffix,
-  });
-}
-
-/// An element that has type parameters, such as a class or a typedef. This also
-/// includes functions and methods if support for generic methods is enabled.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use TypeParameterizedElement2 instead')
-abstract class TypeParameterizedElement implements _ExistingElement {
-  /// If the element defines a type, indicates whether the type may safely
-  /// appear without explicit type parameters as the bounds of a type parameter
-  /// declaration.
-  ///
-  /// If the element does not define a type, returns `true`.
-  bool get isSimplyBounded;
-
-  /// The type parameters declared by this element directly.
-  ///
-  /// This does not include type parameters that are declared by any enclosing
-  /// elements.
-  @Deprecated(elementModelDeprecationMsg)
-  List<TypeParameterElement> get typeParameters;
 }
 
 /// A pseudo-elements that represents names that are undefined. This situation

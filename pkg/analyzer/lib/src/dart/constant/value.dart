@@ -899,7 +899,12 @@ class DartObjectImpl implements DartObject, Constant {
     return null;
   }
 
-  @override
+  /// Return an element corresponding to the value of the object being
+  /// represented, or `null`
+  /// if
+  /// * this object is not of a function type,
+  /// * the value of the object being represented is not known, or
+  /// * the value of the object being represented is `null`.
   ExecutableElementOrMember? toFunctionValue() {
     return toFunctionValue2()?.asElement;
   }

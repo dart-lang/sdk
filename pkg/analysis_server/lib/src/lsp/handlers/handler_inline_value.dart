@@ -17,6 +17,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 typedef StaticOptions =
     Either3<bool, InlineValueOptions, InlineValueRegistrationOptions>;
@@ -75,7 +76,7 @@ class InlineValueHandler
       return stoppedOffset.mapResult((stoppedOffset) async {
         // Find the function that is executing. We will only show values for
         // this single function expression.
-        var node = await server.getNodeAtOffset(filePath, stoppedOffset);
+        var node = unitResult.unit.nodeCovering(offset: stoppedOffset);
         var function = node?.thisOrAncestorMatching(
           (node) => node is FunctionExpression || node is MethodDeclaration,
         );

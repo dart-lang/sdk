@@ -166,7 +166,7 @@ class _ClassVerifier {
   final List<InterfaceType> directSuperInterfaces = [];
 
   late final bool implementsDartCoreEnum =
-      classElement.allSupertypes.any((e) => e.isDartCoreEnum);
+      classElement.element.allSupertypes.any((e) => e.isDartCoreEnum);
 
   _ClassVerifier({
     required this.typeSystem,

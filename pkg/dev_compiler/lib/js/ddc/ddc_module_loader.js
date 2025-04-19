@@ -1520,15 +1520,46 @@ if (!self.deferred_loader) {
       this.initializeAndLinkLibrary('dart:web_gl');
     }
 
+    // Runs the 'main' method on `entryPointLibrary` while attaching
+    // `capturedMainHandler` and `mainErrorCallback`.
+    _runMain(entryPointLibrary, args = []) {
+      // TODO(35113): Provide the ability to pass arguments in a type safe way.
+      let runMainAndHandleErrors = () => {
+        try {
+          let mainValue = entryPointLibrary.main(args);
+          // Attach the error callback to main's future if it's async.
+          if (dartDevEmbedderConfig.mainErrorCallback != null && mainValue != null &&
+            mainValue.catchError != null) {
+            mainValue.catchError((e) => {
+              dartDevEmbedderConfig.mainErrorCallback();
+              throw e;
+            });
+          }
+        } catch (e) {
+          // Invoke the error callback if main is sync. This doesn't conflict
+          // with the rethrow in the async path since DDC catches async errors
+          // in a separate code path.
+          if (dartDevEmbedderConfig.mainErrorCallback != null) {
+            dartDevEmbedderConfig.mainErrorCallback();
+          }
+          throw e;
+        }
+      };
+      if (dartDevEmbedderConfig.capturedMainHandler) {
+        dartDevEmbedderConfig.capturedMainHandler(runMainAndHandleErrors);
+      } else {
+        runMainAndHandleErrors();
+      }
+    }
+
     // See docs on `DartDevEmbedder.runMain`.
-    runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
+    runMain(entryPointLibraryName, dartSdkRuntimeOptions, capturedMainHandler, mainErrorCallback) {
       this.setDartSDKRuntimeOptions(dartSdkRuntimeOptions);
       console.log('Starting application from main method in: ' + entryPointLibraryName + '.');
       let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
       this.savedEntryPointLibraryName = entryPointLibraryName;
       this.savedDartSdkRuntimeOptions = dartSdkRuntimeOptions;
-      // TODO(35113): Provide the ability to pass arguments in a type safe way.
-      entryPointLibrary.main([]);
+      this._runMain(entryPointLibrary);
     }
 
     setDartSDKRuntimeOptions(options) {
@@ -1647,8 +1678,7 @@ if (!self.deferred_loader) {
       console.log('Hot restarting application from main method in: ' +
         this.savedEntryPointLibraryName + ' (generation: ' +
         this.hotRestartGeneration + ').');
-      // TODO(35113): Provide the ability to pass arguments in a type safe way.
-      entryPointLibrary.main([]);
+      this._runMain(entryPointLibrary);
     }
   }
 
@@ -1967,10 +1997,38 @@ if (!self.deferred_loader) {
 
   const debugger_ = new Debugger();
 
+  /** Holds public configurations for the `DartDevEmbedder`.
+   *  These properties may be modified during the runtime of the app.
+   */
+  class DartDevEmbedderConfiguration {
+    /*
+     * An optional handler that acts as a wrapper around the invocation of the
+     * Dart program's 'main' method. Passed an opaque function as an argument
+     * that invokes 'main' when called.
+     * @type {?function(function())}
+     */
+    capturedMainHandler = null;
+
+    /*
+     * An optional callback that is invoked when 'main' throws.
+     * @type {?function()}
+     */
+    mainErrorCallback = null;
+  }
+
+  const dartDevEmbedderConfig = new DartDevEmbedderConfiguration();
+
   /** The API for embedding a Dart application in the page at development time
    *  that supports stateful hot reloading.
    */
   class DartDevEmbedder {
+    /**
+     * Expose the DartDevEmbedderConfig publicly.
+     */
+    get config() {
+      return dartDevEmbedderConfig;
+    }
+
     /**
      * Runs the Dart main method.
      *

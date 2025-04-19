@@ -2315,6 +2315,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    _tokenOrNull(node.period);
+    node.propertyName.accept(this);
+  }
+
+  @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _tokenOrNull(node.literal);
   }

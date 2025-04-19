@@ -209,10 +209,6 @@ abstract class ExecutableMember extends Member
     required this.typeParameters,
   });
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => parameters;
-
   @override
   List<Element2> get children2 {
     return [
@@ -527,18 +523,6 @@ class FieldMember extends VariableMember
   }
 
   @override
-  PropertyAccessorElementOrMember? get getter {
-    var baseGetter = declaration.getter;
-    if (baseGetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-      declaration: baseGetter,
-      substitution: substitution,
-    );
-  }
-
-  @override
   GetterElement2OrMember? get getter2 {
     var baseGetter = declaration.getter;
     if (baseGetter == null) {
@@ -556,9 +540,6 @@ class FieldMember extends VariableMember
 
   @override
   bool get isAbstract => declaration.isAbstract;
-
-  @override
-  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isCovariant => declaration.isCovariant;
@@ -590,18 +571,6 @@ class FieldMember extends VariableMember
 
   @override
   Element2 get nonSynthetic2 => _element2.nonSynthetic2;
-
-  @override
-  PropertyAccessorElementOrMember? get setter {
-    var baseSetter = declaration.setter;
-    if (baseSetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-      declaration: baseSetter,
-      substitution: substitution,
-    );
-  }
 
   @override
   SetterElement2OrMember? get setter2 {
@@ -703,7 +672,7 @@ class GetterMember extends PropertyAccessorMember
     if (setter is SetterMember) {
       return setter;
     }
-    return setter.asElement2 as SetterElementImpl?;
+    return setter?.asElement2 as SetterElementImpl?;
   }
 
   @override
@@ -788,10 +757,6 @@ abstract class Member
   }
 
   Element2 get baseElement;
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => const [];
 
   @override
   AnalysisContext get context => _declaration.context;
@@ -1134,10 +1099,6 @@ class ParameterMember extends VariableMember
   @override
   FormalParameterElement get baseElement => _element2;
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => parameters;
-
   @override
   List<Element2> get children2 {
     return [
@@ -1455,7 +1416,7 @@ class SetterMember extends PropertyAccessorMember
     if (getter is GetterMember) {
       return getter;
     }
-    return getter.asElement2 as GetterElementImpl?;
+    return getter?.asElement2 as GetterElementImpl?;
   }
 
   @override

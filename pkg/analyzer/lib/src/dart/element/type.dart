@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -17,7 +16,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -90,22 +88,37 @@ class FunctionTypeImpl extends TypeImpl
   @override
   final TypeImpl returnType;
 
-  @override
+  /// The formal type parameters of this generic function; for example,
+  /// `<T> T -> T`.
   final List<TypeParameterElementImpl> typeFormals;
 
-  @override
+  /// A list containing the parameters elements of this type of function.
+  ///
+  /// The parameter types are not necessarily in the same order as they appear
+  /// in the declaration of the function.
   final List<ParameterElementMixin> parameters;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  @override
+  /// All the positional parameter types, starting with the required ones, and
+  /// followed by the optional ones.
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use
+  /// [normalParameterTypes] and [optionalParameterTypes] instead.
   final List<TypeImpl> positionalParameterTypes;
 
   @override
   final int requiredPositionalParameterCount;
 
-  @override
+  /// All the named parameters, sorted by name.
+  ///
+  /// Deprecated: this getter is a part of the analyzer's private
+  /// implementation, and was exposed by accident (see
+  /// https://github.com/dart-lang/sdk/issues/59763). Please use [parameters]
+  /// instead.
   final List<ParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({
@@ -540,20 +553,6 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
     required this.element2,
     required this.typeArguments,
   });
-
-  factory InstantiatedTypeAliasElementImpl.v2({
-    required TypeAliasElementImpl2 element,
-    required List<TypeImpl> typeArguments,
-  }) {
-    return InstantiatedTypeAliasElementImpl(
-      element2: element,
-      typeArguments: typeArguments,
-    );
-  }
-
-  @Deprecated('Use element2 instead')
-  @override
-  TypeAliasElementImpl get element => element2.firstFragment;
 }
 
 /// A concrete implementation of an [InterfaceType].
@@ -633,12 +632,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         nullabilitySuffix = NullabilitySuffix.none {
     assert(element3.name3 == 'Null' && element3.library2.isDartCore);
     assert(this is NullTypeImpl);
-  }
-
-  @Deprecated('Use getters / setters instead')
-  @override
-  List<PropertyAccessorElementOrMember> get accessors {
-    return [...getters, ...setters].map((e) => e.asElement).toList();
   }
 
   @override
@@ -761,12 +754,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element3.name3 == "Type" && element3.library2.isDartCore;
   }
 
-  @Deprecated('Use methods2 instead')
-  @override
-  List<MethodElementOrMember> get methods {
-    return methods2.map((e) => e.asElement).toList();
-  }
-
   @override
   List<MethodElement2OrMember> get methods2 {
     return _methods ??= element3.methods2.map((e) {
@@ -877,34 +864,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  @Deprecated('Use getGetter2() instead')
-  @override
-  PropertyAccessorElementOrMember? getGetter(String getterName) {
-    return getGetter2(getterName)?.asElement;
-  }
-
   @override
   GetterElement2OrMember? getGetter2(String getterName) {
     var element = element3.getGetter2(getterName);
     return element != null ? GetterMember.from(element, this) : null;
   }
 
-  @Deprecated('Use getMethod2() instead')
-  @override
-  MethodElementOrMember? getMethod(String methodName) {
-    return getMethod2(methodName)?.asElement;
-  }
-
   @override
   MethodElement2OrMember? getMethod2(String methodName) {
     var element = element3.getMethod2(methodName);
     return element != null ? MethodMember.from2(element, this) : null;
-  }
-
-  @Deprecated('Use getSetter2() instead')
-  @override
-  PropertyAccessorElement? getSetter(String setterName) {
-    return getSetter2(setterName)?.asElement;
   }
 
   @override
@@ -930,24 +899,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     // return member
     return ConstructorMember.from2(constructorElement, this);
-  }
-
-  @Deprecated('Use lookUpGetter3() instead')
-  @override
-  PropertyAccessorElement? lookUpGetter2(
-    String name,
-    covariant LibraryElementImpl library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpGetter3(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement;
   }
 
   @override
@@ -988,24 +939,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  @Deprecated('Use lookUpMethod3() instead')
-  @override
-  MethodElementOrMember? lookUpMethod2(
-    String name,
-    covariant LibraryElementImpl library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpMethod3(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement;
-  }
-
   @override
   MethodElement2OrMember? lookUpMethod3(
     String name,
@@ -1042,24 +975,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
-  }
-
-  @Deprecated('Use lookUpSetter3() instead')
-  @override
-  PropertyAccessorElement? lookUpSetter2(
-    String name,
-    covariant LibraryElementImpl library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpSetter3(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement.ifTypeOrNull();
   }
 
   @override
@@ -1558,10 +1473,6 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Append a textual representation of this type to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
-  @Deprecated('Use asInstanceOf2() instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) => null;
-
   @override
   InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) => null;
 
@@ -1726,12 +1637,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameterType(this);
-  }
-
-  @Deprecated('Use asInstanceOf2() instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
-    return bound.asInstanceOf(targetElement);
   }
 
   @override

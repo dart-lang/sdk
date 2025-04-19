@@ -768,7 +768,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return scope.accessibleExtensions;
   }
 
-  @override
   List<PropertyAccessorElementImpl> get accessors {
     return _accessors;
   }
@@ -781,23 +780,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
     _accessors = accessors;
   }
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...libraryImports,
-        ...libraryExports,
-        ...accessors,
-        ...classes,
-        ...enums,
-        ...extensions,
-        ...extensionTypes,
-        ...functions,
-        ...mixins,
-        ...typeAliases,
-        ...topLevelVariables,
-      ];
 
   @override
   List<Fragment> get children3 {
@@ -894,7 +876,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ExtensionTypeFragment> get extensionTypes2 =>
       extensionTypes.cast<ExtensionTypeFragment>();
 
-  @override
   List<TopLevelFunctionFragmentImpl> get functions {
     return _functions;
   }
@@ -1083,7 +1064,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       .cast<SetterFragment>()
       .toList();
 
-  @override
   List<TopLevelVariableElementImpl> get topLevelVariables {
     return _variables;
   }
@@ -1101,7 +1081,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TopLevelVariableFragment> get topLevelVariables2 =>
       topLevelVariables.cast<TopLevelVariableFragment>();
 
-  @override
   List<TypeAliasElementImpl> get typeAliases {
     return _typeAliases;
   }
@@ -1439,8 +1418,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return result as InterfaceTypeImpl;
     }
 
-    var augmentedDeclaration = enclosingElement3.element.firstFragment;
-    result = augmentedDeclaration.thisType;
+    result = enclosingElement3.element.thisType;
     return _returnType = result as InterfaceTypeImpl;
   }
 
@@ -2505,10 +2483,6 @@ abstract class ElementImpl
     reference?.element = this;
   }
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => const [];
-
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
 
@@ -3404,7 +3378,51 @@ class ElementLocationImpl implements ElementLocation {
 
 /// A shared internal interface of `Element` and [Member].
 /// Used during migration to avoid referencing `Element`.
-abstract class ElementOrMember {}
+abstract class ElementOrMember {
+  /// The declaration of this element.
+  ///
+  /// If the element is a view on an element, e.g. a method from an interface
+  /// type, with substituted type parameters, return the corresponding element
+  /// from the class, without any substitutions. If this element is already a
+  /// declaration (or a synthetic element, e.g. a synthetic property accessor),
+  /// return itself.
+  ElementOrMember? get declaration;
+
+  /// The display name of this element, possibly the empty string if the
+  /// element does not have a name.
+  ///
+  /// In most cases the name and the display name are the same. Differences
+  /// though are cases such as setters where the name of some setter `set f(x)`
+  /// is `f=`, instead of `f`.
+  String get displayName;
+
+  /// The element that either physically or logically encloses this element.
+  ///
+  /// For [LibraryElement] returns `null`, because libraries are the top-level
+  /// elements in the model.
+  ///
+  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
+  /// uses `part` directive to include this element, or `null` if this element
+  /// is the defining unit of the library.
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
+  Element? get enclosingElement3;
+
+  /// The kind of element that this is.
+  ElementKind get kind;
+
+  /// The name of this element, or `null` if this element does not have a name.
+  String? get name;
+
+  /// The length of the name of this element in the file that contains the
+  /// declaration of this element, or `0` if this element does not have a name.
+  int get nameLength;
+
+  /// The offset of the name of this element in the file that contains the
+  /// declaration of this element, or `-1` if this element is synthetic, does
+  /// not have a name, or otherwise does not have an offset.
+  int get nameOffset;
+}
 
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl implements EnumFragment {
@@ -3532,14 +3550,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
   ExecutableElementImpl(String super.name, super.offset, {super.reference});
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...typeParameters,
-        ...parameters,
-      ];
 
   @override
   List<Fragment> get children3 => [
@@ -3768,21 +3778,79 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement`.
-abstract class ExecutableElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ExecutableElement,
-        ElementOrMember {
+abstract class ExecutableElementOrMember implements ElementOrMember {
   @override
+  ExecutableElementOrMember get declaration;
+
+  @override
+  String get displayName;
+
+  /// Whether the executable element did not have an explicit return type
+  /// specified for it in the original source.
+  bool get hasImplicitReturnType;
+
+  /// Whether the executable element is abstract.
+  ///
+  /// Executable elements are abstract if they are not external, and have no
+  /// body.
+  bool get isAbstract;
+
+  /// Whether the executable element has body marked as being asynchronous.
+  bool get isAsynchronous;
+
+  /// Whether the element is an augmentation.
+  ///
+  /// If `true`, declaration has the explicit `augment` modifier.
+  bool get isAugmentation;
+
+  /// Whether the executable element is an extension type member.
+  bool get isExtensionTypeMember;
+
+  /// Whether the executable element is external.
+  ///
+  /// Executable elements are external if they are explicitly marked as such
+  /// using the 'external' keyword.
+  bool get isExternal;
+
+  /// Whether the executable element has a body marked as being a generator.
+  bool get isGenerator;
+
+  /// Whether the executable element is an operator.
+  ///
+  /// The test may be based on the name of the executable element, in which
+  /// case the result will be correct when the name is legal.
+  bool get isOperator;
+
+  /// Whether the element is a static element.
+  ///
+  /// A static element is an element that is not associated with a particular
+  /// instance, but rather with an entire library or class.
+  bool get isStatic;
+
+  /// Whether the executable element has a body marked as being synchronous.
+  bool get isSynchronous;
+
+  /// The name of this element, or `null` if this element does not have a name.
+  @override
+  String get name;
+
+  /// The parameters defined by this executable element.
   List<ParameterElementMixin> get parameters;
 
-  @override
+  /// The return type defined by this element.
   TypeImpl get returnType;
 
-  @override
+  /// Return the source associated with this target, or `null` if this target is
+  /// not associated with a source.
+  Source get source;
+
+  /// The type defined by this element.
   FunctionTypeImpl get type;
 
-  @override
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
   List<TypeParameterElementImpl> get typeParameters;
 }
 
@@ -3794,16 +3862,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...accessors,
-        ...fields,
-        ...methods,
-        ...typeParameters,
-      ];
 
   @override
   List<Fragment> get children3 => [
@@ -3856,9 +3914,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   @override
   ExtensionElementImpl? get previousFragment =>
       super.previousFragment as ExtensionElementImpl?;
-
-  @override
-  DartType get thisType => extendedType;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -4068,12 +4123,15 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   set element(FieldElementImpl2 element) => _element = element;
 
-  @override
+  /// Whether the field is abstract.
+  ///
+  /// Executable fields are abstract if they are declared with the `abstract`
+  /// keyword.
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
   }
 
-  @override
+  /// Whether the field was explicitly marked as being covariant.
   bool get isCovariant {
     return hasModifier(Modifier.COVARIANT);
   }
@@ -4083,7 +4141,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
     setModifier(Modifier.COVARIANT, isCovariant);
   }
 
-  @override
+  /// Whether the element is an enum constant.
   bool get isEnumConstant {
     return hasModifier(Modifier.ENUM_CONSTANT);
   }
@@ -4092,12 +4150,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
     setModifier(Modifier.ENUM_CONSTANT, isEnumConstant);
   }
 
-  @override
+  /// Whether the field was explicitly marked as being external.
   bool get isExternal {
     return hasModifier(Modifier.EXTERNAL);
   }
 
-  @override
+  /// Whether the field can be type promoted.
   bool get isPromotable {
     return hasModifier(Modifier.PROMOTABLE);
   }
@@ -4249,11 +4307,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `FieldElement`.
-abstract class FieldElementOrMember
-    implements
-        PropertyInducingElementOrMember,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FieldElement {
+abstract class FieldElementOrMember implements PropertyInducingElementOrMember {
   @override
   FieldElementImpl get declaration;
 
@@ -4335,11 +4389,9 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class FieldFormalParameterElementOrMember
-    implements
-        ParameterElementMixin,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FieldFormalParameterElement {
-  @override
+    implements ParameterElementMixin {
+  /// The field element associated with this field formal parameter, or `null`
+  /// if the parameter references a field that doesn't exist.
   FieldElementOrMember? get field;
 }
 
@@ -5002,11 +5054,7 @@ mixin FragmentedTypeParameterizedElementMixin<
 }
 
 sealed class FunctionElementImpl extends ExecutableElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FunctionElement,
-        FunctionTypedElementImpl,
-        ExecutableElementOrMember {
+    implements FunctionTypedElementImpl, ExecutableElementOrMember {
   @override
   String? name2;
 
@@ -5056,20 +5104,19 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionTypedElementImpl
-    implements
-        _ExistingElementImpl,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        FunctionTypedElement {
-  @override
+abstract class FunctionTypedElementImpl implements _ExistingElementImpl {
+  /// The parameters defined by this executable element.
   List<ParameterElementImpl> get parameters;
 
   set returnType(DartType returnType);
 
-  @override
+  /// The type defined by this element.
   FunctionTypeImpl get type;
 
-  @override
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
   List<TypeParameterElementImpl> get typeParameters;
 }
 
@@ -5087,13 +5134,8 @@ abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeElementImpl extends _ExistingElementImpl
-    with
-        TypeParameterizedElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        GenericFunctionTypeElement,
-        FunctionTypedElementImpl,
-        GenericFunctionTypeFragment {
+    with TypeParameterizedElementMixin
+    implements FunctionTypedElementImpl, GenericFunctionTypeFragment {
   /// The declared return type of the function.
   TypeImpl? _returnType;
 
@@ -5113,14 +5155,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   /// [nameOffset]. This is used for function expressions, that have no name.
   GenericFunctionTypeElementImpl.forOffset(int nameOffset)
       : super("", nameOffset);
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...typeParameters,
-        ...parameters,
-      ];
 
   @override
   List<Fragment> get children3 => [
@@ -5175,7 +5209,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   @override
   GenericFunctionTypeElementImpl? get previousFragment => null;
 
-  @override
+  /// The return type defined by this element.
   TypeImpl get returnType {
     return _returnType!;
   }
@@ -5439,13 +5473,8 @@ class ImportElementPrefixImpl
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with
-        AugmentableFragment,
-        TypeParameterizedElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        InstanceElement,
-        InstanceFragment {
+    with AugmentableFragment, TypeParameterizedElementMixin
+    implements InstanceFragment {
   @override
   ElementLinkedData? linkedData;
 
@@ -5470,7 +5499,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   InstanceElementImpl(super.name, super.nameOffset);
 
-  @override
+  /// The declared accessors (getters and setters).
   List<PropertyAccessorElementImpl> get accessors {
     if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
       return _accessors;
@@ -5498,7 +5527,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   @override
   LibraryFragment? get enclosingFragment => enclosingElement3;
 
-  @override
+  /// The declared fields.
   List<FieldElementImpl> get fields {
     if (!identical(_fields, _Sentinel.fieldElement)) {
       return _fields;
@@ -5528,7 +5557,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
     return super.metadata;
   }
 
-  @override
+  /// The declared methods.
   List<MethodElementImpl> get methods {
     if (!identical(_methods, _Sentinel.methodElement)) {
       return _methods;
@@ -5835,10 +5864,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        InterfaceElement,
-        InterfaceFragment {
+    implements InterfaceFragment {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
   List<InterfaceTypeImpl> _mixins = const [];
@@ -5852,9 +5878,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   InterfaceTypeImpl? _supertype;
 
-  /// The cached result of [allSupertypes].
-  List<InterfaceType>? _allSupertypes;
-
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
   bool hasBeenInferred = false;
@@ -5864,23 +5887,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   InterfaceElementImpl(super.name, super.offset);
-
-  @override
-  List<InterfaceType> get allSupertypes {
-    return _allSupertypes ??=
-        library.session.classHierarchy.implementedInterfaces(element);
-  }
-
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...accessors,
-        ...fields,
-        ...constructors,
-        ...methods,
-        ...typeParameters,
-      ];
 
   @override
   List<Fragment> get children3 => [
@@ -5999,44 +6005,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     _supertype = value as InterfaceTypeImpl?;
   }
 
-  @override
-  InterfaceTypeImpl get thisType {
-    return element.thisType;
-  }
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  FieldElement? getField(String name) {
-    return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
-  }
-
-  @override
-  PropertyAccessorElementOrMember? getGetter(String getterName) {
-    return accessors.firstWhereOrNull(
-        (accessor) => accessor.isGetter && accessor.name == getterName);
-  }
-
-  @override
-  MethodElementOrMember? getMethod(String methodName) {
-    return methods.firstWhereOrNull((method) => method.name == methodName);
-  }
-
-  @override
-  PropertyAccessorElementOrMember? getSetter(String setterName) {
-    return getSetterFromAccessors(setterName, accessors);
-  }
-
-  @override
-  InterfaceTypeImpl instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   InterfaceTypeImpl instantiateImpl({
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -6045,10 +6013,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-  }
-
-  void resetCachedAllSupertypes() {
-    _allSupertypes = null;
   }
 
   /// Builds constructors for this mixin application.
@@ -6078,8 +6042,14 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   InterfaceTypeImpl? _thisType;
 
+  /// The cached result of [allSupertypes].
+  List<InterfaceType>? _allSupertypes;
+
   @override
-  List<InterfaceType> get allSupertypes => firstFragment.allSupertypes;
+  List<InterfaceType> get allSupertypes {
+    return _allSupertypes ??=
+        library2.session.classHierarchy.implementedInterfaces(this);
+  }
 
   @override
   List<Element2> get children2 {
@@ -6351,7 +6321,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   void resetCachedAllSupertypes() {
-    firstFragment._allSupertypes = null;
+    _allSupertypes = null;
   }
 }
 
@@ -6482,11 +6452,7 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
       super._wrappedElement as JoinPatternVariableElementImpl;
 }
 
-class LabelElementImpl extends ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LabelElement,
-        LabelFragment {
+class LabelElementImpl extends ElementImpl implements LabelFragment {
   late final LabelElementImpl2 element2 = LabelElementImpl2(this);
 
   /// A flag indicating whether this label is associated with a `switch` member
@@ -6696,13 +6662,6 @@ class LibraryElementImpl extends ElementImpl
   @override
   LibraryElementImpl get baseElement => this;
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => [
-        definingCompilationUnit,
-        ..._partUnits,
-      ];
-
   @override
   List<Element2> get children2 {
     return [
@@ -6738,12 +6697,6 @@ class LibraryElementImpl extends ElementImpl
   @override
   CompilationUnitElementImpl get enclosingUnit {
     return _definingCompilationUnit;
-  }
-
-  @Deprecated('Use entryPoint2 instead')
-  @override
-  FunctionElement? get entryPoint {
-    return entryPoint2?.lastFragment;
   }
 
   @override
@@ -6890,11 +6843,6 @@ class LibraryElementImpl extends ElementImpl
 
   LibraryDeclarations get libraryDeclarations {
     return _libraryDeclarations ??= LibraryDeclarations(this);
-  }
-
-  @override
-  TopLevelFunctionFragmentImpl get loadLibraryFunction {
-    return loadLibraryFunction2.firstFragment;
   }
 
   @override
@@ -7402,12 +7350,6 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
   LocalFunctionFragmentImpl(super.name, super.offset);
 
   LocalFunctionFragmentImpl.forOffset(super.nameOffset) : super.forOffset();
-
-  @override
-  bool get isDartCoreIdentical => false;
-
-  @override
-  bool get isEntryPoint => false;
 
   @override
   bool get _includeNameOffsetInIdentifier {
@@ -8078,11 +8020,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `MethodElement`.
-abstract class MethodElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        MethodElement,
-        ExecutableElementOrMember {
+abstract class MethodElementOrMember implements ExecutableElementOrMember {
   @override
   TypeImpl get returnType;
 
@@ -8702,10 +8640,6 @@ class ParameterElementImpl extends VariableElementImpl
     return element;
   }
 
-  @Deprecated('Use Element2 instead')
-  @override
-  List<Element> get children => parameters;
-
   @override
   List<Fragment> get children3 => const [];
 
@@ -8941,7 +8875,10 @@ mixin ParameterElementMixin
   @override
   TypeImpl get type;
 
-  @override
+  /// The type parameters defined by this parameter.
+  ///
+  /// A parameter will only define type parameters if it is a function typed
+  /// parameter.
   List<TypeParameterElementImpl> get typeParameters;
 
   @override
@@ -9566,14 +9503,33 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement`.
 abstract class PropertyAccessorElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PropertyAccessorElement,
-        ExecutableElementOrMember {
+    implements ExecutableElementOrMember {
+  /// The accessor representing the getter that corresponds to (has the same
+  /// name as) this setter, or `null` if this accessor is not a setter or
+  /// if there is no corresponding getter.
+  PropertyAccessorElementOrMember? get correspondingGetter;
+
+  /// The accessor representing the setter that corresponds to (has the same
+  /// name as) this getter, or `null` if this accessor is not a getter or
+  /// if there is no corresponding setter.
+  PropertyAccessorElementOrMember? get correspondingSetter;
+
+  /// Whether the accessor represents a getter.
+  bool get isGetter;
+
+  /// Whether the accessor represents a setter.
+  bool get isSetter;
+
   @override
   TypeImpl get returnType;
 
-  @override
+  /// The field or top-level variable associated with this accessor.
+  ///
+  /// If this accessor was explicitly defined (is not synthetic) then the
+  /// variable associated with it will be synthetic.
+  ///
+  /// If this accessor is an augmentation, and [augmentationTarget] is `null`,
+  /// the variable is `null`.
   PropertyInducingElementOrMember? get variable2;
 }
 
@@ -9607,14 +9563,21 @@ abstract class PropertyInducingElementImpl
   @override
   PropertyInducingElementImpl? nextFragment;
 
-  /// The getter associated with this element.
-  @override
+  /// The getter associated with this variable.
+  ///
+  /// If this variable was explicitly defined (is not synthetic) then the
+  /// getter associated with it will be synthetic.
   GetterFragmentImpl? getter;
 
-  /// The setter associated with this element, or `null` if the element is
-  /// effectively `final` and therefore does not have a setter associated with
-  /// it.
-  @override
+  /// The setter associated with this variable, or `null` if the variable
+  /// is effectively `final` and therefore does not have a setter associated
+  /// with it.
+  ///
+  /// This can happen either because the variable is explicitly defined as
+  /// being `final` or because the variable is induced by an explicit getter
+  /// that does not have a corresponding setter. If this variable was
+  /// explicitly defined (is not synthetic) then the setter associated with
+  /// it will be synthetic.
   SetterFragmentImpl? setter;
 
   /// This field is set during linking, and performs type inference for
@@ -9813,10 +9776,7 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyInducingElement`.
 abstract class PropertyInducingElementOrMember
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PropertyInducingElement,
-        VariableElementOrMember {
+    implements VariableElementOrMember {
   @override
   TypeImpl get type;
 }
@@ -10087,10 +10047,15 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class SuperFormalParameterElementOrMember
-    implements
-        ParameterElementMixin,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        SuperFormalParameterElement {}
+    implements ParameterElementMixin {
+  /// The associated super-constructor parameter, from the super-constructor
+  /// that is referenced by the implicit or explicit super-constructor
+  /// invocation.
+  ///
+  /// Can be `null` for erroneous code - not existing super-constructor,
+  /// no corresponding parameter in the super-constructor.
+  ParameterElementMixin? get superConstructorParameter;
+}
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
     with
@@ -10131,10 +10096,14 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   }
 
   @override
-  bool get isDartCoreIdentical => firstFragment.isDartCoreIdentical;
+  bool get isDartCoreIdentical {
+    return name3 == 'identical' && library2.isDartCore;
+  }
 
   @override
-  bool get isEntryPoint => firstFragment.isEntryPoint;
+  bool get isEntryPoint {
+    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
+  }
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
@@ -10179,23 +10148,10 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
 
   @override
   set enclosingElement3(covariant CompilationUnitElementImpl element);
-
-  @override
-  bool get isDartCoreIdentical {
-    return name == 'identical' && library.isDartCore;
-  }
-
-  @override
-  bool get isEntryPoint {
-    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
-  }
 }
 
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TopLevelVariableElement,
-        TopLevelVariableFragment {
+    implements TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl2 element;
 
@@ -10206,7 +10162,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   TopLevelVariableElementImpl get declaration => this;
 
-  @override
   bool get isExternal {
     return hasModifier(Modifier.EXTERNAL);
   }
@@ -10322,13 +10277,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with
-        AugmentableFragment,
-        TypeParameterizedElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeAliasElement,
-        TypeAliasFragment {
+    with AugmentableFragment, TypeParameterizedElementMixin
+    implements TypeAliasFragment {
   @override
   String? name2;
 
@@ -10358,7 +10308,10 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   TypeAliasElementImpl(String super.name, super.nameOffset);
 
-  @override
+  /// If the aliased type has structure, return the corresponding element.
+  /// For example it could be [GenericFunctionTypeElement2].
+  ///
+  /// If there is no structure, return `null`.
   ElementImpl? get aliasedElement {
     linkedData?.read(this);
     return _aliasedElement;
@@ -10369,7 +10322,11 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     aliasedElement?.enclosingElement3 = this;
   }
 
-  @override
+  /// The aliased type.
+  ///
+  /// If non-function type aliases feature is enabled for the enclosing library,
+  /// this type might be just anything. If the feature is disabled, return
+  /// a [FunctionType].
   TypeImpl get aliasedType {
     linkedData?.read(this);
     return _aliasedType!;
@@ -10430,38 +10387,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   int get offset => nameOffset;
 
-  /// Instantiates this type alias with its type parameters as arguments.
-  DartType get rawType {
-    List<DartType> typeArguments;
-    if (typeParameters.isNotEmpty) {
-      typeArguments = typeParameters.map<DartType>((t) {
-        return t.instantiate(
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      }).toList();
-    } else {
-      typeArguments = const <DartType>[];
-    }
-    return instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeAliasElement(this);
-  }
-
-  @override
-  TypeImpl instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -10678,10 +10606,7 @@ abstract class TypeDefiningElementImpl2 extends ElementImpl2
     implements TypeDefiningElement2 {}
 
 class TypeParameterElementImpl extends ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeParameterElement,
-        TypeParameterFragment {
+    implements TypeParameterFragment {
   @override
   String? name2;
 
@@ -10714,7 +10639,10 @@ class TypeParameterElementImpl extends ElementImpl
     isSynthetic = true;
   }
 
-  @override
+  /// The type representing the bound associated with this parameter, or `null`
+  /// if this parameter does not have an explicit bound. Being able to
+  /// distinguish between an implicit and explicit bound is needed by the
+  /// instantiate to bounds algorithm.
   TypeImpl? get bound {
     return _bound;
   }
@@ -10849,7 +10777,8 @@ class TypeParameterElementImpl extends ElementImpl
     return shared.Variance.unrelated;
   }
 
-  @override
+  /// Creates the [TypeParameterType] with the given [nullabilitySuffix] for
+  /// this type parameter.
   TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
@@ -10960,14 +10889,14 @@ abstract class TypeParameterizedElementImpl2 extends ElementImpl2
 
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedElementMixin on ElementImpl
-    implements
-        _ExistingElementImpl,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        TypeParameterizedElement,
-        TypeParameterizedFragment {
+    implements _ExistingElementImpl, TypeParameterizedFragment {
   List<TypeParameterElementImpl> _typeParameters = const [];
 
-  @override
+  /// If the element defines a type, indicates whether the type may safely
+  /// appear without explicit type parameters as the bounds of a type parameter
+  /// declaration.
+  ///
+  /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded => true;
 
   @override
@@ -10975,7 +10904,10 @@ mixin TypeParameterizedElementMixin on ElementImpl
 
   ElementLinkedData? get linkedData;
 
-  @override
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
   List<TypeParameterElementImpl> get typeParameters {
     linkedData?.read(this);
     return _typeParameters;

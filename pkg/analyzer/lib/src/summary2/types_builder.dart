@@ -406,7 +406,7 @@ class _MixinInference {
   _MixinInference(this.element, this.featureSet,
       {required this.typeSystemOperations})
       : typeSystem = element.library.typeSystem,
-        classType = element.thisType {
+        classType = element.element.thisType {
     interfacesMerger = InterfacesMerger(typeSystem);
     interfacesMerger.addWithSupertypes(element.supertype);
   }

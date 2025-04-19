@@ -47,6 +47,7 @@ class Tag {
   static const int DeclaredIdentifier = 90;
   static const int DefaultFormalParameter = 8;
   static const int DottedName = 47;
+  static const int DotShorthandPropertyAccess = 113;
   static const int DoubleLiteral = 9;
   static const int ExtensionOverride = 87;
   static const int FieldFormalParameter = 16;

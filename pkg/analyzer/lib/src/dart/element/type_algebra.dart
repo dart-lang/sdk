@@ -606,8 +606,8 @@ abstract class _TypeSubstitutor
     if (alias == null) {
       return null;
     }
-    return InstantiatedTypeAliasElementImpl.v2(
-      element: alias.element2,
+    return InstantiatedTypeAliasElementImpl(
+      element2: alias.element2,
       typeArguments: _mapList(alias.typeArguments),
     );
   }

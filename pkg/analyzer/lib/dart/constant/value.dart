@@ -106,15 +106,6 @@ abstract class DartObject {
   /// * this object is not of a function type,
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  @Deprecated('Use toFunctionValue2() instead')
-  ExecutableElement? toFunctionValue();
-
-  /// Return an element corresponding to the value of the object being
-  /// represented, or `null`
-  /// if
-  /// * this object is not of a function type,
-  /// * the value of the object being represented is not known, or
-  /// * the value of the object being represented is `null`.
   @experimental
   ExecutableElement2? toFunctionValue2();
 

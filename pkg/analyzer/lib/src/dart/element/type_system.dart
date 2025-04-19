@@ -669,18 +669,6 @@ class TypeSystemImpl implements TypeSystem {
     return inferrer.chooseFinalTypes();
   }
 
-  @Deprecated('Use instantiateInterfaceToBounds2() instead')
-  @override
-  InterfaceTypeImpl instantiateInterfaceToBounds({
-    required covariant InterfaceElementImpl element,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiateInterfaceToBounds2(
-      element: element.asElement2,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   @override
   InterfaceTypeImpl instantiateInterfaceToBounds2({
     required covariant InterfaceElementImpl2 element,
@@ -710,18 +698,6 @@ class TypeSystemImpl implements TypeSystem {
     } else {
       return type;
     }
-  }
-
-  @Deprecated('Use instantiateTypeAliasToBounds2() instead')
-  @override
-  TypeImpl instantiateTypeAliasToBounds({
-    required covariant TypeAliasElementImpl element,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiateTypeAliasToBounds2(
-      element: element.asElement2,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 
   @override
