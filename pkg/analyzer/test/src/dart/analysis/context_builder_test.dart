@@ -21,10 +21,9 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {

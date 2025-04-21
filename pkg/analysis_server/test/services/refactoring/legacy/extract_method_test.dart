@@ -6,12 +6,12 @@ import 'package:analysis_server/src/services/refactoring/legacy/extract_method.d
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../abstract_single_unit.dart';
-import '../../../analysis_server_base.dart';
 import 'abstract_refactoring.dart';
 
 void main() {

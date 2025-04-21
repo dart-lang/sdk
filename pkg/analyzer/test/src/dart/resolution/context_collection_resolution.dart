@@ -25,6 +25,7 @@ import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
@@ -36,55 +37,6 @@ import 'node_text_expectations.dart';
 import 'resolution.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-
-// TODO(srawlins): This is duplicate with pkg/linter/test/rule_test_support.dart
-// and pkg/analysis_server/test/analysis_server_base.dart.
-// Keep them as consistent with each other as they are today. Ultimately combine
-// them in a shared analyzer test utilities package (e.g. the analyzer_utilities
-// package).
-String analysisOptionsContent({
-  List<String> experiments = const [],
-  List<String> plugins = const [],
-  List<String> rules = const [],
-  bool strictCasts = false,
-  bool strictInference = false,
-  bool strictRawTypes = false,
-  List<String> unignorableNames = const [],
-}) {
-  var buffer = StringBuffer();
-
-  buffer.writeln('analyzer:');
-  if (experiments.isNotEmpty) {
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
-    }
-  }
-
-  buffer.writeln('  language:');
-  buffer.writeln('    strict-casts: $strictCasts');
-  buffer.writeln('    strict-inference: $strictInference');
-  buffer.writeln('    strict-raw-types: $strictRawTypes');
-  buffer.writeln('  cannot-ignore:');
-  for (var name in unignorableNames) {
-    buffer.writeln('    - $name');
-  }
-
-  if (plugins.isNotEmpty) {
-    buffer.writeln('  plugins:');
-    for (var plugin in plugins) {
-      buffer.writeln('    - $plugin');
-    }
-  }
-
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  for (var rule in rules) {
-    buffer.writeln('    - $rule');
-  }
-
-  return buffer.toString();
-}
 
 // TODO(scheglov): This is duplicate with
 // pkg/linter/test/rule_test_support.dart. Keep them as consistent with each
