@@ -3144,13 +3144,6 @@ package:analyzer/dart/element/element.dart:
     topLevelElements (getter: Iterable<Element>)
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
-  LibraryImportElement (class extends Object implements _ExistingElement, deprecated):
-    new (constructor: LibraryImportElement Function())
-    combinators (getter: List<NamespaceCombinator>)
-    importKeywordOffset (getter: int)
-    importedLibrary (getter: LibraryElement?)
-    namespace (getter: Namespace)
-    uri (getter: DirectiveUri)
   LibraryLanguageVersion (class extends Object):
     new (constructor: LibraryLanguageVersion Function({required Version? override, required Version package}))
     effective (getter: Version)

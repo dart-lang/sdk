@@ -793,28 +793,6 @@ abstract class LibraryElement implements _ExistingElement {
   TypeSystem get typeSystem;
 }
 
-/// A single import directive within a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use LibraryImport instead')
-abstract class LibraryImportElement implements _ExistingElement {
-  /// The combinators that were specified as part of the `import` directive in
-  /// the order in which they were specified.
-  List<NamespaceCombinator> get combinators;
-
-  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
-  LibraryElement? get importedLibrary;
-
-  /// The offset of the `import` keyword.
-  int get importKeywordOffset;
-
-  /// The [Namespace] that this directive contributes to the containing library.
-  Namespace get namespace;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
-}
-
 class LibraryLanguageVersion {
   /// The version for the whole package that contains this library.
   final Version package;
