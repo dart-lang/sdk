@@ -445,20 +445,6 @@ extension JoinPatternVariableElementImplExtension
   }
 }
 
-extension LibraryElement2Extension on LibraryElement2 {
-  @Deprecated('Use LibraryElement2 instead')
-  LibraryElement get asElement {
-    return this as LibraryElement;
-  }
-}
-
-@Deprecated('Use LibraryElement2 instead')
-extension LibraryElementExtension on LibraryElement {
-  LibraryElement2 get asElement2 {
-    return this as LibraryElement2;
-  }
-}
-
 extension LibraryFragmentExtension on LibraryFragment {
   /// Returns a list containing this library fragment and all of its enclosing
   /// fragments.

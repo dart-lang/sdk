@@ -182,7 +182,7 @@ class CompilationUnitElementLinkedData
       );
       var uri = import.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
-        uri.library = reader.libraryOfUri(uri.source.uri);
+        uri.library2 = reader.libraryOfUri(uri.source.uri);
       }
     }
 
@@ -192,7 +192,7 @@ class CompilationUnitElementLinkedData
       );
       var uri = export.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
-        uri.library = reader.libraryOfUri(uri.source.uri);
+        uri.library2 = reader.libraryOfUri(uri.source.uri);
       }
     }
 

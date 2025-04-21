@@ -1605,7 +1605,7 @@ mixin ConstructorElementMixin
   }
 
   @override
-  LibraryElementImpl get library;
+  LibraryElementImpl get library2;
 
   ConstructorElementMixin? get redirectedConstructor;
 
@@ -1819,13 +1819,13 @@ class DirectiveUriImpl implements DirectiveUri {}
 class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     implements DirectiveUriWithLibrary {
   @override
-  late LibraryElementImpl library;
+  late LibraryElementImpl library2;
 
   DirectiveUriWithLibraryImpl({
     required super.relativeUriString,
     required super.relativeUri,
     required super.source,
-    required this.library,
+    required this.library2,
   });
 
   DirectiveUriWithLibraryImpl.read({
@@ -1833,9 +1833,6 @@ class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     required super.relativeUri,
     required super.source,
   });
-
-  @override
-  LibraryElement2 get library2 => library;
 }
 
 class DirectiveUriWithRelativeUriImpl
@@ -2319,10 +2316,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
       libraryUri: _flutterWidgetInspectorLibraryUri, name: _widgetFactoryName);
 
   @override
-  LibraryElementImpl get library => compilationUnit.library;
-
-  @override
-  LibraryElementImpl get library2 => library;
+  LibraryElementImpl get library2 => compilationUnit.library;
 
   /// Get the library containing this annotation.
   @override
@@ -2846,7 +2840,6 @@ abstract class ElementImpl
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
-  @override
   LibraryElementImpl? get library {
     // ignore:deprecated_member_use_from_same_package
     return thisOrAncestorOfType();
@@ -2962,15 +2955,6 @@ abstract class ElementImpl
   /// Return `true` if this element has the given [modifier] associated with it.
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
-  @Deprecated('Use Element2 instead')
-  @override
-  bool isAccessibleIn(LibraryElement library) {
-    if (Identifier.isPrivateName(name!)) {
-      return library == this.library;
-    }
-    return true;
-  }
-
   void resetMetadataFlags() {
     _metadataFlags = 0;
   }
@@ -3014,7 +2998,7 @@ abstract class ElementImpl
   @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType<E extends Element>() {
-    if (E == LibraryElement || E == LibraryElementImpl) {
+    if (E == LibraryElementImpl) {
       if (enclosingElement3 case LibraryElementImpl library) {
         return library as E;
       }
@@ -6511,12 +6495,8 @@ class LabelElementImpl2 extends ElementImpl2
 
 /// A concrete implementation of [LibraryElement2].
 class LibraryElementImpl extends ElementImpl
-    with
-        _HasLibraryMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LibraryElement,
-        LibraryElement2 {
+    with _HasLibraryMixin
+    implements LibraryElement2 {
   /// The analysis context in which this library is defined.
   @override
   final AnalysisContext context;
@@ -6736,16 +6716,6 @@ class LibraryElementImpl extends ElementImpl
   String get identifier => '${definingCompilationUnit.source.uri}';
 
   @override
-  List<LibraryElementImpl> get importedLibraries {
-    return fragments
-        .expand((fragment) => fragment.libraryImports)
-        .map((import) => import.importedLibrary2)
-        .nonNulls
-        .toSet()
-        .toList();
-  }
-
-  @override
   bool get isDartAsync => name == "dart.async";
 
   @override
@@ -6836,7 +6806,6 @@ class LibraryElementImpl extends ElementImpl
     return definingCompilationUnit.source;
   }
 
-  @override
   Iterable<ElementImpl> get topLevelElements sync* {
     for (var unit in units) {
       yield* unit.accessors;
@@ -7041,7 +7010,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   LibraryElementImpl? get exportedLibrary2 {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
-      return uri.library;
+      return uri.library2;
     }
     return null;
   }
@@ -7101,7 +7070,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   LibraryElementImpl? get importedLibrary2 {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
-      return uri.library;
+      return uri.library2;
     }
     return null;
   }
@@ -7123,7 +7092,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
     if (uri is DirectiveUriWithLibraryImpl) {
       return _namespace ??=
           NamespaceBuilder().createImportNamespaceForDirective(
-        importedLibrary: uri.library,
+        importedLibrary: uri.library2,
         combinators: combinators,
         prefix: prefix2,
       );

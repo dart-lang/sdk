@@ -71,7 +71,7 @@ class ConstructorMember extends ExecutableMember
   bool get isFactory => declaration.isFactory;
 
   @override
-  LibraryElementImpl get library {
+  LibraryElementImpl get library2 {
     return _declaration.library!;
   }
 
@@ -273,10 +273,6 @@ abstract class ExecutableMember extends Member
 
   @override
   bool get isSynchronous => declaration.isSynchronous;
-
-  @Deprecated('Use ExecutableElement2 instead')
-  @override
-  LibraryElement get library => _declaration.library!;
 
   @override
   LibraryElement2 get library2 => _element2.library2;
@@ -552,10 +548,6 @@ class FieldMember extends VariableMember
 
   @override
   bool get isPromotable => declaration.isPromotable;
-
-  @Deprecated('Use FieldElement2 instead')
-  @override
-  LibraryElement get library => _declaration.library!;
 
   @override
   LibraryElement2 get library2 => _element2.library2;
@@ -870,10 +862,6 @@ abstract class Member
   @override
   ElementKind get kind => _declaration.kind;
 
-  @Deprecated('Use Element2 instead')
-  @override
-  LibraryElement? get library => _declaration.library;
-
   @override
   Source? get librarySource => _declaration.librarySource;
 
@@ -933,11 +921,6 @@ abstract class Member
       shortName: shortName,
     );
   }
-
-  @Deprecated('Use Element2 instead')
-  @override
-  bool isAccessibleIn(LibraryElement library) =>
-      _declaration.isAccessibleIn(library);
 
   @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override

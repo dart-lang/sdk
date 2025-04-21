@@ -37,19 +37,15 @@
 library;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart'
     show elementModelDeprecationMsg;
-import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 // ignore: deprecated_member_use_from_same_package
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
@@ -65,10 +61,6 @@ abstract class DirectiveUri {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
-  /// The library referenced by the [source].
-  @Deprecated(elementModelDeprecationMsg)
-  LibraryElement get library;
-
   /// The library referenced by the [source].
   LibraryElement2 get library2;
 }
@@ -277,14 +269,6 @@ abstract class Element implements AnalysisTarget {
   /// The kind of element that this is.
   ElementKind get kind;
 
-  /// Library that contains this element.
-  ///
-  /// This will be the element itself if it is a library element. This will be
-  /// `null` if this element is [MultiplyDefinedElement2] that is not contained
-  /// in a library.
-  @Deprecated(elementModelDeprecationMsg)
-  LibraryElement? get library;
-
   /// The location of this element in the element model.
   ///
   /// The object can be used to locate this element at a later time.
@@ -370,17 +354,6 @@ abstract class Element implements AnalysisTarget {
   /// the provided name will be used.
   // TODO(brianwilkerson): Make the parameter optional.
   String getExtendedDisplayName(String? shortName);
-
-  /// Whether the element, assuming that it is within scope, is accessible to
-  /// code in the given [library].
-  ///
-  /// This is defined by the Dart Language Specification in section 6.2:
-  /// <blockquote>
-  /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
-  /// declared in <i>L</i> or if <i>m</i> is public.
-  /// </blockquote>
-  @Deprecated(elementModelDeprecationMsg)
-  bool isAccessibleIn(LibraryElement library);
 
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
@@ -726,73 +699,6 @@ abstract class HideElementCombinator implements NamespaceCombinator {
   List<String> get hiddenNames;
 }
 
-/// A library.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use LibraryElement2 instead')
-abstract class LibraryElement implements _ExistingElement {
-  /// Returns `null`, because libraries are the top-level elements in the model.
-  @override
-  Null get enclosingElement3;
-
-  /// The export [Namespace] of this library.
-  Namespace get exportNamespace;
-
-  /// The set of features available to this library.
-  ///
-  /// Determined by the combination of the language version for the enclosing
-  /// package, enabled experiments, and the presence of a `// @dart` language
-  /// version override comment at the top of the file.
-  FeatureSet get featureSet;
-
-  /// The identifier that uniquely identifies this element among the children
-  /// of this element's parent.
-  String get identifier;
-
-  /// The libraries that are imported into this library.
-  ///
-  /// This includes all of the libraries that are imported using a prefix, and
-  /// those that are imported without a prefix.
-  List<LibraryElement> get importedLibraries;
-
-  /// Whether the library is the `dart:async` library.
-  bool get isDartAsync;
-
-  /// Whether the library is the `dart:core` library.
-  bool get isDartCore;
-
-  /// Whether the library is part of the SDK.
-  bool get isInSdk;
-
-  /// The language version for this library.
-  LibraryLanguageVersion get languageVersion;
-
-  @override
-  LibraryElement get library;
-
-  /// The name of this library, possibly the empty string if this library does
-  /// not have an explicit name.
-  @override
-  String get name;
-
-  /// The public [Namespace] of this library.
-  Namespace get publicNamespace;
-
-  @override
-  AnalysisSession get session;
-
-  /// The top-level elements defined in each of the compilation units that are
-  /// included in this library. This includes both public and private elements,
-  /// but does not include imports, exports, or synthetic elements.
-  Iterable<Element> get topLevelElements;
-
-  /// The [TypeProvider] that is used in this library.
-  TypeProvider get typeProvider;
-
-  /// The [TypeSystem] that is used in this library.
-  TypeSystem get typeSystem;
-}
-
 class LibraryLanguageVersion {
   /// The version for the whole package that contains this library.
   final Version package;
@@ -868,10 +774,6 @@ abstract class _ExistingElement implements Element {
   @Deprecated(elementModelDeprecationMsg)
   @override
   Element get declaration;
-
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  LibraryElement get library;
 
   @override
   Source get librarySource;

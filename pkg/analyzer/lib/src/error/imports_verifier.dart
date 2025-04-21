@@ -258,12 +258,12 @@ class ImportsVerifier {
 
         if (importElement.uri case DirectiveUriWithLibraryImpl uri) {
           // Ignore explicit dart:core import.
-          if (uri.library.isDartCore) {
+          if (uri.library2.isDartCore) {
             continue;
           }
 
           // The URI target does not exist, reported this elsewhere.
-          if (uri.library.isSynthetic) {
+          if (uri.library2.isSynthetic) {
             continue;
           }
 

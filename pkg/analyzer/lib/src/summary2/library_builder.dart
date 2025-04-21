@@ -442,7 +442,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library: exportedLibrary,
+            library2: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -461,7 +461,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library: exportedLibrary,
+            library2: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -524,7 +524,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library: importedLibrary,
+            library2: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -543,7 +543,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library: importedLibrary,
+            library2: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(

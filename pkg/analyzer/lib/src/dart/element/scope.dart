@@ -531,7 +531,7 @@ class PrefixScope implements Scope {
       if (importedUri is DirectiveUriWithLibraryImpl &&
           import.prefix2?.element == prefix) {
         _importElements.add(import);
-        var importedLibrary = importedUri.library;
+        var importedLibrary = importedUri.library2;
         _importedLibraries.add(importedLibrary);
         var combinators = import.combinators.build();
         for (var exportedReference in importedLibrary.exportedReferences) {

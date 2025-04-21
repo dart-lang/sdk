@@ -159,7 +159,7 @@ abstract class _AbstractElementWriter {
 
   void _writeDirectiveUri(DirectiveUri uri) {
     if (uri is DirectiveUriWithLibraryImpl) {
-      _sink.write('${uri.library.source.uri}');
+      _sink.write('${uri.library2.source.uri}');
     } else if (uri is DirectiveUriWithUnit) {
       _sink.write('${uri.libraryFragment.source.uri}');
     } else if (uri is DirectiveUriWithSource) {

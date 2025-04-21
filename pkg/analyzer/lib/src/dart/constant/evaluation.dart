@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -456,7 +455,7 @@ class ConstantEvaluationEngine {
     if (!constructor.isFactory) {
       return null;
     }
-    var typeProvider = constructor.library.typeProvider;
+    var typeProvider = constructor.library2.typeProvider;
     if (constructor.asElement2.enclosingElement2 ==
         typeProvider.symbolElement2) {
       // The dart:core.Symbol has a const factory constructor that redirects
@@ -531,10 +530,6 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
 
   /// Return whether this constant is evaluated.
   bool get isConstantEvaluated;
-
-  /// The library with this constant.
-  @Deprecated('Use library2 instead')
-  LibraryElement? get library;
 
   /// The library with this constant.
   LibraryElement2? get library2;
@@ -2618,7 +2613,7 @@ class _InstanceCreationEvaluator {
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(
     _evaluationEngine,
-    _constructor.library,
+    _constructor.library2,
     _externalErrorReporter,
     lexicalEnvironment: _parameterMap,
     lexicalTypeEnvironment: _typeParameterMap,
@@ -3181,7 +3176,7 @@ class _InstanceCreationEvaluator {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
       var superConstructor = superclass
-          .lookUpConstructor2(superName, _constructor.library)
+          .lookUpConstructor2(superName, _constructor.library2)
           ?.asElement;
       if (superConstructor == null) {
         return null;
