@@ -5961,13 +5961,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         .toList();
     int count = imports.length;
     for (int i = 0; i < count; i++) {
-      if (identical(imports[i].importedLibrary, library)) {
+      if (identical(imports[i].importedLibrary2, library)) {
         return library.uri.toString();
       }
     }
     List<String> indirectSources = <String>[];
     for (var import in imports) {
-      var importedLibrary = import.importedLibrary;
+      var importedLibrary = import.importedLibrary2;
       if (importedLibrary != null) {
         if (import.namespace.get2(name) == element) {
           indirectSources.add(

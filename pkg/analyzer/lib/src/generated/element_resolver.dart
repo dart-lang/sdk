@@ -256,7 +256,7 @@ class ElementResolver {
     var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid
-      var library = importElement.importedLibrary;
+      var library = importElement.importedLibrary2;
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }

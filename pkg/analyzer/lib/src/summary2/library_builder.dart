@@ -498,23 +498,6 @@ class LibraryBuilder {
     required CompilationUnitElementImpl containerUnit,
     required LibraryImportState state,
   }) {
-    var importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
-      var prefix = _buildLibraryImportPrefix(
-        nameOffset: unlinked.nameOffset,
-        name: unlinked.name,
-        containerUnit: containerUnit,
-      );
-      if (unlinked.deferredOffset != null) {
-        return DeferredImportElementPrefixImpl(
-          element: prefix,
-        );
-      } else {
-        return ImportElementPrefixImpl(
-          element: prefix,
-        );
-      }
-    });
-
     var prefixFragment = state.unlinked.prefix.mapOrNull((unlinked) {
       return _buildLibraryImportPrefixFragment(
         libraryFragment: containerUnit,
@@ -589,33 +572,9 @@ class LibraryBuilder {
     return LibraryImportElementImpl(
       combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
-      prefix: importPrefix,
       prefix2: prefixFragment,
       uri: uri,
     )..isSynthetic = state.isSyntheticDartCore;
-  }
-
-  PrefixElementImpl _buildLibraryImportPrefix({
-    required int nameOffset,
-    required UnlinkedLibraryImportPrefixName? name,
-    required CompilationUnitElementImpl containerUnit,
-  }) {
-    // TODO(scheglov): Make reference required.
-    var containerRef = containerUnit.reference!;
-    var refName = name?.name ?? '${_nextUnnamedId++}';
-    var reference = containerRef.getChild('@prefix').getChild(refName);
-    var existing = reference.element;
-    if (existing is PrefixElementImpl) {
-      return existing;
-    } else {
-      var result = PrefixElementImpl(
-        name?.name ?? '',
-        nameOffset,
-        reference: reference,
-      );
-      result.enclosingElement3 = containerUnit;
-      return result;
-    }
   }
 
   PrefixFragmentImpl _buildLibraryImportPrefixFragment({

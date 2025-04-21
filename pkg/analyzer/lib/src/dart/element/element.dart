@@ -707,9 +707,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<LibraryImportElementImpl> _libraryImports =
       _Sentinel.libraryImportElement;
 
-  /// The cached list of prefixes from [libraryImports].
-  List<PrefixElementImpl>? _libraryImportPrefixes;
-
   /// The cached list of prefixes from [prefixes].
   List<PrefixElementImpl2>? _libraryImportPrefixes2;
 
@@ -935,13 +932,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   LibraryFragment get libraryFragment => this;
 
-  /// The prefixes used by [libraryImports].
-  ///
-  /// Each prefix can be used in more than one `import` directive.
-  List<PrefixElementImpl> get libraryImportPrefixes {
-    return _libraryImportPrefixes ??= _buildLibraryImportPrefixes();
-  }
-
   /// The libraries imported by this unit.
   List<LibraryImportElementImpl> get libraryImports {
     linkedData?.read(this);
@@ -953,7 +943,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       importElement.enclosingElement3 = this;
     }
     _libraryImports = imports;
-    _libraryImportPrefixes = null;
   }
 
   @override
@@ -1121,8 +1110,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }) {
     for (var libraryFragment in withEnclosing) {
       for (var importElement in libraryFragment.libraryImports) {
-        if (importElement.prefix?.element.name == prefix &&
-            importElement.importedLibrary?.isSynthetic != false) {
+        if (importElement.prefix2?.element.name3 == prefix &&
+            importElement.importedLibrary2?.isSynthetic != false) {
           var showCombinators = importElement.combinators
               .whereType<ShowElementCombinator>()
               .toList();
@@ -1175,17 +1164,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       prefix: node.importPrefix?.name.lexeme,
       name: node.name2.lexeme,
     );
-  }
-
-  List<PrefixElementImpl> _buildLibraryImportPrefixes() {
-    var prefixes = <PrefixElementImpl>{};
-    for (var import in libraryImports) {
-      var prefix = import.prefix?.element;
-      if (prefix != null) {
-        prefixes.add(prefix);
-      }
-    }
-    return prefixes.toFixedList();
   }
 
   List<PrefixElementImpl2> _buildLibraryImportPrefixes2() {
@@ -1834,15 +1812,6 @@ class DefaultSuperFormalParameterElementImpl
 
     return _superConstructorParameterDefaultValue;
   }
-}
-
-class DeferredImportElementPrefixImpl extends ImportElementPrefixImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        DeferredImportElementPrefix {
-  DeferredImportElementPrefixImpl({
-    required super.element,
-  });
 }
 
 class DirectiveUriImpl implements DirectiveUri {}
@@ -5453,18 +5422,6 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   }
 }
 
-class ImportElementPrefixImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ImportElementPrefix {
-  @override
-  final PrefixElementImpl element;
-
-  ImportElementPrefixImpl({
-    required this.element,
-  });
-}
-
 abstract class InstanceElementImpl extends _ExistingElementImpl
     with AugmentableFragment, TypeParameterizedElementMixin
     implements InstanceFragment {
@@ -6782,7 +6739,7 @@ class LibraryElementImpl extends ElementImpl
   List<LibraryElementImpl> get importedLibraries {
     return fragments
         .expand((fragment) => fragment.libraryImports)
-        .map((import) => import.importedLibrary)
+        .map((import) => import.importedLibrary2)
         .nonNulls
         .toSet()
         .toList();
@@ -7050,18 +7007,6 @@ class LibraryElementImpl extends ElementImpl
     }
   }
 
-  static List<PrefixElementImpl> buildPrefixesFromImports(
-      List<LibraryImportElementImpl> imports) {
-    var prefixes = <PrefixElementImpl>{};
-    for (var element in imports) {
-      var prefix = element.prefix?.element;
-      if (prefix != null) {
-        prefixes.add(prefix);
-      }
-    }
-    return prefixes.toList(growable: false);
-  }
-
   static T? _getElementByName<T extends Element2>(
     List<T> elements,
     String name,
@@ -7128,18 +7073,12 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 }
 
 class LibraryImportElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LibraryImportElement,
-        LibraryImport {
+    implements LibraryImport {
   @override
   final List<NamespaceCombinator> combinators;
 
   @override
   final int importKeywordOffset;
-
-  @override
-  final ImportElementPrefixImpl? prefix;
 
   @override
   final PrefixFragmentImpl? prefix2;
@@ -7152,7 +7091,6 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   LibraryImportElementImpl({
     required this.combinators,
     required this.importKeywordOffset,
-    required this.prefix,
     required this.prefix2,
     required this.uri,
   }) : super(null, importKeywordOffset);
@@ -7166,16 +7104,13 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   String get identifier => 'import@$nameOffset';
 
   @override
-  LibraryElementImpl? get importedLibrary {
+  LibraryElementImpl? get importedLibrary2 {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
       return uri.library;
     }
     return null;
   }
-
-  @override
-  LibraryElementImpl? get importedLibrary2 => importedLibrary;
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
@@ -9009,61 +8944,22 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
   }
 }
 
-class PrefixElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PrefixElement {
-  /// The scope of this prefix, `null` if not set yet.
-  PrefixScope? _scope;
+/// Currently we write [Element2] using the first fragment.
+/// Usually this works (as good as a hack can), but [PrefixElementImpl2]
+/// does not have [ElementImpl] fragments. So, we use this fake element.
+// TODO(scheglov): resonsider how we write Element2.
+class PrefixElementImpl extends ElementImpl {
+  final PrefixElementImpl2 element2;
 
-  /// Initialize a newly created method element to have the given [name] and
-  /// [nameOffset].
-  PrefixElementImpl(String super.name, super.nameOffset, {super.reference});
-
-  @override
-  String get displayName => name;
-
-  PrefixElementImpl2 get element2 {
-    return enclosingElement3.prefixes.firstWhere((element) {
-      return (element.name3 ?? '') == name;
-    });
-  }
-
-  @override
-  CompilationUnitElementImpl get enclosingElement3 {
-    return _enclosingElement3 as CompilationUnitElementImpl;
-  }
-
-  @override
-  List<LibraryImportElementImpl> get imports {
-    return enclosingElement3.libraryImports
-        .where((import) => import.prefix?.element == this)
-        .toList();
-  }
+  PrefixElementImpl(this.element2)
+      : super(
+          element2.name3 ?? '',
+          -1,
+          reference: element2.reference,
+        );
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
-
-  @override
-  String get name {
-    return super.name!;
-  }
-
-  @override
-  PrefixScope get scope {
-    enclosingElement3.scope;
-    // SAFETY: The previous statement initializes this field.
-    return _scope!;
-  }
-
-  set scope(PrefixScope value) {
-    _scope = value;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writePrefixElement(this);
-  }
 }
 
 class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
@@ -9075,15 +8971,20 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   PrefixFragmentImpl lastFragment;
 
+  /// The scope of this prefix, `null` if not set yet.
+  PrefixScope? _scope;
+
   PrefixElementImpl2({
     required this.reference,
     required this.firstFragment,
   }) : lastFragment = firstFragment {
     reference.element2 = this;
+    asElement;
   }
 
   PrefixElementImpl get asElement {
-    return imports.first.prefix!.element;
+    return PrefixElementImpl(this);
+    // return imports.first.prefix!.element;
   }
 
   @override
@@ -9122,11 +9023,13 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   @override
   PrefixScope get scope {
-    return asElement.scope;
+    firstFragment.enclosingFragment.scope;
+    // SAFETY: The previous statement initializes this field.
+    return _scope!;
   }
 
   set scope(PrefixScope value) {
-    asElement.scope = value;
+    _scope = value;
   }
 
   @override

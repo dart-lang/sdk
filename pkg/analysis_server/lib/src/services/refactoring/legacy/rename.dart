@@ -169,7 +169,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       }
       return name;
     } else if (element is MockLibraryImportElement) {
-      var prefix = element.import.prefix?.element;
+      var prefix = element.import.prefix2?.element;
       if (prefix != null) {
         return prefix.displayName;
       }

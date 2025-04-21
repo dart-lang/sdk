@@ -31,7 +31,7 @@ const a = const A();
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 27, 9),
     ]);
 
-    var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
+    var aLib = findElement2.import('package:test/a.dart').importedLibrary2!;
     var aConstructor = aLib.getClass2('A')!.constructors2.single;
     var p = aConstructor.formalParameters.single;
     var pf = p.firstFragment as DefaultParameterElementImpl;

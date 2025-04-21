@@ -779,7 +779,7 @@ class MethodInvocationResolver with ScopeHelpers {
       if (imports.length == 1) {
         var firstPrefix = imports[0].prefix2;
         if (firstPrefix != null && firstPrefix.isDeferred) {
-          var importedLibrary = imports[0].importedLibrary;
+          var importedLibrary = imports[0].importedLibrary2;
           var element = importedLibrary?.loadLibraryFunction2;
           if (element != null) {
             nameNode.element = element;

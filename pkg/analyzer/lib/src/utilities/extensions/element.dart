@@ -273,8 +273,6 @@ extension ElementOrNullExtension on Element? {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
       return self;
-    } else if (self is PrefixElementImpl) {
-      return self.element2;
     } else if (self is LibraryImportElementImpl ||
         self is LibraryExportElementImpl ||
         self is PartElementImpl) {

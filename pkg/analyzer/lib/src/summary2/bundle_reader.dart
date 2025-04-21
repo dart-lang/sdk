@@ -1197,9 +1197,6 @@ class LibraryReader {
     var element = LibraryImportElementImpl(
       combinators: _reader.readTypedList(_readNamespaceCombinator),
       importKeywordOffset: -1,
-      prefix: _readImportElementPrefix(
-        containerUnit: containerUnit,
-      ),
       prefix2: _readLibraryImportPrefixFragment(
         libraryFragment: containerUnit,
       ),
@@ -1209,41 +1206,6 @@ class LibraryReader {
     );
     LibraryImportElementFlags.read(_reader, element);
     return element;
-  }
-
-  ImportElementPrefixImpl? _readImportElementPrefix({
-    required CompilationUnitElementImpl containerUnit,
-  }) {
-    PrefixElementImpl buildElement(String name, Reference reference) {
-      // TODO(scheglov): Make reference required.
-      var existing = reference.element;
-      if (existing is PrefixElementImpl) {
-        return existing;
-      } else {
-        var result = PrefixElementImpl(name, -1, reference: reference);
-        result.enclosingElement3 = containerUnit;
-        return result;
-      }
-    }
-
-    var kindIndex = _reader.readByte();
-    var kind = ImportElementPrefixKind.values[kindIndex];
-    switch (kind) {
-      case ImportElementPrefixKind.isDeferred:
-        var name = _reader.readStringReference();
-        var reference = _readReference();
-        return DeferredImportElementPrefixImpl(
-          element: buildElement(name, reference),
-        );
-      case ImportElementPrefixKind.isNotDeferred:
-        var name = _reader.readStringReference();
-        var reference = _readReference();
-        return ImportElementPrefixImpl(
-          element: buildElement(name, reference),
-        );
-      case ImportElementPrefixKind.isNull:
-        return null;
-    }
   }
 
   LibraryLanguageVersion _readLanguageVersion() {
@@ -2027,6 +1989,8 @@ class ResolutionReader {
     switch (element) {
       case null:
         return null;
+      case PrefixElementImpl():
+        return element.element2;
       case ElementImpl():
         return element.asElement2;
       case ExecutableMember():

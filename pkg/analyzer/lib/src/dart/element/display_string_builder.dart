@@ -256,24 +256,6 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writePrefixElement(PrefixElementImpl element) {
-    var libraryImports = element.imports;
-    var displayName = element.displayName;
-    if (libraryImports.isEmpty) {
-      _write('as ');
-      _write(displayName);
-      return;
-    }
-    var first = libraryImports.first;
-    _write("import '${first.libraryName}' as $displayName;");
-    if (libraryImports.length == 1) {
-      return;
-    }
-    for (var libraryImport in libraryImports.sublist(1)) {
-      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
-    }
-  }
-
   void writePrefixElement2(PrefixElementImpl2 element) {
     var libraryImports = element.imports;
     var displayName = element.displayName;

@@ -63,7 +63,7 @@ class ImportsVerifier {
     var exportsWithLibraries = <_NamespaceDirective>[];
     for (var directive in node.directives) {
       if (directive is ImportDirectiveImpl) {
-        var libraryElement = directive.libraryImport?.importedLibrary;
+        var libraryElement = directive.libraryImport?.importedLibrary2;
         if (libraryElement == null) {
           continue;
         }
@@ -183,7 +183,7 @@ class ImportsVerifier {
       }
 
       // Ignore unresolved imports.
-      var importedLibrary = firstElement.importedLibrary;
+      var importedLibrary = firstElement.importedLibrary2;
       if (importedLibrary == null) {
         continue;
       }
@@ -301,7 +301,7 @@ class ImportsVerifier {
 
       // Ignore unresolved imports.
       var importElement = importDirective.libraryImport!;
-      var importedLibrary = importElement.importedLibrary;
+      var importedLibrary = importElement.importedLibrary2;
       if (importedLibrary == null) {
         continue;
       }

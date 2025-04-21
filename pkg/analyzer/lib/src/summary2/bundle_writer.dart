@@ -382,24 +382,9 @@ class BundleWriter {
   void _writeImportElement(LibraryImportElementImpl element) {
     _resolutionSink._writeAnnotationList(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
-    _writeImportElementPrefix(element.prefix);
     _writeLibraryImportPrefixFragment(element.prefix2);
     _writeDirectiveUri(element.uri);
     LibraryImportElementFlags.write(_sink, element);
-  }
-
-  void _writeImportElementPrefix(ImportElementPrefixImpl? prefix) {
-    if (prefix is DeferredImportElementPrefixImpl) {
-      _sink.writeByte(ImportElementPrefixKind.isDeferred.index);
-      _sink._writeStringReference(prefix.element.name);
-      _writeReference(prefix.element);
-    } else if (prefix is ImportElementPrefixImpl) {
-      _sink.writeByte(ImportElementPrefixKind.isNotDeferred.index);
-      _sink._writeStringReference(prefix.element.name);
-      _writeReference(prefix.element);
-    } else {
-      _sink.writeByte(ImportElementPrefixKind.isNull.index);
-    }
   }
 
   void _writeLanguageVersion(LibraryLanguageVersion version) {

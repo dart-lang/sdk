@@ -22,8 +22,6 @@ enum ImportElementPrefixKind {
   isNull,
 }
 
-
-
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;
