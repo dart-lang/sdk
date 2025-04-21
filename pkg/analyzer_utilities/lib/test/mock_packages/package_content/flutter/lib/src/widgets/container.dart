@@ -60,8 +60,8 @@ class Container extends StatelessWidget {
     double? height,
     this.margin,
     this.child,
-  })  : decoration = decoration,
-        super(key: key);
+  }) : decoration = decoration,
+       super(key: key);
 
   @override
   Widget build(BuildContext context) => child;

@@ -48,43 +48,43 @@ class Align extends SingleChildRenderObjectWidget {
     this.widthFactor,
     this.heightFactor,
     Widget? child,
-  })  : assert(alignment != null),
-        assert(widthFactor == null || widthFactor >= 0.0),
-        assert(heightFactor == null || heightFactor >= 0.0),
-        super(key: key, child: child);
+  }) : assert(alignment != null),
+       assert(widthFactor == null || widthFactor >= 0.0),
+       assert(heightFactor == null || heightFactor >= 0.0),
+       super(key: key, child: child);
 }
 
 class AspectRatio extends SingleChildRenderObjectWidget {
-  const AspectRatio({
+  const AspectRatio({Key? key, @required double aspectRatio, Widget? child});
+}
+
+class Center extends StatelessWidget {
+  const Center({
     Key? key,
-    @required double aspectRatio,
+    double? widthFactor,
+    double? heightFactor,
     Widget? child,
   });
 }
 
-class Center extends StatelessWidget {
-  const Center(
-      {Key? key, double? widthFactor, double? heightFactor, Widget? child});
-}
-
 class SizedBox extends SingleChildRenderObjectWidget {
   const SizedBox({Key? key, this.width, this.height, Widget? child})
-      : super(key: key, child: child);
+    : super(key: key, child: child);
 
   const SizedBox.expand({Key? key, Widget? child})
-      : width = double.infinity,
-        height = double.infinity,
-        super(key: key, child: child);
+    : width = double.infinity,
+      height = double.infinity,
+      super(key: key, child: child);
 
   const SizedBox.shrink({Key? key, Widget? child})
-      : width = 0.0,
-        height = 0.0,
-        super(key: key, child: child);
+    : width = 0.0,
+      height = 0.0,
+      super(key: key, child: child);
 
   SizedBox.fromSize({Key? key, Widget? child, Size? size})
-      : width = size?.width,
-        height = size?.height,
-        super(key: key, child: child);
+    : width = size?.width,
+      height = size?.height,
+      super(key: key, child: child);
 
   final double? width;
 
@@ -96,7 +96,7 @@ class ClipRect extends SingleChildRenderObjectWidget {
 
   /// Does not actually exist in Flutter.
   const ClipRect.rect({Key? key, Widget? child})
-      : super(key: key, child: child);
+    : super(key: key, child: child);
 }
 
 class ColoredBox extends SingleChildRenderObjectWidget {
@@ -126,44 +126,25 @@ class DecoratedBox extends SingleChildRenderObjectWidget {
 }
 
 class Expanded extends Flexible {
-  const Expanded({
-    super.key,
-    super.flex,
-    super.child,
-  });
+  const Expanded({super.key, super.flex, super.child});
 }
 
 class Flexible extends StatelessWidget {
-  const Flexible({
-    Key? key,
-    int flex = 1,
-    required Widget child,
-  });
+  const Flexible({Key? key, int flex = 1, required Widget child});
 }
 
 class Flex extends Widget {
-  Flex({
-    Key? key,
-    List<Widget> children = const <Widget>[],
-  });
+  Flex({Key? key, List<Widget> children = const <Widget>[]});
 }
 
 class Padding extends SingleChildRenderObjectWidget {
   final EdgeInsetsGeometry padding;
 
-  const Padding({
-    Key? key,
-    @required this.padding,
-    Widget? child,
-  });
+  const Padding({Key? key, @required this.padding, Widget? child});
 }
 
 class RawMaterialButton implements Widget {
-  RawMaterialButton({
-    Key? key,
-    Widget? child,
-    void Function()? onPressed,
-  });
+  RawMaterialButton({Key? key, Widget? child, void Function()? onPressed});
 }
 
 class Row extends Flex {
@@ -180,10 +161,7 @@ class Row extends Flex {
 }
 
 class Stack extends Widget {
-  Stack({
-    Key? key,
-    List<Widget> children = const <Widget>[],
-  });
+  Stack({Key? key, List<Widget> children = const <Widget>[]});
 }
 
 class Transform extends SingleChildRenderObjectWidget {
@@ -222,23 +200,13 @@ class SliverPadding extends SingleChildRenderObjectWidget {
 }
 
 class DecoratedSliver extends SingleChildRenderObjectWidget {
-  DecoratedSliver({
-    Key? key,
-    required Decoration decoration,
-    Widget? sliver,
-  });
+  DecoratedSliver({Key? key, required Decoration decoration, Widget? sliver});
 }
 
 class SliverToBoxAdapter extends SingleChildRenderObjectWidget {
-  SliverToBoxAdapter({
-    Key? key,
-    Widget? child,
-  });
+  SliverToBoxAdapter({Key? key, Widget? child});
 }
 
 class SliverList extends StatelessWidget {
-  SliverList.list({
-    Key? key,
-    List<Widget> children,
-  });
+  SliverList.list({Key? key, List<Widget> children});
 }

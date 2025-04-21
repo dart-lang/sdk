@@ -2,13 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-enum CrossAxisAlignment {
-  start,
-  end,
-  center,
-  stretch,
-  baseline,
-}
+enum CrossAxisAlignment { start, end, center, stretch, baseline }
 
 enum MainAxisAlignment {
   start,
@@ -19,7 +13,4 @@ enum MainAxisAlignment {
   spaceEvenly,
 }
 
-enum MainAxisSize {
-  min,
-  max,
-}
+enum MainAxisSize { min, max }

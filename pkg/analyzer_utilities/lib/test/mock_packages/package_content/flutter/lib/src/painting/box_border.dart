@@ -90,10 +90,10 @@ class Border extends BoxBorder {
     this.right = BorderSide.none,
     this.bottom = BorderSide.none,
     this.left = BorderSide.none,
-  })  : assert(top != null),
-        assert(right != null),
-        assert(bottom != null),
-        assert(left != null);
+  }) : assert(top != null),
+       assert(right != null),
+       assert(bottom != null),
+       assert(left != null);
 
   /// A uniform border with all sides the same color and width.
   ///
@@ -103,8 +103,11 @@ class Border extends BoxBorder {
     double width = 1.0,
     BorderStyle style = BorderStyle.solid,
   }) {
-    final BorderSide side =
-        BorderSide(color: color, width: width, style: style);
+    final BorderSide side = BorderSide(
+      color: color,
+      width: width,
+      style: style,
+    );
     return Border.fromBorderSide(side);
   }
 
@@ -112,11 +115,11 @@ class Border extends BoxBorder {
   ///
   /// The `side` argument must not be null.
   const Border.fromBorderSide(BorderSide side)
-      : assert(side != null),
-        top = side,
-        right = side,
-        bottom = side,
-        left = side;
+    : assert(side != null),
+      top = side,
+      right = side,
+      bottom = side,
+      left = side;
 }
 
 /// A border of a box, comprised of four sides, the lateral sides of which
@@ -179,10 +182,10 @@ class BorderDirectional extends BoxBorder {
     this.start = BorderSide.none,
     this.end = BorderSide.none,
     this.bottom = BorderSide.none,
-  })  : assert(top != null),
-        assert(start != null),
-        assert(end != null),
-        assert(bottom != null);
+  }) : assert(top != null),
+       assert(start != null),
+       assert(end != null),
+       assert(bottom != null);
 }
 
 /// Base class for box borders that can paint as rectangles, circles, or rounded

@@ -25,24 +25,27 @@ class VerifyTests {
   VerifyTests(this.testDirPath, {this.excludedPaths});
 
   /// Build tests.
-  void build({
-    bool Function(AnalysisContext)? analysisContextPredicate,
-  }) {
+  void build({bool Function(AnalysisContext)? analysisContextPredicate}) {
     var provider = PhysicalResourceProvider.INSTANCE;
     var collection = AnalysisContextCollection(
-        resourceProvider: provider,
-        includedPaths: <String>[testDirPath],
-        excludedPaths: excludedPaths);
-    var singleAnalysisContext = collection.contexts
-        .where(analysisContextPredicate ?? (_) => true)
-        .toList()
-        .singleOrNull;
+      resourceProvider: provider,
+      includedPaths: <String>[testDirPath],
+      excludedPaths: excludedPaths,
+    );
+    var singleAnalysisContext =
+        collection.contexts
+            .where(analysisContextPredicate ?? (_) => true)
+            .toList()
+            .singleOrNull;
     if (singleAnalysisContext == null) {
       fail('The test directory contains multiple analysis contexts.');
     }
 
-    _buildTestsIn(singleAnalysisContext.currentSession, testDirPath,
-        provider.getFolder(testDirPath));
+    _buildTestsIn(
+      singleAnalysisContext.currentSession,
+      testDirPath,
+      provider.getFolder(testDirPath),
+    );
   }
 
   /// May be overridden in a derived class to indicate whether the test file or
@@ -59,9 +62,9 @@ class VerifyTests {
   ///
   /// Default behavior is to allow imports of test framework URIs.
   bool isOkAsAdditionalTestAllImport(Folder folder, String uri) => const [
-        'package:test/test.dart',
-        'package:test_reflective_loader/test_reflective_loader.dart'
-      ].contains(uri);
+    'package:test/test.dart',
+    'package:test_reflective_loader/test_reflective_loader.dart',
+  ].contains(uri);
 
   /// May be overridden in a derived class to indicate whether it is ok for
   /// a `test_all.dart` file to be missing from [folder].
@@ -71,13 +74,17 @@ class VerifyTests {
   bool isOkForTestAllToBeMissing(Folder folder) => false;
 
   void _buildTestsIn(
-      AnalysisSession session, String testDirPath, Folder directory) {
+    AnalysisSession session,
+    String testDirPath,
+    Folder directory,
+  ) {
     var testFileNames = <String>[];
     var testFilePaths = <String>[];
     File? testAllFile;
     var children = directory.getChildren();
-    children
-        .sort((first, second) => first.shortName.compareTo(second.shortName));
+    children.sort(
+      (first, second) => first.shortName.compareTo(second.shortName),
+    );
     for (var child in children) {
       if (child is Folder) {
         if (child.getChildAssumingFile('test_all.dart').exists &&

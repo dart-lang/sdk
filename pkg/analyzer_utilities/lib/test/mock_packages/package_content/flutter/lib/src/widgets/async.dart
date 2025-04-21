@@ -4,8 +4,8 @@
 
 import 'framework.dart';
 
-typedef AsyncWidgetBuilder<T> = Widget Function(
-    BuildContext context, AsyncSnapshot<T> snapshot);
+typedef AsyncWidgetBuilder<T> =
+    Widget Function(BuildContext context, AsyncSnapshot<T> snapshot);
 
 class AsyncSnapshot<T> {}
 
@@ -13,20 +13,22 @@ class StreamBuilder<T> extends StatefulWidget {
   final T? initialData;
   final AsyncWidgetBuilder<T> builder;
 
-  const StreamBuilder(
-      {Key? key,
-      this.initialData,
-      required Stream<T>? stream,
-      required this.builder});
+  const StreamBuilder({
+    Key? key,
+    this.initialData,
+    required Stream<T>? stream,
+    required this.builder,
+  });
 }
 
 class FutureBuilder<T> extends StatefulWidget {
   final T? initialData;
   final AsyncWidgetBuilder<T> builder;
 
-  const FutureBuilder(
-      {Key? key,
-      this.initialData,
-      required Future<T>? future,
-      required this.builder});
+  const FutureBuilder({
+    Key? key,
+    this.initialData,
+    required Future<T>? future,
+    required this.builder,
+  });
 }

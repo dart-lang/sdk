@@ -5,11 +5,15 @@
 import 'package:flutter/widgets.dart';
 
 class Icons {
-  static const IconData alarm =
-      const IconData(0xe855, fontFamily: 'MaterialIcons');
+  static const IconData alarm = const IconData(
+    0xe855,
+    fontFamily: 'MaterialIcons',
+  );
 
-  static const IconData book =
-      const IconData(0xe865, fontFamily: 'MaterialIcons');
+  static const IconData book = const IconData(
+    0xe865,
+    fontFamily: 'MaterialIcons',
+  );
 
   Icons._();
 }

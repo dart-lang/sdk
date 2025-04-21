@@ -7,11 +7,9 @@ class TreeStringSink {
   final StringSink _sink;
   String _indent = '';
 
-  TreeStringSink({
-    required StringSink sink,
-    required String indent,
-  })  : _sink = sink,
-        _indent = indent;
+  TreeStringSink({required StringSink sink, required String indent})
+    : _sink = sink,
+      _indent = indent;
 
   void withIndent(void Function() f) {
     var indent = _indent;

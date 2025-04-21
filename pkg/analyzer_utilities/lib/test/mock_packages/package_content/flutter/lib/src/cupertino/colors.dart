@@ -14,11 +14,11 @@ class CupertinoColors {
 
   static const CupertinoDynamicColor systemBlue =
       CupertinoDynamicColor.withBrightnessAndContrast(
-    color: Color.fromARGB(255, 0, 0, 0xFF),
-    darkColor: Color.fromARGB(255, 0, 0, 0x99),
-    highContrastColor: Color.fromARGB(255, 0, 0, 0x66),
-    darkHighContrastColor: Color.fromARGB(255, 0, 0, 0x33),
-  );
+        color: Color.fromARGB(255, 0, 0, 0xFF),
+        darkColor: Color.fromARGB(255, 0, 0, 0x99),
+        highContrastColor: Color.fromARGB(255, 0, 0, 0x66),
+        darkHighContrastColor: Color.fromARGB(255, 0, 0, 0x33),
+      );
 }
 
 class CupertinoDynamicColor extends Color {
@@ -32,16 +32,16 @@ class CupertinoDynamicColor extends Color {
     Color highContrastElevatedColor,
     Color darkHighContrastElevatedColor,
   }) : this._(
-          color,
-          color,
-          darkColor,
-          highContrastColor,
-          darkHighContrastColor,
-          elevatedColor,
-          darkElevatedColor,
-          highContrastElevatedColor,
-          darkHighContrastElevatedColor,
-        );
+         color,
+         color,
+         darkColor,
+         highContrastColor,
+         darkHighContrastColor,
+         elevatedColor,
+         darkElevatedColor,
+         highContrastElevatedColor,
+         darkHighContrastElevatedColor,
+       );
 
   const CupertinoDynamicColor.withBrightnessAndContrast({
     Color color,
@@ -49,29 +49,27 @@ class CupertinoDynamicColor extends Color {
     Color highContrastColor,
     Color darkHighContrastColor,
   }) : this(
-          color: color,
-          darkColor: darkColor,
-          highContrastColor: highContrastColor,
-          darkHighContrastColor: darkHighContrastColor,
-          elevatedColor: color,
-          darkElevatedColor: darkColor,
-          highContrastElevatedColor: highContrastColor,
-          darkHighContrastElevatedColor: darkHighContrastColor,
-        );
+         color: color,
+         darkColor: darkColor,
+         highContrastColor: highContrastColor,
+         darkHighContrastColor: darkHighContrastColor,
+         elevatedColor: color,
+         darkElevatedColor: darkColor,
+         highContrastElevatedColor: highContrastColor,
+         darkHighContrastElevatedColor: darkHighContrastColor,
+       );
 
-  const CupertinoDynamicColor.withBrightness({
-    Color color,
-    Color darkColor,
-  }) : this(
-          color: color,
-          darkColor: darkColor,
-          highContrastColor: color,
-          darkHighContrastColor: darkColor,
-          elevatedColor: color,
-          darkElevatedColor: darkColor,
-          highContrastElevatedColor: color,
-          darkHighContrastElevatedColor: darkColor,
-        );
+  const CupertinoDynamicColor.withBrightness({Color color, Color darkColor})
+    : this(
+        color: color,
+        darkColor: darkColor,
+        highContrastColor: color,
+        darkHighContrastColor: darkColor,
+        elevatedColor: color,
+        darkElevatedColor: darkColor,
+        highContrastElevatedColor: color,
+        darkHighContrastElevatedColor: darkColor,
+      );
 
   const CupertinoDynamicColor._(
     this._effectiveColor,
