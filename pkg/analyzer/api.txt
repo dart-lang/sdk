@@ -3152,9 +3152,6 @@ package:analyzer/dart/element/element.dart:
   NamespaceCombinator (class extends Object, sealed (immediate subtypes: HideElementCombinator, ShowElementCombinator)):
     end (getter: int)
     offset (getter: int)
-  PartElement (class extends Object implements _ExistingElement, deprecated):
-    new (constructor: PartElement Function())
-    uri (getter: DirectiveUri)
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)

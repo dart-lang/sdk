@@ -823,15 +823,6 @@ sealed class NamespaceCombinator {
   int get offset;
 }
 
-/// A 'part' directive within a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PartInclude instead')
-abstract class PartElement implements _ExistingElement {
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
-}
-
 /// A combinator that cause some of the names in a namespace to be visible (and
 /// the rest hidden) when being imported.
 ///

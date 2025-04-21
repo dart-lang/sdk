@@ -8838,11 +8838,7 @@ mixin ParameterElementMixin implements VariableElementOrMember {
   }
 }
 
-class PartElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PartElement,
-        PartInclude {
+class PartElementImpl extends _ExistingElementImpl implements PartInclude {
   @override
   final DirectiveUriImpl uri;
 
