@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -175,61 +174,6 @@ extension Element2Extension on Element2 {
   }
 }
 
-extension Element2OrNullExtension on Element2? {
-  @Deprecated('Use Element2 instead')
-  Element? get asElement {
-    var self = this;
-    switch (self) {
-      case null:
-        return null;
-      case BindPatternVariableElementImpl2 element2:
-        return element2.asElement;
-      case ConstructorElementImpl2 element2:
-        return element2.asElement;
-      case DynamicElementImpl2():
-        return self.firstFragment;
-      case ExtensionElementImpl2 element2:
-        return element2.asElement;
-      case FieldElementImpl2 element2:
-        return element2.asElement;
-      case FieldMember():
-        return self.declaration as Element;
-      case FormalParameterElement element2:
-        return element2.asElement;
-      case GetterElementImpl element2:
-        return element2.asElement;
-      case LabelElementImpl2 element2:
-        return element2.asElement;
-      case LibraryElementImpl():
-        return self as Element;
-      case LibraryImportElementImpl():
-        return self as Element;
-      case LocalFunctionElementImpl element2:
-        return element2.asElement;
-      case LocalVariableElementImpl2():
-        return self.wrappedElement as Element;
-      case MethodElementImpl2 element2:
-        return element2.asElement;
-      case NeverElementImpl2():
-        return NeverElementImpl.instance;
-      case PrefixElement2 element2:
-        return element2.asElement;
-      case SetterElementImpl element2:
-        return element2.asElement;
-      case TopLevelFunctionElementImpl element2:
-        return element2.asElement;
-      case TopLevelVariableElementImpl2 element2:
-        return element2.asElement;
-      case TypeDefiningElement2():
-        return self.firstFragment as Element;
-      case MockLibraryImportElement():
-        return self.import;
-      default:
-        throw UnsupportedError('Unsupported type: $runtimeType');
-    }
-  }
-}
-
 extension ElementImplExtension on ElementImpl {
   ElementImpl? get enclosingElementImpl => enclosingElement3;
 
@@ -238,8 +182,7 @@ extension ElementImplExtension on ElementImpl {
   }
 }
 
-@Deprecated('Use Element2 instead')
-extension ElementOrNullExtension on Element? {
+extension ElementOrNullExtension on ElementImpl? {
   Element2? get asElement2 {
     var self = this;
     if (self == null) {
@@ -255,12 +198,7 @@ extension ElementOrNullExtension on Element? {
     } else if (self is FieldElementImpl) {
       return (self as FieldFragment).element;
     } else if (self is FunctionElementImpl) {
-      if (self.enclosingElement3 is! CompilationUnitElementImpl) {
-        // TODO(scheglov): update `FunctionElementImpl.element` return type?
-        return self.element;
-      } else {
-        return (self as Fragment).element;
-      }
+      return (self as Fragment).element;
     } else if (self is InterfaceElementImpl) {
       return self.element;
     } else if (self is LabelElementImpl) {
@@ -272,7 +210,7 @@ extension ElementOrNullExtension on Element? {
     } else if (self is NeverElementImpl) {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
-      return self;
+      return (self as FormalParameterFragment).element;
     } else if (self is LibraryImportElementImpl ||
         self is LibraryExportElementImpl ||
         self is PartElementImpl) {
