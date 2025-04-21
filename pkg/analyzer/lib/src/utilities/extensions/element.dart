@@ -362,14 +362,6 @@ extension FieldElementOrMemberExtension on FieldElementOrMember {
 }
 
 extension FormalParameterElementExtension on FormalParameterElement {
-  @Deprecated(elementModelDeprecationMsg)
-  ParameterElement get asElement {
-    if (this case ParameterMember member) {
-      return member;
-    }
-    return firstFragment as ParameterElement;
-  }
-
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')

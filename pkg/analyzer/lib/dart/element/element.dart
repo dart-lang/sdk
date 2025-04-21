@@ -52,7 +52,6 @@ import 'package:analyzer/src/dart/element/element.dart'
     show elementModelDeprecationMsg;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 // ignore: deprecated_member_use_from_same_package
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
@@ -874,106 +873,6 @@ sealed class NamespaceCombinator {
 
   /// The offset of the first character of this node.
   int get offset;
-}
-
-/// A parameter defined within an executable element.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use FormalParameterElement instead')
-abstract class ParameterElement
-    implements PromotableElement, ConstantEvaluationTarget {
-  @override
-  ParameterElement get declaration;
-
-  /// The code of the default value, or `null` if no default value.
-  String? get defaultValueCode;
-
-  @experimental
-  FormalParameterElement get element;
-
-  /// Whether the parameter has a default value.
-  bool get hasDefaultValue;
-
-  /// Whether the parameter is covariant, meaning it is allowed to have a
-  /// narrower type in an override.
-  bool get isCovariant;
-
-  /// Whether the parameter is an initializing formal parameter.
-  bool get isInitializingFormal;
-
-  /// Whether the parameter is a named parameter.
-  ///
-  /// Named parameters that are annotated with the `@required` annotation are
-  /// considered optional. Named parameters that are annotated with the
-  /// `required` syntax are considered required.
-  bool get isNamed;
-
-  /// Whether the parameter is an optional parameter.
-  ///
-  /// Optional parameters can either be positional or named. Named parameters
-  /// that are annotated with the `@required` annotation are considered
-  /// optional. Named parameters that are annotated with the `required` syntax
-  /// are considered required.
-  bool get isOptional;
-
-  /// Whether the parameter is both an optional and named parameter.
-  ///
-  /// Named parameters that are annotated with the `@required` annotation are
-  /// considered optional. Named parameters that are annotated with the
-  /// `required` syntax are considered required.
-  bool get isOptionalNamed;
-
-  /// Whether the parameter is both an optional and positional parameter.
-  bool get isOptionalPositional;
-
-  /// Whether the parameter is a positional parameter.
-  ///
-  /// Positional parameters can either be required or optional.
-  bool get isPositional;
-
-  /// Whether the parameter is either a required positional parameter, or a
-  /// named parameter with the `required` keyword.
-  ///
-  /// Note: the presence or absence of the `@required` annotation does not
-  /// change the meaning of this getter. The parameter `{@required int x}`
-  /// will return `false` and the parameter `{@required required int x}`
-  /// will return `true`.
-  bool get isRequired;
-
-  /// Whether the parameter is both a required and named parameter.
-  ///
-  /// Named parameters that are annotated with the `@required` annotation are
-  /// considered optional. Named parameters that are annotated with the
-  /// `required` syntax are considered required.
-  bool get isRequiredNamed;
-
-  /// Whether the parameter is both a required and positional parameter.
-  bool get isRequiredPositional;
-
-  /// Whether the parameter is a super formal parameter.
-  bool get isSuperFormal;
-
-  @override
-  String get name;
-
-  /// The kind of this parameter.
-  @Deprecated('Use the getters isOptionalNamed, isOptionalPositional, '
-      'isRequiredNamed, and isRequiredPositional')
-  ParameterKind get parameterKind;
-
-  /// The parameters defined by this parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// parameter.
-  List<ParameterElement> get parameters;
-
-  /// Appends the type, name and possibly the default value of this parameter
-  /// to the given [buffer].
-  void appendToWithoutDelimiters(
-    StringBuffer buffer, {
-    @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-  });
 }
 
 /// A 'part' directive within a library.

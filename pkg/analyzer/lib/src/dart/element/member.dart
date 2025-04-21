@@ -1064,12 +1064,7 @@ class MethodMember extends ExecutableMember
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class ParameterMember extends VariableMember
-    with
-        ParameterElementMixin,
-        FormalParameterElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ParameterElement {
+    with ParameterElementMixin, FormalParameterElementMixin {
   @override
   final List<TypeParameterElementImpl> typeParameters;
 

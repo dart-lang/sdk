@@ -8491,12 +8491,8 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
 }
 
 class ParameterElementImpl extends VariableElementImpl
-    with
-        ParameterElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ParameterElement,
-        FormalParameterFragment {
+    with ParameterElementMixin
+    implements FormalParameterFragment {
   @override
   String? name2;
 
@@ -8581,7 +8577,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
 
-  @override
+  /// Whether the parameter has a default value.
   bool get hasDefaultValue {
     return defaultValueCode != null;
   }
@@ -8611,7 +8607,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get isLate => false;
 
-  @override
+  /// Whether the parameter is a super formal parameter.
   bool get isSuperFormal => false;
 
   @override
@@ -8744,46 +8740,77 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// `ParameterElement`.
-mixin ParameterElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ParameterElement,
-        VariableElementOrMember {
+mixin ParameterElementMixin implements VariableElementOrMember {
   @override
   ParameterElementImpl get declaration;
 
-  @override
+  /// The code of the default value, or `null` if no default value.
+  String? get defaultValueCode;
+
   FormalParameterElementImpl get element;
 
-  @override
+  /// Whether the parameter is covariant, meaning it is allowed to have a
+  /// narrower type in an override.
+  bool get isCovariant;
+
+  /// Whether the parameter is an initializing formal parameter.
+  bool get isInitializingFormal;
+
+  /// Whether the parameter is a named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isNamed => parameterKind.isNamed;
 
-  @override
+  /// Whether the parameter is an optional parameter.
+  ///
+  /// Optional parameters can either be positional or named. Named parameters
+  /// that are annotated with the `@required` annotation are considered
+  /// optional. Named parameters that are annotated with the `required` syntax
+  /// are considered required.
   bool get isOptional => parameterKind.isOptional;
 
-  @override
+  /// Whether the parameter is both an optional and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isOptionalNamed => parameterKind.isOptionalNamed;
 
-  @override
+  /// Whether the parameter is both an optional and positional parameter.
   bool get isOptionalPositional => parameterKind.isOptionalPositional;
 
-  @override
+  /// Whether the parameter is a positional parameter.
+  ///
+  /// Positional parameters can either be required or optional.
   bool get isPositional => parameterKind.isPositional;
 
-  @override
+  /// Whether the parameter is either a required positional parameter, or a
+  /// named parameter with the `required` keyword.
+  ///
+  /// Note: the presence or absence of the `@required` annotation does not
+  /// change the meaning of this getter. The parameter `{@required int x}`
+  /// will return `false` and the parameter `{@required required int x}`
+  /// will return `true`.
   bool get isRequired => parameterKind.isRequired;
 
-  @override
+  /// Whether the parameter is both a required and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isRequiredNamed => parameterKind.isRequiredNamed;
 
-  @override
+  /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
-  @override
-  // Overridden to remove the 'deprecated' annotation.
   ParameterKind get parameterKind;
 
-  @override
+  /// The parameters defined by this parameter.
+  ///
+  /// A parameter will only define other parameters if it is a function typed
+  /// parameter.
   List<ParameterElementMixin> get parameters;
 
   @override
@@ -8795,7 +8822,8 @@ mixin ParameterElementMixin
   /// parameter.
   List<TypeParameterElementImpl> get typeParameters;
 
-  @override
+  /// Appends the type, name and possibly the default value of this parameter
+  /// to the given [buffer].
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')
