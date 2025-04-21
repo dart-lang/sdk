@@ -16,32 +16,35 @@ main() {
 @reflectiveTest
 class InvalidModifierOnConstructorTest extends PubPackageResolutionTest {
   test_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() async {}
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 5)],
+    );
   }
 
   test_asyncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() async* {}
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 5)],
+    );
   }
 
   test_syncStar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() sync* {}
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 4)],
+    );
   }
 }

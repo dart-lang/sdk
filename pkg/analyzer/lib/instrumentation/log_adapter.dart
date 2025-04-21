@@ -63,20 +63,27 @@ class InstrumentationLogAdapter implements InstrumentationService {
       _log(TAG_INFO, message + (exception == null ? "" : exception.toString()));
 
   @override
-  void logLogEntry(String level, DateTime? time, String message,
-      Object exception, StackTrace stackTrace) {
+  void logLogEntry(
+    String level,
+    DateTime? time,
+    String message,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
     String timeStamp =
         time == null ? 'null' : time.millisecondsSinceEpoch.toString();
     String exceptionText = exception.toString();
     String stackTraceText = stackTrace.toString();
-    _instrumentationLogger.log(_join([
-      TAG_LOG_ENTRY,
-      level,
-      timeStamp,
-      message,
-      exceptionText,
-      stackTraceText
-    ]));
+    _instrumentationLogger.log(
+      _join([
+        TAG_LOG_ENTRY,
+        level,
+        timeStamp,
+        message,
+        exceptionText,
+        stackTraceText,
+      ]),
+    );
   }
 
   @override
@@ -85,7 +92,11 @@ class InstrumentationLogAdapter implements InstrumentationService {
 
   @override
   void logPluginError(
-      PluginData plugin, String code, String message, String stackTrace) {
+    PluginData plugin,
+    String code,
+    String message,
+    String stackTrace,
+  ) {
     List<String> fields = <String>[TAG_PLUGIN_ERROR, code, message, stackTrace];
     plugin.addToFields(fields);
     _instrumentationLogger.log(_join(fields));
@@ -93,11 +104,14 @@ class InstrumentationLogAdapter implements InstrumentationService {
 
   @override
   void logPluginException(
-      PluginData plugin, dynamic exception, StackTrace? stackTrace) {
+    PluginData plugin,
+    dynamic exception,
+    StackTrace? stackTrace,
+  ) {
     List<String> fields = <String>[
       TAG_PLUGIN_EXCEPTION,
       _toString(exception),
-      _toString(stackTrace)
+      _toString(stackTrace),
     ];
     plugin.addToFields(fields);
     _instrumentationLogger.log(_join(fields));
@@ -105,20 +119,23 @@ class InstrumentationLogAdapter implements InstrumentationService {
 
   @override
   void logPluginNotification(String pluginId, String notification) {
-    _instrumentationLogger
-        .log(_join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']));
+    _instrumentationLogger.log(
+      _join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']),
+    );
   }
 
   @override
   void logPluginRequest(String pluginId, String request) {
-    _instrumentationLogger
-        .log(_join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']));
+    _instrumentationLogger.log(
+      _join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']),
+    );
   }
 
   @override
   void logPluginResponse(String pluginId, String response) {
-    _instrumentationLogger
-        .log(_join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']));
+    _instrumentationLogger.log(
+      _join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']),
+    );
   }
 
   @override
@@ -135,19 +152,26 @@ class InstrumentationLogAdapter implements InstrumentationService {
   void logResponse(String response) => _log(TAG_RESPONSE, response);
 
   @override
-  void logVersion(String uuid, String clientId, String clientVersion,
-      String serverVersion, String sdkVersion) {
+  void logVersion(
+    String uuid,
+    String clientId,
+    String clientVersion,
+    String serverVersion,
+    String sdkVersion,
+  ) {
     String normalize(String? value) =>
         value != null && value.isNotEmpty ? value : 'unknown';
 
-    _instrumentationLogger.log(_join([
-      TAG_VERSION,
-      uuid,
-      normalize(clientId),
-      normalize(clientVersion),
-      serverVersion,
-      sdkVersion
-    ]));
+    _instrumentationLogger.log(
+      _join([
+        TAG_VERSION,
+        uuid,
+        normalize(clientId),
+        normalize(clientVersion),
+        serverVersion,
+        sdkVersion,
+      ]),
+    );
   }
 
   @override
@@ -156,8 +180,9 @@ class InstrumentationLogAdapter implements InstrumentationService {
       return;
     }
 
-    _instrumentationLogger
-        .log(_join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
+    _instrumentationLogger.log(
+      _join([TAG_WATCH_EVENT, folderPath, filePath, changeType]),
+    );
   }
 
   @override

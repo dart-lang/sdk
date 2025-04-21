@@ -147,9 +147,8 @@ abstract class FeatureSet {
   /// that the code that you process is valid for the latest language version.
   ///
   /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
-  factory FeatureSet.latestLanguageVersion({
-    List<String> flags,
-  }) = ExperimentStatus.latestLanguageVersion;
+  factory FeatureSet.latestLanguageVersion({List<String> flags}) =
+      ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.
   bool isEnabled(Feature feature);

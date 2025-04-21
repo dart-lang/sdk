@@ -26,9 +26,7 @@ const _nameWidget = 'Widget';
 final Uri _uriAlignment = Uri.parse(
   'package:flutter/src/painting/alignment.dart',
 );
-final Uri _uriBasic = Uri.parse(
-  'package:flutter/src/widgets/basic.dart',
-);
+final Uri _uriBasic = Uri.parse('package:flutter/src/widgets/basic.dart');
 final Uri _uriContainer = Uri.parse(
   'package:flutter/src/widgets/container.dart',
 );
@@ -41,12 +39,8 @@ final Uri _uriEdgeInsets = Uri.parse(
 final Uri _uriFramework = Uri.parse(
   'package:flutter/src/widgets/framework.dart',
 );
-final Uri _uriWidgetsIcon = Uri.parse(
-  'package:flutter/src/widgets/icon.dart',
-);
-final Uri _uriWidgetsText = Uri.parse(
-  'package:flutter/src/widgets/text.dart',
-);
+final Uri _uriWidgetsIcon = Uri.parse('package:flutter/src/widgets/icon.dart');
+final Uri _uriWidgetsText = Uri.parse('package:flutter/src/widgets/text.dart');
 
 extension AstNodeExtension on AstNode? {
   /// Returns the instance creation expression that surrounds this node, if any,
@@ -126,8 +120,7 @@ extension AstNodeExtension on AstNode? {
     return switch (this) {
       null => false,
       AstNode(parent: NamedType()) ||
-      AstNode(parent: AstNode(parent: NamedType())) =>
-        false,
+      AstNode(parent: AstNode(parent: NamedType())) => false,
       AstNode(parent: ConstructorName()) => false,
       NamedExpression() => false,
       Expression(:var staticType) => staticType.isWidgetType,
@@ -183,8 +176,10 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any((t) =>
-        t.element3.name3 == 'Color' && t.element3.library2.name3 == 'dart.ui');
+    return [self, ...self.element3.allSupertypes].any(
+      (t) =>
+          t.element3.name3 == 'Color' && t.element3.library2.name3 == 'dart.ui',
+    );
   }
 
   /// Whether this is the Flutter mixin `Diagnosticable` or a subtype.
@@ -194,9 +189,11 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any((t) =>
-        t.element3.name3 == 'Diagnosticable' &&
-        t.element3.library2.firstFragment.source.uri == _uriDiagnostics);
+    return [self, ...self.element3.allSupertypes].any(
+      (t) =>
+          t.element3.name3 == 'Diagnosticable' &&
+          t.element3.library2.firstFragment.source.uri == _uriDiagnostics,
+    );
   }
 
   /// Whether this is the Flutter type `EdgeInsetsGeometry`.
@@ -292,9 +289,11 @@ extension DartTypeExtension on DartType? {
       return false;
     }
 
-    return [self, ...self.element3.allSupertypes].any((t) =>
-        t.element3.name3 == 'Matrix4' &&
-        t.element3.library2.name3 == 'vector_math_64');
+    return [self, ...self.element3.allSupertypes].any(
+      (t) =>
+          t.element3.name3 == 'Matrix4' &&
+          t.element3.library2.name3 == 'vector_math_64',
+    );
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.
@@ -422,8 +421,9 @@ extension InterfaceElement2Extension on InterfaceElement2? {
     if (_isExactly(_nameFlex, _uriBasic)) {
       return true;
     }
-    return self.allSupertypes
-        .any((type) => type.element3._isExactly(_nameFlex, _uriBasic));
+    return self.allSupertypes.any(
+      (type) => type.element3._isExactly(_nameFlex, _uriBasic),
+    );
   }
 }
 
@@ -452,8 +452,9 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
     if (_isExactly(_nameWidget, _uriFramework)) {
       return true;
     }
-    return self.allSupertypes
-        .any((type) => type.element3._isExactly(_nameWidget, _uriFramework));
+    return self.allSupertypes.any(
+      (type) => type.element3._isExactly(_nameWidget, _uriFramework),
+    );
   }
 
   /// Whether this has a supertype with the [requiredName] defined in the file

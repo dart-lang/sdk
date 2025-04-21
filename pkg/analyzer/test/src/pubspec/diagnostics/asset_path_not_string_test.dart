@@ -16,12 +16,15 @@ main() {
 @reflectiveTest
 class AssetPathNotStringTest extends PubspecDiagnosticTest {
   test_pathIsList() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets:
     - path: [one, two, three]
-''', [PubspecWarningCode.ASSET_PATH_NOT_STRING]);
+''',
+      [PubspecWarningCode.ASSET_PATH_NOT_STRING],
+    );
   }
 
   test_pathIsString() {

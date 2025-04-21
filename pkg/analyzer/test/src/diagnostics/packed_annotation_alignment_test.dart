@@ -16,16 +16,17 @@ main() {
 @reflectiveTest
 class PackedAnnotationAlignment extends PubPackageResolutionTest {
   test_error() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Packed(3)
 final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
-''', [
-      error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 28, 1),
-    ]);
+''',
+      [error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 28, 1)],
+    );
   }
 
   test_no_error() async {

@@ -55,15 +55,16 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_missingRequiredArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>({required T x, required T y}) {}
 
 f() {
   foo(x: 1);
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 54, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
@@ -99,16 +100,22 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_notEnoughPositionalArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1);
 }
-''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
-          39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL,
+          39,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
@@ -135,15 +142,16 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_tooManyPositionalArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1, 2, 3);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1)],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
@@ -180,15 +188,16 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_undefinedNamedParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1, 2, z: 3);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1)],
+    );
 
     var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''

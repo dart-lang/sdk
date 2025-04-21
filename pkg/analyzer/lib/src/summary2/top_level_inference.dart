@@ -80,8 +80,10 @@ class ConstantInitializersResolver {
       _scope,
       analysisOptions,
     );
-    astResolver.resolveExpression(() => variable.initializer!,
-        contextType: element.type);
+    astResolver.resolveExpression(
+      () => variable.initializer!,
+      contextType: element.type,
+    );
 
     // We could have rewritten the initializer.
     constElement.constantInitializer = variable.initializer;
@@ -173,8 +175,15 @@ class _InitializerInference {
     _toInfer.add(element);
 
     var node = _linker.getLinkingNode(element) as VariableDeclarationImpl;
-    element.typeInference = _PropertyInducingElementTypeInference(_linker,
-        _inferring, _unitElement, _scope, element, node, _libraryBuilder);
+    element.typeInference = _PropertyInducingElementTypeInference(
+      _linker,
+      _inferring,
+      _unitElement,
+      _scope,
+      element,
+      node,
+      _libraryBuilder,
+    );
   }
 }
 
@@ -197,13 +206,14 @@ class _PropertyInducingElementTypeInference
   final VariableDeclarationImpl _node;
 
   _PropertyInducingElementTypeInference(
-      this._linker,
-      this._inferring,
-      this._unitElement,
-      this._scope,
-      this._element,
-      this._node,
-      this._libraryBuilder);
+    this._linker,
+    this._inferring,
+    this._unitElement,
+    this._scope,
+    this._element,
+    this._node,
+    this._libraryBuilder,
+  );
 
   @override
   TypeImpl perform() {
@@ -250,8 +260,12 @@ class _PropertyInducingElementTypeInference
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
-        _linker, _unitElement, _scope, analysisOptions,
-        enclosingClassElement: enclosingInterfaceElement);
+      _linker,
+      _unitElement,
+      _scope,
+      analysisOptions,
+      enclosingClassElement: enclosingInterfaceElement,
+    );
     astResolver.resolveExpression(() => _node.initializer!);
 
     // Pop self from the stack.

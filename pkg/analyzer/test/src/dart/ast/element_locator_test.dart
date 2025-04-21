@@ -574,10 +574,7 @@ x@12
   void _assertElement(Element2? element, String expected) {
     var buffer = StringBuffer();
 
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
 
     var elementPrinter = ElementPrinter(
       sink: sink,

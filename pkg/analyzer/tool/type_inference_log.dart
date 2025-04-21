@@ -21,9 +21,7 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
   var filePath = normalize(absolute(paths.single));
-  var contextCollection = AnalysisContextCollection(
-    includedPaths: [filePath],
-  );
+  var contextCollection = AnalysisContextCollection(includedPaths: [filePath]);
   inferenceLoggingPredicate = (source) => source.fullName == filePath;
   var result = await contextCollection
       .contextFor(filePath)

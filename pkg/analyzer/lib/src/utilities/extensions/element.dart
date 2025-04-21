@@ -15,7 +15,7 @@ class MockLibraryImportElement implements Element2, PrefixFragment {
   final LibraryImportElementImpl import;
 
   MockLibraryImportElement(LibraryImport import)
-      : import = import as LibraryImportElementImpl;
+    : import = import as LibraryImportElementImpl;
 
   @override
   LibraryElement2 get enclosingElement2 => library2;
@@ -402,9 +402,7 @@ extension LibraryFragmentExtension on LibraryFragment {
 extension ListOfTypeParameterElement2Extension on List<TypeParameterElement2> {
   List<TypeParameterType> instantiateNone() {
     return map((e) {
-      return e.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      return e.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     }).toList();
   }
 }
@@ -564,15 +562,9 @@ extension TypeAliasElementImplExtension on TypeAliasElementImpl {
 
 extension TypeParameterElement2Extension on TypeParameterElement2 {
   TypeParameterElementImpl2 freshCopy() {
-    var fragment = TypeParameterElementImpl(
-      name3 ?? '',
-      -1,
-    );
+    var fragment = TypeParameterElementImpl(name3 ?? '', -1);
     fragment.bound = bound;
-    return TypeParameterElementImpl2(
-      firstFragment: fragment,
-      name3: name3,
-    );
+    return TypeParameterElementImpl2(firstFragment: fragment, name3: name3);
   }
 }
 

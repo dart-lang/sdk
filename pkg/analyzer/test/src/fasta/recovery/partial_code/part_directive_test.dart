@@ -12,24 +12,19 @@ main() {
 
 class PartDirectivesTest extends PartialCodeTest {
   buildAll() {
-    buildTests(
-        'part_directive',
-        [
-          TestDescriptor(
-              'keyword',
-              'part',
-              [
-                // TODO(danrubel): Consider an improved error message
-                // ParserErrorCode.MISSING_URI,
-                ParserErrorCode.EXPECTED_STRING_LITERAL,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "part '';"),
-          TestDescriptor('emptyUri', "part ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "part '';"),
-          TestDescriptor('uri', "part 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';"),
-        ],
-        PartialCodeTest.postPartSuffixes);
+    buildTests('part_directive', [
+      TestDescriptor('keyword', 'part', [
+        // TODO(danrubel): Consider an improved error message
+        // ParserErrorCode.MISSING_URI,
+        ParserErrorCode.EXPECTED_STRING_LITERAL,
+        ParserErrorCode.EXPECTED_TOKEN,
+      ], "part '';"),
+      TestDescriptor('emptyUri', "part ''", [
+        ParserErrorCode.EXPECTED_TOKEN,
+      ], "part '';"),
+      TestDescriptor('uri', "part 'a.dart'", [
+        ParserErrorCode.EXPECTED_TOKEN,
+      ], "part 'a.dart';"),
+    ], PartialCodeTest.postPartSuffixes);
   }
 }

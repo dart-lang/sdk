@@ -58,7 +58,8 @@ dependencies:
   }
 
   test_dependencyGit_version_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 version: 0.1.0
 dependencies:
@@ -66,7 +67,9 @@ dependencies:
     git:
       url: git@github.com:foo/foo.git
       path: path/to/foo
-''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+''',
+      [PubspecWarningCode.INVALID_DEPENDENCY],
+    );
   }
 
   test_dependencyGit_version_valid() {
@@ -159,13 +162,16 @@ dependencies:
     newPubspecYamlFile('/foo', '''
 name: foo
 ''');
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 version: 0.1.0
 dependencies:
   foo:
     path: /foo
-''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+''',
+      [PubspecWarningCode.INVALID_DEPENDENCY],
+    );
   }
 
   test_dependencyPath_version_valid() {

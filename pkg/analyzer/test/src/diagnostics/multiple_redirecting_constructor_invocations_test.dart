@@ -17,29 +17,41 @@ main() {
 class MultipleRedirectingConstructorInvocationsTest
     extends PubPackageResolutionTest {
   test_class_twoNamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : this.a(), this.b();
   A.a() {}
   A.b() {}
 }
-''', [
-      error(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
-          28, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+          28,
+          8,
+        ),
+      ],
+    );
   }
 
   test_enum_twoNamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E() : this.foo(), this.bar();
   const E.foo();
   const E.bar();
 }
-''', [
-      error(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
-          40, 10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+          40,
+          10,
+        ),
+      ],
+    );
   }
 }

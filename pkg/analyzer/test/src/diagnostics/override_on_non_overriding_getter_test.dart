@@ -16,14 +16,15 @@ main() {
 @reflectiveTest
 class OverrideOnNonOverridingGetterTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   @override
   int get foo => 0;
 }
-''', [
-      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
-    ]);
+''',
+      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3)],
+    );
   }
 
   test_class_extends() async {
@@ -53,15 +54,16 @@ class B implements A {
   }
 
   test_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   @override
   int get foo => 0;
 }
-''', [
-      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 36, 3),
-    ]);
+''',
+      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 36, 3)],
+    );
   }
 
   test_enum_implements() async {
@@ -93,24 +95,26 @@ enum E with M {
   }
 
   test_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {
   @override
   int get foo => 1;
 }
-''', [
-      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 43, 3),
-    ]);
+''',
+      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 43, 3)],
+    );
   }
 
   test_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   @override
   int get foo => 0;
 }
-''', [
-      error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3),
-    ]);
+''',
+      [error(WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER, 32, 3)],
+    );
   }
 }

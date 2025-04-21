@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
+import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
+    as graph
     show DependencyWalker, Node;
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -280,8 +281,11 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   /// If `false` is returned, further visiting is short-circuited.
   ///
   /// Otherwise `true` is returned.
-  bool _visitType(List<SimplyBoundedNode> dependencies, TypeAnnotation type,
-      bool allowTypeParameters) {
+  bool _visitType(
+    List<SimplyBoundedNode> dependencies,
+    TypeAnnotation type,
+    bool allowTypeParameters,
+  ) {
     if (type is NamedType) {
       var element = type.element2;
 

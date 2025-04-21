@@ -16,53 +16,57 @@ main() {
 @reflectiveTest
 class InvalidAnnotationTest extends PubPackageResolutionTest {
   test_class_noUnnamedConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A.named();
 }
 
 @A
 void f() {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 32, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 32, 2)],
+    );
   }
 
   test_class_staticMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int foo() => 0;
 }
 
 @A.foo
 void f() {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 38, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 38, 6)],
+    );
   }
 
   test_class_staticMethod_arguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int foo() => 0;
 }
 
 @A.foo()
 void f() {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 38, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 38, 8)],
+    );
   }
 
   test_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 get V => 0;
 @V
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 12, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 12, 2)],
+    );
   }
 
   test_getter_importWithPrefix() async {
@@ -70,14 +74,15 @@ main() {
 library lib;
 get V => 0;
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart' as p;
 @p.V
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 24, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 24, 4)],
+    );
   }
 
   test_importWithPrefix_notConstantVariable() async {
@@ -85,14 +90,15 @@ main() {
 library lib;
 final V = 0;
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart' as p;
 @p.V
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 24, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 24, 4)],
+    );
   }
 
   test_importWithPrefix_notVariableOrConstructorInvocation() async {
@@ -100,14 +106,15 @@ main() {
 library lib;
 typedef V();
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart' as p;
 @p.V
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 24, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 24, 4)],
+    );
   }
 
   test_localVariable_const() async {
@@ -121,27 +128,29 @@ void f() {
   }
 
   test_localVariable_const_withArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   const a = 0;
   @a(0)
   var b; // ignore:unused_local_variable
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 5)],
+    );
   }
 
   test_localVariable_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   final a = 0;
   @a
   var b; // ignore:unused_local_variable
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 2)],
+    );
   }
 
   test_notClass_importWithPrefix() async {
@@ -153,18 +162,20 @@ class Property {
 
 const Property property = const Property(42);
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'annotations.dart' as pref;
 @pref.property(123)
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 35, 19),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 35, 19)],
+    );
   }
 
   test_notClass_instance() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Property {
   final int value;
   const Property(this.value);
@@ -175,65 +186,70 @@ const Property property = const Property(42);
 @property(123)
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 116, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 116, 14)],
+    );
   }
 
   test_notConstantVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final V = 0;
 @V
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 13, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 13, 2)],
+    );
   }
 
   test_notVariableOrConstructorInvocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef V();
 @V
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 13, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 13, 2)],
+    );
   }
 
   test_prefix_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as p;
 
 @p.sin(0)
 class B {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 26, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 26, 9)],
+    );
   }
 
   test_prefix_function_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as p;
 
 @p.sin.cos(0)
 class B {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 26, 13),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 26, 13)],
+    );
   }
 
   test_staticMethodReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static f() {}
 }
 @A.f
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 4)],
+    );
   }
 }

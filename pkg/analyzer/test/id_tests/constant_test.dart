@@ -20,21 +20,25 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/constants/data'));
-  return runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const ConstantsDataComputer(), [
-        TestConfig(
-          analyzerMarker,
-          'analyzer with experiments',
-          featureSet: FeatureSet.fromEnableFlags2(
-              sdkLanguageVersion: ExperimentStatus.currentVersion,
-              flags: ['digit-separators']),
-        )
-      ]));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve('../../../_fe_analyzer_shared/test/constants/data'),
+  );
+  return runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const ConstantsDataComputer(), [
+      TestConfig(
+        analyzerMarker,
+        'analyzer with experiments',
+        featureSet: FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: ['digit-separators'],
+        ),
+      ),
+    ]),
+  );
 }
 
 class ConstantsDataComputer extends DataComputer<String> {
@@ -47,17 +51,28 @@ class ConstantsDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String? computeErrorData(TestConfig config, TestingData testingData, Id id,
-      List<AnalysisError> errors) {
-    var errorCodes = errors.map((e) => e.errorCode).where((errorCode) =>
-        errorCode !=
-        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+  String? computeErrorData(
+    TestConfig config,
+    TestingData testingData,
+    Id id,
+    List<AnalysisError> errors,
+  ) {
+    var errorCodes = errors
+        .map((e) => e.errorCode)
+        .where(
+          (errorCode) =>
+              errorCode !=
+              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+        );
     return errorCodes.isNotEmpty ? errorCodes.join(',') : null;
   }
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<String>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     ConstantsDataExtractor(unitUri, actualMap).run(unit);
   }
@@ -103,11 +118,15 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
         var elements = value.toListValue()!.map(_stringify).join(',');
         return '${_stringifyType(type)}($elements)';
       } else if (type.isDartCoreMap) {
-        var elements = value.toMapValue()!.entries.map((entry) {
-          var key = _stringify(entry.key!);
-          var value = _stringify(entry.value!);
-          return '$key:$value';
-        }).join(',');
+        var elements = value
+            .toMapValue()!
+            .entries
+            .map((entry) {
+              var key = _stringify(entry.key!);
+              var value = _stringify(entry.value!);
+              return '$key:$value';
+            })
+            .join(',');
         return '${_stringifyType(type)}($elements)';
       } else {
         // TODO(paulberry): Add `isDartCoreType` to properly recognize type

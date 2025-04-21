@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class LabelInOuterScopeTest extends PubPackageResolutionTest {
   test_label_in_outer_scope() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void m(int i) {
     l: while (i > 0) {
@@ -26,9 +27,11 @@ class A {
     }
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 62, 1),
-      error(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, 82, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 62, 1),
+        error(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, 82, 1),
+      ],
+    );
   }
 }

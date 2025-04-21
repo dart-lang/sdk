@@ -23,19 +23,21 @@ export 'dart:async' hide Future, Stream;
   }
 
   Future<void> test_hide_hide() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart:async' hide Future, Stream hide Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 20, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 20, 31)],
+    );
   }
 
   Future<void> test_hide_show() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart:async' hide Future, Stream show Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 20, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 20, 31)],
+    );
   }
 
   Future<void> test_no_combinators() async {
@@ -51,19 +53,21 @@ export 'dart:async' show Future, Stream;
   }
 
   Future<void> test_show_hide() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart:async' show Future, Stream hide Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 20, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 20, 31)],
+    );
   }
 
   Future<void> test_show_show() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart:async' show Future, Stream show Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 20, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 20, 31)],
+    );
   }
 }
 
@@ -77,21 +81,23 @@ import 'dart:async' hide Future, Stream;
   }
 
   Future<void> test_hide_hide() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 //ignore: unused_import
 import 'dart:async' hide Future, Stream hide Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 44, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 44, 31)],
+    );
   }
 
   Future<void> test_hide_show() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 //ignore: unused_import
 import 'dart:async' hide Future, Stream show Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 44, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 44, 31)],
+    );
   }
 
   Future<void> test_no_combinators() async {
@@ -102,12 +108,13 @@ import 'dart:async';
   }
 
   Future<void> test_prefixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 //ignore: unused_import
 import 'dart:async' as async hide Future, Stream show Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 53, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 53, 31)],
+    );
   }
 
   Future<void> test_show() async {
@@ -118,20 +125,22 @@ import 'dart:async' show Future, Stream;
   }
 
   Future<void> test_show_hide() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 //ignore: unused_import
 import 'dart:async' show Future, Stream hide Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 44, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 44, 31)],
+    );
   }
 
   Future<void> test_show_show() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 //ignore: unused_import
 import 'dart:async' show Future, Stream show Stream;
-''', [
-      error(WarningCode.MULTIPLE_COMBINATORS, 44, 31),
-    ]);
+''',
+      [error(WarningCode.MULTIPLE_COMBINATORS, 44, 31)],
+    );
   }
 }

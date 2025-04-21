@@ -23,13 +23,19 @@ mixin M on Enum {}
   }
 
   test_dartCoreEnum_language216() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.16
 mixin M on Enum {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
-          27, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          27,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
@@ -57,18 +63,27 @@ augment mixin A on int {}
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
-          37, 3),
+      error(
+        CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+        37,
+        3,
+      ),
     ]);
   }
 
   test_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on int {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
-          11, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          11,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''

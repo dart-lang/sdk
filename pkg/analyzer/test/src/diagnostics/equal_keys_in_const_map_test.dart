@@ -19,31 +19,52 @@ class EqualKeysInConstMapTest extends PubPackageResolutionTest
 
 mixin EqualKeysInConstMapTestCases on PubPackageResolutionTest {
   test_const_entry() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1: null, 2: null, 1: null};
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 33, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          33,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_const_entry_extensionType_typeValue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const x = {int: 0, E: 0};
 extension type E(int it) {}
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 19, 1,
-          contextMessages: [message(testFile, 11, 3)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          19,
+          1,
+          contextMessages: [message(testFile, 11, 3)],
+        ),
+      ],
+    );
   }
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1: null, if (1 < 0) 2: null else 1: null};
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 48, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          48,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
@@ -71,25 +92,39 @@ var c = const {2: null, if (1 < 0) 2: 2};
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1: null, if (0 < 1) 1: null};
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 35, 1,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          35,
+          1,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   const A();
 }
 
 var c = const {const A<int>(): null, const A<int>(): null};
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 66, 14,
-          contextMessages: [message(testFile, 44, 14)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          66,
+          14,
+          contextMessages: [message(testFile, 44, 14)],
+        ),
+      ],
+    );
   }
 
   test_const_instanceCreation_notEqualTypeArgs() async {
@@ -104,12 +139,19 @@ var c = const {const A<int>(): null, const A<num>(): null};
   }
 
   test_const_list_hasEqual() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {[0]: null, [0]: null};
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 22, 3,
-          contextMessages: [message(testFile, 11, 3)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          22,
+          3,
+          contextMessages: [message(testFile, 11, 3)],
+        ),
+      ],
+    );
   }
 
   test_const_list_noEqual() async {
@@ -119,12 +161,19 @@ const x = {[0]: null, [1]: null};
   }
 
   test_const_record_hasEqual() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {(0, 1): null, (0, 1): null};
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 25, 6,
-          contextMessages: [message(testFile, 11, 6)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          25,
+          6,
+          contextMessages: [message(testFile, 11, 6)],
+        ),
+      ],
+    );
   }
 
   test_const_record_noEqual() async {
@@ -140,20 +189,28 @@ var c = const {1: null, ...{2: null}};
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = const {1: null, ...{1: null}};
-''', [
-      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 27, 9,
-          contextMessages: [message(testFile, 15, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          27,
+          9,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
+    );
   }
 
   test_nonConst_entry() async {
     // No error, but there is a hint.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var c = {1: null, 2: null, 1: null};
-''', [
-      error(WarningCode.EQUAL_KEYS_IN_MAP, 27, 1),
-    ]);
+''',
+      [error(WarningCode.EQUAL_KEYS_IN_MAP, 27, 1)],
+    );
   }
 }

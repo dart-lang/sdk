@@ -16,19 +16,25 @@ main() {
 @reflectiveTest
 class AssetFieldNotListTest extends PubspecDiagnosticTest {
   test_assetFieldNotList_error_empty() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets:
-''', [PubspecWarningCode.ASSET_FIELD_NOT_LIST]);
+''',
+      [PubspecWarningCode.ASSET_FIELD_NOT_LIST],
+    );
   }
 
   test_assetFieldNotList_error_string() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets: assets/my_icon.png
-''', [PubspecWarningCode.ASSET_FIELD_NOT_LIST]);
+''',
+      [PubspecWarningCode.ASSET_FIELD_NOT_LIST],
+    );
   }
 
   test_assetFieldNotList_noError() {

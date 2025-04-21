@@ -47,15 +47,22 @@ ConstructorName
   }
 
   test_fieldShadowingWildcardParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   var v;
   var _;
   A(var _) : v = _;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 45, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          45,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.constructorFieldInitializer('v = _');
     assertResolvedNodeText(node, r'''
@@ -212,7 +219,8 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_named_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A implements B {
   A();
 }
@@ -220,9 +228,9 @@ class A implements B {
 class B {
   factory B() = A.named;
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 7)],
+    );
 
     var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
@@ -341,7 +349,8 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_unnamed_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A implements B {
   A.named();
 }
@@ -349,9 +358,9 @@ class A implements B {
 class B {
   factory B.named() = A;
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 71, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 71, 1)],
+    );
 
     var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''

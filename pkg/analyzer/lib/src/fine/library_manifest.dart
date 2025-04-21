@@ -26,10 +26,7 @@ class LibraryManifest {
   /// The manifests of the top-level items.
   final Map<LookupName, TopLevelItem> items;
 
-  LibraryManifest({
-    required this.reExportMap,
-    required this.items,
-  });
+  LibraryManifest({required this.reExportMap, required this.items});
 
   factory LibraryManifest.read(SummaryDataReader reader) {
     return LibraryManifest(
@@ -99,9 +96,11 @@ class LibraryManifestBuilder {
     required this.inputLibraries,
     required this.inputManifests,
   }) {
-    libraryElements = inputLibraries.map((kind) {
-      return elementFactory.libraryOfUri2(kind.file.uri);
-    }).toList(growable: false);
+    libraryElements = inputLibraries
+        .map((kind) {
+          return elementFactory.libraryOfUri2(kind.file.uri);
+        })
+        .toList(growable: false);
   }
 
   Map<Uri, LibraryManifest> computeManifests({
@@ -109,9 +108,7 @@ class LibraryManifestBuilder {
   }) {
     performance.getDataInt('libraryCount').add(inputLibraries.length);
 
-    _fillItemMapFromInputManifests(
-      performance: performance,
-    );
+    _fillItemMapFromInputManifests(performance: performance);
 
     _buildManifests();
     _addReExports();
@@ -135,18 +132,17 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = classItem;
 
-    encodingContext.withTypeParameters(
-      element.typeParameters2,
-      (typeParameters) {
-        classItem.declaredMembers.clear();
-        classItem.inheritedMembers.clear();
-        _addInterfaceElementExecutables(
-          encodingContext: encodingContext,
-          instanceElement: element,
-          interfaceItem: classItem,
-        );
-      },
-    );
+    encodingContext.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      classItem.declaredMembers.clear();
+      classItem.inheritedMembers.clear();
+      _addInterfaceElementExecutables(
+        encodingContext: encodingContext,
+        instanceElement: element,
+        interfaceItem: classItem,
+      );
+    });
   }
 
   /// Class type aliases like `class B = A with M;` cannot explicitly declare
@@ -409,18 +405,17 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = mixinItem;
 
-    encodingContext.withTypeParameters(
-      element.typeParameters2,
-      (typeParameters) {
-        mixinItem.declaredMembers.clear();
-        mixinItem.inheritedMembers.clear();
-        _addInterfaceElementExecutables(
-          encodingContext: encodingContext,
-          instanceElement: element,
-          interfaceItem: mixinItem,
-        );
-      },
-    );
+    encodingContext.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      mixinItem.declaredMembers.clear();
+      mixinItem.inheritedMembers.clear();
+      _addInterfaceElementExecutables(
+        encodingContext: encodingContext,
+        instanceElement: element,
+        interfaceItem: mixinItem,
+      );
+    });
   }
 
   void _addReExports() {
@@ -530,9 +525,7 @@ class LibraryManifestBuilder {
     newManifests.forEach((uri, manifest) {
       var bytes = manifestAsBytes(manifest);
 
-      var readManifest = LibraryManifest.read(
-        SummaryDataReader(bytes),
-      );
+      var readManifest = LibraryManifest.read(SummaryDataReader(bytes));
       var readBytes = manifestAsBytes(readManifest);
 
       if (!const ListEquality<int>().equals(bytes, readBytes)) {
@@ -547,9 +540,7 @@ class LibraryManifestBuilder {
   /// We reuse existing items when they fully match.
   /// We build new items for mismatched elements.
   Map<Uri, LibraryManifest> _buildManifests() {
-    var encodingContext = EncodeContext(
-      elementFactory: elementFactory,
-    );
+    var encodingContext = EncodeContext(elementFactory: elementFactory);
 
     for (var libraryElement in libraryElements) {
       var libraryUri = libraryElement.uri;
@@ -600,10 +591,7 @@ class LibraryManifestBuilder {
         }
       }
 
-      var newManifest = LibraryManifest(
-        reExportMap: {},
-        items: newItems,
-      );
+      var newManifest = LibraryManifest(reExportMap: {}, items: newItems);
       libraryElement.manifest = newManifest;
       newManifests[libraryUri] = newManifest;
     }
@@ -691,11 +679,10 @@ class LibraryManifestBuilder {
   }
 
   /// Returns either the existing item from [declaredItems], or builds a new one.
-  Item _getOrBuildElementItem<Element extends Element2,
-      Item extends ManifestItem>(
-    Element element,
-    Item Function() build,
-  ) {
+  Item _getOrBuildElementItem<
+    Element extends Element2,
+    Item extends ManifestItem
+  >(Element element, Item Function() build) {
     // We assume that when matching elements against the structure of
     // the item, we put into [itemMap] only the type of the item that
     // corresponds the type of the element.

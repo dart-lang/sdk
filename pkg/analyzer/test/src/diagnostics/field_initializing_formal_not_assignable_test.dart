@@ -17,53 +17,81 @@ main() {
 class FieldInitializingFormalNotAssignableTest
     extends PubPackageResolutionTest {
   test_class_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x;
   A(dynamic this.x) {}
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23,
-          14),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          23,
+          14,
+        ),
+      ],
+    );
   }
 
   test_class_unrelated() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int x;
   A(String this.x) {}
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23,
-          13),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          23,
+          13,
+        ),
+      ],
+    );
   }
 
   test_enum_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v(0);
   final int x;
   const E(dynamic this.x);
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 42,
-          14),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          42,
+          14,
+        ),
+      ],
+    );
   }
 
   test_enum_unrelated() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v('');
   final int x;
   const E(String this.x);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 13, 2),
-      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 43,
-          13),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          13,
+          2,
+        ),
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          43,
+          13,
+        ),
+      ],
+    );
   }
 }

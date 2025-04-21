@@ -119,10 +119,7 @@ class LibraryMap {
     for (var entry in _libraryMap.entries) {
       var uri = entry.key;
       var lib = entry.value;
-      map[uri] = <String, Object>{
-        'path': lib.path,
-        'shortName': lib.shortName,
-      };
+      map[uri] = <String, Object>{'path': lib.path, 'shortName': lib.shortName};
     }
     return map;
   }

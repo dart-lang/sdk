@@ -74,11 +74,12 @@ SwitchExpression
   }
 
   test_cases_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final a = switch (0) {};
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6)],
+    );
 
     var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
@@ -144,15 +145,16 @@ SwitchExpression
   }
 
   test_expression_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(void x) {
   (switch(x) {
     _ => 0,
   });
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1)],
+    );
 
     var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
@@ -520,16 +522,17 @@ SwitchExpression
   }
 
   test_variables_logicalOr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   (switch (x) {
     <int>[var a || var a] => a,
     _ => 0,
   });
 }
-''', [
-      error(WarningCode.DEAD_CODE, 52, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 52, 8)],
+    );
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
@@ -594,7 +597,8 @@ SwitchExpression
   }
 
   test_variables_scope() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 void f(Object? x) {
   (switch (x) {
@@ -602,12 +606,21 @@ void f(Object? x) {
     _ => 0,
   });
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 64,
-          1),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 64, 1,
-          contextMessages: [message(testFile, 58, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          64,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          64,
+          1,
+          contextMessages: [message(testFile, 58, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
@@ -681,16 +694,17 @@ SwitchExpression
   }
 
   test_variables_singleCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   (switch (x) {
     int a when a > 0 => a,
     _ => a,
   });
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1)],
+    );
 
     var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''

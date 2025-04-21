@@ -25,12 +25,14 @@ class MissingDependencyTest with ResourceProviderMixin {
 
   /// Asserts that when the validator is used on the given [content], a
   /// [PubspecWarningCode.MISSING_DEPENDENCY] warning is produced.
-  void assertErrors(String content,
-      {required Set<String> usedDeps,
-      required Set<String> usedDevDeps,
-      List<String> addDeps = const [],
-      List<String> addDevDeps = const [],
-      List<String> removeDevDeps = const []}) {
+  void assertErrors(
+    String content, {
+    required Set<String> usedDeps,
+    required Set<String> usedDevDeps,
+    List<String> addDeps = const [],
+    List<String> addDevDeps = const [],
+    List<String> removeDevDeps = const [],
+  }) {
     var error = _runValidator(content, usedDeps, usedDevDeps).first;
     var data = error.data as MissingDependencyData;
     expect(error.errorCode, PubspecWarningCode.MISSING_DEPENDENCY);
@@ -41,8 +43,11 @@ class MissingDependencyTest with ResourceProviderMixin {
 
   /// Assert that when the validator is used on the given [content] no errors
   /// are produced.
-  void assertNoErrors(String content,
-      {Set<String> usedDeps = const {}, Set<String> usedDevDeps = const {}}) {
+  void assertNoErrors(
+    String content, {
+    Set<String> usedDeps = const {},
+    Set<String> usedDevDeps = const {},
+  }) {
     List<AnalysisError> errors = _runValidator(content, usedDeps, usedDevDeps);
     expect(errors.isEmpty, true);
   }
@@ -54,95 +59,133 @@ class MissingDependencyTest with ResourceProviderMixin {
   }
 
   test_missingDependency_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dependencies:
   path: any
-''', usedDeps: {'path', 'matcher'}, addDeps: ['matcher'], usedDevDeps: {});
+''',
+      usedDeps: {'path', 'matcher'},
+      addDeps: ['matcher'],
+      usedDevDeps: {},
+    );
   }
 
   test_missingDependency_move_to_dev() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dependencies:
   path: any
 dev_dependencies:
   test: any
 ''',
-        usedDeps: {'path', 'test'},
-        addDeps: ['test'],
-        removeDevDeps: ['test'],
-        usedDevDeps: {});
+      usedDeps: {'path', 'test'},
+      addDeps: ['test'],
+      removeDevDeps: ['test'],
+      usedDevDeps: {},
+    );
   }
 
   test_missingDependency_noError() {
-    assertNoErrors('''
+    assertNoErrors(
+      '''
 name: sample
 dependencies:
   test: any
-''', usedDeps: {'test'}, usedDevDeps: {});
+''',
+      usedDeps: {'test'},
+      usedDevDeps: {},
+    );
   }
 
   test_missingDependency_package_noError() {
-    assertNoErrors('''
+    assertNoErrors(
+      '''
 name: sample
 dependencies:
   test: any
 dev_dependencies:
   lints: any
-''', usedDeps: {'test', 'sample'}, usedDevDeps: {'lints'});
+''',
+      usedDeps: {'test', 'sample'},
+      usedDevDeps: {'lints'},
+    );
   }
 
   test_missingDevDependency_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dependencies:
   path: any
 dev_dependencies:
   lints: any
-''', usedDeps: {'path'}, usedDevDeps: {'lints', 'test'}, addDevDeps: ['test']);
+''',
+      usedDeps: {'path'},
+      usedDevDeps: {'lints', 'test'},
+      addDevDeps: ['test'],
+    );
   }
 
   test_missingDevDependency_inDeps_noError() {
-    assertNoErrors('''
+    assertNoErrors(
+      '''
 name: sample
 dependencies:
   test: any
   path: any
 dev_dependencies:
   lints: any
-''', usedDeps: {'test', 'path'}, usedDevDeps: {'lints', 'path'});
+''',
+      usedDeps: {'test', 'path'},
+      usedDevDeps: {'lints', 'path'},
+    );
   }
 
   test_missingDevDependency_noError() {
-    assertNoErrors('''
+    assertNoErrors(
+      '''
 name: sample
 dependencies:
   test: any
 dev_dependencies:
   lints: any
-''', usedDeps: {'test'}, usedDevDeps: {'lints'});
+''',
+      usedDeps: {'test'},
+      usedDevDeps: {'lints'},
+    );
   }
 
   test_missingDevDependency_package_noError() {
-    assertNoErrors('''
+    assertNoErrors(
+      '''
 name: sample
 dependencies:
   test: any
 dev_dependencies:
   lints: any
-''', usedDeps: {'test'}, usedDevDeps: {'lints', 'sample'});
+''',
+      usedDeps: {'test'},
+      usedDevDeps: {'lints', 'sample'},
+    );
   }
 
   List<AnalysisError> _runValidator(
-      String content, Set<String> usedDeps, Set<String> usedDevDeps) {
+    String content,
+    Set<String> usedDeps,
+    Set<String> usedDevDeps,
+  ) {
     YamlNode node = loadYamlNode(content);
     if (node is! YamlMap) {
       // The file is empty.
       node = YamlMap();
     }
-    var errors = MissingDependencyValidator(node, _source, resourceProvider)
-        .validate(usedDeps, usedDevDeps);
+    var errors = MissingDependencyValidator(
+      node,
+      _source,
+      resourceProvider,
+    ).validate(usedDeps, usedDevDeps);
     return errors;
   }
 }

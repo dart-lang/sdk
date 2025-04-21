@@ -25,10 +25,7 @@ class ManifestItemId {
   }
 
   factory ManifestItemId.read(SummaryDataReader reader) {
-    return ManifestItemId._(
-      reader.readUInt32(),
-      reader.readUInt32(),
-    );
+    return ManifestItemId._(reader.readUInt32(), reader.readUInt32());
   }
 
   ManifestItemId._(this.timestamp, this.randomBits);

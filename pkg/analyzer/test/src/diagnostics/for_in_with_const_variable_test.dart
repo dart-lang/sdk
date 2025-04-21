@@ -16,14 +16,15 @@ main() {
 @reflectiveTest
 class ForInWithConstVariableTest extends PubPackageResolutionTest {
   test_forEach_loopVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   for (const x in [0, 1, 2]) {
     print(x);
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 13, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 13, 5)],
+    );
   }
 }

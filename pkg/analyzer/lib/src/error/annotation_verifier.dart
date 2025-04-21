@@ -25,9 +25,11 @@ class AnnotationVerifier {
   final WorkspacePackage? _workspacePackage;
 
   /// Whether [_currentLibrary] is part of its containing package's public API.
-  late final bool _inPackagePublicApi = _workspacePackage != null &&
-      _workspacePackage
-          .sourceIsInPublicApi(_currentLibrary.firstFragment.source);
+  late final bool _inPackagePublicApi =
+      _workspacePackage != null &&
+      _workspacePackage.sourceIsInPublicApi(
+        _currentLibrary.firstFragment.source,
+      );
 
   AnnotationVerifier(
     this._errorReporter,
@@ -151,15 +153,9 @@ class AnnotationVerifier {
         );
       }
     } else if (parentElementIsPrivate) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_INTERNAL_ANNOTATION,
-      );
+      _errorReporter.atNode(node.name, WarningCode.INVALID_INTERNAL_ANNOTATION);
     } else if (_inPackagePublicApi) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_INTERNAL_ANNOTATION,
-      );
+      _errorReporter.atNode(node.name, WarningCode.INVALID_INTERNAL_ANNOTATION);
     }
   }
 
@@ -177,8 +173,8 @@ class AnnotationVerifier {
             name = '$className.$name';
           }
         }
-        var kindNames = kinds.map((kind) => kind.displayString).toList()
-          ..sort();
+        var kindNames =
+            kinds.map((kind) => kind.displayString).toList()..sort();
         var validKinds = kindNames.commaSeparatedWithOr;
         _errorReporter.atNode(
           node.name,
@@ -195,10 +191,7 @@ class AnnotationVerifier {
   void _checkLiteral(Annotation node) {
     var parent = node.parent;
     if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_LITERAL_ANNOTATION,
-      );
+      _errorReporter.atNode(node.name, WarningCode.INVALID_LITERAL_ANNOTATION);
     }
   }
 
@@ -273,25 +266,16 @@ class AnnotationVerifier {
     if (classElement.isFinal ||
         classElement.isMixinClass ||
         classElement.isSealed) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_REOPEN_ANNOTATION,
-      );
+      _errorReporter.atNode(node.name, WarningCode.INVALID_REOPEN_ANNOTATION);
       return;
     }
     if (classElement.library2 != superElement.library2) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_REOPEN_ANNOTATION,
-      );
+      _errorReporter.atNode(node.name, WarningCode.INVALID_REOPEN_ANNOTATION);
       return;
     }
     if (classElement.isBase) {
       if (!superElement.isFinal && !superElement.isInterface) {
-        _errorReporter.atNode(
-          node.name,
-          WarningCode.INVALID_REOPEN_ANNOTATION,
-        );
+        _errorReporter.atNode(node.name, WarningCode.INVALID_REOPEN_ANNOTATION);
         return;
       }
     } else if (!classElement.isBase &&
@@ -299,10 +283,7 @@ class AnnotationVerifier {
         !classElement.isInterface &&
         !classElement.isSealed) {
       if (!superElement.isInterface) {
-        _errorReporter.atNode(
-          node.name,
-          WarningCode.INVALID_REOPEN_ANNOTATION,
-        );
+        _errorReporter.atNode(node.name, WarningCode.INVALID_REOPEN_ANNOTATION);
         return;
       }
     }
@@ -312,8 +293,11 @@ class AnnotationVerifier {
   /// unknown parameter as an argument to 'unless'.
   void _checkUseResult(Annotation node, ElementAnnotation element) {
     var parent = node.parent;
-    var undefinedParameter =
-        _findUndefinedUseResultParameter(element, node, parent);
+    var undefinedParameter = _findUndefinedUseResultParameter(
+      element,
+      node,
+      parent,
+    );
     if (undefinedParameter != null) {
       String? name;
       if (parent is FunctionDeclaration) {
@@ -322,9 +306,10 @@ class AnnotationVerifier {
         name = parent.name.lexeme;
       }
       if (name != null) {
-        var parameterName = undefinedParameter is SimpleStringLiteral
-            ? undefinedParameter.value
-            : undefinedParameter.correspondingParameter?.name3;
+        var parameterName =
+            undefinedParameter is SimpleStringLiteral
+                ? undefinedParameter.value
+                : undefinedParameter.correspondingParameter?.name3;
         _errorReporter.atNode(
           undefinedParameter,
           WarningCode.UNDEFINED_REFERENCED_PARAMETER,
@@ -458,17 +443,21 @@ class AnnotationVerifier {
   /// Returns an expression (for error-reporting purposes) associated with a
   /// `@useResult` `unless` argument, if the associated parameter is undefined.
   Expression? _findUndefinedUseResultParameter(
-      ElementAnnotation element, Annotation node, AstNode parent) {
+    ElementAnnotation element,
+    Annotation node,
+    AstNode parent,
+  ) {
     var constructorName = node.name;
     if (constructorName is! PrefixedIdentifier ||
         constructorName.identifier.name != 'unless') {
       return null;
     }
 
-    var unlessParam = element
-        .computeConstantValue()
-        ?.getField('parameterDefined')
-        ?.toStringValue();
+    var unlessParam =
+        element
+            .computeConstantValue()
+            ?.getField('parameterDefined')
+            ?.toStringValue();
     if (unlessParam == null) {
       return null;
     }
@@ -535,9 +524,10 @@ class AnnotationVerifier {
       ClassTypeAlias() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
       ConstructorDeclaration() => kinds.contains(TargetKind.constructor),
-      Directive() => kinds.contains(TargetKind.directive) ||
-          (target.parent as CompilationUnit).directives.first == target &&
-              kinds.contains(TargetKind.library),
+      Directive() =>
+        kinds.contains(TargetKind.directive) ||
+            (target.parent as CompilationUnit).directives.first == target &&
+                kinds.contains(TargetKind.library),
       EnumConstantDeclaration() => kinds.contains(TargetKind.enumValue),
       EnumDeclaration() =>
         kinds.contains(TargetKind.enumType) || kinds.contains(TargetKind.type),
@@ -552,14 +542,15 @@ class AnnotationVerifier {
       MethodDeclaration() => kinds.contains(TargetKind.method),
       MixinDeclaration() =>
         kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
-      FormalParameter() => kinds.contains(TargetKind.parameter) ||
-          (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
-      FunctionTypeAlias() ||
-      GenericTypeAlias() =>
+      FormalParameter() =>
+        kinds.contains(TargetKind.parameter) ||
+            (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
+      FunctionTypeAlias() || GenericTypeAlias() =>
         kinds.contains(TargetKind.typedefType) ||
             kinds.contains(TargetKind.type),
-      TopLevelVariableDeclaration() =>
-        kinds.contains(TargetKind.topLevelVariable),
+      TopLevelVariableDeclaration() => kinds.contains(
+        TargetKind.topLevelVariable,
+      ),
       TypeParameter() => kinds.contains(TargetKind.typeParameter),
       // extension type Foo (int bar) {}
       //                     ^^^^^^^

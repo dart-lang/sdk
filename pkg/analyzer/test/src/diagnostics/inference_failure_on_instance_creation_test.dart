@@ -25,50 +25,54 @@ class InferenceFailureOnInstanceCreationTest extends PubPackageResolutionTest {
   }
 
   test_constructorNames_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:collection';
 void f() {
   HashMap.from({1: 1, 2: 2, 3: 3});
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 12),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 12)],
+    );
     expect(result.errors[0].message, contains("'HashMap.from'"));
   }
 
   test_constructorNames_named_importPrefix() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:collection' as c;
 void f() {
   c.HashMap.from({1: 1, 2: 2, 3: 3});
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 14),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 14)],
+    );
     expect(result.errors[0].message, contains("'c.HashMap.from'"));
   }
 
   test_constructorNames_unnamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:collection';
 void f() {
   HashMap();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7)],
+    );
     expect(result.errors[0].message, contains("'HashMap'"));
   }
 
   test_constructorNames_unnamed_importPrefix() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:collection' as c;
 void f() {
   c.HashMap();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 9),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 44, 9)],
+    );
     expect(result.errors[0].message, contains("'c.HashMap'"));
   }
 
@@ -82,27 +86,29 @@ void f() {
   }
 
   test_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E<T>(int i) {}
 void f() {
   E(1);
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 43, 1),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 43, 1)],
+    );
   }
 
   test_genericMetadata_missingTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C<T> {
   const C();
 }
 
 @C()
 void f() {}
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 29, 4),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 29, 4)],
+    );
   }
 
   test_genericMetadata_missingTypeArg_withoutGenericMetadata() async {
@@ -162,14 +168,15 @@ void f() {
   }
 
   test_missingTypeArgument_noInference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:collection';
 void f() {
   HashMap();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7)],
+    );
   }
 
   test_missingTypeArgument_noInference_optionalTypeArgs() async {
@@ -185,12 +192,13 @@ void f() {
   }
 
   test_missingTypeArgument_noInference_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:collection';
 var m = HashMap();
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 34, 7),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 34, 7)],
+    );
   }
 
   test_missingTypeArgument_upwardInference() async {

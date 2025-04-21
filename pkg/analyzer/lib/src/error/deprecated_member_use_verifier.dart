@@ -20,7 +20,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   final bool _strictCasts;
 
   BaseDeprecatedMemberUseVerifier({bool strictCasts = false})
-      : _strictCasts = strictCasts;
+    : _strictCasts = strictCasts;
 
   void assignmentExpression(AssignmentExpression node) {
     _checkForDeprecated(node.readElement2, node.leftHandSide);
@@ -61,17 +61,11 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void instanceCreationExpression(InstanceCreationExpression node) {
-    _invocationArguments(
-      node.constructorName.element,
-      node.argumentList,
-    );
+    _invocationArguments(node.constructorName.element, node.argumentList);
   }
 
   void methodInvocation(MethodInvocation node) {
-    _invocationArguments(
-      node.methodName.element,
-      node.argumentList,
-    );
+    _invocationArguments(node.methodName.element, node.argumentList);
   }
 
   void namedType(NamedType node) {
@@ -113,13 +107,21 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _invocationArguments(node.element, node.argumentList);
   }
 
-  void reportError(SyntacticEntity errorEntity, Element2 element,
-      String displayName, String? message) {
+  void reportError(
+    SyntacticEntity errorEntity,
+    Element2 element,
+    String displayName,
+    String? message,
+  ) {
     reportError2(errorEntity, element, displayName, message);
   }
 
-  void reportError2(SyntacticEntity errorEntity, Element2 element,
-      String displayName, String? message) {
+  void reportError2(
+    SyntacticEntity errorEntity,
+    Element2 element,
+    String displayName,
+    String? message,
+  ) {
     reportError(errorEntity, element, displayName, message);
   }
 
@@ -210,9 +212,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
       // TODO(jwren): We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
-      displayName = element.name3 == null
-          ? '${element.displayName}.new'
-          : element.displayName;
+      displayName =
+          element.name3 == null
+              ? '${element.displayName}.new'
+              : element.displayName;
     } else if (element is LibraryElement2) {
       displayName = element.firstFragment.source.uri.toString();
     } else if (node is MethodInvocation &&
@@ -243,8 +246,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// Return the message in the deprecated annotation on the given [element], or
   /// `null` if the element doesn't have a deprecated annotation or if the
   /// annotation does not have a message.
-  static String? _deprecatedMessage(Element2 element,
-      {required bool strictCasts}) {
+  static String? _deprecatedMessage(
+    Element2 element, {
+    required bool strictCasts,
+  }) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement2) {
       var variable = element.variable3;
@@ -291,8 +296,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// [node].
   static bool _isLocalParameter(Element2? element, AstNode? node) {
     if (element is FormalParameterElement) {
-      var definingFunction = element.firstFragment.enclosingFragment?.element
-          as ExecutableElement2;
+      var definingFunction =
+          element.firstFragment.enclosingFragment?.element
+              as ExecutableElement2;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {
@@ -352,12 +358,19 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   final WorkspacePackage? _workspacePackage;
   final ErrorReporter _errorReporter;
 
-  DeprecatedMemberUseVerifier(this._workspacePackage, this._errorReporter,
-      {required super.strictCasts});
+  DeprecatedMemberUseVerifier(
+    this._workspacePackage,
+    this._errorReporter, {
+    required super.strictCasts,
+  });
 
   @override
-  void reportError(SyntacticEntity errorEntity, Element2 element,
-      String displayName, String? message) {
+  void reportError(
+    SyntacticEntity errorEntity,
+    Element2 element,
+    String displayName,
+    String? message,
+  ) {
     var library = element is LibraryElement2 ? element : element.library2;
 
     message = message?.trim();

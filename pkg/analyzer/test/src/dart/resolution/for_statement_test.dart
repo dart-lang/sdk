@@ -11,12 +11,15 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        ForStatementResolutionTest_ForEachPartsWithDeclaration);
+      ForStatementResolutionTest_ForEachPartsWithDeclaration,
+    );
     defineReflectiveTests(
-        ForStatementResolutionTest_ForEachPartsWithIdentifier);
+      ForStatementResolutionTest_ForEachPartsWithIdentifier,
+    );
     defineReflectiveTests(ForStatementResolutionTest_ForEachPartsWithPattern);
     defineReflectiveTests(
-        ForStatementResolutionTest_ForEachPartsWithPattern_await);
+      ForStatementResolutionTest_ForEachPartsWithPattern_await,
+    );
     defineReflectiveTests(ForStatementResolutionTest_ForPartsWithExpression);
     defineReflectiveTests(ForStatementResolutionTest_ForPartsWithPattern);
   });
@@ -71,13 +74,14 @@ ForStatement
   }
 
   test_iterable_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(dynamic values) {
   for (var v in values) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1)],
+    );
 
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -103,15 +107,16 @@ ForStatement
   }
 
   test_iterable_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   for (var v in) {
     v;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1)],
+    );
 
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -144,16 +149,19 @@ ForStatement
   }
 
   test_iterable_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Iterable<int> {
   void f() {
     for (var v in super) {}
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 70, 1),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 75, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 70, 1),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 75, 5),
+      ],
+    );
 
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -476,15 +484,16 @@ ForStatement
   }
 
   test_iterable_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Iterable<int> {
   void f(var v) {
     for (v in super) {}
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 76, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 76, 5)],
+    );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
@@ -597,15 +606,16 @@ ForStatement
   }
 
   test_iterable_Object() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   for (var (a) in x) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1)],
+    );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
 ForStatement
@@ -642,16 +652,19 @@ ForStatement
   }
 
   test_iterable_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Iterable<int> {
   void f() {
     for (var (a) in super) {}
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 77, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 77, 5),
+      ],
+    );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
@@ -680,15 +693,16 @@ ForStatement
   }
 
   test_iterableContextType_patternVariable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   for (var (int a) in g()) {}
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1)],
+    );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
 ForStatement
@@ -730,15 +744,16 @@ ForStatement
   }
 
   test_iterableContextType_patternVariable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   for (var (a) in g()) {}
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+    );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
 ForStatement
@@ -914,15 +929,16 @@ ForStatement
   }
 
   test_iterable_Object() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) async {
   await for (var (a) in x) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 49, 1)],
+    );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
@@ -1292,15 +1308,16 @@ ForStatement
   }
 
   test_update_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     for (;; super) {}
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5)],
+    );
 
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''

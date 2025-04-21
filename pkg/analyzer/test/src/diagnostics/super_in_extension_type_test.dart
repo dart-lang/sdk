@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class SuperInExtensionTypeTest extends PubPackageResolutionTest {
   test_binaryOperator() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) {
   void f() {
     super + 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5)],
+    );
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -44,15 +45,16 @@ BinaryExpression
   }
 
   test_methodInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) {
   void f() {
     super.foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -74,15 +76,16 @@ MethodInvocation
   }
 
   test_propertyAccess() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) {
   void f() {
     super.foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''

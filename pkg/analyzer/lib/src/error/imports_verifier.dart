@@ -48,15 +48,13 @@ class ImportsVerifier {
 
   /// A map of names that are hidden more than once.
   final Map<NamespaceDirective, List<SimpleIdentifier>>
-      _duplicateHiddenNamesMap = {};
+  _duplicateHiddenNamesMap = {};
 
   /// A map of names that are shown more than once.
   final Map<NamespaceDirective, List<SimpleIdentifier>>
-      _duplicateShownNamesMap = {};
+  _duplicateShownNamesMap = {};
 
-  ImportsVerifier({
-    required this.fileAnalysis,
-  });
+  ImportsVerifier({required this.fileAnalysis});
 
   void addImports(CompilationUnit node) {
     var importsWithLibraries = <_NamespaceDirective>[];
@@ -72,10 +70,7 @@ class ImportsVerifier {
         }
         _allImports.add(directive);
         importsWithLibraries.add(
-          _NamespaceDirective(
-            node: directive,
-            library: libraryElement,
-          ),
+          _NamespaceDirective(node: directive, library: libraryElement),
         );
       } else if (directive is ExportDirective) {
         var libraryElement = directive.libraryExport?.exportedLibrary2;
@@ -83,10 +78,7 @@ class ImportsVerifier {
           continue;
         }
         exportsWithLibraries.add(
-          _NamespaceDirective(
-            node: directive,
-            library: libraryElement,
-          ),
+          _NamespaceDirective(node: directive, library: libraryElement),
         );
       }
 
@@ -139,26 +131,24 @@ class ImportsVerifier {
   /// Only call this method after all of the compilation units have been visited
   /// by this visitor.
   void generateDuplicateShownHiddenNameWarnings(ErrorReporter reporter) {
-    _duplicateHiddenNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+    _duplicateHiddenNamesMap.forEach((
+      NamespaceDirective directive,
+      List<SimpleIdentifier> identifiers,
+    ) {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(
-          identifier,
-          WarningCode.DUPLICATE_HIDDEN_NAME,
-        );
+        reporter.atNode(identifier, WarningCode.DUPLICATE_HIDDEN_NAME);
       }
     });
-    _duplicateShownNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+    _duplicateShownNamesMap.forEach((
+      NamespaceDirective directive,
+      List<SimpleIdentifier> identifiers,
+    ) {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(
-          identifier,
-          WarningCode.DUPLICATE_SHOWN_NAME,
-        );
+        reporter.atNode(identifier, WarningCode.DUPLICATE_SHOWN_NAME);
       }
     });
   }
@@ -320,7 +310,8 @@ class ImportsVerifier {
 
               var isUsed = importElements.contains(element);
               if (element is PropertyInducingElement2) {
-                isUsed = importElements.contains(element.getter2) ||
+                isUsed =
+                    importElements.contains(element.getter2) ||
                     importElements.contains(element.setter2);
               }
 
@@ -350,8 +341,8 @@ class ImportsVerifier {
           if (element != null) {
             if (!identifiers.add(element)) {
               // [name] is a duplicate.
-              List<SimpleIdentifier> duplicateNames =
-                  _duplicateHiddenNamesMap.putIfAbsent(directive, () => []);
+              List<SimpleIdentifier> duplicateNames = _duplicateHiddenNamesMap
+                  .putIfAbsent(directive, () => []);
               duplicateNames.add(name);
             }
           }
@@ -362,8 +353,8 @@ class ImportsVerifier {
           if (element != null) {
             if (!identifiers.add(element)) {
               // [name] is a duplicate.
-              List<SimpleIdentifier> duplicateNames =
-                  _duplicateShownNamesMap.putIfAbsent(directive, () => []);
+              List<SimpleIdentifier> duplicateNames = _duplicateShownNamesMap
+                  .putIfAbsent(directive, () => []);
               duplicateNames.add(name);
             }
           }
@@ -410,10 +401,7 @@ class _NamespaceDirective {
   final NamespaceDirective node;
   final LibraryElement2 library;
 
-  _NamespaceDirective({
-    required this.node,
-    required this.library,
-  });
+  _NamespaceDirective({required this.node, required this.library});
 
   /// Returns the absolute URI of the library.
   String get libraryUriStr => '${library.uri}';

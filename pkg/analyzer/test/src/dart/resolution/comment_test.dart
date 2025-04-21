@@ -1721,16 +1721,19 @@ class A {
   A.named();
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// @docImport 'foo.dart';
 library;
 
 /// [new A] or [new A.named]
 main() {}
-''', [
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 42, 3),
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 53, 3),
-    ]);
+''',
+      [
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 42, 3),
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 53, 3),
+      ],
+    );
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''
 CommentReference
@@ -1909,7 +1912,8 @@ CommentReference
   }
 
   test_newKeyword() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A();
   A.named();
@@ -1917,10 +1921,12 @@ class A {
 
 /// [new A] or [new A.named]
 main() {}
-''', [
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
-      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
-    ]);
+''',
+      [
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
+        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
+      ],
+    );
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''
 CommentReference

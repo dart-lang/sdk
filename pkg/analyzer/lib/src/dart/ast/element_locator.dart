@@ -261,7 +261,8 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element2> {
 
   @override
   Element2? visitRepresentationConstructorName(
-      RepresentationConstructorName node) {
+    RepresentationConstructorName node,
+  ) {
     var representation = node.parent as RepresentationDeclaration;
     return representation.constructorFragment?.element;
   }

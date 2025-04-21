@@ -27,66 +27,72 @@ class DuplicateIgnoreTest extends PubPackageResolutionTest {
   }
 
   test_name_file() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore_for_file: unused_local_variable, unused_local_variable
 void f() {
   var x = 0;
 }
-''', [
-      error(WarningCode.DUPLICATE_IGNORE, 43, 21),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IGNORE, 43, 21)],
+    );
   }
 
   test_name_line() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   // ignore: unused_local_variable, unused_local_variable
   var x = 0;
 }
-''', [
-      error(WarningCode.DUPLICATE_IGNORE, 47, 21),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IGNORE, 47, 21)],
+    );
   }
 
   test_name_lineAndFile() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore_for_file: unused_local_variable
 void f() {
   // ignore: unused_local_variable
   var x = 0;
 }
-''', [
-      error(WarningCode.DUPLICATE_IGNORE, 66, 21),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IGNORE, 66, 21)],
+    );
   }
 
   test_type_file() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore_for_file: type=lint, TYPE=LINT
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
-''', [
-      error(WarningCode.DUPLICATE_IGNORE, 31, 9),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IGNORE, 31, 9)],
+    );
   }
 
   test_type_line() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {}
 // ignore: type=lint, TYPE=LINT
 void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
-''', [
-      error(WarningCode.DUPLICATE_IGNORE, 34, 9),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IGNORE, 34, 9)],
+    );
   }
 
   test_type_lineAndFile() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore_for_file: type=lint
 void f() {}
 // ignore: type=lint
 void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
-''', [
-      error(WarningCode.DUPLICATE_IGNORE, 53, 9),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_IGNORE, 53, 9)],
+    );
   }
 }

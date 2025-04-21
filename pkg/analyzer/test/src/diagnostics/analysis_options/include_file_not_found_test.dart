@@ -16,71 +16,86 @@ main() {
 @reflectiveTest
 class IncludeFileNotFoundTest extends AbstractAnalysisOptionsTest {
   void test_notFound_existent_doubleQuoted() {
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: "./analysis_options.yaml"
-''', [
-      error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)],
+    );
   }
 
   void test_notFound_existent_notQuoted() {
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: ./analysis_options.yaml
-''', [
-      error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 23)
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 23)],
+    );
   }
 
- void test_notFound_existent_singleQuoted() {
-    assertErrorsInCode('''
+  void test_notFound_existent_singleQuoted() {
+    assertErrorsInCode(
+      '''
 include: './analysis_options.yaml'
-''', [
-      error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)
-    ]);
+''',
+      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)],
+    );
   }
 
- void test_notFound_nonexistent_doubleQuoted() {
-    assertErrorsInCode('''
+  void test_notFound_nonexistent_doubleQuoted() {
+    assertErrorsInCode(
+      '''
 # We don't depend on pedantic, but we should consider adding it.
 include: "package:pedantic/analysis_options.yaml"
-''', [
-      error(
-        AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
-        74,
-        40,
-        text: "The include file 'package:pedantic/analysis_options.yaml'"
-            " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          74,
+          40,
+          text:
+              "The include file 'package:pedantic/analysis_options.yaml'"
+              " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
+        ),
+      ],
+    );
   }
 
   void test_notFound_nonexistent_notQuoted() {
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 # We don't depend on pedantic, but we should consider adding it.
 include: package:pedantic/analysis_options.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
-        74,
-        38,
-        text: "The include file 'package:pedantic/analysis_options.yaml'"
-            " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          74,
+          38,
+          text:
+              "The include file 'package:pedantic/analysis_options.yaml'"
+              " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
+        ),
+      ],
+    );
   }
 
   void test_notFound_nonexistent_singleQuoted() {
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 # We don't depend on pedantic, but we should consider adding it.
 include: 'package:pedantic/analysis_options.yaml'
-''', [
-      error(
-        AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
-        74,
-        40,
-        text: "The include file 'package:pedantic/analysis_options.yaml'"
-            " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          74,
+          40,
+          text:
+              "The include file 'package:pedantic/analysis_options.yaml'"
+              " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
+        ),
+      ],
+    );
   }
 }

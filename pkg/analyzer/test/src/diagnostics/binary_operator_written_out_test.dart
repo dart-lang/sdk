@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class BinaryOperatorWrittenOutTest extends PubPackageResolutionTest {
   test_using_and() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var x, var y) {
   return x and y;
 }
-''', [
-      error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 3),
-    ]);
+''',
+      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 3)],
+    );
   }
 
   test_using_and_no_error() async {
@@ -34,13 +35,14 @@ f(var x, var y) {
   }
 
   test_using_or() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var x, var y) {
   return x or y;
 }
-''', [
-      error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 2),
-    ]);
+''',
+      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 2)],
+    );
   }
 
   test_using_or_no_error() async {
@@ -52,13 +54,14 @@ f(var x, var y) {
   }
 
   test_using_shl() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var x) {
   return x shl 2;
 }
-''', [
-      error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 22, 3),
-    ]);
+''',
+      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 22, 3)],
+    );
   }
 
   test_using_shl_no_error() async {
@@ -70,13 +73,14 @@ f(var x) {
   }
 
   test_using_shr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var x) {
   return x shr 2;
 }
-''', [
-      error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 22, 3),
-    ]);
+''',
+      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 22, 3)],
+    );
   }
 
   test_using_shr_no_error() async {
@@ -88,13 +92,14 @@ f(var x) {
   }
 
   test_using_xor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(var x, var y) {
   return x xor y;
 }
-''', [
-      error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 3),
-    ]);
+''',
+      [error(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 29, 3)],
+    );
   }
 
   test_using_xor_no_error() async {

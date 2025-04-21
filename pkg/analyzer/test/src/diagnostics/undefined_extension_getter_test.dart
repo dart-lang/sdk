@@ -27,59 +27,64 @@ f() {
   }
 
   test_override_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {}
 f() {
   E('a').g;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1)],
+    );
   }
 
   test_override_undefined_hasSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   set foo(int _) {}
 }
 f() {
   E(0).foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3)],
+    );
   }
 
   test_override_undefined_hasSetter_plusEq() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   set foo(int _) {}
 }
 f() {
   E(0).foo += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3)],
+    );
   }
 
   test_static_withInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on Object {}
 var a = E.v;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 35, 1)],
+    );
   }
 
   test_static_withoutInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on Object {}
 void f() {
   E.v;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1)],
+    );
   }
 }

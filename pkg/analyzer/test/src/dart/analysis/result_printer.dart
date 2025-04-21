@@ -318,14 +318,16 @@ class DriverEventsPrinter {
 
     sink.writelnWithIndent('[operation] $printName');
     sink.withIndent(() {
-      var sortedLibraries = object.cycle.libraries
-          .sortedBy((libraryKind) => libraryKind.file.uriStr);
+      var sortedLibraries = object.cycle.libraries.sortedBy(
+        (libraryKind) => libraryKind.file.uriStr,
+      );
       for (var libraryKind in sortedLibraries) {
         sink.writelnWithIndent(libraryKind.file.uriStr);
         if (configuration.withLibraryManifest) {
           sink.withIndent(() {
-            var libraryElement =
-                object.elementFactory.libraryOfUri2(libraryKind.file.uri);
+            var libraryElement = object.elementFactory.libraryOfUri2(
+              libraryKind.file.uri,
+            );
             var manifest = libraryElement.manifest!;
             LibraryManifestPrinter(
               configuration: configuration,
@@ -505,9 +507,10 @@ class DriverEventsPrinter {
       } else {
         sink.writelnWithIndent('[operation] $printName');
         sink.withIndent(() {
-          var uriStrList = event.cycle.libraries
-              .map((library) => library.file.uriStr)
-              .sorted();
+          var uriStrList =
+              event.cycle.libraries
+                  .map((library) => library.file.uriStr)
+                  .sorted();
           for (var uriStr in uriStrList) {
             sink.writelnWithIndent(uriStr);
           }
@@ -538,10 +541,7 @@ class DriverEventsPrinter {
 
     sink.writelnWithIndent('uri: ${result.uri}');
 
-    sink.writeFlags({
-      'isLibrary': result.isLibrary,
-      'isPart': result.isPart,
-    });
+    sink.writeFlags({'isLibrary': result.isLibrary, 'isPart': result.isPart});
 
     var libraryFragment = result.fragment;
 
@@ -550,8 +550,8 @@ class DriverEventsPrinter {
       libraryFragment.enclosingFragment,
     );
 
-    var elementsToWrite =
-        configuration.unitElementConfiguration.elementSelector(libraryFragment);
+    var elementsToWrite = configuration.unitElementConfiguration
+        .elementSelector(libraryFragment);
     elementPrinter.writeElementList2('selectedElements', elementsToWrite);
   }
 }
@@ -591,10 +591,7 @@ class ErrorsResultPrinterConfiguration {
 final class GetCachedResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult? result;
 
-  GetCachedResolvedUnitEvent({
-    required super.name,
-    required this.result,
-  });
+  GetCachedResolvedUnitEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getCachedResolvedUnit';
@@ -603,9 +600,7 @@ final class GetCachedResolvedUnitEvent extends GetDriverEvent {
 sealed class GetDriverEvent extends DriverEvent {
   final String name;
 
-  GetDriverEvent({
-    required this.name,
-  });
+  GetDriverEvent({required this.name});
 
   String get methodName;
 }
@@ -614,10 +609,7 @@ sealed class GetDriverEvent extends DriverEvent {
 final class GetErrorsEvent extends GetDriverEvent {
   final SomeErrorsResult result;
 
-  GetErrorsEvent({
-    required super.name,
-    required this.result,
-  });
+  GetErrorsEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getErrors';
@@ -627,10 +619,7 @@ final class GetErrorsEvent extends GetDriverEvent {
 final class GetIndexEvent extends GetDriverEvent {
   final AnalysisDriverUnitIndex? result;
 
-  GetIndexEvent({
-    required super.name,
-    required this.result,
-  });
+  GetIndexEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getIndex';
@@ -640,10 +629,7 @@ final class GetIndexEvent extends GetDriverEvent {
 final class GetLibraryByUriEvent extends GetDriverEvent {
   final SomeLibraryElementResult result;
 
-  GetLibraryByUriEvent({
-    required super.name,
-    required this.result,
-  });
+  GetLibraryByUriEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getLibraryByUri';
@@ -653,10 +639,7 @@ final class GetLibraryByUriEvent extends GetDriverEvent {
 final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
-  GetResolvedLibraryByUriEvent({
-    required super.name,
-    required this.result,
-  });
+  GetResolvedLibraryByUriEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedLibraryByUri';
@@ -666,10 +649,7 @@ final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
 final class GetResolvedLibraryEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
-  GetResolvedLibraryEvent({
-    required super.name,
-    required this.result,
-  });
+  GetResolvedLibraryEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedLibrary';
@@ -679,10 +659,7 @@ final class GetResolvedLibraryEvent extends GetDriverEvent {
 final class GetResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult result;
 
-  GetResolvedUnitEvent({
-    required super.name,
-    required this.result,
-  });
+  GetResolvedUnitEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedUnit';
@@ -692,10 +669,7 @@ final class GetResolvedUnitEvent extends GetDriverEvent {
 final class GetUnitElementEvent extends GetDriverEvent {
   final SomeUnitElementResult result;
 
-  GetUnitElementEvent({
-    required super.name,
-    required this.result,
-  });
+  GetUnitElementEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getUnitElement';
@@ -764,8 +738,9 @@ class LibraryManifestPrinter {
     List<MapEntry<LookupName, V>> entries,
   ) {
     return entries.whereNot((entry) {
-      return configuration.ignoredManifestInstanceMemberNames
-          .contains(entry.key.asString);
+      return configuration.ignoredManifestInstanceMemberNames.contains(
+        entry.key.asString,
+      );
     }).toList();
   }
 
@@ -910,27 +885,25 @@ class LibraryManifestPrinter {
         }
 
         if (node.elementIndexList.isNotEmpty) {
-          sink.writeElements(
-            'elementIndexList',
-            node.elementIndexList,
-            (index) {
-              var (kind, rawIndex) = ManifestAstElementKind.decode(index);
-              switch (kind) {
-                case ManifestAstElementKind.null_:
-                  sink.writelnWithIndent('$index = null');
-                case ManifestAstElementKind.dynamic_:
-                  sink.writelnWithIndent('$index = dynamic');
-                case ManifestAstElementKind.formalParameter:
-                  sink.writelnWithIndent('$index = formalParameter $rawIndex');
-                case ManifestAstElementKind.importPrefix:
-                  sink.writelnWithIndent('$index = importPrefix');
-                case ManifestAstElementKind.typeParameter:
-                  sink.writelnWithIndent('$index = typeParameter $rawIndex');
-                case ManifestAstElementKind.regular:
-                  sink.writelnWithIndent('$index = element $rawIndex');
-              }
-            },
-          );
+          sink.writeElements('elementIndexList', node.elementIndexList, (
+            index,
+          ) {
+            var (kind, rawIndex) = ManifestAstElementKind.decode(index);
+            switch (kind) {
+              case ManifestAstElementKind.null_:
+                sink.writelnWithIndent('$index = null');
+              case ManifestAstElementKind.dynamic_:
+                sink.writelnWithIndent('$index = dynamic');
+              case ManifestAstElementKind.formalParameter:
+                sink.writelnWithIndent('$index = formalParameter $rawIndex');
+              case ManifestAstElementKind.importPrefix:
+                sink.writelnWithIndent('$index = importPrefix');
+              case ManifestAstElementKind.typeParameter:
+                sink.writelnWithIndent('$index = typeParameter $rawIndex');
+              case ManifestAstElementKind.regular:
+                sink.writelnWithIndent('$index = element $rawIndex');
+            }
+          });
         }
       });
     }
@@ -1043,16 +1016,10 @@ class LibraryManifestPrinter {
     });
   }
 
-  void _writeTypeParameters(
-    List<ManifestTypeParameter> typeParameters,
-  ) {
-    sink.writeElements(
-      'typeParameters',
-      typeParameters,
-      (typeParameter) {
-        _writeNamedType('bound', typeParameter.bound);
-      },
-    );
+  void _writeTypeParameters(List<ManifestTypeParameter> typeParameters) {
+    sink.writeElements('typeParameters', typeParameters, (typeParameter) {
+      _writeNamedType('bound', typeParameter.bound);
+    });
   }
 }
 
@@ -1188,30 +1155,26 @@ class ResolvedUnitResultPrinter {
       }
 
       var typesToWrite = configuration.typesSelector(result);
-      sink.writeElements(
-        'selectedTypes',
-        typesToWrite.entries.toList(),
-        (entry) {
-          sink.writeIndent();
-          sink.write('${entry.key}: ');
-          elementPrinter.writeType(entry.value);
-        },
-      );
+      sink.writeElements('selectedTypes', typesToWrite.entries.toList(), (
+        entry,
+      ) {
+        sink.writeIndent();
+        sink.write('${entry.key}: ');
+        elementPrinter.writeType(entry.value);
+      });
 
       var variableTypesToWrite = configuration.variableTypesSelector(result);
-      sink.writeElements(
-        'selectedVariableTypes',
-        variableTypesToWrite,
-        (variable) {
-          sink.writeIndent();
-          sink.write('${variable.name3}: ');
-          if (variable is LocalVariableElement2) {
-            elementPrinter.writeType(variable.type);
-          } else if (variable is TopLevelVariableElement2) {
-            elementPrinter.writeType(variable.type);
-          }
-        },
-      );
+      sink.writeElements('selectedVariableTypes', variableTypesToWrite, (
+        variable,
+      ) {
+        sink.writeIndent();
+        sink.write('${variable.name3}: ');
+        if (variable is LocalVariableElement2) {
+          elementPrinter.writeType(variable.type);
+        } else if (variable is TopLevelVariableElement2) {
+          elementPrinter.writeType(variable.type);
+        }
+      });
     });
   }
 }
@@ -1228,9 +1191,7 @@ class ResolvedUnitResultPrinterConfiguration {
 final class ResultStreamEvent extends DriverEvent {
   final Object object;
 
-  ResultStreamEvent({
-    required this.object,
-  });
+  ResultStreamEvent({required this.object});
 }
 
 final class SchedulerStatusEvent extends DriverEvent {
@@ -1251,17 +1212,12 @@ extension on LibraryCycle {
 
 extension<V> on Map<LookupName, V> {
   List<MapEntry<LookupName, V>> get sorted {
-    return entries.sortedByCompare(
-      (entry) => entry.key,
-      LookupName.compare,
-    );
+    return entries.sortedByCompare((entry) => entry.key, LookupName.compare);
   }
 }
 
 extension<V> on Map<Uri, V> {
   List<MapEntry<Uri, V>> get sorted {
-    return entries.sortedBy(
-      (entry) => entry.key.toString(),
-    );
+    return entries.sortedBy((entry) => entry.key.toString());
   }
 }

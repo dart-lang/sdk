@@ -31,9 +31,9 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   ///  3: the error message
   static const AnalysisOptionsErrorCode INCLUDED_FILE_PARSE_ERROR =
       AnalysisOptionsErrorCode(
-    'INCLUDED_FILE_PARSE_ERROR',
-    "{3} in {0}({1}..{2})",
-  );
+        'INCLUDED_FILE_PARSE_ERROR',
+        "{3} in {0}({1}..{2})",
+      );
 
   ///  An error code indicating that there is a syntactic error in the file.
   ///
@@ -53,10 +53,10 @@ class AnalysisOptionsErrorCode extends ErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'AnalysisOptionsErrorCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'AnalysisOptionsErrorCode.${uniqueName ?? name}',
+       );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -72,10 +72,10 @@ class AnalysisOptionsHintCode extends ErrorCode {
   ///  0: the rule name
   static const AnalysisOptionsHintCode DEPRECATED_LINT =
       AnalysisOptionsHintCode(
-    'DEPRECATED_LINT',
-    "'{0}' is a deprecated lint rule and should not be used.",
-    correctionMessage: "Try removing '{0}'.",
-  );
+        'DEPRECATED_LINT',
+        "'{0}' is a deprecated lint rule and should not be used.",
+        correctionMessage: "Try removing '{0}'.",
+      );
 
   ///  A hint code indicating reference to a deprecated lint.
   ///
@@ -84,10 +84,10 @@ class AnalysisOptionsHintCode extends ErrorCode {
   ///  1: the replacing rule name
   static const AnalysisOptionsHintCode DEPRECATED_LINT_WITH_REPLACEMENT =
       AnalysisOptionsHintCode(
-    'DEPRECATED_LINT_WITH_REPLACEMENT',
-    "'{0}' is deprecated and should be replaced by '{1}'.",
-    correctionMessage: "Try replacing '{0}' with '{1}'.",
-  );
+        'DEPRECATED_LINT_WITH_REPLACEMENT',
+        "'{0}' is deprecated and should be replaced by '{1}'.",
+        correctionMessage: "Try replacing '{0}' with '{1}'.",
+      );
 
   ///  Duplicate rules.
   ///
@@ -108,10 +108,10 @@ class AnalysisOptionsHintCode extends ErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'AnalysisOptionsHintCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'AnalysisOptionsHintCode.${uniqueName ?? name}',
+       );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
@@ -128,9 +128,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///
   static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
       AnalysisOptionsWarningCode(
-    'ANALYSIS_OPTION_DEPRECATED',
-    "The option '{0}' is no longer supported.",
-  );
+        'ANALYSIS_OPTION_DEPRECATED',
+        "The option '{0}' is no longer supported.",
+      );
 
   ///  An error code indicating that the given option is deprecated.
   ///
@@ -138,7 +138,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  0: the option name
   ///  1: the replacement option name
   static const AnalysisOptionsWarningCode
-      ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT = AnalysisOptionsWarningCode(
+  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT = AnalysisOptionsWarningCode(
     'ANALYSIS_OPTION_DEPRECATED',
     "The option '{0}' is no longer supported.",
     correctionMessage: "Try using the new '{1}' option.",
@@ -154,9 +154,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  3: the warning message
   static const AnalysisOptionsWarningCode INCLUDED_FILE_WARNING =
       AnalysisOptionsWarningCode(
-    'INCLUDED_FILE_WARNING',
-    "Warning in the included options file {0}({1}..{2}): {3}",
-  );
+        'INCLUDED_FILE_WARNING',
+        "Warning in the included options file {0}({1}..{2}): {3}",
+      );
 
   ///  An error code indicating a specified include file could not be found.
   ///
@@ -166,9 +166,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  2: the path of the context being analyzed
   static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =
       AnalysisOptionsWarningCode(
-    'INCLUDE_FILE_NOT_FOUND',
-    "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
-  );
+        'INCLUDE_FILE_NOT_FOUND',
+        "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
+      );
 
   ///  An error code indicating an incompatible rule.
   ///
@@ -177,10 +177,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  1: the incompatible rule
   static const AnalysisOptionsWarningCode INCOMPATIBLE_LINT =
       AnalysisOptionsWarningCode(
-    'INCOMPATIBLE_LINT',
-    "The rule '{0}' is incompatible with the rule '{1}'.",
-    correctionMessage: "Try removing one of the incompatible rules.",
-  );
+        'INCOMPATIBLE_LINT',
+        "The rule '{0}' is incompatible with the rule '{1}'.",
+        correctionMessage: "Try removing one of the incompatible rules.",
+      );
 
   ///  An error code indicating that a plugin is being configured with an invalid
   ///  value for an option and a detail message is provided.
@@ -190,9 +190,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  1: the detail message
   static const AnalysisOptionsWarningCode INVALID_OPTION =
       AnalysisOptionsWarningCode(
-    'INVALID_OPTION',
-    "Invalid option specified for '{0}': {1}",
-  );
+        'INVALID_OPTION',
+        "Invalid option specified for '{0}': {1}",
+      );
 
   ///  An error code indicating an invalid format for an options file section.
   ///
@@ -200,9 +200,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  0: the section name
   static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
       AnalysisOptionsWarningCode(
-    'INVALID_SECTION_FORMAT',
-    "Invalid format for the '{0}' section.",
-  );
+        'INVALID_SECTION_FORMAT',
+        "Invalid format for the '{0}' section.",
+      );
 
   ///  An error code indicating multiple plugins have been specified as enabled.
   ///
@@ -210,10 +210,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  0: the name of the first plugin
   static const AnalysisOptionsWarningCode MULTIPLE_PLUGINS =
       AnalysisOptionsWarningCode(
-    'MULTIPLE_PLUGINS',
-    "Multiple plugins can't be enabled.",
-    correctionMessage: "Remove all plugins following the first, '{0}'.",
-  );
+        'MULTIPLE_PLUGINS',
+        "Multiple plugins can't be enabled.",
+        correctionMessage: "Remove all plugins following the first, '{0}'.",
+      );
 
   ///  An error code indicating a specified include file includes itself recursively.
   ///
@@ -222,11 +222,11 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  1: the path of the file containing the include directive
   static const AnalysisOptionsWarningCode RECURSIVE_INCLUDE_FILE =
       AnalysisOptionsWarningCode(
-    'RECURSIVE_INCLUDE_FILE',
-    "The include file '{0}' in '{1}' includes itself recursively.",
-    correctionMessage:
-        "Try changing the chain of 'include's to not re-include this file.",
-  );
+        'RECURSIVE_INCLUDE_FILE',
+        "The include file '{0}' in '{1}' includes itself recursively.",
+        correctionMessage:
+            "Try changing the chain of 'include's to not re-include this file.",
+      );
 
   ///  An error code indicating a removed lint rule.
   ///
@@ -235,10 +235,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  1: the SDK version in which the lint was removed
   static const AnalysisOptionsWarningCode REMOVED_LINT =
       AnalysisOptionsWarningCode(
-    'REMOVED_LINT',
-    "'{0}' was removed in Dart '{1}'",
-    correctionMessage: "Remove the reference to '{0}'.",
-  );
+        'REMOVED_LINT',
+        "'{0}' was removed in Dart '{1}'",
+        correctionMessage: "Remove the reference to '{0}'.",
+      );
 
   ///  An error code indicating a removed lint rule.
   ///
@@ -248,10 +248,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  2: the name of a replacing lint
   static const AnalysisOptionsWarningCode REPLACED_LINT =
       AnalysisOptionsWarningCode(
-    'REPLACED_LINT',
-    "'{0}' was replaced by '{2}' in Dart '{1}'.",
-    correctionMessage: "Replace '{0}' with '{1}'.",
-  );
+        'REPLACED_LINT',
+        "'{0}' was replaced by '{2}' in Dart '{1}'.",
+        correctionMessage: "Replace '{0}' with '{1}'.",
+      );
 
   ///  An error code indicating an undefined lint rule.
   ///
@@ -259,10 +259,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  0: the rule name
   static const AnalysisOptionsWarningCode UNDEFINED_LINT =
       AnalysisOptionsWarningCode(
-    'UNDEFINED_LINT',
-    "'{0}' is not a recognized lint rule.",
-    correctionMessage: "Try using the name of a recognized lint rule.",
-  );
+        'UNDEFINED_LINT',
+        "'{0}' is not a recognized lint rule.",
+        correctionMessage: "Try using the name of a recognized lint rule.",
+      );
 
   ///  An error code indicating that an unrecognized error code is being used to
   ///  specify an error filter.
@@ -271,9 +271,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  0: the unrecognized error code
   static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
       AnalysisOptionsWarningCode(
-    'UNRECOGNIZED_ERROR_CODE',
-    "'{0}' isn't a recognized error code.",
-  );
+        'UNRECOGNIZED_ERROR_CODE',
+        "'{0}' isn't a recognized error code.",
+      );
 
   ///  An error code indicating that a plugin is being configured with an
   ///  unsupported option and legal options are provided.
@@ -283,9 +283,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  1: the unsupported option key
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITHOUT_VALUES =
       AnalysisOptionsWarningCode(
-    'UNSUPPORTED_OPTION_WITHOUT_VALUES',
-    "The option '{1}' isn't supported by '{0}'.",
-  );
+        'UNSUPPORTED_OPTION_WITHOUT_VALUES',
+        "The option '{1}' isn't supported by '{0}'.",
+      );
 
   ///  An error code indicating that a YAML section is being configured with an
   ///  unsupported option where there is just one legal value.
@@ -294,8 +294,8 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  0: the section name
   ///  1: the unsupported option key
   ///  2: the legal value
-  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUE =
-      AnalysisOptionsWarningCode(
+  static const AnalysisOptionsWarningCode
+  UNSUPPORTED_OPTION_WITH_LEGAL_VALUE = AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
     "The option '{1}' isn't supported by '{0}'. Try using the only supported "
         "option: '{2}'.",
@@ -310,10 +310,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  2: legal values
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
       AnalysisOptionsWarningCode(
-    'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
-    "The option '{1}' isn't supported by '{0}'.",
-    correctionMessage: "Try using one of the supported options: {2}.",
-  );
+        'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+        "The option '{1}' isn't supported by '{0}'.",
+        correctionMessage: "Try using one of the supported options: {2}.",
+      );
 
   ///  An error code indicating that an option entry is being configured with an
   ///  unsupported value.
@@ -324,10 +324,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  2: legal values
   static const AnalysisOptionsWarningCode UNSUPPORTED_VALUE =
       AnalysisOptionsWarningCode(
-    'UNSUPPORTED_VALUE',
-    "The value '{1}' isn't supported by '{0}'.",
-    correctionMessage: "Try using one of the supported options: {2}.",
-  );
+        'UNSUPPORTED_VALUE',
+        "The value '{1}' isn't supported by '{0}'.",
+        correctionMessage: "Try using one of the supported options: {2}.",
+      );
 
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsWarningCode(
@@ -338,10 +338,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'AnalysisOptionsWarningCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'AnalysisOptionsWarningCode.${uniqueName ?? name}',
+       );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;

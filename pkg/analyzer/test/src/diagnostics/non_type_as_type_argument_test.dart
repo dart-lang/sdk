@@ -43,21 +43,23 @@ A doOption<A>(
   }
 
   test_notAType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int A = 0;
 class B<E> {}
 f(B<A> b) {}
-''', [
-      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 29, 1)],
+    );
   }
 
   test_undefinedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class B<E> {}
 f(B<A> b) {}
-''', [
-      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1)],
+    );
   }
 }

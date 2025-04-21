@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class IsExpressionResolutionTest extends PubPackageResolutionTest {
   test_expression_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   void f() {
     super is T;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5)],
+    );
 
     var node = findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''

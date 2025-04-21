@@ -18,21 +18,23 @@ class ExpectedTwoMapTypeArgumentsTest extends PubPackageResolutionTest {
   test_three_type_arguments_ambiguous() async {
     // TODO(brianwilkerson): We probably need a new error code for "expected
     //  either one or two type arguments" to handle the ambiguous case.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   <int, int, int>{};
-}''', [
-      error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15)],
+    );
   }
 
   test_three_type_arguments_map() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   <int, int, int>{1: 2};
-}''', [
-      error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15)],
+    );
   }
 
   test_two_type_arguments() async {

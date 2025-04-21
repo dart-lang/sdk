@@ -26,7 +26,9 @@ class AnnotationResolver {
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   void resolve(
-      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedArguments) {
+    AnnotationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments,
+  ) {
     node.typeArguments?.accept(_resolver);
     _resolve(node, whyNotPromotedArguments);
   }
@@ -84,17 +86,21 @@ class AnnotationResolver {
 
     if (getterName != null && getter is PropertyAccessorElement2) {
       _propertyAccessorElement(
-          node, getterName, getter, whyNotPromotedArguments);
+        node,
+        getterName,
+        getter,
+        whyNotPromotedArguments,
+      );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement2) {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.INVALID_ANNOTATION,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
-    _visitArguments(node, whyNotPromotedArguments,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting);
+    _visitArguments(
+      node,
+      whyNotPromotedArguments,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+    );
   }
 
   void _constructorInvocation(
@@ -111,18 +117,15 @@ class AnnotationResolver {
     node.element2 = constructorElement;
 
     if (constructorElement == null) {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.INVALID_ANNOTATION,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
       AnnotationInferrer(
-              resolver: _resolver,
-              node: node,
-              argumentList: argumentList,
-              contextType: UnknownInferredType.instance,
-              whyNotPromotedArguments: whyNotPromotedArguments,
-              constructorName: constructorName)
-          .resolveInvocation(rawType: null);
+        resolver: _resolver,
+        node: node,
+        argumentList: argumentList,
+        contextType: UnknownInferredType.instance,
+        whyNotPromotedArguments: whyNotPromotedArguments,
+        constructorName: constructorName,
+      ).resolveInvocation(rawType: null);
       return;
     }
 
@@ -133,16 +136,17 @@ class AnnotationResolver {
     var constructorRawType = elementToInfer.asType;
 
     AnnotationInferrer(
-            resolver: _resolver,
-            node: node,
-            argumentList: argumentList,
-            contextType: UnknownInferredType.instance,
-            whyNotPromotedArguments: whyNotPromotedArguments,
-            constructorName: constructorName)
-        .resolveInvocation(
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `ConstructorElementToInfer.asType`.
-            rawType: constructorRawType as FunctionTypeImpl);
+      resolver: _resolver,
+      node: node,
+      argumentList: argumentList,
+      contextType: UnknownInferredType.instance,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      constructorName: constructorName,
+    ).resolveInvocation(
+      // TODO(paulberry): eliminate this cast by changing the type of
+      // `ConstructorElementToInfer.asType`.
+      rawType: constructorRawType as FunctionTypeImpl,
+    );
   }
 
   void _extensionGetter(
@@ -161,17 +165,21 @@ class AnnotationResolver {
 
     if (getterName != null && getter is PropertyAccessorElement2) {
       _propertyAccessorElement(
-          node, getterName, getter, whyNotPromotedArguments);
+        node,
+        getterName,
+        getter,
+        whyNotPromotedArguments,
+      );
       _resolveAnnotationElementGetter(node, getter);
     } else {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.INVALID_ANNOTATION,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
-    _visitArguments(node, whyNotPromotedArguments,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting);
+    _visitArguments(
+      node,
+      whyNotPromotedArguments,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+    );
   }
 
   void _localVariable(
@@ -180,14 +188,14 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     if (!element.isConst || node.arguments != null) {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.INVALID_ANNOTATION,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
-    _visitArguments(node, whyNotPromotedArguments,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting);
+    _visitArguments(
+      node,
+      whyNotPromotedArguments,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+    );
   }
 
   void _propertyAccessorElement(
@@ -200,12 +208,17 @@ class AnnotationResolver {
     node.element2 = element;
 
     _resolveAnnotationElementGetter(node, element);
-    _visitArguments(node, whyNotPromotedArguments,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting);
+    _visitArguments(
+      node,
+      whyNotPromotedArguments,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+    );
   }
 
   void _resolve(
-      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedArguments) {
+    AnnotationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments,
+  ) {
     SimpleIdentifierImpl name1;
     SimpleIdentifierImpl? name2;
     SimpleIdentifierImpl? name3;
@@ -229,8 +242,11 @@ class AnnotationResolver {
         CompileTimeErrorCode.UNDEFINED_ANNOTATION,
         arguments: [name1.name],
       );
-      _visitArguments(node, whyNotPromotedArguments,
-          dataForTesting: _resolver.inferenceHelper.dataForTesting);
+      _visitArguments(
+        node,
+        whyNotPromotedArguments,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      );
       return;
     }
 
@@ -238,7 +254,12 @@ class AnnotationResolver {
     if (element1 is InterfaceElementImpl2) {
       if (argumentList != null) {
         _classConstructorInvocation(
-            node, element1, name2, argumentList, whyNotPromotedArguments);
+          node,
+          element1,
+          name2,
+          argumentList,
+          whyNotPromotedArguments,
+        );
       } else {
         _classGetter(node, element1, name2, whyNotPromotedArguments);
       }
@@ -260,7 +281,12 @@ class AnnotationResolver {
         if (element is InterfaceElementImpl2) {
           if (element is ClassElement2 && argumentList != null) {
             _classConstructorInvocation(
-                node, element, name3, argumentList, whyNotPromotedArguments);
+              node,
+              element,
+              name3,
+              argumentList,
+              whyNotPromotedArguments,
+            );
           } else {
             _classGetter(node, element, name3, whyNotPromotedArguments);
           }
@@ -274,7 +300,11 @@ class AnnotationResolver {
         // prefix.CONST
         if (element is PropertyAccessorElement2) {
           _propertyAccessorElement(
-              node, name2, element, whyNotPromotedArguments);
+            node,
+            name2,
+            element,
+            whyNotPromotedArguments,
+          );
           return;
         }
 
@@ -283,9 +313,15 @@ class AnnotationResolver {
           var aliasedType = element.aliasedType;
           var argumentList = node.arguments;
           if (aliasedType is InterfaceTypeImpl && argumentList != null) {
-            _typeAliasConstructorInvocation(node, element, name3, aliasedType,
-                argumentList, whyNotPromotedArguments,
-                dataForTesting: _resolver.inferenceHelper.dataForTesting);
+            _typeAliasConstructorInvocation(
+              node,
+              element,
+              name3,
+              aliasedType,
+              argumentList,
+              whyNotPromotedArguments,
+              dataForTesting: _resolver.inferenceHelper.dataForTesting,
+            );
           } else {
             _typeAliasGetter(node, element, name3, whyNotPromotedArguments);
           }
@@ -298,8 +334,11 @@ class AnnotationResolver {
             CompileTimeErrorCode.UNDEFINED_ANNOTATION,
             arguments: [name2.name],
           );
-          _visitArguments(node, whyNotPromotedArguments,
-              dataForTesting: _resolver.inferenceHelper.dataForTesting);
+          _visitArguments(
+            node,
+            whyNotPromotedArguments,
+            dataForTesting: _resolver.inferenceHelper.dataForTesting,
+          );
           return;
         }
       }
@@ -316,9 +355,15 @@ class AnnotationResolver {
       var aliasedType = element1.aliasedType;
       var argumentList = node.arguments;
       if (aliasedType is InterfaceTypeImpl && argumentList != null) {
-        _typeAliasConstructorInvocation(node, element1, name2, aliasedType,
-            argumentList, whyNotPromotedArguments,
-            dataForTesting: _resolver.inferenceHelper.dataForTesting);
+        _typeAliasConstructorInvocation(
+          node,
+          element1,
+          name2,
+          aliasedType,
+          argumentList,
+          whyNotPromotedArguments,
+          dataForTesting: _resolver.inferenceHelper.dataForTesting,
+        );
       } else {
         _typeAliasGetter(node, element1, name2, whyNotPromotedArguments);
       }
@@ -330,17 +375,19 @@ class AnnotationResolver {
       return;
     }
 
-    _errorReporter.atNode(
-      node,
-      CompileTimeErrorCode.INVALID_ANNOTATION,
-    );
+    _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
 
-    _visitArguments(node, whyNotPromotedArguments,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting);
+    _visitArguments(
+      node,
+      whyNotPromotedArguments,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+    );
   }
 
   void _resolveAnnotationElementGetter(
-      Annotation annotation, PropertyAccessorElement2 accessorElement) {
+    Annotation annotation,
+    PropertyAccessorElement2 accessorElement,
+  ) {
     // The accessor should be synthetic, the variable should be constant, and
     // there should be no arguments.
     var variableElement = accessorElement.variable3;
@@ -359,13 +406,14 @@ class AnnotationResolver {
   }
 
   void _typeAliasConstructorInvocation(
-      AnnotationImpl node,
-      TypeAliasElementImpl2 typeAliasElement,
-      SimpleIdentifierImpl? constructorName,
-      InterfaceTypeImpl aliasedType,
-      ArgumentListImpl argumentList,
-      List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
+    AnnotationImpl node,
+    TypeAliasElementImpl2 typeAliasElement,
+    SimpleIdentifierImpl? constructorName,
+    InterfaceTypeImpl aliasedType,
+    ArgumentListImpl argumentList,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+  }) {
     var constructorElement = aliasedType.lookUpConstructor2(
       constructorName?.name,
       _definingLibrary,
@@ -380,9 +428,10 @@ class AnnotationResolver {
       argumentList,
       (typeArguments) {
         return typeAliasElement.instantiateImpl(
-          typeArguments: typeArguments,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ) as InterfaceType;
+              typeArguments: typeArguments,
+              nullabilitySuffix: NullabilitySuffix.none,
+            )
+            as InterfaceType;
       },
       whyNotPromotedArguments,
     );
@@ -408,32 +457,38 @@ class AnnotationResolver {
 
     if (getterName != null && getter is PropertyAccessorElement2) {
       _propertyAccessorElement(
-          node, getterName, getter, whyNotPromotedArguments);
+        node,
+        getterName,
+        getter,
+        whyNotPromotedArguments,
+      );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement2) {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.INVALID_ANNOTATION,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
-    _visitArguments(node, whyNotPromotedArguments,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting);
+    _visitArguments(
+      node,
+      whyNotPromotedArguments,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+    );
   }
 
   void _visitArguments(
-      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedArguments,
-      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
+    AnnotationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+  }) {
     var arguments = node.arguments;
     if (arguments != null) {
       AnnotationInferrer(
-              resolver: _resolver,
-              node: node,
-              argumentList: arguments,
-              contextType: UnknownInferredType.instance,
-              whyNotPromotedArguments: whyNotPromotedArguments,
-              constructorName: null)
-          .resolveInvocation(rawType: null);
+        resolver: _resolver,
+        node: node,
+        argumentList: arguments,
+        contextType: UnknownInferredType.instance,
+        whyNotPromotedArguments: whyNotPromotedArguments,
+        constructorName: null,
+      ).resolveInvocation(rawType: null);
     }
   }
 }

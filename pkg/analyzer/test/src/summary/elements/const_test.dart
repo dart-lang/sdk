@@ -511,10 +511,7 @@ library
     var x = library.definingCompilationUnit.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
     var xType = xExpr.constructorName.element!.returnType;
-    _assertTypeStr(
-      xType,
-      'C<int>',
-    );
+    _assertTypeStr(xType, 'C<int>');
     var y = library.definingCompilationUnit.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
     var yType = yExpr.constructorName.element!.returnType;

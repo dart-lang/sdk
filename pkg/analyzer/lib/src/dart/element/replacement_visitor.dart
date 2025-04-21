@@ -175,11 +175,12 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] = typeParameter.freshCopy()
-            ..bound =
-                // TODO(paulberry): eliminate this cast by changing the return
-                // type of `visitTypeParameterBound`.
-                newBound as TypeImpl;
+          newTypeParameters[i] =
+              typeParameter.freshCopy()
+                ..bound =
+                    // TODO(paulberry): eliminate this cast by changing the return
+                    // type of `visitTypeParameterBound`.
+                    newBound as TypeImpl;
         }
       }
     }
@@ -252,10 +253,7 @@ class ReplacementVisitor
 
       if (newType != null || newKind != null) {
         newParameters ??= node.formalParameters.toList(growable: false);
-        newParameters[i] = parameter.copyWith(
-          type: newType,
-          kind: newKind,
-        );
+        newParameters[i] = parameter.copyWith(type: newType, kind: newKind);
       }
     }
 
@@ -283,11 +281,12 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] = typeParameter.freshCopy()
-            ..bound =
-                // TODO(paulberry): eliminate this cast by changing the return
-                // type of `visitTypeParameterBound`.
-                newBound as TypeImpl;
+          newTypeParameters[i] =
+              typeParameter.freshCopy()
+                ..bound =
+                    // TODO(paulberry): eliminate this cast by changing the return
+                    // type of `visitTypeParameterBound`.
+                    newBound as TypeImpl;
         }
       }
     }
@@ -419,10 +418,7 @@ class ReplacementVisitor
   TypeImpl? visitNeverType(covariant NeverTypeImpl type) {
     var newNullability = visitNullability(type);
 
-    return createNeverType(
-      type: type,
-      newNullability: newNullability,
-    );
+    return createNeverType(type: type, newNullability: newNullability);
   }
 
   NullabilitySuffix? visitNullability(DartType type) {
@@ -459,9 +455,7 @@ class ReplacementVisitor
       var newType = field.type.accept(this);
       if (newType != null) {
         newPositionalFields ??= positionalFields.toList(growable: false);
-        newPositionalFields[i] = RecordTypePositionalFieldImpl(
-          type: newType,
-        );
+        newPositionalFields[i] = RecordTypePositionalFieldImpl(type: newType);
       }
     }
 
@@ -548,10 +542,7 @@ class ReplacementVisitor
       );
     }
 
-    return createTypeParameterType(
-      type: type,
-      newNullability: newNullability,
-    );
+    return createTypeParameterType(type: type, newNullability: newNullability);
   }
 
   @override

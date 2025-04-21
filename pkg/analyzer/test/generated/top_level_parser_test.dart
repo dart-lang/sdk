@@ -28,32 +28,32 @@ class TopLevelParserTest extends FastaParserTestCase {
   }
 
   void
-      test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
+  test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
     parseCompilationUnit("class C { C() : a = f(() {}); }");
   }
 
   void
-      test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
+  test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
     parseCompilationUnit("class C { C() : a = x[() {}]; }");
   }
 
   void
-      test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
+  test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
     parseCompilationUnit("class C { C() : a = [() {}]; }");
   }
 
   void
-      test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
+  test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
     parseCompilationUnit("class C { C() : a = {'key': () {}}; }");
   }
 
   void
-      test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
+  test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
     parseCompilationUnit("class C { C() : a = (() {}); }");
   }
 
   void
-      test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
+  test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
     parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
   }
 
@@ -63,7 +63,8 @@ class TopLevelParserTest extends FastaParserTestCase {
 
   void test_import_show_hide() {
     parseCompilationUnit(
-        "import 'import1_lib.dart' show hide, show hide ugly;");
+      "import 'import1_lib.dart' show hide, show hide ugly;",
+    );
   }
 
   void test_import_withDocComment() {
@@ -77,12 +78,14 @@ class TopLevelParserTest extends FastaParserTestCase {
 
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 2),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
-    ]);
+    assertErrors(
+      errors: [
+        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 2),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
+      ],
+    );
 
     expect(member, isTopLevelVariableDeclaration);
     var declaration = member as TopLevelVariableDeclaration;
@@ -438,8 +441,10 @@ class A native 'something' {
   }
 
   void test_parseClassDeclaration_typeParameters_extends_void() {
-    parseCompilationUnit('class C<T extends void>{}',
-        errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4)]);
+    parseCompilationUnit(
+      'class C<T extends void>{}',
+      errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4)],
+    );
   }
 
   void test_parseClassDeclaration_withDocumentationComment() {
@@ -460,8 +465,9 @@ class A native 'something' {
     // reported by the parser.
     errorCodes.add(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
     CompilationUnit unit = parseCompilationUnit(
-        'abstract<dynamic> _abstract = new abstract.A();',
-        codes: errorCodes);
+      'abstract<dynamic> _abstract = new abstract.A();',
+      codes: errorCodes,
+    );
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -735,7 +741,7 @@ class A native 'something' {
   }
 
   void
-      test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
+  test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
     createParser('f<@a E>() {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
@@ -1252,16 +1258,18 @@ Function(int, String) v;
   }
 
   void test_parseDirectives_annotations() {
-    CompilationUnit unit =
-        parseDirectives("@A library l; @B import 'foo.dart';");
+    CompilationUnit unit = parseDirectives(
+      "@A library l; @B import 'foo.dart';",
+    );
     expect(unit.directives, hasLength(2));
     expect(unit.directives[0].metadata[0].name.name, 'A');
     expect(unit.directives[1].metadata[0].name.name, 'B');
   }
 
   void test_parseDirectives_complete() {
-    CompilationUnit unit =
-        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+    CompilationUnit unit = parseDirectives(
+      "#! /bin/dart\nlibrary l;\nclass A {}",
+    );
     expect(unit.scriptTag, isNotNull);
     expect(unit.directives, hasLength(1));
   }
@@ -1273,8 +1281,9 @@ Function(int, String) v;
   }
 
   void test_parseDirectives_mixed() {
-    CompilationUnit unit =
-        parseDirectives("library l; class A {} part 'foo.dart';");
+    CompilationUnit unit = parseDirectives(
+      "library l; class A {} part 'foo.dart';",
+    );
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(1));
   }
@@ -1505,7 +1514,8 @@ enum E {
 
   void test_parseFunctionDeclaration_metadata() {
     createParser(
-        'T f(@A a, @B(2) Foo b, {@C.foo(3) c : 0, @d.E.bar(4, 5) x:0}) {}');
+      'T f(@A a, @B(2) Foo b, {@C.foo(3) c : 0, @d.E.bar(4, 5) x:0}) {}',
+    );
     var declaration = parseFullCompilationUnitMember() as FunctionDeclaration;
     expect(declaration, isNotNull);
     assertNoErrors();
@@ -1668,7 +1678,8 @@ enum E {
 
   void test_parseGenericTypeAlias_typeParameters_extends3() {
     createParser(
-        'typedef F<A,B,C extends D<E,G,H>> = Function(A a, B b, C c);');
+      'typedef F<A,B,C extends D<E,G,H>> = Function(A a, B b, C c);',
+    );
     var alias = parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
     assertNoErrors();
@@ -1724,9 +1735,9 @@ enum E {
     GenericTypeAlias alias =
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1)],
+    );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
     expect(alias.typeParameters, isNotNull);
@@ -1742,9 +1753,9 @@ enum E {
     GenericTypeAlias alias =
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 2),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 2)],
+    );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
     expect(alias.typeParameters, isNotNull);
@@ -1760,9 +1771,9 @@ enum E {
     GenericTypeAlias alias =
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 1),
-    ]);
+    assertErrors(
+      errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 1)],
+    );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
     expect(alias.typeParameters, isNotNull);
@@ -2135,24 +2146,28 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_external_late() {
-    var unit = parseCompilationUnit('external late int? i;', errors: [
-      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
-    ]);
+    var unit = parseCompilationUnit(
+      'external late int? i;',
+      errors: [expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8)],
+    );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
   }
 
   void test_parseTopLevelVariable_external_late_final() {
-    var unit = parseCompilationUnit('external late final int? i;', errors: [
-      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
-    ]);
+    var unit = parseCompilationUnit(
+      'external late final int? i;',
+      errors: [expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8)],
+    );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
   }
 
   void test_parseTopLevelVariable_final_late() {
-    var unit = parseCompilationUnit('final late a;',
-        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
+    var unit = parseCompilationUnit(
+      'final late a;',
+      errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)],
+    );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword!.lexeme, 'final');
@@ -2161,9 +2176,12 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late() {
-    var unit = parseCompilationUnit('late a;', errors: [
-      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
-    ]);
+    var unit = parseCompilationUnit(
+      'late a;',
+      errors: [
+        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1),
+      ],
+    );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword, isNull);
@@ -2181,9 +2199,12 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late_init() {
-    var unit = parseCompilationUnit('late a = 0;', errors: [
-      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
-    ]);
+    var unit = parseCompilationUnit(
+      'late a = 0;',
+      errors: [
+        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1),
+      ],
+    );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword, isNull);
@@ -2398,7 +2419,7 @@ mixin A {
   }
 
   void
-      test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType() {
+  test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType() {
     createParser('typedef F<T> = A<B> Function();');
     var typeAlias = parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(typeAlias, isNotNull);

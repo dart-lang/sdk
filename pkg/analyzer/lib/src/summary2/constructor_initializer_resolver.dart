@@ -43,8 +43,10 @@ class ConstructorInitializerResolver {
       if (node is! ConstructorDeclarationImpl) return;
 
       var constructorScope = LinkingNodeContext.get(node).scope;
-      var initializerScope =
-          ConstructorInitializerScope(constructorScope, element);
+      var initializerScope = ConstructorInitializerScope(
+        constructorScope,
+        element,
+      );
 
       var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver = AstResolver(

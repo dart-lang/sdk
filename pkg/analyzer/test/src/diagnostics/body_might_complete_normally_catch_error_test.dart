@@ -35,33 +35,36 @@ void f(Future<FutureOr<void>> future) {
   }
 
   test_noReturn_namedBeforePositional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future) {
   future.catchError(test: (_) => false, (e, st) {});
 }
-''', [
-      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 77, 1),
-    ]);
+''',
+      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 77, 1)],
+    );
   }
 
   test_noReturn_nonNullableReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future) {
   future.catchError((e, st) {});
 }
-''', [
-      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 57, 1),
-    ]);
+''',
+      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 57, 1)],
+    );
   }
 
   test_noReturn_nullableReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int?> future) {
   future.catchError((e, st) {});
 }
-''', [
-      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 58, 1),
-    ]);
+''',
+      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR, 58, 1)],
+    );
   }
 
   test_noReturn_nullReturnType() async {

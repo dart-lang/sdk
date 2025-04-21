@@ -85,15 +85,16 @@ LabeledStatement
   }
 
   test_break_label_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   while (true) {
     break L;
   }
 }
-''', [
-      error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1)],
+    );
 
     var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
@@ -119,16 +120,19 @@ WhileStatement
   }
 
   test_condition_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void f() {
     while (super) {}
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 34, 5),
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 34, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 34, 5),
+        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 34, 5),
+      ],
+    );
 
     var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
@@ -214,15 +218,16 @@ LabeledStatement
   }
 
   test_continue_label_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   while (true) {
     continue L;
   }
 }
-''', [
-      error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1)],
+    );
 
     var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''

@@ -20,9 +20,7 @@ const Set<String> _nonSubtypableClassNames = {
   ..._nonSubtypableDartTypedDataClassNames,
 };
 
-const Set<String> _nonSubtypableDartAsyncClassNames = {
-  'FutureOr',
-};
+const Set<String> _nonSubtypableDartAsyncClassNames = {'FutureOr'};
 
 const Set<String> _nonSubtypableDartCoreClassNames = {
   'bool',
@@ -156,8 +154,8 @@ class TypeProviderImpl extends TypeProviderBase {
   TypeProviderImpl({
     required LibraryElementImpl coreLibrary,
     required LibraryElementImpl asyncLibrary,
-  })  : _coreLibrary = coreLibrary,
-        _asyncLibrary = asyncLibrary;
+  }) : _coreLibrary = coreLibrary,
+       _asyncLibrary = asyncLibrary;
 
   @override
   ClassElementImpl2 get boolElement2 {
@@ -202,8 +200,10 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  InterfaceTypeImpl get doubleTypeQuestion => _doubleTypeQuestion ??=
-      doubleType.withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get doubleTypeQuestion =>
+      _doubleTypeQuestion ??= doubleType.withNullability(
+        NullabilitySuffix.question,
+      );
 
   @override
   TypeImpl get dynamicType => DynamicTypeImpl.instance;

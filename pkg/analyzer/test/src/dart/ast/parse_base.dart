@@ -28,11 +28,10 @@ class ParseBase with ResourceProviderMixin {
     var errorListener = RecordingErrorListener();
 
     var reader = CharSequenceReader(content);
-    var scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
+    var scanner = Scanner(source, reader, errorListener)..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
 
     var token = scanner.tokenize();
     var lineInfo = LineInfo(scanner.lineStarts);

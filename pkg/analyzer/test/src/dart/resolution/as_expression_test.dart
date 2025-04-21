@@ -17,12 +17,13 @@ main() {
 @reflectiveTest
 class AsExpressionResolutionTest extends PubPackageResolutionTest {
   test_expression_constVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const num a = 1.2;
 const int b = a as int;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 33, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 33, 8)],
+    );
 
     var node = findNode.asExpression('as int');
     assertResolvedNodeText(node, r'''
@@ -65,15 +66,16 @@ AsExpression
   }
 
   test_expression_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   void f() {
     super as T;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5)],
+    );
 
     var node = findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''

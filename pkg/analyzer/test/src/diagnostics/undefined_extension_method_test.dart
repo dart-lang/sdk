@@ -27,14 +27,15 @@ f() {
   }
 
   test_method_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {}
 f() {
   E('a').m();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1)],
+    );
 
     var node = findNode.methodInvocation('m();');
     assertResolvedNodeText(node, r'''
@@ -64,22 +65,24 @@ MethodInvocation
   }
 
   test_static_withInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on Object {}
 var a = E.m();
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 35, 1)],
+    );
   }
 
   test_static_withoutInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on Object {}
 void f() {
   E.m();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1)],
+    );
   }
 }

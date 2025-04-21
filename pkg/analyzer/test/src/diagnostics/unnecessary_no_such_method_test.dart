@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class UnnecessaryNoSuchMethodTest extends PubPackageResolutionTest {
   test_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -26,9 +27,9 @@ class B extends A {
     return super.noSuchMethod(y);
   }
 }
-''', [
-      error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12)],
+    );
   }
 
   test_blockBody_notReturnStatement() async {
@@ -61,7 +62,8 @@ class B extends A {
   }
 
   test_expressionBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -69,9 +71,9 @@ class B extends A {
   mmm();
   noSuchMethod(y) => super.noSuchMethod(y);
 }
-''', [
-      error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NO_SUCH_METHOD, 87, 12)],
+    );
   }
 
   test_expressionBody_notNoSuchMethod() async {

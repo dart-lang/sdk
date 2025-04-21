@@ -133,14 +133,16 @@ class InheritanceOverrideVerifier {
   /// Returns [ExecutableElement2] members that are in the interface of the
   /// given class with `@mustBeOverridden`, but don't have implementations.
   static List<ExecutableElement2> missingMustBeOverridden(
-      NamedCompilationUnitMember node) {
+    NamedCompilationUnitMember node,
+  ) {
     return _missingMustBeOverridden[node.name] ?? const [];
   }
 
   /// Returns [ExecutableElement2] members that are in the interface of the
   /// given class, but don't have concrete implementations.
   static List<ExecutableElement2> missingOverrides(
-      NamedCompilationUnitMember node) {
+    NamedCompilationUnitMember node,
+  ) {
     return _missingOverrides[node.name] ?? const [];
   }
 }
@@ -165,8 +167,8 @@ class _ClassVerifier {
 
   final List<InterfaceType> directSuperInterfaces = [];
 
-  late final bool implementsDartCoreEnum =
-      classElement.element.allSupertypes.any((e) => e.isDartCoreEnum);
+  late final bool implementsDartCoreEnum = classElement.element.allSupertypes
+      .any((e) => e.isDartCoreEnum);
 
   _ClassVerifier({
     required this.typeSystem,
@@ -250,9 +252,15 @@ class _ClassVerifier {
         for (var field in fieldList.variables) {
           var fieldElement = field.declaredFragment! as FieldElementImpl;
           _checkDeclaredMember(
-              field.name, libraryUri, fieldElement.getter?.asElement2);
+            field.name,
+            libraryUri,
+            fieldElement.getter?.asElement2,
+          );
           _checkDeclaredMember(
-              field.name, libraryUri, fieldElement.setter?.asElement2);
+            field.name,
+            libraryUri,
+            fieldElement.setter?.asElement2,
+          );
           if (!member.isStatic && firstFragment is! EnumElementImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
@@ -267,8 +275,11 @@ class _ClassVerifier {
         }
 
         _checkDeclaredMember(
-            member.name, libraryUri, member.declaredFragment!.asElement2,
-            methodParameterNodes: member.parameters?.parameters);
+          member.name,
+          libraryUri,
+          member.declaredFragment!.asElement2,
+          methodParameterNodes: member.parameters?.parameters,
+        );
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
@@ -343,9 +354,10 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameToken,
-          errorCode: concreteElement is SetterElement2OrMember
-              ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
-              : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
+          errorCode:
+              concreteElement is SetterElement2OrMember
+                  ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
+                  : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
 
@@ -393,26 +405,30 @@ class _ClassVerifier {
       }
 
       correctOverrideHelper.verify(
-          superMember: superMember.asElement2,
-          errorReporter: reporter,
-          errorNode: node,
-          errorCode: member is SetterElement
-              ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
-              : CompileTimeErrorCode.INVALID_OVERRIDE);
+        superMember: superMember.asElement2,
+        errorReporter: reporter,
+        errorNode: node,
+        errorCode:
+            member is SetterElement
+                ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
+                : CompileTimeErrorCode.INVALID_OVERRIDE,
+      );
     }
 
     if (mixinIndex == -1) {
-      CovariantParametersVerifier(thisMember: member).verify(
-        errorReporter: reporter,
-        errorEntity: node,
-      );
+      CovariantParametersVerifier(
+        thisMember: member,
+      ).verify(errorReporter: reporter, errorEntity: node);
     }
   }
 
   /// Check that instance members of [type] are valid overrides of the
   /// corresponding instance members in each of [directSuperInterfaces].
-  void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type,
-      {required int mixinIndex}) {
+  void _checkDeclaredMembers(
+    AstNode node,
+    InterfaceTypeImpl type, {
+    required int mixinIndex,
+  }) {
     var libraryUri = type.element3.library2.uri;
     for (var method in type.methods2) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
@@ -480,11 +496,7 @@ class _ClassVerifier {
         );
       },
       notSubtypable: () {
-        reporter.atNode(
-          namedType,
-          errorCode,
-          arguments: [type],
-        );
+        reporter.atNode(namedType, errorCode, arguments: [type]);
       },
     );
   }
@@ -547,8 +559,10 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
-  bool _checkForRecursiveInterfaceInheritance(InterfaceElementImpl2 element,
-      [List<InterfaceElement2>? path]) {
+  bool _checkForRecursiveInterfaceInheritance(
+    InterfaceElementImpl2 element, [
+    List<InterfaceElement2>? path,
+  ]) {
     path ??= <InterfaceElement2>[];
 
     // Detect error condition.
@@ -756,9 +770,7 @@ class _ClassVerifier {
 
   /// If [name] is not implemented in the extended concrete class, the
   /// issue should be fixed there, and then [classElement] will not have it too.
-  bool _isNotImplementedInConcreteSuperClass(
-    Name name,
-  ) {
+  bool _isNotImplementedInConcreteSuperClass(Name name) {
     var superElement = classElement.supertype?.element3;
     if (superElement is ClassElementImpl2 && !superElement.isAbstract) {
       var superInterface = inheritance.getInterface2(superElement);
@@ -773,7 +785,10 @@ class _ClassVerifier {
   /// report the more specific error, and return `true`.
   bool _reportConcreteClassWithAbstractMember(String name) {
     bool checkMemberNameCombo(
-        ClassMember member, String memberName, String displayName) {
+      ClassMember member,
+      String memberName,
+      String displayName,
+    ) {
       if (memberName == name) {
         reporter.atNode(
           member,
@@ -823,15 +838,17 @@ class _ClassVerifier {
         arguments: [
           name.name,
           conflict.getter2.enclosingElement2!.name3!,
-          conflict.method2.enclosingElement2!.name3!
+          conflict.method2.enclosingElement2!.name3!,
         ],
       );
     } else if (conflict is CandidatesConflict) {
-      var candidatesStr = conflict.candidates2.map((candidate) {
-        var className = candidate.enclosingElement2!.name3;
-        var typeStr = candidate.type.getDisplayString();
-        return '$className.${name.name} ($typeStr)';
-      }).join(', ');
+      var candidatesStr = conflict.candidates2
+          .map((candidate) {
+            var className = candidate.enclosingElement2!.name3;
+            var typeStr = candidate.type.getDisplayString();
+            return '$className.${name.name} ($typeStr)';
+          })
+          .join(', ');
 
       reporter.atToken(
         token,
@@ -844,7 +861,8 @@ class _ClassVerifier {
   }
 
   void _reportInheritedAbstractMembers(
-      List<ExecutableElement2OrMember>? elements) {
+    List<ExecutableElement2OrMember>? elements,
+  ) {
     if (elements == null) {
       return;
     }
@@ -894,7 +912,7 @@ class _ClassVerifier {
           descriptions[0],
           descriptions[1],
           descriptions[2],
-          descriptions[3]
+          descriptions[3],
         ],
       );
     } else {
@@ -907,7 +925,7 @@ class _ClassVerifier {
           descriptions[1],
           descriptions[2],
           descriptions[3],
-          descriptions.length - 4
+          descriptions.length - 4,
         ],
       );
     }
@@ -922,10 +940,7 @@ class _ClassVerifier {
         reporter.atToken(
           node.name,
           CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
-          arguments: [
-            classElement.name,
-            inferenceError!.arguments[0],
-          ],
+          arguments: [classElement.name, inferenceError!.arguments[0]],
         );
         return true;
       }
@@ -944,8 +959,9 @@ class _ClassVerifier {
       return;
     }
 
-    var noSuchMethodDeclaration =
-        classElement.getMethod2(MethodElement2.NO_SUCH_METHOD_METHOD_NAME);
+    var noSuchMethodDeclaration = classElement.getMethod2(
+      MethodElement2.NO_SUCH_METHOD_METHOD_NAME,
+    );
     if (noSuchMethodDeclaration != null &&
         !noSuchMethodDeclaration.isAbstract) {
       return;
@@ -1007,16 +1023,17 @@ class _ClassVerifier {
     }
 
     _missingMustBeOverridden[classNameToken] = notOverridden.toList();
-    var namesForError = notOverridden
-        .map((e) {
-          var name = e.name3!;
-          if (name.endsWith('=')) {
-            name = name.substring(0, name.length - 1);
-          }
-          return name;
-        })
-        .toSet()
-        .toList();
+    var namesForError =
+        notOverridden
+            .map((e) {
+              var name = e.name3!;
+              if (name.endsWith('=')) {
+                name = name.substring(0, name.length - 1);
+              }
+              return name;
+            })
+            .toSet()
+            .toList();
 
     if (namesForError.length == 1) {
       reporter.atToken(

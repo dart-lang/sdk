@@ -80,7 +80,10 @@ class ExtensionMemberResolver {
   /// If the match is ambiguous, reports an error on the [nameEntity], and
   /// returns [ExtensionResolutionError.ambiguous].
   ExtensionResolutionResult findExtension(
-      TypeImpl type, SyntacticEntity nameEntity, Name name) {
+    TypeImpl type,
+    SyntacticEntity nameEntity,
+    Name name,
+  ) {
     var extensions = _resolver.libraryFragment.accessibleExtensions2
         .havingMemberWithBaseName(name)
         .toList()
@@ -146,7 +149,9 @@ class ExtensionMemberResolver {
   ///
   /// The [node] is fully resolved, and its type arguments are set.
   ExtensionResolutionResult getOverrideMember(
-      ExtensionOverrideImpl node, String name) {
+    ExtensionOverrideImpl node,
+    String name,
+  ) {
     var element = node.element2;
 
     ExecutableElementImpl2? getter;
@@ -180,8 +185,10 @@ class ExtensionMemberResolver {
   }
 
   /// Perform upward inference for the override.
-  void resolveOverride(ExtensionOverride node,
-      List<WhyNotPromotedGetter> whyNotPromotedArguments) {
+  void resolveOverride(
+    ExtensionOverride node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments,
+  ) {
     var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.element2;
     // TODO(paulberry): make this cast unnecessary by changing the type of
@@ -217,9 +224,13 @@ class ExtensionMemberResolver {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    var typeArgumentTypes = _inferTypeArguments(node, receiverType,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting,
-        nodeForTesting: node)!;
+    var typeArgumentTypes =
+        _inferTypeArguments(
+          node,
+          receiverType,
+          dataForTesting: _resolver.inferenceHelper.dataForTesting,
+          nodeForTesting: node,
+        )!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
     var substitution = Substitution.fromPairs2(
@@ -227,8 +238,10 @@ class ExtensionMemberResolver {
       typeArgumentTypes,
     );
 
-    var extendedType = nodeImpl.extendedType =
-        substitution.substituteType(element.extendedType);
+    var extendedType =
+        nodeImpl.extendedType = substitution.substituteType(
+          element.extendedType,
+        );
 
     _checkTypeArgumentsMatchingBounds(
       typeParameters,
@@ -242,8 +255,11 @@ class ExtensionMemberResolver {
         receiverExpression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
-    } else if (!_typeSystem.isAssignableTo(receiverType, extendedType,
-        strictCasts: _resolver.analysisOptions.strictCasts)) {
+    } else if (!_typeSystem.isAssignableTo(
+      receiverType,
+      extendedType,
+      strictCasts: _resolver.analysisOptions.strictCasts,
+    )) {
       var whyNotPromoted =
           whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
       _errorReporter.atNode(
@@ -251,7 +267,9 @@ class ExtensionMemberResolver {
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         arguments: [receiverType, extendedType],
         contextMessages: _resolver.computeWhyNotPromotedMessages(
-            receiverExpression, whyNotPromoted?.call()),
+          receiverExpression,
+          whyNotPromoted?.call(),
+        ),
       );
     }
   }
@@ -285,7 +303,8 @@ class ExtensionMemberResolver {
   /// Returns a list with either the most specific extension, or, if the most
   /// specific is ambiguous, then the extensions that are ambiguous.
   List<InstantiatedExtensionWithMember> _chooseMostSpecific(
-      List<InstantiatedExtensionWithMember> extensions) {
+    List<InstantiatedExtensionWithMember> extensions,
+  ) {
     InstantiatedExtensionWithMember? bestSoFar;
     var noneMoreSpecific = <InstantiatedExtensionWithMember>[];
     for (var candidate in extensions) {
@@ -333,9 +352,11 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, returns `dynamic`
   /// for all type parameters.
   List<TypeImpl>? _inferTypeArguments(
-      ExtensionOverrideImpl node, TypeImpl receiverType,
-      {required TypeConstraintGenerationDataForTesting? dataForTesting,
-      required AstNodeImpl? nodeForTesting}) {
+    ExtensionOverrideImpl node,
+    TypeImpl receiverType, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+    required AstNodeImpl? nodeForTesting,
+  }) {
     var element = node.element2;
     var typeParameters = element.typeParameters2;
     var typeArguments = node.typeArguments;
@@ -360,7 +381,9 @@ class ExtensionMemberResolver {
       }
     } else {
       inferenceLogWriter?.enterGenericInference(
-          typeParameters.cast(), element.extendedType);
+        typeParameters.cast(),
+        element.extendedType,
+      );
       var inferrer = GenericInferrer(
         _typeSystem,
         typeParameters,
@@ -484,7 +507,8 @@ sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
 /// where the result (if any) is known to come from an extension.
 class SingleExtensionResolutionResult extends SimpleResolutionResult
     implements ExtensionResolutionResult {
-  SingleExtensionResolutionResult(
-      {required super.getter2, required super.setter2})
-      : assert(getter2 != null || setter2 != null);
+  SingleExtensionResolutionResult({
+    required super.getter2,
+    required super.setter2,
+  }) : assert(getter2 != null || setter2 != null);
 }

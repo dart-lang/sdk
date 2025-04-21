@@ -76,9 +76,7 @@ class PackageBundleReader {
         var uriStr = reader.readStringUtf8();
         return PackageBundleUnit(uriStr);
       });
-      libraries.add(
-        PackageBundleLibrary(uriStr, units),
-      );
+      libraries.add(PackageBundleLibrary(uriStr, units));
     }
 
     _resolutionBytes = reader.readUint8List();

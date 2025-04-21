@@ -52,8 +52,10 @@ library
   }
 
   test_closure_in_variable_declaration_in_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of lib; final f = (int i) => i.toDouble();');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of lib; final f = (int i) => i.toDouble();',
+    );
     var library = await buildLibrary('''
 library lib;
 part "a.dart";
@@ -1855,9 +1857,11 @@ library
   }
 
   test_inferred_type_is_typedef() async {
-    var library = await buildLibrary('typedef int F(String s);'
-        ' class C extends D { var v; }'
-        ' abstract class D { F get v; }');
+    var library = await buildLibrary(
+      'typedef int F(String s);'
+      ' class C extends D { var v; }'
+      ' abstract class D { F get v; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2536,8 +2540,10 @@ library
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    var library = await buildLibrary('class C extends D { void f(int x, g) {} }'
-        ' abstract class D { void f(int x, int g(String s)); }');
+    var library = await buildLibrary(
+      'class C extends D { void f(int x, g) {} }'
+      ' abstract class D { void f(int x, int g(String s)); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2759,8 +2765,10 @@ library
   }
 
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    var library = await buildLibrary('class C extends D { void set f(g) {} }'
-        ' abstract class D { void set f(int g(String s)); }');
+    var library = await buildLibrary(
+      'class C extends D { void set f(g) {} }'
+      ' abstract class D { void set f(int g(String s)); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5773,10 +5781,13 @@ library
   }
 
   test_type_reference_lib_to_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of l; class C {} enum E { v } typedef F();');
-    var library =
-        await buildLibrary('library l; part "a.dart"; C c; E e; F f;');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
+    var library = await buildLibrary(
+      'library l; part "a.dart"; C c; E e; F f;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5992,7 +6003,8 @@ library
   test_type_reference_part_to_lib() async {
     newFile('$testPackageLibPath/a.dart', 'part of l; C c; E e; F f;');
     var library = await buildLibrary(
-        'library l; part "a.dart"; class C {} enum E { v } typedef F();');
+      'library l; part "a.dart"; class C {} enum E { v } typedef F();',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6206,11 +6218,14 @@ library
   }
 
   test_type_reference_part_to_other_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of l; class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
     newFile('$testPackageLibPath/b.dart', 'part of l; C c; E e; F f;');
-    var library =
-        await buildLibrary('library l; part "a.dart"; part "b.dart";');
+    var library = await buildLibrary(
+      'library l; part "a.dart"; part "b.dart";',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6429,8 +6444,10 @@ library
   }
 
   test_type_reference_part_to_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;',
+    );
     var library = await buildLibrary('library l; part "a.dart";');
     checkElementText(library, r'''
 library
@@ -6971,7 +6988,9 @@ library
 
   test_type_reference_to_import() async {
     newFile(
-        '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/a.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7083,7 +7102,9 @@ library
   test_type_reference_to_import_export() async {
     newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
     newFile(
-        '$testPackageLibPath/b.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/b.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7196,7 +7217,9 @@ library
     newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
     newFile('$testPackageLibPath/b.dart', 'export "c.dart";');
     newFile(
-        '$testPackageLibPath/c.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/c.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7308,8 +7331,10 @@ library
   test_type_reference_to_import_export_export_in_subdirs() async {
     newFile('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
     newFile('$testPackageLibPath/a/b/b.dart', 'export "../c/c.dart";');
-    newFile('$testPackageLibPath/a/c/c.dart',
-        'class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a/c/c.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7420,8 +7445,10 @@ library
 
   test_type_reference_to_import_export_in_subdirs() async {
     newFile('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
-    newFile('$testPackageLibPath/a/b/b.dart',
-        'class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a/b/b.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7532,8 +7559,10 @@ library
 
   test_type_reference_to_import_part() async {
     newFile('$testPackageLibPath/a.dart', 'library l; part "b.dart";');
-    newFile('$testPackageLibPath/b.dart',
-        'part of l; class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/b.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7643,8 +7672,10 @@ library
   }
 
   test_type_reference_to_import_part2() async {
-    newFile('$testPackageLibPath/a.dart',
-        'library l; part "p1.dart"; part "p2.dart";');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'library l; part "p1.dart"; part "p2.dart";',
+    );
     newFile('$testPackageLibPath/p1.dart', 'part of l; class C1 {}');
     newFile('$testPackageLibPath/p2.dart', 'part of l; class C2 {}');
     var library = await buildLibrary('import "a.dart"; C1 c1; C2 c2;');
@@ -7725,8 +7756,10 @@ library
 
   test_type_reference_to_import_part_in_subdir() async {
     newFile('$testPackageLibPath/a/b.dart', 'library l; part "c.dart";');
-    newFile('$testPackageLibPath/a/c.dart',
-        'part of l; class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a/c.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a/b.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7837,7 +7870,9 @@ library
 
   test_type_reference_to_import_relative() async {
     newFile(
-        '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/a.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -8004,8 +8039,9 @@ library
   }
 
   test_type_reference_to_typedef_with_type_arguments() async {
-    var library =
-        await buildLibrary('typedef U F<T, U>(T t); F<int, String> f;');
+    var library = await buildLibrary(
+      'typedef U F<T, U>(T t); F<int, String> f;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>

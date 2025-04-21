@@ -16,16 +16,19 @@ main() {
 @reflectiveTest
 class MissingVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase_differentStatements_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case final a) {
     if (x case final b) {}
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      ],
+    );
 
     var node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
@@ -51,15 +54,18 @@ GuardedPattern
   }
 
   test_ifCase_differentStatements_sibling() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case final a) {}
   if (x case final b) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      ],
+    );
 
     var node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
@@ -85,15 +91,18 @@ GuardedPattern
   }
 
   test_ifCase_logicalOr2_both_direct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case final a || final a) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(WarningCode.DEAD_CODE, 37, 10),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+        error(WarningCode.DEAD_CODE, 37, 10),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -115,14 +124,17 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr2_both_nested_logicalAnd() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case 0 && final a || final a) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -152,14 +164,17 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr2_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   if (x case final int a || 2) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -184,14 +199,17 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr2_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case 1 || final a) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -212,15 +230,18 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   if (x case final int a || 2 || 3) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -253,15 +274,18 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_12() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   if (x case final int a || final int a || 3) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -299,17 +323,20 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_123() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case final a || final a || final a) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(WarningCode.DEAD_CODE, 37, 10),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-      error(WarningCode.DEAD_CODE, 48, 10),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+        error(WarningCode.DEAD_CODE, 37, 10),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+        error(WarningCode.DEAD_CODE, 48, 10),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -340,15 +367,18 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_13() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   if (x case final int a || 2 || final int a) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -386,15 +416,18 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   if (x case 1 || final int a || 3) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -427,16 +460,19 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_23() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case 1 || final a || final a) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(WarningCode.DEAD_CODE, 42, 10),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+        error(WarningCode.DEAD_CODE, 42, 10),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -466,14 +502,17 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case 1 || 2 || final a) {}
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -502,18 +541,21 @@ LogicalOrPattern
   }
 
   test_switchStatement_case1_logicalOr2_both() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     case final a || final a:
       return;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-      error(WarningCode.DEAD_CODE, 48, 10),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+        error(WarningCode.DEAD_CODE, 48, 10),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -535,7 +577,8 @@ LogicalOrPattern
   }
 
   test_switchStatement_case1_logicalOr2_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   switch (x) {
     case final int a || 2:
@@ -544,10 +587,12 @@ void f(num x) {
       return;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -572,17 +617,20 @@ LogicalOrPattern
   }
 
   test_switchStatement_case1_logicalOr2_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     case 1 || final a:
       return;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
@@ -603,7 +651,8 @@ LogicalOrPattern
   }
 
   test_switchStatement_case2_both() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     case /*1*/ final a:
@@ -611,12 +660,14 @@ void f(int x) {
       return;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(WarningCode.DEAD_CODE, 59, 4),
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 59, 4),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+        error(WarningCode.DEAD_CODE, 59, 4),
+        error(WarningCode.UNREACHABLE_SWITCH_CASE, 59, 4),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+      ],
+    );
 
     var node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''
@@ -642,7 +693,8 @@ GuardedPattern
   }
 
   test_switchStatement_case2_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   switch (x) {
     case final double a:
@@ -652,13 +704,14 @@ void f(num x) {
       return;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1)],
+    );
   }
 
   test_switchStatement_case2_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     case 1:
@@ -666,13 +719,14 @@ void f(int x) {
       return;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1)],
+    );
   }
 
   test_switchStatement_differentCases_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     case final a:
@@ -683,13 +737,14 @@ void f(int x) {
       return;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1)],
+    );
   }
 
   test_switchStatement_differentCases_sibling() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(num x) {
   switch (x) {
     case final double a:
@@ -700,8 +755,8 @@ void f(num x) {
       return;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1)],
+    );
   }
 }

@@ -28,24 +28,27 @@ class UriExtensionTest {
 
   void test_samePackage_nonPackageScheme() {
     expect(
-      Uri.parse('file://foo/foo.dart')
-          .isSamePackageAs(Uri.parse('package:foo/bar.dart')),
+      Uri.parse(
+        'file://foo/foo.dart',
+      ).isSamePackageAs(Uri.parse('package:foo/bar.dart')),
       isFalse,
     );
   }
 
   void test_samePackage_packageScheme_notSame() {
     expect(
-      Uri.parse('package:foo/foo.dart')
-          .isSamePackageAs(Uri.parse('package:bar/bar.dart')),
+      Uri.parse(
+        'package:foo/foo.dart',
+      ).isSamePackageAs(Uri.parse('package:bar/bar.dart')),
       isFalse,
     );
   }
 
   void test_samePackage_packageScheme_same() {
     expect(
-      Uri.parse('package:foo/foo.dart')
-          .isSamePackageAs(Uri.parse('package:foo/bar.dart')),
+      Uri.parse(
+        'package:foo/foo.dart',
+      ).isSamePackageAs(Uri.parse('package:foo/bar.dart')),
       isTrue,
     );
   }

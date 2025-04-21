@@ -16,14 +16,17 @@ main() {
 @reflectiveTest
 class AsyncForInWrongContextTest extends PubPackageResolutionTest {
   test_syncFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(list) {
   await for (var e in list) {
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, 12, 5),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, 12, 5),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+      ],
+    );
   }
 }

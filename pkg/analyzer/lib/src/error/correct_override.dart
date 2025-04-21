@@ -28,15 +28,13 @@ class CorrectOverrideHelper {
   CorrectOverrideHelper({
     required TypeSystemImpl typeSystem,
     required ExecutableElement2OrMember thisMember,
-  })  : _typeSystem = typeSystem,
-        _thisMember = thisMember {
+  }) : _typeSystem = typeSystem,
+       _thisMember = thisMember {
     _computeThisTypeForSubtype();
   }
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
-  bool isCorrectOverrideOf({
-    required ExecutableElement2OrMember superMember,
-  }) {
+  bool isCorrectOverrideOf({required ExecutableElement2OrMember superMember}) {
     var superType = superMember.type;
     return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
   }
@@ -54,14 +52,16 @@ class CorrectOverrideHelper {
       var member = _thisMember;
       var memberName = member.name3;
       if (memberName != null) {
-        errorReporter.reportError(_diagnosticFactory.invalidOverride(
-          errorReporter.source,
-          errorCode,
-          errorNode,
-          _thisMember,
-          superMember,
-          memberName,
-        ));
+        errorReporter.reportError(
+          _diagnosticFactory.invalidOverride(
+            errorReporter.source,
+            errorCode,
+            errorNode,
+            _thisMember,
+            superMember,
+            memberName,
+          ),
+        );
       }
     }
   }
@@ -77,9 +77,7 @@ class CorrectOverrideHelper {
       var parameter = parameters[i];
       if (parameter.isCovariant) {
         newParameters ??= parameters.toList(growable: false);
-        newParameters[i] = parameter.copyWith(
-          type: _typeSystem.objectQuestion,
-        );
+        newParameters[i] = parameter.copyWith(type: _typeSystem.objectQuestion);
       }
     }
 
@@ -102,11 +100,10 @@ class CovariantParametersVerifier {
 
   final ExecutableElement2OrMember _thisMember;
 
-  CovariantParametersVerifier({
-    required ExecutableElement2OrMember thisMember,
-  })  : _session = thisMember.library2.session as AnalysisSessionImpl,
-        _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
-        _thisMember = thisMember;
+  CovariantParametersVerifier({required ExecutableElement2OrMember thisMember})
+    : _session = thisMember.library2.session as AnalysisSessionImpl,
+      _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
+      _thisMember = thisMember;
 
   void verify({
     required ErrorReporter errorReporter,
@@ -150,9 +147,7 @@ class CovariantParametersVerifier {
     for (var interface in interfaces) {
       var superMember = _correspondingMember(interface.element3, _thisMember);
       if (superMember != null) {
-        superMembers.add(
-          _SuperMember(interface, superMember),
-        );
+        superMembers.add(_SuperMember(interface, superMember));
       }
     }
 
@@ -176,11 +171,10 @@ class CovariantParametersVerifier {
           );
           if (superParameter != null) {
             var parameterSuperList = result[parameter] ??= [];
-            var superType = _superSubstitution(superMember)
-                .substituteType(superParameter.type);
-            parameterSuperList.add(
-              _SuperParameter(superParameter, superType),
-            );
+            var superType = _superSubstitution(
+              superMember,
+            ).substituteType(superParameter.type);
+            parameterSuperList.add(_SuperParameter(superParameter, superType));
           }
         }
       }
@@ -202,9 +196,7 @@ class CovariantParametersVerifier {
         var typeParametersSubstitution = Substitution.fromPairs2(
           superTypeParameters,
           thisTypeParameters.map((e) {
-            return e.instantiate(
-              nullabilitySuffix: NullabilitySuffix.none,
-            );
+            return e.instantiate(nullabilitySuffix: NullabilitySuffix.none);
           }).toList(),
         );
         result = Substitution.combine(result, typeParametersSubstitution);

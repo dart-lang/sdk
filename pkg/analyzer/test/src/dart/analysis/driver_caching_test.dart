@@ -35,9 +35,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
 
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder());
   }
 
   test_analysisOptions_strictCasts() async {
@@ -265,9 +263,7 @@ import 'a.dart';
 
     // Configure without dependencies, but with a (required) name.
     // So, the lint rule will be activated.
-    writeTestPackagePubspecYamlFile(
-      pubspecYamlContent(name: 'my_test'),
-    );
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'my_test'));
 
     addTestFile(r'''
 // ignore:unused_import
@@ -291,9 +287,7 @@ import 'package:aaa/a.dart';
     writeTestPackagePubspecYamlFile(
       pubspecYamlContent(
         name: 'my_test',
-        dependencies: [
-          PubspecYamlFileDependency(name: 'aaa'),
-        ],
+        dependencies: [PubspecYamlFileDependency(name: 'aaa')],
       ),
     );
 
@@ -328,9 +322,9 @@ void f() {
     await disposeAnalysisContextCollection();
 
     // Configure to run a lint.
-    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
-      rules: ['prefer_is_not_empty'],
-    ));
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(rules: ['prefer_is_not_empty']),
+    );
 
     // Check that the lint was run, and reported.
     await resolveTestFile();
@@ -340,8 +334,10 @@ void f() {
     _assertNoLinkedCycles();
   }
 
-  void _assertContainsLinkedCycle(Set<File> expectedFiles,
-      {bool andClear = false}) {
+  void _assertContainsLinkedCycle(
+    Set<File> expectedFiles, {
+    bool andClear = false,
+  }) {
     var expected = expectedFiles.map((file) => file.path).toSet();
     expect(_linkedCycles, contains(unorderedEquals(expected)));
     if (andClear) {
@@ -350,10 +346,11 @@ void f() {
   }
 
   void _assertHasLintReported(List<AnalysisError> errors, String name) {
-    var matching = errors.where((element) {
-      var errorCode = element.errorCode;
-      return errorCode is LintCode && errorCode.name == name;
-    }).toList();
+    var matching =
+        errors.where((element) {
+          var errorCode = element.errorCode;
+          return errorCode is LintCode && errorCode.name == name;
+        }).toList();
     expect(matching, hasLength(1));
   }
 
@@ -368,9 +365,9 @@ void f() {
   /// But this method is used to check returning errors from the cache, or
   /// recomputing when the cache key is expected to be different.
   Future<List<AnalysisError>> _computeTestFileErrors() async {
-    var errorsResult = await contextFor(testFile)
-        .currentSession
-        .getErrors(testFile.path) as ErrorsResult;
+    var errorsResult =
+        await contextFor(testFile).currentSession.getErrors(testFile.path)
+            as ErrorsResult;
     return errorsResult.errors;
   }
 }

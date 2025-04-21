@@ -46,7 +46,8 @@ void f(int a) {
   }
 
   test_completes() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int a) {
   switch (a) {
     case 0:
@@ -54,10 +55,12 @@ void f(int a) {
     default:
       return;
   }
-}''', [
-      if (!_patternsEnabled)
-        error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
-    ]);
+}''',
+      [
+        if (!_patternsEnabled)
+          error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
+      ],
+    );
   }
 
   test_continue_loop() async {
@@ -119,7 +122,8 @@ Never neverCompletes() {
   }
 
   test_multiple_cases_sharing_a_body() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int a) {
   switch (a) {
     case 0:
@@ -128,10 +132,12 @@ void f(int a) {
     default:
       return;
   }
-}''', [
-      if (!_patternsEnabled)
-        error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
-    ]);
+}''',
+      [
+        if (!_patternsEnabled)
+          error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
+      ],
+    );
   }
 
   test_return() async {

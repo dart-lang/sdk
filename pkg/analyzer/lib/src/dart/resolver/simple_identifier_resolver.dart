@@ -116,8 +116,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
   }
 
-  PropertyElementResolverResult? _resolve1(SimpleIdentifierImpl node,
-      {required DartType contextType}) {
+  PropertyElementResolverResult? _resolve1(
+    SimpleIdentifierImpl node, {
+    required DartType contextType,
+  }) {
     _currentAlreadyResolved = false;
 
     //
@@ -171,8 +173,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var callFunctionType = result.functionTypeCallType;
     if (callFunctionType != null) {
-      var staticType = _resolver.inferenceHelper
-          .inferTearOff(node, node, callFunctionType, contextType: contextType);
+      var staticType = _resolver.inferenceHelper.inferTearOff(
+        node,
+        node,
+        callFunctionType,
+        contextType: contextType,
+      );
       node.recordStaticType(staticType, resolver: _resolver);
       _currentAlreadyResolved = true;
       return null;
@@ -213,8 +219,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         );
-      } else if (!_resolver.libraryFragment
-          .shouldIgnoreUndefinedIdentifier(node)) {
+      } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
+        node,
+      )) {
         errorReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
@@ -227,8 +234,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
   }
 
   void _resolve2(
-      SimpleIdentifierImpl node, PropertyElementResolverResult? propertyResult,
-      {required DartType contextType}) {
+    SimpleIdentifierImpl node,
+    PropertyElementResolverResult? propertyResult, {
+    required DartType contextType,
+  }) {
     if (_currentAlreadyResolved) {
       return;
     }
@@ -266,8 +275,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (element is TypeParameterElement2) {
       staticType = _typeProvider.typeType;
     } else if (element is VariableElement2) {
-      staticType = _resolver.localVariableTypeProvider
-          .getType(node, isRead: node.inGetterContext());
+      staticType = _resolver.localVariableTypeProvider.getType(
+        node,
+        isRead: node.inGetterContext(),
+      );
     } else if (element is PrefixElement2) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
@@ -291,8 +302,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      staticType = _resolver.inferenceHelper
-          .inferTearOff(node, node, staticType, contextType: contextType);
+      staticType = _resolver.inferenceHelper.inferTearOff(
+        node,
+        node,
+        staticType,
+        contextType: contextType,
+      );
     }
     node.recordStaticType(staticType, resolver: _resolver);
   }

@@ -39,7 +39,8 @@ class PropertyElementResolver with ScopeHelpers {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   PropertyElementResolverResult resolveDotShorthand(
-      DotShorthandPropertyAccessImpl node) {
+    DotShorthandPropertyAccessImpl node,
+  ) {
     if (_resolver.isDotShorthandContextEmpty) {
       // TODO(kallentu): Produce an error here for not being able to find a
       // context type.
@@ -56,8 +57,10 @@ class PropertyElementResolver with ScopeHelpers {
     if (context is InterfaceTypeImpl) {
       var identifier = node.propertyName;
       if (identifier.name == 'new') {
-        var element =
-            context.lookUpConstructor2(identifier.name, _definingLibrary);
+        var element = context.lookUpConstructor2(
+          identifier.name,
+          _definingLibrary,
+        );
         if (element != null) {
           return PropertyElementResolverResult(
             readElementRequested2: element,
@@ -129,19 +132,13 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (targetType is VoidType) {
       // TODO(scheglov): Report directly in TypePropertyResolver?
-      _reportUnresolvedIndex(
-        node,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-      );
+      _reportUnresolvedIndex(node, CompileTimeErrorCode.USE_OF_VOID_RESULT);
       return PropertyElementResolverResult();
     }
 
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov): Report directly in TypePropertyResolver?
-      errorReporter.atNode(
-        target,
-        WarningCode.RECEIVER_OF_TYPE_NEVER,
-      );
+      errorReporter.atNode(target, WarningCode.RECEIVER_OF_TYPE_NEVER);
       return PropertyElementResolverResult();
     }
 
@@ -288,7 +285,8 @@ class PropertyElementResolver with ScopeHelpers {
     Element2? readElementRecovery;
     TypeImpl? getType;
     if (hasRead) {
-      var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
+      var readLookup =
+          LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
 
       var callFunctionType = readLookup?.callFunctionType;
@@ -300,18 +298,22 @@ class PropertyElementResolver with ScopeHelpers {
 
       var recordField = readLookup?.recordField;
       if (recordField != null) {
-        return PropertyElementResolverResult(
-          recordField: recordField,
-        );
+        return PropertyElementResolverResult(recordField: recordField);
       }
 
       readElementRequested = readLookup?.requested;
       if (readElementRequested is PropertyAccessorElement2OrMember &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
-        getType = _resolver.flowAnalysis.flow
-                ?.propertyGet(node, ThisPropertyTarget.singleton, node.name,
-                    readElementRequested, SharedTypeView(unpromotedType))
+        getType =
+            _resolver.flowAnalysis.flow
+                ?.propertyGet(
+                  node,
+                  ThisPropertyTarget.singleton,
+                  node.name,
+                  readElementRequested,
+                  SharedTypeView(unpromotedType),
+                )
                 ?.unwrapTypeView() ??
             unpromotedType;
       }
@@ -321,7 +323,8 @@ class PropertyElementResolver with ScopeHelpers {
     Element2? writeElementRequested;
     Element2? writeElementRecovery;
     if (hasWrite) {
-      var writeLookup = LexicalLookup.resolveSetter(scopeLookupResult) ??
+      var writeLookup =
+          LexicalLookup.resolveSetter(scopeLookupResult) ??
           _resolver.thisLookupSetter(node);
       writeElementRequested = writeLookup?.requested;
       writeElementRecovery = writeLookup?.recovery;
@@ -379,10 +382,7 @@ class PropertyElementResolver with ScopeHelpers {
             propertyName,
             CompileTimeErrorCode
                 .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-            arguments: [
-              propertyName.name,
-              element.kind.displayName,
-            ],
+            arguments: [propertyName.name, element.kind.displayName],
           );
         } else {
           // It is safe to assume that `enclosingElement.name` is non-`null`
@@ -487,9 +487,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (propertyName.name == MethodElement2.CALL_METHOD_NAME) {
       if (targetType is FunctionType || targetType.isDartCoreFunction) {
-        return PropertyElementResolverResult(
-          functionTypeCallType: targetType,
-        );
+        return PropertyElementResolverResult(functionTypeCallType: targetType);
       }
     }
 
@@ -538,18 +536,20 @@ class PropertyElementResolver with ScopeHelpers {
       var unpromotedType = switch (result.getter2) {
         MethodElement2OrMember(:var type) => type,
         PropertyAccessorElement2OrMember(:var returnType) => returnType,
-        _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType
+        _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType,
       };
-      getType = _resolver.flowAnalysis.flow
+      getType =
+          _resolver.flowAnalysis.flow
               ?.propertyGet(
-                  node,
-                  isCascaded
-                      ? CascadePropertyTarget.singleton
-                          as PropertyTarget<ExpressionImpl>
-                      : ExpressionPropertyTarget(target),
-                  propertyName.name,
-                  result.getter2,
-                  SharedTypeView(unpromotedType))
+                node,
+                isCascaded
+                    ? CascadePropertyTarget.singleton
+                        as PropertyTarget<ExpressionImpl>
+                    : ExpressionPropertyTarget(target),
+                propertyName.name,
+                result.getter2,
+                SharedTypeView(unpromotedType),
+              )
               ?.unwrapTypeView() ??
           unpromotedType;
 
@@ -742,9 +742,10 @@ class PropertyElementResolver with ScopeHelpers {
           readElement = null;
         }
       } else {
-        var code = typeReference is EnumElement2
-            ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
-            : CompileTimeErrorCode.UNDEFINED_GETTER;
+        var code =
+            typeReference is EnumElement2
+                ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
+                : CompileTimeErrorCode.UNDEFINED_GETTER;
         errorReporter.atNode(
           propertyName,
           code,
@@ -852,8 +853,11 @@ class PropertyElementResolver with ScopeHelpers {
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
         var name = Name(_definingLibrary.source.uri, propertyName.name);
-        readElement = _resolver.inheritance
-            .getMember4(targetType.element3, name, forSuper: true);
+        readElement = _resolver.inheritance.getMember4(
+          targetType.element3,
+          name,
+          forSuper: true,
+        );
 
         if (readElement != null) {
           _checkForStaticMember(target, propertyName, readElement);
@@ -861,8 +865,10 @@ class PropertyElementResolver with ScopeHelpers {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry simply looking for an inherited member.
-          readElement =
-              _resolver.inheritance.getInherited4(targetType.element3, name);
+          readElement = _resolver.inheritance.getInherited4(
+            targetType.element3,
+            name,
+          );
           if (readElement != null) {
             errorReporter.atNode(
               propertyName,
@@ -879,13 +885,15 @@ class PropertyElementResolver with ScopeHelpers {
         }
         var unpromotedType =
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
-        getType = _resolver.flowAnalysis.flow
+        getType =
+            _resolver.flowAnalysis.flow
                 ?.propertyGet(
-                    node,
-                    SuperPropertyTarget.singleton,
-                    propertyName.name,
-                    readElement,
-                    SharedTypeView(unpromotedType))
+                  node,
+                  SuperPropertyTarget.singleton,
+                  propertyName.name,
+                  readElement,
+                  SharedTypeView(unpromotedType),
+                )
                 ?.unwrapTypeView() ??
             unpromotedType;
       }
@@ -942,9 +950,10 @@ class PropertyElementResolver with ScopeHelpers {
     var readElement = result.getter2;
     var writeElement = result.setter2;
 
-    var contextType = hasRead
-        ? readElement?.firstParameterType
-        : writeElement?.firstParameterType;
+    var contextType =
+        hasRead
+            ? readElement?.firstParameterType
+            : writeElement?.firstParameterType;
 
     return PropertyElementResolverResult(
       atDynamicTarget: atDynamicTarget,

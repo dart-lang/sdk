@@ -256,14 +256,15 @@ EnumConstantDeclaration
   }
 
   test_constructor_unresolved_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.named(42);
   const E(int a);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5)],
+    );
 
     var node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
@@ -290,14 +291,15 @@ EnumConstantDeclaration
   }
 
   test_constructor_unresolved_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(42);
   const E.named(int a);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1)],
+    );
 
     var node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''

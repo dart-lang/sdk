@@ -16,11 +16,12 @@ main() {
 @reflectiveTest
 class IllegalAsyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
   test_function_nonStream() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() async* {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3)],
+    );
   }
 
   test_function_stream() async {
@@ -30,50 +31,55 @@ Stream<void> f() async* {}
   }
 
   test_function_subtypeOfStream() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class SubStream<T> implements Stream<T> {}
 SubStream<int> f() async* {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 52, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 52, 14)],
+    );
   }
 
   test_function_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() async* {}
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 4)],
+    );
   }
 
   test_method_nonStream() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   int f() async* {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 3)],
+    );
   }
 
   test_method_subtypeOfStream() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class SubStream<T> implements Stream<T> {}
 class C {
   SubStream<int> f() async* {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 64, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 64, 14)],
+    );
   }
 
   test_method_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void f() async* {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 4)],
+    );
   }
 }

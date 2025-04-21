@@ -17,7 +17,8 @@ main() {
 class MixinApplicationNoConcreteSuperInvokedMemberTest
     extends PubPackageResolutionTest {
   test_class_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int get foo;
 }
@@ -29,17 +30,21 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           121,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_inNextMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   void foo();
 }
@@ -55,17 +60,21 @@ mixin M2 on A {
 }
 
 class X extends A with M1, M2 {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           149,
-          2),
-    ]);
+          2,
+        ),
+      ],
+    );
   }
 
   test_class_inSameMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   void foo();
 }
@@ -77,17 +86,21 @@ mixin M on A {
 }
 
 class X extends A with M {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           113,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   void foo();
 }
@@ -99,13 +112,16 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           122,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_OK_hasNSM() async {
@@ -227,7 +243,8 @@ class C extends B with M {}
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   void set foo(_);
 }
@@ -239,17 +256,21 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
           129,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M1 {
   int get foo;
 }
@@ -264,13 +285,16 @@ enum E with M1, M2 {
   v;
   int get foo => 0;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           99,
-          2),
-    ]);
+          2,
+        ),
+      ],
+    );
   }
 
   test_enum_getter_exists() async {
@@ -306,7 +330,8 @@ enum E with M {
   }
 
   test_enum_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M1 {
   void foo();
 }
@@ -321,13 +346,16 @@ enum E with M1, M2 {
   v;
   void foo() {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           100,
-          2),
-    ]);
+          2,
+        ),
+      ],
+    );
   }
 
   test_enum_method_exists() async {
@@ -367,7 +395,8 @@ enum E with M1, M2 {
   }
 
   test_enum_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M1 {
   set foo(int _);
 }
@@ -382,12 +411,15 @@ enum E with M1, M2 {
   v;
   set foo(int _) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
           106,
-          2),
-    ]);
+          2,
+        ),
+      ],
+    );
   }
 }

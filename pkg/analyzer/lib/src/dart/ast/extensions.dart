@@ -320,10 +320,7 @@ extension PatternFieldImplExtension on PatternFieldImpl {
 
 extension RecordTypeAnnotationExtension on RecordTypeAnnotation {
   List<RecordTypeAnnotationField> get fields {
-    return [
-      ...positionalFields,
-      ...?namedFields?.fields,
-    ];
+    return [...positionalFields, ...?namedFields?.fields];
   }
 }
 

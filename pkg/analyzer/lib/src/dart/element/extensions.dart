@@ -64,8 +64,10 @@ extension Element2Extension on Element2 {
   /// cannot be invoked directly and are always accessed using corresponding
   /// [GetterElement]s or [SetterElement]s.
   bool get isInstanceMember {
-    assert(this is! PropertyInducingElement2,
-        'Check the GetterElement or SetterElement instead');
+    assert(
+      this is! PropertyInducingElement2,
+      'Check the GetterElement or SetterElement instead',
+    );
     var this_ = this;
     var enclosing = this_.enclosingElement2;
     if (enclosing is InterfaceElement2) {
@@ -163,11 +165,7 @@ extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
   }) {
     var firstFragment = this.firstFragment as ParameterElementImpl;
     return FormalParameterElementImpl(
-      firstFragment.copyWith(
-        type: type,
-        kind: kind,
-        isCovariant: isCovariant,
-      ),
+      firstFragment.copyWith(type: type, kind: kind, isCovariant: isCovariant),
     );
   }
 }
@@ -203,10 +201,7 @@ extension RecordTypeExtension on RecordType {
   static final RegExp _positionalName = RegExp(r'^\$[1-9]\d*$');
 
   List<RecordTypeField> get fields {
-    return [
-      ...positionalFields,
-      ...namedFields,
-    ];
+    return [...positionalFields, ...namedFields];
   }
 
   /// The [name] is either an actual name like `foo` in `({int foo})`, or

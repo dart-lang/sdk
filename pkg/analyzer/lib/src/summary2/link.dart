@@ -46,9 +46,7 @@ LinkResult link({
     inputLibraryManifests: inputLibraryManifests,
   );
 
-  return LinkResult(
-    resolutionBytes: linker.resolutionBytes,
-  );
+  return LinkResult(resolutionBytes: linker.resolutionBytes);
 }
 
 class Linker {
@@ -65,10 +63,7 @@ class Linker {
   Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
-  Linker({
-    required this.elementFactory,
-    required this.apiSignature,
-  });
+  Linker({required this.elementFactory, required this.apiSignature});
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -113,15 +108,11 @@ class Linker {
     });
 
     performance.run('buildOutlines', (performance) {
-      _buildOutlines(
-        performance: performance,
-      );
+      _buildOutlines(performance: performance);
     });
 
     performance.run('writeLibraries', (performance) {
-      _writeLibraries(
-        performance: performance,
-      );
+      _writeLibraries(performance: performance);
     });
   }
 
@@ -190,8 +181,9 @@ class Linker {
       if (export.addToExportScope(name, reference)) {
         // We've added [name] to [export.exporter]s export scope.
         // We need to propagate that to anyone that exports that library.
-        additionalExportData
-            .add(_AdditionalExport(export.exporter, name, reference));
+        additionalExportData.add(
+          _AdditionalExport(export.exporter, name, reference),
+        );
       }
     }
 
@@ -228,15 +220,11 @@ class Linker {
     }
   }
 
-  void _buildOutlines({
-    required OperationPerformanceImpl performance,
-  }) {
+  void _buildOutlines({required OperationPerformanceImpl performance}) {
     _createTypeSystemIfNotLinkingDartCore();
 
     performance.run('computeLibraryScopes', (performance) {
-      _computeLibraryScopes(
-        performance: performance,
-      );
+      _computeLibraryScopes(performance: performance);
     });
 
     _createTypeSystem();
@@ -274,9 +262,7 @@ class Linker {
     }
   }
 
-  void _computeLibraryScopes({
-    required OperationPerformanceImpl performance,
-  }) {
+  void _computeLibraryScopes({required OperationPerformanceImpl performance}) {
     for (var library in builders.values) {
       library.buildElements();
     }
@@ -363,23 +349,16 @@ class Linker {
     }
   }
 
-  void _writeLibraries({
-    required OperationPerformanceImpl performance,
-  }) {
-    var bundleWriter = BundleWriter(
-      elementFactory.dynamicRef,
-    );
+  void _writeLibraries({required OperationPerformanceImpl performance}) {
+    var bundleWriter = BundleWriter(elementFactory.dynamicRef);
 
     for (var builder in builders.values) {
       bundleWriter.writeLibraryElement(builder.element);
     }
 
-    var writeWriterResult = performance.run(
-      'bundleWriteFinish',
-      (performance) {
-        return bundleWriter.finish();
-      },
-    );
+    var writeWriterResult = performance.run('bundleWriteFinish', (performance) {
+      return bundleWriter.finish();
+    });
     resolutionBytes = writeWriterResult.resolutionBytes;
 
     performance.getDataInt('length').add(resolutionBytes.length);
@@ -389,9 +368,7 @@ class Linker {
 class LinkResult {
   final Uint8List resolutionBytes;
 
-  LinkResult({
-    required this.resolutionBytes,
-  });
+  LinkResult({required this.resolutionBytes});
 }
 
 class _AdditionalExport {

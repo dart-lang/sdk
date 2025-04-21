@@ -46,7 +46,8 @@ void f(A a) {
   }
 
   test_prefixedIdentifier_instanceField_abstractFinal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract final int x;
 }
@@ -57,12 +58,14 @@ void f(A a) {
   ++a.x;
   a.x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+      ],
+    );
   }
 
   test_prefixedIdentifier_instanceField_external() async {
@@ -81,7 +84,8 @@ void f(A a) {
   }
 
   test_prefixedIdentifier_instanceField_externalFinal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   external final int x;
 }
@@ -92,16 +96,19 @@ void f(A a) {
   ++a.x;
   a.x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+      ],
+    );
   }
 
   test_prefixedIdentifier_instanceField_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final x = 0;
 }
@@ -112,12 +119,14 @@ void f(A a) {
   ++a.x;
   a.x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 46, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 71, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 78, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 46, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 71, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 78, 1),
+      ],
+    );
   }
 
   test_prefixedIdentifier_instanceField_lateFinal() async {
@@ -136,7 +145,8 @@ void f(A a) {
   }
 
   test_prefixedIdentifier_instanceField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   late final int x = 0;
 }
@@ -147,16 +157,19 @@ void f(A a) {
   ++a.x;
   a.x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+      ],
+    );
   }
 
   test_prefixedIdentifier_staticField_externalFinal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   external static final int x;
 }
@@ -167,12 +180,14 @@ void f() {
   ++A.x;
   A.x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+      ],
+    );
   }
 
   test_prefixedIdentifier_staticField_lateFinal() async {
@@ -191,7 +206,8 @@ void f() {
   }
 
   test_prefixedIdentifier_staticField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   static late final int x = 0;
 }
@@ -202,12 +218,14 @@ void f() {
   ++A.x;
   A.x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+      ],
+    );
   }
 
   test_propertyAccess_instanceField_lateFinal() async {
@@ -226,7 +244,8 @@ void f(A a) {
   }
 
   test_propertyAccess_instanceField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   late final int x = 0;
 }
@@ -237,16 +256,19 @@ void f(A a) {
   ++(a).x;
   (a).x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 66, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 95, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 104, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 66, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 95, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 104, 1),
+      ],
+    );
   }
 
   test_simpleIdentifier_inheritedSetter_shadowedBy_topLevelGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void set foo(int _) {}
 }
@@ -258,9 +280,9 @@ class B extends A {
     foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 3)],
+    );
   }
 
   test_simpleIdentifier_instanceField_lateFinal() async {
@@ -279,7 +301,8 @@ abstract class A {
   }
 
   test_simpleIdentifier_instanceField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   late final int x = 0;
 
@@ -290,12 +313,14 @@ abstract class A {
     x++;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 61, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 72, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 61, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 72, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+      ],
+    );
   }
 
   test_simpleIdentifier_staticField_lateFinal() async {
@@ -314,7 +339,8 @@ abstract class A {
   }
 
   test_simpleIdentifier_staticField_lateFinal_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   static late final int x = 0;
 
@@ -325,16 +351,19 @@ abstract class A {
     x++;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+      ],
+    );
   }
 
   test_simpleIdentifier_topLevelGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int get x => 0;
 
 void f() {
@@ -343,12 +372,14 @@ void f() {
   ++x;
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 39, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 51, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 56, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 39, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 51, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 56, 1),
+      ],
+    );
   }
 
   test_simpleIdentifier_topLevelVariable() async {
@@ -378,7 +409,8 @@ void f() {
   }
 
   test_simpleIdentifier_topLevelVariable_externalFinal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 external final x;
 
 void f() {
@@ -387,16 +419,19 @@ void f() {
   ++x;
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 32, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 41, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 58, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 32, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 41, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 58, 1),
+      ],
+    );
   }
 
   test_simpleIdentifier_topLevelVariable_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final x = 0;
 
 void f() {
@@ -405,12 +440,14 @@ void f() {
   ++x;
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 27, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 48, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 27, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 48, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
+      ],
+    );
   }
 
   test_simpleIdentifier_topLevelVariable_lateFinal() async {
@@ -427,7 +464,8 @@ void f() {
   }
 
   test_simpleIdentifier_topLevelVariable_lateFinal_hasInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 late final int x = 0;
 
 void f() {
@@ -436,11 +474,13 @@ void f() {
   ++x;
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 45, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 62, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 45, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 62, 1),
+      ],
+    );
   }
 }

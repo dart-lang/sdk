@@ -798,8 +798,9 @@ library
   test_function_typed_parameter_implicit() async {
     var library = await buildLibrary('f(g()) => null;');
     expect(
-        library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
-        isFalse);
+      library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
+      isFalse,
+    );
   }
 
   test_function_typeParameters_hasBound() async {
@@ -934,8 +935,9 @@ library
   }
 
   test_main_class_alias() async {
-    var library =
-        await buildLibrary('class main = C with D; class C {} class D {}');
+    var library = await buildLibrary(
+      'class main = C with D; class C {} class D {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1001,8 +1003,10 @@ library
   }
 
   test_main_class_alias_via_export() async {
-    newFile('$testPackageLibPath/a.dart',
-        'class main = C with D; class C {} class D {}');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'class main = C with D; class C {} class D {}',
+    );
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library

@@ -99,8 +99,10 @@ class ManifestParserTest with ResourceProviderMixin {
   }
 
   void test_eofAfterOpeningTag_nested_outside() {
-    var parser =
-        ManifestParser('<manifest><application></application>', _manifestUri);
+    var parser = ManifestParser(
+      '<manifest><application></application>',
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.eof);
   }
@@ -236,15 +238,19 @@ class ManifestParserTest with ResourceProviderMixin {
     expect(children[0].name, equals(usesFeatureTag));
     var touchscreenAttributes = children[0].attributes;
     expect(touchscreenAttributes, hasLength(2));
-    expect(touchscreenAttributes[androidName]!.value,
-        equals(hardwareFeatureTouchscreen));
+    expect(
+      touchscreenAttributes[androidName]!.value,
+      equals(hardwareFeatureTouchscreen),
+    );
     expect(touchscreenAttributes[androidRequired]!.value, equals('false'));
 
     expect(children[1].name, equals(usesFeatureTag));
     var homeScreenAttributes = children[1].attributes;
     expect(homeScreenAttributes, hasLength(1));
-    expect(homeScreenAttributes[androidName]!.value,
-        equals('android.software.home_screen'));
+    expect(
+      homeScreenAttributes[androidName]!.value,
+      equals('android.software.home_screen'),
+    );
   }
 
   void test_manifestTag_withInnerText_isParsed() {
@@ -286,15 +292,19 @@ Text
   }
 
   void test_outsideTagClosedBeforeInside() {
-    var parser =
-        ManifestParser('<manifest><application></manifest>', _manifestUri);
+    var parser = ManifestParser(
+      '<manifest><application></manifest>',
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.eof);
   }
 
   void test_relevantTag_attributeIsParsed() {
-    var parser =
-        ManifestParser('<manifest aaa="bbb"></manifest>', _manifestUri);
+    var parser = ManifestParser(
+      '<manifest aaa="bbb"></manifest>',
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
@@ -307,8 +317,10 @@ Text
   }
 
   void test_relevantTag_attributeIsParsed_containsSingleQuotes() {
-    var parser =
-        ManifestParser('<manifest aaa="b\'b\'b"></manifest>', _manifestUri);
+    var parser = ManifestParser(
+      '<manifest aaa="b\'b\'b"></manifest>',
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
@@ -334,8 +346,10 @@ Text
   }
 
   void test_relevantTag_attributeIsParsed_singleQuotes() {
-    var parser =
-        ManifestParser("<manifest aaa='bbb'></manifest>", _manifestUri);
+    var parser = ManifestParser(
+      "<manifest aaa='bbb'></manifest>",
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
@@ -348,8 +362,10 @@ Text
   }
 
   void test_relevantTag_attributeIsParsed_uppercase() {
-    var parser =
-        ManifestParser('<manifest AAA="bbb"></manifest>', _manifestUri);
+    var parser = ManifestParser(
+      '<manifest AAA="bbb"></manifest>',
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
@@ -359,8 +375,10 @@ Text
   }
 
   void test_relevantTag_attributeWithEmptyValueIsParsed() {
-    var parser =
-        ManifestParser('<manifest xmlns:android=""></manifest>', _manifestUri);
+    var parser = ManifestParser(
+      '<manifest xmlns:android=""></manifest>',
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
@@ -396,8 +414,10 @@ Text
   }
 
   void test_relevantTag_withAttributes_nameIsParsed() {
-    var parser =
-        ManifestParser('<manifest aaa="bbb"></manifest>', _manifestUri);
+    var parser = ManifestParser(
+      '<manifest aaa="bbb"></manifest>',
+      _manifestUri,
+    );
     var result = parser.parseXmlTag();
     expect(result.element!.name, manifestTag);
     var sourceSpan = result.element!.sourceSpan!;
@@ -438,13 +458,16 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_cameraPermissions_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
 </manifest>
-''', [ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE]);
+''',
+      [ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE],
+    );
   }
 
   test_cameraPermissions_ok() {
@@ -460,22 +483,28 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_featureNotSupported_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" />
 </manifest>
-''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
+''',
+      [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE],
+    );
   }
 
   test_hardwareNotSupported_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
-''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
+''',
+      [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE],
+    );
   }
 
   test_no_errors() {
@@ -492,15 +521,19 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_noTouchScreen_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
 </manifest>
-''', [ManifestWarningCode.NO_TOUCHSCREEN_FEATURE]);
+''',
+      [ManifestWarningCode.NO_TOUCHSCREEN_FEATURE],
+    );
   }
 
   test_resizeableactivity_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -511,11 +544,14 @@ class ManifestValidatorTest with ResourceProviderMixin {
     </activity>
   </application>
 </manifest>
-''', [ManifestWarningCode.NON_RESIZABLE_ACTIVITY]);
+''',
+      [ManifestWarningCode.NON_RESIZABLE_ACTIVITY],
+    );
   }
 
   test_screenOrientation_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -526,15 +562,20 @@ class ManifestValidatorTest with ResourceProviderMixin {
     </activity>
   </application>
 </manifest>
-''', [ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY]);
+''',
+      [ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY],
+    );
   }
 
   test_touchScreenNotSupported_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
 </manifest>
-''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE]);
+''',
+      [ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE],
+    );
   }
 }

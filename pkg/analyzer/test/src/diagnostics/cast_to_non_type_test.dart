@@ -16,11 +16,14 @@ main() {
 @reflectiveTest
 class CastToNonTypeTest extends PubPackageResolutionTest {
   test_variable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var A = 0;
-f(String s) { var x = s as A; }''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(CompileTimeErrorCode.CAST_TO_NON_TYPE, 38, 1),
-    ]);
+f(String s) { var x = s as A; }''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+        error(CompileTimeErrorCode.CAST_TO_NON_TYPE, 38, 1),
+      ],
+    );
   }
 }

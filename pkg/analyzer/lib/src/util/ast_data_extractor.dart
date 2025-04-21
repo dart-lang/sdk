@@ -32,7 +32,8 @@ MemberId computeMemberId(Element2 element) {
     return MemberId.internal('$extensionName|$memberName');
   }
   throw UnimplementedError(
-      'TODO(paulberry): $element (${element.runtimeType})');
+    'TODO(paulberry): $element (${element.runtimeType})',
+  );
 }
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
@@ -189,10 +190,11 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   @override
   void visitStatement(Statement node) {
     computeForStatement(
-        node,
-        node is ExpressionStatement
-            ? createStatementId(node)
-            : computeDefaultNodeId(node));
+      node,
+      node is ExpressionStatement
+          ? createStatementId(node)
+          : computeDefaultNodeId(node),
+    );
     super.visitStatement(node);
   }
 

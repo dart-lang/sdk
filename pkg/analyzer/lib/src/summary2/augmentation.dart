@@ -7,10 +7,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 
 class ClassElementBuilder
     extends InstanceElementBuilder<ClassElementImpl2, ClassElementImpl> {
-  ClassElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+  ClassElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(ClassElementImpl fragment) {
     addFields(fragment.fields);
@@ -31,10 +28,7 @@ class ClassElementBuilder
 
 class EnumElementBuilder
     extends InstanceElementBuilder<EnumElementImpl2, EnumElementImpl> {
-  EnumElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+  EnumElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(EnumElementImpl fragment) {
     addFields(fragment.fields);
@@ -53,8 +47,9 @@ class EnumElementBuilder
   }
 }
 
-class ExtensionElementBuilder extends InstanceElementBuilder<
-    ExtensionElementImpl2, ExtensionElementImpl> {
+class ExtensionElementBuilder
+    extends
+        InstanceElementBuilder<ExtensionElementImpl2, ExtensionElementImpl> {
   ExtensionElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -76,8 +71,12 @@ class ExtensionElementBuilder extends InstanceElementBuilder<
   }
 }
 
-class ExtensionTypeElementBuilder extends InstanceElementBuilder<
-    ExtensionTypeElementImpl2, ExtensionTypeElementImpl> {
+class ExtensionTypeElementBuilder
+    extends
+        InstanceElementBuilder<
+          ExtensionTypeElementImpl2,
+          ExtensionTypeElementImpl
+        > {
   ExtensionTypeElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -106,10 +105,8 @@ class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
   final F firstFragment;
   F lastFragment;
 
-  FragmentedElementBuilder({
-    required this.element,
-    required this.firstFragment,
-  }) : lastFragment = firstFragment;
+  FragmentedElementBuilder({required this.element, required this.firstFragment})
+    : lastFragment = firstFragment;
 
   /// If [fragment] is an augmentation, set its previous fragment to
   /// [lastFragment].
@@ -123,10 +120,7 @@ class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
 
 class GetterElementBuilder
     extends FragmentedElementBuilder<GetterElementImpl, GetterFragmentImpl> {
-  GetterElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+  GetterElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(GetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
@@ -137,8 +131,11 @@ class GetterElementBuilder
   }
 }
 
-abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
-    F extends InstanceElementImpl> extends FragmentedElementBuilder<E, F> {
+abstract class InstanceElementBuilder<
+  E extends InstanceElementImpl2,
+  F extends InstanceElementImpl
+>
+    extends FragmentedElementBuilder<E, F> {
   final Map<String, FieldElementImpl> fields = {};
   final Map<String, ConstructorElementImpl> constructors = {};
   final Map<String, GetterFragmentImpl> getters = {};
@@ -248,10 +245,7 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
 
 class MixinElementBuilder
     extends InstanceElementBuilder<MixinElementImpl2, MixinElementImpl> {
-  MixinElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+  MixinElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(MixinElementImpl fragment) {
     addFields(fragment.fields);
@@ -271,10 +265,7 @@ class MixinElementBuilder
 
 class SetterElementBuilder
     extends FragmentedElementBuilder<SetterElementImpl, SetterFragmentImpl> {
-  SetterElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+  SetterElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(SetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
@@ -285,8 +276,12 @@ class SetterElementBuilder
   }
 }
 
-class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
-    TopLevelFunctionElementImpl, TopLevelFunctionFragmentImpl> {
+class TopLevelFunctionElementBuilder
+    extends
+        FragmentedElementBuilder<
+          TopLevelFunctionElementImpl,
+          TopLevelFunctionFragmentImpl
+        > {
   TopLevelFunctionElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -301,8 +296,12 @@ class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
   }
 }
 
-class TopLevelVariableElementBuilder extends FragmentedElementBuilder<
-    TopLevelVariableElementImpl2, TopLevelVariableElementImpl> {
+class TopLevelVariableElementBuilder
+    extends
+        FragmentedElementBuilder<
+          TopLevelVariableElementImpl2,
+          TopLevelVariableElementImpl
+        > {
   TopLevelVariableElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -317,8 +316,9 @@ class TopLevelVariableElementBuilder extends FragmentedElementBuilder<
   }
 }
 
-class TypeAliasElementBuilder extends FragmentedElementBuilder<
-    TypeAliasElementImpl2, TypeAliasElementImpl> {
+class TypeAliasElementBuilder
+    extends
+        FragmentedElementBuilder<TypeAliasElementImpl2, TypeAliasElementImpl> {
   TypeAliasElementBuilder({
     required super.element,
     required super.firstFragment,

@@ -30,12 +30,13 @@ class C {}
   }
 
   test_canonicalFor_hasNoArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@canonicalFor}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 16),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 16)],
+    );
   }
 
   test_canonicalFor_hasOneArguments() async {
@@ -46,12 +47,13 @@ class C {}
   }
 
   test_macro_hasNoArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@macro}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 9),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 9)],
+    );
   }
 
   test_youtube_hasThreeArguments() async {
@@ -62,21 +64,25 @@ class C {}
   }
 
   test_youtube_missingUrl() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube 600 400}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 19),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 19)],
+    );
   }
 
   test_youtube_missingUrl_andCurlyBrace() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube 600 400
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 18),
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 21, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT, 4, 18),
+        error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 21, 1),
+      ],
+    );
   }
 }

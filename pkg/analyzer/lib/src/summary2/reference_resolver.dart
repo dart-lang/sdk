@@ -205,7 +205,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(
-      covariant ExtensionTypeDeclarationImpl node) {
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;
@@ -308,7 +309,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(
-      covariant FunctionTypedFormalParameterImpl node) {
+    covariant FunctionTypedFormalParameterImpl node,
+  ) {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;

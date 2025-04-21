@@ -48,7 +48,8 @@ void f() {
   }
 
   test_generative_named_constructorReference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v.named();
 
@@ -58,16 +59,20 @@ enum E {
 void f() {
   E.named;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           58,
-          7),
-    ]);
+          7,
+        ),
+      ],
+    );
   }
 
   test_generative_named_instanceCreation_implicitNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v.named();
 
@@ -77,12 +82,15 @@ enum E {
 void f() {
   E.named();
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           58,
-          7),
-    ]);
+          7,
+        ),
+      ],
+    );
   }
 
   test_generative_named_redirectingConstructorInvocation() async {
@@ -97,25 +105,33 @@ enum E {
   }
 
   test_generative_named_redirectingFactory() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
 
   const factory E() = E.named;
   const E.named();
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR, 11,
-          1),
-      error(
+''',
+      [
+        error(
+          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          11,
+          1,
+        ),
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           37,
-          7),
-    ]);
+          7,
+        ),
+      ],
+    );
   }
 
   test_generative_unnamed_constructorReference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v
 }
@@ -123,16 +139,20 @@ enum E {
 void f() {
   E.new;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           29,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
   }
 
   test_generative_unnamed_instanceCreation_explicitConst() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v
 }
@@ -140,16 +160,20 @@ enum E {
 void f() {
   const E();
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           35,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_generative_unnamed_instanceCreation_explicitNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v
 }
@@ -157,16 +181,20 @@ enum E {
 void f() {
   new E();
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           33,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_generative_unnamed_instanceCreation_implicitNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v
 }
@@ -174,12 +202,15 @@ enum E {
 void f() {
   E();
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           29,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_generative_unnamed_redirectingConstructorInvocation() async {
@@ -195,18 +226,22 @@ enum E {
   }
 
   test_generative_unnamed_redirectingFactory() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
 
   const factory E.named() = E;
   const E();
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
           43,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

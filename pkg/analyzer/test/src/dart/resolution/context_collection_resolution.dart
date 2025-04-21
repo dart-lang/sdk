@@ -248,10 +248,7 @@ abstract class ContextResolutionTest
       libraryContext: analysisDriver.libraryContext,
       configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
-      sink: TreeStringSink(
-        sink: buffer,
-        indent: '',
-      ),
+      sink: TreeStringSink(sink: buffer, indent: ''),
       withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
     var actual = buffer.toString();
@@ -280,9 +277,7 @@ abstract class ContextResolutionTest
   Future<void> disposeAnalysisContextCollection() async {
     var analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
-      await analysisContextCollection.dispose(
-        forTesting: true,
-      );
+      await analysisContextCollection.dispose(forTesting: true);
       _analysisContextCollection = null;
     }
   }
@@ -401,9 +396,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
     var targetFile = getFile(rootFolder.path);
     var analysisDriver = driverFor(targetFile);
     var bundleBytes = await analysisDriver.buildPackageBundle(
-      uriList: [
-        Uri.parse('package:foo/foo.dart'),
-      ],
+      uriList: [Uri.parse('package:foo/foo.dart')],
     );
 
     var bundleFile = getFile('/home/summaries/packages.sum');
@@ -424,18 +417,14 @@ class PubPackageResolutionTest extends ContextResolutionTest
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(experiments: experiments),
     );
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-    );
+    writeTestPackageConfig(PackageConfigFileBuilder());
   }
 
   void writePackageConfig(
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    var content = config.toContent(
-      toUriStr: toUriStr,
-    );
+    var content = config.toContent(toUriStr: toUriStr);
     newPackageConfigJsonFile(directoryPath, content);
   }
 
@@ -514,10 +503,7 @@ class PubspecYamlFileDependency {
   final String name;
   final String version;
 
-  PubspecYamlFileDependency({
-    required this.name,
-    this.version = 'any',
-  });
+  PubspecYamlFileDependency({required this.name, this.version = 'any'});
 }
 
 mixin WithLanguage219Mixin on PubPackageResolutionTest {

@@ -210,9 +210,7 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  ConstFieldElementImpl enumConstant_(
-    String name,
-  ) {
+  ConstFieldElementImpl enumConstant_(String name) {
     return ConstFieldElementImpl(name, 0)..isEnumConstant = true;
   }
 
@@ -608,17 +606,14 @@ mixin ElementsTypesMixin {
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return RecordTypeImpl(
-      positionalFields: positionalTypes.map((type) {
-        return RecordTypePositionalFieldImpl(
-          type: type,
-        );
-      }).toList(),
-      namedFields: namedTypes.entries.map((entry) {
-        return RecordTypeNamedFieldImpl(
-          name: entry.key,
-          type: entry.value,
-        );
-      }).toList(),
+      positionalFields:
+          positionalTypes.map((type) {
+            return RecordTypePositionalFieldImpl(type: type);
+          }).toList(),
+      namedFields:
+          namedTypes.entries.map((entry) {
+            return RecordTypeNamedFieldImpl(name: entry.key, type: entry.value);
+          }).toList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -686,8 +681,11 @@ mixin ElementsTypesMixin {
     );
   }
 
-  TypeParameterElementImpl2 typeParameter(String name,
-      {TypeImpl? bound, Variance? variance}) {
+  TypeParameterElementImpl2 typeParameter(
+    String name, {
+    TypeImpl? bound,
+    Variance? variance,
+  }) {
     var fragment = TypeParameterElementImpl(name, -1);
     fragment.bound = bound;
 
@@ -753,8 +751,11 @@ extension ClassElementImpl2Extension on ClassElementImpl2 {
       augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
-      expect(augmentation.typeParameters, isEmpty,
-          reason: 'Not supported in tests');
+      expect(
+        augmentation.typeParameters,
+        isEmpty,
+        reason: 'Not supported in tests',
+      );
     }
   }
 }
@@ -768,8 +769,11 @@ extension ClassElementImplExtension on ClassElementImpl {
       augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
-      expect(augmentation.typeParameters, isEmpty,
-          reason: 'Not supported in tests');
+      expect(
+        augmentation.typeParameters,
+        isEmpty,
+        reason: 'Not supported in tests',
+      );
     }
   }
 }
@@ -783,8 +787,11 @@ extension MixinElementImpl2Extension on MixinElementImpl2 {
       augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
-      expect(augmentation.typeParameters, isEmpty,
-          reason: 'Not supported in tests');
+      expect(
+        augmentation.typeParameters,
+        isEmpty,
+        reason: 'Not supported in tests',
+      );
 
       superclassConstraints = [
         ...superclassConstraints,
@@ -803,8 +810,11 @@ extension MixinElementImplExtension on MixinElementImpl {
       augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
-      expect(augmentation.typeParameters, isEmpty,
-          reason: 'Not supported in tests');
+      expect(
+        augmentation.typeParameters,
+        isEmpty,
+        reason: 'Not supported in tests',
+      );
 
       augmentedInternal.superclassConstraints = [
         ...augmentedInternal.superclassConstraints,

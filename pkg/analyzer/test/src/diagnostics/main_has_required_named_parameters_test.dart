@@ -23,10 +23,11 @@ void main({int a = 0}) {}
   }
 
   test_namedRequired() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main({required List<String> a}) {}
-''', [
-      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4)],
+    );
   }
 }

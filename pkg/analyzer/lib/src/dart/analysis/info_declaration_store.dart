@@ -10,7 +10,11 @@ abstract class InfoDeclarationStore {
   String createKey(SummaryDataReader reader, int initialOffset);
   E? get<E>(SummaryDataReader reader, String key, int initialOffset);
   void put(
-      SummaryDataReader reader, String key, int initialOffset, Object value);
+    SummaryDataReader reader,
+    String key,
+    int initialOffset,
+    Object value,
+  );
 }
 
 class InfoDeclarationStoreImpl implements InfoDeclarationStore {
@@ -48,11 +52,19 @@ class InfoDeclarationStoreImpl implements InfoDeclarationStore {
 
   @override
   void put(
-      SummaryDataReader reader, String key, int initialOffset, Object value) {
+    SummaryDataReader reader,
+    String key,
+    int initialOffset,
+    Object value,
+  ) {
     // Assuming that the bytes will live longer than the result.
     _finalizer.attach(value, key);
-    map[key] = _InfoDeclarationStoreData(WeakReference(reader.bytes),
-        initialOffset, reader.offset, WeakReference(value));
+    map[key] = _InfoDeclarationStoreData(
+      WeakReference(reader.bytes),
+      initialOffset,
+      reader.offset,
+      WeakReference(value),
+    );
   }
 }
 
@@ -71,7 +83,11 @@ class NoOpInfoDeclarationStore implements InfoDeclarationStore {
 
   @override
   void put(
-      SummaryDataReader reader, String key, int initialOffset, Object value) {}
+    SummaryDataReader reader,
+    String key,
+    int initialOffset,
+    Object value,
+  ) {}
 }
 
 class _InfoDeclarationStoreData {
@@ -81,5 +97,9 @@ class _InfoDeclarationStoreData {
   final WeakReference<Object> result;
 
   _InfoDeclarationStoreData(
-      this.bytes, this.offset, this.endOffset, this.result);
+    this.bytes,
+    this.offset,
+    this.endOffset,
+    this.result,
+  );
 }

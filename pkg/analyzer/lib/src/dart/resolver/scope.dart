@@ -140,7 +140,8 @@ class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
   /// [export].
   Namespace createExportNamespaceForDirective2(
-      LibraryExportElementImpl export) {
+    LibraryExportElementImpl export,
+  ) {
     var exportedLibrary = export.exportedLibrary2;
     if (exportedLibrary == null) {
       //
@@ -231,8 +232,10 @@ class NamespaceBuilder {
 
   /// Apply the given [combinators] to all of the names in the given table of
   /// [definedNames].
-  Map<String, Element2> _applyCombinators(Map<String, Element2> definedNames,
-      List<NamespaceCombinator> combinators) {
+  Map<String, Element2> _applyCombinators(
+    Map<String, Element2> definedNames,
+    List<NamespaceCombinator> combinators,
+  ) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator is HideElementCombinator) {
         definedNames = _hide(definedNames, combinator.hiddenNames);
@@ -240,8 +243,9 @@ class NamespaceBuilder {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
         // Internal error.
-        AnalysisEngine.instance.instrumentationService
-            .logError("Unknown type of combinator: ${combinator.runtimeType}");
+        AnalysisEngine.instance.instrumentationService.logError(
+          "Unknown type of combinator: ${combinator.runtimeType}",
+        );
       }
     }
     return definedNames;
@@ -254,7 +258,9 @@ class NamespaceBuilder {
   /// Return a new map of names which has all the names from [definedNames]
   /// with exception of [hiddenNames].
   Map<String, Element2> _hide(
-      Map<String, Element2> definedNames, List<String> hiddenNames) {
+    Map<String, Element2> definedNames,
+    List<String> hiddenNames,
+  ) {
     var newNames = {...definedNames};
     for (String name in hiddenNames) {
       newNames.remove(name);
@@ -265,7 +271,9 @@ class NamespaceBuilder {
 
   /// Return a new map of names which has only [shownNames] from [definedNames].
   Map<String, Element2> _show(
-      Map<String, Element2> definedNames, List<String> shownNames) {
+    Map<String, Element2> definedNames,
+    List<String> shownNames,
+  ) {
     var newNames = <String, Element2>{};
     for (String name in shownNames) {
       var element = definedNames[name];
@@ -300,8 +308,8 @@ class PrefixedNamespace implements Namespace {
   /// prefixing each of the [_definedNames] with the given [_prefix] (and a
   /// period).
   PrefixedNamespace(String prefix, this._definedNames)
-      : _prefix = prefix,
-        _length = prefix.length;
+    : _prefix = prefix,
+      _length = prefix.length;
 
   @override
   Map<String, Element2> get definedNames2 {

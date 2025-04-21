@@ -35,16 +35,24 @@ class SnippetTester {
     var analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
     var docPath = provider.pathContext.join(analyzerPath, 'doc');
     var docFolder = provider.getFolder(docPath);
-    var snippetDirPath =
-        provider.pathContext.join(analyzerPath, 'test', 'snippets');
+    var snippetDirPath = provider.pathContext.join(
+      analyzerPath,
+      'test',
+      'snippets',
+    );
     var snippetPath = provider.pathContext.join(snippetDirPath, 'snippet.dart');
     return SnippetTester._(provider, docFolder, snippetDirPath, snippetPath);
   }
 
   SnippetTester._(
-      this.provider, this.docFolder, this.snippetDirPath, this.snippetPath)
-      : collection = AnalysisContextCollection(
-            resourceProvider: provider, includedPaths: [snippetPath]);
+    this.provider,
+    this.docFolder,
+    this.snippetDirPath,
+    this.snippetPath,
+  ) : collection = AnalysisContextCollection(
+        resourceProvider: provider,
+        includedPaths: [snippetPath],
+      );
 
   /// Return `true` if the given error is a diagnostic produced by a lint that
   /// is allowed to occur in documentation.
@@ -60,10 +68,12 @@ class SnippetTester {
   }
 
   Future<void> verifyFile(File file) async {
-    if (file.path
-            .endsWith('/pkg/analyzer/doc/element_model_migration_guide.md') ||
-        file.path
-            .endsWith(r'\pkg\analyzer\doc\element_model_migration_guide.md')) {
+    if (file.path.endsWith(
+          '/pkg/analyzer/doc/element_model_migration_guide.md',
+        ) ||
+        file.path.endsWith(
+          r'\pkg\analyzer\doc\element_model_migration_guide.md',
+        )) {
       return;
     }
     String content = file.readAsStringSync();
@@ -130,12 +140,14 @@ Future<void> assertNoErrorsInCode(String s) async {}
 void test(String s, void Function() f) {}
 void group(String s, void Function() f) {}
 ''';
-    provider.setOverlay(snippetPath,
-        content: '''
+    provider.setOverlay(
+      snippetPath,
+      content: '''
 $imports
 $snippet
 ''',
-        modificationStamp: 1);
+      modificationStamp: 1,
+    );
     try {
       List<AnalysisContext> contexts = collection.contexts;
       if (contexts.length != 1) {
@@ -156,8 +168,10 @@ $snippet
               !isAllowedLint(error);
         });
         if (errors.isNotEmpty) {
-          String filePath =
-              provider.pathContext.relative(file.path, from: docFolder.path);
+          String filePath = provider.pathContext.relative(
+            file.path,
+            from: docFolder.path,
+          );
           if (output.isNotEmpty) {
             output.writeln();
           }

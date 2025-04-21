@@ -19,12 +19,13 @@ class PartOfNonPartTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/l2.dart', '''
 library l2;
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library l1;
 part 'l2.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_NON_PART, 17, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_NON_PART, 17, 9)],
+    );
   }
 
   test_partOf_dotted() async {
@@ -40,11 +41,12 @@ part 'a.dart';
   }
 
   test_self() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library lib;
 part 'test.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_NON_PART, 18, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_NON_PART, 18, 11)],
+    );
   }
 }

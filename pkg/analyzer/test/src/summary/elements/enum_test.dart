@@ -2229,10 +2229,7 @@ enum E {
   E(this._foo);
 }
 ''');
-    configuration.forPromotableFields(
-      enumNames: {'E'},
-      fieldNames: {'_foo'},
-    );
+    configuration.forPromotableFields(enumNames: {'E'}, fieldNames: {'_foo'});
     checkElementText(library, r'''
 library
   reference: <testLibrary>

@@ -25,58 +25,64 @@ class D {}
 import 'c/d.dart';
 void g(D d) {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'b.dart';
 import 'c//d.dart';
 
 void f() {
   g(D());
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 11)],
+    );
   }
 
   test_libraryExport() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 export 'unknown.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
   }
 
   test_libraryExport_cannotResolve() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart:foo';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10)],
+    );
   }
 
   test_libraryExport_dart() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 export 'dart:math/bar.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20)],
+    );
   }
 
   test_libraryImport() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'unknown.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
   }
 
   test_libraryImport_appearsAfterDeletingTarget() async {
     String filePath = newFile('$testPackageLibPath/target.dart', '').path;
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'target.dart';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 13),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 13)],
+    );
 
     // Remove the overlay in the same way as AnalysisServer.
     deleteFile(filePath);
@@ -92,39 +98,43 @@ import 'target.dart';
   }
 
   test_libraryImport_cannotResolve() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:foo';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10)],
+    );
   }
 
   test_libraryImport_dart() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:math/bar.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20)],
+    );
   }
 
   test_libraryImport_deferredWithInvalidUri() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import '[invalid uri]' deferred as p;
 main() {
   p.loadLibrary();
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 15)],
+    );
   }
 
   @failingTest
   test_libraryImport_disappears_when_fixed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'target.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13)],
+    );
 
     newFile('$testPackageLibPath/target.dart', '');
 
@@ -132,25 +142,25 @@ import 'target.dart';
     // TODO(brianwilkerson): The error does not go away, possibly because the
     //  file is not being reanalyzed.
     await resolveTestFile();
-    assertErrorsInResult([
-      error(WarningCode.UNUSED_IMPORT, 0, 0),
-    ]);
+    assertErrorsInResult([error(WarningCode.UNUSED_IMPORT, 0, 0)]);
   }
 
   test_part() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library lib;
 part 'unknown.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 18, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 18, 14)],
+    );
   }
 
   test_part_cannotResolve() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'dart:foo';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 10)],
+    );
   }
 }

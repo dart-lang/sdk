@@ -187,18 +187,22 @@ ConstructorFieldInitializer
   }
 
   test_invalid_declarationAndInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final x = 0;
   const A() : x = a;
 }
 const a = 0;
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
           39,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -216,15 +220,16 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A() : X = a;
 }
 const a = 0;
 class X {}
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -242,15 +247,16 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
   int get x => 0;
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -268,16 +274,19 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_importPrefix() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async' as x;
 class A {
   A() : x = a;
 }
 const a = 0;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 44, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 12),
+        error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 44, 5),
+      ],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -295,15 +304,16 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
   void x() {}
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -321,15 +331,16 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
   set x(int _) {}
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -347,15 +358,16 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_topLevelFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
 }
 const a = 0;
 void x() {}
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -373,15 +385,16 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_topLevelVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
 }
 const a = 0;
 var x = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -399,14 +412,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A() : T = a;
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 21, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 21, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
@@ -424,14 +438,15 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A() : x = a;
 }
 const a = 0;
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5)],
+    );
 
     var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''

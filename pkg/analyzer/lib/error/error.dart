@@ -78,8 +78,8 @@ class AnalysisError implements Diagnostic {
     String? correctionMessage,
     List<DiagnosticMessage> contextMessages = const [],
     this.data,
-  })  : _correctionMessage = correctionMessage,
-        _contextMessages = contextMessages {
+  }) : _correctionMessage = correctionMessage,
+       _contextMessages = contextMessages {
     _problemMessage = DiagnosticMessageImpl(
       filePath: source.fullName,
       length: length,

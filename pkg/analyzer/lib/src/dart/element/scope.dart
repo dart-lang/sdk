@@ -15,8 +15,9 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
   ConstructorInitializerScope(super.parent, ConstructorElement2 element) {
-    var hasWildcardVariables =
-        element.library2.featureSet.isEnabled(Feature.wildcard_variables);
+    var hasWildcardVariables = element.library2.featureSet.isEnabled(
+      Feature.wildcard_variables,
+    );
     for (var formalParameter in element.formalParameters) {
       // Skip wildcards.
       if (formalParameter.name3 == '_' && hasWildcardVariables) {
@@ -39,14 +40,18 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
   Scope innerScope;
 
   DocumentationCommentScope(
-      this.innerScope, List<LibraryElement2> docImportLibraries) {
+    this.innerScope,
+    List<LibraryElement2> docImportLibraries,
+  ) {
     for (var importedLibrary in docImportLibraries) {
       if (importedLibrary is LibraryElementImpl) {
         // TODO(kallentu): Handle combinators.
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
-          var element = importedLibrary.session.elementFactory
-              .elementOfReference2(reference)!;
+          var element =
+              importedLibrary.session.elementFactory.elementOfReference2(
+                reference,
+              )!;
           if (element is SetterElement) {
             _addSetter(element);
           } else {
@@ -61,10 +66,7 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
   ScopeLookupResult lookup(String id) {
     var result = innerScope.lookup(id);
     if (result.getter2 != null || result.setter2 != null) return result;
-    return ScopeLookupResultImpl(
-      getter2: _getters[id],
-      setter2: _setters[id],
-    );
+    return ScopeLookupResultImpl(getter2: _getters[id], setter2: _setters[id]);
   }
 }
 
@@ -81,10 +83,7 @@ class EnclosedScope with _GettersAndSetters implements Scope {
     var getter = _getters[id];
     var setter = _setters[id];
     if (getter != null || setter != null) {
-      return ScopeLookupResultImpl(
-        getter2: getter,
-        setter2: setter,
-      );
+      return ScopeLookupResultImpl(getter2: getter, setter2: setter);
     }
 
     return _parent.lookup(id);
@@ -93,10 +92,7 @@ class EnclosedScope with _GettersAndSetters implements Scope {
 
 /// The scope defined by an extension.
 class ExtensionScope extends EnclosedScope {
-  ExtensionScope(
-    super.parent,
-    ExtensionElement2 element,
-  ) {
+  ExtensionScope(super.parent, ExtensionElement2 element) {
     element.getters2.forEach(_addGetter);
     element.setters2.forEach(_addSetter);
     element.methods2.forEach(_addGetter);
@@ -104,10 +100,7 @@ class ExtensionScope extends EnclosedScope {
 }
 
 class FormalParameterScope extends EnclosedScope {
-  FormalParameterScope(
-    super.parent,
-    List<FormalParameterElement> elements,
-  ) {
+  FormalParameterScope(super.parent, List<FormalParameterElement> elements) {
     for (var parameter in elements) {
       if (parameter is! FieldFormalParameterElement2 &&
           parameter is! SuperFormalParameterElement2) {
@@ -124,9 +117,7 @@ class ImportsTracking {
   /// Tracking information for each import prefix.
   final Map<PrefixElementImpl2?, ImportsTrackingOfPrefix> map;
 
-  ImportsTracking({
-    required this.map,
-  });
+  ImportsTracking({required this.map});
 
   /// The elements that are used from [import].
   Set<Element2> elementsOf(LibraryImportElementImpl import) {
@@ -170,9 +161,7 @@ class ImportsTrackingOfPrefix {
   /// We set it temporarily to `false` while resolving combinators.
   bool active = true;
 
-  ImportsTrackingOfPrefix({
-    required this.scope,
-  }) {
+  ImportsTrackingOfPrefix({required this.scope}) {
     _buildElementToImportsMap();
   }
 
@@ -372,12 +361,14 @@ class LibraryFragmentScope implements Scope {
   /// The extensions accessible within [fragment].
   List<ExtensionElement2> get accessibleExtensions {
     var libraryDeclarations = fragment.library.libraryDeclarations;
-    return _extensions ??= {
-      ...libraryDeclarations.extensions,
-      ...noPrefixScope._extensions,
-      for (var prefix in _prefixElements.values) ...prefix.scope._extensions,
-      ...?parent?.accessibleExtensions,
-    }.toFixedList();
+    return _extensions ??=
+        {
+          ...libraryDeclarations.extensions,
+          ...noPrefixScope._extensions,
+          for (var prefix in _prefixElements.values)
+            ...prefix.scope._extensions,
+          ...?parent?.accessibleExtensions,
+        }.toFixedList();
   }
 
   // TODO(scheglov): this is kludge.
@@ -423,10 +414,7 @@ class LibraryFragmentScope implements Scope {
     }
 
     // No result.
-    return ScopeLookupResultImpl(
-      getter2: null,
-      setter2: null,
-    );
+    return ScopeLookupResultImpl(getter2: null, setter2: null);
   }
 
   void notifyExtensionUsed(ExtensionElement2 element) {
@@ -454,10 +442,7 @@ class LibraryFragmentScope implements Scope {
     // Try prefix elements.
     if (_shouldTryPrefixElement(id)) {
       if (_prefixElements[id] case var prefixElement?) {
-        return ScopeLookupResultImpl(
-          getter2: prefixElement,
-          setter2: null,
-        );
+        return ScopeLookupResultImpl(getter2: prefixElement, setter2: null);
       }
     }
 
@@ -564,9 +549,7 @@ class PrefixScope implements Scope {
   }
 
   ImportsTrackingOfPrefix importsTrackingInit() {
-    return _importsTracking = ImportsTrackingOfPrefix(
-      scope: this,
-    );
+    return _importsTracking = ImportsTrackingOfPrefix(scope: this);
   }
 
   @override
@@ -608,10 +591,7 @@ class PrefixScope implements Scope {
       return parent.lookup(id);
     }
 
-    return ScopeLookupResultImpl(
-      getter2: null,
-      setter2: null,
-    );
+    return ScopeLookupResultImpl(getter2: null, setter2: null);
   }
 
   /// Usually this is an error, but we allow it in comment references.
@@ -713,10 +693,7 @@ class PrefixScope implements Scope {
     return true;
   }
 
-  static void _addElement(
-    Set<Element2> conflictingElements,
-    Element2 element,
-  ) {
+  static void _addElement(Set<Element2> conflictingElements, Element2 element) {
     if (element is MultiplyDefinedElementImpl2) {
       conflictingElements.addAll(element.conflictingElements2);
     } else {
@@ -746,12 +723,11 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
     required super.setter2,
     required bool getterIsFromDeprecatedExport,
     required bool setterIsFromDeprecatedExport,
-  }) : _deprecatedBits = (getterIsFromDeprecatedExport
-                ? getterIsFromDeprecatedExportBit
-                : 0) |
-            (setterIsFromDeprecatedExport
-                ? setterIsFromDeprecatedExportBit
-                : 0);
+  }) : _deprecatedBits =
+           (getterIsFromDeprecatedExport
+               ? getterIsFromDeprecatedExportBit
+               : 0) |
+           (setterIsFromDeprecatedExport ? setterIsFromDeprecatedExportBit : 0);
 
   /// This flag is set to `true` if [getter2] is available using import
   /// directives where every imported library re-exports the element, and
@@ -773,17 +749,11 @@ class ScopeLookupResultImpl extends ScopeLookupResult {
   @override
   final Element2? setter2;
 
-  ScopeLookupResultImpl({
-    required this.getter2,
-    required this.setter2,
-  });
+  ScopeLookupResultImpl({required this.getter2, required this.setter2});
 }
 
 class TypeParameterScope extends EnclosedScope {
-  TypeParameterScope(
-    super.parent,
-    List<TypeParameterElement2> elements,
-  ) {
+  TypeParameterScope(super.parent, List<TypeParameterElement2> elements) {
     for (var element in elements) {
       if (!element.isWildcardVariable) {
         _addGetter(element);

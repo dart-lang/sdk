@@ -15,11 +15,7 @@ class ReplaceTopBottomVisitor {
   final TypeImpl _topType;
   final TypeImpl _bottomType;
 
-  ReplaceTopBottomVisitor._(
-    this._typeSystem,
-    this._topType,
-    this._bottomType,
-  );
+  ReplaceTopBottomVisitor._(this._typeSystem, this._topType, this._bottomType);
 
   TypeImpl process(TypeImpl type, Variance variance) {
     if (variance.isContravariant) {
@@ -50,14 +46,15 @@ class ReplaceTopBottomVisitor {
   TypeImpl _functionType(FunctionTypeImpl type, Variance variance) {
     var newReturnType = process(type.returnType, variance);
 
-    var newParameters = type.formalParameters.map((parameter) {
-      return parameter.copyWith(
-        type: process(
-          parameter.type,
-          variance.combine(Variance.contravariant),
-        ),
-      );
-    }).toList();
+    var newParameters =
+        type.formalParameters.map((parameter) {
+          return parameter.copyWith(
+            type: process(
+              parameter.type,
+              variance.combine(Variance.contravariant),
+            ),
+          );
+        }).toList();
 
     return FunctionTypeImpl.v2(
       typeParameters: type.typeParameters,
@@ -82,10 +79,7 @@ class ReplaceTopBottomVisitor {
     for (var i = 0; i < typeParameters.length; i++) {
       var typeParameter = typeParameters[i];
       newTypeArguments.add(
-        process(
-          aliasArguments[i],
-          typeParameter.variance.combine(variance),
-        ),
+        process(aliasArguments[i], typeParameter.variance.combine(variance)),
       );
     }
 

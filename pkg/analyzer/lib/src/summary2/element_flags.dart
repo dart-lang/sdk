@@ -18,10 +18,7 @@ class ClassElementFlags {
   static const int _isSealed = 1 << 8;
   static const int _isSimplyBounded = 1 << 9;
 
-  static void read(
-    SummaryDataReader reader,
-    ClassElementImpl element,
-  ) {
+  static void read(SummaryDataReader reader, ClassElementImpl element) {
     var byte = reader.readUInt30();
     element.hasExtendsClause = (byte & _hasExtendsClause) != 0;
     element.isAbstract = (byte & _isAbstract) != 0;
@@ -35,10 +32,7 @@ class ClassElementFlags {
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
-  static void write(
-    BufferedSink sink,
-    ClassElementImpl element,
-  ) {
+  static void write(BufferedSink sink, ClassElementImpl element) {
     var result = 0;
     result |= element.hasExtendsClause ? _hasExtendsClause : 0;
     result |= element.isAbstract ? _isAbstract : 0;
@@ -75,9 +69,10 @@ class ConstructorElementFlags {
 
   static void write(BufferedSink sink, ConstructorElementImpl element) {
     var result = 0;
-    result |= element.hasEnclosingTypeParameterReference
-        ? _hasEnclosingTypeParameterReference
-        : 0;
+    result |=
+        element.hasEnclosingTypeParameterReference
+            ? _hasEnclosingTypeParameterReference
+            : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isConst ? _isConst : 0;
     result |= element.isExternal ? _isExternal : 0;
@@ -108,18 +103,12 @@ class EnumElementFlags {
 class ExtensionElementFlags {
   static const int _isAugmentation = 1 << 0;
 
-  static void read(
-    SummaryDataReader reader,
-    ExtensionElementImpl element,
-  ) {
+  static void read(SummaryDataReader reader, ExtensionElementImpl element) {
     var byte = reader.readByte();
     element.isAugmentation = (byte & _isAugmentation) != 0;
   }
 
-  static void write(
-    BufferedSink sink,
-    ExtensionElementImpl element,
-  ) {
+  static void write(BufferedSink sink, ExtensionElementImpl element) {
     var result = 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
     sink.writeByte(result);
@@ -144,9 +133,10 @@ class ExtensionTypeElementFlags {
 
   static void write(BufferedSink sink, ExtensionTypeElementImpl element) {
     var result = 0;
-    result |= element.hasRepresentationSelfReference
-        ? _hasRepresentationSelfReference
-        : 0;
+    result |=
+        element.hasRepresentationSelfReference
+            ? _hasRepresentationSelfReference
+            : 0;
     result |=
         element.hasImplementsSelfReference ? _hasImplementsSelfReference : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
@@ -197,9 +187,10 @@ class FieldElementFlags {
 
   static void write(BufferedSink sink, FieldElementImpl element) {
     var result = 0;
-    result |= element.hasEnclosingTypeParameterReference
-        ? _hasEnclosingTypeParameterReference
-        : 0;
+    result |=
+        element.hasEnclosingTypeParameterReference
+            ? _hasEnclosingTypeParameterReference
+            : 0;
     result |= element.hasImplicitType ? _hasImplicitType : 0;
     result |= element.hasInitializer ? _hasInitializer : 0;
     result |= element.inheritsCovariant ? _inheritsCovariant : 0;
@@ -212,9 +203,10 @@ class FieldElementFlags {
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
     result |= element.isPromotable ? _isPromotable : 0;
-    result |= element.shouldUseTypeForInitializerInference
-        ? _shouldUseTypeForInitializerInference
-        : 0;
+    result |=
+        element.shouldUseTypeForInitializerInference
+            ? _shouldUseTypeForInitializerInference
+            : 0;
     result |= element.isStatic ? _isStatic : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeUInt30(result);
@@ -230,7 +222,9 @@ class FunctionElementFlags {
   static const int _isStatic = 1 << 5;
 
   static void read(
-      SummaryDataReader reader, TopLevelFunctionFragmentImpl element) {
+    SummaryDataReader reader,
+    TopLevelFunctionFragmentImpl element,
+  ) {
     var byte = reader.readByte();
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
@@ -317,9 +311,10 @@ class MethodElementFlags {
   static void write(BufferedSink sink, MethodElementImpl element) {
     var result = 0;
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
-    result |= element.hasEnclosingTypeParameterReference
-        ? _hasEnclosingTypeParameterReference
-        : 0;
+    result |=
+        element.hasEnclosingTypeParameterReference
+            ? _hasEnclosingTypeParameterReference
+            : 0;
     result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
@@ -338,10 +333,7 @@ class MixinElementFlags {
   static const int _isBase = 1 << 1;
   static const int _isSimplyBounded = 1 << 2;
 
-  static void read(
-    SummaryDataReader reader,
-    MixinElementImpl element,
-  ) {
+  static void read(SummaryDataReader reader, MixinElementImpl element) {
     var byte = reader.readByte();
     element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isBase = (byte & _isBase) != 0;
@@ -406,7 +398,9 @@ class PropertyAccessorElementFlags {
   }
 
   static void setFlagsBasedOnFlagByte(
-      PropertyAccessorElementImpl element, int byte) {
+    PropertyAccessorElementImpl element,
+    int byte,
+  ) {
     element.hasEnclosingTypeParameterReference =
         (byte & _hasEnclosingTypeParameterReference) != 0;
     element.invokesSuperSelf = (byte & _invokesSuperSelf) != 0;
@@ -422,9 +416,10 @@ class PropertyAccessorElementFlags {
 
   static void write(BufferedSink sink, PropertyAccessorElementImpl element) {
     var result = 0;
-    result |= element.hasEnclosingTypeParameterReference
-        ? _hasEnclosingTypeParameterReference
-        : 0;
+    result |=
+        element.hasEnclosingTypeParameterReference
+            ? _hasEnclosingTypeParameterReference
+            : 0;
     result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isGetter ? _isGetter : 0;
@@ -472,9 +467,10 @@ class TopLevelVariableElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
-    result |= element.shouldUseTypeForInitializerInference
-        ? _shouldUseTypeForInitializerInference
-        : 0;
+    result |=
+        element.shouldUseTypeForInitializerInference
+            ? _shouldUseTypeForInitializerInference
+            : 0;
     sink.writeByte(result);
   }
 }

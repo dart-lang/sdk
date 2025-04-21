@@ -185,8 +185,9 @@ class UseResultVerifier {
     }
 
     if (element case Annotatable annotatable) {
-      return annotatable.metadata2.annotations
-          .firstWhereOrNull((e) => e.isUseResult);
+      return annotatable.metadata2.annotations.firstWhereOrNull(
+        (e) => e.isUseResult,
+      );
     }
 
     return null;

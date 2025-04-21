@@ -21,7 +21,7 @@ class CommentReferenceResolver {
   final TypePropertyResolver _typePropertyResolver;
 
   CommentReferenceResolver(this._typeProvider, this._resolver)
-      : _typePropertyResolver = _resolver.typePropertyResolver;
+    : _typePropertyResolver = _resolver.typePropertyResolver;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -31,14 +31,20 @@ class CommentReferenceResolver {
     try {
       var expression = commentReference.expression;
       if (expression is SimpleIdentifierImpl) {
-        _resolveSimpleIdentifierReference(expression,
-            hasNewKeyword: commentReference.newKeyword != null);
+        _resolveSimpleIdentifierReference(
+          expression,
+          hasNewKeyword: commentReference.newKeyword != null,
+        );
       } else if (expression is PrefixedIdentifierImpl) {
-        _resolvePrefixedIdentifierReference(expression,
-            hasNewKeyword: commentReference.newKeyword != null);
+        _resolvePrefixedIdentifierReference(
+          expression,
+          hasNewKeyword: commentReference.newKeyword != null,
+        );
       } else if (expression is PropertyAccessImpl) {
-        _resolvePropertyAccessReference(expression,
-            hasNewKeyword: commentReference.newKeyword != null);
+        _resolvePropertyAccessReference(
+          expression,
+          hasNewKeyword: commentReference.newKeyword != null,
+        );
       }
     } finally {
       _resolver.errorReporter.lockLevel--;
@@ -69,7 +75,8 @@ class CommentReferenceResolver {
 
     if (!hasNewKeyword) {
       if (prefixElement is InterfaceElement2) {
-        name.element = _resolver.inheritance.getMember4(
+        name.element =
+            _resolver.inheritance.getMember4(
               prefixElement,
               Name(prefixElement.library2.uri, name.name),
             ) ??
@@ -78,7 +85,8 @@ class CommentReferenceResolver {
             prefixElement.getSetter2(name.name) ??
             prefixElement.getNamedConstructor2(name.name);
       } else if (prefixElement is ExtensionElement2) {
-        name.element = prefixElement.getMethod2(name.name) ??
+        name.element =
+            prefixElement.getMethod2(name.name) ??
             prefixElement.getGetter2(name.name) ??
             prefixElement.getSetter2(name.name);
       } else {
@@ -125,12 +133,14 @@ class CommentReferenceResolver {
 
     var propertyName = expression.propertyName;
     if (element is InterfaceElement2) {
-      propertyName.element = element.getMethod2(propertyName.name) ??
+      propertyName.element =
+          element.getMethod2(propertyName.name) ??
           element.getGetter2(propertyName.name) ??
           element.getSetter2(propertyName.name) ??
           element.getNamedConstructor2(propertyName.name);
     } else if (element is ExtensionElement2) {
-      propertyName.element = element.getMethod2(propertyName.name) ??
+      propertyName.element =
+          element.getMethod2(propertyName.name) ??
           element.getGetter2(propertyName.name) ??
           element.getSetter2(propertyName.name);
     }

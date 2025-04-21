@@ -17,17 +17,23 @@ main() {
 class ExtensionOverrideArgumentNotAssignableTest
     extends PubPackageResolutionTest {
   test_override_onNonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on String {
   void m() {}
 }
 f() {
   E(null).m();
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 50,
-          4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          50,
+          4,
+        ),
+      ],
+    );
   }
 
   test_override_onNullable() async {
@@ -55,7 +61,8 @@ void f(B b) {
   }
 
   test_supertype() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 class B extends A {}
 extension E on B {
@@ -64,14 +71,20 @@ extension E on B {
 void f(A a) {
   E(a).m();
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 85,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          85,
+          1,
+        ),
+      ],
+    );
   }
 
   test_unrelated() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 class B {}
 extension E on A {
@@ -80,9 +93,14 @@ extension E on A {
 void f(B b) {
   E(b).m();
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 75,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          75,
+          1,
+        ),
+      ],
+    );
   }
 }

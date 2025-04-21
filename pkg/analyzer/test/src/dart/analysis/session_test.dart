@@ -38,10 +38,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
   }
 
   void test_getErrors_valid() async {
-    var a = newFile(
-      '$workspaceRootPath/dart/my/lib/a.dart',
-      'var x = 0',
-    );
+    var a = newFile('$workspaceRootPath/dart/my/lib/a.dart', 'var x = 0');
 
     var session = contextFor(a).currentSession;
     var result = await session.getErrorsValid(a);
@@ -81,10 +78,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
   }
 
   void test_getResolvedUnit_valid() async {
-    var file = newFile(
-      '$workspaceRootPath/dart/my/lib/a.dart',
-      'class A {}',
-    );
+    var file = newFile('$workspaceRootPath/dart/my/lib/a.dart', 'class A {}');
 
     var session = contextFor(file).currentSession;
     var result = await session.getResolvedUnit(file.path) as ResolvedUnitResult;
@@ -94,10 +88,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
   }
 
   void test_getUnitElement_invalidPath_notAbsolute() async {
-    var file = newFile(
-      '$workspaceRootPath/dart/my/lib/a.dart',
-      'class A {}',
-    );
+    var file = newFile('$workspaceRootPath/dart/my/lib/a.dart', 'class A {}');
 
     var session = contextFor(file).currentSession;
     var result = await session.getUnitElement('not_absolute.dart');
@@ -115,10 +106,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
   }
 
   void test_getUnitElement_valid() async {
-    var file = newFile(
-      '$workspaceRootPath/dart/my/lib/a.dart',
-      'class A {}',
-    );
+    var file = newFile('$workspaceRootPath/dart/my/lib/a.dart', 'class A {}');
 
     var session = contextFor(file).currentSession;
     var result = await session.getUnitElementValid(file);
@@ -922,10 +910,7 @@ unitElementResult
     _assertUnitElementResultText(unitResult, expected);
   }
 
-  void _assertUnitElementResultText(
-    UnitElementResult result,
-    String expected,
-  ) {
+  void _assertUnitElementResultText(UnitElementResult result, String expected) {
     var actual = _getElementUnitResultText(result);
     if (actual != expected) {
       print('-------- Actual --------');
@@ -993,7 +978,8 @@ extension on AnalysisSession {
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
-      LibraryElement2 element) async {
+    LibraryElement2 element,
+  ) async {
     return await getResolvedLibraryByElement2(element) as ResolvedLibraryResult;
   }
 

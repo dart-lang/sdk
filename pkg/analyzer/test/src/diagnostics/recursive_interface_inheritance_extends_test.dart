@@ -17,31 +17,52 @@ main() {
 class RecursiveInterfaceInheritanceExtendsTest
     extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A extends A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS, 6, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
+          6,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_abstract() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C extends C {
   var foo = 0;
   bar();
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS, 6, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
+          6,
+          1,
+        ),
+      ],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 augment class A extends A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS, 6, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
+          6,
+          1,
+        ),
+      ],
+    );
   }
 }

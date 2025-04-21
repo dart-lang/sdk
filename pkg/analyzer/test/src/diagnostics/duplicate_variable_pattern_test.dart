@@ -16,16 +16,23 @@ main() {
 @reflectiveTest
 class DuplicateVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case var a && var a) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 42, 1,
-          contextMessages: [message(testFile, 33, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          42,
+          1,
+          contextMessages: [message(testFile, 33, 1)],
+        ),
+      ],
+    );
     var node = findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
@@ -68,17 +75,24 @@ IfStatement
   }
 
   test_switchStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     case var a && var a:
       a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 53, 1,
-          contextMessages: [message(testFile, 44, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          53,
+          1,
+          contextMessages: [message(testFile, 44, 1)],
+        ),
+      ],
+    );
     var node = findNode.singleSwitchPatternCase;
     assertResolvedNodeText(node, r'''
 SwitchPatternCase
@@ -111,15 +125,22 @@ SwitchPatternCase
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var [a, a] = [0, 1];
   a;
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 21, 1,
-          contextMessages: [message(testFile, 18, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
+          21,
+          1,
+          contextMessages: [message(testFile, 18, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''

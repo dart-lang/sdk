@@ -104,9 +104,10 @@ class PackageConfigPackageUriResolver extends UriResolver {
   final Context _context;
 
   PackageConfigPackageUriResolver(
-      PackageConfigWorkspace workspace, this._normalUriResolver)
-      : _workspace = workspace,
-        _context = workspace.provider.pathContext;
+    PackageConfigWorkspace workspace,
+    this._normalUriResolver,
+  ) : _workspace = workspace,
+      _context = workspace.provider.pathContext;
 
   // TODO(scheglov): Finish switching to [Packages].
   Map<String, List<Folder>> get packageMap => _workspace.packageMap;
@@ -146,7 +147,9 @@ class PackageConfigPackageUriResolver extends UriResolver {
     String filePath = fileUriPart.replaceAll('/', _context.separator);
 
     var file = _workspace.builtFile(
-        _workspace._builtPackageSourcePath(filePath), packageName);
+      _workspace._builtPackageSourcePath(filePath),
+      packageName,
+    );
     if (file != null && file.exists) {
       return FileSource(file, uri);
     }
@@ -180,14 +183,16 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   final Map<String, WorkspacePackage> _workspacePackages = {};
 
   factory PackageConfigWorkspace(
-      ResourceProvider provider, //Packages packages,
-      String root,
-      File packageConfigFile,
-      Packages packages) {
+    ResourceProvider provider, //Packages packages,
+    String root,
+    File packageConfigFile,
+    Packages packages,
+  ) {
     // Use the default packages if there is one.
-    var newPackages = packages == Packages.empty
-        ? parsePackageConfigJsonFile(provider, packageConfigFile)
-        : packages;
+    var newPackages =
+        packages == Packages.empty
+            ? parsePackageConfigJsonFile(provider, packageConfigFile)
+            : packages;
 
     return PackageConfigWorkspace._(
       provider,
@@ -198,7 +203,11 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   }
 
   PackageConfigWorkspace._(
-      super.provider, super.packages, super.root, this.packageConfigFile) {
+    super.provider,
+    super.packages,
+    super.root,
+    this.packageConfigFile,
+  ) {
     _packageConfigContent = packageConfigFile.readAsStringSync();
   }
 
@@ -213,7 +222,9 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   @override
   UriResolver get packageUriResolver {
     return PackageConfigPackageUriResolver(
-        this, PackageMapUriResolver(provider, packageMap));
+      this,
+      PackageMapUriResolver(provider, packageMap),
+    );
   }
 
   /// For some package file, which may or may not be a package source (it could
@@ -229,13 +240,16 @@ class PackageConfigWorkspace extends SimpleWorkspace {
       return null;
     }
     var context = provider.pathContext;
-    var fullBuiltPath = context.normalize(context.join(
+    var fullBuiltPath = context.normalize(
+      context.join(
         root,
         file_paths.dotDartTool,
         file_paths.packageBuild,
         file_paths.packageBuildGenerated,
         packageName,
-        builtPath));
+        builtPath,
+      ),
+    );
     return provider.getFile(fullBuiltPath);
   }
 
@@ -359,7 +373,11 @@ class PackageConfigWorkspace extends SimpleWorkspace {
       if (packageConfigFile.exists) {
         var root = current.path;
         return PackageConfigWorkspace(
-            provider, root, packageConfigFile, packages);
+          provider,
+          root,
+          packageConfigFile,
+          packages,
+        );
       }
     }
     return null;
@@ -414,7 +432,10 @@ class PubPackage extends WorkspacePackage {
   final PackageConfigWorkspace workspace;
 
   factory PubPackage(
-      String root, PackageConfigWorkspace workspace, File pubspecFile) {
+    String root,
+    PackageConfigWorkspace workspace,
+    File pubspecFile,
+  ) {
     var pubspecContent = pubspecFile.readAsStringSync();
     var pubspec = Pubspec.parse(pubspecContent);
     var packageName = pubspec.name?.value.text;
@@ -494,7 +515,6 @@ class PubPackage extends WorkspacePackage {
   }
 
   @override
-
   /// A Pub package's public API consists of libraries found in the top-level
   /// "lib" directory, and any subdirectories, excluding the "src" directory
   /// just inside the top-level "lib" directory.
@@ -508,8 +528,12 @@ class PubPackage extends WorkspacePackage {
       return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
     }
 
-    libFolder = workspace.provider.pathContext
-        .joinAll([root, ..._generatedPathParts, 'test', 'lib']);
+    libFolder = workspace.provider.pathContext.joinAll([
+      root,
+      ..._generatedPathParts,
+      'test',
+      'lib',
+    ]);
     if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
       // A file in "$generated/lib" is public iff it is not in
       // "$generated/lib/src".

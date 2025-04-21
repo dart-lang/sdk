@@ -170,13 +170,14 @@ BinaryExpression
   }
 
   test_expression_recordType_noOperator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((String,) a) {
   a + 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1)],
+    );
 
     var node = findNode.binary('+ 0');
     assertResolvedNodeText(node, r'''
@@ -374,15 +375,16 @@ BinaryExpression
   }
 
   test_plus_augmentedExpression_augments_nothing() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int operator+(Object? a) {
     return augmented + 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 50, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 50, 9)],
+    );
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -453,7 +455,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -461,9 +464,9 @@ augment class A {
     return augmented + 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 76, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 76, 9)],
+    );
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -573,7 +576,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -581,9 +585,9 @@ augment class A {
     augmented + 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 68, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 68, 9)],
+    );
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -663,14 +667,17 @@ BinaryExpression
   }
 
   test_plus_never_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(Never a, int b) {
   a + b;
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
-      error(WarningCode.DEAD_CODE, 24, 3),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
+        error(WarningCode.DEAD_CODE, 24, 3),
+      ],
+    );
 
     assertResolvedNodeText(findNode.binary('a + b'), r'''
 BinaryExpression
@@ -779,15 +786,18 @@ BinaryExpression
   }
 
   test_star_syntheticOperand_both() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   final v = * ;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 25, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 25, 1),
+      ],
+    );
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -809,14 +819,17 @@ BinaryExpression
   }
 
   test_star_syntheticOperand_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   final v = * 2;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 23, 1),
+      ],
+    );
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -837,14 +850,17 @@ BinaryExpression
   }
 
   test_star_syntheticOperand_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   final v = 2 * ;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 27, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 27, 1),
+      ],
+    );
 
     var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
@@ -952,15 +968,16 @@ BinaryExpression
   }
 
   test_bangEq_extensionOverride_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {}
 
 void f(int a) {
   E(a) != 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2)],
+    );
 
     assertResolvedNodeText(findNode.binary('!= 0'), r'''
 BinaryExpression
@@ -990,13 +1007,14 @@ BinaryExpression
   }
 
   test_bangEqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(int a, int b) {
   a !== b;
 }
-''', [
-      error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1),
-    ]);
+''',
+      [error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1)],
+    );
 
     assertResolvedNodeText(findNode.binary('a !== b'), r'''
 BinaryExpression
@@ -1042,15 +1060,16 @@ BinaryExpression
   }
 
   test_eqEq_extensionOverride_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {}
 
 void f(int a) {
   E(a) == 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2)],
+    );
 
     assertResolvedNodeText(findNode.binary('== 0'), r'''
 BinaryExpression
@@ -1106,13 +1125,14 @@ BinaryExpression
   }
 
   test_eqEq_invalidType_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(A a) {
   a == 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1)],
+    );
 
     var node = findNode.binary('a == 0');
     assertResolvedNodeText(node, r'''
@@ -1133,13 +1153,14 @@ BinaryExpression
   }
 
   test_eqEqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(int a, int b) {
   a === b;
 }
-''', [
-      error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1),
-    ]);
+''',
+      [error(ScannerErrorCode.UNSUPPORTED_OPERATOR, 22, 1)],
+    );
 
     assertResolvedNodeText(findNode.binary('a === b'), r'''
 BinaryExpression
@@ -1416,15 +1437,16 @@ MethodInvocation
   }
 
   test_plus_double_context_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>() => throw Error();
 g(double a) {
   h(a + f());
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1577,7 +1599,8 @@ MethodInvocation
   }
 
   test_plus_int_context_int_via_extension_explicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   String operator+(num x) => '';
 }
@@ -1586,9 +1609,9 @@ g(int a) {
   h(E(a) + f());
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 10)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1834,13 +1857,14 @@ BinaryExpression
   }
 
   test_plus_invalidType_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   x + 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
 
     var node = findNode.binary('x + 0');
     assertResolvedNodeText(node, r'''
@@ -1861,15 +1885,16 @@ BinaryExpression
   }
 
   test_plus_num_context_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>() => throw Error();
 g(num a) {
   h(a + f());
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1890,7 +1915,8 @@ MethodInvocation
   }
 
   test_plus_other_context_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   num operator+(String x);
 }
@@ -1899,9 +1925,9 @@ g(A a) {
   h(a + f());
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1922,7 +1948,8 @@ MethodInvocation
   }
 
   test_plus_other_context_int_via_extension_explicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 extension E on A {
   String operator+(num x) => '';
@@ -1932,9 +1959,9 @@ g(A a) {
   h(E(a) + f());
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 10)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -1955,7 +1982,8 @@ MethodInvocation
   }
 
   test_plus_other_context_int_via_extension_implicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 extension E on A {
   String operator+(num x) => '';
@@ -1965,9 +1993,9 @@ g(A a) {
   h(a + f());
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 7)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -2238,10 +2266,7 @@ BinaryExpression
 class InferenceUpdate3Test extends PubPackageResolutionTest {
   @override
   List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.inference_update_3.enableString,
-    ];
+    return [...super.experiments, Feature.inference_update_3.enableString];
   }
 
   test_ifNull_contextIsConvertedToATypeUsingGreatestClosure() async {

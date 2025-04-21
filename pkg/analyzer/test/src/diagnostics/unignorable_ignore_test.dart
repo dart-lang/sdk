@@ -30,36 +30,39 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(unignorableNames: ['undefined_annotation']),
     );
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore_for_file: undefined_annotation
 @x int a = 0;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2)],
+    );
   }
 
   test_file_upperCase() async {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(unignorableNames: ['UNDEFINED_ANNOTATION']),
     );
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore_for_file: UNDEFINED_ANNOTATION
 @x int a = 0;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2)],
+    );
   }
 
   test_line() async {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(unignorableNames: ['undefined_annotation']),
     );
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore: undefined_annotation
 @x int a = 0;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 32, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 32, 2)],
+    );
   }
 
   test_lint() async {
@@ -71,31 +74,33 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
     );
     var avoidIntRule = _AvoidIntRule();
     registerLintRule(avoidIntRule);
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore: avoid_int
 int a = 0;
-''', [
-      error(avoidIntRule.lintCode, 21, 3),
-    ]);
+''',
+      [error(avoidIntRule.lintCode, 21, 3)],
+    );
   }
 }
 
 class _AvoidIntRule extends LintRule {
-  static const LintCode code = LintCode('avoid_int', 'Avoid int.',
-      correctionMessage: 'Try avoiding int.');
+  static const LintCode code = LintCode(
+    'avoid_int',
+    'Avoid int.',
+    correctionMessage: 'Try avoiding int.',
+  );
 
-  _AvoidIntRule()
-      : super(
-          name: 'avoid_int',
-          description: '',
-        );
+  _AvoidIntRule() : super(name: 'avoid_int', description: '');
 
   @override
   LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _AvoidIntVisitor(this);
     registry.addNamedType(this, visitor);
   }

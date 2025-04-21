@@ -1665,7 +1665,8 @@ library
 
   test_typedef_function_generic() async {
     var library = await buildLibrary(
-        'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
+      'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1915,8 +1916,9 @@ library
   }
 
   test_typedef_function_typeParameters_f_bound_simple() async {
-    var library =
-        await buildLibrary('typedef F<T extends U, U> = U Function(T t);');
+    var library = await buildLibrary(
+      'typedef F<T extends U, U> = U Function(T t);',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2410,7 +2412,8 @@ library
 
   test_typedef_legacy_typeParameters_bound() async {
     var library = await buildLibrary(
-        'typedef U F<T extends Object, U extends D>(T t); class D {}');
+      'typedef U F<T extends Object, U extends D>(T t); class D {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>

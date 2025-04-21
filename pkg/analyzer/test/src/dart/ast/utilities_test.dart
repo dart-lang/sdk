@@ -19,11 +19,7 @@ main() {
 @reflectiveTest
 class NodeLocator2Test extends _SharedNodeLocatorTests {
   @override
-  AstNode? locate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]) {
+  AstNode? locate(CompilationUnit unit, int start, [int? end]) {
     var locator = NodeLocator2(start, end);
     var node = locator.searchWithin(unit)!;
     return node;
@@ -64,11 +60,7 @@ class NodeLocator2Test extends _SharedNodeLocatorTests {
 }
 
 abstract class _SharedNodeLocatorTests extends ParserTestCase {
-  AstNode? locate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]);
+  AstNode? locate(CompilationUnit unit, int start, [int? end]);
 
   void test_searchWithin_class_afterName_beforeTypeParameters() {
     var source = r'''
@@ -151,16 +143,15 @@ set s(int i) {}
     expect(node, isFunctionDeclaration);
   }
 
-  AstNode _assertLocate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]) {
+  AstNode _assertLocate(CompilationUnit unit, int start, [int? end]) {
     end ??= start;
     var node = locate(unit, start, end)!;
     expect(node.offset <= start, isTrue, reason: "Node starts after range");
-    expect(node.offset + node.length > end, isTrue,
-        reason: "Node ends before range");
+    expect(
+      node.offset + node.length > end,
+      isTrue,
+      reason: "Node ends before range",
+    );
     return node;
   }
 }

@@ -36,7 +36,7 @@ abstract class FileStateFilter {
       'dart:js_util',
       'dart:svg',
       'dart:web_audio',
-      'dart:web_gl'
+      'dart:web_gl',
     }.contains(file.uriStr)) {
       return false;
     }
@@ -70,8 +70,8 @@ class _PubFilter implements FileStateFilter {
     var packageRootFolder = package.workspace.provider.getFolder(package.root);
     var inLibOrEntryPoint =
         packageRootFolder.getChildAssumingFolder('lib').contains(path) ||
-            packageRootFolder.getChildAssumingFolder('bin').contains(path) ||
-            packageRootFolder.getChildAssumingFolder('web').contains(path);
+        packageRootFolder.getChildAssumingFolder('bin').contains(path) ||
+        packageRootFolder.getChildAssumingFolder('web').contains(path);
 
     var dependencies = <String>{};
     var pubspec = package.pubspec;

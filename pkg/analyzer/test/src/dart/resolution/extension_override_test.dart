@@ -867,7 +867,8 @@ BinaryExpression
 
   test_operator_onTearOff() async {
     // https://github.com/dart-lang/sdk/issues/38653
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   v() {}
 }
@@ -875,9 +876,9 @@ extension E on int {
 f(){
   E(0).v++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 45, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 45, 1)],
+    );
 
     var node = findNode.postfix('++;');
     assertResolvedNodeText(node, r'''

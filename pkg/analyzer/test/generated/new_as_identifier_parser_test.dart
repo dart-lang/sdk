@@ -22,22 +22,25 @@ class NewAsIdentifierParserTest extends FastaParserTestCase {
   void test_constructor_field_initializer() {
     // Even though `C() : this.new();` is allowed, `C() : this.new = ...;`
     // should not be.
-    parseCompilationUnit('''
+    parseCompilationUnit(
+      '''
 class C {
   C() : this.new = null;
 }
-''', errors: [
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 4),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 23, 3),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 23, 3),
-      expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 23, 3),
-      expectedError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, 27, 1),
-      expectedError(ParserErrorCode.INVALID_OPERATOR, 27, 1),
-      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 27, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 4),
-      expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 29, 4),
-      expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 33, 1),
-    ]);
+''',
+      errors: [
+        expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 4),
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 23, 3),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 23, 3),
+        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 23, 3),
+        expectedError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, 27, 1),
+        expectedError(ParserErrorCode.INVALID_OPERATOR, 27, 1),
+        expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 27, 1),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 4),
+        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 29, 4),
+        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 33, 1),
+      ],
+    );
   }
 
   void test_constructor_invocation_const() {
@@ -79,9 +82,9 @@ class C {
   }
 
   void test_constructor_invocation_const_prefixed_generic() {
-    var instanceCreationExpression = parseExpression(
-      'const prefix.C<int>.new()',
-    ) as InstanceCreationExpression;
+    var instanceCreationExpression =
+        parseExpression('const prefix.C<int>.new()')
+            as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
@@ -130,9 +133,9 @@ class C {
   }
 
   void test_constructor_invocation_explicit_prefixed_generic() {
-    var instanceCreationExpression = parseExpression(
-      'new prefix.C<int>.new()',
-    ) as InstanceCreationExpression;
+    var instanceCreationExpression =
+        parseExpression('new prefix.C<int>.new()')
+            as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
@@ -277,9 +280,8 @@ class C {
   }
 
   void test_constructor_tearoff_prefixed_generic_method_invocation() {
-    var methodInvocation = parseExpression(
-      'prefix.C<int>.new.toString()',
-    ) as MethodInvocation;
+    var methodInvocation =
+        parseExpression('prefix.C<int>.new.toString()') as MethodInvocation;
     var target = methodInvocation.target as PropertyAccess;
     var functionReference = target.target as FunctionReference;
     var className = functionReference.function as PrefixedIdentifier;
@@ -293,9 +295,8 @@ class C {
   }
 
   void test_constructor_tearoff_prefixed_method_invocation() {
-    var methodInvocation = parseExpression(
-      'prefix.C.new.toString()',
-    ) as MethodInvocation;
+    var methodInvocation =
+        parseExpression('prefix.C.new.toString()') as MethodInvocation;
     var target = methodInvocation.target as PropertyAccess;
     var prefixedIdentifier = target.target as PrefixedIdentifier;
     expect(prefixedIdentifier.prefix.name, 'prefix');
@@ -308,15 +309,14 @@ class C {
 
   void test_disabled() {
     var unit = parseCompilationUnit(
-        '''
+      '''
 class C {
   C.new();
 }
 ''',
-        featureSet: FeatureSets.language_2_13,
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 3),
-        ]);
+      featureSet: FeatureSets.language_2_13,
+      errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 3)],
+    );
     var classDeclaration = unit.declarations.single as ClassDeclaration;
     var constructorDeclaration =
         classDeclaration.members.single as ConstructorDeclaration;
@@ -407,8 +407,9 @@ class C extends B {
     var constructorDeclaration =
         classDeclaration.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.redirectedConstructor, isNull);
-    var superConstructorInvocation = constructorDeclaration.initializers.single
-        as SuperConstructorInvocation;
+    var superConstructorInvocation =
+        constructorDeclaration.initializers.single
+            as SuperConstructorInvocation;
     expect(superConstructorInvocation.constructorName!.name, 'new');
   }
 
@@ -423,8 +424,9 @@ class C {
     var constructorDeclaration =
         classDeclaration.members[0] as ConstructorDeclaration;
     expect(constructorDeclaration.redirectedConstructor, isNull);
-    var redirectingConstructorInvocation = constructorDeclaration
-        .initializers.single as RedirectingConstructorInvocation;
+    var redirectingConstructorInvocation =
+        constructorDeclaration.initializers.single
+            as RedirectingConstructorInvocation;
     expect(redirectingConstructorInvocation.constructorName!.name, 'new');
   }
 }

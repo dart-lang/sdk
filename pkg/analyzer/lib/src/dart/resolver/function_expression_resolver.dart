@@ -15,7 +15,7 @@ class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
 
   FunctionExpressionResolver({required ResolverVisitor resolver})
-      : _resolver = resolver;
+    : _resolver = resolver;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -27,8 +27,11 @@ class FunctionExpressionResolver {
     var body = node.body;
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
-      _resolver.flowAnalysis
-          .executableDeclaration_enter(node, node.parameters, isClosure: true);
+      _resolver.flowAnalysis.executableDeclaration_enter(
+        node,
+        node.parameters,
+        isClosure: true,
+      );
     }
 
     bool wasFunctionTypeSupplied = contextType is FunctionTypeImpl;
@@ -59,10 +62,7 @@ class FunctionExpressionResolver {
     _resolve2(node, imposedType);
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
-      _resolver.checkForBodyMayCompleteNormally(
-        body: body,
-        errorNode: body,
-      );
+      _resolver.checkForBodyMayCompleteNormally(body: body, errorNode: body);
       _resolver.flowAnalysis.flow?.functionExpression_end();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     }
@@ -100,13 +100,15 @@ class FunctionExpressionResolver {
 
     var nodeParameterFragments = node.parameterFragments.nonNulls;
     {
-      var nodePositional = nodeParameterFragments
-          .map((fragment) => fragment.element)
-          .where((element) => element.isPositional)
-          .iterator;
-      var contextPositional = contextType.formalParameters
-          .where((element) => element.isPositional)
-          .iterator;
+      var nodePositional =
+          nodeParameterFragments
+              .map((fragment) => fragment.element)
+              .where((element) => element.isPositional)
+              .iterator;
+      var contextPositional =
+          contextType.formalParameters
+              .where((element) => element.isPositional)
+              .iterator;
       while (nodePositional.moveNext() && contextPositional.moveNext()) {
         inferType(
           nodePositional.current as FormalParameterElementImpl,
@@ -138,7 +140,9 @@ class FunctionExpressionResolver {
   /// Return `null` is the number of element in [typeParameterList] is not
   /// the same as the number of type parameters in the [type].
   FunctionTypeImpl? _matchTypeParameters(
-      TypeParameterListImpl? typeParameterList, FunctionTypeImpl type) {
+    TypeParameterListImpl? typeParameterList,
+    FunctionTypeImpl type,
+  ) {
     if (typeParameterList == null) {
       if (type.typeParameters.isEmpty) {
         return type;
@@ -151,11 +155,13 @@ class FunctionExpressionResolver {
       return null;
     }
 
-    return type.instantiate(typeParameters.map((typeParameter) {
-      return typeParameter.declaredFragment!.element.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }).toList());
+    return type.instantiate(
+      typeParameters.map((typeParameter) {
+        return typeParameter.declaredFragment!.element.instantiate(
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }).toList(),
+    );
   }
 
   void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {

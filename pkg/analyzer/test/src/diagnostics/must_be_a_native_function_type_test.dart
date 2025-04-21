@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class MustBeANativeFunctionTypeTest extends PubPackageResolutionTest {
   test_fromFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 class C<T extends Function> {
@@ -24,22 +25,23 @@ class C<T extends Function> {
     Pointer.fromFunction<T>(f);
   }
 }
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 110, 1),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 110, 1)],
+    );
   }
 
   test_lookupFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef S = int Function(int);
 typedef F = String Function(String);
 void f(DynamicLibrary lib) {
   lib.lookupFunction<S, F>('g');
 }
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 137, 1),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 137, 1)],
+    );
   }
 
   test_lookupFunction_Pointer() async {
@@ -56,14 +58,17 @@ void f(DynamicLibrary lib) {
   // TODO(dacoharkes): Should this be an error or not?
   // https://dartbug.com/44594
   test_lookupFunction_PointerNativeFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef S = Void Function(Pointer<NativeFunction>);
 typedef F = void Function(Pointer<NativeFunction>);
 void f(DynamicLibrary lib) {
   lib.lookupFunction<S, F>('g');
 }
-''', [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 173, 1)]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 173, 1)],
+    );
   }
 
   test_lookupFunction_PointerNativeFunction2() async {
@@ -89,7 +94,8 @@ void f(DynamicLibrary lib) {
   }
 
   test_lookupFunction_T() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef F = int Function(int);
 class C<T extends Function> {
@@ -97,9 +103,9 @@ class C<T extends Function> {
     lib.lookupFunction<T, F>('g');
   }
 }
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 152, 1),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 152, 1)],
+    );
   }
 
   test_lookupFunction_VarArgs1() async {
@@ -132,7 +138,8 @@ final variadicAt1Int64x5Leaf =
   }
 
   test_lookupFunction_VarArgs3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final lib = DynamicLibrary.open('dontcare');
 final variadicAt1Int64x5Leaf =
@@ -143,13 +150,14 @@ final variadicAt1Int64x5Leaf =
     "VariadicAt1Int64x5",
     isLeaf:true
   );
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 187, 40),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_SUBTYPE, 187, 40)],
+    );
   }
 
   test_lookupFunction_VarArgs4() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final lib = DynamicLibrary.open('dontcare');
 final variadicAt1Int64x5Leaf =
@@ -160,13 +168,14 @@ final variadicAt1Int64x5Leaf =
     "VariadicAt1Int64x5",
     isLeaf:true
   );
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 68),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 68)],
+    );
   }
 
   test_lookupFunction_VarArgs5() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final lib = DynamicLibrary.open('dontcare');
 final variadicAt1Int64x5Leaf =
@@ -177,8 +186,8 @@ final variadicAt1Int64x5Leaf =
     "VariadicAt1Int64x5",
     isLeaf:true
   );
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 60),
-    ]);
+''',
+      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 60)],
+    );
   }
 }

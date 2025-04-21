@@ -23,12 +23,13 @@ class C {}
   }
 
   test_animation_missingWidth() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@animation}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 13),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 13)],
+    );
   }
 
   test_youtube_hasWidth() async {
@@ -39,20 +40,22 @@ class C {}
   }
 
   test_youtube_missingWidth() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 11),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 11)],
+    );
   }
 
   test_youtube_missingWidth_andCurlyBrace() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 10),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS, 4, 10)],
+    );
   }
 }

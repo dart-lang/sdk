@@ -16,37 +16,42 @@ main() {
 @reflectiveTest
 class SuperInEnumConstructorTest extends PubPackageResolutionTest {
   test_hasRedirect() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E.named();
   const E() : this.named(), super();
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 61, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 61, 5)],
+    );
   }
 
   test_one() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E() : super();
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5)],
+    );
   }
 
   test_two() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   const E() : super(), super();
 }
-''', [
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5),
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 37, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5),
+        error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 37, 5),
+      ],
+    );
   }
 }

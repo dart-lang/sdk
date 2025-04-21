@@ -41,9 +41,7 @@ mixin ScopeHelpers {
   }) {
     if (scopeLookupResult is PrefixScopeLookupResult &&
         scopeLookupResult.getterIsFromDeprecatedExport) {
-      _reportDeprecatedExportUse(
-        nameToken: nameToken,
-      );
+      _reportDeprecatedExportUse(nameToken: nameToken);
     }
   }
 
@@ -53,15 +51,11 @@ mixin ScopeHelpers {
   }) {
     if (scopeLookupResult is PrefixScopeLookupResult &&
         scopeLookupResult.setterIsFromDeprecatedExport) {
-      _reportDeprecatedExportUse(
-        nameToken: nameToken,
-      );
+      _reportDeprecatedExportUse(nameToken: nameToken);
     }
   }
 
-  void _reportDeprecatedExportUse({
-    required Token nameToken,
-  }) {
+  void _reportDeprecatedExportUse({required Token nameToken}) {
     errorReporter.atToken(
       nameToken,
       WarningCode.DEPRECATED_EXPORT_USE,

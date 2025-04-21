@@ -13,7 +13,8 @@ main() {
     defineReflectiveTests(ConstructorReferenceResolutionTest);
     defineReflectiveTests(ConstructorReferenceResolutionTest_TypeArgs);
     defineReflectiveTests(
-        ConstructorReferenceResolutionTest_WithoutConstructorTearoffs);
+      ConstructorReferenceResolutionTest_WithoutConstructorTearoffs,
+    );
   });
 }
 
@@ -51,7 +52,8 @@ ConstructorReference
   }
 
   test_abstractClass_generative() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   A();
 }
@@ -59,13 +61,16 @@ abstract class A {
 foo() {
   A.new;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
           39,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.constructorReference('A.new;');
     assertResolvedNodeText(node, r'''
@@ -86,7 +91,8 @@ ConstructorReference
   }
 
   test_abstractClass_redirecting() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   A(): this.two();
 
@@ -96,13 +102,16 @@ abstract class A {
 foo() {
   A.new;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
           63,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.constructorReference('A.new;');
     assertResolvedNodeText(node, r'''
@@ -123,7 +132,8 @@ ConstructorReference
   }
 
   test_class_generic_inferFromContext_badTypeArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T extends num> {
   A.foo();
 }
@@ -131,10 +141,16 @@ class A<T extends num> {
 A<String> Function() bar() {
   return A.foo;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6,
-          contextMessages: [message(testFile, 39, 9)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          41,
+          6,
+          contextMessages: [message(testFile, 39, 9)],
+        ),
+      ],
+    );
 
     var node = findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''
@@ -801,7 +817,8 @@ ConstructorReference
   }
 
   test_alias_generic_with_inferred_type_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   final T x;
   C(this.x);
@@ -810,9 +827,9 @@ typedef Direct<T> = C<T>;
 void main() {
   var x = const <C<int> Function(int)>[Direct.new];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1)],
+    );
   }
 
   test_alias_genericWithBound_unnamed() async {
@@ -858,7 +875,8 @@ ConstructorReference
   }
 
   test_alias_genericWithBound_unnamed_badBound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A();
 }
@@ -867,9 +885,9 @@ typedef TA<T extends num> = A<T>;
 void bar() {
   TA<String>.new;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 75, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 75, 6)],
+    );
 
     var node = findNode.constructorReference('TA<String>.new;');
     assertResolvedNodeText(node, r'''
@@ -982,7 +1000,8 @@ ConstructorReference
   }
 
   test_class_generic_named_cascade() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A.foo();
 }
@@ -990,18 +1009,21 @@ class A<T> {
 void bar() {
   A<int>..foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
-      error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
+        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+      ],
+    );
     // The parser produces nonsense here because the `<` disambiguates as a
     // relational operator, so no need to assert anything about analysis
     // results.
   }
 
   test_class_generic_named_nullAware() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A.foo();
 }
@@ -1009,18 +1031,21 @@ class A<T> {
 void bar() {
   A<int>?.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
-      error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
+        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+      ],
+    );
     // The parser produces nonsense here because the `<` disambiguates as a
     // relational operator, so no need to assert anything about analysis
     // results.
   }
 
   test_class_generic_named_typeArgs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A.foo();
 }
@@ -1028,11 +1053,16 @@ class A<T> {
 void bar() {
   A<int>.foo<int>;
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          52,
           5,
-          messageContains: ["The constructor 'A.foo'"]),
-    ]);
+          messageContains: ["The constructor 'A.foo'"],
+        ),
+      ],
+    );
 
     var node = findNode.constructorReference('A<int>.foo<int>;');
     assertResolvedNodeText(node, r'''
@@ -1065,7 +1095,8 @@ ConstructorReference
   }
 
   test_class_generic_new_typeArgs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A.new();
 }
@@ -1073,11 +1104,16 @@ class A<T> {
 void bar() {
   A<int>.new<int>;
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          52,
           5,
-          messageContains: ["The constructor 'A.new'"]),
-    ]);
+          messageContains: ["The constructor 'A.new'"],
+        ),
+      ],
+    );
 
     var node = findNode.constructorReference('A<int>.new<int>;');
     assertResolvedNodeText(node, r'''
@@ -1110,7 +1146,8 @@ ConstructorReference
   }
 
   test_class_generic_nonConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static int i = 1;
 }
@@ -1118,10 +1155,15 @@ class A<T> {
 void bar() {
   A<int>.i;
 }
-''', [
-      error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
-          51, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+          51,
+          8,
+        ),
+      ],
+    );
 
     var node = findNode.constructorReference('A<int>.i;');
     assertResolvedNodeText(node, r'''
@@ -1150,7 +1192,8 @@ ConstructorReference
   }
 
   test_class_generic_nothing_hasNamedConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   A.foo();
 }
@@ -1158,9 +1201,9 @@ class A<T> {
 void bar() {
   A<int>.;
 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 49, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 49, 1)],
+    );
 
     var node = findNode.constructorReference('A<int>.;');
     assertResolvedNodeText(node, r'''
@@ -1312,7 +1355,8 @@ ConstructorReference
   }
 
   test_class_genericWithBound_unnamed_badBound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T extends num> {
   A();
 }
@@ -1320,9 +1364,9 @@ class A<T extends num> {
 void bar() {
   A<String>.new;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 52, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 52, 6)],
+    );
 
     var node = findNode.constructorReference('A<String>.new;');
     assertResolvedNodeText(node, r'''
@@ -1549,9 +1593,11 @@ ConstructorReference
 
 @reflectiveTest
 class ConstructorReferenceResolutionTest_WithoutConstructorTearoffs
-    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+    extends PubPackageResolutionTest
+    with WithoutConstructorTearoffsMixin {
   test_class_generic_nonConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   static int i = 1;
 }
@@ -1559,9 +1605,9 @@ class A<T> {
 void bar() {
   A<int>.i;
 }
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 52, 5),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 52, 5)],
+    );
 
     var node = findNode.constructorReference('A<int>.i;');
     assertResolvedNodeText(node, r'''
@@ -1590,7 +1636,8 @@ ConstructorReference
   }
 
   test_constructorTearoff() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A.foo();
 }
@@ -1598,9 +1645,9 @@ class A {
 void bar() {
   A.foo;
 }
-''', [
-      error(WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5),
-    ]);
+''',
+      [error(WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5)],
+    );
 
     var node = findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''

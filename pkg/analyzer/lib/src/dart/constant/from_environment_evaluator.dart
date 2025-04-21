@@ -138,9 +138,11 @@ class FromEnvironmentEvaluator {
   }
 
   static DartObjectImpl _defaultValueDefaultValue(
-      ConstructorElement2 constructor) {
+    ConstructorElement2 constructor,
+  ) {
     return constructor.formalParameters
-        .singleWhere((parameter) => parameter.name3 == _defaultValue)
-        .computeConstantValue() as DartObjectImpl;
+            .singleWhere((parameter) => parameter.name3 == _defaultValue)
+            .computeConstantValue()
+        as DartObjectImpl;
   }
 }

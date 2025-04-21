@@ -16,10 +16,11 @@ main() {
 @reflectiveTest
 class NativeClauseInNonSdkCodeTest extends PubPackageResolutionTest {
   test_nativeClauseInNonSDKCode() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A native 'string' {}
-''', [
-      error(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, 8, 15),
-    ]);
+''',
+      [error(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, 8, 15)],
+    );
   }
 }

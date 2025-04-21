@@ -83,8 +83,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ClassElement2 get objectElement => typeProvider.objectElement2;
 
   bool get strictCasts {
-    var analysisOptions =
-        result.session.analysisContext.getAnalysisOptionsForFile(result.file);
+    var analysisOptions = result.session.analysisContext
+        .getAnalysisOptionsForFile(result.file);
     return analysisOptions.strictCasts;
   }
 
@@ -104,10 +104,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertDartObjectText(DartObject? object, String expected) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
@@ -151,8 +148,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element, isNull);
   }
 
-  void assertElementTypes(List<DartType>? types, List<String> expected,
-      {bool ordered = false}) {
+  void assertElementTypes(
+    List<DartType>? types,
+    List<String> expected, {
+    bool ordered = false,
+  }) {
     if (types == null) {
       fail('Expected types, actually null.');
     }
@@ -166,7 +166,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   Future<void> assertErrorsInCode(
-      String code, List<ExpectedError> expectedErrors) async {
+    String code,
+    List<ExpectedError> expectedErrors,
+  ) async {
     addTestFile(code);
     await resolveTestFile();
 
@@ -237,10 +239,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertParsedNodeText(AstNode node, String expected) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
 
     var elementPrinter = ElementPrinter(
       sink: sink,
@@ -309,14 +308,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Map<String, String> expected,
   ) {
     var actualMapString = Map.fromEntries(
-      substitution.map.entries.where((entry) {
-        return entry.key.enclosingElement2 is! ExecutableElement2;
-      }).map((entry) {
-        return MapEntry(
-          entry.key.name3,
-          typeString(entry.value),
-        );
-      }),
+      substitution.map.entries
+          .where((entry) {
+            return entry.key.enclosingElement2 is! ExecutableElement2;
+          })
+          .map((entry) {
+            return MapEntry(entry.key.name3, typeString(entry.value));
+          }),
     );
     expect(actualMapString, expected);
   }
@@ -360,17 +358,24 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  ExpectedError error(ErrorCode code, int offset, int length,
-          {Pattern? correctionContains,
-          String? text,
-          List<Pattern> messageContains = const [],
-          List<ExpectedContextMessage> contextMessages =
-              const <ExpectedContextMessage>[]}) =>
-      ExpectedError(code, offset, length,
-          correctionContains: correctionContains,
-          message: text,
-          messageContains: messageContains,
-          expectedContextMessages: contextMessages);
+  ExpectedError error(
+    ErrorCode code,
+    int offset,
+    int length, {
+    Pattern? correctionContains,
+    String? text,
+    List<Pattern> messageContains = const [],
+    List<ExpectedContextMessage> contextMessages =
+        const <ExpectedContextMessage>[],
+  }) => ExpectedError(
+    code,
+    offset,
+    length,
+    correctionContains: correctionContains,
+    message: text,
+    messageContains: messageContains,
+    expectedContextMessages: contextMessages,
+  );
 
   Element2? getNodeElement2(AstNode node) {
     if (node is Annotation) {
@@ -458,18 +463,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   String _resolvedNodeText(AstNode node) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
-      configuration: ElementPrinterConfiguration()
-        ..withInterfaceTypeElements =
-            nodeTextConfiguration.withInterfaceTypeElements
-        ..withRedirectedConstructors =
-            nodeTextConfiguration.withRedirectedConstructors
-        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
+      configuration:
+          ElementPrinterConfiguration()
+            ..withInterfaceTypeElements =
+                nodeTextConfiguration.withInterfaceTypeElements
+            ..withRedirectedConstructors =
+                nodeTextConfiguration.withRedirectedConstructors
+            ..withSuperConstructors =
+                nodeTextConfiguration.withSuperConstructors,
     );
     node.accept(
       ResolvedAstPrinter(

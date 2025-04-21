@@ -34,7 +34,10 @@ class MustCallSuperVerifier {
 
     if (element is MethodElement2 && _hasConcreteSuperMethod(element)) {
       _verifySuperIsCalled(
-          node, overriddenName, overridden.enclosingElement2?.name3);
+        node,
+        overriddenName,
+        overridden.enclosingElement2?.name3,
+      );
       return;
     }
 
@@ -44,18 +47,21 @@ class MustCallSuperVerifier {
     }
 
     if (element is GetterElement) {
-      var inheritedConcreteGetter =
-          enclosingElement.lookupInheritedConcreteMember(element);
+      var inheritedConcreteGetter = enclosingElement
+          .lookupInheritedConcreteMember(element);
       if (inheritedConcreteGetter is GetterElement) {
         _verifySuperIsCalled(
-            node, overriddenName, overridden.enclosingElement2?.name3);
+          node,
+          overriddenName,
+          overridden.enclosingElement2?.name3,
+        );
       }
       return;
     }
 
     if (element is SetterElement) {
-      var inheritedConcreteSetter =
-          enclosingElement.lookupInheritedConcreteMember(element);
+      var inheritedConcreteSetter = enclosingElement
+          .lookupInheritedConcreteMember(element);
       if (inheritedConcreteSetter is SetterElement) {
         var name = overriddenName;
         // For a setter, give the name without the trailing '=' to the verifier,
@@ -77,7 +83,8 @@ class MustCallSuperVerifier {
   ///
   /// [1]: https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
   ExecutableElement2? _findOverriddenMemberWithMustCallSuper(
-      ExecutableElement2 element) {
+    ExecutableElement2 element,
+  ) {
     var classElement = element.enclosingElement2;
     if (classElement is! InterfaceElement2) {
       return null;
@@ -96,8 +103,9 @@ class MustCallSuperVerifier {
       superclasses.addAll(element.mixins.map((i) => i.element3));
       superclasses.add(element.supertype?.element3);
       if (element is MixinElement2) {
-        superclasses
-            .addAll(element.superclassConstraints.map((i) => i.element3));
+        superclasses.addAll(
+          element.superclassConstraints.map((i) => i.element3),
+        );
       }
     }
 
@@ -159,8 +167,11 @@ class MustCallSuperVerifier {
     return false;
   }
 
-  void _verifySuperIsCalled(MethodDeclaration node, String? methodName,
-      String? overriddenEnclosingName) {
+  void _verifySuperIsCalled(
+    MethodDeclaration node,
+    String? methodName,
+    String? overriddenEnclosingName,
+  ) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element as ExecutableElementImpl2;
     if (!declaredElement.invokesSuperSelf) {
@@ -178,7 +189,8 @@ class MustCallSuperVerifier {
 
 extension on InterfaceElement2 {
   ExecutableElement2? lookupInheritedConcreteMember(
-      ExecutableElement2 element) {
+    ExecutableElement2 element,
+  ) {
     var nameObj = Name.forElement(element);
     if (nameObj == null) {
       return null;

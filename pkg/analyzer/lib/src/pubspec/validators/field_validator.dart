@@ -6,12 +6,7 @@ import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:yaml/yaml.dart';
 
-const _deprecatedFields = [
-  'author',
-  'authors',
-  'transformers',
-  'web',
-];
+const _deprecatedFields = ['author', 'authors', 'transformers', 'web'];
 
 /// Validate fields.
 void fieldValidator(PubspecValidationContext ctx) {
@@ -22,8 +17,9 @@ void fieldValidator(PubspecValidationContext ctx) {
   for (var field in contents.nodes.keys) {
     var name = ctx.asString(field);
     if (field is YamlNode && name != null && _deprecatedFields.contains(name)) {
-      ctx.reportErrorForNode(
-          field, PubspecWarningCode.DEPRECATED_FIELD, [name]);
+      ctx.reportErrorForNode(field, PubspecWarningCode.DEPRECATED_FIELD, [
+        name,
+      ]);
     }
   }
 }

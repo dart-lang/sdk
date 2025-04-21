@@ -19,8 +19,8 @@ class ElementPrinter {
   ElementPrinter({
     required TreeStringSink sink,
     required ElementPrinterConfiguration configuration,
-  })  : _sink = sink,
-        _configuration = configuration;
+  }) : _sink = sink,
+       _configuration = configuration;
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
@@ -276,9 +276,10 @@ class ElementPrinter {
         enclosingElement is! GenericFunctionTypeElementImpl) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.
-      var enclosingStr = enclosingElement != null
-          ? _elementToReferenceString(enclosingElement)
-          : 'root';
+      var enclosingStr =
+          enclosingElement != null
+              ? _elementToReferenceString(enclosingElement)
+              : 'root';
       return '$enclosingStr::@parameter::${element.name}';
     } else if (element is JoinPatternVariableElementImpl) {
       return [
@@ -303,9 +304,10 @@ class ElementPrinter {
         enclosingFragment is! GenericFunctionTypeFragment) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.
-      var enclosingStr = enclosingFragment != null
-          ? _fragmentToReferenceString(enclosingFragment)
-          : 'root';
+      var enclosingStr =
+          enclosingFragment != null
+              ? _fragmentToReferenceString(enclosingFragment)
+              : 'root';
       return '$enclosingStr::@formalParameter::${element.name2}';
     } else if (element is JoinPatternVariableElementImpl) {
       return [
@@ -357,9 +359,11 @@ class ElementPrinter {
   }
 
   String _substitutionMapStr(Map<TypeParameterElement2, DartType> map) {
-    var entriesStr = map.entries.map((entry) {
-      return '${entry.key.name3}: ${_typeStr(entry.value)}';
-    }).join(', ');
+    var entriesStr = map.entries
+        .map((entry) {
+          return '${entry.key.name3}: ${_typeStr(entry.value)}';
+        })
+        .join(', ');
     return '{$entriesStr}';
   }
 
@@ -398,10 +402,7 @@ class ElementPrinter {
           );
         }
         if (_configuration.withSuperConstructors) {
-          writeNamedElement2(
-            'superConstructor',
-            element.superConstructor2,
-          );
+          writeNamedElement2('superConstructor', element.superConstructor2);
         }
       }
     });

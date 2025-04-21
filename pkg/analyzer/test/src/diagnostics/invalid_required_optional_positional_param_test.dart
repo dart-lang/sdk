@@ -23,43 +23,47 @@ class InvalidRequiredOptionalPositionalParamTest
   }
 
   test_positionalParameter_noDefault() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 m([@required a]) => null;
-''', [
-      error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 11),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 11)],
+    );
   }
 
   test_positionalParameter_noDefault_asSecond() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 m(a, [@required b]) => null;
-''', [
-      error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 11),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 11)],
+    );
   }
 
   test_positionalParameter_withDefault() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 m([@required a = 1]) => null;
-''', [
-      error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15)],
+    );
   }
 
   test_positionalParameter_withDefault_withTwo() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 m([a, @required b = 1]) => null;
-''', [
-      error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 15),
-    ]);
+''',
+      [error(WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 15)],
+    );
   }
 
   test_valid() async {

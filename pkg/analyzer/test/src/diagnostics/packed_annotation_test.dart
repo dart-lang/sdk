@@ -17,7 +17,8 @@ main() {
 @reflectiveTest
 class PackedAnnotation extends PubPackageResolutionTest {
   test_error_double() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Packed(1)
@@ -25,25 +26,31 @@ import 'dart:ffi';
 final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
-''', [
-      error(FfiCode.PACKED_ANNOTATION, 31, 10),
-    ]);
+''',
+      [error(FfiCode.PACKED_ANNOTATION, 31, 10)],
+    );
   }
 
   /// Regress test for http://dartbug.com/45498.
   test_error_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 @Packed()
 final class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
-''', [
-      error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 20, 9),
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
-          28, 1),
-    ]);
+''',
+      [
+        error(FfiCode.PACKED_ANNOTATION_ALIGNMENT, 20, 9),
+        error(
+          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          28,
+          1,
+        ),
+      ],
+    );
   }
 
   test_no_error_struct_no_annotation() async {

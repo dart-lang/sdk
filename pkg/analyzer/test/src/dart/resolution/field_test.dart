@@ -18,13 +18,14 @@ main() {
 @reflectiveTest
 class FieldDeclarationResolutionTest extends PubPackageResolutionTest {
   test_initializer_late_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   late Object f = super;
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5)],
+    );
 
     var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
@@ -78,14 +79,21 @@ FieldDeclaration
   }
 
   test_initializer_notLate_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int a = 0;
   final int b = a;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 45, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          45,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -111,14 +119,21 @@ FieldDeclaration
   }
 
   test_initializer_notLate_getterInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int get a => 0;
   final int b = a;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 44, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          44,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -144,14 +159,21 @@ FieldDeclaration
   }
 
   test_initializer_notLate_methodInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int a() => 0;
   final int b = a();
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 42, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          42,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
@@ -183,13 +205,14 @@ FieldDeclaration
   }
 
   test_initializer_notLate_this() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final a = this;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 22, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 22, 4)],
+    );
 
     var node = findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''

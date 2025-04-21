@@ -361,7 +361,7 @@ class DuplicateDefinitionVerifier {
 /// Information to pass from declarations to augmentations.
 class DuplicationDefinitionContext {
   final Map<InstanceElementImpl, _InstanceElementContext>
-      _instanceElementContexts = {};
+  _instanceElementContexts = {};
 }
 
 class MemberDuplicateDefinitionVerifier {
@@ -554,8 +554,11 @@ class MemberDuplicateDefinitionVerifier {
   /// in one of the scopes - [getterScope] or [setterScope], and produce an
   /// error if it is.
   void _checkDuplicateIdentifier(
-      Map<String, ElementImpl> getterScope, Token identifier,
-      {required ElementImpl element, Map<String, ElementImpl>? setterScope}) {
+    Map<String, ElementImpl> getterScope,
+    Token identifier, {
+    required ElementImpl element,
+    Map<String, ElementImpl>? setterScope,
+  }) {
     if (identifier.isSynthetic || element.asElement2.isWildcardVariable) {
       return;
     }
@@ -575,12 +578,20 @@ class MemberDuplicateDefinitionVerifier {
 
     // Fields define getters and setters, so check them separately.
     if (element is PropertyInducingElementImpl) {
-      _checkDuplicateIdentifier(getterScope, identifier,
-          element: element.getter!, setterScope: setterScope);
+      _checkDuplicateIdentifier(
+        getterScope,
+        identifier,
+        element: element.getter!,
+        setterScope: setterScope,
+      );
       var setter = element.setter;
       if (setter != null && setter.isSynthetic) {
-        _checkDuplicateIdentifier(getterScope, identifier,
-            element: setter, setterScope: setterScope);
+        _checkDuplicateIdentifier(
+          getterScope,
+          identifier,
+          element: setter,
+          setterScope: setterScope,
+        );
       }
       return;
     }
@@ -641,8 +652,11 @@ class MemberDuplicateDefinitionVerifier {
           CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
         );
       }
-      _checkDuplicateIdentifier(staticGetters, constant.name,
-          element: constant.declaredFragment!);
+      _checkDuplicateIdentifier(
+        staticGetters,
+        constant.name,
+        element: constant.declaredFragment!,
+      );
       _checkValuesDeclarationInEnum(constant.name);
     }
 
@@ -867,7 +881,9 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   ExecutableElementOrMember? _getInheritedMember(
-      InterfaceElementImpl element, String baseName) {
+    InterfaceElementImpl element,
+    String baseName,
+  ) {
     var libraryUri = _currentLibrary.source.uri;
 
     var getterName = Name(libraryUri, baseName);
@@ -881,7 +897,9 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   ExecutableElementOrMember? _getInterfaceMember(
-      InterfaceElementImpl element, String baseName) {
+    InterfaceElementImpl element,
+    String baseName,
+  ) {
     var libraryUri = _currentLibrary.source.uri;
 
     var getterName = Name(libraryUri, baseName);

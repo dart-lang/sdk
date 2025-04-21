@@ -20,12 +20,16 @@ class IsAssignableToTest extends AbstractTypeSystemTest {
 
   void isAssignable(TypeImpl from, TypeImpl to) {
     expect(
-        typeSystem.isAssignableTo(from, to, strictCasts: strictCasts), isTrue);
+      typeSystem.isAssignableTo(from, to, strictCasts: strictCasts),
+      isTrue,
+    );
   }
 
   void isNotAssignable(TypeImpl from, TypeImpl to) {
     expect(
-        typeSystem.isAssignableTo(from, to, strictCasts: strictCasts), isFalse);
+      typeSystem.isAssignableTo(from, to, strictCasts: strictCasts),
+      isFalse,
+    );
   }
 
   test_dynamicType() {

@@ -24,33 +24,36 @@ void f(List<int> values) {
   }
 
   test_ifCase_notRequired_logicalAnd_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case _ && 0) {}
 }
-''', [
-      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 33, 1)],
+    );
   }
 
   test_ifCase_notRequired_logicalAnd_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case 0 && _) {}
 }
-''', [
-      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 38, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 38, 1)],
+    );
   }
 
   test_ifCase_notRequired_parenthesizedPattern_logicalAnd() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case (_) && 0) {}
 }
-''', [
-      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 34, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 34, 1)],
+    );
   }
 
   test_ifCase_notRequired_typed_promotes() async {
@@ -62,13 +65,14 @@ void f(Object? x) {
   }
 
   test_ifCase_notRequired_typed_sameMatchedType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   if (x case int _ && > 0) {}
 }
-''', [
-      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 29, 5),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 29, 5)],
+    );
   }
 
   test_ifCase_required_castPattern() async {
@@ -88,13 +92,14 @@ void f(Object? x) {
   }
 
   test_ifCase_required_logicalOr_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case _ || 0) {}
 }
-''', [
-      error(WarningCode.DEAD_CODE, 35, 4),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 35, 4)],
+    );
   }
 
   /// Although this makes the _left_ side useless.
@@ -153,16 +158,17 @@ void f(Object? x) {
   }
 
   test_switchExpression_logicalAnd() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   (switch (x) {
     0 && _ => 0,
     _ => 1,
   });
 }
-''', [
-      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 45, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 45, 1)],
+    );
   }
 
   test_switchExpression_topPattern() async {
@@ -176,16 +182,17 @@ void f(Object? x) {
   }
 
   test_switchStatement_logicalAnd() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case 0 && _:
       break;
   }
 }
-''', [
-      error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 49, 1),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 49, 1)],
+    );
   }
 
   test_switchStatement_topPattern() async {

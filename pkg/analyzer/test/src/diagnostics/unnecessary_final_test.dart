@@ -24,18 +24,20 @@ class C {
   }
 
   test_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C([final this.value = 0]);
   int value;
 }
-''', [
-      error(WarningCode.UNNECESSARY_FINAL, 15, 5),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_FINAL, 15, 5)],
+    );
   }
 
   test_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A(this.value);
   int value;
@@ -44,19 +46,20 @@ class A {
 class B extends A {
   B(final super.value);
 }
-''', [
-      error(WarningCode.UNNECESSARY_FINAL, 67, 5),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_FINAL, 67, 5)],
+    );
   }
 
   test_this() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C(final this.value);
   int value;
 }
-''', [
-      error(WarningCode.UNNECESSARY_FINAL, 14, 5),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_FINAL, 14, 5)],
+    );
   }
 }

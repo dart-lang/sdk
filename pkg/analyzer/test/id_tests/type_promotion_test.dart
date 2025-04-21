@@ -15,15 +15,21 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
-          'data'));
-  return runTests<DartType>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _TypePromotionDataComputer(), [analyzerDefaultConfig]));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
+      'data',
+    ),
+  );
+  return runTests<DartType>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _TypePromotionDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _TypePromotionDataComputer extends DataComputer<DartType> {
@@ -34,8 +40,11 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
       const _TypePromotionDataInterpreter();
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<DartType>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<DartType>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _TypePromotionDataExtractor(unitUri, actualMap).run(unit);
   }

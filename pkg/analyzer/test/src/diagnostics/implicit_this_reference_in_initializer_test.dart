@@ -72,7 +72,8 @@ class A {
   }
 
   test_constructorInitializer_assert_superClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get f => 0;
 }
@@ -80,32 +81,52 @@ class A {
 class B extends A {
   B() : assert(f != 0);
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 66, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          66,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructorInitializer_assert_thisClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : assert(f != 0);
   int get f => 0;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 25, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          25,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructorInitializer_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   var v;
   A() : v = f;
   var f;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          31,
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructorName() async {
@@ -121,30 +142,45 @@ class B {
   }
 
   test_fieldInitializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final x = 0;
   final y = x;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 37, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          37,
+          1,
+        ),
+      ],
+    );
   }
 
   test_fieldInitializer_functionReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void x<T>() {}
   final y = x<int>;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          39,
+          1,
+        ),
+      ],
+    );
   }
 
   test_fieldInitializer_nestedLocal() async {
     // Test that (1) does not prevent reporting an error at (2).
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   Map foo = {
     'a': () {
@@ -156,32 +192,52 @@ class A {
 
   void _foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 87, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          87,
+          4,
+        ),
+      ],
+    );
   }
 
   test_invocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   var v;
   A() : v = f();
   f() {}
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          31,
+          1,
+        ),
+      ],
+    );
   }
 
   test_invocationInStatic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static var F = m();
   int m() => 0;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 27, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          27,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_field_late_readInstanceField() async {
@@ -230,15 +286,22 @@ class B {
   }
 
   test_redirectingConstructorInvocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(p) {}
   A.named() : this(f);
   var f;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          39,
+          1,
+        ),
+      ],
+    );
   }
 
   test_staticField_thisClass() async {
@@ -272,7 +335,8 @@ class A {
   }
 
   test_superConstructorInvocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(p) {}
 }
@@ -280,9 +344,15 @@ class B extends A {
   B() : super(f);
   var f;
 }
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 56, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          56,
+          1,
+        ),
+      ],
+    );
   }
 
   test_topLevelField() async {

@@ -20,8 +20,9 @@ class TopLevelDeclarationsTest extends PubPackageResolutionTest {
   /// Verifies that the located public export for [element] is the library with
   /// URI [libraryUri].
   Future<void> expectPublicExport(Element2 element, String libraryUri) async {
-    var publicLibrary =
-        await TopLevelDeclarations(result).publiclyExporting(element);
+    var publicLibrary = await TopLevelDeclarations(
+      result,
+    ).publiclyExporting(element);
     expect(publicLibrary?.firstFragment.source.uri.toString(), libraryUri);
   }
 

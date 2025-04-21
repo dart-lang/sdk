@@ -100,11 +100,15 @@ class ExpectedError {
   final List<ExpectedContextMessage> expectedContextMessages;
 
   /// Initialize a newly created error description.
-  ExpectedError(this.code, this.offset, this.length,
-      {this.correctionContains,
-      this.message,
-      this.messageContains = const [],
-      this.expectedContextMessages = const <ExpectedContextMessage>[]});
+  ExpectedError(
+    this.code,
+    this.offset,
+    this.length, {
+    this.correctionContains,
+    this.message,
+    this.messageContains = const [],
+    this.expectedContextMessages = const <ExpectedContextMessage>[],
+  });
 
   /// Return `true` if the [error] matches this description of what it's
   /// expected to be.
@@ -187,8 +191,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
       bool matchFound = false;
       int expectedIndex = 0;
       while (expectedIndex < unmatchedExpected.length) {
-        if (unmatchedExpected[expectedIndex]
-            .matches(unmatchedActual[actualIndex])) {
+        if (unmatchedExpected[expectedIndex].matches(
+          unmatchedActual[actualIndex],
+        )) {
           matchFound = true;
           unmatchedActual.removeAt(actualIndex);
           unmatchedExpected.removeAt(expectedIndex);
@@ -219,9 +224,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
         }
         if (expected.messageContains.isNotEmpty) {
           buffer.write(', messageContains: ');
-          buffer.write(json.encode([
-            for (var pattern in expected.messageContains) pattern.toString()
-          ]));
+          buffer.write(
+            json.encode([
+              for (var pattern in expected.messageContains) pattern.toString(),
+            ]),
+          );
         }
         if (expected.correctionContains != null) {
           buffer.write(', correctionContains: ');
@@ -301,8 +308,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// Assert that the number of errors that have been gathered matches the
   /// number of [expectedErrorCodes] and that they have the expected error
   /// codes. The order in which the errors were gathered is ignored.
-  void assertErrorsWithCodes(
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+  void assertErrorsWithCodes([
+    List<ErrorCode> expectedErrorCodes = const <ErrorCode>[],
+  ]) {
     StringBuffer buffer = StringBuffer();
     //
     // Compute the expected number of each type of error.
@@ -406,10 +414,12 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     if (expectedErrorCount != actualErrorCount ||
         expectedWarningCount != actualWarningCount) {
-      fail("Expected $expectedErrorCount errors "
-          "and $expectedWarningCount warnings, "
-          "found $actualErrorCount errors "
-          "and $actualWarningCount warnings");
+      fail(
+        "Expected $expectedErrorCount errors "
+        "and $expectedWarningCount warnings, "
+        "found $actualErrorCount errors "
+        "and $actualWarningCount warnings",
+      );
     }
   }
 
@@ -455,9 +465,11 @@ class TestInstrumentor extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception,
-      [StackTrace? stackTrace,
-      List<InstrumentationServiceAttachment>? attachments]) {
+  void logException(
+    dynamic exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {
     log.add("error: $exception $stackTrace");
   }
 
@@ -536,7 +548,7 @@ class TestSourceWithUri extends TestSource {
   final Uri uri;
 
   TestSourceWithUri(String path, this.uri, [String content = ''])
-      : super(path, content);
+    : super(path, content);
 
   @override
   bool operator ==(Object other) {

@@ -28,12 +28,15 @@ flutter:
   }
 
   test_assetMissingPath() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets:
     - flavors:
         - premium
-''', [PubspecWarningCode.ASSET_MISSING_PATH]);
+''',
+      [PubspecWarningCode.ASSET_MISSING_PATH],
+    );
   }
 }

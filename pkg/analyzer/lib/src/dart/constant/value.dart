@@ -154,7 +154,10 @@ class ConstructorInvocation {
   final Map<String, DartObjectImpl> namedArguments;
 
   ConstructorInvocation(
-      this.constructor2, this._argumentValues, this.namedArguments);
+    this.constructor2,
+    this._argumentValues,
+    this.namedArguments,
+  );
 
   /// The positional arguments passed to the constructor.
   List<DartObjectImpl> get positionalArguments {
@@ -191,24 +194,27 @@ class DartObjectImpl implements DartObject, Constant {
     VariableElementImpl? variable,
   }) {
     type = type.extensionTypeErasure;
-    return DartObjectImpl._(
-      typeSystem,
-      type,
-      state,
-      variable: variable,
-    );
+    return DartObjectImpl._(typeSystem, type, state, variable: variable);
   }
 
   /// Creates a duplicate instance of [other], tied to [variable].
   factory DartObjectImpl.forVariable(
-      DartObjectImpl other, VariableElementImpl variable) {
-    return DartObjectImpl(other._typeSystem, other.type, other.state,
-        variable: variable);
+    DartObjectImpl other,
+    VariableElementImpl variable,
+  ) {
+    return DartObjectImpl(
+      other._typeSystem,
+      other.type,
+      other.state,
+      variable: variable,
+    );
   }
 
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
-      TypeSystemImpl typeSystem, TypeImpl type) {
+    TypeSystemImpl typeSystem,
+    TypeImpl type,
+  ) {
     if (type.isDartCoreBool) {
       return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
     } else if (type.isDartCoreDouble) {
@@ -216,26 +222,30 @@ class DartObjectImpl implements DartObject, Constant {
     } else if (type.isDartCoreInt) {
       return DartObjectImpl(typeSystem, type, IntState.UNKNOWN_VALUE);
     } else if (type.isDartCoreList) {
-      return DartObjectImpl(typeSystem, type,
-          ListState.unknown(typeSystem.typeProvider.dynamicType));
+      return DartObjectImpl(
+        typeSystem,
+        type,
+        ListState.unknown(typeSystem.typeProvider.dynamicType),
+      );
     } else if (type.isDartCoreMap) {
       return DartObjectImpl(
         typeSystem,
         type,
-        MapState.unknown(typeSystem.typeProvider.dynamicType,
-            typeSystem.typeProvider.dynamicType),
+        MapState.unknown(
+          typeSystem.typeProvider.dynamicType,
+          typeSystem.typeProvider.dynamicType,
+        ),
       );
     } else if (type.isDartCoreSet) {
-      return DartObjectImpl(typeSystem, type,
-          SetState.unknown(typeSystem.typeProvider.dynamicType));
+      return DartObjectImpl(
+        typeSystem,
+        type,
+        SetState.unknown(typeSystem.typeProvider.dynamicType),
+      );
     } else if (type.isDartCoreString) {
       return DartObjectImpl(typeSystem, type, StringState.UNKNOWN_VALUE);
     }
-    return DartObjectImpl(
-      typeSystem,
-      type,
-      GenericState({}, isUnknown: true),
-    );
+    return DartObjectImpl(typeSystem, type, GenericState({}, isUnknown: true));
   }
 
   /// Initialize a newly created object to have the given [type] and [state].
@@ -336,7 +346,9 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Return the result of casting this object to the given [castType].
   DartObjectImpl castToType(
-      TypeSystemImpl typeSystem, DartObjectImpl castType) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl castType,
+  ) {
     _assertType(castType);
     var resultType = (castType.state as TypeState)._type;
 
@@ -359,7 +371,8 @@ class DartObjectImpl implements DartObject, Constant {
     if (!typeSystem.isSubtypeOf(type, resultType)) {
       // TODO(kallentu): Make a more specific error for casting.
       throw EvaluationException(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      );
     }
     return this;
   }
@@ -370,7 +383,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl concatenate(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.stringType,
@@ -396,7 +411,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for
   /// an object of this kind.
   DartObjectImpl divide(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     InstanceState result = state.divide(rightOperand.state);
     if (result is IntState) {
       return DartObjectImpl(
@@ -421,7 +438,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerAnd(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
@@ -444,7 +463,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerOr(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
@@ -467,7 +488,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerXor(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
@@ -520,9 +543,11 @@ class DartObjectImpl implements DartObject, Constant {
         );
       }
     }
-    throw EvaluationException(featureSet.isEnabled(Feature.patterns)
-        ? CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY
-        : CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    throw EvaluationException(
+      featureSet.isEnabled(Feature.patterns)
+          ? CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY
+          : CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,
+    );
   }
 
   @override
@@ -552,7 +577,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl greaterThan(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
@@ -566,7 +593,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl greaterThanOrEqual(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
@@ -600,7 +629,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl integerDivide(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
@@ -611,7 +642,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Return the result of invoking the identical function on this object with
   /// the [rightOperand].
   DartObjectImpl isIdentical2(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     // Workaround for Flutter `const kIsWeb = identical(0, 0.0)`.
     if (type.isDartCoreInt && rightOperand.type.isDartCoreDouble ||
         type.isDartCoreDouble && rightOperand.type.isDartCoreInt) {
@@ -642,8 +675,10 @@ class DartObjectImpl implements DartObject, Constant {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyAnd(TypeSystemImpl typeSystem,
-      DartObjectImpl Function() rightOperandComputer) {
+  DartObjectImpl lazyAnd(
+    TypeSystemImpl typeSystem,
+    DartObjectImpl Function() rightOperandComputer,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
@@ -656,8 +691,10 @@ class DartObjectImpl implements DartObject, Constant {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyOr(TypeSystemImpl typeSystem,
-      DartObjectImpl Function() rightOperandComputer) {
+  DartObjectImpl lazyOr(
+    TypeSystemImpl typeSystem,
+    DartObjectImpl Function() rightOperandComputer,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
@@ -671,7 +708,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lessThan(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
@@ -685,7 +724,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lessThanOrEqual(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
@@ -711,7 +752,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl logicalShiftRight(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
@@ -776,8 +819,11 @@ class DartObjectImpl implements DartObject, Constant {
     FeatureSet featureSet,
     DartObjectImpl rightOperand,
   ) {
-    return equalEqual(typeSystem, featureSet, rightOperand)
-        .logicalNot(typeSystem);
+    return equalEqual(
+      typeSystem,
+      featureSet,
+      rightOperand,
+    ).logicalNot(typeSystem);
   }
 
   /// Return the result of converting this object to a 'String'.
@@ -798,7 +844,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl remainder(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     InstanceState result = state.remainder(rightOperand.state);
     if (result is IntState) {
       return DartObjectImpl(
@@ -823,7 +871,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl shiftLeft(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
@@ -837,7 +887,9 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl shiftRight(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    TypeSystemImpl typeSystem,
+    DartObjectImpl rightOperand,
+  ) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.intType,
@@ -944,7 +996,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   ({List<DartObject> positional, Map<String, DartObject> named})?
-      toRecordValue() {
+  toRecordValue() {
     if (state case RecordState(:var positionalFields, :var namedFields)) {
       return (positional: positionalFields, named: namedFields);
     } else {
@@ -1014,10 +1066,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   /// Set the `index` and `_name` fields for this enum constant.
-  void updateEnumConstant({
-    required int index,
-    required String name,
-  }) {
+  void updateEnumConstant({required int index, required String name}) {
     var fields = state.fields!;
     fields['index'] = DartObjectImpl(
       _typeSystem,
@@ -1370,9 +1419,11 @@ class FunctionState extends InstanceState {
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
-  FunctionState(this.element,
-      {this.typeArguments, TypeDefiningElement2? viaTypeAlias})
-      : _viaTypeAlias = viaTypeAlias;
+  FunctionState(
+    this.element, {
+    this.typeArguments,
+    TypeDefiningElement2? viaTypeAlias,
+  }) : _viaTypeAlias = viaTypeAlias;
 
   @override
   int get hashCode => element.hashCode;
@@ -1432,7 +1483,8 @@ class FunctionState extends InstanceState {
       var otherTypeArguments = rightOperand.typeArguments;
       if (typeArguments == null || otherTypeArguments == null) {
         return BoolState.from(
-            typeArguments == null && otherTypeArguments == null);
+          typeArguments == null && otherTypeArguments == null,
+        );
       }
       if (typeArguments.length != otherTypeArguments.length) {
         return BoolState.FALSE_STATE;
@@ -1472,11 +1524,7 @@ class GenericState extends InstanceState {
   @override
   final bool isUnknown;
 
-  GenericState(
-    this._fieldMap, {
-    this.invocation,
-    this.isUnknown = false,
-  });
+  GenericState(this._fieldMap, {this.invocation, this.isUnknown = false});
 
   @override
   Map<String, DartObjectImpl> get fields => _fieldMap;
@@ -1496,8 +1544,9 @@ class GenericState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is GenericState) {
-      HashSet<String> otherFields =
-          HashSet<String>.from(other._fieldMap.keys.toSet());
+      HashSet<String> otherFields = HashSet<String>.from(
+        other._fieldMap.keys.toSet(),
+      );
       for (String fieldName in _fieldMap.keys.toSet()) {
         if (_fieldMap[fieldName] != other._fieldMap[fieldName]) {
           return false;
@@ -1649,7 +1698,8 @@ abstract class InstanceState {
   void assertNumStringOrNull(InstanceState state) {
     if (!(state is NumState || state is StringState || state is NullState)) {
       throw EvaluationException(
-          CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING);
+        CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING,
+      );
     }
   }
 
@@ -2175,8 +2225,10 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
-        throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
-            isRuntimeException: true);
+        throw EvaluationException(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
+          isRuntimeException: true,
+        );
       }
       return IntState(value! ~/ rightValue);
     } else if (rightOperand is DoubleState) {
@@ -2273,7 +2325,8 @@ class IntState extends NumState {
         // TODO(srawlins): Replace with real operator once stable, like:
         //     return new IntState(value >>> rightValue);
         return IntState(
-            (value! >> rightValue) & ((1 << (64 - rightValue)) - 1));
+          (value! >> rightValue) & ((1 << (64 - rightValue)) - 1),
+        );
       }
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2473,15 +2526,15 @@ class InvalidConstant implements Constant {
     bool isUnresolved = false,
     bool isRuntimeException = false,
   }) : this._(
-          length: element.name3!.length,
-          offset: element.firstFragment.nameOffset2 ?? -1,
-          errorCode: errorCode,
-          arguments: arguments,
-          contextMessages: contextMessages,
-          avoidReporting: avoidReporting,
-          isUnresolved: isUnresolved,
-          isRuntimeException: isRuntimeException,
-        );
+         length: element.name3!.length,
+         offset: element.firstFragment.nameOffset2 ?? -1,
+         errorCode: errorCode,
+         arguments: arguments,
+         contextMessages: contextMessages,
+         avoidReporting: avoidReporting,
+         isUnresolved: isUnresolved,
+         isRuntimeException: isRuntimeException,
+       );
 
   /// Creates a constant evaluation error associated with a token or node
   /// [entity].
@@ -2494,15 +2547,15 @@ class InvalidConstant implements Constant {
     bool isUnresolved = false,
     bool isRuntimeException = false,
   }) : this._(
-          offset: entity.offset,
-          length: entity.length,
-          errorCode: errorCode,
-          arguments: arguments,
-          contextMessages: contextMessages,
-          avoidReporting: avoidReporting,
-          isUnresolved: isUnresolved,
-          isRuntimeException: isRuntimeException,
-        );
+         offset: entity.offset,
+         length: entity.length,
+         errorCode: errorCode,
+         arguments: arguments,
+         contextMessages: contextMessages,
+         avoidReporting: avoidReporting,
+         isUnresolved: isUnresolved,
+         isRuntimeException: isRuntimeException,
+       );
 
   /// Creates a generic error depending on the [node] provided.
   factory InvalidConstant.genericError({
@@ -2536,8 +2589,8 @@ class InvalidConstant implements Constant {
     this.avoidReporting = false,
     this.isUnresolved = false,
     this.isRuntimeException = false,
-  })  : arguments = arguments ?? [],
-        contextMessages = contextMessages ?? [];
+  }) : arguments = arguments ?? [],
+       contextMessages = contextMessages ?? [];
 }
 
 /// The state of an object representing a list.
@@ -2610,9 +2663,11 @@ class ListState extends InstanceState {
     if (rightOperand is! ListState) {
       return BoolState.FALSE_STATE;
     }
-    return BoolState.from(typeSystem.normalize(elementType) ==
-            typeSystem.normalize(rightOperand.elementType) &&
-        this == rightOperand);
+    return BoolState.from(
+      typeSystem.normalize(elementType) ==
+              typeSystem.normalize(rightOperand.elementType) &&
+          this == rightOperand,
+    );
   }
 
   @override
@@ -2652,13 +2707,17 @@ class MapState extends InstanceState {
     required TypeImpl valueType,
     required this.entries,
     bool isUnknown = false,
-  })  : _keyType = keyType.extensionTypeErasure,
-        _valueType = valueType.extensionTypeErasure,
-        _isUnknown = isUnknown;
+  }) : _keyType = keyType.extensionTypeErasure,
+       _valueType = valueType.extensionTypeErasure,
+       _isUnknown = isUnknown;
 
   /// Creates a state that represents a map whose value is not known.
   factory MapState.unknown(TypeImpl keyType, TypeImpl valueType) => MapState(
-      keyType: keyType, valueType: valueType, entries: {}, isUnknown: true);
+    keyType: keyType,
+    valueType: valueType,
+    entries: {},
+    isUnknown: true,
+  );
 
   @override
   int get hashCode {
@@ -2716,11 +2775,13 @@ class MapState extends InstanceState {
     if (rightOperand is! MapState) {
       return BoolState.FALSE_STATE;
     }
-    return BoolState.from(typeSystem.normalize(_keyType) ==
-            typeSystem.normalize(rightOperand._keyType) &&
-        typeSystem.normalize(_valueType) ==
-            typeSystem.normalize(rightOperand._valueType) &&
-        this == rightOperand);
+    return BoolState.from(
+      typeSystem.normalize(_keyType) ==
+              typeSystem.normalize(rightOperand._keyType) &&
+          typeSystem.normalize(_valueType) ==
+              typeSystem.normalize(rightOperand._valueType) &&
+          this == rightOperand,
+    );
   }
 
   @override
@@ -2751,9 +2812,7 @@ class NullState extends InstanceState {
   @override
   final bool isInvalid;
 
-  NullState({
-    this.isInvalid = false,
-  });
+  NullState({this.isInvalid = false});
 
   @override
   int get hashCode => 0;
@@ -2885,9 +2944,10 @@ class RecordState extends InstanceState {
 
   @override
   bool hasPrimitiveEquality(FeatureSet featureSet) {
-    return [...positionalFields, ...namedFields.values].every(
-      (e) => e.hasPrimitiveEquality(featureSet),
-    );
+    return [
+      ...positionalFields,
+      ...namedFields.values,
+    ].every((e) => e.hasPrimitiveEquality(featureSet));
   }
 
   @override
@@ -2952,8 +3012,8 @@ class SetState extends InstanceState {
     required TypeImpl elementType,
     required this.elements,
     bool isUnknown = false,
-  })  : _elementType = elementType.extensionTypeErasure,
-        _isUnknown = isUnknown;
+  }) : _elementType = elementType.extensionTypeErasure,
+       _isUnknown = isUnknown;
 
   /// Creates a state that represents a list whose value is not known.
   factory SetState.unknown(TypeImpl elementType) =>
@@ -3014,9 +3074,11 @@ class SetState extends InstanceState {
     if (rightOperand is! SetState) {
       return BoolState.FALSE_STATE;
     }
-    return BoolState.from(typeSystem.normalize(_elementType) ==
-            typeSystem.normalize(rightOperand._elementType) &&
-        this == rightOperand);
+    return BoolState.from(
+      typeSystem.normalize(_elementType) ==
+              typeSystem.normalize(rightOperand._elementType) &&
+          this == rightOperand,
+    );
   }
 
   @override
@@ -3219,9 +3281,7 @@ class TypeState extends InstanceState {
         return BoolState.UNKNOWN_VALUE;
       }
 
-      return BoolState.from(
-        typeSystem.runtimeTypesEqual(_type, rightType),
-      );
+      return BoolState.from(typeSystem.runtimeTypesEqual(_type, rightType));
     }
     return BoolState.FALSE_STATE;
   }

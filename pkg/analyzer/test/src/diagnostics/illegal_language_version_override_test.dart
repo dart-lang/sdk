@@ -30,12 +30,13 @@ void f() {}
   }
 
   test_hasOverride_less() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.9
 int a = 0;
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE, 0, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE, 0, 14)],
+    );
   }
 
   test_hasPackageLanguage_less_hasOverride_greater() async {

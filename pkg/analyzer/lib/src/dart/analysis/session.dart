@@ -136,8 +136,8 @@ class AnalysisSessionImpl implements AnalysisSession {
     var libraryFragmentResult = await getUnitElement(path);
     return switch (libraryFragmentResult) {
       UnitElementResult(:var fragment) => await getResolvedLibraryByElement2(
-          fragment.element,
-        ),
+        fragment.element,
+      ),
       SomeResolvedLibraryResult result => result,
       _ => UnspecifiedInvalidResult(),
     };

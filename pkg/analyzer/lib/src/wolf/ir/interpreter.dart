@@ -24,22 +24,30 @@ import 'package:meta/meta.dart';
 /// used in production code. It is solely intended to allow unit tests to verify
 /// that an instruction sequence behaves as it's expected to.
 @visibleForTesting
-Object? interpret(CodedIRContainer ir, List<Object?> args,
-    {required Scopes scopes,
-    required CallDispatcher callDispatcher,
-    required TypeProvider typeProvider,
-    required TypeSystem typeSystem}) {
-  return _IRInterpreter(ir,
-          scopes: scopes,
-          callDispatcher: callDispatcher,
-          typeProvider: typeProvider,
-          typeSystem: typeSystem)
-      .run(args);
+Object? interpret(
+  CodedIRContainer ir,
+  List<Object?> args, {
+  required Scopes scopes,
+  required CallDispatcher callDispatcher,
+  required TypeProvider typeProvider,
+  required TypeSystem typeSystem,
+}) {
+  return _IRInterpreter(
+    ir,
+    scopes: scopes,
+    callDispatcher: callDispatcher,
+    typeProvider: typeProvider,
+    typeSystem: typeSystem,
+  ).run(args);
 }
 
 /// Function type invoked by [interpret] to execute a `call` instruction.
-typedef CallHandler = Object? Function(CallDescriptor descriptor,
-    List<Object?> positionalArguments, Map<String, Object?> namedArguments);
+typedef CallHandler =
+    Object? Function(
+      CallDescriptor descriptor,
+      List<Object?> positionalArguments,
+      Map<String, Object?> namedArguments,
+    );
 
 /// Interface used by [interpret] to query the behavior of calls to external
 /// code.
@@ -89,10 +97,12 @@ class Instance {
   final InterfaceType type;
 
   Instance(this.type)
-      : assert(!type.isDartCoreInt &&
+    : assert(
+        !type.isDartCoreInt &&
             !type.isDartCoreDouble &&
             !type.isDartCoreString &&
-            !type.isDartCoreNull);
+            !type.isDartCoreNull,
+      );
 }
 
 /// Error thrown if the interpreter encounters a situation that should be
@@ -102,10 +112,11 @@ class SoundnessError extends Error {
   final String instructionString;
   final String message;
 
-  SoundnessError(
-      {required this.address,
-      required this.instructionString,
-      required this.message});
+  SoundnessError({
+    required this.address,
+    required this.instructionString,
+    required this.message,
+  });
 
   @override
   String toString() =>
@@ -152,12 +163,13 @@ class _ControlFlowStackEntry {
   /// that delimit the control flow construct.
   final int scope;
 
-  _ControlFlowStackEntry(
-      {required this.kind,
-      required this.stackFence,
-      required this.localFence,
-      required this.outputCount,
-      required this.scope});
+  _ControlFlowStackEntry({
+    required this.kind,
+    required this.stackFence,
+    required this.localFence,
+    required this.outputCount,
+    required this.scope,
+  });
 }
 
 enum _ControlFlowStackEntryKind { block, loop }
@@ -179,13 +191,15 @@ class _IRInterpreter {
   /// instruction preceding [address].
   var mostRecentScope = 0;
 
-  _IRInterpreter(this.ir,
-      {required this.scopes,
-      required this.callDispatcher,
-      required this.typeProvider,
-      required this.typeSystem})
-      : callHandlers =
-            ir.mapCallDescriptors(callDispatcher.lookupCallDescriptor);
+  _IRInterpreter(
+    this.ir, {
+    required this.scopes,
+    required this.callDispatcher,
+    required this.typeProvider,
+    required this.typeSystem,
+  }) : callHandlers = ir.mapCallDescriptors(
+         callDispatcher.lookupCallDescriptor,
+       );
 
   /// Performs the necessary logic for a `br`, `brIf`, or `brIndex` instruction.
   ///
@@ -206,8 +220,12 @@ class _IRInterpreter {
       var stackFence = stackEntry.stackFence;
       var outputCount = stackEntry.outputCount;
       var newStackLength = stackFence + outputCount;
-      stack.setRange(stackFence, newStackLength, stack,
-          stack.length - stackEntry.outputCount);
+      stack.setRange(
+        stackFence,
+        newStackLength,
+        stack,
+        stack.length - stackEntry.outputCount,
+      );
       stack.length = stackFence + outputCount;
       locals.length = stackEntry.localFence;
       var scope = stackEntry.scope;
@@ -230,14 +248,14 @@ class _IRInterpreter {
   }
 
   DartType getRuntimeType(Object? value) => switch (value) {
-        String() => typeProvider.stringType,
-        int() => typeProvider.intType,
-        double() => typeProvider.doubleType,
-        null => typeProvider.nullType,
-        Instance(:var type) => type,
-        dynamic(:var runtimeType) =>
-          throw StateError('Unexpected interpreter value of type $runtimeType')
-      };
+    String() => typeProvider.stringType,
+    int() => typeProvider.intType,
+    double() => typeProvider.doubleType,
+    null => typeProvider.nullType,
+    Instance(:var type) => type,
+    dynamic(:var runtimeType) =>
+      throw StateError('Unexpected interpreter value of type $runtimeType'),
+  };
 
   Object? run(List<Object?> args) {
     var functionType = Opcode.function.decodeType(ir, 0);
@@ -268,12 +286,15 @@ class _IRInterpreter {
           var outputCount = Opcode.block.decodeOutputCount(ir, address);
           var scope = ++mostRecentScope;
           assert(scopes.beginAddress(scope) == address);
-          controlFlowStack.add(_ControlFlowStackEntry(
+          controlFlowStack.add(
+            _ControlFlowStackEntry(
               kind: _ControlFlowStackEntryKind.block,
               stackFence: stack.length - inputCount,
               localFence: locals.length,
               outputCount: outputCount,
-              scope: scope));
+              scope: scope,
+            ),
+          );
         case Opcode.br:
           var nesting = Opcode.br.decodeNesting(ir, address);
           var result = branch(nesting);
@@ -290,7 +311,8 @@ class _IRInterpreter {
           }
         case Opcode.call:
           var argumentNames = ir.decodeArgumentNames(
-              Opcode.call.decodeArgumentNames(ir, address));
+            Opcode.call.decodeArgumentNames(ir, address),
+          );
           var callDescriptorRef = Opcode.call.decodeCallDescriptor(ir, address);
           var newStackLength = stack.length - argumentNames.length;
           var positionalArguments = <Object?>[];
@@ -304,10 +326,13 @@ class _IRInterpreter {
             }
           }
           stack.length = newStackLength;
-          stack.add(callHandlers[callDescriptorRef.index](
+          stack.add(
+            callHandlers[callDescriptorRef.index](
               ir.decodeCallDescriptor(callDescriptorRef),
               positionalArguments,
-              namedArguments));
+              namedArguments,
+            ),
+          );
         case Opcode.concat:
           var count = Opcode.concat.decodeCount(ir, address);
           var newStackLength = stack.length - count;
@@ -325,7 +350,8 @@ class _IRInterpreter {
           } else {
             var stackEntry = controlFlowStack.last;
             assert(
-                stack.length == stackEntry.stackFence + stackEntry.outputCount);
+              stack.length == stackEntry.stackFence + stackEntry.outputCount,
+            );
             assert(locals.length == stackEntry.localFence);
             switch (stackEntry.kind) {
               case _ControlFlowStackEntryKind.block:
@@ -354,8 +380,12 @@ class _IRInterpreter {
           stack.add(identical(firstValue, secondValue));
         case Opcode.is_:
           var testType = ir.decodeType(Opcode.is_.decodeType(ir, address));
-          stack.add(typeSystem.isSubtypeOf(
-              getRuntimeType(stack.removeLast()), testType));
+          stack.add(
+            typeSystem.isSubtypeOf(
+              getRuntimeType(stack.removeLast()),
+              testType,
+            ),
+          );
         case Opcode.literal:
           var value = Opcode.literal.decodeValue(ir, address);
           stack.add(ir.decodeLiteral(value));
@@ -363,12 +393,15 @@ class _IRInterpreter {
           var inputCount = Opcode.loop.decodeInputCount(ir, address);
           var scope = ++mostRecentScope;
           assert(scopes.beginAddress(scope) == address);
-          controlFlowStack.add(_ControlFlowStackEntry(
+          controlFlowStack.add(
+            _ControlFlowStackEntry(
               kind: _ControlFlowStackEntryKind.loop,
               stackFence: stack.length - inputCount,
               localFence: locals.length,
               outputCount: inputCount,
-              scope: scope));
+              scope: scope,
+            ),
+          );
         case Opcode.not:
           stack.add(!(stack.removeLast() as bool));
         case Opcode.readLocal:
@@ -384,7 +417,8 @@ class _IRInterpreter {
         case Opcode.shuffle:
           var popCount = Opcode.shuffle.decodePopCount(ir, address);
           var stackIndices = ir.decodeStackIndices(
-              Opcode.shuffle.decodeStackIndices(ir, address));
+            Opcode.shuffle.decodeStackIndices(ir, address),
+          );
           var newStackLength = stack.length - popCount;
           var poppedValues = stack.sublist(newStackLength);
           stack.length = newStackLength;
@@ -398,17 +432,20 @@ class _IRInterpreter {
           callDispatcher.yield_(stack.removeLast());
         case var opcode:
           throw UnimplementedError(
-              'TODO(paulberry): implement ${opcode.describe()} in '
-              '_IRInterpreter');
+            'TODO(paulberry): implement ${opcode.describe()} in '
+            '_IRInterpreter',
+          );
       }
       address++;
     }
   }
 
-  Never throwSoundnessError(String message) => throw SoundnessError(
-      address: address,
-      instructionString: ir.instructionToString(address),
-      message: message);
+  Never throwSoundnessError(String message) =>
+      throw SoundnessError(
+        address: address,
+        instructionString: ir.instructionToString(address),
+        message: message,
+      );
 }
 
 /// Sentinel value used by [_IRInterpreter.branch] to indicate that the

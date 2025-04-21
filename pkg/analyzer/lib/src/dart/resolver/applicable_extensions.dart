@@ -26,10 +26,7 @@ class InstantiatedExtensionWithMember {
   );
 
   ExtensionResolutionResult get asResolutionResult {
-    return SingleExtensionResolutionResult(
-      getter2: getter,
-      setter2: setter,
-    );
+    return SingleExtensionResolutionResult(getter2: getter, setter2: setter);
   }
 
   ExtensionElement2 get extension => candidate.extension;
@@ -79,9 +76,11 @@ class _NotInstantiatedExtensionWithMember
   final ExecutableElement2? getter;
   final ExecutableElement2? setter;
 
-  _NotInstantiatedExtensionWithMember(super.extension,
-      {this.getter, this.setter})
-      : assert(getter != null || setter != null);
+  _NotInstantiatedExtensionWithMember(
+    super.extension, {
+    this.getter,
+    this.setter,
+  }) : assert(getter != null || setter != null);
 
   @override
   InstantiatedExtensionWithMember instantiate({
@@ -103,7 +102,10 @@ class _NotInstantiatedExtensionWithoutMember
     required DartType extendedType,
   }) {
     return InstantiatedExtensionWithoutMember(
-        extension, substitution, extendedType);
+      extension,
+      substitution,
+      extendedType,
+    );
   }
 }
 
@@ -115,11 +117,13 @@ extension ExtensionsExtensions on Iterable<ExtensionElement2> {
     required bool strictCasts,
   }) {
     targetLibrary as LibraryElementImpl;
-    return map((e) => _NotInstantiatedExtensionWithoutMember(
-            // TODO(paulberry): eliminate this cast by changing the extension to
-            // apply only to `Iterable<ExtensionElementImpl>`.
-            e as ExtensionElementImpl2))
-        .applicableTo(targetLibrary: targetLibrary, targetType: targetType);
+    return map(
+      (e) => _NotInstantiatedExtensionWithoutMember(
+        // TODO(paulberry): eliminate this cast by changing the extension to
+        // apply only to `Iterable<ExtensionElementImpl>`.
+        e as ExtensionElementImpl2,
+      ),
+    ).applicableTo(targetLibrary: targetLibrary, targetType: targetType);
   }
 
   /// Returns the sublist of [ExtensionElement2]s that have an instance member
@@ -221,11 +225,15 @@ extension NotInstantiatedExtensionsExtensions<R>
       var freshTypeParameters = freshTypes.freshTypeParameters;
       var rawExtendedType = freshTypes.substitute(extension.extendedType);
       // Casts aren't relevant in extension applicability.
-      var typeSystemOperations =
-          TypeSystemOperations(typeSystem, strictCasts: false);
+      var typeSystemOperations = TypeSystemOperations(
+        typeSystem,
+        strictCasts: false,
+      );
 
       inferenceLogWriter?.enterGenericInference(
-          freshTypeParameters, rawExtendedType);
+        freshTypeParameters,
+        rawExtendedType,
+      );
       var inferrer = GenericInferrer(
         typeSystem,
         freshTypeParameters,
@@ -250,9 +258,7 @@ extension NotInstantiatedExtensionsExtensions<R>
         extension.typeParameters2,
         inferredTypes,
       );
-      var extendedType = substitution.substituteType(
-        extension.extendedType,
-      );
+      var extendedType = substitution.substituteType(extension.extendedType);
 
       if (!typeSystem.isSubtypeOf(targetType, extendedType)) {
         continue;

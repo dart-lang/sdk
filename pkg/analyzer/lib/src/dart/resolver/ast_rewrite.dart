@@ -37,7 +37,9 @@ class AstRewriter {
   /// and 'name' of `b`). The [InstanceCreationExpression] is rewritten as a
   /// [MethodInvocation] if `a` resolves to a function.
   AstNode instanceCreationExpression(
-      Scope nameScope, InstanceCreationExpressionImpl node) {
+    Scope nameScope,
+    InstanceCreationExpressionImpl node,
+  ) {
     if (node.keyword != null) {
       // Either `new` or `const` has been specified.
       return node;
@@ -136,10 +138,7 @@ class AstRewriter {
       }
       var element = nameScope.lookup(methodName.name).getter2;
       if (element is InterfaceElement2) {
-        return _toInstanceCreation_type(
-          node: node,
-          typeIdentifier: methodName,
-        );
+        return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
       } else if (element is ExtensionElementImpl2) {
         var extensionOverride = ExtensionOverrideImpl(
           importPrefix: null,
@@ -152,10 +151,7 @@ class AstRewriter {
         return extensionOverride;
       } else if (element is TypeAliasElement2 &&
           element.aliasedType is InterfaceType) {
-        return _toInstanceCreation_type(
-          node: node,
-          typeIdentifier: methodName,
-        );
+        return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
       }
     } else if (target is SimpleIdentifierImpl && operator != null) {
       // Possible cases: C.n(), p.C() or p.C<>()
@@ -288,7 +284,9 @@ class AstRewriter {
       //     class C { C.named(); }
       //     C.named
       return _toConstructorReference_prefixed(
-          node: node, classElement: prefixElement);
+        node: node,
+        classElement: prefixElement,
+      );
     } else if (prefixElement is TypeAliasElement2) {
       var aliasedType = prefixElement.aliasedType;
       if (aliasedType is InterfaceType) {
@@ -354,9 +352,10 @@ class AstRewriter {
       var prefixElement =
           nameScope.lookup(receiverIdentifier.prefix.name).getter2;
       if (prefixElement is PrefixElement2) {
-        element = prefixElement.scope
-            .lookup(receiverIdentifier.identifier.name)
-            .getter2;
+        element =
+            prefixElement.scope
+                .lookup(receiverIdentifier.identifier.name)
+                .getter2;
       } else {
         // This expression is something like `foo.List<int>.filled` where `foo`
         // is not an import prefix.
@@ -470,9 +469,10 @@ class AstRewriter {
     required InterfaceElement2 classElement,
   }) {
     var name = node.identifier.name;
-    var constructorElement = name == 'new'
-        ? classElement.unnamedConstructor2
-        : classElement.getNamedConstructor2(name);
+    var constructorElement =
+        name == 'new'
+            ? classElement.unnamedConstructor2
+            : classElement.getNamedConstructor2(name);
     if (constructorElement == null) {
       return node;
     }
@@ -502,9 +502,10 @@ class AstRewriter {
     required InterfaceElement2 classElement,
   }) {
     var name = node.propertyName.name;
-    var constructorElement = name == 'new'
-        ? classElement.unnamedConstructor2
-        : classElement.getNamedConstructor2(name);
+    var constructorElement =
+        name == 'new'
+            ? classElement.unnamedConstructor2
+            : classElement.getNamedConstructor2(name);
     if (constructorElement == null && typeArguments == null) {
       // If there is no constructor by this name, and no type arguments,
       // do not rewrite the node. If there _are_ type arguments (like
@@ -639,9 +640,7 @@ class AstRewriter {
       question: null,
     );
     typeName.type = element.aliasedType;
-    var typeLiteral = TypeLiteralImpl(
-      typeName: typeName,
-    );
+    var typeLiteral = TypeLiteralImpl(typeName: typeName);
     var methodInvocation = MethodInvocationImpl(
       target: typeLiteral,
       operator: node.constructorName.period,
@@ -683,10 +682,7 @@ class AstRewriter {
     IdentifierImpl node,
   ) {
     var result = TypeLiteralImpl(
-      typeName: node.toNamedType(
-        typeArguments: null,
-        question: null,
-      ),
+      typeName: node.toNamedType(typeArguments: null, question: null),
     );
     NodeReplacer.replace(node, result, parent: parent);
     return result;

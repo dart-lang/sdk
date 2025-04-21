@@ -17,7 +17,8 @@ main() {
 class EnumConstantInvokesFactoryConstructorTest
     extends PubPackageResolutionTest {
   test_factory_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   e1,
   e2.named();
@@ -29,14 +30,20 @@ enum E {
 extension type const ET(E it) implements E {
   const ET.named() : this(E.e1);
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR, 20,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          20,
+          5,
+        ),
+      ],
+    );
   }
 
   test_factory_unnamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   e1.primary(),
   e2;
@@ -48,14 +55,20 @@ enum E {
 extension type const ET(E it) implements E {
   const ET.named() : this(E.e1);
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR, 27,
-          2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          27,
+          2,
+        ),
+      ],
+    );
   }
 
   test_factory_unnamed_withArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   e1.primary(),
   e2();
@@ -67,9 +80,14 @@ enum E {
 extension type const ET(E it) implements E {
   const ET.named() : this(E.e1);
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR, 27,
-          2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          27,
+          2,
+        ),
+      ],
+    );
   }
 }

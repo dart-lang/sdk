@@ -16,7 +16,8 @@ void main() {
       if (_getMessagesParameters(error) !=
           _getCommentParameters(error.comment ?? '')) {
         fail(
-            "Parameters don't match between the problemMessage and comment in ${errorEntry.key}");
+          "Parameters don't match between the problemMessage and comment in ${errorEntry.key}",
+        );
       }
     }
   }

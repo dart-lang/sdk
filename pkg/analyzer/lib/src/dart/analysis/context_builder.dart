@@ -47,8 +47,7 @@ class ContextBuilderImpl {
   /// given, then it will be used to access the file system, otherwise the
   /// default resource provider will be used.
   ContextBuilderImpl({ResourceProvider? resourceProvider})
-      : resourceProvider =
-            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+    : resourceProvider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   /// Return an analysis context corresponding to the given [contextRoot].
   ///
@@ -84,7 +83,8 @@ class ContextBuilderImpl {
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
       required DartSdk sdk,
-    })? updateAnalysisOptions2,
+    })?
+    updateAnalysisOptions2,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
@@ -94,9 +94,7 @@ class ContextBuilderImpl {
   }) {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
-    linkedBundleProvider ??= LinkedBundleProvider(
-      byteStore: byteStore,
-    );
+    linkedBundleProvider ??= LinkedBundleProvider(byteStore: byteStore);
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -134,17 +132,29 @@ class ContextBuilderImpl {
     // AnalysisContextCollection), use a shared options map based on it.
     if (definedOptionsFile && optionsFile != null) {
       analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
-          _getAnalysisOptions(contextRoot, optionsFile, sourceFactory, sdk,
-              updateAnalysisOptions2));
+        _getAnalysisOptions(
+          contextRoot,
+          optionsFile,
+          sourceFactory,
+          sdk,
+          updateAnalysisOptions2,
+        ),
+      );
     } else {
       // Otherwise, create one from the options file mappings stored in the
       // context root.
       analysisOptionsMap = _createOptionsMap(
-          contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
+        contextRoot,
+        sourceFactory,
+        updateAnalysisOptions2,
+        sdk,
+      );
     }
 
-    var analysisContext =
-        DriverBasedAnalysisContext(resourceProvider, contextRoot);
+    var analysisContext = DriverBasedAnalysisContext(
+      resourceProvider,
+      contextRoot,
+    );
     var driver = AnalysisDriver(
       scheduler: scheduler,
       logger: performanceLog,
@@ -153,9 +163,7 @@ class ContextBuilderImpl {
       linkedBundleProvider: linkedBundleProvider,
       sourceFactory: sourceFactory,
       analysisOptionsMap: analysisOptionsMap,
-      packages: _createPackageMap(
-        contextRoot: contextRoot,
-      ),
+      packages: _createPackageMap(contextRoot: contextRoot),
       analysisContext: analysisContext,
       enableIndex: enableIndex,
       externalSummaries: summaryData,
@@ -180,14 +188,16 @@ class ContextBuilderImpl {
 
   /// Create an [AnalysisOptionsMap] for the given [contextRoot].
   AnalysisOptionsMap _createOptionsMap(
-      ContextRoot contextRoot,
-      SourceFactory sourceFactory,
-      void Function(
-              {required AnalysisOptionsImpl analysisOptions,
-              required ContextRoot contextRoot,
-              required DartSdk sdk})?
-          updateAnalysisOptions,
-      DartSdk sdk) {
+    ContextRoot contextRoot,
+    SourceFactory sourceFactory,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required ContextRoot contextRoot,
+      required DartSdk sdk,
+    })?
+    updateAnalysisOptions,
+    DartSdk sdk,
+  ) {
     var provider = AnalysisOptionsProvider(sourceFactory);
 
     void updateOptions(AnalysisOptionsImpl options) {
@@ -220,9 +230,7 @@ class ContextBuilderImpl {
   /// Return [Packages] to analyze the [contextRoot].
   ///
   // TODO(scheglov): Get [Packages] from [Workspace]?
-  Packages _createPackageMap({
-    required ContextRoot contextRoot,
-  }) {
+  Packages _createPackageMap({required ContextRoot contextRoot}) {
     var packagesFile = contextRoot.packagesFile;
     if (packagesFile != null) {
       return parsePackageConfigJsonFile(resourceProvider, packagesFile);
@@ -240,9 +248,7 @@ class ContextBuilderImpl {
     if (sdkSummaryPath != null) {
       var file = resourceProvider.getFile(sdkSummaryPath);
       var bytes = file.readAsBytesSync();
-      return SummaryBasedDartSdk.forBundle(
-        PackageBundleReader(bytes),
-      );
+      return SummaryBasedDartSdk.forBundle(PackageBundleReader(bytes));
     }
 
     var folderSdk = FolderBasedDartSdk(
@@ -283,11 +289,12 @@ class ContextBuilderImpl {
     File? optionsFile,
     SourceFactory sourceFactory,
     DartSdk sdk,
-    void Function(
-            {required AnalysisOptionsImpl analysisOptions,
-            required ContextRoot contextRoot,
-            required DartSdk sdk})?
-        updateAnalysisOptions,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required ContextRoot contextRoot,
+      required DartSdk sdk,
+    })?
+    updateAnalysisOptions,
   ) {
     AnalysisOptionsImpl? options;
 

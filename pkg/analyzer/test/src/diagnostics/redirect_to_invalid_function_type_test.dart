@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class RedirectToInvalidFunctionTypeTest extends PubPackageResolutionTest {
   test_redirectToInvalidFunctionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A implements B {
   A(int p) {}
 }
 class B {
   factory B() = A;
-}''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, 65, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, 65, 1)],
+    );
   }
 
   test_valid_redirect() async {

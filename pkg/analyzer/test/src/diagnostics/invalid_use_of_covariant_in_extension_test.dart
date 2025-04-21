@@ -16,32 +16,35 @@ main() {
 @reflectiveTest
 class InvalidUseOfCovariantInExtensionTest extends PubPackageResolutionTest {
   test_optional_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   void foo({covariant int a = 0}) {}
 }
-''', [
-      error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9),
-    ]);
+''',
+      [error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9)],
+    );
   }
 
   test_optional_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   void foo([covariant int a = 0]) {}
 }
-''', [
-      error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9),
-    ]);
+''',
+      [error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9)],
+    );
   }
 
   test_required_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   void foo(covariant int a) {}
 }
-''', [
-      error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 35, 9),
-    ]);
+''',
+      [error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 35, 9)],
+    );
   }
 }

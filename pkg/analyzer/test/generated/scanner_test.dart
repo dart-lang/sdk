@@ -88,7 +88,7 @@ class LineInfoTest {
     _assertLineInfo(source, [
       ScannerTest_ExpectedLocation(0, 1, 1),
       ScannerTest_ExpectedLocation(5, 2, 2),
-      ScannerTest_ExpectedLocation(source.length - 1, 3, 3)
+      ScannerTest_ExpectedLocation(source.length - 1, 3, 3),
     ]);
   }
 
@@ -97,7 +97,7 @@ class LineInfoTest {
     _assertLineInfo(source, [
       ScannerTest_ExpectedLocation(0, 1, 1),
       ScannerTest_ExpectedLocation(7, 2, 2),
-      ScannerTest_ExpectedLocation(source.length - 1, 3, 4)
+      ScannerTest_ExpectedLocation(source.length - 1, 3, 4),
     ]);
   }
 
@@ -106,7 +106,7 @@ class LineInfoTest {
     _assertLineInfo(source, [
       ScannerTest_ExpectedLocation(0, 1, 1),
       ScannerTest_ExpectedLocation(14, 2, 2),
-      ScannerTest_ExpectedLocation(source.length - 2, 5, 2)
+      ScannerTest_ExpectedLocation(source.length - 2, 5, 2),
     ]);
   }
 
@@ -116,7 +116,7 @@ class LineInfoTest {
     _assertLineInfo(source, [
       ScannerTest_ExpectedLocation(0, 1, 1),
       ScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
-      ScannerTest_ExpectedLocation(source.length - 1, 4, 1)
+      ScannerTest_ExpectedLocation(source.length - 1, 4, 1),
     ]);
   }
 
@@ -124,19 +124,21 @@ class LineInfoTest {
     String source = "class Test {\n}";
     _assertLineInfo(source, [
       ScannerTest_ExpectedLocation(0, 1, 1),
-      ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)
+      ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1),
     ]);
   }
 
   void test_linestarts() {
     String source = "var\r\ni\n=\n1;\n";
     GatheringErrorListener listener = GatheringErrorListener();
-    Scanner scanner =
-        Scanner(TestSource(), CharSequenceReader(source), listener)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+    Scanner scanner = Scanner(
+      TestSource(),
+      CharSequenceReader(source),
+      listener,
+    )..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -149,12 +151,14 @@ class LineInfoTest {
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
     GatheringErrorListener listener = GatheringErrorListener();
-    Scanner scanner =
-        Scanner(TestSource(), CharSequenceReader(source), listener)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+    Scanner scanner = Scanner(
+      TestSource(),
+      CharSequenceReader(source),
+      listener,
+    )..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
     Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
@@ -164,7 +168,9 @@ class LineInfoTest {
   }
 
   void _assertLineInfo(
-      String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
+    String source,
+    List<ScannerTest_ExpectedLocation> expectedLocations,
+  ) {
     GatheringErrorListener listener = GatheringErrorListener();
     _scanWithListener(source, listener);
     listener.assertNoErrors();
@@ -174,23 +180,28 @@ class LineInfoTest {
     for (int i = 0; i < count; i++) {
       ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
       var location = info.getLocation(expectedLocation._offset);
-      expect(location.lineNumber, expectedLocation._lineNumber,
-          reason: 'Line number in location $i');
-      expect(location.columnNumber, expectedLocation._columnNumber,
-          reason: 'Column number in location $i');
+      expect(
+        location.lineNumber,
+        expectedLocation._lineNumber,
+        reason: 'Line number in location $i',
+      );
+      expect(
+        location.columnNumber,
+        expectedLocation._columnNumber,
+        reason: 'Column number in location $i',
+      );
     }
   }
 
-  Token _scanWithListener(
-    String source,
-    GatheringErrorListener listener,
-  ) {
-    Scanner scanner =
-        Scanner(TestSource(), CharSequenceReader(source), listener)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+  Token _scanWithListener(String source, GatheringErrorListener listener) {
+    Scanner scanner = Scanner(
+      TestSource(),
+      CharSequenceReader(source),
+      listener,
+    )..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
     Token result = scanner.tokenize();
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
     listener.setLineInfo(TestSource(), lineInfo);
@@ -262,5 +273,8 @@ class ScannerTest_ExpectedLocation {
   final int _columnNumber;
 
   ScannerTest_ExpectedLocation(
-      this._offset, this._lineNumber, this._columnNumber);
+    this._offset,
+    this._lineNumber,
+    this._columnNumber,
+  );
 }

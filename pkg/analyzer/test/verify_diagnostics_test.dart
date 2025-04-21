@@ -212,12 +212,16 @@ class DocumentationValidator {
     for (var errorClass in errorClasses) {
       if (errorClass.includeCfeMessages) {
         if (errorClassIncludingCfeMessages != null) {
-          fail('Multiple error classes include CFE messages: '
-              '${errorClassIncludingCfeMessages.name} and ${errorClass.name}');
+          fail(
+            'Multiple error classes include CFE messages: '
+            '${errorClassIncludingCfeMessages.name} and ${errorClass.name}',
+          );
         }
         errorClassIncludingCfeMessages = errorClass;
         await _validateMessages(
-            errorClass.name, cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo);
+          errorClass.name,
+          cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo,
+        );
       }
     }
     if (buffer.isNotEmpty) {
@@ -238,19 +242,32 @@ class DocumentationValidator {
         _reportProblem('No error range in example');
       }
       return _SnippetData(
-          snippet, -1, 0, auxiliaryFiles, experiments, languageVersion);
+        snippet,
+        -1,
+        0,
+        auxiliaryFiles,
+        experiments,
+        languageVersion,
+      );
     }
     int rangeEnd = snippet.indexOf(errorRangeEnd, rangeStart + 1);
     if (rangeEnd < 0) {
       _reportProblem('No end of error range in example');
       return _SnippetData(
-          snippet, -1, 0, auxiliaryFiles, experiments, languageVersion);
+        snippet,
+        -1,
+        0,
+        auxiliaryFiles,
+        experiments,
+        languageVersion,
+      );
     } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
       _reportProblem('More than one error range in example');
     }
     String content;
     try {
-      content = snippet.substring(0, rangeStart) +
+      content =
+          snippet.substring(0, rangeStart) +
           snippet.substring(rangeStart + errorRangeStart.length, rangeEnd) +
           snippet.substring(rangeEnd + errorRangeEnd.length);
     } on RangeError catch (exception) {
@@ -270,8 +287,9 @@ class DocumentationValidator {
   /// Extract the snippets of Dart code from [documentationParts] that are
   /// tagged as belonging to the given [blockSection].
   List<_SnippetData> _extractSnippets(
-      List<ErrorCodeDocumentationPart> documentationParts,
-      BlockSection blockSection) {
+    List<ErrorCodeDocumentationPart> documentationParts,
+    BlockSection blockSection,
+  ) {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
     for (var documentationPart in documentationParts) {
@@ -284,12 +302,15 @@ class DocumentationValidator {
           auxiliaryFiles[uri] = documentationPart.text;
         } else {
           if (documentationPart.fileType == 'dart') {
-            snippets.add(_extractSnippetData(
+            snippets.add(
+              _extractSnippetData(
                 documentationPart.text,
                 blockSection == BlockSection.examples,
                 auxiliaryFiles,
                 documentationPart.experiments,
-                documentationPart.languageVersion));
+                documentationPart.languageVersion,
+              ),
+            );
           }
           auxiliaryFiles = <String, String>{};
         }
@@ -320,7 +341,9 @@ class DocumentationValidator {
   /// Extract documentation from the given [messages], which are error messages
   /// destined for the class [className].
   Future<void> _validateMessages(
-      String className, Map<String, ErrorCodeInfo> messages) async {
+    String className,
+    Map<String, ErrorCodeInfo> messages,
+  ) async {
     for (var errorEntry in messages.entries) {
       var errorName = errorEntry.key;
       var errorCodeInfo = errorEntry.value;
@@ -331,7 +354,9 @@ class DocumentationValidator {
         continue;
       }
       var docs = parseErrorCodeDocumentation(
-          '$className.$errorName', errorCodeInfo.documentation);
+        '$className.$errorName',
+        errorCodeInfo.documentation,
+      );
       if (docs != null) {
         codeName = errorCodeInfo.sharedName ?? errorName;
         variableName = '$className.$errorName';
@@ -340,8 +365,10 @@ class DocumentationValidator {
         }
         hasWrittenVariableName = false;
 
-        List<_SnippetData> exampleSnippets =
-            _extractSnippets(docs, BlockSection.examples);
+        List<_SnippetData> exampleSnippets = _extractSnippets(
+          docs,
+          BlockSection.examples,
+        );
         _SnippetData? firstExample;
         if (exampleSnippets.isEmpty) {
           _reportProblem('No example.');
@@ -356,8 +383,10 @@ class DocumentationValidator {
           await _validateSnippet('example', i, snippet);
         }
 
-        List<_SnippetData> fixesSnippets =
-            _extractSnippets(docs, BlockSection.commonFixes);
+        List<_SnippetData> fixesSnippets = _extractSnippets(
+          docs,
+          BlockSection.commonFixes,
+        );
         for (int i = 0; i < fixesSnippets.length; i++) {
           _SnippetData snippet = fixesSnippets[i];
           if (firstExample != null) {
@@ -377,7 +406,10 @@ class DocumentationValidator {
   /// equal to zero, verify that one error whose name matches the current code
   /// is reported at that offset with the expected length.
   Future<void> _validateSnippet(
-      String section, int index, _SnippetData snippet) async {
+    String section,
+    int index,
+    _SnippetData snippet,
+  ) async {
     _SnippetTest test = _SnippetTest(snippet);
     test.setUp();
     await test.resolveTestFile();
@@ -386,8 +418,9 @@ class DocumentationValidator {
     if (snippet.offset < 0) {
       if (errorCount > 0) {
         _reportProblem(
-            'Expected no errors but found $errorCount ($section $index):',
-            errors: errors);
+          'Expected no errors but found $errorCount ($section $index):',
+          errors: errors,
+        );
       }
     } else {
       if (errorCount == 0) {
@@ -395,21 +428,28 @@ class DocumentationValidator {
       } else if (errorCount == 1) {
         AnalysisError error = errors[0];
         if (error.errorCode.name != codeName) {
-          _reportProblem('Expected an error with code $codeName, '
-              'found ${error.errorCode} ($section $index).');
+          _reportProblem(
+            'Expected an error with code $codeName, '
+            'found ${error.errorCode} ($section $index).',
+          );
         }
         if (error.offset != snippet.offset) {
-          _reportProblem('Expected an error at ${snippet.offset}, '
-              'found ${error.offset} ($section $index).');
+          _reportProblem(
+            'Expected an error at ${snippet.offset}, '
+            'found ${error.offset} ($section $index).',
+          );
         }
         if (error.length != snippet.length) {
-          _reportProblem('Expected an error of length ${snippet.length}, '
-              'found ${error.length} ($section $index).');
+          _reportProblem(
+            'Expected an error of length ${snippet.length}, '
+            'found ${error.length} ($section $index).',
+          );
         }
       } else {
         _reportProblem(
-            'Expected one error but found $errorCount ($section $index):',
-            errors: errors);
+          'Expected one error but found $errorCount ($section $index):',
+          errors: errors,
+        );
       }
     }
   }
@@ -452,8 +492,10 @@ class VerifyDiagnosticsTest {
     }
     if (unpublished.isNotEmpty) {
       var buffer = StringBuffer();
-      buffer.write("The following error codes have published docs but aren't "
-          "marked as such:");
+      buffer.write(
+        "The following error codes have published docs but aren't "
+        "marked as such:",
+      );
       for (var code in unpublished) {
         buffer.writeln();
         buffer.write('- ${code.runtimeType}.${code.uniqueName}');
@@ -474,8 +516,14 @@ class _SnippetData {
   final String? languageVersion;
   String? lintCode;
 
-  _SnippetData(this.content, this.offset, this.length, this.auxiliaryFiles,
-      this.experiments, this.languageVersion);
+  _SnippetData(
+    this.content,
+    this.offset,
+    this.length,
+    this.auxiliaryFiles,
+    this.experiments,
+    this.languageVersion,
+  );
 }
 
 /// A test class that creates an environment suitable for analyzing the
@@ -510,8 +558,12 @@ class _SnippetTest extends PubPackageResolutionTest {
   void _createAnalysisOptionsFile() {
     var lintCode = snippet.lintCode;
     if (lintCode != null) {
-      writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
-          rules: [lintCode], experiments: snippet.experiments));
+      writeTestPackageAnalysisOptionsFile(
+        analysisOptionsContent(
+          rules: [lintCode],
+          experiments: snippet.experiments,
+        ),
+      );
     }
   }
 
@@ -526,18 +578,17 @@ class _SnippetTest extends PubPackageResolutionTest {
         packageConfigBuilder.add(name: packageName, rootPath: packageRootPath);
 
         String pathInLib = uri.pathSegments.skip(1).join('/');
-        newFile(
-          '$packageRootPath/lib/$pathInLib',
-          auxiliaryFiles[uriStr]!,
-        );
+        newFile('$packageRootPath/lib/$pathInLib', auxiliaryFiles[uriStr]!);
       } else {
-        newFile(
-          '$testPackageRootPath/$uriStr',
-          auxiliaryFiles[uriStr]!,
-        );
+        newFile('$testPackageRootPath/$uriStr', auxiliaryFiles[uriStr]!);
       }
     }
-    writeTestPackageConfig(packageConfigBuilder,
-        angularMeta: true, ffi: true, flutter: true, meta: true);
+    writeTestPackageConfig(
+      packageConfigBuilder,
+      angularMeta: true,
+      ffi: true,
+      flutter: true,
+      meta: true,
+    );
   }
 }

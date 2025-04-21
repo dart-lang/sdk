@@ -11,10 +11,12 @@ TypeAnalyzerOptions computeTypeAnalyzerOptions(FeatureSet featureSet) =>
     TypeAnalyzerOptions(
       patternsEnabled: featureSet.isEnabled(Feature.patterns),
       inferenceUpdate3Enabled: featureSet.isEnabled(Feature.inference_update_3),
-      respectImplicitlyTypedVarInitializers:
-          featureSet.isEnabled(Feature.constructor_tearoffs),
+      respectImplicitlyTypedVarInitializers: featureSet.isEnabled(
+        Feature.constructor_tearoffs,
+      ),
       fieldPromotionEnabled: featureSet.isEnabled(Feature.inference_update_2),
       inferenceUpdate4Enabled: featureSet.isEnabled(Feature.inference_update_4),
-      soundFlowAnalysisEnabled:
-          featureSet.isEnabled(Feature.sound_flow_analysis),
+      soundFlowAnalysisEnabled: featureSet.isEnabled(
+        Feature.sound_flow_analysis,
+      ),
     );

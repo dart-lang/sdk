@@ -38,10 +38,7 @@ class AnalysisContextCollectionLowTest with ResourceProviderMixin {
   Folder get sdkRoot => newFolder('/sdk');
 
   void setUp() {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
     registerLintRules();
   }
 
@@ -78,8 +75,8 @@ linter:
     - empty_statements
 ''');
 
-    var packageConfigFileBuilder = PackageConfigFileBuilder()
-      ..add(name: 'foo', rootPath: fooFolder.path);
+    var packageConfigFileBuilder =
+        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooFolder.path);
     newPackageConfigJsonFileFromBuilder(
       rootFolder.path,
       packageConfigFileBuilder,
@@ -95,8 +92,9 @@ linter:
 
     var collection = _newCollection(includedPaths: [rootFolder.path]);
     var analysisContext = collection.contextFor(rootFolder.path);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsForFile(optionsFile);
+    var analysisOptions = analysisContext.getAnalysisOptionsForFile(
+      optionsFile,
+    );
 
     expect(
       analysisOptions.lintRules.map((e) => e.name),
@@ -115,8 +113,9 @@ linter:
 
     var collection = _newCollection(includedPaths: [rootFolder.path]);
     var analysisContext = collection.contextFor(rootFolder.path);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsForFile(optionsFile);
+    var analysisOptions = analysisContext.getAnalysisOptionsForFile(
+      optionsFile,
+    );
 
     expect(
       analysisOptions.lintRules.map((e) => e.name),
@@ -134,7 +133,8 @@ linter:
   test_new_includedPaths_notNormalized() {
     expect(
       () => AnalysisContextCollectionImpl(
-          includedPaths: [convertPath('/root/lib/../lib')]),
+        includedPaths: [convertPath('/root/lib/../lib')],
+      ),
       throwsArgumentError,
     );
   }
@@ -154,7 +154,9 @@ linter:
   test_new_sdkPath_notAbsolute() {
     expect(
       () => AnalysisContextCollectionImpl(
-          includedPaths: ['/root'], sdkPath: 'sdk'),
+        includedPaths: ['/root'],
+        sdkPath: 'sdk',
+      ),
       throwsArgumentError,
     );
   }
@@ -162,13 +164,16 @@ linter:
   test_new_sdkPath_notNormalized() {
     expect(
       () => AnalysisContextCollectionImpl(
-          includedPaths: [convertPath('/root')], sdkPath: '/home/sdk/../sdk'),
+        includedPaths: [convertPath('/root')],
+        sdkPath: '/home/sdk/../sdk',
+      ),
       throwsArgumentError,
     );
   }
 
-  AnalysisContextCollectionImpl _newCollection(
-      {required List<String> includedPaths}) {
+  AnalysisContextCollectionImpl _newCollection({
+    required List<String> includedPaths,
+  }) {
     return AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,
@@ -185,10 +190,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
   Folder get sdkRoot => newFolder('/sdk');
 
   void setUp() {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
     registerLintRules();
   }
 
@@ -310,10 +312,7 @@ analyzer:
     newFile('$nestedPath/lib/c.dart', '');
     newFile('$nestedPath/lib/d.g.dart', '');
 
-    newSinglePackageConfigJsonFile(
-      packagePath: nestedPath,
-      name: 'nested',
-    );
+    newSinglePackageConfigJsonFile(packagePath: nestedPath, name: 'nested');
     newPubspecYamlFile(nestedPath, r'''
 name: nested
 ''');
@@ -378,13 +377,15 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    _assertWorkspaceCollectionText(workspaceRootPath,
-        updateAnalysisOptions: ({required analysisOptions, required sdk}) {
-      analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: ['digit-separators', 'variance'],
-      );
-    }, r'''
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+        analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: ['digit-separators', 'variance'],
+        );
+      },
+      r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -430,7 +431,8 @@ workspaces
     pubPackages
       workspacePackage_0_0: PubPackage
         root: /home/test
-''');
+''',
+    );
   }
 
   test_packageConfigWorkspace_enabledExperiment_noAnalysisOptionsFile() async {
@@ -453,13 +455,15 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    _assertWorkspaceCollectionText(workspaceRootPath,
-        updateAnalysisOptions: ({required analysisOptions, required sdk}) {
-      analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: ['variance'],
-      );
-    }, r'''
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+        analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: ['variance'],
+        );
+      },
+      r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -505,7 +509,8 @@ workspaces
     pubPackages
       workspacePackage_0_0: PubPackage
         root: /home/test
-''');
+''',
+    );
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions() async {
@@ -751,7 +756,9 @@ name: test
     // with the outer one (/home/test/analysis_options.yaml) as passed into
     // the AnalysisContextCollection.
     _assertWorkspaceCollectionText(
-        workspaceRootPath, optionsFile: rootOptionsFile, r'''
+      workspaceRootPath,
+      optionsFile: rootOptionsFile,
+      r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -773,7 +780,8 @@ workspaces
     pubPackages
       workspacePackage_0_0: PubPackage
         root: /home/test
-''');
+''',
+    );
   }
 
   test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions_outsideWorspaceRoot() async {
@@ -804,7 +812,9 @@ name: test
     // (/outside/analysis_options.yaml) as passed into the
     // AnalysisContextCollection.
     _assertWorkspaceCollectionText(
-        workspaceRootPath, optionsFile: definedOptionsFile, r'''
+      workspaceRootPath,
+      optionsFile: definedOptionsFile,
+      r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -826,7 +836,8 @@ workspaces
     pubPackages
       workspacePackage_0_0: PubPackage
         root: /home/test
-''');
+''',
+    );
   }
 
   test_packageConfigWorkspace_multiplePackageConfigs() async {
@@ -1086,7 +1097,8 @@ workspaces
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required DartSdk sdk,
-    })? updateAnalysisOptions,
+    })?
+    updateAnalysisOptions,
   }) {
     if (optionsFile != null) {
       expect(optionsFile.exists, isTrue);
@@ -1094,9 +1106,7 @@ workspaces
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
-      includedPaths: [
-        getFolder(workspaceRootPath).path,
-      ],
+      includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
       updateAnalysisOptions3: updateAnalysisOptions,
     );
@@ -1212,15 +1222,17 @@ class _AnalysisContextCollectionPrinter {
   }
 
   void _writeAnalysisOptions() {
-    var filtered = _analysisOptions.keys
-        .map((analysisOption) {
-          var file = analysisOption.file;
-          return configuration.withAnalysisOptionsWithoutFiles || file != null
-              ? (analysisOption, file)
-              : null;
-        })
-        .nonNulls
-        .toList();
+    var filtered =
+        _analysisOptions.keys
+            .map((analysisOption) {
+              var file = analysisOption.file;
+              return configuration.withAnalysisOptionsWithoutFiles ||
+                      file != null
+                  ? (analysisOption, file)
+                  : null;
+            })
+            .nonNulls
+            .toList();
 
     sink.writeElements('analysisOptions', filtered, (pair) {
       var analysisOptions = pair.$1;
@@ -1234,21 +1246,20 @@ class _AnalysisContextCollectionPrinter {
       sink.withIndent(() {
         if (configuration.withEnabledFeatures) {
           var contextFeatures = analysisOptions.contextFeatures;
-          var enabledFeatures = ExperimentStatus.knownFeatures.values
-              .where((f) => contextFeatures.isEnabled(f))
-              .toList();
+          var enabledFeatures =
+              ExperimentStatus.knownFeatures.values
+                  .where((f) => contextFeatures.isEnabled(f))
+                  .toList();
           sink.writeElements('features', enabledFeatures, (feature) {
             sink.writelnWithIndent(feature);
           });
         }
         if (configuration.withLintRules) {
-          sink.writeElements(
-            'lintRules',
-            analysisOptions.lintRules,
-            (lintRule) {
-              sink.writelnWithIndent(lintRule.name);
-            },
-          );
+          sink.writeElements('lintRules', analysisOptions.lintRules, (
+            lintRule,
+          ) {
+            sink.writelnWithIndent(lintRule.name);
+          });
         }
       });
     });
@@ -1331,7 +1342,8 @@ class _AnalysisContextCollectionPrinter {
           var sdkVersionConstraint = package.sdkVersionConstraint;
           if (sdkVersionConstraint != null) {
             sink.writelnWithIndent(
-                'sdkVersionConstraint: $sdkVersionConstraint');
+              'sdkVersionConstraint: $sdkVersionConstraint',
+            );
           }
         });
       default:

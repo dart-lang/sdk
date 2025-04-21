@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class NoAnnotationConstructorArgumentsTest extends PubPackageResolutionTest {
   test_missingArgumentList() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 }
 @A
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 25, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 25, 2)],
+    );
   }
 }

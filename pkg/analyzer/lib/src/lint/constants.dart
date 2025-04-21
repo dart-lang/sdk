@@ -41,9 +41,9 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+            .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
         case CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
@@ -65,7 +65,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
         case CompileTimeErrorCode
-              .CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
+            .CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
         case CompileTimeErrorCode.INVALID_CONSTANT:
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
@@ -106,13 +106,7 @@ extension on AstNode {
     var listener = _ConstantAnalysisErrorListener();
     var errorReporter = ErrorReporter(listener, unitFragment.source);
 
-    accept(
-      ConstantVerifier(
-        errorReporter,
-        libraryElement,
-        declaredVariables,
-      ),
-    );
+    accept(ConstantVerifier(errorReporter, libraryElement, declaredVariables));
     return listener.hasConstError;
   }
 }

@@ -14,9 +14,7 @@ class ConstructorFieldsVerifier {
   final TypeSystemImpl typeSystem;
   final Map<InstanceElement2, _Interface> _interfaces = Map.identity();
 
-  ConstructorFieldsVerifier({
-    required this.typeSystem,
-  });
+  ConstructorFieldsVerifier({required this.typeSystem});
 
   void addConstructors(
     ErrorReporter errorReporter,
@@ -81,9 +79,10 @@ class ConstructorFieldsVerifier {
       if (element is EnumElement2 && field.name3 == 'index') {
         continue;
       }
-      fieldMap[field] = field.hasInitializer
-          ? _InitState.initInDeclaration
-          : _InitState.notInit;
+      fieldMap[field] =
+          field.hasInitializer
+              ? _InitState.initInDeclaration
+              : _InitState.notInit;
     }
 
     return _interfaces[element] = _Interface(
@@ -130,13 +129,9 @@ class _Constructor {
       if (name == null) return;
 
       if (field.isFinal) {
-        notInitFinalFields.add(
-          _Field(field, name),
-        );
+        notInitFinalFields.add(_Field(field, name));
       } else if (typeSystem.isPotentiallyNonNullable(field.type)) {
-        notInitNonNullableFields.add(
-          _Field(field, name),
-        );
+        notInitNonNullableFields.add(_Field(field, name));
       }
     });
 
@@ -144,9 +139,7 @@ class _Constructor {
     reportNotInitializedNonNullable(notInitNonNullableFields);
   }
 
-  void reportNotInitializedFinal(
-    List<_Field> notInitFinalFields,
-  ) {
+  void reportNotInitializedFinal(List<_Field> notInitFinalFields) {
     if (notInitFinalFields.isEmpty) {
       return;
     }
@@ -175,9 +168,7 @@ class _Constructor {
     }
   }
 
-  void reportNotInitializedNonNullable(
-    List<_Field> notInitNonNullableFields,
-  ) {
+  void reportNotInitializedNonNullable(List<_Field> notInitNonNullableFields) {
     if (notInitNonNullableFields.isEmpty) {
       return;
     }
@@ -236,9 +227,7 @@ class _Constructor {
     }
   }
 
-  void updateWithParameters(
-    ConstructorDeclaration node,
-  ) {
+  void updateWithParameters(ConstructorDeclaration node) {
     var formalParameters = node.parameters.parameters;
     for (var parameter in formalParameters) {
       parameter = parameter.notDefault;

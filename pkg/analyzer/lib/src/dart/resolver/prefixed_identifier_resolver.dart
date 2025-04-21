@@ -36,8 +36,9 @@ class PrefixedIdentifierResolver {
       var prefixType = node.prefix.staticType;
       // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefixType != null) {
-        var prefixTypeResolved =
-            _resolver.typeSystem.resolveToBound(prefixType);
+        var prefixTypeResolved = _resolver.typeSystem.resolveToBound(
+          prefixType,
+        );
         if (prefixTypeResolved is RecordType) {
           var propertyAccess = PropertyAccessImpl(
             target: node.prefix,
@@ -122,8 +123,12 @@ class PrefixedIdentifierResolver {
       // sites.
       // TODO(srawlins): Switch all resolution to use the latter method, in a
       // breaking change release.
-      type = _inferenceHelper.inferTearOff(node, identifier, type,
-          contextType: contextType);
+      type = _inferenceHelper.inferTearOff(
+        node,
+        identifier,
+        type,
+        contextType: contextType,
+      );
     }
     identifier.setPseudoExpressionStaticType(type);
     node.recordStaticType(type, resolver: _resolver);

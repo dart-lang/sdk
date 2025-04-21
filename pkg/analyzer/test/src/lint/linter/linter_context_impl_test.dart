@@ -616,12 +616,14 @@ class C { }
     var pubPackage = context.package as PubPackage;
     var pubspec = pubPackage.pubspec!;
 
-    var argsDep = pubspec.dependencies!
-        .singleWhere((element) => element.name!.text == 'args');
+    var argsDep = pubspec.dependencies!.singleWhere(
+      (element) => element.name!.text == 'args',
+    );
     expect(argsDep.version!.value.text, '>=0.12.1 <2.0.0');
 
-    var charCodeDep = pubspec.dependencies!
-        .singleWhere((element) => element.name!.text == 'charcode');
+    var charCodeDep = pubspec.dependencies!.singleWhere(
+      (element) => element.name!.text == 'charcode',
+    );
     expect(charCodeDep.version!.value.text, '^1.1.0');
   }
 }

@@ -56,9 +56,7 @@ library
   }
 
   test_export_configurations_useDefault() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-    };
+    declaredVariables = {'dart.library.io': 'false'};
     newFile('$testPackageLibPath/foo.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
@@ -463,9 +461,7 @@ library
   }
 
   test_exportImport_configurations_useDefault() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-    };
+    declaredVariables = {'dart.library.io': 'false'};
     newFile('$testPackageLibPath/foo.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_html.dart', 'class A {}');

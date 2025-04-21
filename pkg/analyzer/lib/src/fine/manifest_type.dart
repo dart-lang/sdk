@@ -16,10 +16,7 @@ import 'package:collection/collection.dart';
 final class ManifestDynamicType extends ManifestType {
   static final instance = ManifestDynamicType._();
 
-  ManifestDynamicType._()
-      : super(
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
+  ManifestDynamicType._() : super(nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -152,29 +149,28 @@ final class ManifestFunctionType extends ManifestType {
     EncodeContext context,
     FunctionTypeImpl type,
   ) {
-    return context.withTypeParameters(
-      type.typeParameters,
-      (typeParameters) {
-        return ManifestFunctionType._(
-          typeParameters: typeParameters,
-          returnType: type.returnType.encode(context),
-          positional: type.positionalParameterTypes.indexed.map((pair) {
-            return ManifestFunctionPositionalFormalParameter._(
-              isRequired: pair.$1 < type.requiredPositionalParameterCount,
-              type: pair.$2.encode(context),
-            );
-          }).toFixedList(),
-          named: type.sortedNamedParametersShared.map((element) {
-            return ManifestFunctionNamedFormalParameter._(
-              isRequired: element.isRequired,
-              type: element.type.encode(context),
-              name: element.name3!,
-            );
-          }).toFixedList(),
-          nullabilitySuffix: type.nullabilitySuffix,
-        );
-      },
-    );
+    return context.withTypeParameters(type.typeParameters, (typeParameters) {
+      return ManifestFunctionType._(
+        typeParameters: typeParameters,
+        returnType: type.returnType.encode(context),
+        positional:
+            type.positionalParameterTypes.indexed.map((pair) {
+              return ManifestFunctionPositionalFormalParameter._(
+                isRequired: pair.$1 < type.requiredPositionalParameterCount,
+                type: pair.$2.encode(context),
+              );
+            }).toFixedList(),
+        named:
+            type.sortedNamedParametersShared.map((element) {
+              return ManifestFunctionNamedFormalParameter._(
+                isRequired: element.isRequired,
+                type: element.type.encode(context),
+                name: element.name3!,
+              );
+            }).toFixedList(),
+        nullabilitySuffix: type.nullabilitySuffix,
+      );
+    });
   }
 
   factory ManifestFunctionType.read(SummaryDataReader reader) {
@@ -205,10 +201,14 @@ final class ManifestFunctionType extends ManifestType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ManifestFunctionType &&
-        const ListEquality<ManifestFunctionPositionalFormalParameter>()
-            .equals(other.positional, positional) &&
-        const ListEquality<ManifestFunctionNamedFormalParameter>()
-            .equals(other.named, named) &&
+        const ListEquality<ManifestFunctionPositionalFormalParameter>().equals(
+          other.positional,
+          positional,
+        ) &&
+        const ListEquality<ManifestFunctionNamedFormalParameter>().equals(
+          other.named,
+          named,
+        ) &&
         other.nullabilitySuffix == nullabilitySuffix;
   }
 
@@ -220,7 +220,10 @@ final class ManifestFunctionType extends ManifestType {
 
     return context.withTypeParameters(type.typeParameters, () {
       if (!ManifestTypeParameter.matchList(
-          context, typeParameters, type.typeParameters)) {
+        context,
+        typeParameters,
+        type.typeParameters,
+      )) {
         return false;
       }
 
@@ -361,10 +364,7 @@ final class ManifestInterfaceType extends ManifestType {
 final class ManifestInvalidType extends ManifestType {
   static final instance = ManifestInvalidType._();
 
-  ManifestInvalidType._()
-      : super(
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
+  ManifestInvalidType._() : super(nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -379,9 +379,7 @@ final class ManifestInvalidType extends ManifestType {
 
 final class ManifestNeverType extends ManifestType {
   factory ManifestNeverType.encode(NeverTypeImpl type) {
-    return ManifestNeverType._(
-      nullabilitySuffix: type.nullabilitySuffix,
-    );
+    return ManifestNeverType._(nullabilitySuffix: type.nullabilitySuffix);
   }
 
   factory ManifestNeverType.read(SummaryDataReader reader) {
@@ -390,9 +388,7 @@ final class ManifestNeverType extends ManifestType {
     );
   }
 
-  ManifestNeverType._({
-    required super.nullabilitySuffix,
-  });
+  ManifestNeverType._({required super.nullabilitySuffix});
 
   @override
   bool operator ==(Object other) {
@@ -428,12 +424,15 @@ final class ManifestRecordType extends ManifestType {
     RecordTypeImpl type,
   ) {
     return ManifestRecordType._(
-      positionalFields: type.positionalFields.map((field) {
-        return field.type;
-      }).encode(context),
-      namedFields: type.namedFields.map((field) {
-        return ManifestRecordTypeNamedField.encode(context, field);
-      }).toFixedList(),
+      positionalFields: type.positionalFields
+          .map((field) {
+            return field.type;
+          })
+          .encode(context),
+      namedFields:
+          type.namedFields.map((field) {
+            return ManifestRecordTypeNamedField.encode(context, field);
+          }).toFixedList(),
       nullabilitySuffix: type.nullabilitySuffix,
     );
   }
@@ -460,10 +459,14 @@ final class ManifestRecordType extends ManifestType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ManifestRecordType &&
-        const ListEquality<ManifestType>()
-            .equals(other.positionalFields, positionalFields) &&
-        const ListEquality<ManifestRecordTypeNamedField>()
-            .equals(other.namedFields, namedFields) &&
+        const ListEquality<ManifestType>().equals(
+          other.positionalFields,
+          positionalFields,
+        ) &&
+        const ListEquality<ManifestRecordTypeNamedField>().equals(
+          other.namedFields,
+          namedFields,
+        ) &&
         other.nullabilitySuffix == nullabilitySuffix;
   }
 
@@ -532,10 +535,7 @@ class ManifestRecordTypeNamedField {
     );
   }
 
-  ManifestRecordTypeNamedField._({
-    required this.name,
-    required this.type,
-  });
+  ManifestRecordTypeNamedField._({required this.name, required this.type});
 
   @override
   bool operator ==(Object other) {
@@ -558,9 +558,7 @@ class ManifestRecordTypeNamedField {
 sealed class ManifestType {
   final NullabilitySuffix nullabilitySuffix;
 
-  ManifestType({
-    required this.nullabilitySuffix,
-  });
+  ManifestType({required this.nullabilitySuffix});
 
   bool match(MatchContext context, DartType type);
 
@@ -604,22 +602,14 @@ class ManifestTypeParameter {
     EncodeContext context,
     TypeParameterElement2 element,
   ) {
-    return ManifestTypeParameter._(
-      bound: element.bound?.encode(context),
-    );
+    return ManifestTypeParameter._(bound: element.bound?.encode(context));
   }
 
-  factory ManifestTypeParameter.read(
-    SummaryDataReader reader,
-  ) {
-    return ManifestTypeParameter._(
-      bound: ManifestType.readOptional(reader),
-    );
+  factory ManifestTypeParameter.read(SummaryDataReader reader) {
+    return ManifestTypeParameter._(bound: ManifestType.readOptional(reader));
   }
 
-  ManifestTypeParameter._({
-    required this.bound,
-  });
+  ManifestTypeParameter._({required this.bound});
 
   @override
   bool operator ==(Object other) {
@@ -722,10 +712,7 @@ final class ManifestTypeParameterType extends ManifestType {
 final class ManifestVoidType extends ManifestType {
   static final instance = ManifestVoidType._();
 
-  ManifestVoidType._()
-      : super(
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
+  ManifestVoidType._() : super(nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   bool match(MatchContext context, DartType type) {

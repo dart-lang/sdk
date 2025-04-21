@@ -21,12 +21,15 @@ class ImportInternalLibraryTest extends PubPackageResolutionTest {
     // directive for the error, this is such a minor corner case that we don't
     // think we should add the additional computation time to figure out such
     // cases.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:_internal';
-''', [
-      error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 16),
-      error(WarningCode.UNUSED_IMPORT, 7, 16),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 16),
+        error(WarningCode.UNUSED_IMPORT, 7, 16),
+      ],
+    );
   }
 
   test_wasm_fromJs() async {
@@ -41,12 +44,15 @@ import 'dart:_wasm';
   }
 
   test_wasm_fromTest() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:_wasm';
-''', [
-      error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 12),
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 12),
+        error(WarningCode.UNUSED_IMPORT, 7, 12),
+      ],
+    );
   }
 
   test_wasm_fromUi() async {

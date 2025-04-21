@@ -350,7 +350,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitDotShorthandConstructorInvocation(
-      DotShorthandConstructorInvocation node) {
+    DotShorthandConstructorInvocation node,
+  ) {
     _visitToken(node.period);
     _visitNode(node.constructorName);
     _visitNode(node.typeArguments);
@@ -1077,7 +1078,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     _visitNode(node.declaration);
     sink.write(';');
   }
@@ -1151,7 +1153,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     _visitNode(node.type);
     sink.write(' ');
     sink.write(node.name);
@@ -1159,7 +1162,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     sink.write('{');
     _visitNodeList(node.fields, separator: ', ');
     sink.write('}');
@@ -1167,7 +1171,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     _visitNode(node.type);
     if (node.name != null) {
       sink.write(' ');
@@ -1177,7 +1182,8 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     sink.write('this');
     _visitNode(node.constructorName, prefix: '.');
     _visitNode(node.argumentList);
@@ -1511,8 +1517,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   /// Print a list of [nodes], separated by the given [separator]; if the list
   /// is not empty print [prefix] before the first node, and [suffix] after
   /// the last node.
-  void _visitNodeList(List<AstNode> nodes,
-      {String prefix = '', String separator = '', String suffix = ''}) {
+  void _visitNodeList(
+    List<AstNode> nodes, {
+    String prefix = '',
+    String separator = '',
+    String suffix = '',
+  }) {
     var length = nodes.length;
     if (length > 0) {
       sink.write(prefix);

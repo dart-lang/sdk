@@ -49,7 +49,8 @@ SuperConstructorInvocation
   }
 
   test_named_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A(int a);
 }
@@ -57,9 +58,15 @@ class A {
 class B extends A {
   B() : super.named(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, 53, 14),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+          53,
+          14,
+        ),
+      ],
+    );
 
     var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
@@ -83,7 +90,8 @@ SuperConstructorInvocation
   }
 
   test_nonConst_fromConst() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final a;
   A(this.a);
@@ -92,9 +100,15 @@ class A {
 class B extends A {
   const B() : super(5);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 71, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+          71,
+          8,
+        ),
+      ],
+    );
 
     var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
@@ -140,7 +154,8 @@ SuperConstructorInvocation
   }
 
   test_unnamed_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.named(int a);
 }
@@ -148,10 +163,15 @@ class A {
 class B extends A {
   B() : super(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-          59, 8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          59,
+          8,
+        ),
+      ],
+    );
 
     var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''

@@ -52,11 +52,14 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     var analysisSession = contextFor(innerFile).currentSession;
 
     void assertInnerUri(ResolvedUnitResult result) {
-      var innerSource = result.libraryFragment.libraryImports2
-          .map((import) => import.importedLibrary2?.firstFragment.source)
-          .nonNulls
-          .where((importedSource) => importedSource.fullName == innerFile.path)
-          .single;
+      var innerSource =
+          result.libraryFragment.libraryImports2
+              .map((import) => import.importedLibrary2?.firstFragment.source)
+              .nonNulls
+              .where(
+                (importedSource) => importedSource.fullName == innerFile.path,
+              )
+              .single;
       expect(innerSource.uri, innerUri);
     }
 
@@ -101,9 +104,9 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
 
     useEmptyByteStore();
     registerLintRule(_AlwaysReportedLint.instance);
-    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
-      rules: [_AlwaysReportedLint.code.name],
-    ));
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(rules: [_AlwaysReportedLint.code.name]),
+    );
   }
 
   @override
@@ -128,10 +131,11 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
   }
 
   void _assertHasLintReported(List<AnalysisError> errors, String name) {
-    var matching = errors.where((element) {
-      var errorCode = element.errorCode;
-      return errorCode is LintCode && errorCode.name == name;
-    }).toList();
+    var matching =
+        errors.where((element) {
+          var errorCode = element.errorCode;
+          return errorCode is LintCode && errorCode.name == name;
+        }).toList();
     expect(matching, hasLength(1));
   }
 }
@@ -820,8 +824,9 @@ var B = 0;
     driver.priorityFiles2 = [a];
     driver.addFile2(a);
 
-    configuration.libraryConfiguration.unitConfiguration.nodeSelector =
-        (result) {
+    configuration.libraryConfiguration.unitConfiguration.nodeSelector = (
+      result,
+    ) {
       return result.findNode.simple('B;');
     };
 
@@ -1113,10 +1118,7 @@ import 'c.dart';
         'package:test/c.dart',
         'package:test/d.dart',
       ],
-      included: [
-        'package:test/a.dart',
-        'package:test/e.dart',
-      ],
+      included: ['package:test/a.dart', 'package:test/e.dart'],
     );
 
     // `a.dart` and `e.dart` moved to the new session.
@@ -1182,13 +1184,8 @@ import 'b.dart';
     expect(session2, isNot(session1));
 
     driver.assertLoadedLibraryUriSet(
-      excluded: [
-        'package:test/b.dart',
-        'package:test/c.dart',
-      ],
-      included: [
-        'package:test/d.dart',
-      ],
+      excluded: ['package:test/b.dart', 'package:test/c.dart'],
+      included: ['package:test/d.dart'],
     );
 
     // `d.dart` moved to the new session.
@@ -1217,17 +1214,17 @@ final B1 = A1;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       return switch (result.uriStr) {
         'package:test/a.dart' => [
-            result.findElement2.topVar('A1'),
-            result.findElement2.topVar('A2'),
-          ],
-        'package:test/b.dart' => [
-            result.findElement2.topVar('B1'),
-          ],
-        _ => []
+          result.findElement2.topVar('A1'),
+          result.findElement2.topVar('A2'),
+        ],
+        'package:test/b.dart' => [result.findElement2.topVar('B1')],
+        _ => [],
       };
     };
 
@@ -1304,13 +1301,13 @@ final A2 = B1;
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
-          return [
-            result.findElement2.topVar('V'),
-          ];
+          return [result.findElement2.topVar('V')];
         default:
           return [];
       }
@@ -2051,10 +2048,7 @@ class B {}
   test_getParsedLibraryByUri_cannotResolveUri() async {
     var driver = driverFor(testFile);
     var uri = Uri.parse('foo:bar');
-    expect(
-      driver.getParsedLibraryByUri(uri),
-      isA<CannotResolveUriResult>(),
-    );
+    expect(driver.getParsedLibraryByUri(uri), isA<CannotResolveUriResult>());
   }
 
   test_getParsedLibraryByUri_notLibrary_part() async {
@@ -2064,10 +2058,7 @@ part of 'b.dart';
 
     var driver = driverFor(a);
     var uri = Uri.parse('package:test/a.dart');
-    expect(
-      driver.getParsedLibraryByUri(uri),
-      isA<NotLibraryButPartResult>(),
-    );
+    expect(driver.getParsedLibraryByUri(uri), isA<NotLibraryButPartResult>());
   }
 
   test_getParsedLibraryByUri_notLibraryButPart() async {
@@ -2649,11 +2640,11 @@ final foo = 0;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
-      return [
-        result.findElement2.topVar('foo'),
-      ];
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
+      return [result.findElement2.topVar('foo')];
     };
 
     // The extension of the file does not matter.
@@ -2684,12 +2675,13 @@ linter:
     - omit_local_variable_types
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_empty_lints() async {
@@ -2701,12 +2693,13 @@ linter:
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_NON_PART, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_NON_PART, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_hasPartOfName_notThisLibrary_lints() async {
@@ -2720,12 +2713,13 @@ linter:
 part of other.lib;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_hasPartOfUri_notThisLibrary_lints() async {
@@ -2739,12 +2733,13 @@ linter:
 part of 'not_test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_library() async {
@@ -3068,13 +3063,13 @@ final B = A;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/b.dart':
-          return [
-            result.findElement2.topVar('B'),
-          ];
+          return [result.findElement2.topVar('B')];
         default:
           return [];
       }
@@ -3207,13 +3202,13 @@ import 'b.dart';
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
-          return [
-            result.findElement2.topVar('V'),
-          ];
+          return [result.findElement2.topVar('V')];
         default:
           return [];
       }
@@ -4694,17 +4689,15 @@ final B = 0;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
-          return [
-            result.findElement2.topVar('A'),
-          ];
+          return [result.findElement2.topVar('A')];
         case 'package:test/b.dart':
-          return [
-            result.findElement2.topVar('B'),
-          ];
+          return [result.findElement2.topVar('B')];
         default:
           return [];
       }
@@ -5320,10 +5313,8 @@ class DriverEventCollector {
   List<DriverEvent> events = [];
   final List<Completer<void>> statusIdleCompleters = [];
 
-  DriverEventCollector(
-    this.driver, {
-    IdProvider? idProvider,
-  }) : idProvider = idProvider ?? IdProvider() {
+  DriverEventCollector(this.driver, {IdProvider? idProvider})
+    : idProvider = idProvider ?? IdProvider() {
     _listenSchedulerEvents(driver.scheduler);
   }
 
@@ -5336,70 +5327,48 @@ class DriverEventCollector {
 
   void getCachedResolvedUnit(String name, File file) {
     var value = driver.getCachedResolvedUnit2(file);
-    events.add(
-      GetCachedResolvedUnitEvent(
-        name: name,
-        result: value,
-      ),
-    );
+    events.add(GetCachedResolvedUnitEvent(name: name, result: value));
   }
 
   void getErrors(String name, File file) {
     var future = driver.getErrors(file.path);
-    unawaited(future.then((value) {
-      events.add(
-        GetErrorsEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetErrorsEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getIndex(String name, File file) async {
     var value = await driver.getIndex(file.path);
-    events.add(
-      GetIndexEvent(
-        name: name,
-        result: value,
-      ),
-    );
+    events.add(GetIndexEvent(name: name, result: value));
   }
 
   void getLibraryByUri(String name, String uriStr) {
     var future = driver.getLibraryByUri(uriStr);
-    unawaited(future.then((value) {
-      events.add(
-        GetLibraryByUriEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetLibraryByUriEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getResolvedLibrary(String name, File file) {
     var future = driver.getResolvedLibrary(file.path);
-    unawaited(future.then((value) {
-      events.add(
-        GetResolvedLibraryEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetResolvedLibraryEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getResolvedLibraryByUri(String name, Uri uri) {
     var future = driver.getResolvedLibraryByUri(uri);
-    unawaited(future.then((value) {
-      events.add(
-        GetResolvedLibraryByUriEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetResolvedLibraryByUriEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getResolvedUnit(
@@ -5412,26 +5381,20 @@ class DriverEventCollector {
       sendCachedToStream: sendCachedToStream,
     );
 
-    unawaited(future.then((value) {
-      events.add(
-        GetResolvedUnitEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetResolvedUnitEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getUnitElement(String name, File file) {
     var future = driver.getUnitElement2(file);
-    unawaited(future.then((value) {
-      events.add(
-        GetUnitElementEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetUnitElementEvent(name: name, result: value));
+      }),
+    );
   }
 
   Future<void> nextStatusIdle() {
@@ -5450,9 +5413,7 @@ class DriverEventCollector {
     scheduler.eventsBroadcast.listen((event) {
       switch (event) {
         case AnalysisStatus():
-          events.add(
-            SchedulerStatusEvent(event),
-          );
+          events.add(SchedulerStatusEvent(event));
           if (event.isIdle) {
             statusIdleCompleters.completeAll();
             statusIdleCompleters.clear();
@@ -5467,11 +5428,7 @@ class DriverEventCollector {
         case driver_events.ReuseLinkLibraryCycleBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
-          events.add(
-            ResultStreamEvent(
-              object: event,
-            ),
-          );
+          events.add(ResultStreamEvent(object: event));
       }
     });
   }
@@ -24284,10 +24241,7 @@ int get b => 0;
       ..withLinkBundleEvents = true;
 
     var driver = driverFor(testFile);
-    var collector = DriverEventCollector(
-      driver,
-      idProvider: idProvider,
-    );
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
 
     configuration.elementTextConfiguration
       ..withLibraryFragments = false
@@ -24375,10 +24329,7 @@ int get b => 0;
       ..withSchedulerStatus = false;
 
     var driver = driverFor(testFile);
-    var collector = DriverEventCollector(
-      driver,
-      idProvider: idProvider,
-    );
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
 
     var libraryUri = Uri.parse('package:test/test.dart');
     collector.getLibraryByUri('T1', '$libraryUri');
@@ -24425,18 +24376,16 @@ class _AlwaysReportedLint extends LintRule {
     'This lint is reported for all files',
   );
 
-  _AlwaysReportedLint()
-      : super(
-          name: 'always_reported_lint',
-          description: '',
-        );
+  _AlwaysReportedLint() : super(name: 'always_reported_lint', description: '');
 
   @override
   LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _AlwaysReportedLintVisitor(this);
     registry.addCompilationUnit(this, visitor);
   }

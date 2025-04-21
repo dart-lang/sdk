@@ -17,92 +17,134 @@ main() {
 class PatternVariableAssignmentInsideGuardTest
     extends PubPackageResolutionTest {
   test_closure_outer_assignment() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case var a when () {
     if (x case _ when (a = 1) > 0) {}
     return true;
   }()) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 68, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          68,
+          1,
+        ),
+      ],
+    );
   }
 
   test_closure_this_assignment() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case var a when () {
     a = 0;
     return true;
   }()) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 49, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          49,
+          1,
+        ),
+      ],
+    );
   }
 
   test_expression_assignment() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case var a when (a = 1) > 0) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 41, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_expression_assignment_compound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case var a when (a += 1) > 0) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_expression_assignment_logicalOr2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case int a || int a when (a = 1) > 0) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(WarningCode.DEAD_CODE, 35, 8),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
-      error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 50, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.DEAD_CODE, 35, 8),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          50,
+          1,
+        ),
+      ],
+    );
   }
 
   test_expression_postfixIncrement() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case var a when (a++) > 0) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_expression_prefixIncrement() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   if (x case var a when (++a) > 0) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD, 43, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+          43,
+          1,
+        ),
+      ],
+    );
   }
 
   test_ifStatement_caseClause_insideThen() async {
@@ -116,15 +158,16 @@ void f(int x) {
   }
 
   test_otherVariable_local() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int x) {
   // ignore:unused_local_variable
   var b = 0;
   if (x case var a when (b = 1) > 0) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 80, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 80, 1)],
+    );
   }
 
   test_outerPattern_variablePattern() async {

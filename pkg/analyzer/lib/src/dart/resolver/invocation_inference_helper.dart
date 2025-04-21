@@ -51,11 +51,11 @@ class ConstructorElementToInfer {
     return typeParameters.isEmpty
         ? element.type
         : FunctionTypeImpl(
-            typeFormals: typeParameters,
-            parameters: element.parameters,
-            returnType: element.returnType,
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
+          typeFormals: typeParameters,
+          parameters: element.parameters,
+          returnType: element.returnType,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
   }
 
   ConstructorElementMixin get element => element2.asElement;
@@ -77,11 +77,11 @@ class InvocationInferenceHelper {
     required ErrorReporter errorReporter,
     required TypeSystemImpl typeSystem,
     required this.dataForTesting,
-  })  : _resolver = resolver,
-        _errorReporter = errorReporter,
-        _typeSystem = typeSystem,
-        _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
-            .isEnabled(Feature.generic_metadata);
+  }) : _resolver = resolver,
+       _errorReporter = errorReporter,
+       _typeSystem = typeSystem,
+       _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
+           .isEnabled(Feature.generic_metadata);
 
   /// If the constructor referenced by the [constructorName] is generic,
   /// and the [constructorName] does not have explicit type arguments,
@@ -130,9 +130,12 @@ class InvocationInferenceHelper {
   /// Given an uninstantiated generic function type, referenced by the
   /// [identifier] in the tear-off [expression], try to infer the instantiated
   /// generic function type from the surrounding context.
-  DartType inferTearOff(ExpressionImpl expression,
-      SimpleIdentifierImpl identifier, DartType tearOffType,
-      {required DartType contextType}) {
+  DartType inferTearOff(
+    ExpressionImpl expression,
+    SimpleIdentifierImpl identifier,
+    DartType tearOffType, {
+    required DartType contextType,
+  }) {
     if (contextType is FunctionTypeImpl && tearOffType is FunctionTypeImpl) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,

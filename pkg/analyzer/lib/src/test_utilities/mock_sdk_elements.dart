@@ -78,10 +78,7 @@ class _MockSdkElementsBuilder {
   late LibraryElementImpl _coreLibrary;
   late CompilationUnitElementImpl _coreUnit;
 
-  _MockSdkElementsBuilder(
-    this.analysisContext,
-    this.analysisSession,
-  );
+  _MockSdkElementsBuilder(this.analysisContext, this.analysisSession);
 
   ClassElementImpl get boolElement {
     var boolElement = _boolElement;
@@ -115,12 +112,13 @@ class _MockSdkElementsBuilder {
     if (comparableElement != null) return comparableElement;
 
     var tElement = _typeParameter('T');
-    _comparableElement = comparableElement = _class(
-      name: 'Comparable',
-      isAbstract: true,
-      typeParameters: [tElement],
-      unit: _coreUnit,
-    );
+    _comparableElement =
+        comparableElement = _class(
+          name: 'Comparable',
+          isAbstract: true,
+          typeParameters: [tElement],
+          unit: _coreUnit,
+        );
     comparableElement.supertype = objectType;
 
     _buildClassElement(comparableElement);
@@ -132,12 +130,13 @@ class _MockSdkElementsBuilder {
     if (completerElement != null) return completerElement;
 
     var tElement = _typeParameter('T');
-    _completerElement = completerElement = _class(
-      name: 'Completer',
-      isAbstract: true,
-      typeParameters: [tElement],
-      unit: _asyncUnit,
-    );
+    _completerElement =
+        completerElement = _class(
+          name: 'Completer',
+          isAbstract: true,
+          typeParameters: [tElement],
+          unit: _asyncUnit,
+        );
     completerElement.supertype = objectType;
 
     _buildClassElement(completerElement);
@@ -152,9 +151,7 @@ class _MockSdkElementsBuilder {
         deprecatedElement = _class(name: 'Deprecated', unit: _coreUnit);
     deprecatedElement.supertype = objectType;
 
-    deprecatedElement.fields = [
-      _field('message', stringType, isFinal: true),
-    ];
+    deprecatedElement.fields = [_field('message', stringType, isFinal: true)];
 
     deprecatedElement.accessors =
         deprecatedElement.fields.map((f) => f.getter!).toList();
@@ -162,9 +159,7 @@ class _MockSdkElementsBuilder {
     deprecatedElement.constructors = [
       _constructor(
         isConst: true,
-        parameters: [
-          _requiredParameter('message', stringType),
-        ],
+        parameters: [_requiredParameter('message', stringType)],
       ),
     ];
 
@@ -176,11 +171,12 @@ class _MockSdkElementsBuilder {
     var doubleElement = _doubleElement;
     if (doubleElement != null) return doubleElement;
 
-    _doubleElement = doubleElement = _class(
-      name: 'double',
-      isAbstract: true,
-      unit: _coreUnit,
-    );
+    _doubleElement =
+        doubleElement = _class(
+          name: 'double',
+          isAbstract: true,
+          unit: _coreUnit,
+        );
     doubleElement.supertype = numType;
 
     FieldElementImpl staticConstDoubleField(String name) {
@@ -199,33 +195,49 @@ class _MockSdkElementsBuilder {
         doubleElement.fields.map((field) => field.getter!).toList();
 
     doubleElement.methods = [
-      _method('+', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('*', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('-', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('%', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('/', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('~/', intType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('-', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
+      _method(
+        '+',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '*',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '-',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '%',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '/',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '~/',
+        intType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '-',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
       _method('abs', doubleType),
       _method('ceil', doubleType),
       _method('floor', doubleType),
-      _method('remainder', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
+      _method(
+        'remainder',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
       _method('round', doubleType),
       _method('toString', stringType),
       _method('truncate', doubleType),
@@ -245,11 +257,12 @@ class _MockSdkElementsBuilder {
     var functionElement = _functionElement;
     if (functionElement != null) return functionElement;
 
-    _functionElement = functionElement = _class(
-      name: 'Function',
-      isAbstract: true,
-      unit: _coreUnit,
-    );
+    _functionElement =
+        functionElement = _class(
+          name: 'Function',
+          isAbstract: true,
+          unit: _coreUnit,
+        );
     functionElement.supertype = objectType;
 
     _buildClassElement(functionElement);
@@ -267,21 +280,20 @@ class _MockSdkElementsBuilder {
     var tElement = _typeParameter('T');
     var tType = _typeParameterType(tElement);
 
-    _futureElement = futureElement = _class(
-      name: 'Future',
-      isAbstract: true,
-      typeParameters: [tElement],
-      unit: _asyncUnit,
-    );
+    _futureElement =
+        futureElement = _class(
+          name: 'Future',
+          isAbstract: true,
+          typeParameters: [tElement],
+          unit: _asyncUnit,
+        );
     futureElement.supertype = objectType;
 
     //   factory Future.value([FutureOr<T> value])
     futureElement.constructors = [
       _constructor(
         isFactory: true,
-        parameters: [
-          _positionalParameter('value', futureOrType(tType)),
-        ],
+        parameters: [_positionalParameter('value', futureOrType(tType))],
       ),
     ];
 
@@ -297,9 +309,7 @@ class _MockSdkElementsBuilder {
             'onValue',
             _functionType(
               returnType: futureOrType(rType),
-              parameters: [
-                _requiredParameter('value', tType),
-              ],
+              parameters: [_requiredParameter('value', tType)],
             ),
           ),
           _positionalParameter('onError', functionType),
@@ -316,11 +326,12 @@ class _MockSdkElementsBuilder {
     if (futureOrElement != null) return futureOrElement;
 
     var tElement = _typeParameter('T');
-    _futureOrElement = futureOrElement = _class(
-      name: 'FutureOr',
-      typeParameters: [tElement],
-      unit: _asyncUnit,
-    );
+    _futureOrElement =
+        futureOrElement = _class(
+          name: 'FutureOr',
+          typeParameters: [tElement],
+          unit: _asyncUnit,
+        );
     futureOrElement.supertype = objectType;
 
     _buildClassElement(futureOrElement);
@@ -348,22 +359,20 @@ class _MockSdkElementsBuilder {
     ];
 
     intElement.methods = [
-      _method('&', intType, parameters: [
-        _requiredParameter('other', intType),
-      ]),
-      _method('|', intType, parameters: [
-        _requiredParameter('other', intType),
-      ]),
-      _method('^', intType, parameters: [
-        _requiredParameter('other', intType),
-      ]),
+      _method('&', intType, parameters: [_requiredParameter('other', intType)]),
+      _method('|', intType, parameters: [_requiredParameter('other', intType)]),
+      _method('^', intType, parameters: [_requiredParameter('other', intType)]),
       _method('~', intType),
-      _method('<<', intType, parameters: [
-        _requiredParameter('shiftAmount', intType),
-      ]),
-      _method('>>', intType, parameters: [
-        _requiredParameter('shiftAmount', intType),
-      ]),
+      _method(
+        '<<',
+        intType,
+        parameters: [_requiredParameter('shiftAmount', intType)],
+      ),
+      _method(
+        '>>',
+        intType,
+        parameters: [_requiredParameter('shiftAmount', intType)],
+      ),
       _method('-', intType),
       _method('abs', intType),
       _method('round', intType),
@@ -388,17 +397,16 @@ class _MockSdkElementsBuilder {
     var eElement = _typeParameter('E');
     var eType = _typeParameterType(eElement);
 
-    _iterableElement = iterableElement = _class(
-      name: 'Iterable',
-      isAbstract: true,
-      typeParameters: [eElement],
-      unit: _coreUnit,
-    );
+    _iterableElement =
+        iterableElement = _class(
+          name: 'Iterable',
+          isAbstract: true,
+          typeParameters: [eElement],
+          unit: _coreUnit,
+        );
     iterableElement.supertype = objectType;
 
-    iterableElement.constructors = [
-      _constructor(isConst: true),
-    ];
+    iterableElement.constructors = [_constructor(isConst: true)];
 
     _setAccessors(iterableElement, [
       _getter('iterator', iteratorType(eType)),
@@ -416,17 +424,16 @@ class _MockSdkElementsBuilder {
     var eElement = _typeParameter('E');
     var eType = _typeParameterType(eElement);
 
-    _iteratorElement = iteratorElement = _class(
-      name: 'Iterator',
-      isAbstract: true,
-      typeParameters: [eElement],
-      unit: _coreUnit,
-    );
+    _iteratorElement =
+        iteratorElement = _class(
+          name: 'Iterator',
+          isAbstract: true,
+          typeParameters: [eElement],
+          unit: _coreUnit,
+        );
     iteratorElement.supertype = objectType;
 
-    _setAccessors(iterableElement, [
-      _getter('current', eType),
-    ]);
+    _setAccessors(iterableElement, [_getter('current', eType)]);
 
     _buildClassElement(iteratorElement);
     return iteratorElement;
@@ -439,38 +446,40 @@ class _MockSdkElementsBuilder {
     var eElement = _typeParameter('E');
     var eType = _typeParameterType(eElement);
 
-    _listElement = listElement = _class(
-      name: 'List',
-      isAbstract: true,
-      typeParameters: [eElement],
-      unit: _coreUnit,
-    );
+    _listElement =
+        listElement = _class(
+          name: 'List',
+          isAbstract: true,
+          typeParameters: [eElement],
+          unit: _coreUnit,
+        );
     listElement.supertype = objectType;
-    listElement.interfaces = [
-      iterableType(eType),
-    ];
+    listElement.interfaces = [iterableType(eType)];
 
     listElement.constructors = [
-      _constructor(isFactory: true, parameters: [
-        _positionalParameter('length', intType),
-      ]),
+      _constructor(
+        isFactory: true,
+        parameters: [_positionalParameter('length', intType)],
+      ),
     ];
 
-    _setAccessors(listElement, [
-      _getter('length', intType),
-    ]);
+    _setAccessors(listElement, [_getter('length', intType)]);
 
     listElement.methods = [
-      _method('[]', eType, parameters: [
-        _requiredParameter('index', intType),
-      ]),
-      _method('[]=', voidType, parameters: [
-        _requiredParameter('index', intType),
-        _requiredParameter('value', eType),
-      ]),
-      _method('add', voidType, parameters: [
-        _requiredParameter('value', eType),
-      ]),
+      _method('[]', eType, parameters: [_requiredParameter('index', intType)]),
+      _method(
+        '[]=',
+        voidType,
+        parameters: [
+          _requiredParameter('index', intType),
+          _requiredParameter('value', eType),
+        ],
+      ),
+      _method(
+        'add',
+        voidType,
+        parameters: [_requiredParameter('value', eType)],
+      ),
     ];
 
     _buildClassElement(listElement);
@@ -486,26 +495,27 @@ class _MockSdkElementsBuilder {
     var kType = _typeParameterType(kElement);
     var vType = _typeParameterType(vElement);
 
-    _mapElement = mapElement = _class(
-      name: 'Map',
-      isAbstract: true,
-      typeParameters: [kElement, vElement],
-      unit: _coreUnit,
-    );
+    _mapElement =
+        mapElement = _class(
+          name: 'Map',
+          isAbstract: true,
+          typeParameters: [kElement, vElement],
+          unit: _coreUnit,
+        );
     mapElement.supertype = objectType;
 
-    _setAccessors(mapElement, [
-      _getter('length', intType),
-    ]);
+    _setAccessors(mapElement, [_getter('length', intType)]);
 
     mapElement.methods = [
-      _method('[]', vType, parameters: [
-        _requiredParameter('key', objectType),
-      ]),
-      _method('[]=', voidType, parameters: [
-        _requiredParameter('key', kType),
-        _requiredParameter('value', vType),
-      ]),
+      _method('[]', vType, parameters: [_requiredParameter('key', objectType)]),
+      _method(
+        '[]=',
+        voidType,
+        parameters: [
+          _requiredParameter('key', kType),
+          _requiredParameter('value', vType),
+        ],
+      ),
     ];
 
     _buildClassElement(mapElement);
@@ -520,10 +530,7 @@ class _MockSdkElementsBuilder {
     nullElement.supertype = objectType;
 
     nullElement.constructors = [
-      _constructor(
-        name: '_uninstantiatable',
-        isFactory: true,
-      ),
+      _constructor(name: '_uninstantiatable', isFactory: true),
     ];
 
     _buildClassElement(nullElement);
@@ -538,52 +545,55 @@ class _MockSdkElementsBuilder {
         numElement = _class(name: 'num', isAbstract: true, unit: _coreUnit);
     numElement.supertype = objectType;
     numElement.interfaces = [
-      _interfaceType(
-        comparableElement,
-        typeArguments: [numType],
-      ),
+      _interfaceType(comparableElement, typeArguments: [numType]),
     ];
 
     numElement.methods = [
-      _method('+', numType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('-', numType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('*', numType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('%', numType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('/', doubleType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('~/', intType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('-', numType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('remainder', numType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('<', boolType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('<=', boolType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('>', boolType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('>=', boolType, parameters: [
-        _requiredParameter('other', numType),
-      ]),
-      _method('==', boolType, parameters: [
-        _requiredParameter('other', objectType),
-      ]),
+      _method('+', numType, parameters: [_requiredParameter('other', numType)]),
+      _method('-', numType, parameters: [_requiredParameter('other', numType)]),
+      _method('*', numType, parameters: [_requiredParameter('other', numType)]),
+      _method('%', numType, parameters: [_requiredParameter('other', numType)]),
+      _method(
+        '/',
+        doubleType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '~/',
+        intType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method('-', numType, parameters: [_requiredParameter('other', numType)]),
+      _method(
+        'remainder',
+        numType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '<',
+        boolType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '<=',
+        boolType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '>',
+        boolType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '>=',
+        boolType,
+        parameters: [_requiredParameter('other', numType)],
+      ),
+      _method(
+        '==',
+        boolType,
+        parameters: [_requiredParameter('other', objectType)],
+      ),
       _method('abs', numType),
       _method('floor', numType),
       _method('ceil', numType),
@@ -591,15 +601,21 @@ class _MockSdkElementsBuilder {
       _method('truncate', numType),
       _method('toInt', intType),
       _method('toDouble', doubleType),
-      _method('toStringAsFixed', stringType, parameters: [
-        _requiredParameter('fractionDigits', intType),
-      ]),
-      _method('toStringAsExponential', stringType, parameters: [
-        _requiredParameter('fractionDigits', intType),
-      ]),
-      _method('toStringAsPrecision', stringType, parameters: [
-        _requiredParameter('precision', intType),
-      ]),
+      _method(
+        'toStringAsFixed',
+        stringType,
+        parameters: [_requiredParameter('fractionDigits', intType)],
+      ),
+      _method(
+        'toStringAsExponential',
+        stringType,
+        parameters: [_requiredParameter('fractionDigits', intType)],
+      ),
+      _method(
+        'toStringAsPrecision',
+        stringType,
+        parameters: [_requiredParameter('precision', intType)],
+      ),
     ];
 
     _setAccessors(numElement, [
@@ -625,18 +641,20 @@ class _MockSdkElementsBuilder {
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
     objectElement.typeParameters = const <TypeParameterElementImpl>[];
-    objectElement.constructors = [
-      _constructor(isConst: true),
-    ];
+    objectElement.constructors = [_constructor(isConst: true)];
 
     objectElement.methods = [
       _method('toString', stringType),
-      _method('==', boolType, parameters: [
-        _requiredParameter('other', objectType),
-      ]),
-      _method('noSuchMethod', dynamicType, parameters: [
-        _requiredParameter('other', dynamicType),
-      ]),
+      _method(
+        '==',
+        boolType,
+        parameters: [_requiredParameter('other', objectType)],
+      ),
+      _method(
+        'noSuchMethod',
+        dynamicType,
+        parameters: [_requiredParameter('other', dynamicType)],
+      ),
     ];
 
     _setAccessors(objectElement, [
@@ -660,9 +678,7 @@ class _MockSdkElementsBuilder {
         overrideElement = _class(name: '_Override', unit: _coreUnit);
     overrideElement.supertype = objectType;
 
-    overrideElement.constructors = [
-      _constructor(isConst: true),
-    ];
+    overrideElement.constructors = [_constructor(isConst: true)];
 
     _buildClassElement(overrideElement);
     return overrideElement;
@@ -672,11 +688,12 @@ class _MockSdkElementsBuilder {
     var recordElement = _recordElement;
     if (recordElement != null) return recordElement;
 
-    _recordElement = recordElement = _class(
-      name: 'Record',
-      isAbstract: true,
-      unit: _coreUnit,
-    );
+    _recordElement =
+        recordElement = _class(
+          name: 'Record',
+          isAbstract: true,
+          unit: _coreUnit,
+        );
     recordElement.supertype = objectType;
 
     _buildClassElement(recordElement);
@@ -694,16 +711,15 @@ class _MockSdkElementsBuilder {
     var eElement = _typeParameter('E');
     var eType = _typeParameterType(eElement);
 
-    _setElement = setElement = _class(
-      name: 'Set',
-      isAbstract: true,
-      typeParameters: [eElement],
-      unit: _coreUnit,
-    );
+    _setElement =
+        setElement = _class(
+          name: 'Set',
+          isAbstract: true,
+          typeParameters: [eElement],
+          unit: _coreUnit,
+        );
     setElement.supertype = objectType;
-    setElement.interfaces = [
-      iterableType(eType),
-    ];
+    setElement.interfaces = [iterableType(eType)];
 
     _buildClassElement(setElement);
     return setElement;
@@ -713,11 +729,12 @@ class _MockSdkElementsBuilder {
     var stackTraceElement = _stackTraceElement;
     if (stackTraceElement != null) return stackTraceElement;
 
-    _stackTraceElement = stackTraceElement = _class(
-      name: 'StackTrace',
-      isAbstract: true,
-      unit: _coreUnit,
-    );
+    _stackTraceElement =
+        stackTraceElement = _class(
+          name: 'StackTrace',
+          isAbstract: true,
+          unit: _coreUnit,
+        );
     stackTraceElement.supertype = objectType;
 
     _buildClassElement(stackTraceElement);
@@ -731,12 +748,13 @@ class _MockSdkElementsBuilder {
     var tElement = _typeParameter('T');
     var tType = _typeParameterType(tElement);
 
-    _streamElement = streamElement = _class(
-      name: 'Stream',
-      isAbstract: true,
-      typeParameters: [tElement],
-      unit: _asyncUnit,
-    );
+    _streamElement =
+        streamElement = _class(
+          name: 'Stream',
+          isAbstract: true,
+          typeParameters: [tElement],
+          unit: _asyncUnit,
+        );
     streamElement.isAbstract = true;
     streamElement.supertype = objectType;
 
@@ -751,16 +769,11 @@ class _MockSdkElementsBuilder {
             'onData',
             _functionType(
               returnType: voidType,
-              parameters: [
-                _requiredParameter('event', tType),
-              ],
+              parameters: [_requiredParameter('event', tType)],
             ),
           ),
           _namedParameter('onError', functionType),
-          _namedParameter(
-            'onDone',
-            _functionType(returnType: voidType),
-          ),
+          _namedParameter('onDone', _functionType(returnType: voidType)),
           _namedParameter('cancelOnError', boolType),
         ],
       ),
@@ -775,12 +788,13 @@ class _MockSdkElementsBuilder {
     if (streamSubscriptionElement != null) return streamSubscriptionElement;
 
     var tElement = _typeParameter('T');
-    _streamSubscriptionElement = streamSubscriptionElement = _class(
-      name: 'StreamSubscription',
-      isAbstract: true,
-      typeParameters: [tElement],
-      unit: _asyncUnit,
-    );
+    _streamSubscriptionElement =
+        streamSubscriptionElement = _class(
+          name: 'StreamSubscription',
+          isAbstract: true,
+          typeParameters: [tElement],
+          unit: _asyncUnit,
+        );
     streamSubscriptionElement.supertype = objectType;
 
     _buildClassElement(streamSubscriptionElement);
@@ -791,11 +805,12 @@ class _MockSdkElementsBuilder {
     var stringElement = _stringElement;
     if (stringElement != null) return stringElement;
 
-    _stringElement = stringElement = _class(
-      name: 'String',
-      isAbstract: true,
-      unit: _coreUnit,
-    );
+    _stringElement =
+        stringElement = _class(
+          name: 'String',
+          isAbstract: true,
+          unit: _coreUnit,
+        );
     stringElement.supertype = objectType;
 
     stringElement.constructors = [
@@ -817,9 +832,11 @@ class _MockSdkElementsBuilder {
     ]);
 
     stringElement.methods = [
-      _method('+', stringType, parameters: [
-        _requiredParameter('other', stringType),
-      ]),
+      _method(
+        '+',
+        stringType,
+        parameters: [_requiredParameter('other', stringType)],
+      ),
       _method('toLowerCase', stringType),
       _method('toUpperCase', stringType),
     ];
@@ -836,20 +853,19 @@ class _MockSdkElementsBuilder {
     var symbolElement = _symbolElement;
     if (symbolElement != null) return symbolElement;
 
-    _symbolElement = symbolElement = _class(
-      name: 'Symbol',
-      isAbstract: true,
-      unit: _coreUnit,
-    );
+    _symbolElement =
+        symbolElement = _class(
+          name: 'Symbol',
+          isAbstract: true,
+          unit: _coreUnit,
+        );
     symbolElement.supertype = objectType;
 
     symbolElement.constructors = [
       _constructor(
         isConst: true,
         isFactory: true,
-        parameters: [
-          _requiredParameter('name', stringType),
-        ],
+        parameters: [_requiredParameter('name', stringType)],
       ),
     ];
 
@@ -861,11 +877,8 @@ class _MockSdkElementsBuilder {
     var typeElement = _typeElement;
     if (typeElement != null) return typeElement;
 
-    _typeElement = typeElement = _class(
-      name: 'Type',
-      isAbstract: true,
-      unit: _coreUnit,
-    );
+    _typeElement =
+        typeElement = _class(name: 'Type', isAbstract: true, unit: _coreUnit);
     typeElement.supertype = objectType;
 
     _buildClassElement(typeElement);
@@ -879,38 +892,23 @@ class _MockSdkElementsBuilder {
   VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
   InterfaceTypeImpl futureOrType(TypeImpl elementType) {
-    return _interfaceType(
-      futureOrElement,
-      typeArguments: [elementType],
-    );
+    return _interfaceType(futureOrElement, typeArguments: [elementType]);
   }
 
   InterfaceTypeImpl futureType(TypeImpl elementType) {
-    return _interfaceType(
-      futureElement,
-      typeArguments: [elementType],
-    );
+    return _interfaceType(futureElement, typeArguments: [elementType]);
   }
 
   InterfaceTypeImpl iterableType(TypeImpl elementType) {
-    return _interfaceType(
-      iterableElement,
-      typeArguments: [elementType],
-    );
+    return _interfaceType(iterableElement, typeArguments: [elementType]);
   }
 
   InterfaceTypeImpl iteratorType(TypeImpl elementType) {
-    return _interfaceType(
-      iteratorElement,
-      typeArguments: [elementType],
-    );
+    return _interfaceType(iteratorElement, typeArguments: [elementType]);
   }
 
   InterfaceTypeImpl listType(TypeImpl elementType) {
-    return _interfaceType(
-      listElement,
-      typeArguments: [elementType],
-    );
+    return _interfaceType(listElement, typeArguments: [elementType]);
   }
 
   InterfaceTypeImpl streamSubscriptionType(TypeImpl valueType) {
@@ -974,9 +972,7 @@ class _MockSdkElementsBuilder {
     ClassElementImpl2(Reference.root(), fragment);
     fragment.typeParameters =
         typeParameters.map((tp) => tp.firstFragment).toList();
-    fragment.constructors = <ConstructorElementImpl>[
-      _constructor(),
-    ];
+    fragment.constructors = <ConstructorElementImpl>[_constructor()];
     unit.encloseElement(fragment);
     return fragment;
   }
@@ -1022,12 +1018,14 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
-    var fragment = TopLevelFunctionFragmentImpl(name, 0)
-      ..parameters = parameters
-          .map((p) => p.firstFragment as ParameterElementImpl)
-          .toList()
-      ..returnType = returnType
-      ..typeParameters = typeFormals;
+    var fragment =
+        TopLevelFunctionFragmentImpl(name, 0)
+          ..parameters =
+              parameters
+                  .map((p) => p.firstFragment as ParameterElementImpl)
+                  .toList()
+          ..returnType = returnType
+          ..typeParameters = typeFormals;
     TopLevelFunctionElementImpl(Reference.root(), fragment);
     return fragment;
   }
@@ -1082,17 +1080,22 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
-    var fragment = MethodElementImpl(name, 0)
-      ..parameters = parameters
-          .map((p) => p.firstFragment as ParameterElementImpl)
-          .toList()
-      ..returnType = returnType
-      ..typeParameters = typeFormals;
+    var fragment =
+        MethodElementImpl(name, 0)
+          ..parameters =
+              parameters
+                  .map((p) => p.firstFragment as ParameterElementImpl)
+                  .toList()
+          ..returnType = returnType
+          ..typeParameters = typeFormals;
     return fragment;
   }
 
-  FormalParameterElement _namedParameter(String name, TypeImpl type,
-      {String? initializerCode}) {
+  FormalParameterElement _namedParameter(
+    String name,
+    TypeImpl type, {
+    String? initializerCode,
+  }) {
     var fragment = DefaultParameterElementImpl(
       name: name,
       nameOffset: 0,
@@ -1111,7 +1114,7 @@ class _MockSdkElementsBuilder {
       futureElement,
       futureOrElement,
       streamElement,
-      streamSubscriptionElement
+      streamSubscriptionElement,
     ];
 
     _fillLibraryFromFragment(_asyncLibrary, _asyncUnit);
@@ -1142,13 +1145,19 @@ class _MockSdkElementsBuilder {
     ];
 
     _coreUnit.functions = <TopLevelFunctionFragmentImpl>[
-      _function('identical', boolType, parameters: [
-        _requiredParameter('a', objectType),
-        _requiredParameter('b', objectType),
-      ]),
-      _function('print', voidType, parameters: [
-        _requiredParameter('object', objectType),
-      ]),
+      _function(
+        'identical',
+        boolType,
+        parameters: [
+          _requiredParameter('a', objectType),
+          _requiredParameter('b', objectType),
+        ],
+      ),
+      _function(
+        'print',
+        voidType,
+        parameters: [_requiredParameter('object', objectType)],
+      ),
     ];
 
     var deprecatedVariable = _topLevelVariableConst(
@@ -1204,19 +1213,21 @@ class _MockSdkElementsBuilder {
     List<PropertyAccessorElementImpl> accessors,
   ) {
     classElement.accessors = accessors;
-    classElement.fields = accessors
-        .map((accessor) => accessor.variable2)
-        .cast<FieldElementImpl>()
-        .toList();
+    classElement.fields =
+        accessors
+            .map((accessor) => accessor.variable2)
+            .cast<FieldElementImpl>()
+            .toList();
   }
 
   TopLevelVariableElementImpl _topLevelVariableConst(
     String name,
     TypeImpl type,
   ) {
-    var fragment = ConstTopLevelVariableElementImpl(name, -1)
-      ..isConst = true
-      ..type = type;
+    var fragment =
+        ConstTopLevelVariableElementImpl(name, -1)
+          ..isConst = true
+          ..type = type;
     TopLevelVariableElementImpl2(Reference.root(), fragment);
     PropertyAccessorElementImpl_ImplicitGetter(fragment);
     return fragment;

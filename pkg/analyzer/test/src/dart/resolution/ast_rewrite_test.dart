@@ -176,16 +176,17 @@ ImplicitCallReference
   }
 
   test_ifNull_lhs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {}
 abstract class C extends A {
   void call();
 }
 
 void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
-''', [
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 130, 1),
-    ]);
+''',
+      [error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 130, 1)],
+    );
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.
     // Therefore the type of `c ?? a` should be `A`.
@@ -605,14 +606,15 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeVariable2_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void call() {}
 }
 Function f<X extends A, Y extends X?>(Y y) => y;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 75, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 75, 1)],
+    );
 
     // Verify that no ImplicitCallReference was inserted.
     var node = findNode.expressionFunctionBody('y;').expression;
@@ -625,14 +627,15 @@ SimpleIdentifier
   }
 
   test_simpleIdentifier_typeVariable_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void call() {}
 }
 Function f<X extends A>(X? x) => x;
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 62, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 62, 1)],
+    );
 
     // Verify that no ImplicitCallReference was inserted.
     var node = findNode.expressionFunctionBody('x;').expression;
@@ -864,15 +867,16 @@ InstanceCreationExpression
   }
 
   test_targetNull_typeAlias_Never() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef X = Never;
 
 void f() {
   X(0);
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION, 33, 1)],
+    );
 
     // Not rewritten.
     findNode.methodInvocation('X(0)');
@@ -936,17 +940,23 @@ class A<T> {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A.named<int>(0);
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 50,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          50,
           5,
-          messageContains: ["The constructor 'prefix.A.named'"]),
-    ]);
+          messageContains: ["The constructor 'prefix.A.named'"],
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('named<int>(0);');
     assertResolvedNodeText(node, r'''
@@ -999,17 +1009,23 @@ class A<T> {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A.new<int>(0);
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 48,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          48,
           5,
-          messageContains: ["The constructor 'prefix.A.new'"]),
-    ]);
+          messageContains: ["The constructor 'prefix.A.new'"],
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('new<int>(0);');
     assertResolvedNodeText(node, r'''
@@ -1202,7 +1218,8 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor_typeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T, U> {
   A.named(int a);
 }
@@ -1210,11 +1227,16 @@ class A<T, U> {
 f() {
   A.named<int, String>(0);
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          52,
           13,
-          messageContains: ["The constructor 'A.named'"]),
-    ]);
+          messageContains: ["The constructor 'A.named'"],
+        ),
+      ],
+    );
 
     // TODO(scheglov): Move type arguments
     var node = findNode.instanceCreation('named<int, String>(0);');
@@ -1262,7 +1284,8 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor_typeArguments_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T, U> {
   A.new(int a);
 }
@@ -1270,11 +1293,16 @@ class A<T, U> {
 f() {
   A.new<int, String>(0);
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 48,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          48,
           13,
-          messageContains: ["The constructor 'A.new'"]),
-    ]);
+          messageContains: ["The constructor 'A.new'"],
+        ),
+      ],
+    );
 
     // TODO(scheglov): Move type arguments
     var node = findNode.instanceCreation('new<int, String>(0);');
@@ -1567,15 +1595,16 @@ InstanceCreationExpression
 @reflectiveTest
 class AstRewritePrefixedIdentifierTest extends PubPackageResolutionTest {
   test_constructorReference_inAssignment_onLeftSide() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 void f() {
   C.new = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3)],
+    );
 
     var identifier = findNode.prefixed('C.new');
     // The left side of the assignment is resolved by

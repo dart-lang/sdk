@@ -28,13 +28,19 @@ base class Bar implements Foo {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base class Bar implements Foo {}
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          3,
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaExtends() async {
@@ -42,16 +48,22 @@ base class Bar implements Foo {}
 base mixin A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 sealed class B extends Object with A {}
 class C implements B {}
-''', [
-      error(
-          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 77, 1,
-          contextMessages: [message(a, 11, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          77,
+          1,
+          contextMessages: [message(a, 11, 1)],
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaTypedef_inside() async {
@@ -60,13 +72,19 @@ base mixin Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base class Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          10,
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaTypedef_outside() async {
@@ -74,14 +92,20 @@ base class Bar implements FooTypedef {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 base class Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 71,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          71,
+          10,
+        ),
+      ],
+    );
   }
 
   test_enum_inside() async {
@@ -96,13 +120,19 @@ enum Bar implements Foo { bar }
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 enum Bar implements Foo { bar }
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 39,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          39,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_outside_viaTypedef_inside() async {
@@ -111,13 +141,19 @@ base mixin Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 39,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          39,
+          10,
+        ),
+      ],
+    );
   }
 
   test_enum_outside_viaTypedef_outside() async {
@@ -125,14 +161,20 @@ enum Bar implements FooTypedef { bar }
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 65,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          65,
+          10,
+        ),
+      ],
+    );
   }
 
   test_mixin_inside() async {
@@ -147,13 +189,19 @@ base mixin Bar implements Foo {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base mixin Bar implements Foo {}
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          3,
+        ),
+      ],
+    );
   }
 
   test_mixin_outside_viaTypedef_inside() async {
@@ -162,13 +210,19 @@ base mixin Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base mixin Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          10,
+        ),
+      ],
+    );
   }
 
   test_mixin_outside_viaTypedef_outside() async {
@@ -176,13 +230,19 @@ base mixin Bar implements FooTypedef {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 base mixin Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 71,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          71,
+          10,
+        ),
+      ],
+    );
   }
 }

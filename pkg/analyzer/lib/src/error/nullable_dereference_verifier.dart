@@ -26,20 +26,26 @@ class NullableDereferenceVerifier {
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
     required ResolverVisitor resolver,
-  })  : _typeSystem = typeSystem,
-        _errorReporter = errorReporter,
-        _resolver = resolver;
+  }) : _typeSystem = typeSystem,
+       _errorReporter = errorReporter,
+       _resolver = resolver;
 
-  bool expression(ErrorCode errorCode, Expression expression,
-      {DartType? type}) {
+  bool expression(
+    ErrorCode errorCode,
+    Expression expression, {
+    DartType? type,
+  }) {
     type ??= expression.typeOrThrow;
     return _check(errorCode, expression, type);
   }
 
   void report(
-      ErrorCode errorCode, SyntacticEntity errorEntity, DartType receiverType,
-      {List<String> arguments = const <String>[],
-      List<DiagnosticMessage>? messages}) {
+    ErrorCode errorCode,
+    SyntacticEntity errorEntity,
+    DartType receiverType, {
+    List<String> arguments = const <String>[],
+    List<DiagnosticMessage>? messages,
+  }) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
       errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
       arguments = [];
@@ -69,11 +75,7 @@ class NullableDereferenceVerifier {
   /// receiver is the implicit `this`, the name of the invocation.
   ///
   /// Returns whether [receiverType] was reported.
-  bool _check(
-    ErrorCode errorCode,
-    AstNode errorNode,
-    DartType receiverType,
-  ) {
+  bool _check(ErrorCode errorCode, AstNode errorNode, DartType receiverType) {
     if (receiverType is DynamicType ||
         receiverType is InvalidType ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
@@ -83,7 +85,9 @@ class NullableDereferenceVerifier {
     List<DiagnosticMessage>? messages;
     if (errorNode is ExpressionImpl) {
       messages = _resolver.computeWhyNotPromotedMessages(
-          errorNode, _resolver.flowAnalysis.flow?.whyNotPromoted(errorNode)());
+        errorNode,
+        _resolver.flowAnalysis.flow?.whyNotPromoted(errorNode)(),
+      );
     }
     report(errorCode, errorNode, receiverType, messages: messages);
     return true;

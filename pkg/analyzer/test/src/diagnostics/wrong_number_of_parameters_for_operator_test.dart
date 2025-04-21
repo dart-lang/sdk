@@ -67,14 +67,20 @@ class A {
   }
 
   test_unaryMinus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   operator -(a, b) {}
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
-          21, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
+          21,
+          1,
+        ),
+      ],
+    );
   }
 
   test_unaryTilde() async {
@@ -85,14 +91,20 @@ class A {
   }
 
   Future<void> _check(String name, String parameters) async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   operator $name($parameters) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, 21, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
+          21,
+          1,
+        ),
+      ],
+    );
   }
 
   Future<void> _checkCorrect(String name, String parameters) async {

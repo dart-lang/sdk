@@ -138,10 +138,7 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
     File file = getFile(exists: false);
 
     var bytes = Uint8List.fromList([99, 99]);
-    expect(
-      () => file.writeAsBytesSync(bytes),
-      throwsA(isFileSystemException),
-    );
+    expect(() => file.writeAsBytesSync(bytes), throwsA(isFileSystemException));
   }
 
   @override

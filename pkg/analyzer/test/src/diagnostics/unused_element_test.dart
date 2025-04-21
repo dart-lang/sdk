@@ -185,7 +185,8 @@ class B with _A {}
   }
 
   test_class_notUsed_inClassMember() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   static staticMethod() {
     new _A();
@@ -194,106 +195,118 @@ class _A {
     new _A();
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-      error(WarningCode.UNUSED_ELEMENT, 20, 12),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 6, 2),
+        error(WarningCode.UNUSED_ELEMENT, 20, 12),
+      ],
+    );
   }
 
   test_class_notUsed_inConstructorName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   _A() {}
   _A.named() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-      error(WarningCode.UNUSED_ELEMENT, 26, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 6, 2),
+        error(WarningCode.UNUSED_ELEMENT, 26, 5),
+      ],
+    );
   }
 
   test_class_notUsed_isExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {}
 main(p) {
   if (p is _A) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_class_notUsed_isExpression_typeArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {}
 void f(Object p) {
   if (p is List<_A>) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_class_notUsed_isExpression_typeInFunctionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {}
 void f(Object p) {
   if (p is void Function(_A)) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_class_notUsed_isExpression_typeInTypeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {}
 void f(Object p) {
   if (p is void Function<T extends _A>()) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_class_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {}
 main() {
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_class_notUsed_variableDeclaration() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class _A {}
 void f() {
   _A? v;
   print(v);
 }
 print(x) {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_class_notUsed_variableDeclaration_typeArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class _A {}
 main() {
   List<_A>? v;
   print(v);
 }
 print(x) {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_classGetterSetter_isUsed_assignmentExpression_compound() async {
@@ -361,14 +374,15 @@ A f() => A._constructor();
   }
 
   test_constructor_notUsed_multiple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A._constructor();
   A();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 14, 12),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 14, 12)],
+    );
   }
 
   test_constructor_notUsed_single() async {
@@ -380,7 +394,8 @@ class A {
   }
 
   test_constructor_notUsed_single_inSubclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A._constructor();
 }
@@ -389,9 +404,9 @@ class B extends A {
   B() : super._constructor();
   B._named() : super._constructor();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 87, 6),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 87, 6)],
+    );
   }
 
   test_constructorPublic_privateClass_exposedViaTypeAlias() async {
@@ -404,15 +419,16 @@ typedef T = _A;
   }
 
   test_constructorPublic_privateClass_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   _A.named();
   _A();
 }
 var a = _A();
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 5),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 16, 5)],
+    );
   }
 
   test_enum_constructor_parameter_optionalNamed_isUsed() async {
@@ -425,14 +441,15 @@ enum E {
   }
 
   test_enum_constructor_parameter_optionalNamed_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v1, v2();
   const E({int? a});
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1)],
+    );
   }
 
   test_enum_constructor_parameter_optionalPositional_isUsed() async {
@@ -445,14 +462,15 @@ enum E {
   }
 
   test_enum_constructor_parameter_optionalPositional_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v1, v2();
   const E([int? a]);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1)],
+    );
   }
 
   test_enum_isUsed_fieldReference() async {
@@ -465,15 +483,16 @@ main() {
   }
 
   test_enum_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _MyEnum {A, B}
 void f(d) {
   d.A;
   d.B;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 5, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 5, 7)],
+    );
   }
 
   test_extension_unnamed_getter_isUsed_objectPattern() async {
@@ -527,78 +546,85 @@ void f() {
   }
 
   test_extensionType_member_notUsed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(int i) {
   void _f() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 33, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 33, 2)],
+    );
   }
 
   test_extensionType_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type _E(int i) {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 15, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 15, 2)],
+    );
   }
 
   test_extensionType_notUsed_variableDeclaration() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type _E(int i) {}
 
 void f() {
   _E? v;
   print(v);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 15, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 15, 2)],
+    );
   }
 
   test_extensionType_notUsed_variableDeclaration_typeArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type _E(int i) {}
 
 void f() {
   List<_E>? v;
   print(v);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 15, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 15, 2)],
+    );
   }
 
   test_extensionType_privateConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(int i) {
   E._named(this.i);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 30, 6),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 30, 6)],
+    );
   }
 
   test_extensionType_privateConstructor_notExposedViaTypeAlias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type E(int i) {
   E._named(this.i);
 }
 typedef A = E;
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 30, 6),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 30, 6)],
+    );
   }
 
   test_extensionTypePrivate_publicConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type _E(int i) {
   _E.named(this.i);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 32, 5),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 32, 5)],
+    );
   }
 
   test_extensionTypePrivate_publicConstructor_exposedViaTypeAlias() async {
@@ -621,14 +647,15 @@ typedef B = _A;
   }
 
   test_factoryConstructor_notUsed_multiple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A._factory() => A();
   A();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 22, 8),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 22, 8)],
+    );
   }
 
   test_factoryConstructor_notUsed_single() async {
@@ -649,19 +676,21 @@ class A {
   }
 
   test_function_underscore() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 _(){}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 0, 1)],
+    );
   }
 
   test_function_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 __(){}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 0, 2)],
+    );
   }
 
   test_functionLocal_isUsed_closure() async {
@@ -693,25 +722,27 @@ print(x) {}
   }
 
   test_functionLocal_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   f() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 11, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 11, 1)],
+    );
   }
 
   test_functionLocal_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   _f(int p) {
     _f(p - 1);
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 11, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 11, 2)],
+    );
   }
 
   test_functionTypeAlias_isUsed_isExpression() async {
@@ -753,13 +784,14 @@ class A {
   }
 
   test_functionTypeAlias_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef _F(a, b);
 main() {
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 8, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 8, 2)],
+    );
   }
 
   test_getter_isUsed_invocation_deepSubclass() async {
@@ -784,16 +816,17 @@ class C extends B {
   }
 
   test_getter_isUsed_invocation_implicitThis() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   get _g => null;
   useGetter() {
     var v = _g;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1)],
+    );
   }
 
   test_getter_isUsed_invocation_parameterized() async {
@@ -833,29 +866,31 @@ class B extends A<int> {
   }
 
   test_getter_isUsed_invocation_prefixedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   get _g => null;
 }
 void f(A a) {
   var v = a._g;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1)],
+    );
   }
 
   test_getter_isUsed_invocation_propertyAccess() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   get _g => null;
 }
 main() {
   var v = new A()._g;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1)],
+    );
   }
 
   test_getter_isUsed_invocation_subclass_plusPlus() async {
@@ -876,7 +911,8 @@ class B extends A {
   }
 
   test_getter_notUsed_invocation_subclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int __a = 0;
   int get _a => __a;
@@ -889,85 +925,98 @@ class B extends A {
   @override
   int get _a => 3;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 35, 2),
-      error(WarningCode.UNUSED_ELEMENT, 155, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 35, 2),
+        error(WarningCode.UNUSED_ELEMENT, 155, 2),
+      ],
+    );
   }
 
   test_getter_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   get _g => null;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 16, 2)],
+    );
   }
 
   test_getter_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   get _g {
     return _g;
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 16, 2)],
+    );
   }
 
   test_localFunction_inFunction_wildcard() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   _(){}
 }
-''', [
-      // Code is dead but not unused.
-      error(WarningCode.DEAD_CODE, 8, 5),
-    ]);
+''',
+      [
+        // Code is dead but not unused.
+        error(WarningCode.DEAD_CODE, 8, 5),
+      ],
+    );
   }
 
   test_localFunction_inFunction_wildcard_preWildCards() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 main() {
   _(){}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 55, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 55, 1)],
+    );
   }
 
   test_localFunction_inMethod_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   m() {
     __(){}
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 22, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 22, 2)],
+    );
   }
 
   test_localFunction_inMethod_wildcard() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   m() {
     _(){}
   }
 }
-''', [
-      // Code is dead but not unused.
-      error(WarningCode.DEAD_CODE, 22, 5),
-    ]);
+''',
+      [
+        // Code is dead but not unused.
+        error(WarningCode.DEAD_CODE, 22, 5),
+      ],
+    );
   }
 
   test_localFunction_inMethod_wildcard_preWildCards() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -976,19 +1025,20 @@ class C {
     _(){}
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 66, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 66, 1)],
+    );
   }
 
   test_localFunction_underscores() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   __(){}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 11, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 11, 2)],
+    );
   }
 
   test_method_isUsed_call_inExtension() async {
@@ -1379,17 +1429,19 @@ void main() {
   }
 
   test_method_notUsed_call_inExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension<T> on T {
   void call() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 27, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 27, 4)],
+    );
   }
 
   test_method_notUsed_hasSameNameAsUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void _m1() {}
 }
@@ -1397,138 +1449,150 @@ class B {
   void public() => _m1();
   void _m1() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 17, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 17, 3)],
+    );
   }
 
   test_method_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static _m() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 19, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 19, 2)],
+    );
   }
 
   test_method_notUsed_privateExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _A on String {
   void m() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 32, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 32, 1)],
+    );
   }
 
   /// Postfix operators can only be called, not defined. The "notUsed" sibling to
   /// this test is the test on a binary operator.
   test_method_notUsed_privateExtension_indexEqOperator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _A on bool {
   operator []=(int index, int value) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 34, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 34, 3)],
+    );
   }
 
   test_method_notUsed_privateExtension_indexOperator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _A on bool {
   int operator [](int index) => 7;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 38, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 38, 2)],
+    );
   }
 
   test_method_notUsed_privateExtension_methodCall() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _E on int {
   void call() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 29, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 29, 4)],
+    );
   }
 
   /// Assignment operators can only be called, not defined. The "notUsed" sibling
   /// to this test is the test on a binary operator.
   test_method_notUsed_privateExtension_operator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _A on String {
   int operator -(int other) => other;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 40, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 40, 1)],
+    );
   }
 
   test_method_notUsed_privateExtension_prefixOperator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _A on String {
   int operator ~() => 7;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 40, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 40, 1)],
+    );
   }
 
   test_method_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static _m(int p) {
     _m(p - 1);
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 19, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 19, 2)],
+    );
   }
 
   test_method_notUsed_referenceInComment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// [A] has a method, [_f].
 class A {
   int _f(int p) => 7;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 44, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 44, 2)],
+    );
   }
 
   test_method_notUsed_referenceInComment_outsideEnclosingClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int _f(int p) => 7;
 }
 /// This is similar to [A._f].
 int g() => 7;
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 16, 2)],
+    );
   }
 
   test_method_notUsed_unnamedExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension on String {
   void m() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 29, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 29, 1)],
+    );
   }
 
   test_method_notUsed_unnamedExtension_operator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension on String {
   int operator -(int other) => other;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 37, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 37, 1)],
+    );
   }
 
   test_mixin_isUsed_with() async {
@@ -1539,11 +1603,12 @@ class C with _M {}
   }
 
   test_mixin_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin _M {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 6, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 6, 2)],
+    );
   }
 
   test_optionalParameter_isUsed_constructor() async {
@@ -1623,7 +1688,8 @@ f() => A()._m(a: 0);
   }
 
   test_optionalParameter_isUsed_overridden() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void _m([int? a]) {}
 }
@@ -1634,9 +1700,9 @@ f() {
   A()._m();
   B()._m(0);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 26, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 26, 1)],
+    );
   }
 
   test_optionalParameter_isUsed_override() async {
@@ -1753,36 +1819,39 @@ f() => A()._m(0);
   }
 
   test_optionalParameter_notUsed_constructor_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A._([int? a]);
 }
 f() => A._();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 22, 1)],
+    );
   }
 
   test_optionalParameter_notUsed_constructor_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   _A([int? a]);
 }
 f() => _A();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 22, 1)],
+    );
   }
 
   test_optionalParameter_notUsed_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on String {
   void _m([int? a]) {}
 }
 f() => "hello"._m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 40, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 40, 1)],
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
@@ -1829,18 +1898,20 @@ void foo() {
   }
 
   test_optionalParameter_notUsed_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void _m({int? a}) {}
 }
 f() => A()._m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 26, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 26, 1)],
+    );
   }
 
   test_optionalParameter_notUsed_override_added() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void _m() {}
 }
@@ -1848,9 +1919,9 @@ class B implements A {
   void _m([int? a]) {}
 }
 f() => A()._m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 66, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 66, 1)],
+    );
   }
 
   test_optionalParameter_notUsed_overrideRequired() async {
@@ -1878,58 +1949,63 @@ const foo = _B(
   }
 
   test_optionalParameter_notUsed_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void _m([int? a]) {}
 }
 f() => A()._m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 26, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 26, 1)],
+    );
   }
 
   test_optionalParameter_notUsed_publicMethod_privateExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _E on String {
   void m([int? a]) {}
 }
 f() => "hello".m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 40, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 40, 1)],
+    );
   }
 
   test_optionalParameter_notUsed_publicMethod_unnamedExtension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension on String {
   void m([int? a]) {}
 }
 f() => "hello".m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1)],
+    );
   }
 
   test_optionalParameter_static_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static void _m([int? a]) {}
 }
 f() => A._m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1)],
+    );
   }
 
   test_optionalParameter_staticPublic_notUsed_privateClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   static void m([int? a]) {}
 }
 f() => _A.m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1)],
+    );
   }
 
   test_optionalParameter_topLevel_isUsed() async {
@@ -1940,12 +2016,13 @@ f() => _m(1);
   }
 
   test_optionalParameter_topLevel_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void _m([int? a]) {}
 f() => _m();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 14, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 14, 1)],
+    );
   }
 
   test_optionalParameter_topLevelPublic_isUsed() async {
@@ -2001,28 +2078,30 @@ class B extends _A {
   }
 
   test_parameter_optionalNamed_fieldFormal_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   final int? f;
   _A({this.f});
 }
 f() => _A();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1)],
+    );
   }
 
   test_parameter_optionalNamed_fieldFormal_notUsed_factoryRedirect() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   final int? f;
   _A({this.f});
   factory _A.named() = _A;
 }
 f() => _A.named();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1)],
+    );
   }
 
   test_parameter_optionalNamed_isUsed_superFormal() async {
@@ -2073,28 +2152,30 @@ class B extends _A {
   }
 
   test_parameter_optionalPositional_fieldFormal_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   final int? f;
   _A([this.f]);
 }
 f() => _A();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1)],
+    );
   }
 
   test_parameter_optionalPositional_fieldFormal_notUsed_factoryRedirect() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   final int? f;
   _A([this.f]);
   factory _A.named() = _A;
 }
 f() => _A.named();
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1)],
+    );
   }
 
   test_parameter_optionalPositional_isUsed_superFormal() async {
@@ -2124,7 +2205,8 @@ void f() {
   }
 
   test_privateEnum_privateConstructor_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v._foo();
   const _E._foo();
@@ -2134,9 +2216,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 52, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 52, 4)],
+    );
   }
 
   test_privateEnum_privateInstanceGetter_isUsed() async {
@@ -2153,7 +2235,8 @@ void f() {
   }
 
   test_privateEnum_privateInstanceGetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   int get _foo => 0;
@@ -2162,9 +2245,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 25, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 25, 4)],
+    );
   }
 
   test_privateEnum_privateInstanceMethod_isUsed() async {
@@ -2181,7 +2264,8 @@ void f() {
   }
 
   test_privateEnum_privateInstanceMethod_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   void _foo() {}
@@ -2190,9 +2274,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 22, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 22, 4)],
+    );
   }
 
   test_privateEnum_privateInstanceMethod_optionalNamedParameter_isUsed() async {
@@ -2209,7 +2293,8 @@ void f() {
   }
 
   test_privateEnum_privateInstanceMethod_optionalNamedParameter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   void _foo({int? a}) {}
@@ -2218,9 +2303,9 @@ enum _E {
 void f() {
   _E.v._foo();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1)],
+    );
   }
 
   test_privateEnum_privateInstanceMethod_optionalPositionalParameter_isUsed() async {
@@ -2237,7 +2322,8 @@ void f() {
   }
 
   test_privateEnum_privateInstanceMethod_optionalPositionalParameter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   void _foo([int? a]) {}
@@ -2246,9 +2332,9 @@ enum _E {
 void f() {
   _E.v._foo();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1)],
+    );
   }
 
   test_privateEnum_privateInstanceSetter_isUsed() async {
@@ -2265,7 +2351,8 @@ void f() {
   }
 
   test_privateEnum_privateInstanceSetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   set _foo(int _) {}
@@ -2274,9 +2361,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 21, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 21, 4)],
+    );
   }
 
   test_privateEnum_privateStaticGetter_isUsed() async {
@@ -2294,7 +2381,8 @@ void f() {
   }
 
   test_privateEnum_privateStaticGetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   static int get _foo => 0;
@@ -2303,9 +2391,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 32, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 32, 4)],
+    );
   }
 
   test_privateEnum_privateStaticMethod_isUsed() async {
@@ -2323,7 +2411,8 @@ void f() {
   }
 
   test_privateEnum_privateStaticMethod_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   static void _foo() {}
@@ -2332,9 +2421,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 29, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 29, 4)],
+    );
   }
 
   test_privateEnum_privateStaticSetter_isUsed() async {
@@ -2352,7 +2441,8 @@ void f() {
   }
 
   test_privateEnum_privateStaticSetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   static set _foo(int _) {}
@@ -2361,13 +2451,14 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 28, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 28, 4)],
+    );
   }
 
   test_privateEnum_publicConstructor_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v.foo();
   const _E.foo();
@@ -2377,9 +2468,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 50, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 50, 3)],
+    );
   }
 
   test_privateEnum_publicInstanceGetter_notUsed() async {
@@ -2462,7 +2553,8 @@ void f() {
   }
 
   test_privateEnum_publicStaticGetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   static int get foo => 0;
@@ -2471,9 +2563,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 32, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 32, 3)],
+    );
   }
 
   test_privateEnum_publicStaticMethod_isUsed() async {
@@ -2491,7 +2583,8 @@ void f() {
   }
 
   test_privateEnum_publicStaticMethod_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   static void foo() {}
@@ -2500,9 +2593,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 29, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 29, 3)],
+    );
   }
 
   test_privateEnum_publicStaticSetter_isUsed() async {
@@ -2520,7 +2613,8 @@ void f() {
   }
 
   test_privateEnum_publicStaticSetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum _E {
   v;
   static set foo(int _) {}
@@ -2529,9 +2623,9 @@ enum _E {
 void f() {
   _E.v;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 28, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 28, 3)],
+    );
   }
 
   test_publicEnum_privateConstructor_isUsed_redirect() async {
@@ -2560,15 +2654,16 @@ void f() {
   }
 
   test_publicEnum_privateConstructor_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v._foo();
   const E._foo();
   const E._bar();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 49, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 49, 4)],
+    );
   }
 
   test_publicEnum_privateStaticGetter_isUsed() async {
@@ -2585,14 +2680,15 @@ void f() {
   }
 
   test_publicEnum_privateStaticGetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   static int get _foo => 0;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 31, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 31, 4)],
+    );
   }
 
   test_publicEnum_privateStaticMethod_isUsed() async {
@@ -2609,14 +2705,15 @@ void f() {
   }
 
   test_publicEnum_privateStaticMethod_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   static void _foo() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 28, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 28, 4)],
+    );
   }
 
   test_publicEnum_privateStaticSetter_isUsed() async {
@@ -2633,14 +2730,15 @@ void f() {
   }
 
   test_publicEnum_privateStaticSetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   static set _foo(int _) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 27, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 27, 4)],
+    );
   }
 
   test_publicEnum_publicConstructor_isUsed_generic() async {
@@ -2666,15 +2764,16 @@ enum E {
   }
 
   test_publicEnum_publicConstructor_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.foo();
   const E.foo();
   const E.bar();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 47, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 47, 3)],
+    );
   }
 
   test_publicEnum_publicStaticGetter_notUsed() async {
@@ -2716,14 +2815,15 @@ void main() {
   }
 
   test_publicStaticMethod_privateClass_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class _A {
   static void m() {}
 }
 void f(_A a) {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 25, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 25, 1)],
+    );
   }
 
   test_publicStaticMethod_privateExtension_isUsed() async {
@@ -2738,13 +2838,14 @@ void main() {
   }
 
   test_publicStaticMethod_privateExtension_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension _A on String {
   static void m() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 39, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 39, 1)],
+    );
   }
 
   test_publicStaticMethod_privateMixin_isUsed() async {
@@ -2759,16 +2860,17 @@ void main() {
   }
 
   test_publicStaticMethod_privateMixin_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin _A {
   static void m() {}
 }
 void main() {
   _A;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 25, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 25, 1)],
+    );
   }
 
   test_publicTopLevelFunction_notUsed() async {
@@ -2811,17 +2913,19 @@ main() {
   }
 
   test_setter_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set _s(x) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 16, 2)],
+    );
   }
 
   test_setter_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set _s(int x) {
     if (x > 5) {
@@ -2829,9 +2933,9 @@ class A {
     }
   }
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 16, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 16, 2)],
+    );
   }
 
   test_topLevelAccessors_isUsed_questionQuestionEqual() async {
@@ -2871,34 +2975,37 @@ print(x) {}
   }
 
   test_topLevelFunction_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 _f() {}
 main() {
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 0, 2)],
+    );
   }
 
   test_topLevelFunction_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 _f(int p) {
   _f(p - 1);
 }
 main() {
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 0, 2)],
+    );
   }
 
   test_topLevelFunction_notUsed_referenceInComment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// [_f] is a great function.
 _f(int p) => 7;
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 30, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 30, 2)],
+    );
   }
 
   test_topLevelGetterSetter_isUsed_assignmentExpression_compound() async {
@@ -2945,11 +3052,12 @@ void f() {
   }
 
   test_topLevelSetter_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 set _foo(int _) {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 4, 4),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 4, 4)],
+    );
   }
 
   test_topLevelVariable_isUsed() async {
@@ -2981,34 +3089,37 @@ f() {
   }
 
   test_topLevelVariable_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int _a = 1;
 main() {
   _a = 2;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 4, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 4, 2)],
+    );
   }
 
   test_topLevelVariable_notUsed_compoundAssign() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int _a = 1;
 f() {
   _a += 1;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 4, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 4, 2)],
+    );
   }
 
   test_topLevelVariable_notUsed_referenceInComment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// [_a] is a great variable.
 int _a = 7;
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 34, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 34, 2)],
+    );
   }
 
   test_typeAlias_functionType_isUsed_isExpression() async {
@@ -3050,13 +3161,14 @@ class A {
   }
 
   test_typeAlias_functionType_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef _F = void Function();
 main() {
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 8, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 8, 2)],
+    );
   }
 
   test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
@@ -3088,10 +3200,11 @@ void f() {
   }
 
   test_typeAlias_interfaceType_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef _A = List<int>;
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 8, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 8, 2)],
+    );
   }
 }

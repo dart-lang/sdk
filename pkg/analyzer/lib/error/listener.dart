@@ -88,11 +88,7 @@ class ErrorReporter {
         arguments: arguments,
       );
     } else {
-      atNode(
-        node.returnType,
-        errorCode,
-        arguments: arguments,
-      );
+      atNode(node.returnType, errorCode, arguments: arguments);
     }
   }
 
@@ -170,15 +166,18 @@ class ErrorReporter {
     }
 
     if (arguments != null) {
-      var invalid = arguments
-          .whereNotType<String>()
-          .whereNotType<DartType>()
-          .whereNotType<Element2>()
-          .whereNotType<int>()
-          .whereNotType<Uri>();
+      var invalid =
+          arguments
+              .whereNotType<String>()
+              .whereNotType<DartType>()
+              .whereNotType<Element2>()
+              .whereNotType<int>()
+              .whereNotType<Uri>();
       if (invalid.isNotEmpty) {
-        throw ArgumentError('Tried to format an error using '
-            '${invalid.map((e) => e.runtimeType).join(', ')}');
+        throw ArgumentError(
+          'Tried to format an error using '
+          '${invalid.map((e) => e.runtimeType).join(', ')}',
+        );
       }
     }
 
@@ -305,18 +304,21 @@ class ErrorReporter {
             }
             buffer.write('$name is defined in $sourcePath');
           }
-          messages.add(DiagnosticMessageImpl(
-            filePath: sourcePath,
-            length: element.name3?.length ?? 0,
-            message: '$name is defined in $sourcePath',
-            offset: element.firstFragment.nameOffset2 ?? -1,
-            url: null,
-          ));
+          messages.add(
+            DiagnosticMessageImpl(
+              filePath: sourcePath,
+              length: element.name3?.length ?? 0,
+              message: '$name is defined in $sourcePath',
+              offset: element.firstFragment.nameOffset2 ?? -1,
+              url: null,
+            ),
+          );
         }
 
-        arguments[typeToConvert.index] = buffer != null
-            ? '${typeToConvert.displayName} ($buffer)'
-            : typeToConvert.displayName;
+        arguments[typeToConvert.index] =
+            buffer != null
+                ? '${typeToConvert.displayName} ($buffer)'
+                : typeToConvert.displayName;
       }
     }
     return messages;
@@ -363,7 +365,7 @@ class _ElementToConvert implements _ToConvert {
   final Iterable<Element2> allElements;
 
   _ElementToConvert(this.index, Element2 element, this.displayName)
-      : allElements = [element];
+    : allElements = [element];
 }
 
 /// An [AnalysisErrorListener] that ignores error.

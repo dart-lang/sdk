@@ -19,8 +19,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   AstBinaryWriter({
     required ResolutionSink sink,
     required StringIndexer stringIndexer,
-  })  : _sink = sink,
-        _stringIndexer = stringIndexer;
+  }) : _sink = sink,
+       _stringIndexer = stringIndexer;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -159,11 +159,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _writeByte(Tag.ConstructorFieldInitializer);
 
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasThis: node.thisKeyword != null,
-      ),
-    );
+    _writeByte(AstBinaryFlags.encode(hasThis: node.thisKeyword != null));
 
     _writeNode(node.fieldName);
     _writeNode(node.expression);
@@ -334,7 +330,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(
-      covariant FunctionTypedFormalParameterImpl node) {
+    covariant FunctionTypedFormalParameterImpl node,
+  ) {
     _writeByte(Tag.FunctionTypedFormalParameter);
 
     _withTypeParameters(node.typeParameters, () {
@@ -349,11 +346,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     _writeByte(Tag.GenericFunctionType);
 
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasQuestion: node.question != null,
-      ),
-    );
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
 
     _withTypeParameters(node.typeParameters, () {
       _writeOptionalNode(node.typeParameters);
@@ -480,11 +473,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitIsExpression(IsExpression node) {
     _writeByte(Tag.IsExpression);
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasNot: node.notOperator != null,
-      ),
-    );
+    _writeByte(AstBinaryFlags.encode(hasNot: node.notOperator != null));
     _writeNode(node.expression);
     _writeNode(node.type);
     _storeExpression(node);
@@ -494,11 +483,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     _writeByte(Tag.ListLiteral);
 
-    _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.constKeyword != null,
-      ),
-    );
+    _writeByte(AstBinaryFlags.encode(isConst: node.constKeyword != null));
 
     _writeOptionalNode(node.typeArguments);
     _writeNodeList(node.elements);
@@ -509,11 +494,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _writeByte(Tag.MapLiteralEntry);
-    _writeByte(AstBinaryFlags.encode(
-        hasQuestion: node.keyQuestion?.type == TokenType.QUESTION));
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion: node.keyQuestion?.type == TokenType.QUESTION,
+      ),
+    );
     _writeNode(node.key);
-    _writeByte(AstBinaryFlags.encode(
-        hasQuestion: node.valueQuestion?.type == TokenType.QUESTION));
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasQuestion: node.valueQuestion?.type == TokenType.QUESTION,
+      ),
+    );
     _writeNode(node.value);
   }
 
@@ -524,11 +515,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var operatorType = node.operator?.type;
     _writeByte(
       AstBinaryFlags.encode(
-        hasPeriod: operatorType == TokenType.PERIOD ||
+        hasPeriod:
+            operatorType == TokenType.PERIOD ||
             operatorType == TokenType.QUESTION_PERIOD,
-        hasPeriod2: operatorType == TokenType.PERIOD_PERIOD ||
+        hasPeriod2:
+            operatorType == TokenType.PERIOD_PERIOD ||
             operatorType == TokenType.QUESTION_PERIOD_PERIOD,
-        hasQuestion: operatorType == TokenType.QUESTION_PERIOD ||
+        hasQuestion:
+            operatorType == TokenType.QUESTION_PERIOD ||
             operatorType == TokenType.QUESTION_PERIOD_PERIOD,
       ),
     );
@@ -644,11 +638,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var operatorType = node.operator.type;
     _writeByte(
       AstBinaryFlags.encode(
-        hasPeriod: operatorType == TokenType.PERIOD ||
+        hasPeriod:
+            operatorType == TokenType.PERIOD ||
             operatorType == TokenType.QUESTION_PERIOD,
-        hasPeriod2: operatorType == TokenType.PERIOD_PERIOD ||
+        hasPeriod2:
+            operatorType == TokenType.PERIOD_PERIOD ||
             operatorType == TokenType.QUESTION_PERIOD_PERIOD,
-        hasQuestion: operatorType == TokenType.QUESTION_PERIOD ||
+        hasQuestion:
+            operatorType == TokenType.QUESTION_PERIOD ||
             operatorType == TokenType.QUESTION_PERIOD_PERIOD,
       ),
     );
@@ -662,11 +659,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitRecordLiteral(RecordLiteral node) {
     _writeByte(Tag.RecordLiteral);
-    _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.constKeyword != null,
-      ),
-    );
+    _writeByte(AstBinaryFlags.encode(isConst: node.constKeyword != null));
     _writeNodeList(node.fields);
     _storeExpression(node);
   }
@@ -675,11 +668,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     _writeByte(Tag.RecordTypeAnnotation);
 
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasQuestion: node.question != null,
-      ),
-    );
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
 
     _writeNodeList(node.positionalFields);
     _writeOptionalNode(node.namedFields);
@@ -719,7 +708,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _writeByte(Tag.RedirectingConstructorInvocation);
 
     _writeOptionalNode(node.constructorName);
@@ -732,11 +722,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _writeByte(Tag.SetOrMapLiteral);
 
-    _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.constKeyword != null,
-      ),
-    );
+    _writeByte(AstBinaryFlags.encode(isConst: node.constKeyword != null));
 
     var isMapBit = node.isMap ? (1 << 0) : 0;
     var isSetBit = node.isSet ? (1 << 1) : 0;
@@ -947,9 +933,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     if (node == null) {
       f();
     } else {
-      var fragment = node.typeParameters
-          .map((typeParameter) => typeParameter.declaredFragment!)
-          .toList();
+      var fragment =
+          node.typeParameters
+              .map((typeParameter) => typeParameter.declaredFragment!)
+              .toList();
       _sink.localElements.withElements(fragment, () {
         f();
       });

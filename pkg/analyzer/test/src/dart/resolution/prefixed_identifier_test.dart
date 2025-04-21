@@ -416,15 +416,16 @@ class A {
 
 A? a;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 int Function() foo() {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1)],
+    );
 
     var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
@@ -560,15 +561,16 @@ PrefixedIdentifier
 set foo(int _) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as prefix;
 
 void f() {
   prefix.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 48, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 48, 3)],
+    );
 
     var node = findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
@@ -873,7 +875,8 @@ PrefixedIdentifier
   }
 
   test_ofExtensionType_read_nullableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   int get foo => 0;
 }
@@ -881,10 +884,15 @@ extension type A(int it) {
 void f(A? a) {
   a.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          69, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          69,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -1136,13 +1144,14 @@ PrefixedIdentifier
   }
 
   test_read_interfaceType_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int a) {
   a.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 20, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 20, 3)],
+    );
 
     var node = findNode.prefixed('foo;');
     assertResolvedNodeText(node, r'''

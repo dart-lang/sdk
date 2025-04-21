@@ -70,13 +70,14 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_hasElements_expression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var v = {0};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
 
     var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
@@ -93,13 +94,14 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_hasElements_mapEntry() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var v = {0: ''};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
 
     var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
@@ -120,13 +122,14 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_noElements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var v = {};
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+    );
 
     var node = findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''

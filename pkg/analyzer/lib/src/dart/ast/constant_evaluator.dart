@@ -393,17 +393,17 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   /// [element].
   Object _getConstantValue(Element2? element) {
     // TODO(brianwilkerson): Implement this
-//    if (element is FieldElement) {
-//      FieldElement field = element;
-//      if (field.isStatic && field.isConst) {
-//        //field.getConstantValue();
-//      }
-//      //    } else if (element instanceof VariableElement) {
-//      //      VariableElement variable = (VariableElement) element;
-//      //      if (variable.isStatic() && variable.isConst()) {
-//      //        //variable.getConstantValue();
-//      //      }
-//    }
+    //    if (element is FieldElement) {
+    //      FieldElement field = element;
+    //      if (field.isStatic && field.isConst) {
+    //        //field.getConstantValue();
+    //      }
+    //      //    } else if (element instanceof VariableElement) {
+    //      //      VariableElement variable = (VariableElement) element;
+    //      //      if (variable.isStatic() && variable.isConst()) {
+    //      //        //variable.getConstantValue();
+    //      //      }
+    //    }
     return NOT_A_CONSTANT;
   }
 }

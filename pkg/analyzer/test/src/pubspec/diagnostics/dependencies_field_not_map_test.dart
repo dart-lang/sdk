@@ -23,10 +23,13 @@ dependencies:
   }
 
   test_dependenciesFieldNotMap_error_bool() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dependencies: true
-''', [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP]);
+''',
+      [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP],
+    );
   }
 
   test_dependenciesFieldNotMap_noError() {
@@ -38,9 +41,12 @@ dependencies:
   }
 
   test_devDependenciesFieldNotMap_dev_error_bool() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 dev_dependencies: true
-''', [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP]);
+''',
+      [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP],
+    );
   }
 }

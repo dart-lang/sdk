@@ -43,13 +43,14 @@ void f(void Function<T>()? m, void Function<T>() n) {
   }
 
   test_genericFunctionExpression_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(void Function<T>()? m, void Function<T>() n) {
   (m ?? n)();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 56, 8),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 56, 8)],
+    );
   }
 
   test_genericFunctionExpression_upwardsInference() async {
@@ -61,12 +62,13 @@ void f(void Function<T>(T a)? m, void Function<T>(T a) n) {
   }
 
   test_genericFunctionExpressionLiteral_noInference() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   (<T>() {})();
 }
-''', [
-      error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 13, 10),
-    ]);
+''',
+      [error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 13, 10)],
+    );
   }
 }

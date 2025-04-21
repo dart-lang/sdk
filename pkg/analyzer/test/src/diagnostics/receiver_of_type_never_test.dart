@@ -16,14 +16,17 @@ main() {
 @reflectiveTest
 class InvalidUseOfNeverTest extends PubPackageResolutionTest {
   test_binaryExpression_eqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   (throw '') == 1 + 2;
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-      error(WarningCode.DEAD_CODE, 24, 8),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
+        error(WarningCode.DEAD_CODE, 24, 8),
+      ],
+    );
 
     assertResolvedNodeText(findNode.binary('=='), r'''
 BinaryExpression
@@ -57,14 +60,17 @@ BinaryExpression
   }
 
   test_binaryExpression_never_eqEq() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x == 1 + 2;
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 22, 8),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 22, 8),
+      ],
+    );
 
     assertResolvedNodeText(findNode.binary('x =='), r'''
 BinaryExpression
@@ -93,14 +99,17 @@ BinaryExpression
   }
 
   test_binaryExpression_never_plus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x + (1 + 2);
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 22, 9),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 22, 9),
+      ],
+    );
 
     assertResolvedNodeText(findNode.binary('x +'), r'''
 BinaryExpression
@@ -166,16 +175,20 @@ BinaryExpression
   }
 
   test_binaryExpression_neverQ_plus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x + (1 + 2);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
           23,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.binary('x +'), r'''
 BinaryExpression
@@ -208,14 +221,17 @@ BinaryExpression
   }
 
   test_binaryExpression_plus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   (throw '') + (1 + 2);
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-      error(WarningCode.DEAD_CODE, 24, 9),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
+        error(WarningCode.DEAD_CODE, 24, 9),
+      ],
+    );
 
     assertResolvedNodeText(findNode.binary('+ ('), r'''
 BinaryExpression
@@ -271,35 +287,48 @@ void f(bool c, Never x) {
   }
 
   test_functionExpressionInvocation_never() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x();
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 21, 3),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 21, 3),
+      ],
+    );
   }
 
   test_functionExpressionInvocation_neverQ() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 21, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+          21,
+          1,
+        ),
+      ],
+    );
   }
 
   test_indexExpression_never_read() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x[0];
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 22, 3),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 22, 3),
+      ],
+    );
 
     assertResolvedNodeText(findNode.index('x[0]'), r'''
 IndexExpression
@@ -319,14 +348,17 @@ IndexExpression
   }
 
   test_indexExpression_never_readWrite() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x[0] += 1 + 2;
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 22, 12),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 22, 12),
+      ],
+    );
 
     var assignment = findNode.assignment('[0] +=');
     assertResolvedNodeText(assignment, r'''
@@ -368,14 +400,17 @@ AssignmentExpression
   }
 
   test_indexExpression_never_write() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x[0] = 1 + 2;
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 22, 11),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 22, 11),
+      ],
+    );
 
     assertResolvedNodeText(findNode.assignment('x[0]'), r'''
 AssignmentExpression
@@ -416,14 +451,20 @@ AssignmentExpression
   }
 
   test_indexExpression_neverQ_read() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          22, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.index('x[0]'), r'''
 IndexExpression
@@ -443,14 +484,20 @@ IndexExpression
   }
 
   test_indexExpression_neverQ_readWrite() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x[0] += 1 + 2;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          22, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22,
+          1,
+        ),
+      ],
+    );
 
     var assignment = findNode.assignment('[0] +=');
     assertResolvedNodeText(assignment, r'''
@@ -492,14 +539,20 @@ AssignmentExpression
   }
 
   test_indexExpression_neverQ_write() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x[0] = 1 + 2;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          22, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.assignment('x[0]'), r'''
 AssignmentExpression
@@ -548,14 +601,17 @@ void f(g, Never x) {
   }
 
   test_methodInvocation_never() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x.foo(1 + 2);
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 25, 8),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 25, 8),
+      ],
+    );
 
     var node = findNode.methodInvocation('.foo(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -592,14 +648,17 @@ MethodInvocation
   }
 
   test_methodInvocation_never_toString() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x.toString(1 + 2);
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 30, 8),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 30, 8),
+      ],
+    );
 
     var node = findNode.methodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -636,13 +695,14 @@ MethodInvocation
   }
 
   test_methodInvocation_neverQ_toString() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x.toString(1 + 2);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 32, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 32, 5)],
+    );
 
     var node = findNode.methodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -679,14 +739,17 @@ MethodInvocation
   }
 
   test_methodInvocation_toString() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   (throw '').toString();
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
-      error(WarningCode.DEAD_CODE, 32, 3),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 13, 10),
+        error(WarningCode.DEAD_CODE, 32, 3),
+      ],
+    );
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -714,13 +777,14 @@ MethodInvocation
   }
 
   test_postfixExpression_never_plusPlus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x++;
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-    ]);
+''',
+      [error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1)],
+    );
 
     assertResolvedNodeText(findNode.postfix('x++'), r'''
 PostfixExpression
@@ -739,14 +803,20 @@ PostfixExpression
   }
 
   test_postfixExpression_neverQ_plusPlus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          22, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          22,
+          2,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.postfix('x++'), r'''
 PostfixExpression
@@ -766,13 +836,14 @@ PostfixExpression
 
   test_prefixExpression_never_plusPlus() async {
     // Reports 'undefined operator'
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   ++x;
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
-    ]);
+''',
+      [error(WarningCode.RECEIVER_OF_TYPE_NEVER, 22, 1)],
+    );
 
     assertResolvedNodeText(findNode.prefix('++x'), r'''
 PrefixExpression
@@ -791,14 +862,20 @@ PrefixExpression
   }
 
   test_prefixExpression_neverQ_plusPlus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   ++x;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          21, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21,
+          2,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.prefix('++x'), r'''
 PrefixExpression
@@ -817,13 +894,14 @@ PrefixExpression
   }
 
   test_propertyAccess_never_read() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x.foo;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 22, 4),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 22, 4)],
+    );
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -843,13 +921,14 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_read_hashCode() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x.hashCode;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 22, 9),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 22, 9)],
+    );
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -869,13 +948,14 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_readWrite() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x.foo += 0;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 29, 2),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 29, 2)],
+    );
 
     var assignment = findNode.assignment('foo += 0');
     assertResolvedNodeText(assignment, r'''
@@ -907,13 +987,14 @@ AssignmentExpression
   }
 
   test_propertyAccess_never_tearOff_toString() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x.toString;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 22, 9),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 22, 9)],
+    );
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -933,13 +1014,14 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_write() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x.foo = 0;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 28, 2),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 28, 2)],
+    );
 
     var assignment = findNode.assignment('foo = 0');
     assertResolvedNodeText(assignment, r'''
@@ -971,14 +1053,20 @@ AssignmentExpression
   }
 
   test_propertyAccess_neverQ_read() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          23, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          23,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -1046,13 +1134,14 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_toString() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   (throw '').toString;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 24, 9),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 24, 9)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -1076,13 +1165,14 @@ PropertyAccess
   }
 
   test_throw_getter_hashCode() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   (throw '').hashCode;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 24, 9),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 24, 9)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''

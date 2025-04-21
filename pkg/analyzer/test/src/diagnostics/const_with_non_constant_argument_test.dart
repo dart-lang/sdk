@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class ConstWithNonConstantArgumentTest extends PubPackageResolutionTest {
   test_annotation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(int p);
 }
@@ -24,13 +25,14 @@ var v = 42;
 @A(v)
 main() {
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 45, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 45, 1)],
+    );
   }
 
   test_classShadowedBySetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Annotation {
   const Annotation(Object obj);
 }
@@ -41,23 +43,26 @@ class Foo {
   @Annotation(Bar)
   set Bar(int value) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 94, 3),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 94, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 94, 3),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 94, 3),
+      ],
+    );
   }
 
   test_enumConstant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var a = 42;
 
 enum E {
   v(a);
   const E(_);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 26, 1)],
+    );
   }
 
   test_enumConstant_constantContext() async {
@@ -70,18 +75,20 @@ enum E {
   }
 
   test_instanceCreation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(a);
 }
 f(p) { return const A(p); }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 48, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 48, 1)],
+    );
   }
 
   test_issue47603() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   final void Function() c;
   const C(this.c);
@@ -90,8 +97,8 @@ class C {
 void main() {
   const C(() {});
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5)],
+    );
   }
 }

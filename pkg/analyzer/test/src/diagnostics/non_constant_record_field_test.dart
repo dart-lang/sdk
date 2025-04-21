@@ -16,21 +16,23 @@ main() {
 @reflectiveTest
 class NonConstantRecordFieldTest extends PubPackageResolutionTest {
   test_const_namedField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 var v = const (a: a);
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 31, 1)],
+    );
   }
 
   test_const_positionalField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 var v = const (a, );
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 28, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 28, 1)],
+    );
   }
 
   test_nonConst() async {

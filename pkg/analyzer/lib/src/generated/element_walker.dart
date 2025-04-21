@@ -40,93 +40,96 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a class
   /// element.
   ElementWalker.forClass(ClassElementImpl this.fragment)
-      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-        _constructors = fragment.isMixinApplication
-            ? null
-            : fragment.constructors.where(_isNotSynthetic).toList(),
-        _functions = fragment.methods,
-        _typeParameters = fragment.typeParameters,
-        _variables = fragment.fields.where(_isNotSynthetic).toList();
+    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+      _constructors =
+          fragment.isMixinApplication
+              ? null
+              : fragment.constructors.where(_isNotSynthetic).toList(),
+      _functions = fragment.methods,
+      _typeParameters = fragment.typeParameters,
+      _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forCompilationUnit(CompilationUnitElementImpl this.fragment,
-      {this.libraryFilePath, this.unitFilePath})
-      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-        _classes = fragment.classes,
-        _enums = fragment.enums,
-        _extensions = fragment.extensions,
-        _extensionTypes = fragment.extensionTypes,
-        _functions = fragment.functions,
-        _mixins = fragment.mixins,
-        _typedefs = fragment.typeAliases,
-        _variables = fragment.topLevelVariables.where(_isNotSynthetic).toList();
+  ElementWalker.forCompilationUnit(
+    CompilationUnitElementImpl this.fragment, {
+    this.libraryFilePath,
+    this.unitFilePath,
+  }) : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+       _classes = fragment.classes,
+       _enums = fragment.enums,
+       _extensions = fragment.extensions,
+       _extensionTypes = fragment.extensionTypes,
+       _functions = fragment.functions,
+       _mixins = fragment.mixins,
+       _typedefs = fragment.typeAliases,
+       _variables = fragment.topLevelVariables.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a enum
   /// element.
   ElementWalker.forEnum(EnumElementImpl this.fragment)
-      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-        _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
-        _functions = fragment.methods,
-        _typeParameters = fragment.typeParameters,
-        _variables = fragment.fields.where(_isNotSynthetic).toList();
+    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+      _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+      _functions = fragment.methods,
+      _typeParameters = fragment.typeParameters,
+      _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
   ElementWalker.forExecutable(ExecutableElementImpl this.fragment)
-      : _functions = const <ExecutableElementImpl>[],
-        _parameters = fragment.parameters,
-        _typeParameters = fragment.typeParameters;
+    : _functions = const <ExecutableElementImpl>[],
+      _parameters = fragment.parameters,
+      _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of an extension
   /// element.
   ElementWalker.forExtension(ExtensionElementImpl this.fragment)
-      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-        _functions = fragment.methods,
-        _typeParameters = fragment.typeParameters,
-        _variables = fragment.fields.where(_isNotSynthetic).toList();
+    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+      _functions = fragment.methods,
+      _typeParameters = fragment.typeParameters,
+      _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   ElementWalker.forExtensionType(ExtensionTypeElementImpl this.fragment)
-      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-        _constructors = fragment.constructors,
-        _functions = fragment.methods,
-        _typeParameters = fragment.typeParameters,
-        _variables = fragment.fields.where(_isNotSynthetic).toList();
+    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+      _constructors = fragment.constructors,
+      _functions = fragment.methods,
+      _typeParameters = fragment.typeParameters,
+      _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
   ElementWalker.forGenericFunctionType(
-      GenericFunctionTypeElementImpl this.fragment)
-      : _parameters = fragment.parameters,
-        _typeParameters = fragment.typeParameters;
+    GenericFunctionTypeElementImpl this.fragment,
+  ) : _parameters = fragment.parameters,
+      _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element defined using a generic function type.
   ElementWalker.forGenericTypeAlias(TypeAliasElementImpl this.fragment)
-      : _typeParameters = fragment.typeParameters;
+    : _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a mixin
   /// element.
   ElementWalker.forMixin(MixinElementImpl this.fragment)
-      : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
-        _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
-        _functions = fragment.methods,
-        _typeParameters = fragment.typeParameters,
-        _variables = fragment.fields.where(_isNotSynthetic).toList();
+    : _accessors = fragment.accessors.where(_isNotSynthetic).toList(),
+      _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+      _functions = fragment.methods,
+      _typeParameters = fragment.typeParameters,
+      _variables = fragment.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a parameter
   /// element.
   ElementWalker.forParameter(ParameterElementImpl this.fragment)
-      : _parameters = fragment.parameters,
-        _typeParameters = fragment.typeParameters;
+    : _parameters = fragment.parameters,
+      _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
   ElementWalker.forTypedef(TypeAliasElementImpl this.fragment)
-      : _parameters =
-            (fragment.aliasedElement as GenericFunctionTypeElementImpl)
-                .parameters,
-        _typeParameters = fragment.typeParameters;
+    : _parameters =
+          (fragment.aliasedElement as GenericFunctionTypeElementImpl)
+              .parameters,
+      _typeParameters = fragment.typeParameters;
 
   void consumeLocalElements() {
     _functionIndex = _functions!.length;
@@ -198,7 +201,8 @@ class ElementWalker {
     void check(List<ElementImpl>? elements, int index) {
       if (elements != null && elements.length != index) {
         throw StateError(
-            'Unmatched ${elements[index].runtimeType} ${elements[index]}');
+          'Unmatched ${elements[index].runtimeType} ${elements[index]}',
+        );
       }
     }
 

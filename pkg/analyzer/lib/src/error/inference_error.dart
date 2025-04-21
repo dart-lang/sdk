@@ -10,10 +10,7 @@ class TopLevelInferenceError {
   /// The [kind] specific arguments.
   final List<String> arguments;
 
-  TopLevelInferenceError({
-    required this.kind,
-    required this.arguments,
-  });
+  TopLevelInferenceError({required this.kind, required this.arguments});
 }
 
 /// Enum used to indicate the kind of the error during top-level inference.

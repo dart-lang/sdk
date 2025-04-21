@@ -16,11 +16,14 @@ main() {
 @reflectiveTest
 class UndefinedClassBooleanTest extends PubPackageResolutionTest {
   test_variableDeclaration() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() { boolean v; }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, 6, 7),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, 6, 7),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      ],
+    );
   }
 }

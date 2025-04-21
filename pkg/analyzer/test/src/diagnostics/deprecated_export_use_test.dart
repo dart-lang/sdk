@@ -27,15 +27,16 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart';
 
 void f() {
   A;
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 31, 1),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 1)],
+    );
   }
 
   test_deprecated_class_asExpression_prefixed() async {
@@ -50,15 +51,16 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.A;
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 48, 1),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 1)],
+    );
   }
 
   test_deprecated_class_asType() async {
@@ -73,13 +75,14 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart';
 
 void f(A a) {}
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 25, 1),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 25, 1)],
+    );
   }
 
   test_deprecated_class_asType_prefixed() async {
@@ -94,13 +97,14 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart' as prefix;
 
 void f(prefix.A a) {}
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 42, 1),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 42, 1)],
+    );
   }
 
   test_deprecated_class_import_show() async {
@@ -115,13 +119,14 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart' show A;
 
 void f(A a) {}
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 32, 1),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 32, 1)],
+    );
   }
 
   test_deprecated_function() async {
@@ -136,15 +141,16 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart';
 
 void f() {
   foo();
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+    );
   }
 
   test_deprecated_function_prefixed() async {
@@ -159,15 +165,16 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.foo();
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3)],
+    );
   }
 
   test_deprecated_getter() async {
@@ -185,15 +192,16 @@ export 'a.dart';
 set foo(int _) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart';
 
 void f() {
   foo;
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+    );
   }
 
   test_deprecated_getter_prefixed() async {
@@ -211,15 +219,16 @@ export 'a.dart';
 set foo(int _) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.foo;
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3)],
+    );
   }
 
   /// While linking `b.dart` and `c.dart` library cycle, we build their
@@ -244,15 +253,16 @@ export 'a.dart';
 import 'b.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart';
 
 void f() {
   foo();
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+    );
   }
 
   test_deprecated_setter() async {
@@ -270,15 +280,16 @@ export 'a.dart';
 int get foo => 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart';
 
 void f() {
   foo = 0;
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+    );
   }
 
   test_deprecated_setter_prefixed() async {
@@ -296,15 +307,16 @@ export 'a.dart';
 int get foo => 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart' as prefix;
 
 void f() {
   prefix.foo = 0;
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 48, 3)],
+    );
   }
 
   test_deprecated_variable() async {
@@ -319,15 +331,16 @@ library b;
 export 'a.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'b.dart';
 
 void f() {
   foo;
 }
-''', [
-      error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3),
-    ]);
+''',
+      [error(WarningCode.DEPRECATED_EXPORT_USE, 31, 3)],
+    );
   }
 
   test_notDeprecated_class_exportedFromPart() async {

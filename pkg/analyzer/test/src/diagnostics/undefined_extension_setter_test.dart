@@ -27,44 +27,48 @@ f() {
   }
 
   test_override_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {}
 f() {
   E(0).foo = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 35, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 35, 3)],
+    );
   }
 
   test_override_undefined_hasGetter_eq() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   int get foo => 0;
 }
 f() {
   E(0).foo = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3)],
+    );
   }
 
   test_override_undefined_hasGetter_plusEq() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   int get foo => 0;
 }
 f() {
   E(0).foo += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3)],
+    );
   }
 
   test_override_undefined_hasGetterAndNonExtensionSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   int get id => 0;
   void set id(int v) {}
@@ -77,19 +81,20 @@ extension Ext on C {
 f(C c) {
   Ext(c).id++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 117, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 117, 2)],
+    );
   }
 
   test_static_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {}
 void f() {
   E.foo = 3;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 37, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 37, 3)],
+    );
   }
 }

@@ -17,15 +17,21 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script.resolve(
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/definite_assignment/'
-      'data'));
-  return runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _DefiniteAssignmentDataComputer(), [analyzerDefaultConfig]));
+      'data',
+    ),
+  );
+  return runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _DefiniteAssignmentDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {
@@ -39,17 +45,28 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String? computeErrorData(TestConfig config, TestingData testingData, Id id,
-      List<AnalysisError> errors) {
-    var errorCodes = errors.map((e) => e.errorCode).where((errorCode) =>
-        errorCode !=
-        CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE);
+  String? computeErrorData(
+    TestConfig config,
+    TestingData testingData,
+    Id id,
+    List<AnalysisError> errors,
+  ) {
+    var errorCodes = errors
+        .map((e) => e.errorCode)
+        .where(
+          (errorCode) =>
+              errorCode !=
+              CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+        );
     return errorCodes.isNotEmpty ? errorCodes.join(',') : null;
   }
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<String>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
     _DefiniteAssignmentDataExtractor(unitUri, actualMap, flowResult).run(unit);
@@ -60,7 +77,10 @@ class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
   final FlowAnalysisDataForTesting _flowResult;
 
   _DefiniteAssignmentDataExtractor(
-      super.uri, super.actualMap, this._flowResult);
+    super.uri,
+    super.actualMap,
+    this._flowResult,
+  );
 
   @override
   String? computeNodeValue(Id id, AstNode node) {

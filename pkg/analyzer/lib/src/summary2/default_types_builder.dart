@@ -152,9 +152,11 @@ class DefaultTypesBuilder {
         }
 
         TypeParameter? current = parameter;
-        for (var step = 0;
-            current != null && step < typeParameters.length;
-            ++step) {
+        for (
+          var step = 0;
+          current != null && step < typeParameters.length;
+          ++step
+        ) {
           var bound = current.bound;
           if (bound is NamedType) {
             if (bound.importPrefix == null) {
@@ -268,14 +270,13 @@ class DefaultTypesBuilder {
       var declaration = startType.element3;
       if (startType.arguments.isEmpty) {
         if (startType.element3 == end) {
-          paths.add([
-            _CycleElement(startParameter, startType),
-          ]);
+          paths.add([_CycleElement(startParameter, startType)]);
         } else if (visited.add(startType.element3)) {
           void recurseParameters(List<TypeParameterElement2> parameters) {
             for (var parameter in parameters) {
-              var parameterNode =
-                  _linker.getLinkingNode2(parameter.firstFragment);
+              var parameterNode = _linker.getLinkingNode2(
+                parameter.firstFragment,
+              );
               if (parameterNode is TypeParameter) {
                 var bound = parameterNode.bound;
                 if (bound != null) {
@@ -328,12 +329,7 @@ class DefaultTypesBuilder {
         var bound = typeParameter.bound;
         if (bound != null) {
           paths.addAll(
-            _findRawTypePathsToDeclaration(
-              startParameter,
-              bound,
-              end,
-              visited,
-            ),
+            _findRawTypePathsToDeclaration(startParameter, bound, end, visited),
           );
         }
       }
@@ -427,9 +423,9 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
     required Map<TypeParameterElement2, TypeImpl> upper,
     required Map<TypeParameterElement2, TypeImpl> lower,
     required Variance variance,
-  })  : _upper = upper,
-        _lower = lower,
-        _variance = variance;
+  }) : _upper = upper,
+       _lower = lower,
+       _variance = variance;
 
   @override
   void changeVariance() {

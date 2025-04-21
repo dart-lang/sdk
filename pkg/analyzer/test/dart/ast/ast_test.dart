@@ -784,8 +784,9 @@ class InterpolationStringTest extends ParserTestCase {
   }
 
   void test_contentsOffset_middle() {
-    var interpolation =
-        _parseStringInterpolation(r'"first $x foo\nbar $y last"');
+    var interpolation = _parseStringInterpolation(
+      r'"first $x foo\nbar $y last"',
+    );
     var node = interpolation.elements[2] as InterpolationString;
     _assertContentsOffsetEnd(node, 9, 19);
   }
@@ -797,8 +798,9 @@ class InterpolationStringTest extends ParserTestCase {
   }
 
   void test_contentsOffset_middle_quoteBeginEnd() {
-    var interpolation =
-        _parseStringInterpolation('"first \$x \'foo\'\$y last"');
+    var interpolation = _parseStringInterpolation(
+      '"first \$x \'foo\'\$y last"',
+    );
     var node = interpolation.elements[2] as InterpolationString;
     _assertContentsOffsetEnd(node, 9, 15);
   }
@@ -866,10 +868,7 @@ class InterpolationStringTest extends ParserTestCase {
     var unitCode = 'var x = ';
     _baseOffset = unitCode.length;
     unitCode += code;
-    var unit = parseString(
-      content: unitCode,
-      throwIfDiagnostics: false,
-    ).unit;
+    var unit = parseString(content: unitCode, throwIfDiagnostics: false).unit;
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     return declaration.variables.variables[0].initializer
         as StringInterpolation;
@@ -1092,9 +1091,11 @@ final y = 42;
 @reflectiveTest
 class NormalFormalParameterTest extends ParserTestCase {
   test_sortedCommentAndAnnotations_noComment() {
-    var result = parseString(content: '''
+    var result = parseString(
+      content: '''
 void f(int i) {}
-''');
+''',
+    );
     var function = result.unit.declarations[0] as FunctionDeclaration;
     var parameters = function.functionExpression.parameters;
     var parameter = parameters?.parameters[0] as NormalFormalParameter;
@@ -1169,10 +1170,11 @@ E f() => g;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
 
-    var missing = parseString(
-      content: 'missing',
-      throwIfDiagnostics: false,
-    ).unit.beginToken;
+    var missing =
+        parseString(
+          content: 'missing',
+          throwIfDiagnostics: false,
+        ).unit.beginToken;
     expect(statement.findPrevious(missing), null);
   }
 
@@ -1424,7 +1426,9 @@ void f() {
   }
 
   SimpleIdentifier _createIdentifier(
-      _WrapperKind wrapper, _AssignmentKind assignment) {
+    _WrapperKind wrapper,
+    _AssignmentKind assignment,
+  ) {
     String code;
     if (wrapper == _WrapperKind.PREFIXED_LEFT) {
       code = 'test.right';
@@ -1873,11 +1877,15 @@ class C {}
 class _AssignmentKind {
   static const _AssignmentKind BINARY = _AssignmentKind('BINARY', 0);
 
-  static const _AssignmentKind COMPOUND_LEFT =
-      _AssignmentKind('COMPOUND_LEFT', 1);
+  static const _AssignmentKind COMPOUND_LEFT = _AssignmentKind(
+    'COMPOUND_LEFT',
+    1,
+  );
 
-  static const _AssignmentKind COMPOUND_RIGHT =
-      _AssignmentKind('COMPOUND_RIGHT', 2);
+  static const _AssignmentKind COMPOUND_RIGHT = _AssignmentKind(
+    'COMPOUND_RIGHT',
+    2,
+  );
 
   static const _AssignmentKind POSTFIX_BANG = _AssignmentKind('POSTFIX_INC', 3);
 
@@ -1891,8 +1899,10 @@ class _AssignmentKind {
 
   static const _AssignmentKind SIMPLE_LEFT = _AssignmentKind('SIMPLE_LEFT', 8);
 
-  static const _AssignmentKind SIMPLE_RIGHT =
-      _AssignmentKind('SIMPLE_RIGHT', 9);
+  static const _AssignmentKind SIMPLE_RIGHT = _AssignmentKind(
+    'SIMPLE_RIGHT',
+    9,
+  );
 
   static const List<_AssignmentKind> values = [
     BINARY,

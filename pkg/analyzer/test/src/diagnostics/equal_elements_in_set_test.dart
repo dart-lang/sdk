@@ -16,29 +16,32 @@ main() {
 @reflectiveTest
 class EqualElementsInSetTest extends PubPackageResolutionTest {
   test_constant_constant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = 1;
 const b = 1;
 var s = {a, b};
-''', [
-      error(WarningCode.EQUAL_ELEMENTS_IN_SET, 38, 1),
-    ]);
+''',
+      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 38, 1)],
+    );
   }
 
   test_literal_constant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const one = 1;
 var s = {1, one};
-''', [
-      error(WarningCode.EQUAL_ELEMENTS_IN_SET, 27, 3),
-    ]);
+''',
+      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 27, 3)],
+    );
   }
 
   test_literal_literal() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var s = {1, 1};
-''', [
-      error(WarningCode.EQUAL_ELEMENTS_IN_SET, 12, 1),
-    ]);
+''',
+      [error(WarningCode.EQUAL_ELEMENTS_IN_SET, 12, 1)],
+    );
   }
 }

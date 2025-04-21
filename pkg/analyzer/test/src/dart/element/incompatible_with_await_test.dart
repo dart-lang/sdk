@@ -47,24 +47,17 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
 
     isIncompatible(
       interfaceTypeNone(
-        extensionType2(
-          'A',
-          representationType: futureOfIntNone,
-        ),
+        extensionType2('A', representationType: futureOfIntNone),
       ),
     );
   }
 
   test_futureInt() {
-    isNotIncompatible(
-      futureNone(intNone),
-    );
+    isNotIncompatible(futureNone(intNone));
   }
 
   test_futureOrInt() {
-    isNotIncompatible(
-      futureOrNone(intNone),
-    );
+    isNotIncompatible(futureOrNone(intNone));
   }
 
   test_typeParameter_bound_extensionType_implementsFuture() {
@@ -77,38 +70,23 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
     );
 
     isNotIncompatible(
-      typeParameterTypeNone(
-        typeParameter(
-          'T',
-          bound: interfaceTypeNone(A),
-        ),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: interfaceTypeNone(A))),
     );
   }
 
   test_typeParameter_bound_extensionType_notImplementsFuture() {
     var futureOfIntNone = futureNone(intNone);
 
-    var A = extensionType2(
-      'A',
-      representationType: futureOfIntNone,
-    );
+    var A = extensionType2('A', representationType: futureOfIntNone);
 
     isIncompatible(
-      typeParameterTypeNone(
-        typeParameter(
-          'T',
-          bound: interfaceTypeNone(A),
-        ),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: interfaceTypeNone(A))),
     );
   }
 
   test_typeParameter_bound_numNone() {
     isNotIncompatible(
-      typeParameterTypeNone(
-        typeParameter('T', bound: numNone),
-      ),
+      typeParameterTypeNone(typeParameter('T', bound: numNone)),
     );
   }
 
@@ -117,25 +95,17 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
 
     // Incompatible with `await`, used as a bound.
     // Does not matter, `T` is promoted to not incompatible.
-    var N = extensionType2(
-      'N',
-      representationType: futureOfIntNone,
-    );
+    var N = extensionType2('N', representationType: futureOfIntNone);
 
     var F = extensionType2(
       'F',
       representationType: futureOfIntNone,
-      interfaces: [
-        futureOfIntNone,
-      ],
+      interfaces: [futureOfIntNone],
     );
 
     isNotIncompatible(
       typeParameterTypeNone(
-        typeParameter(
-          'T',
-          bound: interfaceTypeNone(N),
-        ),
+        typeParameter('T', bound: interfaceTypeNone(N)),
         promotedBound: interfaceTypeNone(F),
       ),
     );
@@ -144,10 +114,7 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   test_typeParameter_promotedBound_extensionType_notImplementsFuture() {
     var futureOfIntNone = futureNone(intNone);
 
-    var A = extensionType2(
-      'A',
-      representationType: futureOfIntNone,
-    );
+    var A = extensionType2('A', representationType: futureOfIntNone);
 
     isIncompatible(
       typeParameterTypeNone(
@@ -159,10 +126,7 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
 
   test_typeParameter_promotedBound_intNone() {
     isNotIncompatible(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: intNone,
-      ),
+      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
     );
   }
 }

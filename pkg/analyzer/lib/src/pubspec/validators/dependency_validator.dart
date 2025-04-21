@@ -24,7 +24,10 @@ void dependencyValidator(PubspecValidationContext ctx) {
       return field.nodes;
     }
     ctx.reportErrorForNode(
-        field, PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP, [key]);
+      field,
+      PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP,
+      [key],
+    );
     return <String, YamlNode>{};
   }
 
@@ -47,8 +50,9 @@ void dependencyValidator(PubspecValidationContext ctx) {
       YamlNode pathValue() => dependency.valueAt(PubspecField.PATH_FIELD)!;
 
       if (pathEntry.contains(r'\')) {
-        ctx.reportErrorForNode(
-            pathValue(), PubspecWarningCode.PATH_NOT_POSIX, [pathEntry]);
+        ctx.reportErrorForNode(pathValue(), PubspecWarningCode.PATH_NOT_POSIX, [
+          pathEntry,
+        ]);
         return;
       }
       var context = ctx.provider.pathContext;
@@ -60,30 +64,44 @@ void dependencyValidator(PubspecValidationContext ctx) {
       var packageFolder = ctx.provider.getFolder(dependencyPath);
       if (!packageFolder.exists) {
         ctx.reportErrorForNode(
-            pathValue(), PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
+          pathValue(),
+          PubspecWarningCode.PATH_DOES_NOT_EXIST,
+          [pathEntry],
+        );
       } else {
         if (!packageFolder.getChild(file_paths.pubspecYaml).exists) {
-          ctx.reportErrorForNode(pathValue(),
-              PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST, [pathEntry]);
+          ctx.reportErrorForNode(
+            pathValue(),
+            PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST,
+            [pathEntry],
+          );
         }
       }
       if (checkForPathAndGitDeps) {
-        ctx.reportErrorForNode(pathKey(), PubspecWarningCode.INVALID_DEPENDENCY,
-            [PubspecField.PATH_FIELD]);
+        ctx.reportErrorForNode(
+          pathKey(),
+          PubspecWarningCode.INVALID_DEPENDENCY,
+          [PubspecField.PATH_FIELD],
+        );
       }
     }
 
     var gitEntry = dependency[PubspecField.GIT_FIELD];
     if (gitEntry != null && checkForPathAndGitDeps) {
-      ctx.reportErrorForNode(dependency.getKey(PubspecField.GIT_FIELD)!,
-          PubspecWarningCode.INVALID_DEPENDENCY, [PubspecField.GIT_FIELD]);
+      ctx.reportErrorForNode(
+        dependency.getKey(PubspecField.GIT_FIELD)!,
+        PubspecWarningCode.INVALID_DEPENDENCY,
+        [PubspecField.GIT_FIELD],
+      );
     }
   }
 
-  var declaredDependencies =
-      getDeclaredDependencies(PubspecField.DEPENDENCIES_FIELD);
-  var declaredDevDependencies =
-      getDeclaredDependencies(PubspecField.DEV_DEPENDENCIES_FIELD);
+  var declaredDependencies = getDeclaredDependencies(
+    PubspecField.DEPENDENCIES_FIELD,
+  );
+  var declaredDevDependencies = getDeclaredDependencies(
+    PubspecField.DEV_DEPENDENCIES_FIELD,
+  );
 
   bool isPublishablePackage = false;
   var contents = ctx.contents;
@@ -104,9 +122,10 @@ void dependencyValidator(PubspecValidationContext ctx) {
     var packageName = dependency.key as YamlNode;
     if (declaredDependencies.containsKey(packageName)) {
       ctx.reportErrorForNode(
-          packageName,
-          PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY,
-          [packageName.valueOrThrow]);
+        packageName,
+        PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY,
+        [packageName.valueOrThrow],
+      );
     }
     validatePathEntries(dependency.value, false);
   }

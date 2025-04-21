@@ -19,31 +19,44 @@ main() {
 class InvalidNullAwareOperatorAfterShortCircuitTest
     extends PubPackageResolutionTest {
   Future<void> test_getter_previousTarget() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(String? s) {
   s?.length?.isEven;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
-          31, 2,
-          contextMessages: [message(testFile, 23, 2)]),
-    ]);
+''',
+      [
+        error(
+          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          31,
+          2,
+          contextMessages: [message(testFile, 23, 2)],
+        ),
+      ],
+    );
   }
 
   Future<void> test_index_previousTarget() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(String? s) {
   s?[4]?.length;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
-          27, 2,
-          contextMessages: [message(testFile, 23, 1)]),
-    ]);
+''',
+      [
+        error(
+          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          27,
+          2,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+      ],
+    );
   }
 
   Future<void> test_methodInvocation_noTarget() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   C? m1() => this;
   C m2() => this;
@@ -51,45 +64,66 @@ class C {
     m1()?.m2()?.m2();
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
-          75, 2,
-          contextMessages: [message(testFile, 69, 2)]),
-    ]);
+''',
+      [
+        error(
+          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          75,
+          2,
+          contextMessages: [message(testFile, 69, 2)],
+        ),
+      ],
+    );
   }
 
   Future<void> test_methodInvocation_previousTarget() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(String? s) {
   s?.substring(0, 5)?.length;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
-          40, 2,
-          contextMessages: [message(testFile, 23, 2)]),
-    ]);
+''',
+      [
+        error(
+          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          40,
+          2,
+          contextMessages: [message(testFile, 23, 2)],
+        ),
+      ],
+    );
   }
 
   Future<void> test_methodInvocation_previousTwoTargets() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(String? s) {
   s?.substring(0, 5)?.toLowerCase()?.length;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
-          40, 2,
-          contextMessages: [message(testFile, 23, 2)]),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
-          55, 2,
-          contextMessages: [message(testFile, 23, 2)]),
-    ]);
+''',
+      [
+        error(
+          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          40,
+          2,
+          contextMessages: [message(testFile, 23, 2)],
+        ),
+        error(
+          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          55,
+          2,
+          contextMessages: [message(testFile, 23, 2)],
+        ),
+      ],
+    );
   }
 }
 
 @reflectiveTest
 class InvalidNullAwareOperatorTest extends PubPackageResolutionTest {
   test_extensionOverride_assignmentExpression_indexExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   operator[]=(int index, bool _) {}
 }
@@ -98,13 +132,14 @@ void f(int? a, int b) {
   E(a)?[0] = true;
   E(b)?[0] = true;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 109, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 109, 2)],
+    );
   }
 
   test_extensionOverride_assignmentExpression_propertyAccess() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   set foo(bool _) {}
 }
@@ -113,13 +148,14 @@ void f(int? a, int b) {
   E(a)?.foo = true;
   E(b)?.foo = true;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 95, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 95, 2)],
+    );
   }
 
   test_extensionOverride_indexExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   bool operator[](int index) => true;
 }
@@ -128,15 +164,16 @@ void f(int? a, int b) {
   E(a)?[0];
   E(b)?[0];
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 104, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 104, 2)],
+    );
     assertType(findNode.index('E(a)'), 'bool?');
     assertType(findNode.index('E(b)'), 'bool?');
   }
 
   test_extensionOverride_methodInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   bool foo() => true;
 }
@@ -145,16 +182,17 @@ void f(int? a, int b) {
   E(a)?.foo();
   E(b)?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2)],
+    );
 
     assertType(findNode.methodInvocation('E(a)'), 'bool?');
     assertType(findNode.methodInvocation('E(b)'), 'bool?');
   }
 
   test_extensionOverride_propertyAccess() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   bool get foo => true;
 }
@@ -163,15 +201,16 @@ void f(int? a, int b) {
   E(a)?.foo;
   E(b)?.foo;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2)],
+    );
     assertType(findNode.propertyAccess('E(a)'), 'bool?');
     assertType(findNode.propertyAccess('E(b)'), 'bool?');
   }
 
   test_getter_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static int x = 0;
 }
@@ -179,13 +218,14 @@ class C {
 f() {
   C?.x;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2)],
+    );
   }
 
   test_getter_extension() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   static int x = 0;
 }
@@ -193,13 +233,14 @@ extension E on int {
 f() {
   E?.x;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 53, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 53, 2)],
+    );
   }
 
   test_getter_mixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   static int x = 0;
 }
@@ -207,21 +248,24 @@ mixin M {
 f() {
   M?.x;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2)],
+    );
   }
 
   test_getter_nonNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int x) {
   x?.isEven;
   x?..isEven;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 14, 2),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 27, 3),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 14, 2),
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 27, 3),
+      ],
+    );
   }
 
   test_getter_nullable() async {
@@ -240,27 +284,37 @@ f(int? x) {
     newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 
 f() {
   p?.x;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          31,
+          1,
+        ),
+      ],
+    );
   }
 
   test_index_nonNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(List<int> x) {
   x?[0];
   x?..[0];
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 2),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 29, 3),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 2),
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 29, 3),
+      ],
+    );
   }
 
   test_index_nullable() async {
@@ -273,7 +327,8 @@ f(List<int>? x) {
   }
 
   test_method_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static void foo() {}
 }
@@ -281,9 +336,9 @@ class C {
 f() {
   C?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 45, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 45, 2)],
+    );
   }
 
   test_method_class_prefixed() async {
@@ -293,19 +348,21 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as prefix;
 
 void f() {
   prefix.C?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 49, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 49, 2)],
+    );
   }
 
   test_method_extension() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   static void foo() {}
 }
@@ -313,9 +370,9 @@ extension E on int {
 f() {
   E?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 56, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 56, 2)],
+    );
   }
 
   test_method_extension_prefixed() async {
@@ -325,19 +382,21 @@ extension E on int {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as prefix;
 
 f() {
   prefix.E?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 44, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 44, 2)],
+    );
   }
 
   test_method_mixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   static void foo() {}
 }
@@ -345,9 +404,9 @@ mixin M {
 f() {
   M?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 45, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 45, 2)],
+    );
   }
 
   test_method_mixin_prefixed() async {
@@ -357,27 +416,31 @@ mixin M {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as prefix;
 
 f() {
   prefix.M?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 44, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 44, 2)],
+    );
   }
 
   test_method_nonNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int x) {
   x?.round();
   x?..round();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 14, 2),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 28, 3),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 14, 2),
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 28, 3),
+      ],
+    );
   }
 
   test_method_nullable() async {
@@ -390,7 +453,8 @@ f(int? x) {
   }
 
   test_method_typeAlias_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static void foo() {}
 }
@@ -400,9 +464,9 @@ typedef B = A;
 f() {
   B?.foo();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 62, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 62, 2)],
+    );
   }
 
   test_nonNullableSpread_nullableType() async {
@@ -414,13 +478,14 @@ f(List<int> x) {
   }
 
   test_nullableSpread_nonNullableType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(List<int> x) {
   [...?x];
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 4),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 4)],
+    );
   }
 
   test_nullableSpread_nullableType() async {
@@ -432,7 +497,8 @@ f(List<int>? x) {
   }
 
   test_setter_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static int x = 0;
 }
@@ -440,13 +506,14 @@ class C {
 f() {
   C?.x = 0;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2)],
+    );
   }
 
   test_setter_extension() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   static int x = 0;
 }
@@ -454,13 +521,14 @@ extension E on int {
 f() {
   E?.x = 0;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 53, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 53, 2)],
+    );
   }
 
   test_setter_mixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   static int x = 0;
 }
@@ -468,9 +536,9 @@ mixin M {
 f() {
   M?.x = 0;
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2)],
+    );
   }
 
   /// Here we test that analysis does not crash while checking whether to
@@ -480,19 +548,27 @@ f() {
     newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 
 f() {
   p?.x = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          31,
+          1,
+        ),
+      ],
+    );
   }
 
   test_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void foo() {}
 }
@@ -502,9 +578,14 @@ class B extends A {
     super?.foo();
   }
 }
-''', [
-      error(ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER, 73,
-          2),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
+          73,
+          2,
+        ),
+      ],
+    );
   }
 }

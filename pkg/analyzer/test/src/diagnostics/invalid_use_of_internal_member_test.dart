@@ -29,10 +29,7 @@ class InvalidUseOfInternalMemberTest extends PubPackageResolutionTest {
     );
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(
-          name: 'foo',
-          rootPath: fooPackageRootPath,
-        ),
+        ..add(name: 'foo', rootPath: fooPackageRootPath),
       meta: true,
     );
   }
@@ -76,13 +73,14 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 A a = A();
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1)],
+    );
   }
 
   test_outsidePackage_class_inAsExpression() async {
@@ -92,15 +90,16 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 void f(Object o) {
   o as A;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1)],
+    );
   }
 
   test_outsidePackage_class_inCastPattern() async {
@@ -110,15 +109,16 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 void f(Object a, Object b) {
   (b as A, ) = (a, );
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 71, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 71, 1)],
+    );
   }
 
   test_outsidePackage_class_inIsExpression() async {
@@ -128,15 +128,16 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 void f(Object o) {
   o is A;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1)],
+    );
   }
 
   test_outsidePackage_class_inObjectPattern() async {
@@ -146,7 +147,8 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 void f(Object a, Object b) {
@@ -154,9 +156,9 @@ void f(Object a, Object b) {
     case A(): print('yes');
   }
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 87, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 87, 1)],
+    );
   }
 
   test_outsidePackage_class_inVariableDeclarationType() async {
@@ -166,13 +168,14 @@ import 'package:meta/meta.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 A? a;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1)],
+    );
   }
 
   test_outsidePackage_constructor_named() async {
@@ -184,13 +187,14 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 C a = C.named();
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 40, 7),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 40, 7)],
+    );
   }
 
   test_outsidePackage_constructor_unnamed() async {
@@ -202,13 +206,14 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 C a = C();
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 40, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 40, 1)],
+    );
   }
 
   test_outsidePackage_enum() async {
@@ -218,13 +223,14 @@ import 'package:meta/meta.dart';
 enum E {one}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 void f(E value) {}
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 41, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 41, 1)],
+    );
   }
 
   test_outsidePackage_enumValue() async {
@@ -233,13 +239,14 @@ import 'package:meta/meta.dart';
 enum E {@internal one}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 E f() => E.one;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 45, 3),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 45, 3)],
+    );
   }
 
   test_outsidePackage_extensionMethod() async {
@@ -251,13 +258,14 @@ extension E on String {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int a = 'hello'.f();
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 50, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 50, 1)],
+    );
   }
 
   test_outsidePackage_extensionType() async {
@@ -267,13 +275,14 @@ import 'package:meta/meta.dart';
 extension type E(int i) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 E e = E(1);
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1)],
+    );
   }
 
   test_outsidePackage_field_inObjectPattern() async {
@@ -285,7 +294,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 void f(Object o) {
@@ -293,9 +303,9 @@ void f(Object o) {
     case A(a: 7): print('yes');
   }
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 79, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 79, 1)],
+    );
   }
 
   test_outsidePackage_function() async {
@@ -305,13 +315,14 @@ import 'package:meta/meta.dart';
 int a() => 1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int b = a() + 1;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1)],
+    );
   }
 
   test_outsidePackage_function_generic() async {
@@ -321,13 +332,14 @@ import 'package:meta/meta.dart';
 int a<T>() => 1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int b = a<void>() + 1;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1)],
+    );
   }
 
   test_outsidePackage_function_generic_tearoff() async {
@@ -337,13 +349,14 @@ import 'package:meta/meta.dart';
 int a<T>() => 1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int Function() b = a;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 53, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 53, 1)],
+    );
   }
 
   test_outsidePackage_function_tearoff() async {
@@ -353,13 +366,14 @@ import 'package:meta/meta.dart';
 int a() => 1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int Function() b = a;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 53, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 53, 1)],
+    );
   }
 
   test_outsidePackage_functionLiteralForInternalTypedef() async {
@@ -398,12 +412,15 @@ library a;
 import 'package:meta/meta.dart';
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 0, 32),
-      error(WarningCode.UNUSED_IMPORT, 7, 24),
-    ]);
+''',
+      [
+        error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 0, 32),
+        error(WarningCode.UNUSED_IMPORT, 7, 24),
+      ],
+    );
   }
 
   test_outsidePackage_method() async {
@@ -415,13 +432,14 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int a = C().m();
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1)],
+    );
   }
 
   test_outsidePackage_method_generic() async {
@@ -433,13 +451,14 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int a = C().m<void>();
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1)],
+    );
   }
 
   test_outsidePackage_method_subclassed() async {
@@ -452,13 +471,14 @@ class C {
 class D extends C {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int a = D().f();
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1)],
+    );
   }
 
   test_outsidePackage_method_subclassed_overridden() async {
@@ -489,13 +509,14 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int Function() a = C().m;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 57, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 57, 1)],
+    );
   }
 
   test_outsidePackage_methodParameter_named() async {
@@ -506,13 +527,14 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int a = C().m(a: 5);
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 48, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 48, 1)],
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
@@ -524,13 +546,14 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int a = C().m(5);
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 48, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 48, 1)],
+    );
   }
 
   test_outsidePackage_mixin() async {
@@ -540,13 +563,14 @@ import 'package:meta/meta.dart';
 mixin A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 class C with A {}
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 47, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 47, 1)],
+    );
   }
 
   test_outsidePackage_pairedWithProtected() async {
@@ -559,15 +583,16 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 class D extends C {
   void g() => f();
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 68, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 68, 1)],
+    );
   }
 
   test_outsidePackage_redirectingFactoryConstructor() async {
@@ -579,15 +604,16 @@ class D implements C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 class C {
   factory C() = D;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 60, 1)],
+    );
   }
 
   test_outsidePackage_setter() async {
@@ -599,15 +625,16 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 f() {
   C().s = 7;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1)],
+    );
   }
 
   test_outsidePackage_setter_compound() async {
@@ -621,15 +648,16 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 f() {
   C().s += 7;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1)],
+    );
   }
 
   test_outsidePackage_setter_questionQuestion() async {
@@ -643,15 +671,16 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 f() {
   C().s ??= 7;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1)],
+    );
   }
 
   test_outsidePackage_superConstructor() async {
@@ -662,15 +691,16 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 class D extends C {
   D() : super();
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 62, 7),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 62, 7)],
+    );
   }
 
   test_outsidePackage_superConstructor_named() async {
@@ -681,15 +711,16 @@ class C {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 class D extends C {
   D() : super.named();
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 68, 5),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 68, 5)],
+    );
   }
 
   test_outsidePackage_topLevelGetter() async {
@@ -699,13 +730,14 @@ import 'package:meta/meta.dart';
 int get a => 1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int b = a + 1;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1)],
+    );
   }
 
   test_outsidePackage_typedef() async {
@@ -715,13 +747,14 @@ import 'package:meta/meta.dart';
 typedef t = void Function();
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 t func = () {};
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 34, 1)],
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
@@ -731,13 +764,14 @@ import 'package:meta/meta.dart';
 typedef T = void Function({@internal int a = 1});
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 void f(T t) => t(a: 5);
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1)],
+    );
   }
 
   test_outsidePackage_variable() async {
@@ -747,13 +781,14 @@ import 'package:meta/meta.dart';
 int a = 1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart';
 
 int b = a + 1;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1)],
+    );
   }
 
   test_outsidePackage_variable_prefixed() async {
@@ -763,12 +798,13 @@ import 'package:meta/meta.dart';
 int a = 1;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:foo/src/a.dart' as foo;
 
 int b = foo.a + 1;
-''', [
-      error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 53, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_INTERNAL_MEMBER, 53, 1)],
+    );
   }
 }

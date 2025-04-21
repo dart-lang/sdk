@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class BodyMightCompleteNormallyNullableTest extends PubPackageResolutionTest {
   test_function_async_block_futureOrIntQuestion() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 FutureOr<int?> f(Future f) async {}
-''', [
-      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 36, 1),
-    ]);
+''',
+      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 36, 1)],
+    );
   }
 
   test_function_async_block_futureOrVoid() async {
@@ -62,11 +63,12 @@ dynamic f() {}
   }
 
   test_function_sync_block_intQuestion() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int? f() {}
-''', [
-      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 5, 1),
-    ]);
+''',
+      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 5, 1)],
+    );
   }
 
   test_function_sync_block_intQuestion_definiteReturn() async {

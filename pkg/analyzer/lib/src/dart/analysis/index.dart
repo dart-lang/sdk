@@ -15,10 +15,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-Element2? declaredParameterElement(
-  SimpleIdentifier node,
-  Element2? element,
-) {
+Element2? declaredParameterElement(SimpleIdentifier node, Element2? element) {
   if (element == null || element.enclosingElement2 != null) {
     return element;
   }
@@ -28,7 +25,8 @@ Element2? declaredParameterElement(
   /// element model. But we want to index these parameter references
   /// as references to declared parameters.
   FormalParameterElement? namedParameterElement(
-      ExecutableElement2? executable) {
+    ExecutableElement2? executable,
+  ) {
     if (executable == null) {
       return null;
     }
@@ -62,10 +60,7 @@ Element2? declaredParameterElement(
   return element;
 }
 
-Element2? declaredParameterElement2(
-  SimpleIdentifier node,
-  Element2? element,
-) {
+Element2? declaredParameterElement2(SimpleIdentifier node, Element2? element) {
   if (element == null || element.enclosingElement2 != null) {
     return element;
   }
@@ -75,7 +70,8 @@ Element2? declaredParameterElement2(
   /// element model. But we want to index these parameter references
   /// as references to declared parameters.
   FormalParameterElement? namedParameterElement(
-      ExecutableElement2? executable) {
+    ExecutableElement2? executable,
+  ) {
     if (executable == null) {
       return null;
     }
@@ -205,9 +201,10 @@ class IndexElementInfo {
           kind = IndexSyntheticElementKind.enumValues;
           element = enclosing;
         } else {
-          kind = accessor is GetterElement
-              ? IndexSyntheticElementKind.getter
-              : IndexSyntheticElementKind.setter;
+          kind =
+              accessor is GetterElement
+                  ? IndexSyntheticElementKind.getter
+                  : IndexSyntheticElementKind.setter;
           if (accessor.variable3 case var variable?) {
             element = variable;
           }
@@ -224,7 +221,8 @@ class IndexElementInfo {
         element = (element.getter2 ?? element.setter2)!;
       } else {
         throw ArgumentError(
-            'Unsupported synthetic element ${element.runtimeType}');
+          'Unsupported synthetic element ${element.runtimeType}',
+        );
       }
     }
     return IndexElementInfo._(element, kind);
@@ -261,8 +259,13 @@ class _ElementInfo {
   /// package is done and we are assembling the full package index.
   late int id;
 
-  _ElementInfo(this.unitId, this.nameIdUnitMember, this.nameIdClassMember,
-      this.nameIdParameter, this.kind);
+  _ElementInfo(
+    this.unitId,
+    this.nameIdUnitMember,
+    this.nameIdClassMember,
+    this.nameIdParameter,
+    this.kind,
+  );
 }
 
 /// Information about a single relation in a single compilation unit.
@@ -274,7 +277,12 @@ class _ElementRelationInfo {
   final bool isQualified;
 
   _ElementRelationInfo(
-      this.elementInfo, this.kind, this.offset, this.length, this.isQualified);
+    this.elementInfo,
+    this.kind,
+    this.offset,
+    this.length,
+    this.isQualified,
+  );
 }
 
 /// Assembler of a single [CompilationUnit] index.
@@ -331,11 +339,17 @@ class _IndexAssembler {
     nullString = _getStringInfo(_nullString);
   }
 
-  void addElementRelation(Element2 element, IndexRelationKind kind, int offset,
-      int length, bool isQualified) {
+  void addElementRelation(
+    Element2 element,
+    IndexRelationKind kind,
+    int offset,
+    int length,
+    bool isQualified,
+  ) {
     _ElementInfo elementInfo = _getElementInfo(element);
     elementRelations.add(
-        _ElementRelationInfo(elementInfo, kind, offset, length, isQualified));
+      _ElementRelationInfo(elementInfo, kind, offset, length, isQualified),
+    );
   }
 
   void addLibraryFragmentReference({
@@ -354,7 +368,11 @@ class _IndexAssembler {
   }
 
   void addNameRelation(
-      String name, IndexRelationKind kind, int offset, bool isQualified) {
+    String name,
+    IndexRelationKind kind,
+    int offset,
+    bool isQualified,
+  ) {
     _StringInfo nameId = _getStringInfo(name);
     nameRelations.add(_NameRelationInfo(nameId, kind, offset, isQualified));
   }
@@ -403,8 +421,9 @@ class _IndexAssembler {
     }
 
     // Sort elements and set IDs.
-    List<_ElementInfo> elementInfoList =
-        elementMap.values.toList(growable: false);
+    List<_ElementInfo> elementInfoList = elementMap.values.toList(
+      growable: false,
+    );
     elementInfoList.sort((a, b) {
       int delta;
       delta = a.nameIdUnitMember.id - b.nameIdUnitMember.id;
@@ -446,8 +465,9 @@ class _IndexAssembler {
           .map((e) => e.importPrefixes.toList(growable: false).join(','))
           .toList(growable: false),
       elementKinds: elementInfoList.map((e) => e.kind).toList(growable: false),
-      elementUnits:
-          elementInfoList.map((e) => e.unitId).toList(growable: false),
+      elementUnits: elementInfoList
+          .map((e) => e.unitId)
+          .toList(growable: false),
       elementNameUnitMemberIds: elementInfoList
           .map((e) => e.nameIdUnitMember.id)
           .toList(growable: false),
@@ -457,34 +477,44 @@ class _IndexAssembler {
       elementNameParameterIds: elementInfoList
           .map((e) => e.nameIdParameter.id)
           .toList(growable: false),
-      usedElements:
-          elementRelations.map((r) => r.elementInfo.id).toList(growable: false),
-      usedElementKinds:
-          elementRelations.map((r) => r.kind).toList(growable: false),
-      usedElementOffsets:
-          elementRelations.map((r) => r.offset).toList(growable: false),
-      usedElementLengths:
-          elementRelations.map((r) => r.length).toList(growable: false),
-      usedElementIsQualifiedFlags:
-          elementRelations.map((r) => r.isQualified).toList(growable: false),
-      usedNames:
-          nameRelations.map((r) => r.nameInfo.id).toList(growable: false),
+      usedElements: elementRelations
+          .map((r) => r.elementInfo.id)
+          .toList(growable: false),
+      usedElementKinds: elementRelations
+          .map((r) => r.kind)
+          .toList(growable: false),
+      usedElementOffsets: elementRelations
+          .map((r) => r.offset)
+          .toList(growable: false),
+      usedElementLengths: elementRelations
+          .map((r) => r.length)
+          .toList(growable: false),
+      usedElementIsQualifiedFlags: elementRelations
+          .map((r) => r.isQualified)
+          .toList(growable: false),
+      usedNames: nameRelations
+          .map((r) => r.nameInfo.id)
+          .toList(growable: false),
       usedNameKinds: nameRelations.map((r) => r.kind).toList(growable: false),
-      usedNameOffsets:
-          nameRelations.map((r) => r.offset).toList(growable: false),
-      usedNameIsQualifiedFlags:
-          nameRelations.map((r) => r.isQualified).toList(growable: false),
+      usedNameOffsets: nameRelations
+          .map((r) => r.offset)
+          .toList(growable: false),
+      usedNameIsQualifiedFlags: nameRelations
+          .map((r) => r.isQualified)
+          .toList(growable: false),
       supertypes: subtypes
           .map((subtype) => subtype.supertype.id)
           .toList(growable: false),
-      subtypes: subtypes.map((subtype) {
-        return AnalysisDriverSubtypeBuilder(
-          name: subtype.name.id,
-          members: subtype.members
-              .map((member) => member.id)
-              .toList(growable: false),
-        );
-      }).toList(growable: false),
+      subtypes: subtypes
+          .map((subtype) {
+            return AnalysisDriverSubtypeBuilder(
+              name: subtype.name.id,
+              members: subtype.members
+                  .map((member) => member.id)
+                  .toList(growable: false),
+            );
+          })
+          .toList(growable: false),
       libFragmentRefTargets: libraryFragmentReferences
           .map((r) => r.targetId)
           .toList(growable: false),
@@ -569,7 +599,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record that the name [node] has a relation of the given [kind].
   void recordNameRelation(
-      SimpleIdentifier node, IndexRelationKind kind, bool isQualified) {
+    SimpleIdentifier node,
+    IndexRelationKind kind,
+    bool isQualified,
+  ) {
     assembler.addNameRelation(node.name, kind, node.offset, isQualified);
   }
 
@@ -582,11 +615,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// of the given [node].  The flag [isQualified] is `true` if [node] has an
   /// explicit or implicit qualifier, so cannot be shadowed by a local
   /// declaration.
-  void recordRelation(Element2? element, IndexRelationKind kind,
-      SyntacticEntity node, bool isQualified) {
+  void recordRelation(
+    Element2? element,
+    IndexRelationKind kind,
+    SyntacticEntity node,
+    bool isQualified,
+  ) {
     if (element != null) {
       recordRelationOffset(
-          element, kind, node.offset, node.length, isQualified);
+        element,
+        kind,
+        node.offset,
+        node.length,
+        isQualified,
+      );
     }
   }
 
@@ -594,8 +636,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// [offset] and [length].  The flag [isQualified] is `true` if the relation
   /// has an explicit or implicit qualifier, so [element] cannot be shadowed by
   /// a local declaration.
-  void recordRelationOffset(Element2? element, IndexRelationKind kind,
-      int offset, int length, bool isQualified) {
+  void recordRelationOffset(
+    Element2? element,
+    IndexRelationKind kind,
+    int offset,
+    int length,
+    bool isQualified,
+  ) {
     if (element == null) return;
 
     // Ignore elements that can't be referenced outside of the unit.
@@ -641,7 +688,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
     bool isQualified = true,
   }) {
     recordRelationOffset(
-        element, kind, token.offset, token.length, isQualified);
+      element,
+      kind,
+      token.offset,
+      token.length,
+      isQualified,
+    );
   }
 
   /// Record a relation between a super [namedType] and its [Element2].
@@ -673,8 +725,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
       var objectElement = declaredElement.supertype?.element3;
-      recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
-          node.name.offset, 0, true);
+      recordRelationOffset(
+        objectElement,
+        IndexRelationKind.IS_EXTENDED_BY,
+        node.name.offset,
+        0,
+        true,
+      );
     }
     recordIsAncestorOf(declaredElement);
 
@@ -688,7 +745,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var superConstructor = defaultConstructor.superConstructor2;
       if (superConstructor != null) {
         recordRelation(
-            superConstructor, IndexRelationKind.IS_INVOKED_BY, node.name, true);
+          superConstructor,
+          IndexRelationKind.IS_INVOKED_BY,
+          node.name,
+          true,
+        );
       }
     }
 
@@ -712,21 +773,33 @@ class _IndexContributor extends GeneralizingAstVisitor {
         if (expression is PrefixedIdentifier) {
           var offset = expression.prefix.end;
           var length = expression.end - offset;
-          recordRelationOffset(element, IndexRelationKind.IS_REFERENCED_BY,
-              offset, length, true);
+          recordRelationOffset(
+            element,
+            IndexRelationKind.IS_REFERENCED_BY,
+            offset,
+            length,
+            true,
+          );
           return;
         } else {
           var offset = expression.end;
           recordRelationOffset(
-              element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+            element,
+            IndexRelationKind.IS_REFERENCED_BY,
+            offset,
+            0,
+            true,
+          );
           return;
         }
       }
     } else if (expression is PropertyAccess) {
       // Nothing to do?
     } else {
-      throw UnimplementedError('Unhandled CommentReference expression type: '
-          '${expression.runtimeType}');
+      throw UnimplementedError(
+        'Unhandled CommentReference expression type: '
+        '${expression.runtimeType}',
+      );
     }
 
     return super.visitCommentReference(node);
@@ -742,8 +815,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       if (superConstructor != null) {
         var offset = node.returnType.offset;
         var end = (node.name ?? node.returnType).end;
-        recordRelationOffset(superConstructor, IndexRelationKind.IS_INVOKED_BY,
-            offset, end - offset, true);
+        recordRelationOffset(
+          superConstructor,
+          IndexRelationKind.IS_INVOKED_BY,
+          offset,
+          end - offset,
+          true,
+        );
       }
     }
 
@@ -848,8 +926,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitExpression(Expression node) {
     var parameterElement = node.correspondingParameter;
     if (parameterElement != null && parameterElement.isOptionalPositional) {
-      recordRelationOffset(parameterElement, IndexRelationKind.IS_REFERENCED_BY,
-          node.offset, 0, true);
+      recordRelationOffset(
+        parameterElement,
+        IndexRelationKind.IS_REFERENCED_BY,
+        node.offset,
+        0,
+        true,
+      );
     }
     super.visitExpression(node);
   }
@@ -943,9 +1026,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }
     // element invocation
-    IndexRelationKind kind = element is InterfaceElement2
-        ? IndexRelationKind.IS_REFERENCED_BY
-        : IndexRelationKind.IS_INVOKED_BY;
+    IndexRelationKind kind =
+        element is InterfaceElement2
+            ? IndexRelationKind.IS_REFERENCED_BY
+            : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
     node.target?.accept(this);
     node.typeArguments?.accept(this);
@@ -1007,8 +1091,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
         offset = nameNode.offset;
         length = 0;
       }
-      recordRelationOffset(node.element2, IndexRelationKind.IS_REFERENCED_BY,
-          offset, length, true);
+      recordRelationOffset(
+        node.element2,
+        IndexRelationKind.IS_REFERENCED_BY,
+        offset,
+        length,
+        true,
+      );
     }
     return super.visitPatternField(node);
   }
@@ -1037,17 +1126,28 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     var element = node.element;
     if (node.constructorName != null) {
       int offset = node.period!.offset;
       int length = node.constructorName!.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_INVOKED_BY, offset, length, true);
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        offset,
+        length,
+        true,
+      );
     } else {
       int offset = node.thisKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        offset,
+        0,
+        true,
+      );
     }
     node.argumentList.accept(this);
   }
@@ -1094,7 +1194,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     // record specific relations
     recordRelation(
-        element, IndexRelationKind.IS_REFERENCED_BY, node, isQualified);
+      element,
+      IndexRelationKind.IS_REFERENCED_BY,
+      node,
+      isQualified,
+    );
   }
 
   @override
@@ -1104,11 +1208,21 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period!.offset;
       int length = node.constructorName!.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_INVOKED_BY, offset, length, true);
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        offset,
+        length,
+        true,
+      );
     } else {
       int offset = node.superKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        offset,
+        0,
+        true,
+      );
     }
     node.argumentList.accept(this);
   }
@@ -1119,8 +1233,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (element is SuperFormalParameterElementImpl2) {
       var superParameter = element.superConstructorParameter2;
       if (superParameter != null) {
-        recordRelation(superParameter, IndexRelationKind.IS_REFERENCED_BY,
-            node.name, true);
+        recordRelation(
+          superParameter,
+          IndexRelationKind.IS_REFERENCED_BY,
+          node.name,
+          true,
+        );
       }
     }
 
@@ -1136,12 +1254,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtype(String name,
-      {NamedType? superclass,
-      WithClause? withClause,
-      MixinOnClause? onClause,
-      ImplementsClause? implementsClause,
-      required List<ClassMember> memberNodes}) {
+  void _addSubtype(
+    String name, {
+    NamedType? superclass,
+    WithClause? withClause,
+    MixinOnClause? onClause,
+    ImplementsClause? implementsClause,
+    required List<ClassMember> memberNodes,
+  }) {
     List<String> supertypes = [];
     List<String> members = [];
 
@@ -1190,42 +1310,50 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node.name.lexeme,
-        superclass: node.extendsClause?.superclass,
-        withClause: node.withClause,
-        implementsClause: node.implementsClause,
-        memberNodes: node.members);
+    _addSubtype(
+      node.name.lexeme,
+      superclass: node.extendsClause?.superclass,
+      withClause: node.withClause,
+      implementsClause: node.implementsClause,
+      memberNodes: node.members,
+    );
   }
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
-    _addSubtype(node.name.lexeme,
-        superclass: node.superclass,
-        withClause: node.withClause,
-        implementsClause: node.implementsClause,
-        memberNodes: const []);
+    _addSubtype(
+      node.name.lexeme,
+      superclass: node.superclass,
+      withClause: node.withClause,
+      implementsClause: node.implementsClause,
+      memberNodes: const [],
+    );
   }
 
   /// Record the given mixin as a subclass of its direct superclasses.
   void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
-    _addSubtype(node.name.lexeme,
-        onClause: node.onClause,
-        implementsClause: node.implementsClause,
-        memberNodes: node.members);
+    _addSubtype(
+      node.name.lexeme,
+      onClause: node.onClause,
+      implementsClause: node.implementsClause,
+      memberNodes: node.members,
+    );
   }
 
   /// If the given [constructor] is a synthetic constructor created for a
   /// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
   /// which is invoked.  Return `null` if a redirection cycle is detected.
   ConstructorElement2? _getActualConstructorElement(
-      ConstructorElement2? constructor) {
+    ConstructorElement2? constructor,
+  ) {
     var seenConstructors = <ConstructorElement2?>{};
     while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement2;
       if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
-        var superInvocation = constructor.firstFragment.constantInitializers
-            .whereType<SuperConstructorInvocation>()
-            .singleOrNull;
+        var superInvocation =
+            constructor.firstFragment.constantInitializers
+                .whereType<SuperConstructorInvocation>()
+                .singleOrNull;
         if (superInvocation != null) {
           constructor = superInvocation.element;
         }
@@ -1282,8 +1410,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
     );
   }
 
-  void _recordIsAncestorOf(Element2 descendant, InterfaceElement2 ancestor,
-      bool includeThis, List<InterfaceElement2> visitedElements) {
+  void _recordIsAncestorOf(
+    Element2 descendant,
+    InterfaceElement2 ancestor,
+    bool includeThis,
+    List<InterfaceElement2> visitedElements,
+  ) {
     if (visitedElements.contains(ancestor)) {
       return;
     }
@@ -1293,19 +1425,32 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var length = descendant.name3?.length;
       if (offset != null && length != null) {
         assembler.addElementRelation(
-            ancestor, IndexRelationKind.IS_ANCESTOR_OF, offset, length, false);
+          ancestor,
+          IndexRelationKind.IS_ANCESTOR_OF,
+          offset,
+          length,
+          false,
+        );
       }
     }
     {
       var superType = ancestor.supertype;
       if (superType != null) {
         _recordIsAncestorOf(
-            descendant, superType.element3, true, visitedElements);
+          descendant,
+          superType.element3,
+          true,
+          visitedElements,
+        );
       }
     }
     for (InterfaceType mixinType in ancestor.mixins) {
       _recordIsAncestorOf(
-          descendant, mixinType.element3, true, visitedElements);
+        descendant,
+        mixinType.element3,
+        true,
+        visitedElements,
+      );
     }
     if (ancestor is MixinElement2) {
       for (InterfaceType type in ancestor.superclassConstraints) {
@@ -1314,7 +1459,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     for (InterfaceType implementedType in ancestor.interfaces) {
       _recordIsAncestorOf(
-          descendant, implementedType.element3, true, visitedElements);
+        descendant,
+        implementedType.element3,
+        true,
+        visitedElements,
+      );
     }
   }
 }

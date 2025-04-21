@@ -23,32 +23,35 @@ class B implements A {}
   }
 
   test_class_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 class B implements A? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 30, 2)],
+    );
   }
 
   test_class_nullable_alias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A;
 class C implements B? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2)],
+    );
   }
 
   test_class_nullable_alias2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A?;
 class C implements B {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1)],
+    );
   }
 
   test_extensionType_nonNullable() async {
@@ -59,32 +62,35 @@ extension type E(A _) implements A {}
   }
 
   test_extensionType_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 extension type E(A _) implements A? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 44, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 44, 2)],
+    );
   }
 
   test_extensionType_nullable_alias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A;
 extension type E(A _) implements B? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 59, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 59, 2)],
+    );
   }
 
   test_extensionType_nullable_alias2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A?;
 extension type E(A _) implements B {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 60, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 60, 1)],
+    );
   }
 
   test_mixin_nonNullable() async {
@@ -95,31 +101,34 @@ mixin B implements A {}
   }
 
   test_mixin_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B implements A? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 30, 2)],
+    );
   }
 
   test_mixin_nullable_alias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A;
 mixin C implements B? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2)],
+    );
   }
 
   test_mixin_nullable_alias2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 typedef B = A?;
 mixin C implements B {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1)],
+    );
   }
 }

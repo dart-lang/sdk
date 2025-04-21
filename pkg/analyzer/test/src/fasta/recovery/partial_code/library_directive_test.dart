@@ -12,32 +12,27 @@ main() {
 
 class LibraryDirectivesTest extends PartialCodeTest {
   buildAll() {
-    buildTests(
-        'library_directive',
-        [
-          TestDescriptor(
-              'keyword',
-              'library',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              'library _s_;',
-              failing: ['functionNonVoid', 'getter']),
-          TestDescriptor('name', 'library lib',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib;'),
-          TestDescriptor(
-              'nameDot',
-              'library lib.',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              'library lib._s_;',
-              failing: ['functionNonVoid', 'getter']),
-          TestDescriptor('nameDotName', 'library lib.a',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;'),
-        ],
-        PartialCodeTest.prePartSuffixes);
+    buildTests('library_directive', [
+      TestDescriptor(
+        'keyword',
+        'library',
+        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+        'library _s_;',
+        failing: ['functionNonVoid', 'getter'],
+      ),
+      TestDescriptor('name', 'library lib', [
+        ParserErrorCode.EXPECTED_TOKEN,
+      ], 'library lib;'),
+      TestDescriptor(
+        'nameDot',
+        'library lib.',
+        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+        'library lib._s_;',
+        failing: ['functionNonVoid', 'getter'],
+      ),
+      TestDescriptor('nameDotName', 'library lib.a', [
+        ParserErrorCode.EXPECTED_TOKEN,
+      ], 'library lib.a;'),
+    ], PartialCodeTest.prePartSuffixes);
   }
 }

@@ -17,11 +17,8 @@ class BasicWorkspace extends SimpleWorkspace {
   /// Each basic workspace is itself one package.
   late final BasicWorkspacePackage theOnlyPackage;
 
-  BasicWorkspace._(
-    ResourceProvider provider,
-    Packages packages,
-    String root,
-  ) : super(provider, packages, root) {
+  BasicWorkspace._(ResourceProvider provider, Packages packages, String root)
+    : super(provider, packages, root) {
     theOnlyPackage = BasicWorkspacePackage(root, this);
   }
 

@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class MissingExceptionValueTest extends PubPackageResolutionTest {
   test_missing() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef T = Int8 Function(Int8);
 int f(int i) => i * 2;
 void g() {
   Pointer.fromFunction<T>(f);
 }
-''', [
-      error(FfiCode.MISSING_EXCEPTION_VALUE, 96, 12),
-    ]);
+''',
+      [error(FfiCode.MISSING_EXCEPTION_VALUE, 96, 12)],
+    );
   }
 }

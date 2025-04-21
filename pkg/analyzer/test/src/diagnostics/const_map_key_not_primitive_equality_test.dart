@@ -29,7 +29,8 @@ main() {
   }
 
   test_implementsEqEq_direct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -38,26 +39,34 @@ class A {
 main() {
   const {const A() : 0};
 }
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 75, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 75, 9)],
+    );
   }
 
   test_implementsEqEq_double() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   const {double.infinity: 0};
 }
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 18, 15),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          18,
+          15,
+        ),
+      ],
+    );
   }
 
   test_implementsEqEq_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -70,13 +79,20 @@ class B {
 main() {
   const {B.a : 0};
 }
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 118, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          118,
+          3,
+        ),
+      ],
+    );
   }
 
   test_implementsEqEq_factory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const factory A() = B;
 }
@@ -89,13 +105,20 @@ class B implements A {
 main() {
   const {const A(): 42};
 }
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 121, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          121,
+          9,
+        ),
+      ],
+    );
   }
 
   test_implementsEqEq_nestedIn_instanceCreation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 
@@ -109,13 +132,20 @@ class B {
 main() {
   const B({A(): 0});
 }
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 110, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          110,
+          3,
+        ),
+      ],
+    );
   }
 
   test_implementsEqEq_record_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -124,13 +154,20 @@ class A {
 const x = {
   (a: 0, b: const A()): 0,
 };
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 71, 20),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          71,
+          20,
+        ),
+      ],
+    );
   }
 
   test_implementsEqEq_record_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -139,13 +176,20 @@ class A {
 const x = {
   (0, const A()): 0,
 };
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 71, 14),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          71,
+          14,
+        ),
+      ],
+    );
   }
 
   test_implementsEqEq_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -158,22 +202,29 @@ class B extends A {
 main() {
   const {const B() : 0};
 }
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 111, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
+          111,
+          9,
+        ),
+      ],
+    );
   }
 
   test_implementsHashCode_direct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const v = {A(): 0};
 
 class A {
   const A();
   int get hashCode => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 11, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 11, 3)],
+    );
   }
 
   test_implementsNone_record_named() async {

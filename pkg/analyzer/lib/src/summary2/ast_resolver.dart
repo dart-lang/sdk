@@ -41,11 +41,14 @@ class AstResolver {
     nameScope: _nameScope,
   );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
-  late final _flowAnalysis = FlowAnalysisHelper(false,
-      typeSystemOperations: TypeSystemOperations(
-          _unitElement.library.typeSystem,
-          strictCasts: analysisOptions.strictCasts),
-      typeAnalyzerOptions: _typeAnalyzerOptions);
+  late final _flowAnalysis = FlowAnalysisHelper(
+    false,
+    typeSystemOperations: TypeSystemOperations(
+      _unitElement.library.typeSystem,
+      strictCasts: analysisOptions.strictCasts,
+    ),
+    typeAnalyzerOptions: _typeAnalyzerOptions,
+  );
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,

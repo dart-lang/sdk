@@ -68,14 +68,14 @@ class VarianceBuilder {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
           var typeParameters = element.typeParameters2;
-          for (var i = 0;
-              i < arguments.length && i < typeParameters.length;
-              i++) {
+          for (
+            var i = 0;
+            i < arguments.length && i < typeParameters.length;
+            i++
+          ) {
             var typeParameter = typeParameters[i];
             result = result.meet(
-              typeParameter.variance.combine(
-                _compute(variable, arguments[i]),
-              ),
+              typeParameter.variance.combine(_compute(variable, arguments[i])),
             );
           }
         }
@@ -87,15 +87,15 @@ class VarianceBuilder {
 
         if (arguments.isNotEmpty) {
           var typeParameters = element.typeParameters2;
-          for (var i = 0;
-              i < arguments.length && i < typeParameters.length;
-              i++) {
+          for (
+            var i = 0;
+            i < arguments.length && i < typeParameters.length;
+            i++
+          ) {
             var typeParameter = typeParameters[i];
             var typeParameterVariance = typeParameter.variance;
             result = result.meet(
-              typeParameterVariance.combine(
-                _compute(variable, arguments[i]),
-              ),
+              typeParameterVariance.combine(_compute(variable, arguments[i])),
             );
           }
         }
@@ -111,9 +111,7 @@ class VarianceBuilder {
     } else if (type is RecordTypeBuilder) {
       var result = Variance.unrelated;
       for (var field in type.node.fields) {
-        result = result.meet(
-          _compute(variable, field.type.typeOrThrow),
-        );
+        result = result.meet(_compute(variable, field.type.typeOrThrow));
       }
       return result;
     }
@@ -128,9 +126,7 @@ class VarianceBuilder {
   }) {
     var result = Variance.unrelated;
 
-    result = result.meet(
-      _compute(variable, returnType),
-    );
+    result = result.meet(_compute(variable, returnType));
 
     // If [variable] is referenced in a bound at all, it makes the
     // variance of [variable] in the entire type invariant.
@@ -145,9 +141,7 @@ class VarianceBuilder {
 
     for (var typeParameter in formalParameters) {
       result = result.meet(
-        Variance.contravariant.combine(
-          _compute(variable, typeParameter.type),
-        ),
+        Variance.contravariant.combine(_compute(variable, typeParameter.type)),
       );
     }
 

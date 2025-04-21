@@ -45,7 +45,8 @@ void foo() {
   }
 
   test_abstractClass_generativeConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   A();
 }
@@ -53,13 +54,16 @@ abstract class A {
 void foo() {
   A.new;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
           44,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
   }
 
   test_concreteClass_factoryConstructor() async {

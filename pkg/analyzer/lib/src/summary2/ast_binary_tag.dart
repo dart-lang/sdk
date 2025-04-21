@@ -16,11 +16,7 @@ enum DirectiveUriKind {
   withNothing,
 }
 
-enum ImportElementPrefixKind {
-  isDeferred,
-  isNotDeferred,
-  isNull,
-}
+enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
 class Tag {
   static const int Nothing = 0;

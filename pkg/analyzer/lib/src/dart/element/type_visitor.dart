@@ -38,9 +38,7 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
 
   /// If [includeTypeAliasArguments], also visits type arguments of
   /// [InstantiatedTypeAliasElement]s associated with types.
-  RecursiveTypeVisitor({
-    required this.includeTypeAliasArguments,
-  });
+  RecursiveTypeVisitor({required this.includeTypeAliasArguments});
 
   /// Visit each item in the list until one returns `false`, in which case, this
   /// will also return `false`.

@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class TypeTestWithUndefinedNameTest extends PubPackageResolutionTest {
   test_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(var p) {
   if (p is A) {
   }
-}''', [
-      error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 22, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 22, 1)],
+    );
   }
 }

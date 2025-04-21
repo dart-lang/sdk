@@ -87,7 +87,8 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _check(
       parameters: _executableElement(node.element)?.formalParameters,
       arguments: node.argumentList.arguments,
@@ -122,9 +123,15 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
       if (parameter.isRequiredNamed) {
         String parameterName = parameter.name3!;
         if (!_containsNamedExpression(
-            enclosingConstructor, arguments, parameterName)) {
+          enclosingConstructor,
+          arguments,
+          parameterName,
+        )) {
           _containsNamedExpression(
-              enclosingConstructor, arguments, parameterName);
+            enclosingConstructor,
+            arguments,
+            parameterName,
+          );
           _errorReporter.atEntity(
             errorEntity,
             CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
@@ -137,7 +144,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
         if (annotation != null) {
           String parameterName = parameter.name3!;
           if (!_containsNamedExpression(
-              enclosingConstructor, arguments, parameterName)) {
+            enclosingConstructor,
+            arguments,
+            parameterName,
+          )) {
             var reason = annotation.getReason(strictCasts: true);
             if (reason != null) {
               _errorReporter.atEntity(
@@ -173,8 +183,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     }
 
     if (enclosingConstructor != null) {
-      return enclosingConstructor.formalParameters.any((e) =>
-          e is SuperFormalParameterElement2 && e.isNamed && e.name3 == name);
+      return enclosingConstructor.formalParameters.any(
+        (e) =>
+            e is SuperFormalParameterElement2 && e.isNamed && e.name3 == name,
+      );
     }
 
     return false;
@@ -189,9 +201,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   }
 
   static _RequiredAnnotation? _requiredAnnotation(
-      FormalParameterElement element) {
-    var annotation = element.metadata2.annotations
-        .firstWhereOrNull((e) => e.isRequired) as ElementAnnotationImpl?;
+    FormalParameterElement element,
+  ) {
+    var annotation =
+        element.metadata2.annotations.firstWhereOrNull((e) => e.isRequired)
+            as ElementAnnotationImpl?;
     if (annotation != null) {
       return _RequiredAnnotation(annotation);
     }

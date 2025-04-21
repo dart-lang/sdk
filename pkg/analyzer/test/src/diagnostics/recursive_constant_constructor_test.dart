@@ -16,43 +16,51 @@ main() {
 @reflectiveTest
 class RecursiveConstantConstructorTest extends PubPackageResolutionTest {
   test_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A();
   final m = const A();
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 18, 1),
-      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 31, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 18, 1),
+        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 31, 1),
+      ],
+    );
   }
 
   test_initializer_after_toplevel_var() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const y = const C();
 class C {
   const C() : x = y;
   final x;
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 39, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 39, 1),
+      ],
+    );
   }
 
   test_initializer_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final A a;
   const A() : a = const A();
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1)],
+    );
   }
 
   test_initializer_field_multipleClasses() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B {
   final A a;
   const B() : a = const A();
@@ -61,9 +69,11 @@ class A {
   final B b;
   const A() : b = const B();
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 85, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
+        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 85, 1),
+      ],
+    );
   }
 }

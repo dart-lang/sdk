@@ -47,18 +47,20 @@ class SuperConstructorResolver {
           } else if (initializer is SuperConstructorInvocation) {
             invokesDefaultSuperConstructor = false;
             var name = initializer.constructorName?.name ?? 'new';
-            element.superConstructor2 = classElement.supertype?.constructors2
-                .where((element) => element.name3 == name)
-                .firstOrNull;
+            element.superConstructor2 =
+                classElement.supertype?.constructors2
+                    .where((element) => element.name3 == name)
+                    .firstOrNull;
           }
         }
       }
     }
 
     if (invokesDefaultSuperConstructor) {
-      element.superConstructor2 = classElement.supertype?.constructors2
-          .where((element) => element.name3 == 'new')
-          .firstOrNull;
+      element.superConstructor2 =
+          classElement.supertype?.constructors2
+              .where((element) => element.name3 == 'new')
+              .firstOrNull;
     }
   }
 }

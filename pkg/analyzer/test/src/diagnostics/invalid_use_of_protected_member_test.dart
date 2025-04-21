@@ -470,7 +470,8 @@ class B {
   }
 
   test_setter_sameClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   int _a = 0;
@@ -480,9 +481,9 @@ class A {
     this.a = a;
   }
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 49, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 49, 2)],
+    );
   }
 
   test_setter_subclass() async {

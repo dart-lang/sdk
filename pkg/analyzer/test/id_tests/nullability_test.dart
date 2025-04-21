@@ -17,14 +17,20 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
-  return runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _NullabilityDataComputer(), [analyzerDefaultConfig]));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data',
+    ),
+  );
+  return runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _NullabilityDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _NullabilityDataComputer extends DataComputer<String> {
@@ -35,8 +41,11 @@ class _NullabilityDataComputer extends DataComputer<String> {
       const _NullabilityDataInterpreter();
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<String>> actualMap,
+  ) {
     var unitElement = unit.declaredFragment!;
     _NullabilityDataExtractor(
       unitElement.source.uri,

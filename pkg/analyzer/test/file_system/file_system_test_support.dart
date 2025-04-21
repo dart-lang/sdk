@@ -21,10 +21,8 @@ final isFolder = TypeMatcher<Folder>();
 
 final throwsFileSystemException = throwsA(isFileSystemException);
 
-typedef _WatcherChanges = ({
-  List<ChangeType> changes,
-  Future<void> Function() cancel,
-});
+typedef _WatcherChanges =
+    ({List<ChangeType> changes, Future<void> Function() cancel});
 
 abstract class FileSystemTestSupport {
   /// The content used for the file at the [defaultFilePath] if it is created
@@ -69,21 +67,23 @@ abstract class FileSystemTestSupport {
 
   /// Return a file path composed of the provided parts as defined by the
   /// current path context.
-  String join(String part1,
-          [String? part2,
-          String? part3,
-          String? part4,
-          String? part5,
-          String? part6]) =>
-      provider.pathContext.join(part1, part2, part3, part4, part5, part6);
+  String join(
+    String part1, [
+    String? part2,
+    String? part3,
+    String? part4,
+    String? part5,
+    String? part6,
+  ]) => provider.pathContext.join(part1, part2, part3, part4, part5, part6);
 
   /// Subscribes to [watcher], waits for it to become ready, and returns
   /// a record containing a list of events received (which updates as events
   /// arrive) and a function to cancel.
   Future<_WatcherChanges> _subscribeToWatcher(ResourceWatcher watcher) async {
     var changes = <ChangeType>[];
-    var subscription =
-        watcher.changes.listen((event) => changes.add(event.type));
+    var subscription = watcher.changes.listen(
+      (event) => changes.add(event.type),
+    );
 
     await watcher.ready;
 
@@ -528,8 +528,10 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     Folder folder = getFolder(exists: false);
     String path2 = join(tempPath, 'folder2');
 
-    expect(folder.canonicalizePath(join(path2, '.', 'baz')),
-        equals(join(path2, 'baz')));
+    expect(
+      folder.canonicalizePath(join(path2, '.', 'baz')),
+      equals(join(path2, 'baz')),
+    );
   }
 
   test_canonicalizePath_absolute_dotDot() {
@@ -538,21 +540,27 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     String path3 = join(tempPath, 'folder3');
 
     expect(
-        folder.canonicalizePath(join(path2, '..', 'folder3')), equals(path3));
+      folder.canonicalizePath(join(path2, '..', 'folder3')),
+      equals(path3),
+    );
   }
 
   test_canonicalizePath_relative() {
     Folder folder = getFolder(exists: false);
 
     expect(
-        folder.canonicalizePath('baz'), equals(join(defaultFolderPath, 'baz')));
+      folder.canonicalizePath('baz'),
+      equals(join(defaultFolderPath, 'baz')),
+    );
   }
 
   test_canonicalizePath_relative_dot() {
     Folder folder = getFolder(exists: false);
 
-    expect(folder.canonicalizePath(join('.', 'baz')),
-        equals(join(defaultFolderPath, 'baz')));
+    expect(
+      folder.canonicalizePath(join('.', 'baz')),
+      equals(join(defaultFolderPath, 'baz')),
+    );
   }
 
   test_canonicalizePath_relative_dotDot() {
@@ -593,22 +601,30 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_copyTo() {
-    Folder source =
-        getFolder(exists: true, folderPath: join(tempPath, 'source'));
+    Folder source = getFolder(
+      exists: true,
+      folderPath: join(tempPath, 'source'),
+    );
     String sourcePath = source.path;
-    Folder subdirectory =
-        getFolder(exists: true, folderPath: join(sourcePath, 'subdir'));
+    Folder subdirectory = getFolder(
+      exists: true,
+      folderPath: join(sourcePath, 'subdir'),
+    );
     String subdirectoryPath = subdirectory.path;
     getFile(
-        exists: true,
-        content: 'file1',
-        filePath: join(sourcePath, 'file1.txt'));
+      exists: true,
+      content: 'file1',
+      filePath: join(sourcePath, 'file1.txt'),
+    );
     getFile(
-        exists: true,
-        content: 'file2',
-        filePath: join(subdirectoryPath, 'file2.txt'));
-    Folder destination =
-        getFolder(exists: true, folderPath: join(tempPath, 'destination'));
+      exists: true,
+      content: 'file2',
+      filePath: join(subdirectoryPath, 'file2.txt'),
+    );
+    Folder destination = getFolder(
+      exists: true,
+      folderPath: join(tempPath, 'destination'),
+    );
 
     Folder copy = source.copyTo(destination);
     expect(copy.parent, destination);
@@ -624,8 +640,10 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_delete() {
-    File file =
-        getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
+    File file = getFile(
+      exists: true,
+      filePath: join(defaultFolderPath, 'myFile'),
+    );
     var folder = file.parent;
     expect(folder.exists, isTrue);
     expect(file.exists, isTrue);
@@ -636,10 +654,14 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   }
 
   test_equals_differentPaths() {
-    Folder folder1 =
-        getFolder(exists: true, folderPath: join(tempPath, 'folder1'));
-    Folder folder2 =
-        getFolder(exists: true, folderPath: join(tempPath, 'folder2'));
+    Folder folder1 = getFolder(
+      exists: true,
+      folderPath: join(tempPath, 'folder1'),
+    );
+    Folder folder2 = getFolder(
+      exists: true,
+      folderPath: join(tempPath, 'folder2'),
+    );
 
     expect(folder1 == folder2, isFalse);
   }
@@ -803,10 +825,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
 
     var children = provider.getFolder(tempPath).getChildren();
     expect(children, hasLength(2));
-    expect(
-      children.map((e) => e.path),
-      unorderedEquals([a_path, b_path]),
-    );
+    expect(children.map((e) => e.path), unorderedEquals([a_path, b_path]));
 
     var b = children.singleWhere((e) => e.path == b_path) as File;
     expect(b.resolveSymbolicLinksSync(), a);
@@ -823,10 +842,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
 
     var children = provider.getFolder(tempPath).getChildren();
     expect(children, hasLength(2));
-    expect(
-      children.map((e) => e.path),
-      unorderedEquals([foo_path, bar_path]),
-    );
+    expect(children.map((e) => e.path), unorderedEquals([foo_path, bar_path]));
 
     var b = children.singleWhere((e) => e.path == bar_path) as Folder;
     expect(b.resolveSymbolicLinksSync(), foo);
@@ -877,7 +893,9 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     Folder folder = getFolder(exists: true);
 
     expect(
-        folder.isOrContains(join(defaultFolderPath, 'aaa', 'bbb.txt')), isTrue);
+      folder.isOrContains(join(defaultFolderPath, 'aaa', 'bbb.txt')),
+      isTrue,
+    );
   }
 
   test_isOrContains_notContained() {
@@ -896,8 +914,10 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   /// and cancel it at a different time.
   test_multipleWatchers_staggeredCancel() async {
     var folderPath = path.join(tempPath, 'foo');
-    var fileInFolder =
-        getFile(filePath: path.join(folderPath, 'file'), exists: true);
+    var fileInFolder = getFile(
+      filePath: path.join(folderPath, 'file'),
+      exists: true,
+    );
     var resource = provider.getResource(folderPath);
     var watcher = resource.watch();
 
@@ -926,8 +946,10 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   /// at a different time.
   test_multipleWatchers_staggeredSubscribe() async {
     var folderPath = path.join(tempPath, 'foo');
-    var fileInFolder =
-        getFile(filePath: path.join(folderPath, 'file'), exists: true);
+    var fileInFolder = getFile(
+      filePath: path.join(folderPath, 'file'),
+      exists: true,
+    );
     var resource = provider.getResource(folderPath);
     var watcher = resource.watch();
 
@@ -1038,8 +1060,11 @@ mixin FolderTestMixin implements FileSystemTestSupport {
       if (copiedChild == null) {
         fail('Failed to copy file ${sourceChild.path}');
       }
-      expect(copiedChild.readAsStringSync(), sourceChild.readAsStringSync(),
-          reason: 'Incorrectly copied file ${sourceChild.path}');
+      expect(
+        copiedChild.readAsStringSync(),
+        sourceChild.readAsStringSync(),
+        reason: 'Incorrectly copied file ${sourceChild.path}',
+      );
     }
     for (String fileName in sourceFolders.keys) {
       var sourceChild = sourceFolders[fileName]!;
@@ -1061,8 +1086,9 @@ mixin LinkTestMixin implements FileSystemTestSupport {
 
   test_exists_existing() {
     var link = getLink(
-        linkPath: join(tempPath, 'link.dart'),
-        target: join(tempPath, 'target.dart'));
+      linkPath: join(tempPath, 'link.dart'),
+      target: join(tempPath, 'target.dart'),
+    );
     expect(link.exists, isTrue);
   }
 

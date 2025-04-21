@@ -76,48 +76,66 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 @reflectiveTest
 class ErrorSeverityTest {
   test_max_error_error() async {
-    expect(ErrorSeverity.ERROR.max(ErrorSeverity.ERROR),
-        same(ErrorSeverity.ERROR));
+    expect(
+      ErrorSeverity.ERROR.max(ErrorSeverity.ERROR),
+      same(ErrorSeverity.ERROR),
+    );
   }
 
   test_max_error_none() async {
     expect(
-        ErrorSeverity.ERROR.max(ErrorSeverity.NONE), same(ErrorSeverity.ERROR));
+      ErrorSeverity.ERROR.max(ErrorSeverity.NONE),
+      same(ErrorSeverity.ERROR),
+    );
   }
 
   test_max_error_warning() async {
-    expect(ErrorSeverity.ERROR.max(ErrorSeverity.WARNING),
-        same(ErrorSeverity.ERROR));
+    expect(
+      ErrorSeverity.ERROR.max(ErrorSeverity.WARNING),
+      same(ErrorSeverity.ERROR),
+    );
   }
 
   test_max_none_error() async {
     expect(
-        ErrorSeverity.NONE.max(ErrorSeverity.ERROR), same(ErrorSeverity.ERROR));
+      ErrorSeverity.NONE.max(ErrorSeverity.ERROR),
+      same(ErrorSeverity.ERROR),
+    );
   }
 
   test_max_none_none() async {
     expect(
-        ErrorSeverity.NONE.max(ErrorSeverity.NONE), same(ErrorSeverity.NONE));
+      ErrorSeverity.NONE.max(ErrorSeverity.NONE),
+      same(ErrorSeverity.NONE),
+    );
   }
 
   test_max_none_warning() async {
-    expect(ErrorSeverity.NONE.max(ErrorSeverity.WARNING),
-        same(ErrorSeverity.WARNING));
+    expect(
+      ErrorSeverity.NONE.max(ErrorSeverity.WARNING),
+      same(ErrorSeverity.WARNING),
+    );
   }
 
   test_max_warning_error() async {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.ERROR),
-        same(ErrorSeverity.ERROR));
+    expect(
+      ErrorSeverity.WARNING.max(ErrorSeverity.ERROR),
+      same(ErrorSeverity.ERROR),
+    );
   }
 
   test_max_warning_none() async {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.NONE),
-        same(ErrorSeverity.WARNING));
+    expect(
+      ErrorSeverity.WARNING.max(ErrorSeverity.NONE),
+      same(ErrorSeverity.WARNING),
+    );
   }
 
   test_max_warning_warning() async {
-    expect(ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
-        same(ErrorSeverity.WARNING));
+    expect(
+      ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
+      same(ErrorSeverity.WARNING),
+    );
   }
 }
 
@@ -137,7 +155,10 @@ class ResolveRelativeUriTest {
 
   test_resolveRelative_dart_filePathWithParent() async {
     _assertResolve(
-        'dart:test/b/test.dart', '../c/lib.dart', 'dart:test/c/lib.dart');
+      'dart:test/b/test.dart',
+      '../c/lib.dart',
+      'dart:test/c/lib.dart',
+    );
   }
 
   test_resolveRelative_package_dartUri() async {
@@ -162,7 +183,10 @@ class ResolveRelativeUriTest {
 
   test_resolveRelative_package_filePathWithParent() async {
     _assertResolve(
-        'package:a/b/test.dart', '../c/lib.dart', 'package:a/c/lib.dart');
+      'package:a/b/test.dart',
+      '../c/lib.dart',
+      'package:a/c/lib.dart',
+    );
   }
 
   void _assertResolve(String baseStr, String containedStr, String expectedStr) {

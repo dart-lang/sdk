@@ -34,9 +34,11 @@ class FileSource extends Source {
   /// a [uri] is given, then it will be used as the URI from which the source
   /// was derived, otherwise a `file:` URI will be created based on the [file].
   FileSource(this.file, [Uri? uri])
-      : uri = uri ?? file.toUri(),
-        id = _idTable.putIfAbsent(
-            '${uri ?? file.toUri()}@${file.path}', () => _idTable.length);
+    : uri = uri ?? file.toUri(),
+      id = _idTable.putIfAbsent(
+        '${uri ?? file.toUri()}@${file.path}',
+        () => _idTable.length,
+      );
 
   @override
   TimestampedData<String> get contents {

@@ -14,7 +14,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(ForElement)? forElement;
   final void Function(ForStatement)? forStatement;
   final void Function(FunctionDeclarationStatement)?
-      functionDeclarationStatement;
+  functionDeclarationStatement;
   final void Function(FunctionExpression, bool)? functionExpression;
   final void Function(GuardedPattern)? guardedPattern;
   final void Function(IfElement)? ifElement;
@@ -24,7 +24,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
   final void Function(PatternVariableDeclarationStatement)?
-      patternVariableDeclarationStatement;
+  patternVariableDeclarationStatement;
   final void Function(SimpleIdentifier)? simpleIdentifier;
   final void Function(SwitchExpression)? switchExpression;
   final void Function(SwitchExpressionCase)? switchExpressionCase;
@@ -110,7 +110,8 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (functionExpression != null) {
-      var local = node.parent is! FunctionDeclaration ||
+      var local =
+          node.parent is! FunctionDeclaration ||
           node.parent!.parent is FunctionDeclarationStatement;
       functionExpression!(node, local);
     }
@@ -165,7 +166,8 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     patternVariableDeclarationStatement?.call(node);
     super.visitPatternVariableDeclarationStatement(node);
   }

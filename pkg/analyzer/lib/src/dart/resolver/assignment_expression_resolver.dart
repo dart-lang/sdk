@@ -26,13 +26,10 @@ class AssignmentExpressionResolver {
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
 
-  AssignmentExpressionResolver({
-    required ResolverVisitor resolver,
-  })  : _resolver = resolver,
-        _typePropertyResolver = resolver.typePropertyResolver,
-        _assignmentShared = AssignmentExpressionShared(
-          resolver: resolver,
-        );
+  AssignmentExpressionResolver({required ResolverVisitor resolver})
+    : _resolver = resolver,
+      _typePropertyResolver = resolver.typePropertyResolver,
+      _assignmentShared = AssignmentExpressionShared(resolver: resolver);
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -84,8 +81,10 @@ class AssignmentExpressionResolver {
     {
       var leftType = node.writeType;
       if (writeElement is VariableElement2) {
-        leftType = _resolver.localVariableTypeProvider
-            .getType(left as SimpleIdentifierImpl, isRead: false);
+        leftType = _resolver.localVariableTypeProvider.getType(
+          left as SimpleIdentifierImpl,
+          isRead: false,
+        );
       }
       rhsContext = _computeRhsContext(node, leftType!, operator, right);
     }
@@ -99,13 +98,20 @@ class AssignmentExpressionResolver {
     right = _resolver.popRewrite()!;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
-    _resolveTypes(node,
-        whyNotPromoted: whyNotPromoted, contextType: contextType);
+    _resolveTypes(
+      node,
+      whyNotPromoted: whyNotPromoted,
+      contextType: contextType,
+    );
 
     if (flow != null) {
       if (writeElement2 is PromotableElementImpl2) {
-        flow.write(node, writeElement2, SharedTypeView(node.typeOrThrow),
-            hasRead ? null : right);
+        flow.write(
+          node,
+          writeElement2,
+          SharedTypeView(node.typeOrThrow),
+          hasRead ? null : right,
+        );
       }
       if (isIfNull) {
         flow.ifNullExpression_end();
@@ -126,8 +132,11 @@ class AssignmentExpressionResolver {
     }
 
     var strictCasts = _resolver.analysisOptions.strictCasts;
-    if (_typeSystem.isAssignableTo(rightType, writeType,
-        strictCasts: strictCasts)) {
+    if (_typeSystem.isAssignableTo(
+      rightType,
+      writeType,
+      strictCasts: strictCasts,
+    )) {
       return;
     }
 
@@ -136,8 +145,11 @@ class AssignmentExpressionResolver {
         rightType is! RecordType &&
         right is ParenthesizedExpressionImpl) {
       var field = writeType.positionalFields.first;
-      if (_typeSystem.isAssignableTo(field.type, rightType,
-          strictCasts: strictCasts)) {
+      if (_typeSystem.isAssignableTo(
+        field.type,
+        rightType,
+        strictCasts: strictCasts,
+      )) {
         _errorReporter.atNode(
           right,
           CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
@@ -151,7 +163,9 @@ class AssignmentExpressionResolver {
       CompileTimeErrorCode.INVALID_ASSIGNMENT,
       arguments: [rightType, writeType],
       contextMessages: _resolver.computeWhyNotPromotedMessages(
-          right, whyNotPromoted?.call()),
+        right,
+        whyNotPromoted?.call(),
+      ),
     );
   }
 
@@ -182,8 +196,12 @@ class AssignmentExpressionResolver {
     return true;
   }
 
-  TypeImpl _computeRhsContext(AssignmentExpressionImpl node, TypeImpl leftType,
-      TokenType operator, Expression right) {
+  TypeImpl _computeRhsContext(
+    AssignmentExpressionImpl node,
+    TypeImpl leftType,
+    TokenType operator,
+    Expression right,
+  ) {
     switch (operator) {
       case TokenType.EQ:
       case TokenType.QUESTION_QUESTION_EQ:
@@ -197,7 +215,11 @@ class AssignmentExpressionResolver {
           var parameters = method.formalParameters;
           if (parameters.isNotEmpty) {
             return _typeSystem.refineNumericInvocationContext2(
-                leftType, method, leftType, parameters[0].type);
+              leftType,
+              method,
+              leftType,
+              parameters[0].type,
+            );
           }
         }
         return UnknownInferredType.instance;
@@ -256,10 +278,11 @@ class AssignmentExpressionResolver {
     }
   }
 
-  void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<SharedTypeView, NonPromotionReason> Function()?
-          whyNotPromoted,
-      required TypeImpl contextType}) {
+  void _resolveTypes(
+    AssignmentExpressionImpl node, {
+    required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+    required TypeImpl contextType,
+  }) {
     TypeImpl assignedType;
 
     var rightHandSide = node.rightHandSide;
@@ -305,8 +328,9 @@ class AssignmentExpressionResolver {
       //   - Let `S` be the greatest closure of `K`.
       var s = _typeSystem.greatestClosureOfSchema(contextType);
       // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-      if (!_resolver.definingLibrary.featureSet
-          .isEnabled(Feature.inference_update_3)) {
+      if (!_resolver.definingLibrary.featureSet.isEnabled(
+        Feature.inference_update_3,
+      )) {
         nodeType = t;
       } else
       //   - If `T <: S`, then the type of `E` is `T`.
@@ -337,8 +361,10 @@ class AssignmentExpressionResolver {
     );
     if (operator != TokenType.EQ &&
         operator != TokenType.QUESTION_QUESTION_EQ) {
-      _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightHandSide,
-          whyNotPromoted: whyNotPromoted);
+      _resolver.checkForArgumentTypeNotAssignableForArgument(
+        node.rightHandSide,
+        whyNotPromoted: whyNotPromoted,
+      );
     }
   }
 }
@@ -346,14 +372,15 @@ class AssignmentExpressionResolver {
 class AssignmentExpressionShared {
   final ResolverVisitor _resolver;
 
-  AssignmentExpressionShared({
-    required ResolverVisitor resolver,
-  }) : _resolver = resolver;
+  AssignmentExpressionShared({required ResolverVisitor resolver})
+    : _resolver = resolver;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  void checkFinalAlreadyAssigned(Expression left,
-      {bool isForEachIdentifier = false}) {
+  void checkFinalAlreadyAssigned(
+    Expression left, {
+    bool isForEachIdentifier = false,
+  }) {
     var flowAnalysis = _resolver.flowAnalysis;
 
     var flow = flowAnalysis.flow;

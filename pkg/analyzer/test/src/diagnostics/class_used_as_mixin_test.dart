@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class ClassUsedAsMixinTest extends PubPackageResolutionTest {
   test_coreLib() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Bar with Comparable<int> {
   int compareTo(int x) => 0;
 }
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 15, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 15, 15)],
+    );
   }
 
   test_coreLib_language219() async {
@@ -35,12 +36,13 @@ class Bar with Comparable<int> {
   }
 
   test_inside() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo {}
 class Bar with Foo {}
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 28, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 28, 3)],
+    );
   }
 
   test_inside_language219() async {
@@ -63,12 +65,13 @@ class Bar with Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 class Bar with Foo {}
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 3)],
+    );
   }
 
   test_outside_language219() async {
@@ -88,13 +91,14 @@ class Bar with Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 import 'foo.dart';
 class Bar with Foo {}
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 50, 3)],
+    );
   }
 
   test_outside_mixinClass() async {
@@ -114,12 +118,13 @@ class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 class Bar with FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 34, 10)],
+    );
   }
 
   test_outside_viaTypedef_inside_language219() async {
@@ -152,13 +157,14 @@ class Bar with FooTypedef {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 60, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 60, 10)],
+    );
   }
 
   test_outside_viaTypedef_outside_language219() async {

@@ -62,7 +62,8 @@ class AnalysisSessionHelper {
   /// Returns `null` if the [fragment] is synthetic, or is declared in a file
   /// that is not a part of a library.
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
-      Fragment fragment) async {
+    Fragment fragment,
+  ) async {
     var libraryPath = fragment.libraryFragment!.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
     return resolvedLibrary?.getFragmentDeclaration(fragment);
@@ -91,8 +92,9 @@ class AnalysisSessionHelper {
     }
 
     var unitPath = element.firstFragment.libraryFragment!.source.fullName;
-    return resolvedLibrary.units
-        .singleWhere((resolvedUnit) => resolvedUnit.path == unitPath);
+    return resolvedLibrary.units.singleWhere(
+      (resolvedUnit) => resolvedUnit.path == unitPath,
+    );
   }
 
   /// Returns the [PropertyAccessorElement2] with the given [name] that is
@@ -101,7 +103,9 @@ class AnalysisSessionHelper {
   /// Returns `null` if the library does not export a top-level accessor with
   /// that name.
   Future<PropertyAccessorElement2?> getTopLevelPropertyAccessor(
-      String uri, String name) async {
+    String uri,
+    String name,
+  ) async {
     var libraryResult = await session.getLibraryByUri(uri);
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element2.exportNamespace.get2(name);
