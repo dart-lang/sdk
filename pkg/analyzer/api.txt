@@ -3038,7 +3038,6 @@ package:analyzer/dart/element/element.dart:
   ElementAnnotation (class extends Object implements ConstantEvaluationTarget):
     new (constructor: ElementAnnotation Function())
     constantEvaluationErrors (getter: List<AnalysisError>?)
-    element (getter: Element?, deprecated)
     element2 (getter: Element2?)
     isAlwaysThrows (getter: bool)
     isDeprecated (getter: bool)
@@ -3132,8 +3131,6 @@ package:analyzer/dart/element/element.dart:
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)
-  UndefinedElement (class extends Object implements Element, deprecated):
-    new (constructor: UndefinedElement Function())
 package:analyzer/dart/element/element2.dart:
   Annotatable (class extends Object):
     new (constructor: Annotatable Function())

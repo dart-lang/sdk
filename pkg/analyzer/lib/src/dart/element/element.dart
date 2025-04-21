@@ -2171,12 +2171,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   AnalysisContext get context => compilationUnit.library.context;
 
-  @Deprecated('Use element2 instead')
-  @override
-  Element? get element {
-    return element2?.asElement;
-  }
-
   @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
 
@@ -10795,7 +10789,6 @@ mixin TypeParameterizedElementMixin on ElementImpl
     return _typeParameters;
   }
 }
-
 
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement2`.

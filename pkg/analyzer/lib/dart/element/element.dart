@@ -394,17 +394,6 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 
   /// Returns the element referenced by this annotation.
   ///
-  /// In valid code this element can be a [PropertyAccessorElement] getter
-  /// of a constant top-level variable, or a constant static field of a
-  /// class; or a constant [ConstructorElement].
-  ///
-  /// In invalid code this element can be `null`, or a reference to any
-  /// other element.
-  @Deprecated('Use element2 instead')
-  Element? get element;
-
-  /// Returns the element referenced by this annotation.
-  ///
   /// In valid code this element can be a [GetterElement] of a constant
   /// top-level variable, or a constant static field of a class; or a
   /// constant [ConstructorElement2].
@@ -737,12 +726,3 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
   /// are defined in the imported library.
   List<String> get shownNames;
 }
-
-/// A pseudo-elements that represents names that are undefined. This situation
-/// is not allowed by the language, so objects implementing this interface
-/// always represent an error. As a result, most of the normal operations on
-/// elements do not make sense and will return useless results.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Not used anymore')
-abstract class UndefinedElement implements Element {}
