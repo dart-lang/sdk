@@ -4629,11 +4629,13 @@ package:analyzer/src/dart/analysis/experiments_impl.dart:
     stringForValue (method: String Function(bool))
     toString (method: String Function())
 package:analyzer/src/dart/constant/evaluation.dart:
-  ConstantEvaluationTarget (class extends AnalysisTarget):
+  ConstantEvaluationTarget (class extends Object):
     new (constructor: ConstantEvaluationTarget Function())
     context (getter: AnalysisContext@2)
     isConstantEvaluated (getter: bool)
     library2 (getter: LibraryElement2?)
+    librarySource (getter: Source?)
+    source (getter: Source?)
 package:analyzer/src/dart/resolver/scope.dart:
   Namespace (class extends Object):
     EMPTY (static getter: Namespace)
@@ -4660,11 +4662,6 @@ package:analyzer/src/lint/config.dart:
   RuleConfig (non-public)
 package:analyzer/src/lint/linter.dart:
   LintRule (non-public)
-package:analyzer/src/task/api/model.dart:
-  AnalysisTarget (class extends Object, deprecated):
-    new (constructor: AnalysisTarget Function())
-    librarySource (getter: Source?)
-    source (getter: Source?)
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
 package:analyzer/utilities/extensions/ast.dart:

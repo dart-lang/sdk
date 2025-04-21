@@ -2303,7 +2303,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   LibraryElementImpl get library2 => compilationUnit.library;
 
-  /// Get the library containing this annotation.
   @override
   Source get librarySource => compilationUnit.librarySource;
 
