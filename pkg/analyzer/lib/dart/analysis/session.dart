@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -53,11 +52,6 @@ abstract class AnalysisSession {
 
   /// Return information about the results of parsing units of the library file
   /// with the given library [element].
-  @Deprecated('Use getParsedLibraryByElement2() instead')
-  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
-
-  /// Return information about the results of parsing units of the library file
-  /// with the given library [element].
   @experimental
   SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element);
 
@@ -69,14 +63,6 @@ abstract class AnalysisSession {
   /// resolving all of the files in the library with the given absolute,
   /// normalized [path].
   Future<SomeResolvedLibraryResult> getResolvedLibrary(String path);
-
-  /// Return a future that will complete with information about the results of
-  /// resolving all of the files in the library with the library [element].
-  ///
-  /// Throw [ArgumentError] if the [element] was not produced by this session.
-  @Deprecated('Use getResolvedLibraryByElement2() instead')
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
-      LibraryElement element);
 
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library with the library [element].
