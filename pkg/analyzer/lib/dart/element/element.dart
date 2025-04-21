@@ -864,18 +864,6 @@ class LibraryLanguageVersion {
 @Deprecated('Use LocalElement2 instead')
 abstract class LocalElement implements Element {}
 
-/// A local variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use LocalVariableFragment and LocalVariableElement2 instead')
-abstract class LocalVariableElement implements PromotableElement {
-  /// Whether the variable has an initializer at declaration.
-  bool get hasInitializer;
-
-  @override
-  String get name;
-}
-
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.

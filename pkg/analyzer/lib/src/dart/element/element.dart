@@ -7278,11 +7278,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
 }
 
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LocalVariableElement,
-        LocalVariableFragment,
-        VariableElementOrMember {
+    implements LocalVariableFragment, VariableElementOrMember {
   late LocalVariableElementImpl2 _element2 = switch (this) {
     BindPatternVariableElementImpl() => BindPatternVariableElementImpl2(this),
     JoinPatternVariableElementImpl() => JoinPatternVariableElementImpl2(this),

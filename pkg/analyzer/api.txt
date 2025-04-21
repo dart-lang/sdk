@@ -3166,10 +3166,6 @@ package:analyzer/dart/element/element.dart:
     package (getter: Version)
   LocalElement (class extends Object implements Element, deprecated):
     new (constructor: LocalElement Function())
-  LocalVariableElement (class extends Object implements PromotableElement, deprecated):
-    new (constructor: LocalVariableElement Function())
-    hasInitializer (getter: bool)
-    name (getter: String)
   NamespaceCombinator (class extends Object, sealed (immediate subtypes: HideElementCombinator, ShowElementCombinator)):
     end (getter: int)
     offset (getter: int)
