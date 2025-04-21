@@ -1318,9 +1318,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeLibraryImport(LibraryImport e) {
-    (e as LibraryImportElementImpl).location;
-
+  void _writeLibraryImport(LibraryImportElementImpl e) {
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
       _sink.writeIf(e.isSynthetic, ' synthetic');

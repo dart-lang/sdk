@@ -108,8 +108,6 @@ extension ConstructorElementMixinExtension on ConstructorElementMixin {
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
   }
-
-  ElementImpl? get enclosingElementImpl => enclosingElement3 as ElementImpl?;
 }
 
 extension Element2Extension on Element2 {

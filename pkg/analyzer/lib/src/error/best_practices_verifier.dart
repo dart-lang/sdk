@@ -117,7 +117,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
         _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
-    _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
+    _inDoNotStoreMember = _currentLibrary.metadata2.hasDoNotStore;
   }
 
   @override

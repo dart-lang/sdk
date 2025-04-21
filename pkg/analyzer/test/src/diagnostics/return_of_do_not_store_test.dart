@@ -155,6 +155,15 @@ String? get v => _v ?? _v2;
     ]);
   }
 
+  test_returnFromGetter_library() async {
+    await assertNoErrorsInCode('''
+@doNotStore
+import 'package:meta/meta.dart';
+int get foo => 0;
+int get bar => foo;
+''');
+  }
+
   test_returnFromGetter_ternary() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
