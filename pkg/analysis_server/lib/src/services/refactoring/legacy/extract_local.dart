@@ -56,7 +56,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String? stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
   final Map<Element2, int> elementIds = <Element2, int>{};
-  Set<String> excludedVariableNames = <String>{};
+  Set<String> _excludedVariableNames = <String>{};
 
   ExtractLocalRefactoringImpl(
     this.resolveResult,
@@ -125,7 +125,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     _prepareOccurrences();
     _prepareOffsetsLengths();
     // names
-    excludedVariableNames = unit.findPossibleLocalVariableConflicts(
+    _excludedVariableNames = unit.findPossibleLocalVariableConflicts(
       selectionOffset,
     );
     _prepareNames();
@@ -137,7 +137,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   RefactoringStatus checkName() {
     var result = RefactoringStatus();
     result.addStatus(validateVariableName(name));
-    if (excludedVariableNames.contains(name)) {
+    if (_excludedVariableNames.contains(name)) {
       result.addError(
         format("The name '{0}' is already used in the scope.", name),
       );
@@ -530,7 +530,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       names.addAll(
         getVariableNameSuggestionsForText(
           stringLiteralPart,
-          excludedVariableNames,
+          _excludedVariableNames,
         ),
       );
     } else if (singleExpression != null) {
@@ -538,7 +538,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         getVariableNameSuggestionsForExpression(
           singleExpression.staticType,
           singleExpression,
-          excludedVariableNames,
+          _excludedVariableNames,
         ),
       );
     }

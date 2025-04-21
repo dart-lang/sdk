@@ -11,8 +11,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/document_links.dart';
@@ -82,7 +82,7 @@ AstNode _getNavigationTargetNode(AstNode node) {
 }
 
 AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
-  var node = NodeLocator(offset, offset + length).searchWithin(unit);
+  var node = unit.nodeCovering(offset: offset, length: length);
   for (var n = node; n != null; n = n.parent) {
     if (n is Directive) {
       return n;

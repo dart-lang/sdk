@@ -6,11 +6,11 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:linter/src/lint_codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2593,7 +2593,7 @@ import 'dart:math';
 
   Future<Element2> _findElement(int offset, File file) async {
     var resolvedUnit = await fileResolver.resolve(path: file.path);
-    var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+    var node = resolvedUnit.unit.nodeCovering(offset: offset);
     var element = getElementOfNode2(node);
     return element!;
   }

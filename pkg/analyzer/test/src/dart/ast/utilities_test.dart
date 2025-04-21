@@ -12,7 +12,6 @@ import '../../../util/ast_type_matchers.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NodeLocatorTest);
     defineReflectiveTests(NodeLocator2Test);
   });
 }
@@ -61,56 +60,6 @@ class NodeLocator2Test extends _SharedNodeLocatorTests {
     expect(NodeLocator2(5, 7).searchWithin(unit), same(unit));
     expect(NodeLocator2(5, 100).searchWithin(unit), isNull);
     expect(NodeLocator2(100, 200).searchWithin(unit), isNull);
-  }
-}
-
-@reflectiveTest
-class NodeLocatorTest extends _SharedNodeLocatorTests {
-  @override
-  AstNode? locate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]) {
-    var locator = NodeLocator(start, end);
-    var node = locator.searchWithin(unit)!;
-    expect(locator.foundNode, same(node));
-    return node;
-  }
-
-  void test_range() {
-    CompilationUnit unit = parseCompilationUnit("library myLib;");
-    var node = _assertLocate(unit, 4, 10);
-    expect(node, isLibraryDirective);
-  }
-
-  void test_searchWithin_null() {
-    NodeLocator locator = NodeLocator(0, 0);
-    expect(locator.searchWithin(null), isNull);
-  }
-
-  void test_searchWithin_offset() {
-    CompilationUnit unit = parseCompilationUnit("library myLib;");
-    var node = _assertLocate(unit, 10, 10);
-    expect(node, isSimpleIdentifier);
-  }
-
-  void test_searchWithin_offsetAfterNode() {
-    CompilationUnit unit = parseCompilationUnit(r'''
-class A {}
-class B {}''');
-    NodeLocator locator = NodeLocator(1024, 1024);
-    var node = locator.searchWithin(unit.declarations[0]);
-    expect(node, isNull);
-  }
-
-  void test_searchWithin_offsetBeforeNode() {
-    CompilationUnit unit = parseCompilationUnit(r'''
-class A {}
-class B {}''');
-    NodeLocator locator = NodeLocator(0, 0);
-    var node = locator.searchWithin(unit.declarations[1]);
-    expect(node, isNull);
   }
 }
 

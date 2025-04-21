@@ -11,10 +11,10 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
 class ThrowStatement {
   final ExpressionStatement statement;
@@ -282,15 +282,15 @@ extension CompilationUnitExtension on CompilationUnit {
   /// Returns names of elements that might conflict with a new local variable
   /// declared at [offset].
   Set<String> findPossibleLocalVariableConflicts(int offset) {
-    var conflicts = <String>{};
-    var enclosingNode = NodeLocator(offset).searchWithin(this)!;
+    var enclosingNode = nodeCovering(offset: offset)!;
     var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
-    if (enclosingBlock != null) {
-      var visitor = _ReferencedUnprefixedNamesCollector();
-      enclosingBlock.accept(visitor);
-      return visitor.names;
+    if (enclosingBlock == null) {
+      return {};
     }
-    return conflicts;
+
+    var visitor = _ReferencedUnprefixedNamesCollector();
+    enclosingBlock.accept(visitor);
+    return visitor.names;
   }
 }
 
