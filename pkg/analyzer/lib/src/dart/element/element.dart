@@ -3373,6 +3373,12 @@ abstract class ElementOrMember {
   /// The kind of element that this is.
   ElementKind get kind;
 
+  /// All of the metadata associated with this element.
+  ///
+  /// The array will be empty if the element does not have any metadata or if
+  /// the library containing this element has not yet been resolved.
+  List<ElementAnnotation> get metadata;
+
   /// The name of this element, or `null` if this element does not have a name.
   String? get name;
 
@@ -5572,9 +5578,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   List<FieldElementImpl2> get fields2 {
     _readMembers();
-    return firstFragment.fields
-        .map((e) => e.asElement2 as FieldElementImpl2)
-        .toList();
+    return firstFragment.fields.map((e) => e.asElement2).toList();
   }
 
   @override
@@ -11051,15 +11055,51 @@ abstract class VariableElementImpl2 extends ElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement`.
 abstract class VariableElementOrMember
-    implements
-        ElementOrMember,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        VariableElement {
+    implements ElementOrMember, ConstantEvaluationTarget {
   @override
   VariableElementImpl get declaration;
 
+  /// Whether the variable element did not have an explicit type specified
+  /// for it.
+  bool get hasImplicitType;
+
+  /// Whether the variable was declared with the 'const' modifier.
+  bool get isConst;
+
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
+  bool get isFinal;
+
+  /// Whether the variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  bool get isLate;
+
+  /// Whether the element is a static variable, as per section 8 of the Dart
+  /// Language Specification:
+  ///
+  /// > A static variable is a variable that is not associated with a particular
+  /// > instance, but rather with an entire library or class. Static variables
+  /// > include library variables and class variables. Class variables are
+  /// > variables whose declaration is immediately nested inside a class
+  /// > declaration and includes the modifier static. A library variable is
+  /// > implicitly static.
+  bool get isStatic;
+
   @override
+  String get name;
+
+  /// The declared type of this variable.
   TypeImpl get type;
+
+  /// Returns a representation of the value of this variable, forcing the value
+  /// to be computed if it had not previously been computed, or `null` if either
+  /// this variable was not declared with the 'const' modifier or if the value
+  /// of this variable could not be computed because of errors.
+  DartObject? computeConstantValue();
 }
 
 mixin WrappedElementMixin implements ElementImpl2 {

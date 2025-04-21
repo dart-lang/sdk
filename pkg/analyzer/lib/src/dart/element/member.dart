@@ -702,8 +702,7 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  PropertyInducingElement2OrMember? get variable3 =>
-      variable2.asElement2 as PropertyInducingElement2OrMember?;
+  PropertyInducingElement2OrMember? get variable3 => variable2?.asElement2;
 
   @override
   GetterElementImpl get _element2 {
@@ -1441,8 +1440,7 @@ class SetterMember extends PropertyAccessorMember
   }
 
   @override
-  PropertyInducingElement2OrMember? get variable3 =>
-      variable2.asElement2 as PropertyInducingElement2OrMember?;
+  PropertyInducingElement2OrMember? get variable3 => variable2?.asElement2;
 
   @override
   SetterElementImpl get _element2 {

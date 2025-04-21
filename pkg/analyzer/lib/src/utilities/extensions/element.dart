@@ -351,6 +351,12 @@ extension FieldElementImpl2Extension on FieldElementImpl2 {
   }
 }
 
+extension FieldElementImplExtension on FieldElementImpl {
+  FieldElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension FieldElementOrMemberExtension on FieldElementOrMember {
   FieldElement2OrMember get asElement2 {
     return switch (this) {
@@ -589,6 +595,17 @@ extension PropertyInducingElementExtension on PropertyInducingElement2 {
     } else {
       return true;
     }
+  }
+}
+
+extension PropertyInducingElementOrMemberExtension
+    on PropertyInducingElementOrMember {
+  PropertyInducingElement2OrMember get asElement2 {
+    return switch (this) {
+      PropertyInducingElementImpl(:var element) => element,
+      FieldMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
   }
 }
 

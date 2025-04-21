@@ -12,7 +12,6 @@
 /// [element model](../element/element.dart).
 library;
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
@@ -67,10 +66,6 @@ abstract class DartObject {
   /// This method can return a representation of the type, even if this object
   /// would return `false` from [hasKnownValue].
   DartType? get type;
-
-  /// If this object is the value of a constant variable, the variable.
-  @Deprecated('Use variable2 instead')
-  VariableElement? get variable;
 
   /// If this object is the value of a constant variable, the variable.
   VariableElement2? get variable2;
