@@ -3164,17 +3164,12 @@ package:analyzer/dart/element/element.dart:
     effective (getter: Version)
     override (getter: Version?)
     package (getter: Version)
-  LocalElement (class extends Object implements Element, deprecated):
-    new (constructor: LocalElement Function())
   NamespaceCombinator (class extends Object, sealed (immediate subtypes: HideElementCombinator, ShowElementCombinator)):
     end (getter: int)
     offset (getter: int)
   PartElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: PartElement Function())
     uri (getter: DirectiveUri)
-  PromotableElement (class extends Object implements LocalElement, VariableElement, deprecated):
-    new (constructor: PromotableElement Function())
-    name (getter: String)
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)

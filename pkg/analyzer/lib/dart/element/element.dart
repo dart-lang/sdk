@@ -856,13 +856,6 @@ class LibraryLanguageVersion {
   }
 }
 
-/// An element that can be (but is not required to be) defined within a method
-/// or function (an [ExecutableElement]).
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use LocalElement2 instead')
-abstract class LocalElement implements Element {}
-
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -882,17 +875,6 @@ sealed class NamespaceCombinator {
 abstract class PartElement implements _ExistingElement {
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
-}
-
-/// A variable that might be subject to type promotion.  This might be a local
-/// variable or a parameter.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PromotableElement2 instead')
-abstract class PromotableElement implements LocalElement, VariableElement {
-  // Promotable elements are guaranteed to have a name.
-  @override
-  String get name;
 }
 
 /// A combinator that cause some of the names in a namespace to be visible (and
