@@ -26,19 +26,14 @@ void _cacheFiles(Map<String, String> cachedFiles) {
     if (resource is Folder) {
       resource.getChildren().forEach(addFiles);
     } else if (resource is File) {
-      var relativePath = pathContext.relative(
-        resource.path,
-        from: mockPath,
-      );
+      var relativePath = pathContext.relative(resource.path, from: mockPath);
       var relativePathComponents = pathContext.split(relativePath);
       var relativePosixPath = relativePathComponents.join('/');
       cachedFiles[relativePosixPath] = resource.readAsStringSync();
     }
   }
 
-  addFiles(
-    resourceProvider.getFolder(mockPath),
-  );
+  addFiles(resourceProvider.getFolder(mockPath));
 }
 
 /// Helper for copying files from "tests/mock_packages" to memory file system
@@ -168,14 +163,16 @@ mixin MockPackagesMixin {
       var relativePathComponents = relativePosixPath.split('/');
       if (relativePathComponents[0] == packageName) {
         var relativePath = pathContext.joinAll(relativePathComponents);
-        var path =
-            resourceProvider.convertPath('$packagesRootPath/$relativePath');
+        var path = resourceProvider.convertPath(
+          '$packagesRootPath/$relativePath',
+        );
         resourceProvider.getFile(path).writeAsStringSync(entry.value);
       }
     }
 
-    var packagesFolder = resourceProvider
-        .getFolder(resourceProvider.convertPath(packagesRootPath));
+    var packagesFolder = resourceProvider.getFolder(
+      resourceProvider.convertPath(packagesRootPath),
+    );
     return packagesFolder.getChildAssumingFolder(packageName);
   }
 }

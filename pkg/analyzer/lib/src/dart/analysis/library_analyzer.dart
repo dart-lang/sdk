@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -54,6 +53,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 class AnalysisForCompletionResult {
@@ -158,9 +158,7 @@ class LibraryAnalyzer {
       );
     });
     var parsedUnit = fileAnalysis.unit;
-
-    var node = NodeLocator(offset).searchWithin(parsedUnit);
-
+    var node = parsedUnit.nodeCovering(offset: offset);
     var errorListener = RecordingErrorListener();
 
     return performance.run('resolve', (performance) {

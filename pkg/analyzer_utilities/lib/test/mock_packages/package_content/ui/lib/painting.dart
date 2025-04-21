@@ -274,7 +274,6 @@ enum BlendMode {
   ///  * [hardLight], which combines [modulate] and [screen] to favor the
   ///    source image.
   screen, // The last coeff mode.
-
   /// Multiply the components of the source and destination images after
   /// adjusting them to favor the destination.
   ///
@@ -409,7 +408,6 @@ enum BlendMode {
   ///
   /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/blend_mode_multiply.png)
   multiply, // The last separable mode.
-
   /// Take the hue of the source image, and the saturation and luminosity of the
   /// destination image.
   ///
@@ -547,24 +545,29 @@ class Color {
   /// Color(0xFFFF9000)` (`FF` for the alpha, `FF` for the red, `90` for the
   /// green, and `00` for the blue).
   const Color(int value)
-      : this._fromARGBC(
-            value >> 24, value >> 16, value >> 8, value, ColorSpace.sRGB);
+    : this._fromARGBC(
+        value >> 24,
+        value >> 16,
+        value >> 8,
+        value,
+        ColorSpace.sRGB,
+      );
 
   /// Construct a color with normalized color components.
   ///
   /// Normalized color components allows arbitrary bit depths for color
   /// components to be be supported. The values will be normalized relative to
   /// the [ColorSpace] argument.
-  const Color.from(
-      {required double alpha,
-      required double red,
-      required double green,
-      required double blue,
-      this.colorSpace = ColorSpace.sRGB})
-      : a = alpha,
-        r = red,
-        g = green,
-        b = blue;
+  const Color.from({
+    required double alpha,
+    required double red,
+    required double green,
+    required double blue,
+    this.colorSpace = ColorSpace.sRGB,
+  }) : a = alpha,
+       r = red,
+       g = green,
+       b = blue;
 
   /// Construct an sRGB color from the lower 8 bits of four integers.
   ///
@@ -579,7 +582,7 @@ class Color {
   /// See also [fromRGBO], which takes the alpha value as a floating point
   /// value.
   const Color.fromARGB(int a, int r, int g, int b)
-      : this._fromARGBC(a, r, g, b, ColorSpace.sRGB);
+    : this._fromARGBC(a, r, g, b, ColorSpace.sRGB);
 
   /// Create an sRGB color from red, green, blue, and opacity, similar to
   /// `rgba()` in CSS.
@@ -594,17 +597,21 @@ class Color {
   ///
   /// See also [fromARGB], which takes the opacity as an integer value.
   const Color.fromRGBO(int r, int g, int b, double opacity)
-      : this._fromRGBOC(r, g, b, opacity, ColorSpace.sRGB);
+    : this._fromRGBOC(r, g, b, opacity, ColorSpace.sRGB);
 
   const Color._fromARGBC(
-      int alpha, int red, int green, int blue, ColorSpace colorSpace)
-      : this._fromRGBOC(red, green, blue, (alpha & 0xff) / 255, colorSpace);
+    int alpha,
+    int red,
+    int green,
+    int blue,
+    ColorSpace colorSpace,
+  ) : this._fromRGBOC(red, green, blue, (alpha & 0xff) / 255, colorSpace);
 
   const Color._fromRGBOC(int r, int g, int b, double opacity, this.colorSpace)
-      : a = opacity,
-        r = (r & 0xff) / 255,
-        g = (g & 0xff) / 255,
-        b = (b & 0xff) / 255;
+    : a = opacity,
+      r = (r & 0xff) / 255,
+      g = (g & 0xff) / 255,
+      b = (b & 0xff) / 255;
 
   /// The alpha channel of this color in an 8 bit value.
   ///
@@ -718,24 +725,28 @@ class Color {
   ///
   /// Changes to color components will be applied before applying changes to the
   /// color space.
-  Color withValues(
-      {double? alpha,
-      double? red,
-      double? green,
-      double? blue,
-      ColorSpace? colorSpace}) {
+  Color withValues({
+    double? alpha,
+    double? red,
+    double? green,
+    double? blue,
+    ColorSpace? colorSpace,
+  }) {
     Color? updatedComponents;
     if (alpha != null || red != null || green != null || blue != null) {
       updatedComponents = Color.from(
-          alpha: alpha ?? a,
-          red: red ?? r,
-          green: green ?? g,
-          blue: blue ?? b,
-          colorSpace: this.colorSpace);
+        alpha: alpha ?? a,
+        red: red ?? r,
+        green: green ?? g,
+        blue: blue ?? b,
+        colorSpace: this.colorSpace,
+      );
     }
     if (colorSpace != null && colorSpace != this.colorSpace) {
-      final _ColorTransform transform =
-          _getColorTransform(this.colorSpace, colorSpace);
+      final _ColorTransform transform = _getColorTransform(
+        this.colorSpace,
+        colorSpace,
+      );
       return transform.transform(updatedComponents ?? this, colorSpace);
     } else {
       return updatedComponents ?? this;

@@ -687,7 +687,7 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
 }
 
 /// A concrete implementation of [LibraryFragment].
-class CompilationUnitElementImpl extends UriReferencedElementImpl
+class CompilationUnitElementImpl extends _ExistingElementImpl
     implements LibraryFragment {
   /// The source that corresponds to this compilation unit.
   @override
@@ -1323,15 +1323,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       enclosingElement3 as InstanceFragment;
 
   @override
-  bool get hasLiteral {
-    if (super.hasLiteral) return true;
-    var enclosingElement = enclosingElement3;
-    if (enclosingElement is! ExtensionTypeElementImpl) return false;
-    return this == enclosingElement.primaryConstructor &&
-        enclosingElement.hasLiteral;
-  }
-
-  @override
   bool get isConst {
     return hasModifier(Modifier.CONST);
   }
@@ -1573,9 +1564,6 @@ mixin ConstructorElementMixin
   @override
   ConstructorElementImpl get declaration;
 
-  @override
-  InterfaceElementImpl get enclosingElement3;
-
   /// Whether the constructor is a const constructor.
   bool get isConst;
 
@@ -1605,7 +1593,7 @@ mixin ConstructorElementMixin
   }
 
   @override
-  LibraryElementImpl get library;
+  LibraryElementImpl get library2;
 
   ConstructorElementMixin? get redirectedConstructor;
 
@@ -1819,13 +1807,13 @@ class DirectiveUriImpl implements DirectiveUri {}
 class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     implements DirectiveUriWithLibrary {
   @override
-  late LibraryElementImpl library;
+  late LibraryElementImpl library2;
 
   DirectiveUriWithLibraryImpl({
     required super.relativeUriString,
     required super.relativeUri,
     required super.source,
-    required this.library,
+    required this.library2,
   });
 
   DirectiveUriWithLibraryImpl.read({
@@ -1833,9 +1821,6 @@ class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     required super.relativeUri,
     required super.source,
   });
-
-  @override
-  LibraryElement2 get library2 => library;
 }
 
 class DirectiveUriWithRelativeUriImpl
@@ -1911,6 +1896,9 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningFragment {
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
+
+  @override
+  Null get library => null;
 
   @override
   Null get libraryFragment => null;
@@ -2174,12 +2162,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   AnalysisContext get context => compilationUnit.library.context;
 
-  @Deprecated('Use element2 instead')
-  @override
-  Element? get element {
-    return element2?.asElement;
-  }
-
   @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
 
@@ -2319,12 +2301,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
       libraryUri: _flutterWidgetInspectorLibraryUri, name: _widgetFactoryName);
 
   @override
-  LibraryElementImpl get library => compilationUnit.library;
+  LibraryElementImpl get library2 => compilationUnit.library;
 
-  @override
-  LibraryElementImpl get library2 => library;
-
-  /// Get the library containing this annotation.
   @override
   Source get librarySource => compilationUnit.librarySource;
 
@@ -2393,11 +2371,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 }
 
-abstract class ElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        Element,
-        ElementOrMember {
+abstract class ElementImpl implements ElementOrMember {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
@@ -2407,9 +2381,15 @@ abstract class ElementImpl
   @override
   final int id = _NEXT_ID++;
 
-  /// The enclosing element of this element, or `null` if this element is at the
-  /// root of the element structure.
-  ElementImpl? _enclosingElement3;
+  /// The element that either physically or logically encloses this element.
+  ///
+  /// For [LibraryElement] returns `null`, because libraries are the top-level
+  /// elements in the model.
+  ///
+  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
+  /// uses `part` directive to include this element, or `null` if this element
+  /// is the defining unit of the library.
+  ElementImpl? enclosingElement3;
 
   Reference? reference;
 
@@ -2471,341 +2451,16 @@ abstract class ElementImpl
     _docComment = doc;
   }
 
-  @override
-  ElementImpl? get enclosingElement3 => _enclosingElement3;
-
-  /// Set the enclosing element of this element to the given [element].
-  set enclosingElement3(ElementImpl? element) {
-    _enclosingElement3 = element;
-  }
-
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
   CompilationUnitElementImpl get enclosingUnit {
-    return _enclosingElement3!.enclosingUnit;
+    return enclosingElement3!.enclosingUnit;
   }
 
-  @override
-  bool get hasAlwaysThrows {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isAlwaysThrows) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
+  /// Whether the element has an annotation of the form `@deprecated`
+  /// or `@Deprecated('..')`.
   bool get hasDeprecated {
     return (_getMetadataFlags() & _metadataFlag_hasDeprecated) != 0;
-  }
-
-  @override
-  bool get hasDoNotStore {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isDoNotStore) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasDoNotSubmit {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isDoNotSubmit) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasFactory {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isFactory) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasImmutable {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isImmutable) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasInternal {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isInternal) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasIsTest {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isIsTest) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasIsTestGroup {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isIsTestGroup) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasJS {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isJS) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasLiteral {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isLiteral) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasMustBeConst {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isMustBeConst) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasMustBeOverridden {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isMustBeOverridden) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasMustCallSuper {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isMustCallSuper) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasNonVirtual {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isNonVirtual) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasOptionalTypeArgs {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isOptionalTypeArgs) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasOverride {
-    return (_getMetadataFlags() & _metadataFlag_hasOverride) != 0;
-  }
-
-  /// Return `true` if this element has an annotation of the form
-  /// `@pragma("vm:entry-point")`.
-  bool get hasPragmaVmEntryPoint {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isPragmaVmEntryPoint) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasProtected {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isProtected) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasRedeclare {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isRedeclare) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasReopen {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isReopen) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasRequired {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isRequired) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasSealed {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isSealed) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasUseResult {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isUseResult) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasVisibleForOverriding {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isVisibleForOverriding) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasVisibleForTemplate {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isVisibleForTemplate) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasVisibleForTesting {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isVisibleForTesting) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool get hasVisibleOutsideTemplate {
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isVisibleOutsideTemplate) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /// Return an identifier that uniquely identifies this element among the
@@ -2846,19 +2501,10 @@ abstract class ElementImpl
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
-  @override
-  LibraryElementImpl? get library {
-    // ignore:deprecated_member_use_from_same_package
-    return thisOrAncestorOfType();
-  }
+  LibraryElementImpl? get library;
 
   @override
   Source? get librarySource => library?.source;
-
-  @override
-  ElementLocation get location {
-    return ElementLocationImpl.con1(this);
-  }
 
   @override
   List<ElementAnnotationImpl> get metadata {
@@ -2891,7 +2537,14 @@ abstract class ElementImpl
     _nameOffset = offset;
   }
 
-  @override
+  /// The non-synthetic element that caused this element to be created.
+  ///
+  /// If this element is not synthetic, then the element itself is returned.
+  ///
+  /// If this element is synthetic, then the corresponding non-synthetic
+  /// element is returned. For example, for a synthetic getter of a
+  /// non-synthetic field the field is returned; for a synthetic constructor
+  /// the enclosing class is returned.
   ElementImpl get nonSynthetic => this;
 
   @override
@@ -2933,7 +2586,7 @@ abstract class ElementImpl
   /// Set this element as the enclosing element for given [elements].
   void encloseElements(List<ElementImpl> elements) {
     for (var element in elements) {
-      element._enclosingElement3 = this;
+      element.enclosingElement3 = this;
     }
   }
 
@@ -2952,24 +2605,8 @@ abstract class ElementImpl
     return builder.toString();
   }
 
-  @override
-  String getExtendedDisplayName(String? shortName) {
-    shortName ??= displayName;
-    var source = this.source;
-    return "$shortName (${source?.fullName})";
-  }
-
   /// Return `true` if this element has the given [modifier] associated with it.
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
-
-  @Deprecated('Use Element2 instead')
-  @override
-  bool isAccessibleIn(LibraryElement library) {
-    if (Identifier.isPrivateName(name!)) {
-      return library == this.library;
-    }
-    return true;
-  }
 
   void resetMetadataFlags() {
     _metadataFlags = 0;
@@ -2985,61 +2622,6 @@ abstract class ElementImpl
   /// correspond to the given [value].
   void setModifier(Modifier modifier, bool value) {
     _modifiers = _modifiers.updated(modifier, value);
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  @override
-  E? thisOrAncestorMatching<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    Element? element = this;
-    while (element != null && !predicate(element)) {
-      element = element.enclosingElement3;
-    }
-    return element as E?;
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  @override
-  E? thisOrAncestorMatching3<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    Element? element = this;
-    while (element != null && !predicate(element)) {
-      element = (element as ElementImpl).enclosingElement3;
-    }
-    return element as E?;
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
-  @override
-  E? thisOrAncestorOfType<E extends Element>() {
-    if (E == LibraryElement || E == LibraryElementImpl) {
-      if (enclosingElement3 case LibraryElementImpl library) {
-        return library as E;
-      }
-      return thisOrAncestorOfType<CompilationUnitElementImpl>()?.library as E?;
-    }
-
-    Element element = this;
-    while (element is! E) {
-      var ancestor = element.enclosingElement3;
-      if (ancestor == null) return null;
-      element = ancestor;
-    }
-    return element;
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
-  @override
-  E? thisOrAncestorOfType3<E extends Element>() {
-    Element element = this;
-    while (element is! E) {
-      var ancestor = element.enclosingElement3;
-      if (ancestor == null) return null;
-      element = ancestor;
-    }
-    return element;
   }
 
   @override
@@ -3341,6 +2923,9 @@ class ElementLocationImpl implements ElementLocation {
 /// A shared internal interface of `Element` and [Member].
 /// Used during migration to avoid referencing `Element`.
 abstract class ElementOrMember {
+  /// The analysis context in which this element is defined.
+  AnalysisContext get context;
+
   /// The declaration of this element.
   ///
   /// If the element is a view on an element, e.g. a method from an interface
@@ -3358,20 +2943,44 @@ abstract class ElementOrMember {
   /// is `f=`, instead of `f`.
   String get displayName;
 
-  /// The element that either physically or logically encloses this element.
+  /// The content of the documentation comment (including delimiters) for this
+  /// element, or `null` if this element does not or cannot have documentation.
+  String? get documentationComment;
+
+  /// The unique integer identifier of this element.
+  int get id;
+
+  /// Whether the element is private.
   ///
-  /// For [LibraryElement] returns `null`, because libraries are the top-level
-  /// elements in the model.
+  /// Private elements are visible only within the library in which they are
+  /// declared.
+  bool get isPrivate;
+
+  /// Whether the element is public.
   ///
-  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
-  /// uses `part` directive to include this element, or `null` if this element
-  /// is the defining unit of the library.
-  @Deprecated('Use Element2.enclosingElement2 instead or '
-      'Fragment.enclosingFragment instead')
-  Element? get enclosingElement3;
+  /// Public elements are visible within any library that imports the library
+  /// in which they are declared.
+  bool get isPublic;
+
+  /// Whether the element is synthetic.
+  ///
+  /// A synthetic element is an element that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
+  bool get isSynthetic;
 
   /// The kind of element that this is.
   ElementKind get kind;
+
+  /// If this target is associated with a library, return the source of the
+  /// library's defining compilation unit; otherwise return `null`.
+  Source? get librarySource;
+
+  /// All of the metadata associated with this element.
+  ///
+  /// The array will be empty if the element does not have any metadata or if
+  /// the library containing this element has not yet been resolved.
+  List<ElementAnnotation> get metadata;
 
   /// The name of this element, or `null` if this element does not have a name.
   String? get name;
@@ -3384,6 +2993,52 @@ abstract class ElementOrMember {
   /// declaration of this element, or `-1` if this element is synthetic, does
   /// not have a name, or otherwise does not have an offset.
   int get nameOffset;
+
+  /// The analysis session in which this element is defined.
+  AnalysisSession? get session;
+
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in SDK, or does not have
+  /// a `@Since()` annotation applicable to it.
+  Version? get sinceSdkVersion;
+
+  /// Return the source associated with this target, or `null` if this target is
+  /// not associated with a source.
+  Source? get source;
+
+  /// Returns the presentation of this element as it should appear when
+  /// presented to users.
+  ///
+  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
+  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
+  /// [NullabilitySuffix.none] does not have any explicit presentation.
+  ///
+  /// If [withNullability] is `false`, nullability suffixes will not be
+  /// included into the presentation.
+  ///
+  /// If [multiline] is `true`, the string may be wrapped over multiple lines
+  /// with newlines to improve formatting. For example function signatures may
+  /// be formatted as if they had trailing commas.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  String getDisplayString({
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
+    bool multiline = false,
+  });
 }
 
 /// An [InterfaceElementImpl] which is an enum.
@@ -3802,8 +3457,7 @@ abstract class ExecutableElementOrMember implements ElementOrMember {
   /// The return type defined by this element.
   TypeImpl get returnType;
 
-  /// Return the source associated with this target, or `null` if this target is
-  /// not associated with a source.
+  @override
   Source get source;
 
   /// The type defined by this element.
@@ -4185,7 +3839,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
   @override
   InstanceElement2 get enclosingElement2 =>
-      (firstFragment._enclosingElement3 as InstanceFragment).element;
+      (firstFragment.enclosingElement3 as InstanceFragment).element;
 
   @override
   List<FieldElementImpl> get fragments {
@@ -4498,7 +4152,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   TypeImpl get typeShared => type;
 
   @override
-  ElementImpl? get _enclosingFunction => wrappedElement._enclosingElement3;
+  ElementImpl? get _enclosingFunction => wrappedElement.enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -5572,9 +5226,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   List<FieldElementImpl2> get fields2 {
     _readMembers();
-    return firstFragment.fields
-        .map((e) => e.asElement2 as FieldElementImpl2)
-        .toList();
+    return firstFragment.fields.map((e) => e.asElement2).toList();
   }
 
   @override
@@ -6438,7 +6090,7 @@ class LabelElementImpl extends ElementImpl implements LabelFragment {
 
   @override
   LibraryElementImpl get library {
-    return super.library!;
+    return libraryFragment.element;
   }
 
   @override
@@ -6507,12 +6159,8 @@ class LabelElementImpl2 extends ElementImpl2
 
 /// A concrete implementation of [LibraryElement2].
 class LibraryElementImpl extends ElementImpl
-    with
-        _HasLibraryMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LibraryElement,
-        LibraryElement2 {
+    with _HasLibraryMixin
+    implements LibraryElement2 {
   /// The analysis context in which this library is defined.
   @override
   final AnalysisContext context;
@@ -6647,18 +6295,14 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<LibraryElementImpl> get exportedLibraries {
+  List<LibraryElementImpl> get exportedLibraries2 {
     return fragments
         .expand((fragment) => fragment.libraryExports)
-        .map((export) => export.exportedLibrary)
+        .map((export) => export.exportedLibrary2)
         .nonNulls
         .toSet()
         .toList();
   }
-
-  @override
-  List<LibraryElement2> get exportedLibraries2 =>
-      exportedLibraries.cast<LibraryElement2>();
 
   @override
   Namespace get exportNamespace {
@@ -6734,16 +6378,6 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   String get identifier => '${definingCompilationUnit.source.uri}';
-
-  @override
-  List<LibraryElementImpl> get importedLibraries {
-    return fragments
-        .expand((fragment) => fragment.libraryImports)
-        .map((import) => import.importedLibrary2)
-        .nonNulls
-        .toSet()
-        .toList();
-  }
 
   @override
   bool get isDartAsync => name == "dart.async";
@@ -6836,7 +6470,6 @@ class LibraryElementImpl extends ElementImpl
     return definingCompilationUnit.source;
   }
 
-  @override
   Iterable<ElementImpl> get topLevelElements sync* {
     for (var unit in units) {
       yield* unit.accessors;
@@ -7016,10 +6649,7 @@ class LibraryElementImpl extends ElementImpl
 }
 
 class LibraryExportElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LibraryExportElement,
-        LibraryExport {
+    implements LibraryExport {
   @override
   final List<NamespaceCombinator> combinators;
 
@@ -7041,16 +6671,13 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   }
 
   @override
-  LibraryElementImpl? get exportedLibrary {
+  LibraryElementImpl? get exportedLibrary2 {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
-      return uri.library;
+      return uri.library2;
     }
     return null;
   }
-
-  @override
-  LibraryElementImpl? get exportedLibrary2 => exportedLibrary;
 
   @override
   String get identifier => 'export@$nameOffset';
@@ -7107,7 +6734,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   LibraryElementImpl? get importedLibrary2 {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
-      return uri.library;
+      return uri.library2;
     }
     return null;
   }
@@ -7129,7 +6756,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
     if (uri is DirectiveUriWithLibraryImpl) {
       return _namespace ??=
           NamespaceBuilder().createImportNamespaceForDirective(
-        importedLibrary: uri.library,
+        importedLibrary: uri.library2,
         combinators: combinators,
         prefix: prefix2,
       );
@@ -7278,11 +6905,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
 }
 
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LocalVariableElement,
-        LocalVariableFragment,
-        VariableElementOrMember {
+    implements LocalVariableFragment, VariableElementOrMember {
   late LocalVariableElementImpl2 _element2 = switch (this) {
     BindPatternVariableElementImpl() => BindPatternVariableElementImpl2(this),
     JoinPatternVariableElementImpl() => JoinPatternVariableElementImpl2(this),
@@ -7899,7 +7522,7 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement3 as InstanceFragment).element;
+      (firstFragment.enclosingElement3 as InstanceFragment).element;
 
   @override
   List<MethodElementImpl> get fragments {
@@ -8379,6 +8002,9 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningFragment {
   ElementKind get kind => ElementKind.NEVER;
 
   @override
+  Null get library => null;
+
+  @override
   Null get libraryFragment => null;
 
   @override
@@ -8495,12 +8121,8 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
 }
 
 class ParameterElementImpl extends VariableElementImpl
-    with
-        ParameterElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ParameterElement,
-        FormalParameterFragment {
+    with ParameterElementMixin
+    implements FormalParameterFragment {
   @override
   String? name2;
 
@@ -8585,7 +8207,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
 
-  @override
+  /// Whether the parameter has a default value.
   bool get hasDefaultValue {
     return defaultValueCode != null;
   }
@@ -8615,11 +8237,17 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get isLate => false;
 
-  @override
+  /// Whether the parameter is a super formal parameter.
   bool get isSuperFormal => false;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
+
+  @override
+  LibraryElementImpl? get library {
+    var library = libraryFragment?.element;
+    return library as LibraryElementImpl?;
+  }
 
   @override
   LibraryElementImpl? get library2 => library;
@@ -8748,46 +8376,77 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
 /// A mixin that provides a common implementation for methods defined in
 /// `ParameterElement`.
-mixin ParameterElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ParameterElement,
-        VariableElementOrMember {
+mixin ParameterElementMixin implements VariableElementOrMember {
   @override
   ParameterElementImpl get declaration;
 
-  @override
+  /// The code of the default value, or `null` if no default value.
+  String? get defaultValueCode;
+
   FormalParameterElementImpl get element;
 
-  @override
+  /// Whether the parameter is covariant, meaning it is allowed to have a
+  /// narrower type in an override.
+  bool get isCovariant;
+
+  /// Whether the parameter is an initializing formal parameter.
+  bool get isInitializingFormal;
+
+  /// Whether the parameter is a named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isNamed => parameterKind.isNamed;
 
-  @override
+  /// Whether the parameter is an optional parameter.
+  ///
+  /// Optional parameters can either be positional or named. Named parameters
+  /// that are annotated with the `@required` annotation are considered
+  /// optional. Named parameters that are annotated with the `required` syntax
+  /// are considered required.
   bool get isOptional => parameterKind.isOptional;
 
-  @override
+  /// Whether the parameter is both an optional and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isOptionalNamed => parameterKind.isOptionalNamed;
 
-  @override
+  /// Whether the parameter is both an optional and positional parameter.
   bool get isOptionalPositional => parameterKind.isOptionalPositional;
 
-  @override
+  /// Whether the parameter is a positional parameter.
+  ///
+  /// Positional parameters can either be required or optional.
   bool get isPositional => parameterKind.isPositional;
 
-  @override
+  /// Whether the parameter is either a required positional parameter, or a
+  /// named parameter with the `required` keyword.
+  ///
+  /// Note: the presence or absence of the `@required` annotation does not
+  /// change the meaning of this getter. The parameter `{@required int x}`
+  /// will return `false` and the parameter `{@required required int x}`
+  /// will return `true`.
   bool get isRequired => parameterKind.isRequired;
 
-  @override
+  /// Whether the parameter is both a required and named parameter.
+  ///
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional. Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isRequiredNamed => parameterKind.isRequiredNamed;
 
-  @override
+  /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
-  @override
-  // Overridden to remove the 'deprecated' annotation.
   ParameterKind get parameterKind;
 
-  @override
+  /// The parameters defined by this parameter.
+  ///
+  /// A parameter will only define other parameters if it is a function typed
+  /// parameter.
   List<ParameterElementMixin> get parameters;
 
   @override
@@ -8799,7 +8458,8 @@ mixin ParameterElementMixin
   /// parameter.
   List<TypeParameterElementImpl> get typeParameters;
 
-  @override
+  /// Appends the type, name and possibly the default value of this parameter
+  /// to the given [buffer].
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')
@@ -8820,11 +8480,7 @@ mixin ParameterElementMixin
   }
 }
 
-class PartElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        PartElement,
-        PartInclude {
+class PartElementImpl extends _ExistingElementImpl implements PartInclude {
   @override
   final DirectiveUriImpl uri;
 
@@ -8960,6 +8616,9 @@ class PrefixElementImpl extends ElementImpl {
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
+
+  @override
+  Null get library => null;
 }
 
 class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
@@ -10585,6 +10244,12 @@ class TypeParameterElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
+  LibraryElementImpl? get library {
+    var library = libraryFragment?.element;
+    return library as LibraryElementImpl?;
+  }
+
+  @override
   LibraryFragment? get libraryFragment {
     return enclosingFragment?.libraryFragment;
   }
@@ -10738,7 +10403,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  ElementImpl? get _enclosingFunction => firstFragment._enclosingElement3;
+  ElementImpl? get _enclosingFunction => firstFragment.enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -10810,55 +10475,6 @@ mixin TypeParameterizedElementMixin on ElementImpl
 
   List<TypeParameterElementImpl> get typeParameters_unresolved {
     return _typeParameters;
-  }
-}
-
-abstract class UriReferencedElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        UriReferencedElement {
-  /// The offset of the URI in the file, or `-1` if this node is synthetic.
-  int _uriOffset = -1;
-
-  /// The offset of the character immediately following the last character of
-  /// this node's URI, or `-1` if this node is synthetic.
-  int _uriEnd = -1;
-
-  /// The URI that is specified by this directive.
-  String? _uri;
-
-  /// Initialize a newly created import element to have the given [name] and
-  /// [offset]. The offset may be `-1` if the element is synthetic.
-  UriReferencedElementImpl(super.name, super.offset);
-
-  /// Return the URI that is specified by this directive.
-  @override
-  String? get uri => _uri;
-
-  /// Set the URI that is specified by this directive to be the given [uri].
-  set uri(String? uri) {
-    _uri = uri;
-  }
-
-  /// Return the offset of the character immediately following the last
-  /// character of this node's URI, or `-1` if this node is synthetic.
-  @override
-  int get uriEnd => _uriEnd;
-
-  /// Set the offset of the character immediately following the last character
-  /// of this node's URI to the given [offset].
-  set uriEnd(int offset) {
-    _uriEnd = offset;
-  }
-
-  /// Return the offset of the URI in the file, or `-1` if this node is
-  /// synthetic.
-  @override
-  int get uriOffset => _uriOffset;
-
-  /// Set the offset of the URI in the file to the given [offset].
-  set uriOffset(int offset) {
-    _uriOffset = offset;
   }
 }
 
@@ -11027,15 +10643,51 @@ abstract class VariableElementImpl2 extends ElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement`.
 abstract class VariableElementOrMember
-    implements
-        ElementOrMember,
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        VariableElement {
+    implements ElementOrMember, ConstantEvaluationTarget {
   @override
   VariableElementImpl get declaration;
 
+  /// Whether the variable element did not have an explicit type specified
+  /// for it.
+  bool get hasImplicitType;
+
+  /// Whether the variable was declared with the 'const' modifier.
+  bool get isConst;
+
+  /// Whether the variable was declared with the 'final' modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final.
+  bool get isFinal;
+
+  /// Whether the variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  bool get isLate;
+
+  /// Whether the element is a static variable, as per section 8 of the Dart
+  /// Language Specification:
+  ///
+  /// > A static variable is a variable that is not associated with a particular
+  /// > instance, but rather with an entire library or class. Static variables
+  /// > include library variables and class variables. Class variables are
+  /// > variables whose declaration is immediately nested inside a class
+  /// > declaration and includes the modifier static. A library variable is
+  /// > implicitly static.
+  bool get isStatic;
+
   @override
+  String get name;
+
+  /// The declared type of this variable.
   TypeImpl get type;
+
+  /// Returns a representation of the value of this variable, forcing the value
+  /// to be computed if it had not previously been computed, or `null` if either
+  /// this variable was not declared with the 'const' modifier or if the value
+  /// of this variable could not be computed because of errors.
+  DartObject? computeConstantValue();
 }
 
 mixin WrappedElementMixin implements ElementImpl2 {

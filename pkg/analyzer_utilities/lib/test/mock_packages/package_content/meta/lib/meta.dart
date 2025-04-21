@@ -526,11 +526,7 @@ const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 /// Used to annotate a class.
 ///
 /// See [immutable] for more details.
-@Target({
-  TargetKind.classType,
-  TargetKind.extensionType,
-  TargetKind.mixinType,
-})
+@Target({TargetKind.classType, TargetKind.extensionType, TargetKind.mixinType})
 class Immutable {
   /// A human-readable explanation of the reason why the class is immutable.
   final String reason;
@@ -659,9 +655,7 @@ class _Experimental {
   const _Experimental();
 }
 
-@Target({
-  TargetKind.method,
-})
+@Target({TargetKind.method})
 class _Factory {
   const _Factory();
 }
@@ -687,24 +681,17 @@ class _Literal {
   const _Literal();
 }
 
-@Target({
-  TargetKind.parameter,
-  TargetKind.extensionType,
-})
+@Target({TargetKind.parameter, TargetKind.extensionType})
 class _MustBeConst {
   const _MustBeConst();
 }
 
-@Target({
-  TargetKind.overridableMember,
-})
+@Target({TargetKind.overridableMember})
 class _MustBeOverridden {
   const _MustBeOverridden();
 }
 
-@Target({
-  TargetKind.overridableMember,
-})
+@Target({TargetKind.overridableMember})
 class _MustCallSuper {
   const _MustCallSuper();
 }
@@ -744,17 +731,12 @@ class _Redeclare {
   const _Redeclare();
 }
 
-@Target({
-  TargetKind.classType,
-  TargetKind.mixinType,
-})
+@Target({TargetKind.classType, TargetKind.mixinType})
 class _Reopen {
   const _Reopen();
 }
 
-@Target({
-  TargetKind.classType,
-})
+@Target({TargetKind.classType})
 class _Sealed {
   const _Sealed();
 }

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -46,9 +45,6 @@ class ConstructorMember extends ExecutableMember
   InterfaceElementImpl2 get enclosingElement2 => _element2.enclosingElement2;
 
   @override
-  InterfaceElementImpl get enclosingElement3 => declaration.enclosingElement3;
-
-  @override
   ConstructorFragment get firstFragment => _element2.firstFragment;
 
   @override
@@ -71,7 +67,7 @@ class ConstructorMember extends ExecutableMember
   bool get isFactory => declaration.isFactory;
 
   @override
-  LibraryElementImpl get library {
+  LibraryElementImpl get library2 {
     return _declaration.library!;
   }
 
@@ -273,10 +269,6 @@ abstract class ExecutableMember extends Member
 
   @override
   bool get isSynchronous => declaration.isSynchronous;
-
-  @Deprecated('Use ExecutableElement2 instead')
-  @override
-  LibraryElement get library => _declaration.library!;
 
   @override
   LibraryElement2 get library2 => _element2.library2;
@@ -504,11 +496,6 @@ class FieldMember extends VariableMember
   @override
   InstanceElement2 get enclosingElement2 => _element2.enclosingElement2;
 
-  @Deprecated('Use Element2.enclosingElement2 instead or '
-      'Fragment.enclosingFragment instead')
-  @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
-
   @override
   FieldFragment get firstFragment => _element2.firstFragment;
 
@@ -552,10 +539,6 @@ class FieldMember extends VariableMember
 
   @override
   bool get isPromotable => declaration.isPromotable;
-
-  @Deprecated('Use FieldElement2 instead')
-  @override
-  LibraryElement get library => _declaration.library!;
 
   @override
   LibraryElement2 get library2 => _element2.library2;
@@ -702,8 +685,7 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  PropertyInducingElement2OrMember? get variable3 =>
-      variable2.asElement2 as PropertyInducingElement2OrMember?;
+  PropertyInducingElement2OrMember? get variable3 => variable2?.asElement2;
 
   @override
   GetterElementImpl get _element2 {
@@ -733,11 +715,7 @@ class GetterMember extends PropertyAccessorMember
 
 /// An element defined in a parameterized type where the values of the type
 /// parameters are known.
-abstract class Member
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        Element,
-        ElementOrMember {
+abstract class Member implements ElementOrMember {
   /// The element on which the parameterized element was created.
   final ElementImpl _declaration;
 
@@ -770,92 +748,6 @@ abstract class Member
   @override
   String? get documentationComment => _declaration.documentationComment;
 
-  @Deprecated('Use Element2.enclosingElement2 instead or '
-      'Fragment.enclosingFragment instead')
-  @override
-  Element? get enclosingElement3 => _declaration.enclosingElement3;
-
-  @override
-  bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
-
-  @override
-  bool get hasDeprecated => _declaration.hasDeprecated;
-
-  @override
-  bool get hasDoNotStore => _declaration.hasDoNotStore;
-
-  @override
-  bool get hasDoNotSubmit => _declaration.hasDoNotSubmit;
-
-  @override
-  bool get hasFactory => _declaration.hasFactory;
-
-  @override
-  bool get hasImmutable => _declaration.hasImmutable;
-
-  @override
-  bool get hasInternal => _declaration.hasInternal;
-
-  @override
-  bool get hasIsTest => _declaration.hasIsTest;
-
-  @override
-  bool get hasIsTestGroup => _declaration.hasIsTestGroup;
-
-  @override
-  bool get hasJS => _declaration.hasJS;
-
-  @override
-  bool get hasLiteral => _declaration.hasLiteral;
-
-  @override
-  bool get hasMustBeConst => _declaration.hasMustBeConst;
-
-  @override
-  bool get hasMustBeOverridden => _declaration.hasMustBeOverridden;
-
-  @override
-  bool get hasMustCallSuper => _declaration.hasMustCallSuper;
-
-  @override
-  bool get hasNonVirtual => _declaration.hasNonVirtual;
-
-  @override
-  bool get hasOptionalTypeArgs => _declaration.hasOptionalTypeArgs;
-
-  @override
-  bool get hasOverride => _declaration.hasOverride;
-
-  @override
-  bool get hasProtected => _declaration.hasProtected;
-
-  @override
-  bool get hasRedeclare => _declaration.hasRedeclare;
-
-  @override
-  bool get hasReopen => _declaration.hasReopen;
-
-  @override
-  bool get hasRequired => _declaration.hasRequired;
-
-  @override
-  bool get hasSealed => _declaration.hasSealed;
-
-  @override
-  bool get hasUseResult => _declaration.hasUseResult;
-
-  @override
-  bool get hasVisibleForOverriding => _declaration.hasVisibleForOverriding;
-
-  @override
-  bool get hasVisibleForTemplate => _declaration.hasVisibleForTemplate;
-
-  @override
-  bool get hasVisibleForTesting => _declaration.hasVisibleForTesting;
-
-  @override
-  bool get hasVisibleOutsideTemplate => _declaration.hasVisibleOutsideTemplate;
-
   @override
   int get id => _declaration.id;
 
@@ -871,15 +763,8 @@ abstract class Member
   @override
   ElementKind get kind => _declaration.kind;
 
-  @Deprecated('Use Element2 instead')
-  @override
-  LibraryElement? get library => _declaration.library;
-
   @override
   Source? get librarySource => _declaration.librarySource;
-
-  @override
-  ElementLocation get location => _declaration.location;
 
   @override
   List<ElementAnnotation> get metadata => _declaration.metadata;
@@ -894,10 +779,6 @@ abstract class Member
 
   @override
   int get nameOffset => _declaration.nameOffset;
-
-  @Deprecated('Use Element2.nonSynthetic instead')
-  @override
-  Element get nonSynthetic => _declaration.nonSynthetic;
 
   @override
   AnalysisSession? get session => _declaration.session;
@@ -925,46 +806,11 @@ abstract class Member
     return builder.toString();
   }
 
-  @override
-  String getExtendedDisplayName(String? shortName) =>
-      _declaration.getExtendedDisplayName(shortName);
-
   String getExtendedDisplayName2({String? shortName}) {
     return _element2.getExtendedDisplayName2(
       shortName: shortName,
     );
   }
-
-  @Deprecated('Use Element2 instead')
-  @override
-  bool isAccessibleIn(LibraryElement library) =>
-      _declaration.isAccessibleIn(library);
-
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  @override
-  E? thisOrAncestorMatching<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    return declaration.thisOrAncestorMatching(predicate);
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  @override
-  E? thisOrAncestorMatching3<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    return declaration.thisOrAncestorMatching3(predicate);
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
-  @override
-  E? thisOrAncestorOfType<E extends Element>() =>
-      declaration.thisOrAncestorOfType<E>();
-
-  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
-  @override
-  E? thisOrAncestorOfType3<E extends Element>() =>
-      declaration.thisOrAncestorOfType3<E>();
 
   @override
   String toString() {
@@ -1002,11 +848,6 @@ class MethodMember extends ExecutableMember
 
   @override
   MethodElementImpl get declaration => _declaration as MethodElementImpl;
-
-  @Deprecated('Use Element2.enclosingElement2 instead or '
-      'Fragment.enclosingFragment instead')
-  @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   MethodFragment get firstFragment => _element2.firstFragment;
@@ -1064,12 +905,7 @@ class MethodMember extends ExecutableMember
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class ParameterMember extends VariableMember
-    with
-        ParameterElementMixin,
-        FormalParameterElementMixin
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        ParameterElement {
+    with ParameterElementMixin, FormalParameterElementMixin {
   @override
   final List<TypeParameterElementImpl> typeParameters;
 
@@ -1123,11 +959,6 @@ class ParameterMember extends VariableMember
 
   @override
   Element2? get enclosingElement2 => _element2.enclosingElement2;
-
-  @Deprecated('Use Element2.enclosingElement2 instead or '
-      'Fragment.enclosingFragment instead')
-  @override
-  Element? get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   FormalParameterFragment get firstFragment => _element2.firstFragment;
@@ -1335,11 +1166,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
     return super.enclosingElement2!;
   }
 
-  @Deprecated('Use Element2.enclosingElement2 instead or '
-      'Fragment.enclosingFragment instead')
-  @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
-
   @override
   bool get isGetter => declaration.isGetter;
 
@@ -1446,8 +1272,7 @@ class SetterMember extends PropertyAccessorMember
   }
 
   @override
-  PropertyInducingElement2OrMember? get variable3 =>
-      variable2.asElement2 as PropertyInducingElement2OrMember?;
+  PropertyInducingElement2OrMember? get variable3 => variable2?.asElement2;
 
   @override
   SetterElementImpl get _element2 {

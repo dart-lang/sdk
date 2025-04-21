@@ -4,8 +4,8 @@
 
 import 'framework.dart';
 
-typedef ValueWidgetBuilder<T> = Widget Function(
-    BuildContext context, T value, Widget? child);
+typedef ValueWidgetBuilder<T> =
+    Widget Function(BuildContext context, T value, Widget? child);
 
 class ValueListenable<T> {}
 

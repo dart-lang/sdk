@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -108,8 +108,7 @@ class ExpressionImplTest extends ParserTestCase {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    NodeLocator visitor = NodeLocator(index);
-    var node = visitor.searchWithin(testUnit) as AstNodeImpl;
+    var node = testUnit.nodeCovering(offset: index)! as AstNodeImpl;
     expect(node, TypeMatcher<ExpressionImpl>());
     expect((node as ExpressionImpl).inConstantContext,
         isInContext ? isTrue : isFalse);

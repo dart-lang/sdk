@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
@@ -93,18 +92,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getParsedLibrary(path);
   }
 
-  @Deprecated('Use getParsedLibraryByElement2() instead')
-  @override
-  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
-    checkConsistency();
-
-    if (element.session != this) {
-      return NotElementOfThisSessionResult();
-    }
-
-    return _driver.getParsedLibraryByUri(element.source.uri);
-  }
-
   @override
   SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element) {
     checkConsistency();
@@ -128,20 +115,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     return await _driver.getResolvedLibrary(path);
   }
 
-  @Deprecated('Use getResolvedLibraryByElement2() instead')
-  @override
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
-    LibraryElement element,
-  ) async {
-    checkConsistency();
-
-    if (element.session != this) {
-      return NotElementOfThisSessionResult();
-    }
-
-    return await _driver.getResolvedLibraryByUri(element.source.uri);
-  }
-
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
     LibraryElement2 element,
@@ -153,6 +126,21 @@ class AnalysisSessionImpl implements AnalysisSession {
     }
 
     return await _driver.getResolvedLibraryByUri(element.uri);
+  }
+
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryContaining(
+    String path,
+  ) async {
+    checkConsistency();
+    var libraryFragmentResult = await getUnitElement(path);
+    return switch (libraryFragmentResult) {
+      UnitElementResult(:var fragment) => await getResolvedLibraryByElement2(
+          fragment.element,
+        ),
+      SomeResolvedLibraryResult result => result,
+      _ => UnspecifiedInvalidResult(),
+    };
   }
 
   @override

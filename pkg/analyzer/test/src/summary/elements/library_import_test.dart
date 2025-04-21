@@ -569,7 +569,6 @@ class D extends p.C {} // Prevent "unused import" warning
 ''');
     var libraryImports = library.definingCompilationUnit.libraryImports;
     expect(libraryImports, hasLength(2));
-    expect(libraryImports[0].importedLibrary2!.location, library.location);
     expect(libraryImports[1].importedLibrary2!.isDartCore, true);
     checkElementText(library, r'''
 library

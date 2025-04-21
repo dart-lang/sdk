@@ -102,7 +102,7 @@ class LibraryBuilder {
     for (var (fragmentIndex, fragment) in element.units.indexed) {
       for (var (exportIndex, exportElement)
           in fragment.libraryExports.indexed) {
-        var exportedLibrary = exportElement.exportedLibrary;
+        var exportedLibrary = exportElement.exportedLibrary2;
         if (exportedLibrary == null) {
           continue;
         }
@@ -442,7 +442,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library: exportedLibrary,
+            library2: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -461,7 +461,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library: exportedLibrary,
+            library2: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -524,7 +524,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library: importedLibrary,
+            library2: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -543,7 +543,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library: importedLibrary,
+            library2: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -629,7 +629,6 @@ class LibraryBuilder {
           );
           partUnitNode.declaredFragment = unitElement;
           unitElement.isSynthetic = !partFile.exists;
-          unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);
 
           var unitReference =

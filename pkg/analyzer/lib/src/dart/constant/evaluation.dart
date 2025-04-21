@@ -10,11 +10,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -33,7 +33,6 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -456,7 +455,7 @@ class ConstantEvaluationEngine {
     if (!constructor.isFactory) {
       return null;
     }
-    var typeProvider = constructor.library.typeProvider;
+    var typeProvider = constructor.library2.typeProvider;
     if (constructor.asElement2.enclosingElement2 ==
         typeProvider.symbolElement2) {
       // The dart:core.Symbol has a const factory constructor that redirects
@@ -517,14 +516,11 @@ class ConstantEvaluationEngine {
   }
 }
 
-// ignore: deprecated_member_use_from_same_package
-/// Interface for [AnalysisTarget]s for which constant evaluation can be
-/// performed.
+/// Interface for constant evaluation targets.
 @AnalyzerPublicApi(
     message: 'exposed because it is implemented by various elements')
 // TODO(scheglov): consider implementing only in Impl or removing
-// ignore: deprecated_member_use_from_same_package
-abstract class ConstantEvaluationTarget extends AnalysisTarget {
+abstract class ConstantEvaluationTarget {
   /// Return the [AnalysisContext] which should be used to evaluate this
   /// constant.
   AnalysisContext get context;
@@ -533,11 +529,13 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
   bool get isConstantEvaluated;
 
   /// The library with this constant.
-  @Deprecated('Use library2 instead')
-  LibraryElement? get library;
-
-  /// The library with this constant.
   LibraryElement2? get library2;
+
+  /// The library containing this constant.
+  Source? get librarySource;
+
+  /// The source associated with this constant.
+  Source? get source;
 }
 
 /// A visitor used to evaluate constant expressions to produce their
@@ -2618,7 +2616,7 @@ class _InstanceCreationEvaluator {
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(
     _evaluationEngine,
-    _constructor.library,
+    _constructor.library2,
     _externalErrorReporter,
     lexicalEnvironment: _parameterMap,
     lexicalTypeEnvironment: _typeParameterMap,
@@ -3181,7 +3179,7 @@ class _InstanceCreationEvaluator {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
       var superConstructor = superclass
-          .lookUpConstructor2(superName, _constructor.library)
+          .lookUpConstructor2(superName, _constructor.library2)
           ?.asElement;
       if (superConstructor == null) {
         return null;

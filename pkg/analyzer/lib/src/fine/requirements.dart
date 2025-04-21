@@ -471,7 +471,7 @@ class RequirementsManifest {
   void _addExports(LibraryElementImpl libraryElement) {
     for (var fragment in libraryElement.fragments) {
       for (var export in fragment.libraryExports) {
-        var exportedLibrary = export.exportedLibrary;
+        var exportedLibrary = export.exportedLibrary2;
 
         // If no library, then there is nothing to re-export.
         if (exportedLibrary == null) {

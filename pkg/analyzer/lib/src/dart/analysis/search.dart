@@ -14,12 +14,12 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 Fragment _getEnclosingFragment(
@@ -857,9 +857,7 @@ class Search {
     }
     var unit = unitResult.unit;
 
-    // Prepare the node.
-    var node =
-        NodeLocator(element.firstFragment.nameOffset2!).searchWithin(unit);
+    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset2!);
     if (node == null) {
       return const <SearchResult>[];
     }

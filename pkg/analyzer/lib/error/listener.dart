@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -95,27 +94,6 @@ class ErrorReporter {
         arguments: arguments,
       );
     }
-  }
-
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [element] is used to compute the location of the error.
-  @Deprecated('Use atElement2() instead')
-  void atElement(
-    Element element,
-    ErrorCode errorCode, {
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  }) {
-    var nonSynthetic = element.nonSynthetic;
-    atOffset(
-      errorCode: errorCode,
-      offset: nonSynthetic.nameOffset,
-      length: nonSynthetic.nameLength,
-      arguments: arguments,
-      contextMessages: contextMessages,
-      data: data,
-    );
   }
 
   /// Report an error with the given [errorCode] and [arguments].

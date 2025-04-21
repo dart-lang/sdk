@@ -15,6 +15,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -223,7 +224,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = resolvedUnit.unit.nodeCovering(offset: offset);
-        var element = server.getElementOfNode(node);
+        var element = node?.getElement();
         if (element is GetterElement) {
           refactoring = ConvertGetterToMethodRefactoring(
             refactoringWorkspace,
@@ -236,7 +237,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = resolvedUnit.unit.nodeCovering(offset: offset);
-        var element = server.getElementOfNode(node);
+        var element = node?.getElement();
         if (element is ExecutableElement2) {
           refactoring = ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
@@ -316,7 +317,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = resolvedUnit.unit.nodeCovering(offset: offset);
-        var element = server.getElementOfNode(node, useMockForImport: true);
+        var element = node?.getElement(useMockForImport: true);
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&

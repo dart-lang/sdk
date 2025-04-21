@@ -25,9 +25,5 @@ class InkResponse extends StatelessWidget {
 }
 
 class InkWell extends InkResponse {
-  const InkWell({
-    super.key,
-    super.child,
-    super.onHover,
-  });
+  const InkWell({super.key, super.child, super.onHover});
 }

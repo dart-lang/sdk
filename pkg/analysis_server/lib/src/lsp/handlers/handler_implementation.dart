@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -63,7 +64,7 @@ class ImplementationHandler
     OperationPerformanceImpl performance,
   ) async {
     var node = result.unit.nodeCovering(offset: offset);
-    var element = server.getElementOfNode(node);
+    var element = node?.getElement();
     if (element == null) {
       return success([]);
     }

@@ -329,7 +329,8 @@ class B {}
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     var element = libraryResult.element2.getClass2('A')!;
-    var declaration = parsedLibrary.getFragmentDeclaration(element.firstFragment)!;
+    var declaration =
+        parsedLibrary.getFragmentDeclaration(element.firstFragment)!;
     var node = declaration.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
     expect(node.offset, 0);
@@ -582,14 +583,16 @@ class B2 extends X {}
     expect(bUnitResult.unit.declarations, hasLength(2));
     expect(bUnitResult.errors, isNotEmpty);
 
-    var aDeclaration = resolvedLibrary.getFragmentDeclaration(aClass.firstFragment)!;
+    var aDeclaration =
+        resolvedLibrary.getFragmentDeclaration(aClass.firstFragment)!;
     var aNode = aDeclaration.node as ClassDeclaration;
     expect(aNode.name.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
     expect(aNode.declaredFragment!.name2, 'A');
 
-    var bDeclaration = resolvedLibrary.getFragmentDeclaration(bClass.firstFragment)!;
+    var bDeclaration =
+        resolvedLibrary.getFragmentDeclaration(bClass.firstFragment)!;
     var bNode = bDeclaration.node as ClassDeclaration;
     expect(bNode.name.lexeme, 'B');
     expect(bNode.offset, 19);
@@ -706,6 +709,50 @@ part 'c.dart';
 
     var result = await aaaSession.getResolvedLibraryByElement2(element);
     expect(result, isA<NotElementOfThisSessionResult>());
+  }
+
+  test_getResolvedLibraryContaining_library() async {
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    var currentSession = contextFor(a).currentSession;
+    var filePath = a.toUri().toFilePath();
+    var result = await currentSession.getResolvedLibraryContaining(filePath);
+    var units = (result as ResolvedLibraryResult).units;
+    var paths = units.map((unit) => unit.path);
+    expect(paths, unorderedEquals([a.path]));
+  }
+
+  test_getResolvedLibraryContaining_part() async {
+    var lib = newFile('$testPackageLibPath/lib.dart', r'''
+part 'part.dart';
+''');
+    var part = newFile('$testPackageLibPath/part.dart', r'''
+part of 'lib.dart';
+''');
+    var currentSession = contextFor(part).currentSession;
+    var filePath = part.toUri().toFilePath();
+    var result = await currentSession.getResolvedLibraryContaining(filePath);
+    var units = (result as ResolvedLibraryResult).units;
+    var paths = units.map((unit) => unit.path);
+    expect(paths, unorderedEquals([lib.path, part.path]));
+  }
+
+  test_getResolvedLibraryContaining_part_part() async {
+    var lib = newFile('$testPackageLibPath/lib.dart', r'''
+part 'part.dart';
+''');
+    var part = newFile('$testPackageLibPath/part.dart', r'''
+part of 'lib.dart';
+part 'part_part.dart';
+''');
+    var partPart = newFile('$testPackageLibPath/part_part.dart', r'''
+part of 'part.dart';
+''');
+    var currentSession = contextFor(partPart).currentSession;
+    var filePath = partPart.toUri().toFilePath();
+    var result = await currentSession.getResolvedLibraryContaining(filePath);
+    var units = (result as ResolvedLibraryResult).units;
+    var paths = units.map((unit) => unit.path);
+    expect(paths, unorderedEquals([lib.path, part.path, partPart.path]));
   }
 
   test_getResolvedUnit() async {
@@ -907,7 +954,8 @@ unitElementResult
         var element = result.fragment as CompilationUnitElementImpl;
         sink.writelnWithIndent('reference: ${element.reference}');
 
-        var library = (element as LibraryFragment).element as LibraryElementImpl;
+        var library =
+            (element as LibraryFragment).element as LibraryElementImpl;
         sink.writelnWithIndent('library: ${library.reference}');
 
         var classListStr = element.classes2.map((e) => e.name2).join(', ');

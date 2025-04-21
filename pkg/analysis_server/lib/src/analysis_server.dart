@@ -31,7 +31,6 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
-import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
@@ -44,6 +43,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -53,7 +53,6 @@ import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -74,13 +73,11 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
@@ -661,44 +658,8 @@ abstract class AnalysisServer {
       }
     }
 
-    var unit = unitResult.unit;
-    return getElementOfNode(unit.nodeCovering(offset: offset));
-  }
-
-  /// Returns the element associated with the [node].
-  ///
-  /// If [useMockForImport] is `true` then a [MockLibraryImportElement] will be
-  /// returned when an import directive or a prefix element is associated with
-  /// the [node]. The rename-prefix refactoring should be updated to not require
-  /// this work-around.
-  ///
-  /// Returns `null` if [node] is `null` or doesn't have an element.
-  Element2? getElementOfNode(AstNode? node, {bool useMockForImport = false}) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-
-    Element2? element;
-    if (useMockForImport && node is ImportDirective) {
-      element = MockLibraryImportElement(node.libraryImport!);
-    } else {
-      element = ElementLocator.locate2(node);
-    }
-    if (useMockForImport &&
-        node is SimpleIdentifier &&
-        element is PrefixElement2) {
-      element = MockLibraryImportElement(getImportElement(node)!);
-    }
-    return element;
+    var node = unitResult.unit.nodeCovering(offset: offset);
+    return node?.getElement();
   }
 
   /// Return a [LineInfo] for the file with the given [path].

@@ -180,7 +180,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// The state of the object.
   final InstanceState state;
 
-  @override
+  /// If this object is the value of a constant variable, the variable.
   final VariableElementImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].

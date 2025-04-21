@@ -117,5 +117,5 @@ class TextStyle {
     List<String> fontFamilyFallback,
     String package,
   }) : fontFamily =
-            package == null ? fontFamily : 'packages/$package/$fontFamily';
+           package == null ? fontFamily : 'packages/$package/$fontFamily';
 }

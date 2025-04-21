@@ -49,7 +49,10 @@ bool isWhitespaceNode(dom.Node node) {
 
 /// Create an HTML element with the given name, attributes, and child nodes.
 dom.Element makeElement(
-    String name, Map<String, String> attributes, List<dom.Node> children) {
+  String name,
+  Map<String, String> attributes,
+  List<dom.Node> children,
+) {
   var result = dom.Element.tag(name);
   result.attributes.addAll(attributes);
   for (var child in children) {
@@ -92,8 +95,11 @@ mixin HtmlGenerator {
 
   /// Execute [callback], wrapping its output in an element with the given
   /// [name] and [attributes].
-  void element(String name, Map<String, String> attributes,
-      [void Function()? callback]) {
+  void element(
+    String name,
+    Map<String, String> attributes, [
+    void Function()? callback,
+  ]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
 

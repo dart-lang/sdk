@@ -10,11 +10,7 @@ import 'dart:convert';
 const _htmlEscape = HtmlEscape(HtmlEscapeMode.element);
 
 class Document extends Element {
-  static const Set<String> selfClosing = {
-    'br',
-    'link',
-    'meta',
-  };
+  static const Set<String> selfClosing = {'br', 'link', 'meta'};
 
   Document() : super.tag('');
 

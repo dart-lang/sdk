@@ -3,9 +3,7 @@
 // found in the LICENSE file.
 
 class FlutterErrorDetails /* with Diagnosticable */ {
-  const FlutterErrorDetails({
-    required Object exception,
-  });
+  const FlutterErrorDetails({required Object exception});
 }
 
 class FlutterError /* extends Error with DiagnosticableTreeMixin implements AssertionError */ {

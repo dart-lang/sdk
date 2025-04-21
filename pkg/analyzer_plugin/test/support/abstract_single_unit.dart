@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -44,11 +44,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     int offset, [
     bool Function(AstNode)? predicate,
   ]) {
-    var result = NodeLocator(offset).searchWithin(testUnit);
-    if (result != null && predicate != null) {
-      result = result.thisOrAncestorMatching(predicate);
+    var node = testUnit.nodeCovering(offset: offset);
+    if (node != null && predicate != null) {
+      node = node.thisOrAncestorMatching(predicate);
     }
-    return result;
+    return node;
   }
 
   AstNode? findNodeAtString(

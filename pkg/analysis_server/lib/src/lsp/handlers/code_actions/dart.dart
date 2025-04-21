@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/refactoring_performance.
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
@@ -401,7 +402,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         timer.restart();
 
         var node = unitResult.unit.nodeCovering(offset: offset);
-        var element = server.getElementOfNode(node);
+        var element = node?.getElement();
 
         // Getter to Method
         if (element is GetterElement &&
