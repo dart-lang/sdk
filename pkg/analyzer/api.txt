@@ -3130,7 +3130,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: LibraryElement Function())
     enclosingElement3 (getter: Null)
     exportNamespace (getter: Namespace)
-    exportedLibraries (getter: List<LibraryElement>)
     featureSet (getter: FeatureSet)
     identifier (getter: String)
     importedLibraries (getter: List<LibraryElement>)
@@ -3145,12 +3144,6 @@ package:analyzer/dart/element/element.dart:
     topLevelElements (getter: Iterable<Element>)
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
-  LibraryExportElement (class extends Object implements _ExistingElement, deprecated):
-    new (constructor: LibraryExportElement Function())
-    combinators (getter: List<NamespaceCombinator>)
-    exportKeywordOffset (getter: int)
-    exportedLibrary (getter: LibraryElement?)
-    uri (getter: DirectiveUri)
   LibraryImportElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryImportElement Function())
     combinators (getter: List<NamespaceCombinator>)

@@ -102,7 +102,7 @@ class LibraryBuilder {
     for (var (fragmentIndex, fragment) in element.units.indexed) {
       for (var (exportIndex, exportElement)
           in fragment.libraryExports.indexed) {
-        var exportedLibrary = exportElement.exportedLibrary;
+        var exportedLibrary = exportElement.exportedLibrary2;
         if (exportedLibrary == null) {
           continue;
         }

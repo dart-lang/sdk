@@ -6651,18 +6651,14 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<LibraryElementImpl> get exportedLibraries {
+  List<LibraryElementImpl> get exportedLibraries2 {
     return fragments
         .expand((fragment) => fragment.libraryExports)
-        .map((export) => export.exportedLibrary)
+        .map((export) => export.exportedLibrary2)
         .nonNulls
         .toSet()
         .toList();
   }
-
-  @override
-  List<LibraryElement2> get exportedLibraries2 =>
-      exportedLibraries.cast<LibraryElement2>();
 
   @override
   Namespace get exportNamespace {
@@ -7020,10 +7016,7 @@ class LibraryElementImpl extends ElementImpl
 }
 
 class LibraryExportElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        LibraryExportElement,
-        LibraryExport {
+    implements LibraryExport {
   @override
   final List<NamespaceCombinator> combinators;
 
@@ -7045,16 +7038,13 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   }
 
   @override
-  LibraryElementImpl? get exportedLibrary {
+  LibraryElementImpl? get exportedLibrary2 {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
       return uri.library;
     }
     return null;
   }
-
-  @override
-  LibraryElementImpl? get exportedLibrary2 => exportedLibrary;
 
   @override
   String get identifier => 'export@$nameOffset';

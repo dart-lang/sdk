@@ -735,9 +735,6 @@ abstract class LibraryElement implements _ExistingElement {
   @override
   Null get enclosingElement3;
 
-  /// The libraries that are exported from this library.
-  List<LibraryElement> get exportedLibraries;
-
   /// The export [Namespace] of this library.
   Namespace get exportNamespace;
 
@@ -794,25 +791,6 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// The [TypeSystem] that is used in this library.
   TypeSystem get typeSystem;
-}
-
-/// A single export directive within a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use LibraryExport instead')
-abstract class LibraryExportElement implements _ExistingElement {
-  /// The combinators that were specified as part of the `export` directive in
-  /// the order in which they were specified.
-  List<NamespaceCombinator> get combinators;
-
-  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
-  LibraryElement? get exportedLibrary;
-
-  /// The offset of the `export` keyword.
-  int get exportKeywordOffset;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
 }
 
 /// A single import directive within a library.
