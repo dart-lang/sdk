@@ -36,7 +36,6 @@
 /// represented by an element.
 library;
 
-import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -747,37 +746,3 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// Clients may not extend, implement or mix-in this class.
 @Deprecated('Not used anymore')
 abstract class UndefinedElement implements Element {}
-
-/// An element included into a library using some URI.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use Element2 instead')
-abstract class UriReferencedElement implements _ExistingElement {
-  /// The URI that is used to include this element into the enclosing library,
-  /// or `null` if this is the defining compilation unit of a library.
-  String? get uri;
-
-  /// The offset of the character immediately following the last character of
-  /// this node's URI, or `-1` for synthetic import.
-  int get uriEnd;
-
-  /// The offset of the URI in the file, or `-1` if this element is synthetic.
-  int get uriOffset;
-}
-
-/// This class exists to provide non-nullable overrides for existing elements,
-/// as opposite to artificial "multiply defined" element.
-@Deprecated('Use Element2 instead')
-@AnalyzerPublicApi(
-    message: 'Exposed because it is implemented by various elements')
-abstract class _ExistingElement implements Element {
-  @Deprecated(elementModelDeprecationMsg)
-  @override
-  Element get declaration;
-
-  @override
-  Source get librarySource;
-
-  @override
-  Source get source;
-}

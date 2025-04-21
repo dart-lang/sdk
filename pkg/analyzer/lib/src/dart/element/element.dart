@@ -687,7 +687,7 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
 }
 
 /// A concrete implementation of [LibraryFragment].
-class CompilationUnitElementImpl extends UriReferencedElementImpl
+class CompilationUnitElementImpl extends _ExistingElementImpl
     implements LibraryFragment {
   /// The source that corresponds to this compilation unit.
   @override
@@ -10796,54 +10796,6 @@ mixin TypeParameterizedElementMixin on ElementImpl
   }
 }
 
-abstract class UriReferencedElementImpl extends _ExistingElementImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package,analyzer_use_new_elements
-        UriReferencedElement {
-  /// The offset of the URI in the file, or `-1` if this node is synthetic.
-  int _uriOffset = -1;
-
-  /// The offset of the character immediately following the last character of
-  /// this node's URI, or `-1` if this node is synthetic.
-  int _uriEnd = -1;
-
-  /// The URI that is specified by this directive.
-  String? _uri;
-
-  /// Initialize a newly created import element to have the given [name] and
-  /// [offset]. The offset may be `-1` if the element is synthetic.
-  UriReferencedElementImpl(super.name, super.offset);
-
-  /// Return the URI that is specified by this directive.
-  @override
-  String? get uri => _uri;
-
-  /// Set the URI that is specified by this directive to be the given [uri].
-  set uri(String? uri) {
-    _uri = uri;
-  }
-
-  /// Return the offset of the character immediately following the last
-  /// character of this node's URI, or `-1` if this node is synthetic.
-  @override
-  int get uriEnd => _uriEnd;
-
-  /// Set the offset of the character immediately following the last character
-  /// of this node's URI to the given [offset].
-  set uriEnd(int offset) {
-    _uriEnd = offset;
-  }
-
-  /// Return the offset of the URI in the file, or `-1` if this node is
-  /// synthetic.
-  @override
-  int get uriOffset => _uriOffset;
-
-  /// Set the offset of the URI in the file to the given [offset].
-  set uriOffset(int offset) {
-    _uriOffset = offset;
-  }
-}
 
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement2`.

@@ -3134,16 +3134,6 @@ package:analyzer/dart/element/element.dart:
     shownNames (getter: List<String>)
   UndefinedElement (class extends Object implements Element, deprecated):
     new (constructor: UndefinedElement Function())
-  UriReferencedElement (class extends Object implements _ExistingElement, deprecated):
-    new (constructor: UriReferencedElement Function())
-    uri (getter: String?)
-    uriEnd (getter: int)
-    uriOffset (getter: int)
-  _ExistingElement (class extends Object implements Element, deprecated):
-    new (constructor: _ExistingElement Function())
-    declaration (getter: Element, deprecated)
-    librarySource (getter: Source)
-    source (getter: Source)
 package:analyzer/dart/element/element2.dart:
   Annotatable (class extends Object):
     new (constructor: Annotatable Function())

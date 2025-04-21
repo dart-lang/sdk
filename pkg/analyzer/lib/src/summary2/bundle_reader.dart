@@ -1755,7 +1755,6 @@ class LibraryReader {
       ),
     );
 
-    unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
 
     unitElement.libraryImports = _reader.readTypedList(() {

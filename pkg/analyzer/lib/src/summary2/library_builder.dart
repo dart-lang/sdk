@@ -629,7 +629,6 @@ class LibraryBuilder {
           );
           partUnitNode.declaredFragment = unitElement;
           unitElement.isSynthetic = !partFile.exists;
-          unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);
 
           var unitReference =

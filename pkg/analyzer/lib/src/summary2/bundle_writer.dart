@@ -629,7 +629,6 @@ class BundleWriter {
   void _writeUnitElement(CompilationUnitElementImpl unitElement) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
 
     _writeList(unitElement.libraryImports, _writeImportElement);
