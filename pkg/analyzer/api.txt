@@ -3896,9 +3896,7 @@ package:analyzer/dart/element/scope.dart:
     lookup (method: ScopeLookupResult Function(String))
   ScopeLookupResult (class extends Object):
     new (constructor: ScopeLookupResult Function())
-    getter (getter: Element?, deprecated)
     getter2 (getter: Element2?)
-    setter (getter: Element?, deprecated)
     setter2 (getter: Element2?)
 package:analyzer/dart/element/type.dart:
   DartType (class extends Object):
@@ -4333,7 +4331,6 @@ package:analyzer/error/listener.dart:
     lockLevel= (setter: int)
     source (getter: Source)
     atConstructorDeclaration (method: void Function(ConstructorDeclaration, ErrorCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
-    atElement (method: void Function(Element, ErrorCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}), deprecated)
     atElement2 (method: void Function(Element2, ErrorCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}), experimental)
     atEntity (method: void Function(SyntacticEntity, ErrorCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     atNode (method: void Function(AstNode, ErrorCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
@@ -4695,11 +4692,8 @@ package:analyzer/src/dart/resolver/scope.dart:
     EMPTY (static getter: Namespace)
     EMPTY= (static setter: Namespace)
     new (constructor: Namespace Function(Map<String, Element2>))
-    definedNames (getter: Map<String, Element>, deprecated)
     definedNames2 (getter: Map<String, Element2>)
-    get (method: Element? Function(String), deprecated)
     get2 (method: Element2? Function(String))
-    getPrefixed (method: Element? Function(String, String), deprecated)
     getPrefixed2 (method: Element2? Function(String, String))
 package:analyzer/src/generated/engine.dart:
   AnalysisContext@2 (class extends Object):

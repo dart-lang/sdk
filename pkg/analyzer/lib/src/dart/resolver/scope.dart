@@ -4,13 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The scope defined by a block.
 class BlockScope {
@@ -125,28 +122,11 @@ class Namespace {
 
   /// Return a table containing the same mappings as those defined by this
   /// namespace.
-  @Deprecated('Use definedNames2 instead')
-  Map<String, Element> get definedNames =>
-      _definedNames.mapValue((e) => e.asElement!);
-
-  /// Return a table containing the same mappings as those defined by this
-  /// namespace.
   Map<String, Element2> get definedNames2 => _definedNames;
 
   /// Return the element in this namespace that is available to the containing
   /// scope using the given name, or `null` if there is no such element.
-  @Deprecated('Use get2() instead')
-  Element? get(String name) => _definedNames[name]?.asElement;
-
-  /// Return the element in this namespace that is available to the containing
-  /// scope using the given name, or `null` if there is no such element.
   Element2? get2(String name) => _definedNames[name];
-
-  /// Return the element in this namespace whose name is the result of combining
-  /// the [prefix] and the [name], separated by a period, or `null` if there is
-  /// no such element.
-  @Deprecated('Use getPrefixed2() instead')
-  Element? getPrefixed(String prefix, String name) => null;
 
   /// Return the element in this namespace whose name is the result of combining
   /// the [prefix] and the [name], separated by a period, or `null` if there is
@@ -323,25 +303,9 @@ class PrefixedNamespace implements Namespace {
       : _prefix = prefix,
         _length = prefix.length;
 
-  @Deprecated('Use definedNames2 instead')
-  @override
-  Map<String, Element> get definedNames {
-    var definedNames = <String, Element>{};
-    _definedNames.forEach((name, element) {
-      definedNames["$_prefix.$name"] = element.asElement!;
-    });
-    return definedNames;
-  }
-
   @override
   Map<String, Element2> get definedNames2 {
     return _definedNames;
-  }
-
-  @Deprecated('Use get2() instead')
-  @override
-  Element? get(String name) {
-    return get2(name)?.asElement;
   }
 
   @override
@@ -352,12 +316,6 @@ class PrefixedNamespace implements Namespace {
       }
     }
     return null;
-  }
-
-  @Deprecated('Use getPrefixed2() instead')
-  @override
-  Element? getPrefixed(String prefix, String name) {
-    return getPrefixed2(prefix, name)?.asElement;
   }
 
   @override
