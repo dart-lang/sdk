@@ -490,8 +490,8 @@ library
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
     var prefixElement =
-        library.definingCompilationUnit.libraryImports[0].prefix!.element;
-    expect(prefixElement.nameOffset, 19);
+        library.definingCompilationUnit.libraryImports[0].prefix2!;
+    expect(prefixElement.nameOffset2, 19);
 
     checkElementText(library, r'''
 library
@@ -556,7 +556,7 @@ library
       libraryImports
         dart:math as <null-name> (offset=21)
       prefixes
-        <testLibraryFragment>::@prefix2::1
+        <testLibraryFragment>::@prefix2::0
           fragments: @null
 ''');
   }
@@ -569,8 +569,8 @@ class D extends p.C {} // Prevent "unused import" warning
 ''');
     var libraryImports = library.definingCompilationUnit.libraryImports;
     expect(libraryImports, hasLength(2));
-    expect(libraryImports[0].importedLibrary!.location, library.location);
-    expect(libraryImports[1].importedLibrary!.isDartCore, true);
+    expect(libraryImports[0].importedLibrary2!.location, library.location);
+    expect(libraryImports[1].importedLibrary2!.isDartCore, true);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -820,8 +820,8 @@ import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    var p1 = library.definingCompilationUnit.libraryImportPrefixes
-        .singleWhere((prefix) => prefix.name == 'p1');
+    var p1 = library.definingCompilationUnit.prefixes
+        .singleWhere((prefix) => prefix.name3 == 'p1');
     var libraryImports = library.definingCompilationUnit.libraryImports;
     var import_async = libraryImports[0];
     var import_math = libraryImports[2];
@@ -1126,7 +1126,7 @@ library
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';");
     var libraryImports = library.definingCompilationUnit.libraryImports;
-    var importedLibrary = libraryImports[0].importedLibrary!;
+    var importedLibrary = libraryImports[0].importedLibrary2!;
     expect(importedLibrary.loadLibraryFunction2, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);

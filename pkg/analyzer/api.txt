@@ -2967,8 +2967,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  DeferredImportElementPrefix (class extends Object implements ImportElementPrefix, deprecated):
-    new (constructor: DeferredImportElementPrefix Function())
   DirectiveUri (class extends Object):
     new (constructor: DirectiveUri Function())
   DirectiveUriWithLibrary (class extends DirectiveUriWithSource):
@@ -3129,9 +3127,6 @@ package:analyzer/dart/element/element.dart:
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
     hiddenNames (getter: List<String>)
-  ImportElementPrefix (class extends Object, deprecated):
-    new (constructor: ImportElementPrefix Function())
-    element (getter: PrefixElement)
   LibraryElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryElement Function())
     enclosingElement3 (getter: Null)
@@ -3163,7 +3158,6 @@ package:analyzer/dart/element/element.dart:
     importKeywordOffset (getter: int)
     importedLibrary (getter: LibraryElement?)
     namespace (getter: Namespace)
-    prefix (getter: ImportElementPrefix?, deprecated)
     uri (getter: DirectiveUri)
   LibraryLanguageVersion (class extends Object):
     new (constructor: LibraryLanguageVersion Function({required Version? override, required Version package}))
@@ -3203,11 +3197,6 @@ package:analyzer/dart/element/element.dart:
   PartElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: PartElement Function())
     uri (getter: DirectiveUri)
-  PrefixElement (class extends Object implements _ExistingElement, deprecated):
-    new (constructor: PrefixElement Function())
-    imports (getter: List<LibraryImportElement>)
-    name (getter: String)
-    scope (getter: Scope)
   PromotableElement (class extends Object implements LocalElement, VariableElement, deprecated):
     new (constructor: PromotableElement Function())
     name (getter: String)

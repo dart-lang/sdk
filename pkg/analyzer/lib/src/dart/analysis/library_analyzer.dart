@@ -51,7 +51,6 @@ import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -974,7 +973,7 @@ class LibraryAnalyzer {
     required ErrorReporter errorReporter,
   }) {
     directive.element = element;
-    directive.prefix?.element = element.prefix?.element.asElement2;
+    directive.prefix?.element = element.prefix2?.element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,

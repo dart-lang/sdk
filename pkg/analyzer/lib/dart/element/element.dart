@@ -42,7 +42,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -58,12 +57,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-/// [ImportElementPrefix] that is used together with `deferred`.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PrefixElement2 instead')
-abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 
 /// Meaning of a URI referenced in a directive.
 ///
@@ -735,16 +728,6 @@ abstract class HideElementCombinator implements NamespaceCombinator {
   List<String> get hiddenNames;
 }
 
-/// Usage of a [PrefixElement] in an `import` directive.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PrefixElement2 instead')
-abstract class ImportElementPrefix {
-  /// The prefix that was specified as part of the import directive, or `null`
-  /// if there was no prefix specified.
-  PrefixElement get element;
-}
-
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -851,11 +834,6 @@ abstract class LibraryImportElement implements _ExistingElement {
 
   /// The [Namespace] that this directive contributes to the containing library.
   Namespace get namespace;
-
-  /// The prefix that was specified as part of the import directive, or `null`
-  /// if there was no prefix specified.
-  @Deprecated(elementModelDeprecationMsg)
-  ImportElementPrefix? get prefix;
 
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
@@ -1017,25 +995,6 @@ abstract class ParameterElement
 abstract class PartElement implements _ExistingElement {
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
-}
-
-/// A prefix used to import one or more libraries into another library.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use PrefixElement2 instead')
-abstract class PrefixElement implements _ExistingElement {
-  /// The imports that share this prefix.
-  List<LibraryImportElement> get imports;
-
-  @override
-  String get name;
-
-  /// The name lookup scope for this import prefix.
-  ///
-  /// It consists of elements imported into the enclosing library with this
-  /// prefix. The namespace combinators of the import directives are taken
-  /// into account.
-  Scope get scope;
 }
 
 /// A variable that might be subject to type promotion.  This might be a local
