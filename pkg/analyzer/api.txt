@@ -3031,10 +3031,6 @@ package:analyzer/dart/element/element.dart:
     source (getter: Source?)
     getDisplayString (method: String Function({bool multiline, bool withNullability}))
     getExtendedDisplayName (method: String Function(String?))
-    thisOrAncestorMatching (method: E? Function<E extends Element>(bool Function(Element)), deprecated)
-    thisOrAncestorMatching3 (method: E? Function<E extends Element>(bool Function(Element)), deprecated)
-    thisOrAncestorOfType (method: E? Function<E extends Element>(), deprecated)
-    thisOrAncestorOfType3 (method: E? Function<E extends Element>(), deprecated)
   ElementAnnotation (class extends Object implements ConstantEvaluationTarget):
     new (constructor: ElementAnnotation Function())
     constantEvaluationErrors (getter: List<AnalysisError>?)

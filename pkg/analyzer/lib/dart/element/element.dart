@@ -353,32 +353,6 @@ abstract class Element implements AnalysisTarget {
   /// the provided name will be used.
   // TODO(brianwilkerson): Make the parameter optional.
   String getExtendedDisplayName(String? shortName);
-
-  /// Returns either this element or the most immediate ancestor of this element
-  /// for which the [predicate] returns `true`, or `null` if there is no such
-  /// element.
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  E? thisOrAncestorMatching<E extends Element>(
-    bool Function(Element) predicate,
-  );
-
-  /// Returns either this element or the most immediate ancestor of this element
-  /// for which the [predicate] returns `true`, or `null` if there is no such
-  /// element.
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  E? thisOrAncestorMatching3<E extends Element>(
-    bool Function(Element) predicate,
-  );
-
-  /// Returns either this element or the most immediate ancestor of this element
-  /// that has the given type, or `null` if there is no such element.
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  E? thisOrAncestorOfType<E extends Element>();
-
-  /// Returns either this element or the most immediate ancestor of this element
-  /// that has the given type, or `null` if there is no such element.
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  E? thisOrAncestorOfType3<E extends Element>();
 }
 
 /// A single annotation associated with an element.

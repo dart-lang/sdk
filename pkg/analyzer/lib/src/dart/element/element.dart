@@ -1910,6 +1910,9 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningFragment {
   ElementKind get kind => ElementKind.DYNAMIC;
 
   @override
+  Null get library => null;
+
+  @override
   Null get libraryFragment => null;
 
   @override
@@ -2834,10 +2837,7 @@ abstract class ElementImpl
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
-  LibraryElementImpl? get library {
-    // ignore:deprecated_member_use_from_same_package
-    return thisOrAncestorOfType();
-  }
+  LibraryElementImpl? get library;
 
   @override
   Source? get librarySource => library?.source;
@@ -2963,61 +2963,6 @@ abstract class ElementImpl
   /// correspond to the given [value].
   void setModifier(Modifier modifier, bool value) {
     _modifiers = _modifiers.updated(modifier, value);
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  @override
-  E? thisOrAncestorMatching<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    Element? element = this;
-    while (element != null && !predicate(element)) {
-      element = element.enclosingElement3;
-    }
-    return element as E?;
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
-  @override
-  E? thisOrAncestorMatching3<E extends Element>(
-    bool Function(Element) predicate,
-  ) {
-    Element? element = this;
-    while (element != null && !predicate(element)) {
-      element = (element as ElementImpl).enclosingElement3;
-    }
-    return element as E?;
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
-  @override
-  E? thisOrAncestorOfType<E extends Element>() {
-    if (E == LibraryElementImpl) {
-      if (enclosingElement3 case LibraryElementImpl library) {
-        return library as E;
-      }
-      return thisOrAncestorOfType<CompilationUnitElementImpl>()?.library as E?;
-    }
-
-    Element element = this;
-    while (element is! E) {
-      var ancestor = element.enclosingElement3;
-      if (ancestor == null) return null;
-      element = ancestor;
-    }
-    return element;
-  }
-
-  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
-  @override
-  E? thisOrAncestorOfType3<E extends Element>() {
-    Element element = this;
-    while (element is! E) {
-      var ancestor = element.enclosingElement3;
-      if (ancestor == null) return null;
-      element = ancestor;
-    }
-    return element;
   }
 
   @override
@@ -6420,7 +6365,7 @@ class LabelElementImpl extends ElementImpl implements LabelFragment {
 
   @override
   LibraryElementImpl get library {
-    return super.library!;
+    return libraryFragment.element;
   }
 
   @override
@@ -8332,6 +8277,9 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningFragment {
   ElementKind get kind => ElementKind.NEVER;
 
   @override
+  Null get library => null;
+
+  @override
   Null get libraryFragment => null;
 
   @override
@@ -8569,6 +8517,12 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
+
+  @override
+  LibraryElementImpl? get library {
+    var library = libraryFragment?.element;
+    return library as LibraryElementImpl?;
+  }
 
   @override
   LibraryElementImpl? get library2 => library;
@@ -8937,6 +8891,9 @@ class PrefixElementImpl extends ElementImpl {
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
+
+  @override
+  Null get library => null;
 }
 
 class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
@@ -10560,6 +10517,12 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
+
+  @override
+  LibraryElementImpl? get library {
+    var library = libraryFragment?.element;
+    return library as LibraryElementImpl?;
+  }
 
   @override
   LibraryFragment? get libraryFragment {
