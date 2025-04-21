@@ -393,8 +393,14 @@ abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
 class UnspecifiedInvalidResult
     implements
         InvalidResult,
+        SomeErrorsResult,
+        SomeFileResult,
         SomeLibraryElementResult,
-        SomeParsedLibraryResult {}
+        SomeParsedLibraryResult,
+        SomeParsedUnitResult,
+        SomeResolvedLibraryResult,
+        SomeResolvedUnitResult,
+        SomeUnitElementResult {}
 
 /// The type of [InvalidResult] returned when the given URI corresponds to
 /// a library that is served from an external summary bundle.

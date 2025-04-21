@@ -514,20 +514,13 @@ class BulkFixProcessor {
           continue;
         }
 
-        var resolvedLibrary = await context.currentSession.getResolvedLibrary(
-          path,
-        );
+        var resolvedLibrary = await context.currentSession
+            .getResolvedLibraryContaining(path);
 
         if (isCancelled) {
           break;
         }
-        if (resolvedLibrary is NotLibraryButPartResult) {
-          var resolvedUnit = await context.currentSession.getResolvedUnit(path);
-          if (resolvedUnit is ResolvedUnitResult) {
-            resolvedLibrary = await context.currentSession
-                .getResolvedLibraryByElement2(resolvedUnit.libraryElement2);
-          }
-        }
+
         if (resolvedLibrary is ResolvedLibraryResult) {
           await _fixErrorsInLibraryAt(
             resolvedLibrary,

@@ -237,7 +237,7 @@ package:analyzer/dart/analysis/results.dart:
   UnitElementResult (class extends Object implements SomeUnitElementResult, FileResult):
     new (constructor: UnitElementResult Function())
     fragment (getter: LibraryFragment, experimental)
-  UnspecifiedInvalidResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult):
+  UnspecifiedInvalidResult (class extends Object implements InvalidResult, SomeErrorsResult, SomeFileResult, SomeLibraryElementResult, SomeParsedLibraryResult, SomeParsedUnitResult, SomeResolvedLibraryResult, SomeResolvedUnitResult, SomeUnitElementResult):
     new (constructor: UnspecifiedInvalidResult Function())
   UriOfExternalLibraryResult (class extends Object implements InvalidResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: UriOfExternalLibraryResult Function())
@@ -256,6 +256,7 @@ package:analyzer/dart/analysis/session.dart:
     getParsedUnit (method: SomeParsedUnitResult Function(String))
     getResolvedLibrary (method: Future<SomeResolvedLibraryResult> Function(String))
     getResolvedLibraryByElement2 (method: Future<SomeResolvedLibraryResult> Function(LibraryElement2), experimental)
+    getResolvedLibraryContaining (method: Future<SomeResolvedLibraryResult> Function(String))
     getResolvedUnit (method: Future<SomeResolvedUnitResult> Function(String))
     getUnitElement (method: Future<SomeUnitElementResult> Function(String))
   InconsistentAnalysisException (class extends AnalysisException):

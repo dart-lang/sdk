@@ -73,6 +73,14 @@ abstract class AnalysisSession {
       LibraryElement2 element);
 
   /// Return a future that will complete with information about the results of
+  /// resolving all of the files in the library containing the given absolute,
+  /// normalized [path].
+  ///
+  /// Similar to [getResolvedLibrary] but [path] can also be a part file of a
+  /// library.
+  Future<SomeResolvedLibraryResult> getResolvedLibraryContaining(String path);
+
+  /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].
   Future<SomeResolvedUnitResult> getResolvedUnit(String path);
 

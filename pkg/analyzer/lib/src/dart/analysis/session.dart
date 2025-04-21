@@ -129,6 +129,21 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryContaining(
+    String path,
+  ) async {
+    checkConsistency();
+    var libraryFragmentResult = await getUnitElement(path);
+    return switch (libraryFragmentResult) {
+      UnitElementResult(:var fragment) => await getResolvedLibraryByElement2(
+          fragment.element,
+        ),
+      SomeResolvedLibraryResult result => result,
+      _ => UnspecifiedInvalidResult(),
+    };
+  }
+
+  @override
   Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
     checkConsistency();
     return await _driver.getResolvedUnit(path);
