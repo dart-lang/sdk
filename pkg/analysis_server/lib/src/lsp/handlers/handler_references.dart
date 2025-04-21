@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     show SearchMatch;
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -66,10 +67,10 @@ class ReferencesHandler
     var node = result.unit.nodeCovering(offset: offset);
     node = _getReferenceTargetNode(node);
 
-    var element = switch (server.getElementOfNode(node)) {
+    var element = switch (node?.getElement()) {
       FieldFormalParameterElement2(:var field2?) => field2,
       PropertyAccessorElement2(:var variable3?) => variable3,
-      (var element) => element,
+      var element => element,
     };
 
     if (element == null) {

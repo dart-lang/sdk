@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -75,7 +76,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     var resolvedUnit = await server.getResolvedUnit(file);
     if (resolvedUnit != null) {
       var node = resolvedUnit.unit.nodeCovering(offset: offset);
-      var element = server.getElementOfNode(node);
+      var element = node?.getElement();
       if (element != null) {
         var refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER

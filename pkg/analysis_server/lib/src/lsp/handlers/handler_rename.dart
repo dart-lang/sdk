@@ -13,6 +13,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -64,7 +65,7 @@ class PrepareRenameHandler
     return (unit, offset).mapResults((result, offset) async {
       var node = result.unit.nodeCovering(offset: offset);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node, useMockForImport: true);
+      var element = node?.getElement(useMockForImport: true);
 
       if (node == null || element == null) {
         return success(null);
@@ -160,7 +161,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
     ) async {
       var node = result.unit.nodeCovering(offset: offset);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node, useMockForImport: true);
+      var element = node?.getElement(useMockForImport: true);
       if (node == null || element == null) {
         return success(null);
       }
