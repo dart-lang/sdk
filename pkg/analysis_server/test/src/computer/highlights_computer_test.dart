@@ -110,7 +110,7 @@ void f() {
     String content, {
     bool hasErrors = false,
   }) async {
-    this.content = content;
+    this.content = content = normalizeSource(content);
     var file = newFile(sourcePath, content);
     var result = await getResolvedUnit(file);
 

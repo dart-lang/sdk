@@ -113,7 +113,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
     var edits = [for (var fix in fixes) ...fix.edits];
     var result = SourceEdit.applySequence(original, edits);
-    expect(result, expected);
+    expect(result, normalizeSource(expected));
   }
 
   Future<void> assertFormat(String expectedCode) async {
@@ -124,7 +124,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
-    expect(resultCode, expectedCode);
+    expect(resultCode, normalizeSource(expectedCode));
   }
 
   Future<void> assertHasFix(String expected, {bool isParse = false}) async {
@@ -136,7 +136,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
     var fileContent = testCode;
     resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(resultCode, expected);
+    expect(resultCode, normalizeSource(expected));
   }
 
   Future<void> assertNoFix() async {
@@ -153,7 +153,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
-    expect(resultCode, expectedCode);
+    expect(resultCode, normalizeSource(expectedCode));
   }
 
   /// Computes fixes for the specified [testUnit].

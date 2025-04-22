@@ -34,7 +34,7 @@ class AbstractContextTest
   static final ByteStore _byteStore = MemoryByteStore();
 
   /// Whether to rewrite line endings in test code based on platform.
-  bool useLineEndingsForPlatform = false;
+  bool useLineEndingsForPlatform = true;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;

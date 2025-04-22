@@ -1001,7 +1001,7 @@ class NonLibraryAnnotation {
     );
     var edits = organizer.organize();
     var result = SourceEdit.applySequence(testCode, edits);
-    expect(result, expectedCode);
+    expect(result, normalizeSource(expectedCode));
   }
 
   Future<void> _computeUnitAndErrors(String code) async {
