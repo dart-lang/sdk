@@ -950,10 +950,7 @@ void f(bool c) {
   } while (c);
 }
 ''',
-      [
-        error(WarningCode.DEAD_CODE, 19, 4),
-        error(WarningCode.DEAD_CODE, 52, 12),
-      ],
+      [error(WarningCode.DEAD_CODE, 52, 12)],
     );
   }
 
@@ -970,10 +967,7 @@ void f(bool c) {
   print('');
 }
 ''',
-      [
-        error(WarningCode.DEAD_CODE, 19, 4),
-        error(WarningCode.DEAD_CODE, 69, 12),
-      ],
+      [error(WarningCode.DEAD_CODE, 69, 12)],
     );
   }
 
@@ -991,10 +985,7 @@ void f(bool c) {
   print('');
 }
 ''',
-      [
-        error(WarningCode.DEAD_CODE, 28, 4),
-        error(WarningCode.DEAD_CODE, 85, 12),
-      ],
+      [error(WarningCode.DEAD_CODE, 85, 12)],
     );
   }
 
@@ -1012,7 +1003,6 @@ void f(bool c) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 19, 4),
         error(WarningCode.DEAD_CODE, 73, 12),
         error(WarningCode.DEAD_CODE, 88, 10),
       ],
@@ -1037,7 +1027,6 @@ void f(bool c) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 37, 4),
         error(WarningCode.DEAD_CODE, 104, 12),
         error(WarningCode.DEAD_CODE, 121, 38),
       ],
@@ -1060,7 +1049,6 @@ void f(bool c) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 32, 4),
         error(WarningCode.DEAD_CODE, 98, 12),
         error(WarningCode.DEAD_CODE, 115, 14),
       ],
@@ -1079,7 +1067,6 @@ void f(bool c) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 19, 4),
         error(WarningCode.DEAD_CODE, 52, 12),
         error(WarningCode.DEAD_CODE, 67, 11),
       ],
