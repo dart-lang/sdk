@@ -6327,11 +6327,11 @@ TEST_CASE(IsolateReload_RegressB179030011) {
   }
   uint8_t* kernel_buffer = static_cast<uint8_t*>(malloc(kernel_buffer_size));
   TestCaseBase::AddToKernelBuffers(kernel_buffer);
-  intptr_t pos = 0;
+  uint8_t* target_ptr = kernel_buffer;
   for (auto component : components) {
-    memcpy(kernel_buffer + pos, component.kernel_buffer,  // NOLINT
+    memcpy(target_ptr, component.kernel_buffer,  // NOLINT
            component.kernel_buffer_size);
-    pos += component.kernel_buffer_size;
+    target_ptr += component.kernel_buffer_size;
   }
 
   // Load the first component into the isolate (to have something set as
