@@ -363,31 +363,15 @@ class RequirementsManifest {
     required InterfaceElementImpl2 element,
     required String name,
   }) {
-    var libraryElement = element.library2;
-    var manifest = libraryElement.manifest;
-
-    // If we are linking the library, its manifest is not set yet.
-    // But then we also don't care about this dependency.
-    if (manifest == null) {
+    var interfacePair = _getInterface(element);
+    if (interfacePair == null) {
       return;
     }
 
-    var interfaceName = element.lookupName?.asLookupName;
-
-    // SAFETY: we don't export elements without name.
-    interfaceName!;
-
-    var interfacesMap = interfaces[libraryElement.uri] ??= {};
-    var interfaceItem = manifest.items[interfaceName];
-
-    // SAFETY: every interface element must be in the manifest.
-    interfaceItem as InterfaceItem;
-
-    var memberName = name.asLookupName;
-    var memberId = interfaceItem.getMemberId(memberName);
-    var interface =
-        interfacesMap[interfaceName] ??= InterfaceRequirements.empty();
-    interface.constructors[memberName] = memberId;
+    var (interfaceItem, interface) = interfacePair;
+    var constructorName = name.asLookupName;
+    var constructorId = interfaceItem.getMemberId(constructorName);
+    interface.constructors[constructorName] = constructorId;
   }
 
   /// This method is invoked by [InheritanceManager3] to notify the collector
@@ -401,31 +385,15 @@ class RequirementsManifest {
       return;
     }
 
-    var libraryElement = element.library2;
-    var manifest = libraryElement.manifest;
-
-    // If we are linking the library, its manifest is not set yet.
-    // But then we also don't care about this dependency.
-    if (manifest == null) {
+    var interfacePair = _getInterface(element);
+    if (interfacePair == null) {
       return;
     }
 
-    var interfaceName = element.lookupName?.asLookupName;
-
-    // SAFETY: we don't export elements without name.
-    interfaceName!;
-
-    var interfacesMap = interfaces[libraryElement.uri] ??= {};
-    var interfaceItem = manifest.items[interfaceName];
-
-    // SAFETY: every interface element must be in the manifest.
-    interfaceItem as InterfaceItem;
-
-    var memberName = nameObj.name.asLookupName;
-    var memberId = interfaceItem.getMemberId(memberName);
-    var interface =
-        interfacesMap[interfaceName] ??= InterfaceRequirements.empty();
-    interface.methods[memberName] = memberId;
+    var (interfaceItem, interface) = interfacePair;
+    var methodName = nameObj.name.asLookupName;
+    var methodId = interfaceItem.getMemberId(methodName);
+    interface.methods[methodName] = methodId;
   }
 
   /// This method is invoked by an import scope to notify the collector that
@@ -536,6 +504,32 @@ class RequirementsManifest {
         );
       }
     }
+  }
+
+  (InterfaceItem, InterfaceRequirements)? _getInterface(
+    InterfaceElementImpl2 element,
+  ) {
+    var libraryElement = element.library2;
+    var manifest = libraryElement.manifest;
+
+    // If we are linking the library, its manifest is not set yet.
+    // But then we also don't care about this dependency.
+    if (manifest == null) {
+      return null;
+    }
+
+    // SAFETY: we don't export elements without name.
+    var interfaceName = element.lookupName!.asLookupName;
+
+    var interfacesMap = interfaces[libraryElement.uri] ??= {};
+    var interfaceItem = manifest.items[interfaceName];
+
+    // SAFETY: every interface element must be in the manifest.
+    interfaceItem as InterfaceItem;
+
+    var interfaceRequirements =
+        interfacesMap[interfaceName] ??= InterfaceRequirements.empty();
+    return (interfaceItem, interfaceRequirements);
   }
 }
 
