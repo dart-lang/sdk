@@ -71,6 +71,33 @@ const filteredPathComponents = <String>[
   "ProductXARM64",
 ];
 
+const filteredSections = <String>[
+  // Covered by symbols
+  ".data",
+  ".data.rel.ro",
+  ".rodata",
+  ".text",
+
+  // Does not contribute to file size
+  ".bss",
+  ".tbss",
+
+  // Debug info / stripped
+  ".debug_abbrev",
+  ".debug_aranges",
+  ".debug_info",
+  ".debug_line",
+  ".debug_line_str",
+  ".debug_loc",
+  ".debug_loclists",
+  ".debug_macro",
+  ".debug_ranges",
+  ".debug_rnglists",
+  ".debug_str",
+  ".strtab",
+  ".symtab",
+];
+
 var cwd = Directory.current.path;
 String prettyPath(String path) {
   if (path.startsWith(cwd)) {
@@ -172,6 +199,46 @@ analyze(String binaryPath) {
     s.type = type;
     s.shallowSize = size;
     addToPath(s, path);
+  }
+
+  var readExec = "readelf";
+  var readArgs = ["--sections", binaryPath];
+  var readResult = Process.runSync(readExec, readArgs);
+  if (readResult.exitCode != 0) {
+    print("+ ${readExec} ${readArgs.join(' ')}");
+    print(readResult.exitCode);
+    print(readResult.stdout);
+    print(readResult.stderr);
+    exit(1);
+  }
+
+  lines = readResult.stdout.split("\n");
+  var nameRegex = new RegExp("\\[([ 0-9a-f]+)\\] ([_0-9a-zA-Z.]+)");
+  var sizeRegex = new RegExp("([_0-9a-f]+)");
+  var sectionName = null;
+  for (var line in lines) {
+    print(line);
+    var match = nameRegex.firstMatch(line);
+    if (match != null) {
+      sectionName = match[2];
+      continue;
+    }
+    match = sizeRegex.firstMatch(line);
+    if (match != null) {
+      int size = int.parse(match[1]!, radix: 16);
+
+      if (sectionName != null && !filteredSections.contains(sectionName)) {
+        var s = new Symbol();
+        s.name = sectionName;
+        s.type = "section";
+        s.shallowSize = size;
+        addToPath(s, "");
+      }
+
+      sectionName = null;
+      continue;
+    }
+    sectionName = null;
   }
 
   root.compressTrivialPaths();
