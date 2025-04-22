@@ -286,10 +286,7 @@ import 'package:aaa/a.dart';
 
     // Add dependency on `package:aaa`.
     writeTestPackagePubspecYamlFile(
-      pubspecYamlContent(
-        name: 'my_test',
-        dependencies: [PubspecYamlFileDependency(name: 'aaa')],
-      ),
+      pubspecYamlContent(name: 'my_test', dependencies: ['aaa']),
     );
 
     // With dependency on `package:aaa` added, no lint is reported.

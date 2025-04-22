@@ -55,3 +55,31 @@ String analysisOptionsContent({
 
   return buffer.toString();
 }
+
+/// Returns the content for a pubspec file, specified appropriately
+/// with the given parameter values.
+String pubspecYamlContent({
+  String? name,
+  String? sdkVersion,
+  List<String> dependencies = const [],
+}) {
+  var buffer = StringBuffer();
+
+  if (name != null) {
+    buffer.writeln('name: $name');
+  }
+
+  if (sdkVersion != null) {
+    buffer.writeln('environment:');
+    buffer.writeln("  sdk: '$sdkVersion'");
+  }
+
+  if (dependencies.isNotEmpty) {
+    buffer.writeln('dependencies:');
+    for (var dependency in dependencies) {
+      buffer.writeln('  $dependency: any');
+    }
+  }
+
+  return buffer.toString();
+}
