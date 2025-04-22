@@ -73,11 +73,6 @@ abstract class AnnotatableElement implements Element2, Annotatable {
 abstract class AnnotatableElementImpl
     implements ElementImpl2, AnnotatableElement {}
 
-@Deprecated('This is an internal class, do not use it')
-// TODO(scheglov): remove it when DartDoc stops using it
-// https://github.com/dart-lang/dartdoc/issues/4015
-mixin AugmentableElement on ElementImpl2 {}
-
 /// Shared implementation for an augmentable [Fragment].
 mixin AugmentableFragment on ElementImpl {
   bool get isAugmentation {
@@ -4735,10 +4730,6 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   ExecutableElementImpl get declaration => this;
-
-  @Deprecated('ElementImpl should have never implemented Element2')
-  // TODO(scheglov): remove after https://github.com/dart-lang/dartdoc/issues/4017
-  Element2? get enclosingElement2 => null;
 
   @override
   Fragment? get enclosingFragment {
