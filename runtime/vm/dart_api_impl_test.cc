@@ -10140,6 +10140,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Debugger", js_str);
     EXPECT_NOTSUBSTRING("Embedder", js_str);
     EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("Microtask", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
 
@@ -10158,6 +10159,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Debugger", js_str);
     EXPECT_NOTSUBSTRING("Embedder", js_str);
     EXPECT_SUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("Microtask", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
 
@@ -10176,6 +10178,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Debugger", js_str);
     EXPECT_NOTSUBSTRING("Embedder", js_str);
     EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("Microtask", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
 }

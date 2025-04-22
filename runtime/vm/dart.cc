@@ -33,6 +33,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
+#include "vm/microtask_mirror_queues.h"
 #include "vm/native_entry.h"
 #include "vm/native_message_handler.h"
 #include "vm/object.h"
@@ -764,6 +765,7 @@ char* Dart::Cleanup() {
   }
   Timeline::Cleanup();
 #endif
+  NOT_IN_PRODUCT(MicrotaskMirrorQueues::CleanUp());
   Zone::Cleanup();
   Random::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.

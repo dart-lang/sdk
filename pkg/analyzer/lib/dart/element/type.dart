@@ -180,14 +180,6 @@ abstract class DartType {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
   });
-
-  /// Determines whether this type is the same as [other].
-  ///
-  /// Deprecated: this getter is a part of the analyzer's private
-  /// implementation, and was exposed by accident (see
-  /// https://github.com/dart-lang/sdk/issues/59763). Please use `==` instead.
-  @Deprecated('Use `==` instead')
-  bool isStructurallyEqualTo(covariant DartType other);
 }
 
 /// The type `dynamic` is a type which is a supertype of all other types, just

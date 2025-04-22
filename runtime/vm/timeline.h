@@ -78,6 +78,7 @@ class Zone;
   V(Embedder, "dart:embedder", true)                                           \
   V(GC, "dart:gc", true)                                                       \
   V(Isolate, "dart:isolate", true)                                             \
+  V(Microtask, "dart:microtask", true)                                         \
   V(VM, "dart:vm", true)
 #endif  // defined(SUPPORT_TIMELINE)
 

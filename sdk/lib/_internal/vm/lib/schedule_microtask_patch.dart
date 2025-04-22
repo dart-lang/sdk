@@ -5,6 +5,24 @@
 part of "async_patch.dart";
 
 @patch
+abstract final class _MicrotaskMirrorQueue {
+  @patch
+  @pragma("vm:external-name", "MicrotaskMirrorQueue_onScheduleAsyncCallback")
+  external static void _onScheduleAsyncCallback(StackTrace st);
+
+  @patch
+  @pragma(
+    "vm:external-name",
+    "MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback",
+  )
+  external static void _onSchedulePriorityAsyncCallback();
+
+  @patch
+  @pragma("vm:external-name", "MicrotaskMirrorQueue_onAsyncCallbackComplete")
+  external static void _onAsyncCallbackComplete(int startTime, int endTime);
+}
+
+@patch
 class _AsyncRun {
   @patch
   static void _scheduleImmediate(void callback()) {

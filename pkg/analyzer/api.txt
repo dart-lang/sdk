@@ -3877,7 +3877,6 @@ package:analyzer/dart/element/type.dart:
     acceptWithArgument (method: R Function<R, A>(TypeVisitorWithArgument<R, A>, A))
     asInstanceOf2 (method: InterfaceType? Function(InterfaceElement2), experimental)
     getDisplayString (method: String Function({bool withNullability}))
-    isStructurallyEqualTo (method: bool Function(DartType), deprecated)
   DynamicType (class extends Object implements DartType):
     new (constructor: DynamicType Function())
   FunctionType (class extends Object implements DartType):
