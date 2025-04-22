@@ -271,8 +271,12 @@ mixin TypeAnalyzer<
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
     implements TypeAnalysisNullShortingInterface<Expression, SharedTypeView> {
-  /// Cached context types used to resolve dot shorthand heads.
-  final _dotShorthands = <SharedTypeSchemaView>[];
+  /// Cached context types and their respective dot shorthand nodes.
+  ///
+  /// The [SharedTypeSchemaView] is used to resolve dot shorthand heads. We
+  /// save the corresponding dot shorthand [Node] to make sure we aren't caching
+  /// two context types for the same node.
+  final _dotShorthands = <(Node, SharedTypeSchemaView)>[];
 
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, SharedTypeView,
       Pattern, Error> get errors;
@@ -538,10 +542,10 @@ mixin TypeAnalyzer<
   /// Saves the [context] for when we resolve the dot shorthand head.
   SharedTypeView analyzeDotShorthand(
       Expression node, SharedTypeSchemaView context) {
-    _dotShorthands.add(context);
+    pushDotShorthandContext(node, context);
     ExpressionTypeAnalysisResult analysisResult =
         dispatchExpression(node, context);
-    _dotShorthands.removeLast();
+    popDotShorthandContext();
     return analysisResult.type;
   }
 
@@ -2167,7 +2171,7 @@ mixin TypeAnalyzer<
   });
 
   /// Returns the most recently cached dot shorthand context type.
-  SharedTypeSchemaView getDotShorthandContext() => _dotShorthands.last;
+  SharedTypeSchemaView getDotShorthandContext() => _dotShorthands.last.$2;
 
   /// If the [element] is a map pattern entry, returns it.
   MapPatternEntry<Expression, Pattern>? getMapPatternEntry(Node element);
@@ -2355,10 +2359,12 @@ mixin TypeAnalyzer<
     _dotShorthands.removeLast();
   }
 
-  /// Pushes the [context] onto the stack to use when we resolve the dot
-  /// shorthand head.
-  void pushDotShorthandContext(SharedTypeSchemaView context) {
-    _dotShorthands.add(context);
+  /// Pushes the [node] and [context] onto the stack to use when we resolve the
+  /// dot shorthand head.
+  void pushDotShorthandContext(Node node, SharedTypeSchemaView context) {
+    if (_dotShorthands.isEmpty || _dotShorthands.last.$1 != node) {
+      _dotShorthands.add((node, context));
+    }
   }
 
   /// Returns the type of the property in [receiverType] that corresponds to

@@ -128,6 +128,43 @@ DotShorthandInvocation
 ''');
   }
 
+  test_equality() async {
+    await assertNoErrorsInCode('''
+class C {
+  static C member(int x) => C(x);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C lhs = C.member(2);
+  bool b = lhs == .member(1);
+  print(b);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@method::member#element
+    staticType: C Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibraryFragment>::@class::C::@method::member::@parameter::x#element
+        staticType: int
+    rightParenthesis: )
+  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  staticInvokeType: C Function(int)
+  staticType: C
+''');
+  }
+
   test_extensionType() async {
     await assertNoErrorsInCode(r'''
 extension type C(int integer) {
@@ -256,6 +293,71 @@ DotShorthandInvocation
     rightParenthesis: )
   staticInvokeType: CMixin Function()
   staticType: CMixin
+''');
+  }
+
+  test_nested() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  static C<int> member() => C(1);
+  static C<U> memberType<U, V>(U u) => C(u);
+  T x;
+  C(this.x);
+}
+
+void main() {
+  C<C<C>> c = .memberType(.new(.member()));
+  print(c);
+}
+''');
+
+    var node = findNode.dotShorthandInvocation('.memberType');
+    assertResolvedNodeText(node, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: memberType
+    element: <testLibraryFragment>::@class::C::@method::memberType#element
+    staticType: C<U> Function<U, V>(U)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      DotShorthandConstructorInvocation
+        period: .
+        constructorName: SimpleIdentifier
+          token: new
+          element: ConstructorMember
+            baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+            substitution: {T: C<dynamic>}
+          staticType: null
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            DotShorthandInvocation
+              period: .
+              memberName: SimpleIdentifier
+                token: member
+                element: <testLibraryFragment>::@class::C::@method::member#element
+                staticType: C<int> Function()
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              correspondingParameter: FieldFormalParameterMember
+                baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+                substitution: {T: C<dynamic>}
+              staticInvokeType: C<int> Function()
+              staticType: C<int>
+          rightParenthesis: )
+        correspondingParameter: ParameterMember
+          baseElement: <testLibraryFragment>::@class::C::@method::memberType::@parameter::u#element
+          substitution: {U: C<C<dynamic>>, V: dynamic}
+        staticType: C<C<dynamic>>
+    rightParenthesis: )
+  staticInvokeType: C<C<C<dynamic>>> Function(C<C<dynamic>>)
+  staticType: C<C<C<dynamic>>>
+  typeArgumentTypes
+    C<C<dynamic>>
+    dynamic
 ''');
   }
 }

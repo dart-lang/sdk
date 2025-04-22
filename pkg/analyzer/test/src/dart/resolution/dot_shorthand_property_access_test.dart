@@ -139,6 +139,56 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_equality() async {
+    await assertNoErrorsInCode('''
+class C {
+  static C get member => C(1);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C lhs = C.member;
+  bool b = lhs == .member;
+  print(b);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@getter::member#element
+    staticType: C
+  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  staticType: C
+''');
+  }
+
+  test_equality_pattern() async {
+    await assertNoErrorsInCode('''
+enum Color { red, blue }
+
+void main() {
+  Color c = Color.red;
+  if (c case == .blue) print('ok');
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: blue
+    element: <testLibraryFragment>::@enum::Color::@getter::blue#element
+    staticType: Color
+  staticType: Color
+''');
+  }
+
   test_extensionType() async {
     await assertNoErrorsInCode('''
 extension type C(int integer) {
@@ -214,7 +264,6 @@ DotShorthandPropertyAccess
   test_mixin() async {
     await assertNoErrorsInCode(r'''
 class C {
-  static C member(int x) => C(x);
   int x;
   C(this.x);
 }
