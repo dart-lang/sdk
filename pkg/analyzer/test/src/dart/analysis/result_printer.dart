@@ -382,12 +382,21 @@ class DriverEventsPrinter {
       case ExportLibraryMissing():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
-      case InstanceMemberIdMismatch():
-        sink.writelnWithIndent('instanceMemberIdMismatch');
+      case InstanceMethodIdMismatch():
+        sink.writelnWithIndent('instanceMethodIdMismatch');
         sink.writeProperties({
           'libraryUri': failure.libraryUri,
           'interfaceName': failure.interfaceName.asString,
-          'memberName': failure.memberName.asString,
+          'methodName': failure.methodName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case InterfaceConstructorIdMismatch():
+        sink.writelnWithIndent('interfaceConstructorIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'constructorName': failure.constructorName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });

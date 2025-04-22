@@ -315,32 +315,34 @@ class RequirementsManifest {
           );
         }
 
-        for (var methodEntry in interfaceEntry.value.constructors.entries) {
-          var memberName = methodEntry.key;
-          var memberId = interfaceItem.getMemberId(memberName);
-          var expectedId = methodEntry.value;
-          if (expectedId != memberId) {
-            return InstanceMemberIdMismatch(
+        var constructors = interfaceEntry.value.constructors;
+        for (var constructorEntry in constructors.entries) {
+          var constructorName = constructorEntry.key;
+          var constructorId = interfaceItem.getMemberId(constructorName);
+          var expectedId = constructorEntry.value;
+          if (expectedId != constructorId) {
+            return InterfaceConstructorIdMismatch(
               libraryUri: libraryUri,
               interfaceName: interfaceName,
-              memberName: memberName,
+              constructorName: constructorName,
               expectedId: expectedId,
-              actualId: memberId,
+              actualId: constructorId,
             );
           }
         }
 
-        for (var methodEntry in interfaceEntry.value.methods.entries) {
-          var memberName = methodEntry.key;
-          var memberId = interfaceItem.getMemberId(memberName);
+        var methods = interfaceEntry.value.methods;
+        for (var methodEntry in methods.entries) {
+          var methodName = methodEntry.key;
+          var methodId = interfaceItem.getMemberId(methodName);
           var expectedId = methodEntry.value;
-          if (expectedId != memberId) {
-            return InstanceMemberIdMismatch(
+          if (expectedId != methodId) {
+            return InstanceMethodIdMismatch(
               libraryUri: libraryUri,
               interfaceName: interfaceName,
-              memberName: memberName,
+              methodName: methodName,
               expectedId: expectedId,
-              actualId: memberId,
+              actualId: methodId,
             );
           }
         }
