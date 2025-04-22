@@ -5,11 +5,16 @@
 #include "vm/bootstrap_natives.h"
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
+#include "vm/microtask_mirror_queues.h"
 #include "vm/native_entry.h"
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"
 
 namespace dart {
+
+// This flag is defined in "vm/microtask_mirror_queues.cc".
+DECLARE_FLAG(bool, profile_microtasks);
 
 DEFINE_NATIVE_ENTRY(AsyncStarMoveNext_debuggerStepCheck, 0, 1) {
 #if !defined(PRODUCT)
@@ -54,6 +59,43 @@ DEFINE_NATIVE_ENTRY(SuspendState_instantiateClosureWithFutureTypeArgument,
          Object::empty_type_arguments().ptr());
   closure.set_delayed_type_arguments(type_args);
   return closure.ptr();
+}
+
+DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onScheduleAsyncCallback, 0, 1) {
+#if !defined(PRODUCT)
+  if (FLAG_profile_microtasks) {
+    GET_NON_NULL_NATIVE_ARGUMENT(StackTrace, stack_trace,
+                                 arguments->NativeArgAt(0));
+    MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))
+        ->OnScheduleAsyncCallback(stack_trace);
+  }
+#endif  // !defined(PRODUCT)
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback,
+                    0,
+                    0) {
+#if !defined(PRODUCT)
+  if (FLAG_profile_microtasks) {
+    MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))
+        ->OnSchedulePriorityAsyncCallback();
+  }
+#endif  // !defined(PRODUCT)
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onAsyncCallbackComplete, 0, 2) {
+#if !defined(PRODUCT)
+  if (FLAG_profile_microtasks) {
+    GET_NON_NULL_NATIVE_ARGUMENT(Integer, start_time,
+                                 arguments->NativeArgAt(0));
+    GET_NON_NULL_NATIVE_ARGUMENT(Integer, end_time, arguments->NativeArgAt(1));
+    MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))
+        ->OnAsyncCallbackComplete(start_time.Value(), end_time.Value());
+  }
+#endif  // !defined(PRODUCT)
+  return Object::null();
 }
 
 }  // namespace dart

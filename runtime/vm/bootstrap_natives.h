@@ -149,6 +149,9 @@ namespace dart {
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportTaskEvent, 5)                                               \
+  V(MicrotaskMirrorQueue_onScheduleAsyncCallback, 1)                           \
+  V(MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback, 0)                   \
+  V(MicrotaskMirrorQueue_onAsyncCallbackComplete, 2)                           \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
   V(TypedData_GetFloat32, 2)                                                   \

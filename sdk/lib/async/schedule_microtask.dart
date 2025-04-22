@@ -37,7 +37,17 @@ void _microtaskLoop() {
     var next = entry.next;
     _nextCallback = next;
     if (next == null) _lastCallback = null;
-    (entry.callback)();
+    if (const bool.fromEnvironment("dart.vm.product")) {
+      (entry.callback)();
+    } else {
+      final callbackStartTime = Timeline.now;
+      (entry.callback)();
+      final callbackEndTime = Timeline.now;
+      _MicrotaskMirrorQueue._onAsyncCallbackComplete(
+        callbackStartTime,
+        callbackEndTime,
+      );
+    }
   }
 }
 
@@ -62,6 +72,9 @@ void _startMicrotaskLoop() {
 /// microtasks, but as part of the current system event.
 void _scheduleAsyncCallback(_AsyncCallback callback) {
   _AsyncCallbackEntry newEntry = _AsyncCallbackEntry(callback);
+  if (!const bool.fromEnvironment("dart.vm.product")) {
+    _MicrotaskMirrorQueue._onScheduleAsyncCallback(StackTrace.current);
+  }
   _AsyncCallbackEntry? lastCallback = _lastCallback;
   if (lastCallback == null) {
     _nextCallback = _lastCallback = newEntry;
@@ -87,6 +100,9 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
     return;
   }
   _AsyncCallbackEntry entry = _AsyncCallbackEntry(callback);
+  if (!const bool.fromEnvironment("dart.vm.product")) {
+    _MicrotaskMirrorQueue._onSchedulePriorityAsyncCallback();
+  }
   _AsyncCallbackEntry? lastPriorityCallback = _lastPriorityCallback;
   if (lastPriorityCallback == null) {
     entry.next = _nextCallback;
@@ -146,6 +162,15 @@ void scheduleMicrotask(void Function() callback) {
     return;
   }
   Zone.current.scheduleMicrotask(Zone.current.bindCallbackGuarded(callback));
+}
+
+abstract final class _MicrotaskMirrorQueue {
+  // The VM implementations of these methods are in
+  // sdk/lib/_internal/vm/lib/schedule_microtask_patch.dart.
+
+  static void _onScheduleAsyncCallback(StackTrace st) {}
+  static void _onSchedulePriorityAsyncCallback() {}
+  static void _onAsyncCallbackComplete(int startTime, int endTime) {}
 }
 
 class _AsyncRun {
