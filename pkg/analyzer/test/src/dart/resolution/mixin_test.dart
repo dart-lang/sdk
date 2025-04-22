@@ -146,7 +146,8 @@ ImplementsClause
   }
 
   test_invalid_unresolved_before_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int foo();
 }
@@ -158,15 +159,18 @@ mixin M on A {
 }
 
 abstract class X extends A with U1, U2, M {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
-      error(
+''',
+      [
+        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
+        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
+        error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
           129,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_lookUpMemberInInterfaces_Object() async {
@@ -227,7 +231,8 @@ MethodDeclaration
   }
 
   test_methodCallTypeInference_mixinType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 g(M<T> f<T>()) {
   C<int> c = f();
 }
@@ -235,9 +240,9 @@ g(M<T> f<T>()) {
 class C<T> {}
 
 mixin M<T> on C<T> {}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1)],
+    );
 
     var node = findNode.functionExpressionInvocation('f()');
     assertResolvedNodeText(node, r'''

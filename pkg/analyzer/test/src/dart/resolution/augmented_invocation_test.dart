@@ -212,16 +212,22 @@ part 'test.dart';
 class foo {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void foo() {
   augmented(0);
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -248,15 +254,16 @@ part 'test.dart';
 T foo<T>(T a) => a;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void foo<T2>(T2 a) {
   augmented(0);
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3)],
+    );
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -285,15 +292,16 @@ part 'test.dart';
 T foo<T extends num>(T a) => throw 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void foo<T2 extends num>(T2 a) {
   augmented('');
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3)],
+    );
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -372,16 +380,19 @@ part 'test.dart';
 T foo<T>() => throw 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void foo<T2>() {
   int a = augmented();
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      ],
+    );
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -403,15 +414,16 @@ part 'test.dart';
 T foo<T>() => throw 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void foo<T2>() {
   augmented<int>();
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3)],
+    );
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -442,16 +454,19 @@ part 'test.dart';
 T foo<T extends num>() => throw 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void foo<T2 extends num>() {
   augmented<String>();
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 68, 6),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
+        error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 68, 6),
+      ],
+    );
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -482,16 +497,19 @@ part 'test.dart';
 T foo<T>() => throw 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void foo<T2>() {
   augmented<int, String>();
 }
-''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 55, 13),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
+        error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 55, 13),
+      ],
+    );
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -568,16 +586,23 @@ part 'test.dart';
 int get foo => 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment int get foo {
   augmented();
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 43, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          43,
+          9,
+        ),
+      ],
+    );
 
     var node = findNode.expressionStatement('augmented(');
     assertResolvedNodeText(node, r'''
@@ -683,7 +708,8 @@ part 'test.dart';
 int get foo => 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment int get foo {
@@ -692,10 +718,16 @@ augment int get foo {
   };
   return 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 60, 9),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          60,
+          9,
+        ),
+      ],
+    );
 
     var node = findNode.expressionStatement('augmented(');
     assertResolvedNodeText(node, r'''
@@ -719,15 +751,16 @@ part 'test.dart';
 set foo(int _) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment set foo(int _) {
   augmented(0, 1);
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 46, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 46, 9)],
+    );
 
     var node = findNode.expressionStatement('augmented(');
     assertResolvedNodeText(node, r'''

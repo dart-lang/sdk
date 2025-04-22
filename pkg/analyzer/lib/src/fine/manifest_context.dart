@@ -16,9 +16,7 @@ class EncodeContext {
   final Map<TypeParameterElement2, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  EncodeContext({
-    required this.elementFactory,
-  });
+  EncodeContext({required this.elementFactory});
 
   /// Returns the id of [element], or `null` if from this bundle.
   ManifestItemId? getElementId(Element2 element) {
@@ -67,7 +65,7 @@ class EncodeContext {
 
     var encoded = <ManifestTypeParameter>[
       for (var typeParameter in typeParameters)
-        ManifestTypeParameter.encode(this, typeParameter)
+        ManifestTypeParameter.encode(this, typeParameter),
     ];
 
     try {
@@ -169,10 +167,7 @@ final class ManifestElement {
     sink.writeOptionalObject(id, (it) => it.write(sink));
   }
 
-  static ManifestElement encode(
-    EncodeContext context,
-    Element2 element,
-  ) {
+  static ManifestElement encode(EncodeContext context, Element2 element) {
     Element2 topLevelElement;
     Element2? memberElement;
     var enclosingElement = element.enclosingElement2!;
@@ -210,9 +205,7 @@ class MatchContext {
   final Map<TypeParameterElement2, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  MatchContext({
-    required this.parent,
-  });
+  MatchContext({required this.parent});
 
   /// Any referenced elements, from this bundle or not.
   List<Element2> get elementList => elements.toList(growable: false);

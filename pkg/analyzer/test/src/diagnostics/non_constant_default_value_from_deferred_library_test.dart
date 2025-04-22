@@ -21,16 +21,20 @@ class NonConstantDefaultValueFromDeferredLibraryTest
 library lib1;
 const V = 1;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 f({x = a.V}) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
           57,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_nested() async {
@@ -38,15 +42,19 @@ f({x = a.V}) {}
 library lib1;
 const V = 1;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 f({x = a.V + 1}) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
           57,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

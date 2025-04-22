@@ -30,8 +30,8 @@ class ElementDisplayStringBuilder {
     bool withNullability = true,
     bool multiline = false,
     required this.preferTypeAlias,
-  })  : _withNullability = withNullability,
-        _multiline = multiline;
+  }) : _withNullability = withNullability,
+       _multiline = multiline;
 
   @override
   String toString() => _buffer.toString();
@@ -626,9 +626,11 @@ class ElementDisplayStringBuilder {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;
 
-        var subscript = String.fromCharCodes('$counter'.codeUnits.map((n) {
-          return unicodeSubscriptZero + (n - unicodeZero);
-        }));
+        var subscript = String.fromCharCodes(
+          '$counter'.codeUnits.map((n) {
+            return unicodeSubscriptZero + (n - unicodeZero);
+          }),
+        );
 
         name = typeParameter.name3! + subscript;
       }

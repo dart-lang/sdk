@@ -17,58 +17,76 @@ main() {
 class ExtensionTypeRepresentationDependsOnItselfTest
     extends PubPackageResolutionTest {
   test_depends_cycle2_direct() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(B it) {}
 
 extension type B(A it) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
           15,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
           42,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_depends_cycle2_typeArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(List<B> it) {}
 
 extension type B(List<A> it) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
           15,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
           48,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_depends_self_direct() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(A it) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
           15,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_depends_self_typeArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(List<A> it) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
           15,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

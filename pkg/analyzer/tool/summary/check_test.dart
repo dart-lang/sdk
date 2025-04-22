@@ -12,9 +12,13 @@ import 'generate.dart';
 /// user to run generate.dart.
 void main() async {
   var idlFolderPath = normalize(
-      join(package_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'));
+    join(package_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'),
+  );
   var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
-  await GeneratedContent.checkAll(idlFolderPath,
-      'pkg/analyzer/tool/summary/generate.dart', getAllTargets(idlPath),
-      args: [idlPath]);
+  await GeneratedContent.checkAll(
+    idlFolderPath,
+    'pkg/analyzer/tool/summary/generate.dart',
+    getAllTargets(idlPath),
+    args: [idlPath],
+  );
 }

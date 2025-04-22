@@ -124,13 +124,14 @@ NamedType
   }
 
   test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:core' as myCore;
 
 dynamic a;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7)],
+    );
 
     var node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
@@ -180,13 +181,14 @@ NamedType
   }
 
   test_extendsClause_genericClass_tooFewArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T, U> {}
 
 class B extends A<int> {}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 6)],
+    );
 
     var node = findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
@@ -206,13 +208,14 @@ NamedType
   }
 
   test_extendsClause_genericClass_tooManyArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {}
 
 class B extends A<int, String> {}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 14)],
+    );
 
     var node = findNode.namedType('A<int, String>');
     assertResolvedNodeText(node, r'''
@@ -236,12 +239,15 @@ NamedType
   }
 
   test_extendsClause_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> extends T<int> {}
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 19, 6),
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 19, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 19, 6),
+        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 19, 1),
+      ],
+    );
 
     var node = findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
@@ -424,13 +430,14 @@ NamedType
   }
 
   test_importPrefix_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as math;
 
 void f(math.Unresolved<int> a) {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 36, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 36, 15)],
+    );
 
     var node = findNode.namedType('math.Unresolved');
     assertResolvedNodeText(node, r'''
@@ -454,15 +461,16 @@ NamedType
   }
 
   test_instanceCreation_explicitNew_prefix_unresolvedClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as math;
 
 main() {
   new math.A();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1)],
+    );
 
     var node = findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
@@ -496,13 +504,14 @@ NamedType
   }
 
   test_instanceCreation_explicitNew_unresolvedClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   new A();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1)],
+    );
 
     var node = findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
@@ -514,16 +523,19 @@ NamedType
   }
 
   test_invalid_deferredImportPrefix_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:async' deferred as async;
 
 void f() {
   async.Future<int> v;
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 53, 17),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 53, 17),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+      ],
+    );
 
     var node = findNode.namedType('async.Future');
     assertResolvedNodeText(node, r'''
@@ -547,13 +559,14 @@ NamedType
   }
 
   test_invalid_importPrefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
 
 void f(prefix a) {}
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6)],
+    );
 
     var node = findNode.namedType('prefix a');
     assertResolvedNodeText(node, r'''
@@ -565,13 +578,14 @@ NamedType
   }
 
   test_invalid_importPrefix_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
 
 void f(prefix<int> a) {}
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6)],
+    );
 
     var node = findNode.namedType('prefix<int>');
     assertResolvedNodeText(node, r'''
@@ -591,13 +605,14 @@ NamedType
   }
 
   test_invalid_prefixedIdentifier_instanceCreation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   new int.double.other();
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10)],
+    );
 
     var node = findNode.namedType('int.double');
     assertResolvedNodeText(node, r'''
@@ -613,13 +628,14 @@ NamedType
   }
 
   test_invalid_prefixedIdentifier_literal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   0 as int.double;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10)],
+    );
 
     var node = findNode.namedType('int.double');
     assertResolvedNodeText(node, r'''
@@ -635,13 +651,14 @@ NamedType
   }
 
   test_invalid_topLevelFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(T a) {}
 
 void T() {}
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1)],
+    );
 
     var node = findNode.namedType('T a');
     assertResolvedNodeText(node, r'''
@@ -653,13 +670,14 @@ NamedType
   }
 
   test_invalid_topLevelFunction_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(T<int> a) {}
 
 void T() {}
-''', [
-      error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1)],
+    );
 
     var node = findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
@@ -679,11 +697,12 @@ NamedType
   }
 
   test_invalid_typeParameter_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T.name<int> a) {}
-''', [
-      error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 10, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 10, 1)],
+    );
 
     var node = findNode.namedType('T.name<int>');
     assertResolvedNodeText(node, r'''
@@ -715,14 +734,15 @@ class A {}
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 import 'b.dart';
 
 void f(A a) {}
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1)],
+    );
 
     var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
@@ -1033,11 +1053,12 @@ NamedType
   }
 
   test_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Unresolved<int> a) {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10)],
+    );
 
     var node = findNode.namedType('Unresolved');
     assertResolvedNodeText(node, r'''
@@ -1057,11 +1078,12 @@ NamedType
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(unresolved.List<int> a) {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 15)],
+    );
 
     var node = findNode.namedType('unresolved.List');
     assertResolvedNodeText(node, r'''

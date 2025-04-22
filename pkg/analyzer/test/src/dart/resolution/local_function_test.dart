@@ -46,14 +46,15 @@ MethodInvocation
   }
 
   test_element_ifStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   if (1 > 2)
     g() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 23, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 23, 1)],
+    );
     var node = findNode.functionDeclaration('g() {}');
     var fragment = node.declaredFragment!;
     var element = fragment.element;

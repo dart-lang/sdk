@@ -17,13 +17,19 @@ main() {
 class MixinClassDeclarationExtendsNotObjectTest
     extends PubPackageResolutionTest {
   test_class_extends_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 mixin class B extends A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 33,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          33,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_extends_Object() async {
@@ -33,13 +39,19 @@ mixin class A extends Object {}
   }
 
   test_class_extends_Object_with() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 mixin class A extends Object with M {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 40,
-          6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          40,
+          6,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_with() async {
@@ -50,13 +62,19 @@ mixin class A = Object with M;
   }
 
   test_classTypeAlias_with2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M1 {}
 mixin M2 {}
 mixin class A = Object with M1, M2;
-''', [
-      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT, 47,
-          11),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          47,
+          11,
+        ),
+      ],
+    );
   }
 }

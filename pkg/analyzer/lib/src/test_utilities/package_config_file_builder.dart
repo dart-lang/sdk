@@ -39,9 +39,7 @@ class PackageConfigFileBuilder {
     return copy;
   }
 
-  String toContent({
-    required String Function(String) toUriStr,
-  }) {
+  String toContent({required String Function(String) toUriStr}) {
     var buffer = StringBuffer();
 
     buffer.writeln('{');

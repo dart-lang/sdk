@@ -18,12 +18,14 @@ class PubspecDiagnosticTest with ResourceProviderMixin {
     var source = FileSource(pubspecFile);
     YamlNode node = loadYamlNode(content);
     GatheringErrorListener listener = GatheringErrorListener();
-    listener.addAll(validatePubspec(
-      contents: node,
-      source: source,
-      provider: resourceProvider,
-      // TODO(sigurdm): Can/should we pass analysisOptions here?
-    ));
+    listener.addAll(
+      validatePubspec(
+        contents: node,
+        source: source,
+        provider: resourceProvider,
+        // TODO(sigurdm): Can/should we pass analysisOptions here?
+      ),
+    );
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
 

@@ -16,25 +16,29 @@ main() {
 @reflectiveTest
 class RecursiveConstructorRedirectTest extends PubPackageResolutionTest {
   test_directSelfReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : this();
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 18, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 18, 6)],
+    );
   }
 
   test_recursive() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.a() : this.b();
   A.b() : this.a();
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 20, 8),
-      error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 40, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 20, 8),
+        error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 40, 8),
+      ],
+    );
   }
 
   test_valid_redirect() async {

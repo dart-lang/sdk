@@ -304,10 +304,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           );
         }
 
-        _resolveWithClause(
-          declaration: node,
-          clause: withClause,
-        );
+        _resolveWithClause(declaration: node, clause: withClause);
         _resolveImplementsClause(
           declaration: node,
           clause: node.implementsClause,
@@ -342,10 +339,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           namedType: node.superclass,
         );
 
-        _resolveWithClause(
-          declaration: node,
-          clause: node.withClause,
-        );
+        _resolveWithClause(declaration: node, clause: node.withClause);
         _resolveImplementsClause(
           declaration: node,
           clause: node.implementsClause,
@@ -369,12 +363,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _withNameScope(() {
           node.returnType.accept(this);
 
-          _withElementWalker(
-            ElementWalker.forExecutable(fragment),
-            () {
-              node.parameters.accept(this);
-            },
-          );
+          _withElementWalker(ElementWalker.forExecutable(fragment), () {
+            node.parameters.accept(this);
+          });
           _defineFormalParameters(element.formalParameters);
 
           _resolveRedirectedConstructor(node);
@@ -410,15 +401,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(
-      covariant DeclaredVariablePatternImpl node) {
+    covariant DeclaredVariablePatternImpl node,
+  ) {
     node.type?.accept(this);
 
     var name = node.name.lexeme;
-    var fragment = BindPatternVariableElementImpl(
-      node,
-      name,
-      node.name.offset,
-    );
+    var fragment = BindPatternVariableElementImpl(node, name, node.name.offset);
     _patternVariables.add(name, fragment.element);
     _elementHolder.enclose(fragment);
     _define(fragment.element);
@@ -504,7 +492,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(
-      covariant EnumConstantDeclarationImpl node) {
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     var element = _elementWalker!.getVariable() as ConstFieldElementImpl;
     node.declaredFragment = element;
 
@@ -534,10 +523,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
-        _resolveWithClause(
-          declaration: node,
-          clause: node.withClause,
-        );
+        _resolveWithClause(declaration: node, clause: node.withClause);
         _resolveImplementsClause(
           declaration: node,
           clause: node.implementsClause,
@@ -685,10 +671,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _patternVariables.casePatternStart();
     super.visitForEachPartsWithPattern(node);
     var variablesMap = _patternVariables.casePatternFinish();
-    node.variables = variablesMap.values
-        .whereType<BindPatternVariableElementImpl2>()
-        .map((e) => e.asElement)
-        .toList();
+    node.variables =
+        variablesMap.values
+            .whereType<BindPatternVariableElementImpl2>()
+            .map((e) => e.asElement)
+            .toList();
   }
 
   @override
@@ -711,9 +698,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     ExecutableElementImpl fragment;
     if (_elementWalker != null) {
-      fragment = node.isGetter || node.isSetter
-          ? _elementWalker!.getAccessor()
-          : _elementWalker!.getFunction();
+      fragment =
+          node.isGetter || node.isSetter
+              ? _elementWalker!.getAccessor()
+              : _elementWalker!.getFunction();
       node.declaredFragment = fragment;
       expression.declaredFragment = fragment;
     } else {
@@ -773,7 +761,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclarationStatement(
-      covariant FunctionDeclarationStatementImpl node) {
+    covariant FunctionDeclarationStatementImpl node,
+  ) {
     if (!_hasLocalElementsBuilt(node)) {
       _buildLocalFunctionElement(node);
     }
@@ -1049,9 +1038,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var fragment = node.isGetter || node.isSetter
-        ? _elementWalker!.getAccessor()
-        : _elementWalker!.getFunction();
+    var fragment =
+        node.isGetter || node.isSetter
+            ? _elementWalker!.getAccessor()
+            : _elementWalker!.getFunction();
     node.declaredFragment = fragment;
 
     _setOrCreateMetadataElements(fragment, node.metadata);
@@ -1097,10 +1087,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
-        _resolveOnClause(
-          declaration: node,
-          clause: node.onClause,
-        );
+        _resolveOnClause(declaration: node, clause: node.onClause);
         _resolveImplementsClause(
           declaration: node,
           clause: node.implementsClause,
@@ -1163,9 +1150,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _patternVariables.casePatternStart();
     super.visitPatternVariableDeclaration(node);
     var variablesMap = _patternVariables.casePatternFinish();
-    node.elements = variablesMap.values
-        .whereType<BindPatternVariableElementImpl2>()
-        .toList();
+    node.elements =
+        variablesMap.values
+            .whereType<BindPatternVariableElementImpl2>()
+            .toList();
   }
 
   @override
@@ -1379,8 +1367,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (group.hasLabels) {
         _patternVariables.switchStatementSharedCaseScopeEmpty(group);
       }
-      group.variables =
-          _patternVariables.switchStatementSharedCaseScopeFinish(group);
+      group.variables = _patternVariables.switchStatementSharedCaseScopeFinish(
+        group,
+      );
       _withNameScope(() {
         var statements = group.statements;
         _buildLocalElements(statements);
@@ -1493,7 +1482,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _buildLocalFunctionElement(
-      covariant FunctionDeclarationStatementImpl statement) {
+    covariant FunctionDeclarationStatementImpl statement,
+  ) {
     var node = statement.functionDeclaration;
     var nameToken = node.name;
 
@@ -1530,10 +1520,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           nameToken.offset,
         );
       } else {
-        fragment = LocalVariableElementImpl(
-          nameToken.lexeme,
-          nameToken.offset,
-        );
+        fragment = LocalVariableElementImpl(nameToken.lexeme, nameToken.offset);
       }
       variable.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
@@ -1702,7 +1689,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var enclosingElement = _namedTypeResolver.enclosingClass;
     if (enclosingElement is ExtensionTypeElementImpl2) {
       _verifyExtensionElementImplements(
-          enclosingElement.asElement, namedType, type);
+        enclosingElement.asElement,
+        namedType,
+        type,
+      );
       return;
     }
 
@@ -1730,9 +1720,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
       case ExtendsClause():
         if (declaration is ClassDeclaration) {
-          errorCode = declaration.withClause == null
-              ? CompileTimeErrorCode.EXTENDS_NON_CLASS
-              : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
+          errorCode =
+              declaration.withClause == null
+                  ? CompileTimeErrorCode.EXTENDS_NON_CLASS
+                  : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
         }
       case ImplementsClause():
         errorCode = CompileTimeErrorCode.IMPLEMENTS_NON_CLASS;
@@ -1814,9 +1805,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (_elementWalker != null) {
       _setElementAnnotations(annotations, element.metadata);
     } else if (annotations.isNotEmpty) {
-      element.metadata = annotations.map((annotation) {
-        return annotation.elementAnnotation!;
-      }).toList();
+      element.metadata =
+          annotations.map((annotation) {
+            return annotation.elementAnnotation!;
+          }).toList();
     }
   }
 
@@ -1876,9 +1868,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var caseClause = node.caseClause;
     if (caseClause != null) {
       node.expression.accept(this);
-      _resolveGuardedPattern(caseClause.guardedPattern, then: () {
-        node.ifTrue.accept(this);
-      });
+      _resolveGuardedPattern(
+        caseClause.guardedPattern,
+        then: () {
+          node.ifTrue.accept(this);
+        },
+      );
       node.ifFalse?.accept(this);
     } else {
       node.visitChildren(this);
@@ -1949,10 +1944,7 @@ class _VariableBinder
     extends VariableBinder<DartPatternImpl, PatternVariableElementImpl2> {
   final TypeProvider typeProvider;
 
-  _VariableBinder({
-    required super.errors,
-    required this.typeProvider,
-  });
+  _VariableBinder({required super.errors, required this.typeProvider});
 
   @override
   JoinPatternVariableElementImpl2 joinPatternVariables({
@@ -1963,13 +1955,15 @@ class _VariableBinder
     var first = components.first;
     List<PatternVariableElementImpl2> expandedVariables;
     if (key is LogicalOrPatternImpl) {
-      expandedVariables = components.expand((variable) {
-        if (variable is JoinPatternVariableElementImpl2) {
-          return variable.variables2;
-        } else {
-          return [variable];
-        }
-      }).toList(growable: false);
+      expandedVariables = components
+          .expand((variable) {
+            if (variable is JoinPatternVariableElementImpl2) {
+              return variable.variables2;
+            } else {
+              return [variable];
+            }
+          })
+          .toList(growable: false);
     } else if (key is SwitchStatementCaseGroup) {
       expandedVariables = components;
     } else {
@@ -1981,9 +1975,9 @@ class _VariableBinder
       -1,
       expandedVariables.map((e) => e.asElement).toList(),
       inconsistency.maxWithAll(
-        components
-            .whereType<JoinPatternVariableElementImpl2>()
-            .map((e) => e.inconsistency),
+        components.whereType<JoinPatternVariableElementImpl2>().map(
+          (e) => e.inconsistency,
+        ),
       ),
     );
     resultFragment

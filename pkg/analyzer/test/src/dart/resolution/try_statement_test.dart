@@ -17,13 +17,14 @@ main() {
 @reflectiveTest
 class TryStatementResolutionTest extends PubPackageResolutionTest {
   test_catch_parameters_0() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   try {} catch () {}
 }
-''', [
-      error(ParserErrorCode.CATCH_SYNTAX, 27, 1),
-    ]);
+''',
+      [error(ParserErrorCode.CATCH_SYNTAX, 27, 1)],
+    );
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -48,14 +49,17 @@ TryStatement
   }
 
   test_catch_parameters_3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   try {} catch (x, y, z) {}
 }
-''', [
-      error(WarningCode.UNUSED_CATCH_STACK, 30, 1),
-      error(ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS, 31, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_CATCH_STACK, 30, 1),
+        error(ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS, 31, 1),
+      ],
+    );
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -85,14 +89,17 @@ TryStatement
   }
 
   test_catch_parameters_stackTrace_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   try {} catch (x, {st}) {}
 }
-''', [
-      error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
-      error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
-    ]);
+''',
+      [
+        error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
+        error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
+      ],
+    );
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -122,14 +129,17 @@ TryStatement
   }
 
   test_catch_parameters_stackTrace_optionalPositional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   try {} catch (x, [st]) {}
 }
-''', [
-      error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
-      error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
-    ]);
+''',
+      [
+        error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
+        error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
+      ],
+    );
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -159,13 +169,14 @@ TryStatement
   }
 
   test_catch_withoutType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   try {} catch (e, st) {}
 }
-''', [
-      error(WarningCode.UNUSED_CATCH_STACK, 30, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_CATCH_STACK, 30, 2)],
+    );
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
@@ -195,13 +206,14 @@ TryStatement
   }
 
   test_catch_withType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   try {} on int catch (e, st) {}
 }
-''', [
-      error(WarningCode.UNUSED_CATCH_STACK, 37, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_CATCH_STACK, 37, 2)],
+    );
 
     var node = findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''

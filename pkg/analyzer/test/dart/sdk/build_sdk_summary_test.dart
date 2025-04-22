@@ -25,10 +25,7 @@ class BuildSdkSummaryTest with ResourceProviderMixin {
   Folder get sdkRoot => getFolder('/sdk');
 
   test_embedderYamlPath() async {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     // The idea of the embedder is probably to replace the SDK.
     // But the current implementation only adds new libraries.
@@ -95,10 +92,7 @@ embedded_libs:
   }
 
   test_it() async {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     var sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,

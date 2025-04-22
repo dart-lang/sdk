@@ -18,7 +18,7 @@ class DefaultValueResolver {
   final TypeSystemImpl _typeSystem;
 
   DefaultValueResolver(this._linker, this._libraryBuilder)
-      : _typeSystem = _libraryBuilder.element.typeSystem;
+    : _typeSystem = _libraryBuilder.element.typeSystem;
 
   void resolve() {
     for (var libraryFragment in _libraryBuilder.element.fragments) {
@@ -82,8 +82,10 @@ class DefaultValueResolver {
       enclosingClassElement: context.classElement?.asElement2,
       enclosingExecutableElement: context.executableElement.asElement2,
     );
-    astResolver.resolveExpression(() => node.defaultValue!,
-        contextType: contextType);
+    astResolver.resolveExpression(
+      () => node.defaultValue!,
+      contextType: contextType,
+    );
   }
 
   Scope _scopeFromElement(ElementImpl element) {
@@ -142,10 +144,7 @@ class _UnitContext extends _Context {
 }
 
 extension _ContextExtension<C extends _Context> on C {
-  void forEach<T>(
-    List<T> elements,
-    void Function(C context, T element) f,
-  ) {
+  void forEach<T>(List<T> elements, void Function(C context, T element) f) {
     for (var element in elements) {
       f(this, element);
     }

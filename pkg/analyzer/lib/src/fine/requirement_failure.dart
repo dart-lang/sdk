@@ -41,9 +41,7 @@ final class ExportIdMismatch extends ExportFailure {
 final class ExportLibraryMissing extends ExportFailure {
   final Uri uri;
 
-  ExportLibraryMissing({
-    required this.uri,
-  });
+  ExportLibraryMissing({required this.uri});
 }
 
 class InstanceMemberIdMismatch extends RequirementFailure {
@@ -65,9 +63,7 @@ class InstanceMemberIdMismatch extends RequirementFailure {
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 
-  LibraryMissing({
-    required this.uri,
-  });
+  LibraryMissing({required this.uri});
 }
 
 sealed class RequirementFailure {}
@@ -76,10 +72,7 @@ sealed class TopLevelFailure extends RequirementFailure {
   final Uri libraryUri;
   final LookupName name;
 
-  TopLevelFailure({
-    required this.libraryUri,
-    required this.name,
-  });
+  TopLevelFailure({required this.libraryUri, required this.name});
 }
 
 class TopLevelIdMismatch extends TopLevelFailure {
@@ -95,8 +88,5 @@ class TopLevelIdMismatch extends TopLevelFailure {
 }
 
 class TopLevelNotInterface extends TopLevelFailure {
-  TopLevelNotInterface({
-    required super.libraryUri,
-    required super.name,
-  });
+  TopLevelNotInterface({required super.libraryUri, required super.name});
 }

@@ -17,95 +17,104 @@ main() {
 @reflectiveTest
 class NonBoolOperandTest extends PubPackageResolutionTest {
   test_and_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 bool f(int left, bool right) {
   return left && right;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 40, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 40, 4)],
+    );
   }
 
   test_and_left_fromInstanceCreationExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 main() {
   new Object() && true;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 11, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 11, 12)],
+    );
   }
 
   test_and_left_fromLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 bool f(List<int> left, bool right) {
   return left && right;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4)],
+    );
   }
 
   test_and_left_fromSupertype() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 bool f(Object left, bool right) {
   return left && right;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 43, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 43, 4)],
+    );
   }
 
   test_and_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   if(x && true) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1)],
+    );
   }
 
   test_and_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 bool f(bool left, String right) {
   return left && right;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5)],
+    );
   }
 
   test_or_left() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 bool f(List<int> left, bool right) {
   return left || right;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4)],
+    );
   }
 
   test_or_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   if(x || false) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1)],
+    );
   }
 
   test_or_right() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 bool f(bool left, double right) {
   return left || right;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5)],
+    );
   }
 }
 
@@ -113,12 +122,13 @@ bool f(bool left, double right) {
 class NonBoolOperandWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_and() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(dynamic a) {
   if(a && true) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 25, 1)],
+    );
   }
 }

@@ -17,15 +17,16 @@ main() {
 @reflectiveTest
 class NonExhaustiveSwitchExpressionTest extends PubPackageResolutionTest {
   test_bool_true() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Object f(bool x) {
   return switch (x) {
     true => 0,
   };
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 28, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 28, 6)],
+    );
   }
 
   test_bool_true_false() async {
@@ -62,7 +63,8 @@ Object f(int x) {
   }
 
   test_enum_2at2_hasWhen() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   a, b
 }
@@ -73,34 +75,42 @@ Object f(E x) {
     E.b => 1,
   };
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 44, 6,
-          correctionContains: 'E.a'),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION,
+          44,
+          6,
+          correctionContains: 'E.a',
+        ),
+      ],
+    );
   }
 
   test_invalidType_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Unresolved x) => switch (x) {};
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10)],
+    );
   }
 }
 
 @reflectiveTest
 class NonExhaustiveSwitchStatementTest extends PubPackageResolutionTest {
   test_alwaysExhaustive_bool_true() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool x) {
   switch (x) {
     case true:
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6)],
+    );
   }
 
   test_alwaysExhaustive_bool_true_false() async {
@@ -127,17 +137,20 @@ void f(bool x) {
   }
 
   test_alwaysExhaustive_bool_wildcard_typed_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool x) {
   switch (x) {
     case int _:
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 3),
+      ],
+    );
   }
 
   test_alwaysExhaustive_bool_wildcard_untyped() async {
@@ -152,7 +165,8 @@ void f(bool x) {
   }
 
   test_alwaysExhaustive_boolNullable_true_false() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool? x) {
   switch (x) {
     case true:
@@ -160,9 +174,9 @@ void f(bool? x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 20, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 20, 6)],
+    );
   }
 
   test_alwaysExhaustive_boolNullable_true_false_null() async {
@@ -179,7 +193,8 @@ void f(bool? x) {
   }
 
   test_alwaysExhaustive_enum_2at1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   a, b
 }
@@ -190,9 +205,9 @@ void f(E x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 35, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 35, 6)],
+    );
   }
 
   test_alwaysExhaustive_enum_2at2_cases() async {
@@ -212,7 +227,8 @@ void f(E x) {
   }
 
   test_alwaysExhaustive_enum_2at2_hasWhen() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   a, b
 }
@@ -224,15 +240,20 @@ void f(E x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 35, 6,
-          correctionContains: 'E.a'),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
+          35,
+          6,
+          correctionContains: 'E.a',
+        ),
+      ],
+    );
   }
 
   test_alwaysExhaustive_enum_2at2_logicalOr() async {
-    await assertNoErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 enum E {
   a, b
 }
@@ -243,12 +264,12 @@ void f(E x) {
       break;
   }
 }
-''',
-    );
+''');
   }
 
   test_alwaysExhaustive_enum_cannotCompute() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v1(v2), v2(v1);
   const E(Object f);
@@ -261,20 +282,23 @@ void f(E x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 2),
-      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 19, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 11, 2),
+        error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 19, 2),
+      ],
+    );
   }
 
   test_alwaysExhaustive_Null_hasError() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Null x) {
   switch (x) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 19, 6)],
+    );
   }
 
   test_alwaysExhaustive_Null_noError() async {
@@ -303,7 +327,8 @@ void f((bool, bool) x) {
   }
 
   test_alwaysExhaustive_sealedClass_2at1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
@@ -314,9 +339,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 77, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 77, 6)],
+    );
   }
 
   test_alwaysExhaustive_sealedClass_2at2() async {
@@ -354,7 +379,8 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_constraintsMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 
 class B extends A {}
@@ -367,9 +393,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 74, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 74, 6)],
+    );
   }
 
   test_alwaysExhaustive_sealedClass_hasExtensionType_1of1() async {
@@ -388,7 +414,8 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_hasExtensionType_1of2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 class B extends A {}
 class C extends A {}
@@ -400,13 +427,14 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 117, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 117, 6)],
+    );
   }
 
   test_alwaysExhaustive_sealedClass_implementedByEnum_3at2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 
 class B implements A {}
@@ -422,9 +450,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 92, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 92, 6)],
+    );
   }
 
   test_alwaysExhaustive_sealedClass_implementedByEnum_3at3() async {
@@ -449,7 +477,8 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_implementedByMixin_2at1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 
 class B implements A {}
@@ -462,9 +491,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 85, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 85, 6)],
+    );
   }
 
   test_alwaysExhaustive_sealedClass_implementedByMixin_2at2() async {
@@ -486,7 +515,8 @@ void f(A x) {
   }
 
   test_alwaysExhaustive_sealedClass_unresolvedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 class B extends A {}
 
@@ -496,13 +526,14 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 78, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 78, 10)],
+    );
   }
 
   test_alwaysExhaustive_sealedClass_unresolvedObject() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 sealed class A {}
 class B extends A {}
 
@@ -512,22 +543,23 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 78, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 78, 10)],
+    );
   }
 
   test_alwaysExhaustive_typeVariable_bound_bool_true() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T extends bool>(T x) {
   switch (x) {
     case true:
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 32, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 32, 6)],
+    );
   }
 
   test_alwaysExhaustive_typeVariable_bound_bool_true_false() async {
@@ -543,7 +575,8 @@ void f<T extends bool>(T x) {
   }
 
   test_alwaysExhaustive_typeVariable_promoted_bool_true() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T x) {
   if (x is bool) {
     switch (x) {
@@ -552,9 +585,9 @@ void f<T>(T x) {
     }
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 40, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 40, 6)],
+    );
   }
 
   test_alwaysExhaustive_typeVariable_promoted_bool_true_false() async {
@@ -572,13 +605,14 @@ void f<T>(T x) {
   }
 
   test_invalidType_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Unresolved x) {
   switch (x) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10)],
+    );
   }
 
   test_notAlwaysExhaustive_int() async {

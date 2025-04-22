@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../analysis_server_base.dart';
 import 'fix_processor.dart';
 
 void main() {

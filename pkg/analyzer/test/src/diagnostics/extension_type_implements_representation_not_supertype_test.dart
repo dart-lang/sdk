@@ -10,7 +10,8 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        ExtensionTypeImplementsRepresentationNotSupertypeTest);
+      ExtensionTypeImplementsRepresentationNotSupertypeTest,
+    );
   });
 }
 
@@ -18,16 +19,20 @@ main() {
 class ExtensionTypeImplementsRepresentationNotSupertypeTest
     extends PubPackageResolutionTest {
   test_notSupertype() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(String it) {}
 extension type B(int it) implements A {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
           67,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_supertype() async {

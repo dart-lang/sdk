@@ -37,8 +37,7 @@ class ContextLocatorImpl {
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
   ContextLocatorImpl({ResourceProvider? resourceProvider})
-      : resourceProvider =
-            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+    : resourceProvider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   /// Return a list of the context roots that should be used to analyze the
   /// files that are included by the list of [includedPaths] and not excluded by
@@ -69,20 +68,29 @@ class ContextLocatorImpl {
     List<Folder> excludedFolders = <Folder>[];
     List<File> excludedFiles = <File>[];
     _resourcesFromPaths(
-        excludedPaths ?? const <String>[], excludedFolders, excludedFiles);
+      excludedPaths ?? const <String>[],
+      excludedFolders,
+      excludedFiles,
+    );
     //
     // Use the excluded folders and files to filter the included folders and
     // files.
     //
-    includedFolders = includedFolders
-        .where((Folder includedFolder) =>
-            !_containedInAny(excludedFolders, includedFolder))
-        .toList();
-    includedFiles = includedFiles
-        .where((File includedFile) =>
-            !_containedInAny(excludedFolders, includedFile) &&
-            !excludedFiles.contains(includedFile))
-        .toList();
+    includedFolders =
+        includedFolders
+            .where(
+              (Folder includedFolder) =>
+                  !_containedInAny(excludedFolders, includedFolder),
+            )
+            .toList();
+    includedFiles =
+        includedFiles
+            .where(
+              (File includedFile) =>
+                  !_containedInAny(excludedFolders, includedFile) &&
+                  !excludedFiles.contains(includedFile),
+            )
+            .toList();
     //
     // We now have a list of all of the files and folders that need to be
     // analyzed. For each, walk the directory structure and figure out where to
@@ -133,8 +141,10 @@ class ContextLocatorImpl {
         root.included.add(folder);
       }
 
-      var rootEnabledLegacyPlugins =
-          _getEnabledLegacyPlugins(location.workspace, location.optionsFile);
+      var rootEnabledLegacyPlugins = _getEnabledLegacyPlugins(
+        location.workspace,
+        location.optionsFile,
+      );
 
       _createContextRootsIn(
         roots,
@@ -226,10 +236,7 @@ class ContextLocatorImpl {
 
     var buildGnFile = _findBuildGnFile(parent);
 
-    var rootFolder = _lowest([
-      optionsFolderToChooseRoot,
-      buildGnFile?.parent,
-    ]);
+    var rootFolder = _lowest([optionsFolderToChooseRoot, buildGnFile?.parent]);
 
     // If default packages file is given, create workspace for it.
     var workspace = _createWorkspace(
@@ -309,15 +316,16 @@ class ContextLocatorImpl {
   /// of [excludedFolders] nor excluded by the [excludedGlobs], recursively
   /// search for nested context roots.
   void _createContextRoots(
-      List<ContextRoot> roots,
-      Set<String> visited,
-      Folder folder,
-      List<Folder> excludedFolders,
-      ContextRoot containingRoot,
-      Set<String> containingRootEnabledLegacyPlugins,
-      List<LocatedGlob> excludedGlobs,
-      File? optionsFile,
-      File? packagesFile) {
+    List<ContextRoot> roots,
+    Set<String> visited,
+    Folder folder,
+    List<Folder> excludedFolders,
+    ContextRoot containingRoot,
+    Set<String> containingRootEnabledLegacyPlugins,
+    List<LocatedGlob> excludedGlobs,
+    File? optionsFile,
+    File? packagesFile,
+  ) {
     //
     // If the options and packages files are allowed to be locally specified,
     // then look to see whether they are.
@@ -332,13 +340,18 @@ class ContextLocatorImpl {
     }
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
 
-    var localEnabledPlugins =
-        _getEnabledLegacyPlugins(containingRoot.workspace, localOptionsFile);
+    var localEnabledPlugins = _getEnabledLegacyPlugins(
+      containingRoot.workspace,
+      localOptionsFile,
+    );
     // Legacy plugins differ only if there is an analysis_options and it
     // contains a different set of plugins from the containing context.
-    var pluginsDiffer = localOptionsFile != null &&
-        !const SetEquality<String>()
-            .equals(containingRootEnabledLegacyPlugins, localEnabledPlugins);
+    var pluginsDiffer =
+        localOptionsFile != null &&
+        !const SetEquality<String>().equals(
+          containingRootEnabledLegacyPlugins,
+          localEnabledPlugins,
+        );
 
     // Create a context root for the given [folder] if a packages or build file
     // is locally specified, or the set of enabled legacy plugins changed.
@@ -384,8 +397,10 @@ class ContextLocatorImpl {
       (containingRoot as ContextRootImpl).optionsFileMap[folder] =
           localOptionsFile;
       // Add excluded globs.
-      var excludes =
-          _getExcludedGlobs(localOptionsFile, containingRoot.workspace);
+      var excludes = _getExcludedGlobs(
+        localOptionsFile,
+        containingRoot.workspace,
+      );
       containingRoot.excludedGlobs.addAll(excludes);
     }
     _createContextRootsIn(
@@ -408,15 +423,16 @@ class ContextLocatorImpl {
   /// If either the [optionsFile] or [packagesFile] is non-`null` then the given
   /// file will be used even if there is a local version of the file.
   void _createContextRootsIn(
-      List<ContextRoot> roots,
-      Set<String> visited,
-      Folder folder,
-      List<Folder> excludedFolders,
-      ContextRoot containingRoot,
-      Set<String> containingRootEnabledLegacyPlugins,
-      List<LocatedGlob> excludedGlobs,
-      File? optionsFile,
-      File? packagesFile) {
+    List<ContextRoot> roots,
+    Set<String> visited,
+    Folder folder,
+    List<Folder> excludedFolders,
+    ContextRoot containingRoot,
+    Set<String> containingRootEnabledLegacyPlugins,
+    List<LocatedGlob> excludedGlobs,
+    File? optionsFile,
+    File? packagesFile,
+  ) {
     bool isExcluded(Folder folder) {
       if (excludedFolders.contains(folder) ||
           folder.shortName.startsWith('.')) {
@@ -493,10 +509,15 @@ class ContextLocatorImpl {
     var rootPath = folder.path;
 
     Workspace? workspace;
-    workspace = BlazeWorkspace.find(resourceProvider, rootPath,
-        lookForBuildFileSubstitutes: false);
-    workspace = _mostSpecificWorkspace(workspace,
-        PackageConfigWorkspace.find(resourceProvider, packages, rootPath));
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      rootPath,
+      lookForBuildFileSubstitutes: false,
+    );
+    workspace = _mostSpecificWorkspace(
+      workspace,
+      PackageConfigWorkspace.find(resourceProvider, packages, rootPath),
+    );
     workspace ??= BasicWorkspace.find(resourceProvider, packages, rootPath);
     return workspace;
   }
@@ -549,8 +570,9 @@ class ContextLocatorImpl {
       return const {};
     }
     try {
-      var provider =
-          AnalysisOptionsProvider(workspace.createSourceFactory(null, null));
+      var provider = AnalysisOptionsProvider(
+        workspace.createSourceFactory(null, null),
+      );
 
       var options = AnalysisOptionsImpl.fromYaml(
         optionsMap: provider.getOptionsFromFile(optionsFile),
@@ -573,14 +595,15 @@ class ContextLocatorImpl {
     List<LocatedGlob> patterns = [];
     if (optionsFile != null) {
       try {
-        var doc =
-            AnalysisOptionsProvider(workspace.createSourceFactory(null, null))
-                .getOptionsFromFile(optionsFile);
+        var doc = AnalysisOptionsProvider(
+          workspace.createSourceFactory(null, null),
+        ).getOptionsFromFile(optionsFile);
 
         var analyzerOptions = doc.valueAt(AnalysisOptionsFile.analyzer);
         if (analyzerOptions is YamlMap) {
-          var excludeOptions =
-              analyzerOptions.valueAt(AnalysisOptionsFile.exclude);
+          var excludeOptions = analyzerOptions.valueAt(
+            AnalysisOptionsFile.exclude,
+          );
           if (excludeOptions is YamlList) {
             var pathContext = resourceProvider.pathContext;
 
@@ -628,7 +651,10 @@ class ContextLocatorImpl {
   /// the given list of [paths] that exist and are not contained within one of
   /// the folders.
   void _resourcesFromPaths(
-      List<String> paths, List<Folder> folders, List<File> files) {
+    List<String> paths,
+    List<Folder> folders,
+    List<File> files,
+  ) {
     for (String path in _uniqueSortedPaths(paths)) {
       Resource resource = resourceProvider.getResource(path);
       if (resource is Folder) {
@@ -651,7 +677,7 @@ class ContextLocatorImpl {
   }
 
   static Folder _fileSystemRoot(Resource resource) {
-    for (var current = resource.parent;; current = current.parent) {
+    for (var current = resource.parent; ; current = current.parent) {
       if (current.isRoot) {
         return current;
       }
@@ -704,7 +730,9 @@ class ContextLocatorImpl {
   /// [first] and [second] is null, return the other one. If the roots aren't
   /// within each other, return [first].
   static Workspace? _mostSpecificWorkspace(
-      Workspace? first, Workspace? second) {
+    Workspace? first,
+    Workspace? second,
+  ) {
     if (first == null) return second;
     if (second == null) return first;
     if (isWithin(first.root, second.root)) {

@@ -36,44 +36,63 @@ class C extends Object with M1, M2 {}
   }
 
   test_class_noMatchingInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A<T> {}
 class B {}
 mixin M<T> on A<T> {}
 class C extends Object with M {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          84, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          84,
+          1,
+        ),
+      ],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_noMatchingInterface_fromAugmentation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B with M {}
 mixin M {}
 class A {}
 augment mixin M on A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          13, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          13,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_noMatchingInterface_withTypeArguments() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A<T> {}
 class B {}
 mixin M<T> on A<T> {}
 class C extends Object with M<int> {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          84, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          84,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_noMemberErrors() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -89,10 +108,15 @@ class C {
 }
 
 class X = C with M;
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          134, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          134,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_noSuperclassConstraint() async {
@@ -106,7 +130,8 @@ class C extends Object with M {}
 
   test_class_recursiveSubtypeCheck() async {
     // See dartbug.com/32353 for a detailed explanation.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class ioDirectory implements ioFileSystemEntity {}
 
 class ioFileSystemEntity {}
@@ -131,51 +156,71 @@ mixin ForwardingDirectory<T extends Directory>
 abstract class Directory implements FileSystemEntity, ioDirectory {}
 
 mixin DirectoryAddOnsMixin implements Directory {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 96, 15),
-      error(WarningCode.UNUSED_ELEMENT, 96, 15),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 96, 15),
+        error(WarningCode.UNUSED_ELEMENT, 96, 15),
+      ],
+    );
 
     var mixins = findElement2.class_('_LocalDirectory').mixins;
     assertType(mixins[0], 'ForwardingDirectory<Directory>');
   }
 
   test_classTypeAlias_generic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {}
 
 mixin M on A<int> {}
 
 class X = A<double> with M;
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          62, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          62,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_noMatchingInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A<T> {}
 class B {}
 mixin M<T> on A<T> {}
 class C = Object with M;
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          78, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          78,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_notGeneric() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 mixin M on A {}
 
 class X = Object with M;
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          51, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          51,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_OK_0() async {
@@ -221,7 +266,8 @@ class X = Object with M1, M2;
   }
 
   test_classTypeAlias_oneOfTwo() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B {}
 class C {}
@@ -229,10 +275,15 @@ class C {}
 mixin M on A, B {}
 
 class X = C with M;
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          71, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          71,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_matchingInterface_inPreviousMixin() async {
@@ -250,7 +301,8 @@ enum E with M1, M2 {
   }
 
   test_enum_noMatchingInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {}
 
 mixin M on A {}
@@ -258,10 +310,15 @@ mixin M on A {}
 enum E with M {
   v
 }
-''', [
-      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          50,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_noSuperclassConstraint() async {

@@ -145,9 +145,7 @@ PartDirective
     var parseResult = parseStringWithErrors(r'''
 part 'a.dart'
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 5, 8),
-    ]);
+    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 5, 8)]);
 
     var node = parseResult.findNode.singlePartDirective;
     assertParsedNodeText(node, r'''

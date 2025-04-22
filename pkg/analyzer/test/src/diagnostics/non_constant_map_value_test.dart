@@ -19,31 +19,34 @@ class NonConstantMapValueTest extends PubPackageResolutionTest
 
 mixin NonConstantMapValueTestCases on PubPackageResolutionTest {
   test_const_ifTrue_elseFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a': 'b', 'c' : a};
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1)],
+    );
   }
 
   test_const_ifTrue_thenFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a' : a};
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 71, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 71, 1)],
+    );
   }
 
   test_const_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final dynamic a = 0;
 var v = const {'a' : a};
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 42, 1)],
+    );
   }
 }

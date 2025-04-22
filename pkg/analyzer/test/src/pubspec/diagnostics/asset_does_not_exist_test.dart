@@ -16,12 +16,15 @@ main() {
 @reflectiveTest
 class AssetDoesNotExistTest extends PubspecDiagnosticTest {
   test_assetDoesNotExist_path_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets:
     - assets/my_icon.png
-''', [PubspecWarningCode.ASSET_DOES_NOT_EXIST]);
+''',
+      [PubspecWarningCode.ASSET_DOES_NOT_EXIST],
+    );
   }
 
   test_assetDoesNotExist_path_inRoot_noError() {
@@ -46,12 +49,15 @@ flutter:
 
   @failingTest
   test_assetDoesNotExist_uri_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets:
     - packages/icons/my_icon.png
-''', [PubspecWarningCode.ASSET_DOES_NOT_EXIST]);
+''',
+      [PubspecWarningCode.ASSET_DOES_NOT_EXIST],
+    );
   }
 
   test_assetDoesNotExist_uri_noError() {

@@ -17,12 +17,13 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-typedef _CatchClausesVerifierReporter = void Function(
-  CatchClause first,
-  CatchClause last,
-  ErrorCode,
-  List<Object> arguments,
-);
+typedef _CatchClausesVerifierReporter =
+    void Function(
+      CatchClause first,
+      CatchClause last,
+      ErrorCode,
+      List<Object> arguments,
+    );
 
 /// A visitor that finds dead code, other than unreachable code that is
 /// handled in [NullSafetyDeadCodeVerifier].
@@ -37,8 +38,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   final bool _wildCardVariablesEnabled;
 
   DeadCodeVerifier(this._errorReporter, LibraryElement2 library)
-      : _wildCardVariablesEnabled =
-            library.featureSet.isEnabled(Feature.wildcard_variables);
+    : _wildCardVariablesEnabled = library.featureSet.isEnabled(
+        Feature.wildcard_variables,
+      );
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -120,8 +122,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       if (_wildCardVariablesEnabled &&
           element is LocalVariableElement2 &&
           element.name3 == '_') {
-        _errorReporter.atNode(initializer,
-            WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER);
+        _errorReporter.atNode(
+          initializer,
+          WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER,
+        );
       }
     }
 
@@ -131,8 +135,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
   void _checkCombinator(LibraryElementImpl library, Combinator combinator) {
-    Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library);
+    Namespace namespace = NamespaceBuilder().createExportNamespaceForLibrary(
+      library,
+    );
     NodeList<SimpleIdentifier> names;
     ErrorCode warningCode;
     if (combinator is HideCombinator) {
@@ -226,10 +231,7 @@ class NullSafetyDeadCodeVerifier {
     }
 
     if (node is SwitchMember && node == firstDeadNode) {
-      _errorReporter.atToken(
-        node.keyword,
-        WarningCode.DEAD_CODE,
-      );
+      _errorReporter.atToken(node.keyword, WarningCode.DEAD_CODE);
       _firstDeadNode = null;
       return;
     }
@@ -345,21 +347,22 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void tryStatementEnter(TryStatement node) {
-    var verifier = _CatchClausesVerifier(
-      _typeSystem,
-      (first, last, errorCode, arguments) {
-        var offset = first.offset;
-        var length = last.end - offset;
-        _errorReporter.atOffset(
-          offset: offset,
-          length: length,
-          errorCode: errorCode,
-          arguments: arguments,
-        );
-        _deadCatchClauseRanges.add(SourceRange(offset, length));
-      },
-      node.catchClauses,
-    );
+    var verifier = _CatchClausesVerifier(_typeSystem, (
+      first,
+      last,
+      errorCode,
+      arguments,
+    ) {
+      var offset = first.offset;
+      var length = last.end - offset;
+      _errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: errorCode,
+        arguments: arguments,
+      );
+      _deadCatchClauseRanges.add(SourceRange(offset, length));
+    }, node.catchClauses);
     _catchClausesVerifiers.add(verifier);
   }
 
@@ -450,7 +453,10 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void _verifyUnassignedSimpleIdentifier(
-      AstNode node, Expression? target, Token? operator) {
+    AstNode node,
+    Expression? target,
+    Token? operator,
+  ) {
     var flowAnalysis = _flowAnalysis;
     if (flowAnalysis == null) return;
 
@@ -476,10 +482,7 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _errorReporter.atNode(
-          node,
-          WarningCode.DEAD_CODE,
-        );
+        _errorReporter.atNode(node, WarningCode.DEAD_CODE);
       }
     }
   }

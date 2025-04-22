@@ -18,10 +18,7 @@ main() {
 class VarianceResolutionTest extends PubPackageResolutionTest {
   @override
   List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.variance.enableString,
-    ];
+    return [...super.experiments, Feature.variance.enableString];
   }
 
   test_inference_in_parameter() async {
@@ -57,7 +54,8 @@ MethodInvocation
   }
 
   test_inference_in_parameter_downwards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B<in T> {
   B(List<T> x);
   void set x(T val) {}
@@ -66,9 +64,9 @@ class B<in T> {
 main() {
   B<int> b = B(<num>[])..x=2.2;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1)],
+    );
 
     var node = findNode.instanceCreation('B(<num>');
     nodeTextConfiguration.skipArgumentList = true;
@@ -87,7 +85,8 @@ InstanceCreationExpression
   }
 
   test_inference_inout_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Invariant<inout T> {}
 
 class Exactly<inout T> {}
@@ -97,11 +96,13 @@ Exactly<T> inferInvInv<T>(Invariant<T> x, Invariant<T> y) => new Exactly<T>();
 main() {
   inferInvInv(Invariant<String>(), Invariant<int>());
 }
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 147, 11),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 159, 19),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 180, 16),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.COULD_NOT_INFER, 147, 11),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 159, 19),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 180, 16),
+      ],
+    );
 
     var node = findNode.methodInvocation('inferInvInv(');
     nodeTextConfiguration.skipArgumentList = true;

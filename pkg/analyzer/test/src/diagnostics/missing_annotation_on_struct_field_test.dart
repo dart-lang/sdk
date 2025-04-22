@@ -16,14 +16,15 @@ main() {
 @reflectiveTest
 class MissingAnnotationOnStructFieldTest extends PubPackageResolutionTest {
   test_missing_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 final class C extends Struct {
   external int x;
 }
-''', [
-      error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 61, 3),
-    ]);
+''',
+      [error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 61, 3)],
+    );
   }
 
   test_notMissing() async {

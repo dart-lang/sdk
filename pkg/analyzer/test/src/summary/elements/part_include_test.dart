@@ -17,9 +17,7 @@ main() {
 
 abstract class PartIncludeElementTest extends ElementsBaseTest {
   test_configurations_useDefault() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-    };
+    declaredVariables = {'dart.library.io': 'false'};
 
     newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
@@ -333,8 +331,9 @@ library
   test_library_parts() async {
     newFile('$testPackageLibPath/a.dart', 'part of my.lib;');
     newFile('$testPackageLibPath/b.dart', 'part of my.lib;');
-    var library =
-        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    var library = await buildLibrary(
+      'library my.lib; part "a.dart"; part "b.dart";',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>

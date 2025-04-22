@@ -20,8 +20,11 @@ class InvalidUseOfVisibleForTemplateMemberTest
   void setUp() {
     super.setUp();
 
-    writeTestPackageConfig(PackageConfigFileBuilder(),
-        angularMeta: true, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      angularMeta: true,
+      meta: true,
+    );
   }
 
   test_class_constructor_named() async {
@@ -43,9 +46,7 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [
-      error(WarningCode.UNUSED_FIELD, 66, 2),
-    ]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 66, 2)]);
     await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 38, 13),
     ]);
@@ -70,9 +71,7 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [
-      error(WarningCode.UNUSED_FIELD, 66, 2),
-    ]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 66, 2)]);
     await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 38, 1),
     ]);

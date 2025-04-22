@@ -29,9 +29,7 @@ part 'b.dart';
 // @dart = 3.2
 part of 'a.dart';
 ''',
-      libraryErrors: [
-        error(_errorCode, 20, 8),
-      ],
+      libraryErrors: [error(_errorCode, 20, 8)],
     );
   }
 
@@ -70,9 +68,7 @@ part 'b.dart';
 // @dart = 3.1
 part of 'a.dart';
 ''',
-      libraryErrors: [
-        error(_errorCode, 5, 8),
-      ],
+      libraryErrors: [error(_errorCode, 5, 8)],
     );
   }
 

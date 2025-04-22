@@ -37,10 +37,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required this.configuration,
     bool withOffsets = false,
     bool withResolution = true,
-  })  : _sink = sink,
-        _elementPrinter = elementPrinter,
-        _withOffsets = withOffsets,
-        _withResolution = withResolution;
+  }) : _sink = sink,
+       _elementPrinter = elementPrinter,
+       _withOffsets = withOffsets,
+       _withResolution = withResolution;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -467,7 +467,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDotShorthandConstructorInvocation(
-      DotShorthandConstructorInvocation node) {
+    DotShorthandConstructorInvocation node,
+  ) {
     _sink.writeln('DotShorthandConstructorInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1231,7 +1232,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     _sink.writeln('PatternVariableDeclarationStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1322,7 +1324,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     _sink.writeln('RecordTypeAnnotationNamedField');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1331,7 +1334,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     _sink.writeln('RecordTypeAnnotationNamedFields');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1340,7 +1344,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     _sink.writeln('RecordTypeAnnotationPositionalField');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1448,10 +1453,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeParameterElement(node);
       _writeElement2('element', node.element);
       _writeType('staticType', node.staticType);
-      _writeTypeList(
-        'tearOffTypeArgumentTypes',
-        node.tearOffTypeArgumentTypes,
-      );
+      _writeTypeList('tearOffTypeArgumentTypes', node.tearOffTypeArgumentTypes);
     });
   }
 
@@ -1684,9 +1686,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitWildcardPattern(
-    covariant WildcardPatternImpl node,
-  ) {
+  void visitWildcardPattern(covariant WildcardPatternImpl node) {
     _sink.writeln('WildcardPattern');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1789,7 +1789,8 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeDocDirectiveTag(DocDirectiveTag docDirective) {
     _sink.withIndent(() {
       _sink.writelnWithIndent(
-          'offset: [${docDirective.offset}, ${docDirective.end}]');
+        'offset: [${docDirective.offset}, ${docDirective.end}]',
+      );
       _sink.writelnWithIndent('type: [${docDirective.type}]');
       if (docDirective.positionalArguments.isNotEmpty) {
         _sink.writelnWithIndent('positionalArguments');

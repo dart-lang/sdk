@@ -959,9 +959,7 @@ library
 
   Future<LibraryElementImpl> _buildDartFooLibrary(String content) async {
     additionalMockSdkLibraries.add(
-      MockSdkLibrary('foo', [
-        MockSdkLibraryUnit('foo/foo.dart', content),
-      ]),
+      MockSdkLibrary('foo', [MockSdkLibraryUnit('foo/foo.dart', content)]),
     );
 
     return await _libraryByUriFromTest('dart:foo');

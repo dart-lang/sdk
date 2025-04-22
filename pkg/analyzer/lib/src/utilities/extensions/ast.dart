@@ -35,8 +35,8 @@ extension AstNodeExtension on AstNode {
             when parent is! FunctionDeclaration:
           return node;
         case FunctionDeclaration() ||
-              ConstructorDeclaration() ||
-              MethodDeclaration():
+            ConstructorDeclaration() ||
+            MethodDeclaration():
           break;
       }
     }
@@ -84,9 +84,11 @@ extension AstNodeExtension on AstNode {
   /// Returns the comment token that covers the [offset].
   Token? commentTokenCovering(int offset) {
     for (var token in allTokens) {
-      for (Token? comment = token.precedingComments;
-          comment is Token;
-          comment = comment.next) {
+      for (
+        Token? comment = token.precedingComments;
+        comment is Token;
+        comment = comment.next
+      ) {
         if (comment.offset <= offset && offset <= comment.end) {
           return comment;
         }
@@ -120,17 +122,17 @@ extension CompilationUnitExtension on CompilationUnit {
     var path = declaredFragment.source.fullName;
     return switch (pathContext.separator) {
       '/' => const [
-          '/test/',
-          '/integration_test/',
-          '/test_driver/',
-          '/testing/',
-        ].any(path.contains),
+        '/test/',
+        '/integration_test/',
+        '/test_driver/',
+        '/testing/',
+      ].any(path.contains),
       r'\' => const [
-          r'\test\',
-          r'\integration_test\',
-          r'\test_driver\',
-          r'\testing\',
-        ].any(path.contains),
+        r'\test\',
+        r'\integration_test\',
+        r'\test_driver\',
+        r'\testing\',
+      ].any(path.contains),
       _ => false,
     };
   }

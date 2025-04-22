@@ -316,8 +316,9 @@ library
   }
 
   test_class_constructor_field_formal_dynamic_dynamic() async {
-    var library =
-        await buildLibrary('class C { dynamic x; C(dynamic this.x); }');
+    var library = await buildLibrary(
+      'class C { dynamic x; C(dynamic this.x); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6964,8 +6965,9 @@ library
   }
 
   test_class_field_const_late() async {
-    var library =
-        await buildLibrary('class C { static late const int i = 0; }');
+    var library = await buildLibrary(
+      'class C { static late const int i = 0; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7688,8 +7690,10 @@ library
   }
 
   test_class_field_formal_param_inferred_type_implicit() async {
-    var library = await buildLibrary('class C extends D { var v; C(this.v); }'
-        ' abstract class D { int get v; }');
+    var library = await buildLibrary(
+      'class C extends D { var v; C(this.v); }'
+      ' abstract class D { int get v; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8036,7 +8040,8 @@ library
 
   test_class_field_inferred_type_nonStatic_implicit_uninitialized() async {
     var library = await buildLibrary(
-        'class C extends D { var v; } abstract class D { int get v; }');
+      'class C extends D { var v; } abstract class D { int get v; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8822,9 +8827,7 @@ class D extends B implements C {
 }
 ''');
 
-    configuration.forPromotableFields(
-      classNames: {'A', 'B'},
-    );
+    configuration.forPromotableFields(classNames: {'A', 'B'});
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8905,9 +8908,7 @@ enum E implements B {
 }
 ''');
 
-    configuration.forPromotableFields(
-      classNames: {'A', 'B'},
-    );
+    configuration.forPromotableFields(classNames: {'A', 'B'});
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8995,9 +8996,7 @@ class C implements B {
 }
 ''');
 
-    configuration.forPromotableFields(
-      classNames: {'A'},
-    );
+    configuration.forPromotableFields(classNames: {'A'});
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -9069,10 +9068,7 @@ class C implements B {
 }
 ''');
 
-    configuration.forPromotableFields(
-      classNames: {'A'},
-      mixinNames: {'M'},
-    );
+    configuration.forPromotableFields(classNames: {'A'}, mixinNames: {'M'});
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -9119,9 +9115,7 @@ mixin M implements A {
 }
 ''');
 
-    configuration.forPromotableFields(
-      classNames: {'A'},
-    );
+    configuration.forPromotableFields(classNames: {'A'});
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -11355,8 +11349,9 @@ library
   }
 
   test_class_getters() async {
-    var library =
-        await buildLibrary('class C { int get x => null; get y => null; }');
+    var library = await buildLibrary(
+      'class C { int get x => null; get y => null; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -11768,7 +11763,8 @@ library
 
   test_class_interfaces_unresolved() async {
     var library = await buildLibrary(
-        'class C implements X, Y, Z {} class X {} class Z {}');
+      'class C implements X, Y, Z {} class X {} class Z {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -12100,8 +12096,10 @@ class C {
   }
 
   test_class_method_inferred_type_nonStatic_implicit_param() async {
-    var library = await buildLibrary('class C extends D { void f(value) {} }'
-        ' abstract class D { void f(int value); }');
+    var library = await buildLibrary(
+      'class C extends D { void f(value) {} }'
+      ' abstract class D { void f(int value); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -13589,7 +13587,8 @@ library
 
   test_class_mixins_unresolved() async {
     var library = await buildLibrary(
-        'class C extends Object with X, Y, Z {} class X {} class Z {}');
+      'class C extends Object with X, Y, Z {} class X {} class Z {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14396,8 +14395,9 @@ library
   }
 
   test_class_operator() async {
-    var library =
-        await buildLibrary('class C { C operator+(C other) => null; }');
+    var library = await buildLibrary(
+      'class C { C operator+(C other) => null; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14483,8 +14483,9 @@ library
   }
 
   test_class_operator_external() async {
-    var library =
-        await buildLibrary('class C { external C operator+(C other); }');
+    var library = await buildLibrary(
+      'class C { external C operator+(C other); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14570,8 +14571,9 @@ library
   }
 
   test_class_operator_index() async {
-    var library =
-        await buildLibrary('class C { bool operator[](int i) => null; }');
+    var library = await buildLibrary(
+      'class C { bool operator[](int i) => null; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -15275,8 +15277,9 @@ library
   }
 
   test_class_setter_abstract() async {
-    var library =
-        await buildLibrary('abstract class C { void set x(int value); }');
+    var library = await buildLibrary(
+      'abstract class C { void set x(int value); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -15327,8 +15330,9 @@ library
   }
 
   test_class_setter_covariant() async {
-    var library =
-        await buildLibrary('class C { void set x(covariant int value); }');
+    var library = await buildLibrary(
+      'class C { void set x(covariant int value); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -15379,8 +15383,9 @@ library
   }
 
   test_class_setter_external() async {
-    var library =
-        await buildLibrary('class C { external void set x(int value); }');
+    var library = await buildLibrary(
+      'class C { external void set x(int value); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -15714,9 +15719,10 @@ library
   }
 
   test_class_setter_inferred_type_nonStatic_implicit_param() async {
-    var library =
-        await buildLibrary('class C extends D { void set f(value) {} }'
-            ' abstract class D { void set f(int value); }');
+    var library = await buildLibrary(
+      'class C extends D { void set f(value) {} }'
+      ' abstract class D { void set f(int value); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -16388,8 +16394,9 @@ library
   }
 
   test_class_setter_static() async {
-    var library =
-        await buildLibrary('class C { static void set x(int value) {} }');
+    var library = await buildLibrary(
+      'class C { static void set x(int value) {} }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>

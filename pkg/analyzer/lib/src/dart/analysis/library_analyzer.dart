@@ -99,9 +99,9 @@ class LibraryAnalyzer {
     TestingData? testingData,
     required TypeSystemOperations typeSystemOperations,
     bool enableLintRuleTiming = false,
-  })  : _testingData = testingData,
-        _typeSystemOperations = typeSystemOperations,
-        _enableLintRuleTiming = enableLintRuleTiming {
+  }) : _testingData = testingData,
+       _typeSystemOperations = typeSystemOperations,
+       _enableLintRuleTiming = enableLintRuleTiming {
     _libraryVerificationContext = LibraryVerificationContext(
       libraryKind: _library,
       constructorFieldsVerifier: ConstructorFieldsVerifier(
@@ -131,11 +131,7 @@ class LibraryAnalyzer {
       var errors = fileAnalysis.errorListener.errors;
       errors = _filterIgnoredErrors(fileAnalysis, errors);
       results.add(
-        UnitAnalysisResult(
-          fileAnalysis.file,
-          fileAnalysis.unit,
-          errors,
-        ),
+        UnitAnalysisResult(fileAnalysis.file, fileAnalysis.unit, errors),
       );
     }
     return results;
@@ -152,10 +148,7 @@ class LibraryAnalyzer {
     required OperationPerformanceImpl performance,
   }) {
     var fileAnalysis = performance.run('parse', (performance) {
-      return _parse(
-        file: file,
-        unitElement: unitElement,
-      );
+      return _parse(file: file, unitElement: unitElement);
     });
     var parsedUnit = fileAnalysis.unit;
     var node = parsedUnit.nodeCovering(offset: offset);
@@ -184,7 +177,9 @@ class LibraryAnalyzer {
         ),
       );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
-          file.uri, inferenceDataForTesting!);
+        file.uri,
+        inferenceDataForTesting!,
+      );
 
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
@@ -197,11 +192,14 @@ class LibraryAnalyzer {
       var featureSet = _libraryElement.featureSet;
       var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _testingData != null,
-          typeSystemOperations: _typeSystemOperations,
-          typeAnalyzerOptions: typeAnalyzerOptions);
+        _testingData != null,
+        typeSystemOperations: _typeSystemOperations,
+        typeAnalyzerOptions: typeAnalyzerOptions,
+      );
       _testingData?.recordFlowAnalysisDataForTesting(
-          file.uri, flowAnalysisHelper.dataForTesting!);
+        file.uri,
+        flowAnalysisHelper.dataForTesting!,
+      );
 
       var resolverVisitor = ResolverVisitor(
         _inheritance,
@@ -217,7 +215,9 @@ class LibraryAnalyzer {
         typeAnalyzerOptions: typeAnalyzerOptions,
       );
       _testingData?.recordTypeConstraintGenerationDataForTesting(
-          file.uri, resolverVisitor.inferenceHelper.dataForTesting!);
+        file.uri,
+        resolverVisitor.inferenceHelper.dataForTesting!,
+      );
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration ||
@@ -293,11 +293,16 @@ class LibraryAnalyzer {
 
   void _computeConstantErrors(FileAnalysis fileAnalysis) {
     ConstantVerifier constantVerifier = ConstantVerifier(
-        fileAnalysis.errorReporter, _libraryElement, _declaredVariables,
-        retainDataForTesting: _testingData != null);
+      fileAnalysis.errorReporter,
+      _libraryElement,
+      _declaredVariables,
+      retainDataForTesting: _testingData != null,
+    );
     fileAnalysis.unit.accept(constantVerifier);
     _testingData?.recordExhaustivenessDataForTesting(
-        fileAnalysis.file.uri, constantVerifier.exhaustivenessDataForTesting!);
+      fileAnalysis.file.uri,
+      constantVerifier.exhaustivenessDataForTesting!,
+    );
   }
 
   /// Compute constants in all units.
@@ -345,10 +350,7 @@ class LibraryAnalyzer {
       }
       var usedElements = UsedLocalElements.merge(usedLocalElements);
       for (var fileAnalysis in _libraryFiles.values) {
-        _computeWarnings(
-          fileAnalysis,
-          usedElements: usedElements,
-        );
+        _computeWarnings(fileAnalysis, usedElements: usedElements);
       }
     }
 
@@ -358,22 +360,23 @@ class LibraryAnalyzer {
 
     _checkForInconsistentLanguageVersionOverride();
 
-    var validateUnnecessaryIgnores =
-        _analysisOptions.isLintEnabled('unnecessary_ignore');
+    var validateUnnecessaryIgnores = _analysisOptions.isLintEnabled(
+      'unnecessary_ignore',
+    );
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
     for (var fileAnalysis in _libraryFiles.values
-        // Only validate non-generated files.
-        .whereNot((f) => f.file.source.isGenerated)) {
+    // Only validate non-generated files.
+    .whereNot((f) => f.file.source.isGenerated)) {
       IgnoreValidator(
-              fileAnalysis.errorReporter,
-              fileAnalysis.errorListener.errors,
-              fileAnalysis.ignoreInfo,
-              fileAnalysis.unit.lineInfo,
-              _analysisOptions.unignorableNames,
-              validateUnnecessaryIgnores)
-          .reportErrors();
+        fileAnalysis.errorReporter,
+        fileAnalysis.errorListener.errors,
+        fileAnalysis.ignoreInfo,
+        fileAnalysis.unit.lineInfo,
+        _analysisOptions.unignorableNames,
+        validateUnnecessaryIgnores,
+      ).reportErrors();
     }
   }
 
@@ -483,8 +486,13 @@ class LibraryAnalyzer {
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
     // compile-time errors and so does the analyzer.
-    unit.accept(FfiVerifier(_typeSystem, errorReporter,
-        strictCasts: _analysisOptions.strictCasts));
+    unit.accept(
+      FfiVerifier(
+        _typeSystem,
+        errorReporter,
+        strictCasts: _analysisOptions.strictCasts,
+      ),
+    );
   }
 
   void _computeWarnings(
@@ -511,26 +519,16 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(OverrideVerifier(
-      _inheritance,
-      errorReporter,
-    ));
+    unit.accept(OverrideVerifier(_inheritance, errorReporter));
 
-    unit.accept(
-      RedeclareVerifier(
-        _inheritance,
-        errorReporter,
-      ),
-    );
+    unit.accept(RedeclareVerifier(_inheritance, errorReporter));
 
     TodoFinder(errorReporter).findIn(unit);
     LanguageVersionOverrideVerifier(errorReporter).verify(unit);
 
     // Verify imports.
     if (!_hasDiagnosticReportedThatPreventsImportWarnings()) {
-      var verifier = ImportsVerifier(
-        fileAnalysis: fileAnalysis,
-      );
+      var verifier = ImportsVerifier(fileAnalysis: fileAnalysis);
       verifier.addImports(unit);
       verifier.generateDuplicateExportWarnings(errorReporter);
       verifier.generateDuplicateImportWarnings(errorReporter);
@@ -617,9 +615,10 @@ class LibraryAnalyzer {
   }
 
   bool _hasDiagnosticReportedThatPreventsImportWarnings() {
-    var errorCodes = _libraryFiles.values.map((analysis) {
-      return analysis.errorListener.errors.map((e) => e.errorCode);
-    }).flattenedToSet;
+    var errorCodes =
+        _libraryFiles.values.map((analysis) {
+          return analysis.errorListener.errors.map((e) => e.errorCode);
+        }).flattenedToSet;
 
     for (var errorCode in errorCodes) {
       if (const {
@@ -712,18 +711,20 @@ class LibraryAnalyzer {
           CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
         );
       } else if (state.importedSource == null) {
-        var errorCode = state.isDocImport
-            ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        var errorCode =
+            state.isDocImport
+                ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
+                : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
           directive.uri,
           errorCode,
           arguments: [selectedUriStr],
         );
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
-        var errorCode = state.isDocImport
-            ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
-            : state.importedSource.isGenerated
+        var errorCode =
+            state.isDocImport
+                ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
+                : state.importedSource.isGenerated
                 ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
                 : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
@@ -759,10 +760,7 @@ class LibraryAnalyzer {
     required FileKind fileKind,
     required CompilationUnitElementImpl fileElement,
   }) {
-    var fileAnalysis = _parse(
-      file: fileKind.file,
-      unitElement: fileElement,
-    );
+    var fileAnalysis = _parse(file: fileKind.file, unitElement: fileElement);
     var containerUnit = fileAnalysis.unit;
 
     var containerErrorReporter = fileAnalysis.errorReporter;
@@ -807,11 +805,12 @@ class LibraryAnalyzer {
       }
     }
 
-    var docImports = containerUnit.directives
-        .whereType<LibraryDirective>()
-        .firstOrNull
-        ?.documentationComment
-        ?.docImports;
+    var docImports =
+        containerUnit.directives
+            .whereType<LibraryDirective>()
+            .firstOrNull
+            ?.documentationComment
+            ?.docImports;
     if (docImports != null) {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
@@ -848,19 +847,24 @@ class LibraryAnalyzer {
       ),
     );
     _testingData?.recordTypeConstraintGenerationDataForTesting(
-        fileAnalysis.file.uri, inferenceDataForTesting!);
+      fileAnalysis.file.uri,
+      inferenceDataForTesting!,
+    );
 
     var docImportLibraries = [
       for (var import in _library.docLibraryImports)
         if (import is LibraryImportWithFile)
-          _libraryElement.session.elementFactory
-              .libraryOfUri2(import.importedFile.uri)
+          _libraryElement.session.elementFactory.libraryOfUri2(
+            import.importedFile.uri,
+          ),
     ];
-    unit.accept(ScopeResolverVisitor(
-      fileAnalysis.errorReporter,
-      nameScope: unitElement.scope,
-      docImportLibraries: docImportLibraries,
-    ));
+    unit.accept(
+      ScopeResolverVisitor(
+        fileAnalysis.errorReporter,
+        nameScope: unitElement.scope,
+        docImportLibraries: docImportLibraries,
+      ),
+    );
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
@@ -868,11 +872,14 @@ class LibraryAnalyzer {
 
     var typeAnalyzerOptions = computeTypeAnalyzerOptions(unit.featureSet);
     FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _testingData != null,
-        typeSystemOperations: _typeSystemOperations,
-        typeAnalyzerOptions: typeAnalyzerOptions);
+      _testingData != null,
+      typeSystemOperations: _typeSystemOperations,
+      typeAnalyzerOptions: typeAnalyzerOptions,
+    );
     _testingData?.recordFlowAnalysisDataForTesting(
-        fileAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
+      fileAnalysis.file.uri,
+      flowAnalysisHelper.dataForTesting!,
+    );
 
     var resolver = ResolverVisitor(
       _inheritance,
@@ -889,7 +896,9 @@ class LibraryAnalyzer {
     );
     unit.accept(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(
-        fileAnalysis.file.uri, resolver.inferenceHelper.dataForTesting!);
+      fileAnalysis.file.uri,
+      resolver.inferenceHelper.dataForTesting!,
+    );
   }
 
   /// Resolves the `@docImport` directive URI and reports any import errors of
@@ -935,9 +944,10 @@ class LibraryAnalyzer {
           arguments: [selectedUriStr],
         );
       } else if (state is LibraryExportWithFile && !state.exportedFile.exists) {
-        var errorCode = isGeneratedSource(state.exportedSource)
-            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        var errorCode =
+            isGeneratedSource(state.exportedSource)
+                ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+                : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
           directive.uri,
           errorCode,
@@ -997,18 +1007,12 @@ class LibraryAnalyzer {
       List<Object>? arguments = const [],
     }) {
       if (directive != null) {
-        errorReporter.atNode(
-          directive.uri,
-          errorCode,
-          arguments: arguments,
-        );
+        errorReporter.atNode(directive.uri, errorCode, arguments: arguments);
       }
     }
 
     if (partState is! PartIncludeWithUriStr) {
-      reportOnDirectiveUri(
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-      );
+      reportOnDirectiveUri(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
       return;
     }
 
@@ -1040,10 +1044,7 @@ class LibraryAnalyzer {
       } else {
         errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
       }
-      reportOnDirectiveUri(
-        errorCode,
-        arguments: [includedFile.uriStr],
-      );
+      reportOnDirectiveUri(errorCode, arguments: [includedFile.uriStr]);
       return;
     }
 
@@ -1080,10 +1081,7 @@ class LibraryAnalyzer {
         case PartOfUriFileKind():
           reportOnDirectiveUri(
             CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-            arguments: [
-              enclosingFile.file.uriStr,
-              includedFile.uriStr,
-            ],
+            arguments: [enclosingFile.file.uriStr, includedFile.uriStr],
           );
       }
       return;

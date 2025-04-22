@@ -74,9 +74,7 @@ class TopLevelDeclarations {
     await analysisDriver.discoverAvailableFiles();
 
     var fsState = analysisDriver.fsState;
-    var filter = FileStateFilter(
-      fsState.getFileForPath(resolvedUnit.path),
-    );
+    var filter = FileStateFilter(fsState.getFileForPath(resolvedUnit.path));
 
     var result = <LibraryElement2, Element2>{};
 
@@ -111,7 +109,8 @@ class TopLevelDeclarations {
     LibraryElement2 libraryElement,
     String baseName,
   ) {
-    var element = libraryElement.exportNamespace.get2(baseName) ??
+    var element =
+        libraryElement.exportNamespace.get2(baseName) ??
         libraryElement.exportNamespace.get2('$baseName=');
     if (element is PropertyAccessorElement2) {
       var variable = element.variable3;

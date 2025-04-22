@@ -13,7 +13,7 @@ import 'package:yaml/yaml.dart';
 const Map<String, ErrorSeverity> severityMap = {
   'error': ErrorSeverity.ERROR,
   'info': ErrorSeverity.INFO,
-  'warning': ErrorSeverity.WARNING
+  'warning': ErrorSeverity.WARNING,
 };
 
 /// Error processor configuration derived from analysis (or embedder) options.
@@ -95,7 +95,8 @@ class ErrorProcessor {
     AnalysisOptions? analysisOptions,
     AnalysisError error,
   ) {
-    return analysisOptions?.errorProcessors
-        .firstWhereOrNull((processor) => processor.appliesTo(error));
+    return analysisOptions?.errorProcessors.firstWhereOrNull(
+      (processor) => processor.appliesTo(error),
+    );
   }
 }

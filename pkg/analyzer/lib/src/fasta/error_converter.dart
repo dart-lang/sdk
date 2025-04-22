@@ -25,7 +25,11 @@ class FastaErrorReporter {
   FastaErrorReporter(this.errorReporter);
 
   void reportByCode(
-      String? analyzerCode, int offset, int length, Message message) {
+    String? analyzerCode,
+    int offset,
+    int length,
+    Message message,
+  ) {
     Map<String, dynamic> arguments = message.arguments;
 
     String lexeme() => (arguments['lexeme'] as Token).lexeme;
@@ -576,7 +580,10 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-      ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
+    ScannerErrorCode errorCode,
+    int offset,
+    List<Object>? arguments,
+  ) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     errorReporter?.atOffset(

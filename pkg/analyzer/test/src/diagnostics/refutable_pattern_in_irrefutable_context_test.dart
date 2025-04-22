@@ -17,14 +17,20 @@ main() {
 class RefutablePatternInIrrefutableContextTest
     extends PubPackageResolutionTest {
   test_declaration_constantPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (0) = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 18, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+          18,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -48,15 +54,21 @@ PatternVariableDeclaration
   }
 
   test_declaration_logicalOrPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (_ || _) = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 18, 6),
-      error(WarningCode.DEAD_CODE, 20, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+          18,
+          6,
+        ),
+        error(WarningCode.DEAD_CODE, 20, 4),
+      ],
+    );
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -84,14 +96,20 @@ PatternVariableDeclaration
   }
 
   test_declaration_nullCheckPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   var (_?) = x;
 }
-''', [
-      error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+          24,
+          2,
+        ),
+      ],
+    );
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -117,14 +135,20 @@ PatternVariableDeclaration
   }
 
   test_declaration_relationalPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (> 0) = 0;
 }
-''', [
-      error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 18, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+          18,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''

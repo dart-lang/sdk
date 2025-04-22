@@ -38,8 +38,8 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   /// If [endOffset] is not provided, then it is considered the same as the
   /// given [startOffset].
   NodeLocator2(int startOffset, [int? endOffset])
-      : _startOffset = startOffset,
-        _endOffset = endOffset ?? startOffset;
+    : _startOffset = startOffset,
+      _endOffset = endOffset ?? startOffset;
 
   /// Search within the given AST [node] and return the node that was found,
   /// or `null` if no node was found.
@@ -51,12 +51,14 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       node.accept(this);
     } catch (exception, stackTrace) {
       // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService
-          .logException(SilentException(
-              'Unable to locate element at offset '
-              '($_startOffset - $_endOffset)',
-              exception,
-              stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+        SilentException(
+          'Unable to locate element at offset '
+          '($_startOffset - $_endOffset)',
+          exception,
+          stackTrace,
+        ),
+      );
       return null;
     }
     return _foundNode;
@@ -143,8 +145,12 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       // structure.
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          SilentException("Exception caught while traversing an AST structure.",
-              exception, stackTrace));
+        SilentException(
+          "Exception caught while traversing an AST structure.",
+          exception,
+          stackTrace,
+        ),
+      );
     }
     // Found a child.
     if (_foundNode != null) {
@@ -476,7 +482,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitConstructorFieldInitializer(
-      covariant ConstructorFieldInitializerImpl node) {
+    covariant ConstructorFieldInitializerImpl node,
+  ) {
     if (identical(node.fieldName, _oldNode)) {
       node.fieldName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -578,7 +585,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool? visitDotShorthandPropertyAccess(
-      covariant DotShorthandPropertyAccessImpl node) {
+    covariant DotShorthandPropertyAccessImpl node,
+  ) {
     if (identical(node.propertyName, _oldNode)) {
       node.propertyName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -610,7 +618,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitEnumConstantDeclaration(
-      covariant EnumConstantDeclarationImpl node) {
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     return visitAnnotatedNode(node);
   }
 
@@ -764,7 +773,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitForPartsWithDeclarations(
-      covariant ForPartsWithDeclarationsImpl node) {
+    covariant ForPartsWithDeclarationsImpl node,
+  ) {
     if (identical(node.variables, _oldNode)) {
       node.variables = _newNode as VariableDeclarationListImpl;
       return true;
@@ -817,7 +827,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitFunctionDeclarationStatement(
-      covariant FunctionDeclarationStatementImpl node) {
+    covariant FunctionDeclarationStatementImpl node,
+  ) {
     if (identical(node.functionDeclaration, _oldNode)) {
       node.functionDeclaration = _newNode as FunctionDeclarationImpl;
       return true;
@@ -842,7 +853,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitFunctionExpressionInvocation(
-      covariant FunctionExpressionInvocationImpl node) {
+    covariant FunctionExpressionInvocationImpl node,
+  ) {
     if (identical(node.function, _oldNode)) {
       node.function = _newNode as ExpressionImpl;
       return true;
@@ -885,7 +897,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitFunctionTypedFormalParameter(
-      covariant FunctionTypedFormalParameterImpl node) {
+    covariant FunctionTypedFormalParameterImpl node,
+  ) {
     if (identical(node.returnType, _oldNode)) {
       node.returnType = _newNode as TypeAnnotationImpl;
       return true;
@@ -1010,7 +1023,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitInstanceCreationExpression(
-      covariant InstanceCreationExpressionImpl node) {
+    covariant InstanceCreationExpressionImpl node,
+  ) {
     if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as ConstructorNameImpl;
       return true;
@@ -1026,7 +1040,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitInterpolationExpression(
-      covariant InterpolationExpressionImpl node) {
+    covariant InterpolationExpressionImpl node,
+  ) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
       return true;
@@ -1197,7 +1212,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitParenthesizedExpression(
-      covariant ParenthesizedExpressionImpl node) {
+    covariant ParenthesizedExpressionImpl node,
+  ) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as ExpressionImpl;
       return true;
@@ -1301,7 +1317,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.type, _oldNode)) {
@@ -1313,7 +1330,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     if (_replaceInList(node.fields)) {
       return true;
     }
@@ -1322,7 +1340,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     if (_replaceInList(node.metadata)) {
       return true;
     } else if (identical(node.type, _oldNode)) {
@@ -1334,7 +1353,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitRedirectingConstructorInvocation(
-      covariant RedirectingConstructorInvocationImpl node) {
+    covariant RedirectingConstructorInvocationImpl node,
+  ) {
     if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -1419,7 +1439,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitSuperConstructorInvocation(
-      covariant SuperConstructorInvocationImpl node) {
+    covariant SuperConstructorInvocationImpl node,
+  ) {
     if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as SimpleIdentifierImpl;
       return true;
@@ -1517,7 +1538,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitTopLevelVariableDeclaration(
-      covariant TopLevelVariableDeclarationImpl node) {
+    covariant TopLevelVariableDeclarationImpl node,
+  ) {
     if (identical(node.variables, _oldNode)) {
       node.variables = _newNode as VariableDeclarationListImpl;
       return true;
@@ -1603,7 +1625,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitVariableDeclarationList(
-      covariant VariableDeclarationListImpl node) {
+    covariant VariableDeclarationListImpl node,
+  ) {
     if (identical(node.type, _oldNode)) {
       node.type = _newNode as TypeAnnotationImpl;
       return true;
@@ -1615,7 +1638,8 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitVariableDeclarationStatement(
-      covariant VariableDeclarationStatementImpl node) {
+    covariant VariableDeclarationStatementImpl node,
+  ) {
     if (identical(node.variables, _oldNode)) {
       node.variables = _newNode as VariableDeclarationListImpl;
       return true;

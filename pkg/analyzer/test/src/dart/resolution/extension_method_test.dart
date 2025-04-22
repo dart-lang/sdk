@@ -24,46 +24,52 @@ main() {
 class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
-        MockSdkLibrary('test1', [
-          MockSdkLibraryUnit('test1/test1.dart', r'''
+    MockSdkLibrary('test1', [
+      MockSdkLibraryUnit('test1/test1.dart', r'''
 extension E on Object {
   int get a => 1;
 }
 
 class A {}
 '''),
-        ]),
-        MockSdkLibrary('test2', [
-          MockSdkLibraryUnit('test2/test2.dart', r'''
+    ]),
+    MockSdkLibrary('test2', [
+      MockSdkLibraryUnit('test2/test2.dart', r'''
 extension E on Object {
   int get a => 1;
 }
 '''),
-        ]),
-      ];
+    ]),
+  ];
 
   test_constructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E {
   E() {}
 }
-''', [
-      error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-      error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
-      error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 1),
-    ]);
+''',
+      [
+        error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+        error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+        error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 1),
+      ],
+    );
   }
 
   test_factory() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E {
   factory S() {}
 }
-''', [
-      error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-      error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
-      error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 7),
-    ]);
+''',
+      [
+        error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+        error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+        error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 7),
+      ],
+    );
   }
 
   test_fromPlatform() async {
@@ -158,15 +164,16 @@ extension E on C {
   int a = 1;
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' hide E;
 
 f(C c) {
   c.a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1)],
+    );
   }
 
   test_visibility_notShown() async {
@@ -176,15 +183,16 @@ extension E on C {
   int a = 1;
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' show C;
 
 f(C c) {
   c.a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1)],
+    );
   }
 
   test_visibility_private() async {
@@ -194,15 +202,16 @@ extension E on C {
   int _a = 1;
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart';
 
 f(C c) {
   c._a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 2)],
+    );
   }
 
   test_visibility_shadowed_byClass() async {
@@ -279,16 +288,17 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart';
 
 f(C c) {
   double E = 2.71;
   c.a;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1)],
+    );
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
 PrefixedIdentifier
@@ -307,7 +317,8 @@ PrefixedIdentifier
   }
 
   test_visibility_shadowed_byLocal_local() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -316,9 +327,9 @@ f(C c) {
   double E = 2.71;
   c.a;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1)],
+    );
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
 PrefixedIdentifier
@@ -979,7 +990,8 @@ PrefixedIdentifier
   }
 
   test_instance_getter_fromInstance_Never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on Never {
   int get foo => 0;
 }
@@ -987,9 +999,9 @@ extension E on Never {
 f(Never a) {
   a.foo;
 }
-''', [
-      error(WarningCode.DEAD_CODE, 63, 4),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 63, 4)],
+    );
     var access = findNode.prefixed('a.foo');
     assertResolvedNodeText(access, r'''
 PrefixedIdentifier
@@ -1407,7 +1419,8 @@ MethodInvocation
   }
 
   test_instance_method_fromInstance_Never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on Never {
   void foo() {}
 }
@@ -1415,10 +1428,12 @@ extension E on Never {
 f(Never a) {
   a.foo();
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
-      error(WarningCode.DEAD_CODE, 62, 3),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 57, 1),
+        error(WarningCode.DEAD_CODE, 62, 3),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -1825,13 +1840,16 @@ BinaryExpression
 
   test_instance_operator_binary_undefinedTarget() async {
     // Ensure that there is no exception thrown while resolving the code.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension on Object {}
 var a = b + c;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+      ],
+    );
   }
 
   test_instance_operator_index_fromExtendedType() async {
@@ -3052,7 +3070,8 @@ FunctionExpressionInvocation
   }
 
   test_instance_getter_asSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E1 on int {
   int get foo => 0;
 }
@@ -3063,9 +3082,9 @@ extension E2 on int {
     foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 104, 3)],
+    );
     var assignment = findNode.assignment('foo = 0');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -3462,7 +3481,8 @@ PrefixExpression
   }
 
   test_instance_setter_asGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E1 on int {
   set foo(int _) {}
 }
@@ -3473,9 +3493,9 @@ extension E2 on int {
     foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 104, 3)],
+    );
     var node = findNode.simple('foo;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier

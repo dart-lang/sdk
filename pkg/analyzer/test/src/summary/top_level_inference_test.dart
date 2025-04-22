@@ -93,13 +93,16 @@ var t = b
   }
 
   test_initializer_dependencyCycle() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var a = b;
 var b = a;
-''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 15, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
+        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 15, 1),
+      ],
+    );
   }
 
   test_initializer_equality() async {
@@ -122,10 +125,7 @@ var b1 = a[1];
     await assertNoErrorsInCode('''
 var t = (int p) {};
 ''');
-    assertType(
-      findElement2.topVar('t').type,
-      'Null Function(int)',
-    );
+    assertType(findElement2.topVar('t').type, 'Null Function(int)');
   }
 
   test_initializer_functionLiteral_expressionBody() async {
@@ -133,10 +133,7 @@ var t = (int p) {};
 var a = 0;
 var t = (int p) => (a = 1);
 ''');
-    assertType(
-      findElement2.topVar('t').type,
-      'int Function(int)',
-    );
+    assertType(findElement2.topVar('t').type, 'int Function(int)');
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
@@ -303,7 +300,8 @@ var t = {
   }
 
   test_override_conflictFieldType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   int aaa = 0;
 }
@@ -313,16 +311,27 @@ abstract class B {
 class C implements A, B {
   var aaa;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
-          contextMessages: [message(testFile, 64, 3)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
-          contextMessages: [message(testFile, 25, 3)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          109,
+          3,
+          contextMessages: [message(testFile, 64, 3)],
+        ),
+        error(
+          CompileTimeErrorCode.INVALID_OVERRIDE,
+          109,
+          3,
+          contextMessages: [message(testFile, 25, 3)],
+        ),
+      ],
+    );
   }
 
   test_override_conflictParameterType_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   void mmm(int a);
 }
@@ -332,9 +341,9 @@ abstract class B {
 class C implements A, B {
   void mmm(a) {}
 }
-''', [
-      error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 116, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 116, 3)],
+    );
   }
 
   Future<void> _assertErrorOnlyLeft(List<String> operators) async {

@@ -1,0 +1,57 @@
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// Returns the content for an analysis options file, specified appropriately
+/// with the given parameter values.
+String analysisOptionsContent({
+  // TODO(srawlins): Change this maybe to a List<String>.
+  String? include,
+  List<String> experiments = const [],
+  List<String> legacyPlugins = const [],
+  List<String> rules = const [],
+  bool strictCasts = false,
+  bool strictInference = false,
+  bool strictRawTypes = false,
+  List<String> unignorableNames = const [],
+}) {
+  var buffer = StringBuffer();
+
+  if (include != null) {
+    buffer.writeln('include: $include');
+  }
+
+  buffer.writeln('analyzer:');
+  if (experiments.isNotEmpty) {
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
+    }
+  }
+
+  buffer.writeln('  language:');
+  buffer.writeln('    strict-casts: $strictCasts');
+  buffer.writeln('    strict-inference: $strictInference');
+  buffer.writeln('    strict-raw-types: $strictRawTypes');
+  if (unignorableNames.isNotEmpty) {
+    buffer.writeln('  cannot-ignore:');
+    for (var name in unignorableNames) {
+      buffer.writeln('    - $name');
+    }
+  }
+
+  if (legacyPlugins.isNotEmpty) {
+    buffer.writeln('  plugins:');
+    for (var plugin in legacyPlugins) {
+      buffer.writeln('    - $plugin');
+    }
+  }
+
+  buffer.writeln('linter:');
+  buffer.writeln('  rules:');
+  for (var rule in rules) {
+    buffer.writeln('    - $rule');
+  }
+
+  return buffer.toString();
+}

@@ -18,26 +18,28 @@ main() {
 @reflectiveTest
 class FunctionExpressionTest extends PubPackageResolutionTest {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 
 FutureOr<void> Function() v = () async {
   return 0;
 };
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1)],
+    );
     _assertReturnType('() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<void> Function() v = () async {
   return 0;
 };
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1)],
+    );
     _assertReturnType('() async {', 'Future<void>');
   }
 
@@ -313,13 +315,14 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_sync_blockBody_void() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void Function() v = () {
   return 0;
 };
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1)],
+    );
     _assertReturnType('() {', 'void');
   }
 
@@ -513,13 +516,14 @@ FunctionExpression
   }
 
   test_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   final v = <T>(T a) => <T>[a];
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+    );
 
     var node = findNode.functionExpression('<T>(');
     assertResolvedNodeText(node, r'''
@@ -853,13 +857,14 @@ var v = () sync* {
   }
 
   test_targetBoundedByFunctionType_argumentTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int test<T extends int Function(int)>(T Function() createT) {
   return createT()('');
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 2)],
+    );
 
     var node = findNode.functionExpressionInvocation("('')");
     assertResolvedNodeText(node, r'''FunctionExpressionInvocation

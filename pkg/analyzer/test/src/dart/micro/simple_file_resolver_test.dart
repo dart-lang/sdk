@@ -854,12 +854,13 @@ analyzer:
     implicit-casts: false
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 num a = 0;
 int b = a;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1)],
+    );
   }
 
   test_analysisOptions_file_inPackage() async {
@@ -869,12 +870,13 @@ analyzer:
     implicit-casts: false
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 num a = 0;
 int b = a;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1)],
+    );
   }
 
   test_analysisOptions_file_inThirdParty() async {
@@ -891,12 +893,14 @@ analyzer:
 ''');
 
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
-    await assertErrorsInFile(aPath, r'''
+    await assertErrorsInFile(
+      aPath,
+      r'''
 num a = 0;
 int b = a;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1)],
+    );
   }
 
   test_analysisOptions_file_inThirdPartyDartLang() async {
@@ -913,12 +917,14 @@ analyzer:
 ''');
 
     var aPath = convertPath('/workspace/third_party/dart_lang/aaa/lib/a.dart');
-    await assertErrorsInFile(aPath, r'''
+    await assertErrorsInFile(
+      aPath,
+      r'''
 num a = 0;
 int b = a;
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1)],
+    );
   }
 
   test_analysisOptions_lints() async {
@@ -928,14 +934,15 @@ linter:
     - omit_local_variable_types
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   int a = 0;
   a;
 }
-''', [
-      error(LinterLintCode.omit_local_variable_types, 11, 3),
-    ]);
+''',
+      [error(LinterLintCode.omit_local_variable_types, 11, 3)],
+    );
   }
 
   test_basic() async {
@@ -1022,9 +1029,8 @@ export 'dart:core' show dynamic;
     var a_result = await resolveFile(a);
 
     // Touch `dart:core` so that its element model is discarded.
-    var dartCorePath = a_result.session.uriConverter.uriToPath(
-      Uri.parse('dart:core'),
-    )!;
+    var dartCorePath =
+        a_result.session.uriConverter.uriToPath(Uri.parse('dart:core'))!;
     fileResolver.changeFiles([dartCorePath]);
 
     // Analyze, this will read the element model for `dart:core`.
@@ -1036,14 +1042,21 @@ p.dynamic f() {}
   }
 
   test_errors_hasNullSuffix() {
-    assertErrorsInCode(r'''
+    assertErrorsInCode(
+      r'''
 String f(Map<int, String> a) {
   return a[0];
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 4,
-          messageContains: ["'String'", 'String?']),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          40,
+          4,
+          messageContains: ["'String'", 'String?'],
+        ),
+      ],
+    );
   }
 
   test_findReferences_class() async {
@@ -1066,8 +1079,9 @@ void func() {
     var element = await _findElement(6, a);
     var result = await fileResolver.findReferences(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(b.path,
-          [CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.REFERENCE)])
+      CiderSearchMatch(b.path, [
+        CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.REFERENCE),
+      ]),
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -1089,7 +1103,7 @@ class A {
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(a.path, [
         CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE),
-      ])
+      ]),
     ];
     expect(result, expected);
   }
@@ -1348,10 +1362,7 @@ void f(int? a) {
 }
 ''');
 
-    assertType(
-      findElement2.parameter('a').type,
-      'int?',
-    );
+    assertType(findElement2.parameter('a').type, 'int?');
   }
 
   test_getErrors() async {
@@ -1498,17 +1509,13 @@ part of 'b.dart';
 ''');
 
     expect(() async {
-      await fileResolver.getLibraryByUri2(
-        uriStr: 'package:dart.my/a.dart',
-      );
+      await fileResolver.getLibraryByUri2(uriStr: 'package:dart.my/a.dart');
     }, throwsArgumentError);
   }
 
   test_getLibraryByUri_unresolvedUri() async {
     expect(() async {
-      await fileResolver.getLibraryByUri2(
-        uriStr: 'my:unresolved',
-      );
+      await fileResolver.getLibraryByUri2(uriStr: 'my:unresolved');
     }, throwsArgumentError);
   }
 
@@ -1563,9 +1570,7 @@ byteStore
   1: [k00, k02, k03, k04, k05, k06]
 ''');
 
-    await fileResolver.getLibraryByUri2(
-      uriStr: 'package:dart.test/a.dart',
-    );
+    await fileResolver.getLibraryByUri2(uriStr: 'package:dart.test/a.dart');
     assertStateString(r'''
 files
   /workspace/dart/test/lib/a.dart
@@ -2565,25 +2570,24 @@ void f(MyEnum myEnum) {
   }
 
   test_unknown_uri() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo:bar';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9)],
+    );
   }
 
   test_warning() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+    );
   }
 
-  void _assertResolvedFiles(
-    List<File> expected, {
-    bool andClear = true,
-  }) {
+  void _assertResolvedFiles(List<File> expected, {bool andClear = true}) {
     var actual = fileResolver.testData!.resolvedLibraries;
     expect(actual, expected.map((e) => e.path).toList());
     if (andClear) {

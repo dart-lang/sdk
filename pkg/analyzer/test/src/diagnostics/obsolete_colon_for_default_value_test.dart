@@ -22,7 +22,8 @@ void f({int? x}) {}
   }
 
   test_superFormalParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   String? a;
   A({this.a});
@@ -31,13 +32,18 @@ class A {
 class B extends A {
   B({super.a : ''});
 }
-''', [error(CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, 74, 1)]);
+''',
+      [error(CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, 74, 1)],
+    );
   }
 
   test_usesColon() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f({int x : 0}) {}
-''', [error(CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, 14, 1)]);
+''',
+      [error(CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, 14, 1)],
+    );
   }
 
   test_usesEqual() async {

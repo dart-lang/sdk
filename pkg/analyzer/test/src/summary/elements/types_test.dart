@@ -134,8 +134,9 @@ library
   }
 
   test_futureOr_const() async {
-    var library =
-        await buildLibrary('import "dart:async"; const x = FutureOr;');
+    var library = await buildLibrary(
+      'import "dart:async"; const x = FutureOr;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>

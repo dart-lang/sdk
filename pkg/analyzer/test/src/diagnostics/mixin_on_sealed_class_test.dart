@@ -33,12 +33,13 @@ import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:foo/foo.dart';
 mixin Bar on Foo {}
-''', [
-      error(WarningCode.MIXIN_ON_SEALED_CLASS, 31, 19),
-    ]);
+''',
+      [error(WarningCode.MIXIN_ON_SEALED_CLASS, 31, 19)],
+    );
   }
 
   test_withinLibrary_OK() async {

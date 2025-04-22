@@ -28,11 +28,12 @@ void log({String? message}) {}
   }
 
   test_function_required_default() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void log({required String? message = 'no message'}) {}
-''', [
-      error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 27, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 27, 7)],
+    );
   }
 
   test_function_required_noDefault() async {
@@ -42,22 +43,24 @@ void log({required String message}) {}
   }
 
   test_method_abstract_required_default() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class C {
   void foo({required int? a = 0});
 }
-''', [
-      error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 45, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 45, 1)],
+    );
   }
 
   test_method_required_default() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void foo({required int? a = 0}) {}
 }
-''', [
-      error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 36, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 36, 1)],
+    );
   }
 }

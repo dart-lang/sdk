@@ -189,8 +189,11 @@ class TypeArgumentsVerifier {
           );
         }
       }
-      _checkTypeArgumentCount(typeArguments, 1,
-          CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
+      _checkTypeArgumentCount(
+        typeArguments,
+        1,
+        CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
+      );
     }
   }
 
@@ -205,8 +208,11 @@ class TypeArgumentsVerifier {
           );
         }
       }
-      _checkTypeArgumentCount(typeArguments, 2,
-          CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+      _checkTypeArgumentCount(
+        typeArguments,
+        2,
+        CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS,
+      );
     }
   }
 
@@ -238,8 +244,11 @@ class TypeArgumentsVerifier {
           );
         }
       }
-      _checkTypeArgumentCount(typeArguments, 1,
-          CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
+      _checkTypeArgumentCount(
+        typeArguments,
+        1,
+        CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS,
+      );
     }
   }
 
@@ -352,7 +361,12 @@ class TypeArgumentsVerifier {
         issues ??= <_TypeArgumentIssue>[];
         issues.add(
           _TypeArgumentIssue(
-              i, typeParameter, typeParameterName, bound, typeArgument),
+            i,
+            typeParameter,
+            typeParameterName,
+            bound,
+            typeArgument,
+          ),
         );
       }
     }
@@ -412,7 +426,7 @@ class TypeArgumentsVerifier {
           arguments: [
             issue.argument,
             issue.parameterName,
-            issue.parameterBound
+            issue.parameterBound,
           ],
           contextMessages: buildContextMessages(),
         );
@@ -542,12 +556,17 @@ class TypeArgumentsVerifier {
   /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP], or
   /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET].
   void _checkTypeArgumentConst(
-      TypeAnnotation typeAnnotation, ErrorCode errorCode) {
+    TypeAnnotation typeAnnotation,
+    ErrorCode errorCode,
+  ) {
     switch (typeAnnotation) {
       case NamedType(:var type, :var typeArguments):
         if (type is TypeParameterType) {
-          _errorReporter.atNode(typeAnnotation, errorCode,
-              arguments: [typeAnnotation.name2.lexeme]);
+          _errorReporter.atNode(
+            typeAnnotation,
+            errorCode,
+            arguments: [typeAnnotation.name2.lexeme],
+          );
         } else if (typeArguments != null) {
           for (var argument in typeArguments.arguments) {
             _checkTypeArgumentConst(argument, errorCode);
@@ -557,8 +576,11 @@ class TypeArgumentsVerifier {
         for (var parameter in parameters.parameters) {
           if (parameter case SimpleFormalParameter(type: var typeAnnotation?)) {
             if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-              _errorReporter
-                  .atNode(typeAnnotation, errorCode, arguments: [type]);
+              _errorReporter.atNode(
+                typeAnnotation,
+                errorCode,
+                arguments: [type],
+              );
             } else {
               _checkTypeArgumentConst(typeAnnotation, errorCode);
             }
@@ -596,11 +618,7 @@ class TypeArgumentsVerifier {
   ) {
     int actualCount = typeArguments.arguments.length;
     if (actualCount != expectedCount) {
-      _errorReporter.atNode(
-        typeArguments,
-        errorCode,
-        arguments: [actualCount],
-      );
+      _errorReporter.atNode(typeArguments, errorCode, arguments: [actualCount]);
     }
   }
 

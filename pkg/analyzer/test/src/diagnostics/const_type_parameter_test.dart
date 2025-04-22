@@ -16,32 +16,35 @@ main() {
 @reflectiveTest
 class ConstTypeParameterTest extends PubPackageResolutionTest {
   test_constantPattern_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(x) {
   if (x case T) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 28, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 28, 1)],
+    );
   }
 
   test_constantPattern_typeParameter_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(Object? x) {
   if (x case const (T)) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1)],
+    );
   }
 
   test_constantPattern_typeParameter_nested2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(Object? x) {
   if (x case const (List<T>)) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7)],
+    );
   }
 }

@@ -31,7 +31,8 @@ class Parent {
   void foo() {}
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class Child extends Parent {
@@ -39,9 +40,9 @@ class Child extends Parent {
     foo();
   }
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 3),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 3)],
+    );
   }
 
   test_differentLibrary_valid_onlyOverride() async {
@@ -98,7 +99,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class B {
@@ -106,9 +108,9 @@ class B {
     return a.g;
   }
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 56, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 56, 1)],
+    );
   }
 
   test_getter_inObjectPattern() async {
@@ -121,7 +123,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 void f(Object o) {
@@ -129,9 +132,9 @@ void f(Object o) {
     case A(g: 7): print('yes');
   }
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 1)],
+    );
   }
 
   test_operator() async {
@@ -144,15 +147,16 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class B {
   void m(A a) => a > A();
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 47, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 47, 1)],
+    );
   }
 
   test_overriding_getter() async {
@@ -165,7 +169,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class B extends A {
@@ -174,9 +179,9 @@ class B extends A {
 
   int get x => super.g + 1;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 100, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 100, 1)],
+    );
   }
 
   test_overriding_methodInvocation() async {
@@ -189,7 +194,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class B extends A {
@@ -198,9 +204,9 @@ class B extends A {
 
   void x() => super.m();
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 96, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 96, 1)],
+    );
   }
 
   test_overriding_operator() async {
@@ -213,7 +219,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class B extends A {
@@ -222,9 +229,9 @@ class B extends A {
 
   void m() => super > A();
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 111, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 111, 1)],
+    );
   }
 
   test_overriding_setter() async {
@@ -237,7 +244,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class B extends A {
@@ -246,9 +254,9 @@ class B extends A {
 
   set x(int i) => super.s = i;
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 106, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 106, 1)],
+    );
   }
 
   test_sameLibrary() async {
@@ -278,7 +286,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class B {
@@ -286,8 +295,8 @@ class B {
     a.s = 1;
   }
 }
-''', [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 50, 1),
-    ]);
+''',
+      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 50, 1)],
+    );
   }
 }

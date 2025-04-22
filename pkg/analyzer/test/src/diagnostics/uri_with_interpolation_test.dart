@@ -16,35 +16,39 @@ main() {
 @reflectiveTest
 class UriWithInterpolationTest extends PubPackageResolutionTest {
   test_library_docImport() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// @docImport '${'foo'}.dart';
 library;
-''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 15, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 15, 15)],
+    );
   }
 
   test_library_export() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export '${'foo'}.dart';
-''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15)],
+    );
   }
 
   test_library_import() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import '${'foo'}.dart';
-''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15)],
+    );
   }
 
   test_part() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part '${'foo'}.dart';
-''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 5, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 5, 15)],
+    );
   }
 }

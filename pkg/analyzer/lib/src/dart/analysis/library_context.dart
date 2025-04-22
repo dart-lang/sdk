@@ -164,34 +164,33 @@ class LibraryContext {
 
       var inputLibraryManifests = <Uri, LibraryManifest>{};
       if (withFineDependencies && bundleEntry != null) {
-        var isSatisfied = performance.run(
-          'libraryContext(isSatisfied)',
-          (performance) {
-            inputLibraryManifests = bundleEntry!.libraryManifests;
-            // If anything change in the API signature, relink the cycle.
-            // But use previous manifests to reuse item versions.
-            if (bundleEntry.apiSignature != cycle.nonTransitiveApiSignature) {
-              return false;
-            } else {
-              var requirements = bundleEntry.requirements;
-              var failure = requirements.isSatisfied(
-                elementFactory: elementFactory,
-                libraryManifests: elementFactory.libraryManifests,
+        var isSatisfied = performance.run('libraryContext(isSatisfied)', (
+          performance,
+        ) {
+          inputLibraryManifests = bundleEntry!.libraryManifests;
+          // If anything change in the API signature, relink the cycle.
+          // But use previous manifests to reuse item versions.
+          if (bundleEntry.apiSignature != cycle.nonTransitiveApiSignature) {
+            return false;
+          } else {
+            var requirements = bundleEntry.requirements;
+            var failure = requirements.isSatisfied(
+              elementFactory: elementFactory,
+              libraryManifests: elementFactory.libraryManifests,
+            );
+            if (failure != null) {
+              eventsController?.add(
+                CannotReuseLinkedBundle(
+                  elementFactory: elementFactory,
+                  cycle: cycle,
+                  failure: failure,
+                ),
               );
-              if (failure != null) {
-                eventsController?.add(
-                  CannotReuseLinkedBundle(
-                    elementFactory: elementFactory,
-                    cycle: cycle,
-                    failure: failure,
-                  ),
-                );
-                return false;
-              }
+              return false;
             }
-            return true;
-          },
-        );
+          }
+          return true;
+        });
         if (!isSatisfied) {
           bundleEntry = null;
         }
@@ -228,9 +227,7 @@ class LibraryContext {
                 elementFactory: elementFactory,
                 inputLibraries: cycle.libraries,
                 inputManifests: inputLibraryManifests,
-              ).computeManifests(
-                performance: performance,
-              );
+              ).computeManifests(performance: performance);
               elementFactory.libraryManifests.addAll(newLibraryManifests);
             });
 
@@ -246,10 +243,7 @@ class LibraryContext {
               requirements: requirements,
               linkedBytes: linkedBytes,
             );
-            linkedBundleProvider.put(
-              key: cycle.linkedKey,
-              entry: bundleEntry,
-            );
+            linkedBundleProvider.put(key: cycle.linkedKey, entry: bundleEntry);
 
             eventsController?.add(
               LinkLibraryCycle(
@@ -276,10 +270,7 @@ class LibraryContext {
               requirements: RequirementsManifest(),
               linkedBytes: linkedBytes,
             );
-            linkedBundleProvider.put(
-              key: cycle.linkedKey,
-              entry: bundleEntry,
-            );
+            linkedBundleProvider.put(key: cycle.linkedKey, entry: bundleEntry);
 
             eventsController?.add(
               LinkLibraryCycle(
@@ -307,9 +298,7 @@ class LibraryContext {
         // TODO(scheglov): Take / clear parsed units in files.
         bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
-        eventsController?.add(
-          ReuseLinkLibraryCycleBundle(cycle: cycle),
-        );
+        eventsController?.add(ReuseLinkLibraryCycleBundle(cycle: cycle));
         var bundleReader = performance.run('bundleReader', (performance) {
           return BundleReader(
             elementFactory: elementFactory,
@@ -320,9 +309,7 @@ class LibraryContext {
           );
         });
         elementFactory.addBundle(bundleReader);
-        elementFactory.libraryManifests.addAll(
-          bundleEntry.libraryManifests,
-        );
+        elementFactory.libraryManifests.addAll(bundleEntry.libraryManifests);
         addToLogRing('[load][addedBundle][cycle: $cycle]');
       }
     }
@@ -360,9 +347,7 @@ class LibraryContext {
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
   void remove(Set<FileState> removed, Set<String> removedKeys) {
-    elementFactory.removeLibraries(
-      removed.map((e) => e.uri).toSet(),
-    );
+    elementFactory.removeLibraries(removed.map((e) => e.uri).toSet());
 
     loadedBundles.removeWhere((cycle) {
       var cycleFiles = cycle.libraries.map((e) => e.file);
@@ -429,22 +414,21 @@ class LibraryContextTestData {
   /// Keys: the sorted list of library files.
   final Map<List<FileTestData>, LibraryCycleTestData> libraryCycles =
       LinkedHashMap(
-    hashCode: Object.hashAll,
-    equals: const ListEquality<FileTestData>().equals,
-  );
+        hashCode: Object.hashAll,
+        equals: const ListEquality<FileTestData>().equals,
+      );
 
   /// The current instance of [LibraryContext].
   LibraryContext? instance;
 
-  LibraryContextTestData({
-    required this.fileSystemTestData,
-  });
+  LibraryContextTestData({required this.fileSystemTestData});
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    var files = cycle.libraries.map((library) {
-      var file = library.file;
-      return fileSystemTestData.forFile(file.resource, file.uri);
-    }).toList();
+    var files =
+        cycle.libraries.map((library) {
+          var file = library.file;
+          return fileSystemTestData.forFile(file.resource, file.uri);
+        }).toList();
     files.sortBy((fileData) => fileData.file.path);
 
     return libraryCycles[files] ??= LibraryCycleTestData();
@@ -503,9 +487,7 @@ class LinkedBundleProvider {
   /// The keys are [LibraryCycle.linkedKey].
   final Map<String, LinkedBundleEntry> map = {};
 
-  LinkedBundleProvider({
-    required this.byteStore,
-  });
+  LinkedBundleProvider({required this.byteStore});
 
   LinkedBundleEntry? get(String key) {
     if (map[key] case var entry?) {
@@ -543,10 +525,7 @@ class LinkedBundleProvider {
     return result;
   }
 
-  void put({
-    required String key,
-    required LinkedBundleEntry entry,
-  }) {
+  void put({required String key, required LinkedBundleEntry entry}) {
     var sink = BufferedSink();
 
     sink.writeStringUtf8(entry.apiSignature);

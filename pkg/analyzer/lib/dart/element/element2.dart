@@ -553,9 +553,7 @@ abstract class Element2 {
   /// for which the [predicate] returns `true`.
   ///
   /// Returns `null` if there is no such element.
-  Element2? thisOrAncestorMatching2(
-    bool Function(Element2) predicate,
-  );
+  Element2? thisOrAncestorMatching2(bool Function(Element2) predicate);
 
   /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type.
@@ -1587,7 +1585,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// </blockquote>
   // TODO(scheglov): Deprecate and remove it.
   MethodElement2? lookUpConcreteMethod(
-      String methodName, LibraryElement2 library);
+    String methodName,
+    LibraryElement2 library,
+  );
 
   /// Returns the element representing the method that results from looking up
   /// the given [methodName] in the superclass of this class with respect to the
@@ -2915,9 +2915,7 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
 
   /// Returns the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.
-  TypeParameterType instantiate({
-    required NullabilitySuffix nullabilitySuffix,
-  });
+  TypeParameterType instantiate({required NullabilitySuffix nullabilitySuffix});
 }
 
 /// The portion of a [TypeParameterElement2] contributed by a single

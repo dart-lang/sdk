@@ -50,8 +50,10 @@ class FindElement2 extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  LibraryImportElementImpl import(String targetUri,
-      {bool mustBeUnique = true}) {
+  LibraryImportElementImpl import(
+    String targetUri, {
+    bool mustBeUnique = true,
+  }) {
     LibraryImport? importElement;
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
@@ -90,11 +92,13 @@ class FindElement2 extends _FindElementBase {
       }
     }
 
-    unit.accept(FunctionAstVisitor(
-      label: (node) {
-        updateResult(node.label.element!);
-      },
-    ));
+    unit.accept(
+      FunctionAstVisitor(
+        label: (node) {
+          updateResult(node.label.element!);
+        },
+      ),
+    );
 
     if (result == null) {
       throw StateError('Not found: $name');
@@ -105,17 +109,19 @@ class FindElement2 extends _FindElementBase {
   LocalFunctionElement localFunction(String name) {
     LocalFunctionElement? result;
 
-    unit.accept(FunctionAstVisitor(
-      functionDeclarationStatement: (node) {
-        var element = node.functionDeclaration.declaredFragment?.element;
-        if (element is LocalFunctionElement && element.name3 == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
+    unit.accept(
+      FunctionAstVisitor(
+        functionDeclarationStatement: (node) {
+          var element = node.functionDeclaration.declaredFragment?.element;
+          if (element is LocalFunctionElement && element.name3 == name) {
+            if (result != null) {
+              throw StateError('Not unique: $name');
+            }
+            result = element;
           }
-          result = element;
-        }
-      },
-    ));
+        },
+      ),
+    );
 
     if (result == null) {
       throw StateError('Not found: $name');
@@ -135,20 +141,22 @@ class FindElement2 extends _FindElementBase {
       }
     }
 
-    unit.accept(FunctionAstVisitor(
-      catchClauseParameter: (node) {
-        updateResult(node.declaredElement2!);
-      },
-      declaredIdentifier: (node) {
-        updateResult(node.declaredElement2!);
-      },
-      declaredVariablePattern: (node) {
-        updateResult(node.declaredElement2!);
-      },
-      variableDeclaration: (node) {
-        updateResult(node.declaredFragment!.element);
-      },
-    ));
+    unit.accept(
+      FunctionAstVisitor(
+        catchClauseParameter: (node) {
+          updateResult(node.declaredElement2!);
+        },
+        declaredIdentifier: (node) {
+          updateResult(node.declaredElement2!);
+        },
+        declaredVariablePattern: (node) {
+          updateResult(node.declaredElement2!);
+        },
+        variableDeclaration: (node) {
+          updateResult(node.declaredFragment!.element);
+        },
+      ),
+    );
 
     if (result == null) {
       throw StateError('Not found: $name');
@@ -209,12 +217,14 @@ class FindElement2 extends _FindElementBase {
     }
 
     unit.accept(
-      FunctionAstVisitor(functionExpression: (node, local) {
-        if (local) {
-          var functionElement = node.declaredFragment!.element;
-          findIn(functionElement.formalParameters);
-        }
-      }),
+      FunctionAstVisitor(
+        functionExpression: (node, local) {
+          if (local) {
+            var functionElement = node.declaredFragment!.element;
+            findIn(functionElement.formalParameters);
+          }
+        },
+      ),
     );
 
     if (result != null) {
@@ -264,17 +274,19 @@ class FindElement2 extends _FindElementBase {
   TypeParameterElement2 typeParameter(String name) {
     TypeParameterElement2? result;
 
-    unit.accept(FunctionAstVisitor(
-      typeParameter: (node) {
-        var element = node.declaredFragment!.element;
-        if (element.name3 == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
+    unit.accept(
+      FunctionAstVisitor(
+        typeParameter: (node) {
+          var element = node.declaredFragment!.element;
+          if (element.name3 == name) {
+            if (result != null) {
+              throw StateError('Not unique: $name');
+            }
+            result = element;
           }
-          result = element;
-        }
-      },
-    ));
+        },
+      ),
+    );
 
     if (result != null) {
       return result!;
@@ -502,9 +514,10 @@ abstract class _FindElementBase {
   ConstructorElement2 unnamedConstructor(String name) {
     return _findInClassesLike(
       className: name,
-      fromClass: (e) => e.constructors2.firstWhereOrNull((element) {
-        return element.name3 == 'new';
-      }),
+      fromClass:
+          (e) => e.constructors2.firstWhereOrNull((element) {
+            return element.name3 == 'new';
+          }),
       fromExtension: (_) => null,
     );
   }
@@ -534,10 +547,11 @@ abstract class _FindElementBase {
       ...libraryElement.mixins,
     ];
 
-    var results = [
-      ...classes.where(filter).map(fromClass),
-      ...libraryElement.extensions.where(filter).map(fromExtension),
-    ].nonNulls.toList();
+    var results =
+        [
+          ...classes.where(filter).map(fromClass),
+          ...libraryElement.extensions.where(filter).map(fromExtension),
+        ].nonNulls.toList();
 
     var result = results.singleOrNull;
     if (result != null) {

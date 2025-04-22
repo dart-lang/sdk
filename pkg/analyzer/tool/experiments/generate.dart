@@ -13,18 +13,27 @@ import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 void main() async {
   await GeneratedContent.generateAll(
-      normalize(join(pkg_root.packageRoot, 'analyzer')), allTargets);
+    normalize(join(pkg_root.packageRoot, 'analyzer')),
+    allTargets,
+  );
 }
 
 List<GeneratedContent> get allTargets {
-  var experimentsYaml = loadYaml(File(join(
-          normalize(join(pkg_root.packageRoot, '../tools')),
-          'experimental_features.yaml'))
-      .readAsStringSync()) as Map;
+  var experimentsYaml =
+      loadYaml(
+            File(
+              join(
+                normalize(join(pkg_root.packageRoot, '../tools')),
+                'experimental_features.yaml',
+              ),
+            ).readAsStringSync(),
+          )
+          as Map;
 
   return <GeneratedContent>[
-    GeneratedFile('lib/src/dart/analysis/experiments.g.dart',
-        (String pkgPath) async {
+    GeneratedFile('lib/src/dart/analysis/experiments.g.dart', (
+      String pkgPath,
+    ) async {
       var generator = _ExperimentsGenerator(experimentsYaml);
       generator.generateFormatCode();
       return generator.out.toString();
@@ -170,8 +179,9 @@ class ExperimentalFeatures {
     ''');
 
       if (experimentalReleaseVersion != null) {
-        experimentalReleaseVersion =
-            _versionNumberAsString(experimentalReleaseVersion);
+        experimentalReleaseVersion = _versionNumberAsString(
+          experimentalReleaseVersion,
+        );
         out.write("experimentalReleaseVersion: ");
         out.write("Version.parse('$experimentalReleaseVersion'),");
       } else {

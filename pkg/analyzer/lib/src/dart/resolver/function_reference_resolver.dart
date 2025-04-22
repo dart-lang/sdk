@@ -31,8 +31,8 @@ class FunctionReferenceResolver {
   final InterfaceType _typeType;
 
   FunctionReferenceResolver(this._resolver)
-      : _extensionResolver = _resolver.extensionResolver,
-        _typeType = _resolver.typeProvider.typeType;
+    : _extensionResolver = _resolver.extensionResolver,
+      _typeType = _resolver.typeProvider.typeType;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -60,7 +60,7 @@ class FunctionReferenceResolver {
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           arguments: [
             function.constructorName.type.qualifiedName,
-            function.constructorName.name!.name
+            function.constructorName.name!.name,
           ],
         );
         _resolve(node: node, rawType: function.staticType);
@@ -90,8 +90,11 @@ class FunctionReferenceResolver {
   /// Checks for a type instantiation of a `dynamic`-typed expression.
   ///
   /// Returns `true` if an error was reported, and resolution can stop.
-  bool _checkDynamicTypeInstantiation(FunctionReferenceImpl node,
-      PrefixedIdentifierImpl function, Element2 prefixElement) {
+  bool _checkDynamicTypeInstantiation(
+    FunctionReferenceImpl node,
+    PrefixedIdentifierImpl function,
+    Element2 prefixElement,
+  ) {
     DartType? prefixType;
     if (prefixElement is VariableElement2) {
       prefixType = prefixElement.type;
@@ -124,8 +127,9 @@ class FunctionReferenceResolver {
       if (name == null &&
           errorCode ==
               CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION) {
-        errorCode = CompileTimeErrorCode
-            .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION;
+        errorCode =
+            CompileTimeErrorCode
+                .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION;
         _errorReporter.atNode(
           typeArgumentList,
           errorCode,
@@ -139,7 +143,7 @@ class FunctionReferenceResolver {
           arguments: [
             name!,
             typeParameters.length,
-            typeArgumentList.arguments.length
+            typeArgumentList.arguments.length,
           ],
         );
       }
@@ -152,12 +156,16 @@ class FunctionReferenceResolver {
   }
 
   ExecutableElement2? _getCallMethod(
-      FunctionReferenceImpl node, DartType? type) {
+    FunctionReferenceImpl node,
+    DartType? type,
+  ) {
     if (type is! InterfaceTypeImpl) {
       return null;
     }
     var callMethodName = Name(
-        _resolver.definingLibrary.source.uri, MethodElement2.CALL_METHOD_NAME);
+      _resolver.definingLibrary.source.uri,
+      MethodElement2.CALL_METHOD_NAME,
+    );
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
       // If the interface type is nullable, only an applicable extension method
       // applies.
@@ -168,7 +176,9 @@ class FunctionReferenceResolver {
     // Otherwise, a 'call' method on the interface, or on an applicable
     // extension method applies.
     return type.lookUpMethod3(
-            MethodElement2.CALL_METHOD_NAME, type.element3.library2) ??
+          MethodElement2.CALL_METHOD_NAME,
+          type.element3.library2,
+        ) ??
         _extensionResolver.findExtension(type, node, callMethodName).getter2;
   }
 
@@ -199,10 +209,7 @@ class FunctionReferenceResolver {
         nameNode,
         CompileTimeErrorCode
             .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-        arguments: [
-          nameNode.name,
-          element.kind.displayName,
-        ],
+        arguments: [nameNode.name, element.kind.displayName],
       );
     } else {
       // It is safe to assume that `enclosingElement.name` is non-`null` because
@@ -287,12 +294,15 @@ class FunctionReferenceResolver {
   }
 
   void _resolveAsImplicitCallReference(
-      FunctionReferenceImpl node, MethodElement2 callMethod) {
+    FunctionReferenceImpl node,
+    MethodElement2 callMethod,
+  ) {
     // `node<...>` is to be treated as `node.call<...>`.
     var callMethodType = callMethod.type;
     var typeArgumentTypes = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
-      node.typeArguments!, MethodElement2.CALL_METHOD_NAME,
+      node.typeArguments!,
+      MethodElement2.CALL_METHOD_NAME,
       callMethodType.typeParameters,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
     );
@@ -315,11 +325,15 @@ class FunctionReferenceResolver {
 
   /// Resolves [node] as a [TypeLiteral] referencing an interface type directly
   /// (not through a type alias).
-  void _resolveDirectTypeLiteral(FunctionReferenceImpl node,
-      IdentifierImpl name, InterfaceElementImpl2 element) {
+  void _resolveDirectTypeLiteral(
+    FunctionReferenceImpl node,
+    IdentifierImpl name,
+    InterfaceElementImpl2 element,
+  ) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
-      node.typeArguments!, name.name,
+      node.typeArguments!,
+      name.name,
       element.typeParameters2,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );
@@ -335,7 +349,9 @@ class FunctionReferenceResolver {
   /// This function attempts to give [node] a static type, to continue working
   /// with what the user may be intending.
   void _resolveDisallowedExpression(
-      FunctionReferenceImpl node, DartType? rawType) {
+    FunctionReferenceImpl node,
+    DartType? rawType,
+  ) {
     if (_resolver.isConstructorTearoffsEnabled) {
       // Only report constructor tearoff-related errors if the constructor
       // tearoff feature is enabled.
@@ -353,8 +369,10 @@ class FunctionReferenceResolver {
     ExtensionOverrideImpl override,
   ) {
     var propertyName = function.propertyName;
-    var result =
-        _extensionResolver.getOverrideMember(override, propertyName.name);
+    var result = _extensionResolver.getOverrideMember(
+      override,
+      propertyName.name,
+    );
     var member = result.getter2;
 
     if (member == null) {
@@ -396,24 +414,30 @@ class FunctionReferenceResolver {
     SimpleIdentifier methodName,
     FunctionTypeImpl receiverType,
   ) {
-    var methodElement = _resolver.typePropertyResolver
-        .resolve(
-          receiver: receiver,
-          receiverType: receiverType,
-          name: methodName.name,
-          propertyErrorEntity: methodName,
-          nameErrorEntity: methodName,
-        )
-        .getter2;
+    var methodElement =
+        _resolver.typePropertyResolver
+            .resolve(
+              receiver: receiver,
+              receiverType: receiverType,
+              name: methodName.name,
+              propertyErrorEntity: methodName,
+              nameErrorEntity: methodName,
+            )
+            .getter2;
     if (methodElement != null && methodElement.isStatic) {
-      _reportInvalidAccessToStaticMember(methodName, methodElement,
-          implicitReceiver: false);
+      _reportInvalidAccessToStaticMember(
+        methodName,
+        methodElement,
+        implicitReceiver: false,
+      );
     }
     return methodElement;
   }
 
   void _resolvePrefixedIdentifierFunction(
-      FunctionReferenceImpl node, PrefixedIdentifierImpl function) {
+    FunctionReferenceImpl node,
+    PrefixedIdentifierImpl function,
+  ) {
     var prefixElement = function.prefix.scopeLookupResult!.getter2;
 
     if (prefixElement == null) {
@@ -429,10 +453,13 @@ class FunctionReferenceResolver {
 
     function.prefix.element = prefixElement;
     function.prefix.setPseudoExpressionStaticType(
-        prefixElement is PromotableElement2
-            ? _resolver.localVariableTypeProvider
-                .getType(function.prefix, isRead: true)
-            : prefixElement.referenceType);
+      prefixElement is PromotableElement2
+          ? _resolver.localVariableTypeProvider.getType(
+            function.prefix,
+            isRead: true,
+          )
+          : prefixElement.referenceType,
+    );
     var functionName = function.identifier.name;
 
     if (prefixElement is PrefixElement2) {
@@ -458,11 +485,7 @@ class FunctionReferenceResolver {
 
     if (prefixElement is TopLevelFunctionElement &&
         functionName == MethodElement2.CALL_METHOD_NAME) {
-      _resolve(
-        node: node,
-        rawType: prefixElement.type,
-        name: functionName,
-      );
+      _resolve(node: node, rawType: prefixElement.type, name: functionName);
       return;
     }
 
@@ -480,11 +503,7 @@ class FunctionReferenceResolver {
 
     if (propertyType is FunctionType) {
       function.setPseudoExpressionStaticType(propertyType);
-      _resolve(
-        node: node,
-        rawType: propertyType,
-        name: functionName,
-      );
+      _resolve(node: node, rawType: propertyType, name: functionName);
       return;
     }
 
@@ -502,7 +521,9 @@ class FunctionReferenceResolver {
   }
 
   void _resolvePropertyAccessFunction(
-      FunctionReferenceImpl node, PropertyAccessImpl function) {
+    FunctionReferenceImpl node,
+    PropertyAccessImpl function,
+  ) {
     _resolver.analyzeExpression(function, _resolver.operations.unknownType);
     _resolver.popRewrite();
     var callMethod = _getCallMethod(node, function.staticType);
@@ -576,15 +597,16 @@ class FunctionReferenceResolver {
       return;
     }
 
-    var propertyElement = _resolver.typePropertyResolver
-        .resolve(
-          receiver: function.realTarget,
-          receiverType: targetType,
-          name: function.propertyName.name,
-          propertyErrorEntity: function.propertyName,
-          nameErrorEntity: function,
-        )
-        .getter2;
+    var propertyElement =
+        _resolver.typePropertyResolver
+            .resolve(
+              receiver: function.realTarget,
+              receiverType: targetType,
+              name: function.propertyName.name,
+              propertyErrorEntity: function.propertyName,
+              nameErrorEntity: function,
+            )
+            .getter2;
 
     if (propertyElement is TypeParameterElement2) {
       _resolve(node: node, rawType: propertyElement!.type);
@@ -623,7 +645,9 @@ class FunctionReferenceResolver {
         return;
       } else if (element is InterfaceElementImpl2) {
         _resolver.analyzeExpression(
-            node.function, _resolver.operations.unknownType);
+          node.function,
+          _resolver.operations.unknownType,
+        );
         _resolver.popRewrite();
         _resolveDirectTypeLiteral(node, prefix, element);
         return;
@@ -635,7 +659,9 @@ class FunctionReferenceResolver {
       }
     } else if (element is ExecutableElement2) {
       _resolver.analyzeExpression(
-          node.function, _resolver.operations.unknownType);
+        node.function,
+        _resolver.operations.unknownType,
+      );
       _resolver.popRewrite();
       var callMethod = _getCallMethod(node, node.function.staticType);
       if (callMethod is MethodElement2) {
@@ -665,7 +691,9 @@ class FunctionReferenceResolver {
   }
 
   void _resolveSimpleIdentifierFunction(
-      FunctionReferenceImpl node, SimpleIdentifierImpl function) {
+    FunctionReferenceImpl node,
+    SimpleIdentifierImpl function,
+  ) {
     var element = function.scopeLookupResult!.getter2;
 
     if (element == null) {
@@ -700,8 +728,11 @@ class FunctionReferenceResolver {
       var method = result.getter2;
       if (method != null) {
         if (method.isStatic) {
-          _reportInvalidAccessToStaticMember(function, method,
-              implicitReceiver: true);
+          _reportInvalidAccessToStaticMember(
+            function,
+            method,
+            implicitReceiver: true,
+          );
           // Continue to assign types.
         }
 
@@ -818,7 +849,9 @@ class FunctionReferenceResolver {
   /// Returns the element that represents the property named [propertyName] on
   /// [classElement].
   ExecutableElement2? _resolveStaticElement(
-      InterfaceElement2 classElement, SimpleIdentifier propertyName) {
+    InterfaceElement2 classElement,
+    SimpleIdentifier propertyName,
+  ) {
     String name = propertyName.name;
     ExecutableElement2? element;
     if (propertyName.inSetterContext()) {
@@ -839,7 +872,8 @@ class FunctionReferenceResolver {
   }) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
-      node.typeArguments!, element.name3,
+      node.typeArguments!,
+      element.name3,
       element.typeParameters2,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );
@@ -864,9 +898,7 @@ class FunctionReferenceResolver {
       question: null,
     );
     typeName.type = instantiatedType;
-    var typeLiteral = TypeLiteralImpl(
-      typeName: typeName,
-    );
+    var typeLiteral = TypeLiteralImpl(typeName: typeName);
     _resolver.replaceExpression(node, typeLiteral);
     typeLiteral.recordStaticType(_typeType, resolver: _resolver);
   }
@@ -912,19 +944,23 @@ class FunctionReferenceResolver {
       return element?.referenceType;
     }
 
-    var element = _resolver.typePropertyResolver
-        .resolve(
-          receiver: receiver,
-          receiverType: receiverType,
-          name: name.name,
-          propertyErrorEntity: name,
-          nameErrorEntity: nameErrorEntity,
-        )
-        .getter2;
+    var element =
+        _resolver.typePropertyResolver
+            .resolve(
+              receiver: receiver,
+              receiverType: receiverType,
+              name: name.name,
+              propertyErrorEntity: name,
+              nameErrorEntity: nameErrorEntity,
+            )
+            .getter2;
     name.element = element;
     if (element != null && element.isStatic) {
-      _reportInvalidAccessToStaticMember(name, element,
-          implicitReceiver: false);
+      _reportInvalidAccessToStaticMember(
+        name,
+        element,
+        implicitReceiver: false,
+      );
     }
     return element?.referenceType;
   }

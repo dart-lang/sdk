@@ -46,14 +46,20 @@ RedirectingConstructorInvocation
   }
 
   test_named_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.other() : this.named(0);
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 24,
-          13),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          24,
+          13,
+        ),
+      ],
+    );
 
     var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''
@@ -101,15 +107,21 @@ RedirectingConstructorInvocation
   }
 
   test_unnamed_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   C.named();
   C.other() : this(0);
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 37,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          37,
+          7,
+        ),
+      ],
+    );
 
     var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''

@@ -19,25 +19,39 @@ class ImportOfNonLibraryTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib1.dart', '''
 part of lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library lib;
 import 'lib1.dart' deferred as p;
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11,
-          messageContains: ["library 'lib1.dart' "]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          20,
+          11,
+          messageContains: ["library 'lib1.dart' "],
+        ),
+      ],
+    );
   }
 
   test_part() async {
     newFile('$testPackageLibPath/part.dart', r'''
 part of lib;
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library lib;
 import 'part.dart';
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11,
-          messageContains: ["library 'part.dart' "]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          20,
+          11,
+          messageContains: ["library 'part.dart' "],
+        ),
+      ],
+    );
   }
 }

@@ -34,16 +34,17 @@ RecordPattern
   }
 
   test_dynamicType_named_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case (foo: var y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -66,16 +67,17 @@ RecordPattern
   }
 
   test_dynamicType_positional_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case (var y,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -142,16 +144,17 @@ RecordPattern
   }
 
   test_interfaceType_named_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (foo: int y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -177,16 +180,17 @@ RecordPattern
   }
 
   test_interfaceType_named_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (foo: var y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -235,16 +239,17 @@ RecordPattern
   }
 
   test_interfaceType_positional_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (int y,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -267,16 +272,17 @@ RecordPattern
   }
 
   test_interfaceType_positional_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case (var y,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -296,7 +302,8 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_hasName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case (a: var b):
@@ -304,10 +311,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 10),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 10),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -330,7 +339,8 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_noName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case (: var a):
@@ -338,10 +348,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -363,17 +375,20 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooFew_noName2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int b}) x) {
   switch (x) {
     case (: var a):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 46, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 46, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -395,17 +410,20 @@ RecordPattern
   }
 
   test_recordType_differentShape_named_tooMany_noName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int a, int b}) x) {
   switch (x) {
     case (: var a):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 53, 9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 53, 9),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -427,7 +445,8 @@ RecordPattern
   }
 
   test_recordType_differentShape_positional_tooFew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case (var a,):
@@ -435,10 +454,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 8),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 8),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -458,17 +479,20 @@ RecordPattern
   }
 
   test_recordType_differentShape_positional_tooMany() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) x) {
   switch (x) {
     case (var a,):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 50, 8),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 50, 8),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -488,7 +512,8 @@ RecordPattern
   }
 
   test_recordType_sameShape_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(() x) {
   switch (x) {
     case ():
@@ -496,10 +521,12 @@ void f(() x) {
     default:
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 60, 7),
-      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 60, 7),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 60, 7),
+        error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 60, 7),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -510,18 +537,21 @@ RecordPattern
   }
 
   test_recordType_sameShape_mixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, double, {String foo}) x) {
   switch (x) {
     case (var a, foo: var b, var c):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 88, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 88, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -560,17 +590,20 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_hasName_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (bar: var a):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 12),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 12),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -593,16 +626,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_hasName_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (foo: var y):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -625,17 +659,20 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_constant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (: 0):
       break;
   }
 }
-''', [
-      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 5),
-      error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 49, 3),
-    ]);
+''',
+      [
+        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 5),
+        error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 49, 3),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -656,16 +693,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo}) x) {
   switch (x) {
     case (: var foo):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -687,16 +725,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_cast() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo as int):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -725,16 +764,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_nullAssert() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo!):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -759,16 +799,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_named_noName_variable_nullCheck() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int? foo}) x) {
   switch (x) {
     case (: var foo?):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -793,16 +834,17 @@ RecordPattern
   }
 
   test_recordType_sameShape_positional_variable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int,) x) {
   switch (x) {
     case (var a,):
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
@@ -822,14 +864,17 @@ RecordPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) x) {
   var (a, b) = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -863,16 +908,19 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (int a, String b) = g();
 }
 
 (T, U) g<T, U>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration

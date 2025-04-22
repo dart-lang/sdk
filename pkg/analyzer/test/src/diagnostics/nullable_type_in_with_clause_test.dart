@@ -23,32 +23,35 @@ class B with A {}
   }
 
   test_class_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {}
 class B with A? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 24, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 24, 2)],
+    );
   }
 
   test_class_nullable_alias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {}
 typedef B = A;
 class C with B? {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2)],
+    );
   }
 
   test_class_nullable_alias2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {}
 typedef B = A?;
 class C with B {}
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 40, 1)],
+    );
   }
 
   test_classAlias_withClass_nonNullable() async {
@@ -60,35 +63,38 @@ class C = A with B;
   }
 
   test_classAlias_withClass_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B {}
 class C = A with B?;
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2)],
+    );
   }
 
   test_classAlias_withClass_nullable_alias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B {}
 typedef C = B;
 class D = A with C?;
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 54, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 54, 2)],
+    );
   }
 
   test_classAlias_withClass_nullable_alias2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B {}
 typedef C = B?;
 class D = A with C;
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 55, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 55, 1)],
+    );
   }
 
   test_classAlias_withMixin_nonNullable() async {
@@ -100,34 +106,37 @@ class C = A with B;
   }
 
   test_classAlias_withMixin_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B {}
 class C = A with B?;
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2)],
+    );
   }
 
   test_classAlias_withMixin_nullable_alias() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B {}
 typedef C = B;
 class D = A with C?;
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 54, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 54, 2)],
+    );
   }
 
   test_classAlias_withMixin_nullable_alias2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 mixin B {}
 typedef C = B?;
 class D = A with C;
-''', [
-      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 55, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 55, 1)],
+    );
   }
 }

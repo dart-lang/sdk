@@ -17,17 +17,21 @@ main() {
 class RedirectGenerativeToNonGenerativeConstructorTest
     extends PubPackageResolutionTest {
   test_nonGenerative() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : this.x();
   factory A.x() => throw 0;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
           18,
-          8),
-    ]);
+          8,
+        ),
+      ],
+    );
   }
 }

@@ -21,94 +21,137 @@ main() {
 class ConflictingTypeVariableAndMemberClassTest
     extends PubPackageResolutionTest {
   test_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   A.T();
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   var T;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   get T => null;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   T() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_static() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   static T() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_wildcard() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<_> {
   _() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 15, 1)],
+    );
   }
 
   test_method_wildcard_preWildcards() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 class A<_> {
   _() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 52,
-          1),
-      error(WarningCode.UNUSED_ELEMENT, 59, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+          52,
+          1,
+        ),
+        error(WarningCode.UNUSED_ELEMENT, 59, 1),
+      ],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   set T(x) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -116,39 +159,57 @@ class A<T> {
 class ConflictingTypeVariableAndMemberEnumTest
     extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum A<T> {
   v;
   get T => null;
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM, 7, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
+          7,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum A<T> {
   v;
   void T() {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM, 7, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
+          7,
+          1,
+        ),
+      ],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum A<T> {
   v;
   set T(x) {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM, 7, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
+          7,
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -156,36 +217,54 @@ enum A<T> {
 class ConflictingTypeVariableAndMemberExtensionTest
     extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension A<T> on String {
   get T => null;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
-          12, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+          12,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension A<T> on String {
   T() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
-          12, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+          12,
+          1,
+        ),
+      ],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension A<T> on String {
   set T(x) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
-          12, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+          12,
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -193,71 +272,91 @@ extension A<T> on String {
 class ConflictingTypeVariableAndMemberExtensionTypeTest
     extends PubPackageResolutionTest {
   test_constructor_explicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(int it) {
   A.T(int it) : this(it);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
           17,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_constructor_primary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>.T(int it) {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
           17,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(int it) {
   get T => null;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
           17,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(int it) {
   T() {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
           17,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A<T>(int it) {
   set T(x) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
           17,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }
 
@@ -265,57 +364,87 @@ extension type A<T>(int it) {
 class ConflictingTypeVariableAndMemberMixinTest
     extends PubPackageResolutionTest {
   test_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M<T> {
   var T;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M<T> {
   get T => null;
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M<T> {
   T() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_method_static() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M<T> {
   static T() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M<T> {
   set T(x) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN, 8,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN,
+          8,
+          1,
+        ),
+      ],
+    );
   }
 }

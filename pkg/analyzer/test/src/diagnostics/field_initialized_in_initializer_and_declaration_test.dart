@@ -41,39 +41,48 @@ augment class A {
     await resolveFile2(a);
     assertErrorsInResult([
       error(
-          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-          56,
-          1),
+        CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+        56,
+        1,
+      ),
     ]);
   }
 
   test_class_both() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int x = 0;
   A() : x = 1;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
           37,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_both() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   final int x = 0;
   const E() : x = 1;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
-      error(
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 1),
+        error(
           CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
           47,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

@@ -16,13 +16,16 @@ void main() {
 @reflectiveTest
 class DocImportCannotBeDeferredTest extends PubPackageResolutionTest {
   test_deferred() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// @docImport 'dart:math' deferred as math;
 class C {}
-''', [
-      error(WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED, 27, 8),
-      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 39, 4),
-    ]);
+''',
+      [
+        error(WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED, 27, 8),
+        error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 39, 4),
+      ],
+    );
   }
 
   test_notDeferred() async {

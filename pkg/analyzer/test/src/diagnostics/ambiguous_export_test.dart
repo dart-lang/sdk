@@ -22,12 +22,13 @@ class N {}
     newFile('$testPackageLibPath/lib2.dart', r'''
 class N {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'lib1.dart';
 export 'lib2.dart';
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11)],
+    );
   }
 
   test_library_extensions_bothExported() async {
@@ -37,12 +38,13 @@ extension E on String {}
     newFile('$testPackageLibPath/lib2.dart', r'''
 extension E on String {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'lib1.dart';
 export 'lib2.dart';
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11)],
+    );
   }
 
   test_library_extensions_localAndExported() async {

@@ -16,16 +16,17 @@ main() {
 @reflectiveTest
 class TearOffTest extends PubPackageResolutionTest {
   test_empty_contextNotInstantiated() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>(T x) => x;
 
 void test() {
   U Function<U>(U) context;
   context = f; // 1
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7)],
+    );
 
     var node = findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''
@@ -38,16 +39,17 @@ SimpleIdentifier
   }
 
   test_empty_notGeneric() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f(int x) => x;
 
 void test() {
   int Function(int) context;
   context = f; // 1
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7)],
+    );
 
     var node = findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''

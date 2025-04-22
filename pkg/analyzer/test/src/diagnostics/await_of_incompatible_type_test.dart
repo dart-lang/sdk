@@ -26,15 +26,16 @@ void f(A a) async {
   }
 
   test_extensionType_notImplementsFuture() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 
 void f(A a) async {
   await a;
 }
-''', [
-      error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 51, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 51, 5)],
+    );
   }
 
   test_typeParameter_bound_extensionType_implementsFuture() async {
@@ -48,15 +49,16 @@ void f<T extends A>(T a) async {
   }
 
   test_typeParameter_bound_extensionType_notImplementsFuture() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(Future<int> it) {}
 
 void f<T extends A>(T a) async {
   await a;
 }
-''', [
-      error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 72, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 72, 5)],
+    );
   }
 
   test_typeParameter_promotedBound_extensionType_implementsFuture() async {
@@ -72,7 +74,8 @@ void f<T>(T a) async {
   }
 
   test_typeParameter_promotedBound_extensionType_notImplementsFuture() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(Future<int> it) {}
 
 void f<T>(T a) async {
@@ -80,8 +83,8 @@ void f<T>(T a) async {
     await a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 80, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 80, 5)],
+    );
   }
 }

@@ -9,7 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  json_rpc_2: ^3.0.2
+  json_rpc_2: '>=3.0.2 <5.0.0'
   stream_channel: ^2.1.2
   unified_analytics: '>=7.0.0 <9.0.0'
   web_socket_channel: '>=2.0.0 <4.0.0'

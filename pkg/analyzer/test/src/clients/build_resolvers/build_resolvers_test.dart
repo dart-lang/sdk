@@ -38,10 +38,7 @@ name: test
     newPackageConfigJsonFileFromBuilder(
       testPackageRootPath,
       PackageConfigFileBuilder()
-        ..add(
-          name: 'test',
-          rootPath: testPackageRootPath,
-        ),
+        ..add(name: 'test', rootPath: testPackageRootPath),
     );
   }
 
@@ -90,10 +87,7 @@ class A {}
   Future<AnalysisDriverForPackageBuild> _createAnalysisDriver() async {
     var sdkRoot = getFolder('/sdk');
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     var sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,

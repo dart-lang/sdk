@@ -16,27 +16,30 @@ main() {
 @reflectiveTest
 class UseOfNativeExtensionTest extends PubPackageResolutionTest {
   test_docImport() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 /// @docImport 'dart-ext:x';
 library;
-''', [
-      error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 15, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 15, 12)],
+    );
   }
 
   test_export() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart-ext:x';
-''', [
-      error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12)],
+    );
   }
 
   test_import() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart-ext:x';
-''', [
-      error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12)],
+    );
   }
 }

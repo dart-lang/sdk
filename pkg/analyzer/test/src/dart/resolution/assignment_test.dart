@@ -725,14 +725,17 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved1_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int c) {
   a[b] = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -768,14 +771,17 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved2_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int c) {
   a[b] = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 3),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 27, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 3),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 27, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -811,7 +817,8 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolved3_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   operator[]=(int index, num _) {}
 }
@@ -819,9 +826,9 @@ class A {
 void f(A a, int c) {
   a[b] = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 73, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 73, 1)],
+    );
 
     var assignment = findNode.assignment('a[b] = c');
 
@@ -857,13 +864,14 @@ AssignmentExpression
   }
 
   test_indexExpression_unresolvedTarget_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   a[0] += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -896,16 +904,19 @@ AssignmentExpression
   }
 
   test_left_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     super = 0;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
+      ],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -928,14 +939,17 @@ AssignmentExpression
   }
 
   test_notLValue_binaryExpression_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int b, double c) {
   a + b += c;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
+      ],
+    );
 
     var assignment = findNode.assignment('= c');
 
@@ -971,14 +985,17 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int b, double c) {
   (a + b) += c;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
+      ],
+    );
 
     var assignment = findNode.assignment('= c');
 
@@ -1018,15 +1035,21 @@ AssignmentExpression
   }
 
   test_notLValue_parenthesized_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, double b) {
   (a + 0) = b;
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
-          29, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          29,
+          1,
+        ),
+        error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
+      ],
+    );
 
     var node = findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
@@ -1050,15 +1073,18 @@ PatternAssignment
   }
 
   test_notLValue_parenthesized_simple_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(int a, double b) {
   (a + 0) = b;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 44, 7),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 44, 7),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 44, 7),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 44, 7),
+      ],
+    );
 
     var node = findNode.assignment('= b');
     assertResolvedNodeText(node, r'''
@@ -1096,14 +1122,17 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_compound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   x++ += y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1137,14 +1166,17 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_compound_ifNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   x++ ??= y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1178,14 +1210,17 @@ AssignmentExpression
   }
 
   test_notLValue_postfixIncrement_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   x++ = y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1219,14 +1254,17 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_compound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   ++x += y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1260,14 +1298,17 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_compound_ifNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   ++x ??= y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1301,14 +1342,17 @@ AssignmentExpression
   }
 
   test_notLValue_prefixIncrement_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(num x, int y) {
   ++x = y;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+      ],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -1344,15 +1388,16 @@ AssignmentExpression
   test_notLValue_typeLiteral_class_ambiguous_simple() async {
     newFile('$testPackageLibPath/a.dart', 'class C {}');
     newFile('$testPackageLibPath/b.dart', 'class C {}');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 import 'b.dart';
 void f() {
   C = 0;
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 47, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 47, 1)],
+    );
 
     var assignment = findNode.assignment('C = 0');
 
@@ -1379,15 +1424,16 @@ AssignmentExpression
   }
 
   test_notLValue_typeLiteral_class_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 void f() {
   C = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1)],
+    );
 
     var assignment = findNode.assignment('C = 0');
 
@@ -1575,7 +1621,8 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_instanceGetter_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get x => 0;
 }
@@ -1583,9 +1630,9 @@ class A {
 void f(A a) {
   a.x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -1627,7 +1674,8 @@ augment class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {}
@@ -1635,9 +1683,9 @@ class A {}
 void f(A a) {
   a.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 3)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -1795,7 +1843,8 @@ augment class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {}
@@ -1803,9 +1852,9 @@ class A {}
 void f() {
   A.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 43, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 43, 3)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -2096,7 +2145,8 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_staticGetter_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int get x => 0;
 }
@@ -2104,9 +2154,9 @@ class A {
 void f() {
   A.x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -2226,13 +2276,14 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_unresolved1_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int c) {
   a.b = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+    );
 
     var assignment = findNode.assignment('a.b = c');
 
@@ -2266,14 +2317,17 @@ AssignmentExpression
   }
 
   test_prefixedIdentifier_unresolved2_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int c) {
   a.b += c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 1),
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 1),
+        error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('a.b += c');
 
@@ -2701,14 +2755,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
+        error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
+      ],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -2743,13 +2800,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -2784,7 +2842,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_FFFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int bar}) {
   set foo(int _) {}
 }
@@ -2792,9 +2851,9 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -2872,7 +2931,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FTFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int bar}) {
   int get foo => 0;
 }
@@ -2880,9 +2940,9 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -2917,7 +2977,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_FTFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int bar}) {
   int get foo => 0;
 }
@@ -2925,9 +2986,9 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3050,13 +3111,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3091,13 +3153,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3132,7 +3195,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TFFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   set foo(int _) {}
 }
@@ -3140,9 +3204,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3177,7 +3241,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TFFT_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   set foo(int _) {}
 }
@@ -3185,9 +3250,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3222,7 +3287,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TTFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
@@ -3230,9 +3296,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3267,7 +3333,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_named_TTFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
@@ -3275,9 +3342,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3312,7 +3379,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TTFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3321,9 +3389,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3358,7 +3426,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_named_TTFT_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
@@ -3367,9 +3436,9 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3404,14 +3473,17 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$4 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
+        error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+      ],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3446,13 +3518,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$4 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3487,7 +3560,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FTFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   int get $3 => 0;
 }
@@ -3495,9 +3569,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3532,7 +3606,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_FTFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   int get $3 => 0;
 }
@@ -3540,9 +3615,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3577,13 +3652,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_TFFF_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$1 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3618,13 +3694,14 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: false
   test_propertyAccess_recordTypeField_positional_TFFF_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$1 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3659,7 +3736,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_positional_TFFT_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   set $1(int _) {}
 }
@@ -3667,9 +3745,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 += 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
@@ -3704,7 +3782,8 @@ AssignmentExpression
   /// Has record setter:    false
   /// Has extension setter: true
   test_propertyAccess_recordTypeField_positional_TFFT_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   set $1(int _) {}
 }
@@ -3712,9 +3791,9 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+    );
 
     var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
@@ -3830,13 +3909,14 @@ AssignmentExpression
   }
 
   test_propertyAccess_unresolved1_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int c) {
   (a).b = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 19, 1)],
+    );
 
     var assignment = findNode.assignment('(a).b = c');
 
@@ -3873,13 +3953,14 @@ AssignmentExpression
   }
 
   test_propertyAccess_unresolved2_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a, int c) {
   (a).b = c;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 29, 1)],
+    );
 
     var assignment = findNode.assignment('(a).b = c');
 
@@ -3916,15 +3997,16 @@ AssignmentExpression
   }
 
   test_right_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f(Object a) {
     a = super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5)],
+    );
 
     var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
@@ -4013,7 +4095,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterInstance_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   num get x => 0;
 
@@ -4021,9 +4104,9 @@ class C {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4048,7 +4131,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterStatic_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static num get x => 0;
 
@@ -4056,9 +4140,9 @@ class C {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4083,15 +4167,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_getterTopLevel_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int get x => 0;
 
 void f() {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4116,7 +4201,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_importPrefix_hasSuperSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:math' as x;
 
 class A {
@@ -4128,9 +4214,15 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 85, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          85,
+          1,
+        ),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4155,15 +4247,22 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_importPrefix_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:math' as x;
 
 main() {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 37, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          37,
+          1,
+        ),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4250,15 +4349,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariableConst_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   // ignore:unused_local_variable
   const num x = 1;
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 66, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 66, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4283,15 +4383,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_localVariableFinal_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   // ignore:unused_local_variable
   final num x = 1;
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 66, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 66, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4345,7 +4446,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_ifNull2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 class B extends A {}
 class C extends A {}
@@ -4353,9 +4455,9 @@ class C extends A {}
 void f(B? x) {
   x ??= C();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 77, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 77, 3)],
+    );
 
     var assignment = findNode.assignment('x ??=');
 
@@ -4388,13 +4490,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_ifNull_notAssignableType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(double? a, int b) {
   a ??= b;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1)],
+    );
 
     var assignment = findNode.assignment('a ??=');
 
@@ -4420,19 +4523,22 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_compound_refineType_int_double() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   x += 1.2;
   x -= 1.2;
   x *= 1.2;
   x %= 1.2;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 3),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 3),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 3),
+      ],
+    );
     assertType(findNode.assignment('+='), 'double');
     assertType(findNode.assignment('-='), 'double');
     assertType(findNode.assignment('*='), 'double');
@@ -4517,13 +4623,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameter_simple_notAssignableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   x = true;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4)],
+    );
 
     var assignment = findNode.assignment('x = true');
 
@@ -4548,13 +4655,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_parameterFinal_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(final int x) {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 24, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4579,7 +4687,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_staticGetter_superSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set x(num _) {}
 }
@@ -4591,10 +4700,12 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 94, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 94, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4619,7 +4730,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_staticMethod_superSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set x(num _) {}
 }
@@ -4631,10 +4743,12 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 1),
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 90, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 1),
+        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 90, 1),
+      ],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4694,13 +4808,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_synthetic_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(int y) {
   = y;
 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1)],
+    );
 
     var assignment = findNode.assignment('= y');
 
@@ -4872,7 +4987,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topGetter_superSetter_simple() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set x(num _) {}
 }
@@ -4885,9 +5001,9 @@ class B extends A {
     x = 2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -4944,7 +5060,8 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topGetter_topSetter_compound_ifNull2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   x ??= C();
 }
@@ -4955,9 +5072,9 @@ class C extends A {}
 
 B? get x => B();
 set x(B? _) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3)],
+    );
 
     var assignment = findNode.assignment('x ??=');
 
@@ -5055,15 +5172,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topLevelVariable_simple_notAssignableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int x = 0;
 
 void f() {
   x = true;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4)],
+    );
 
     var assignment = findNode.assignment('x = true');
 
@@ -5088,15 +5206,16 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_topLevelVariableFinal_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final num x = 0;
 
 void f() {
   x = 2;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 31, 1)],
+    );
 
     var assignment = findNode.assignment('x = 2');
 
@@ -5121,13 +5240,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_typeLiteral_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int += 3;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+    );
 
     var assignment = findNode.assignment('int += 3');
 
@@ -5152,13 +5272,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_typeLiteral_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+    );
 
     var assignment = findNode.assignment('int = 0');
 
@@ -5183,13 +5304,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_unresolved_compound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   x += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
 
     var assignment = findNode.assignment('x += 1');
 
@@ -5214,13 +5336,14 @@ AssignmentExpression
   }
 
   test_simpleIdentifier_unresolved_simple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int a) {
   x = a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+    );
 
     var assignment = findNode.assignment('x = a');
 
@@ -5250,10 +5373,7 @@ AssignmentExpression
 class InferenceUpdate3Test extends PubPackageResolutionTest {
   @override
   List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.inference_update_3.enableString,
-    ];
+    return [...super.experiments, Feature.inference_update_3.enableString];
   }
 
   test_ifNull_contextIsConvertedToATypeUsingGreatestClosure() async {
@@ -5272,7 +5392,8 @@ f(Object? o, C2<double> c2) {
 ''');
 
     assertResolvedNodeText(
-        findNode.assignment('o ??= c2'), r'''AssignmentExpression
+      findNode.assignment('o ??= c2'),
+      r'''AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o
     element: <testLibraryFragment>::@function::f::@parameter::o#element
@@ -5292,7 +5413,8 @@ f(Object? o, C2<double> c2) {
   writeType: Object?
   element: <null>
   staticType: B1<Object?>
-''');
+''',
+    );
   }
 
   test_ifNull_contextNotUsedIfLhsDoesNotSatisfyContext() async {
@@ -5305,7 +5427,8 @@ f(Object? o1, Object? o2, int? i) {
 ''');
 
     assertResolvedNodeText(
-        findNode.assignment('o2 ??= i'), r'''AssignmentExpression
+      findNode.assignment('o2 ??= i'),
+      r'''AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o2
     element: <testLibraryFragment>::@function::f::@parameter::o2#element
@@ -5322,7 +5445,8 @@ f(Object? o1, Object? o2, int? i) {
   writeType: Object?
   element: <null>
   staticType: num?
-''');
+''',
+    );
   }
 
   test_ifNull_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {

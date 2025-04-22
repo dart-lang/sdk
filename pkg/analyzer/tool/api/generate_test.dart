@@ -11,6 +11,9 @@ import 'package:path/path.dart';
 import 'generate.dart';
 
 Future<void> main() async {
-  await GeneratedContent.checkAll(analyzerPkgPath,
-      join(analyzerPkgPath, 'tool', 'api', 'generate.dart'), allTargets);
+  await GeneratedContent.checkAll(
+    analyzerPkgPath,
+    join(analyzerPkgPath, 'tool', 'api', 'generate.dart'),
+    allTargets,
+  );
 }

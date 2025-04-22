@@ -12,7 +12,10 @@ import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 PSEntry? _findEntry(
-    YamlMap map, String key, ResourceProvider? resourceProvider) {
+  YamlMap map,
+  String key,
+  ResourceProvider? resourceProvider,
+) {
   PSEntry? entry;
   map.nodes.forEach((k, v) {
     if (k is YamlScalar && key == k.toString()) {
@@ -23,7 +26,10 @@ PSEntry? _findEntry(
 }
 
 PSDependencyList? _processDependencies(
-    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  YamlScalar key,
+  YamlNode value,
+  ResourceProvider? resourceProvider,
+) {
   if (value is! YamlMap) {
     return null;
   }
@@ -36,7 +42,10 @@ PSDependencyList? _processDependencies(
 }
 
 PSEnvironment? _processEnvironment(
-    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  YamlScalar key,
+  YamlNode value,
+  ResourceProvider? resourceProvider,
+) {
   if (value is! YamlMap) {
     return null;
   }
@@ -48,7 +57,10 @@ PSEnvironment? _processEnvironment(
 }
 
 PSGitRepo? _processGitRepo(
-    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  YamlScalar key,
+  YamlNode value,
+  ResourceProvider? resourceProvider,
+) {
   if (value is YamlScalar) {
     _PSGitRepo repo = _PSGitRepo(_PSNode(key, resourceProvider));
     repo.url = PSEntry(repo.token, _PSNode(value, resourceProvider));
@@ -67,7 +79,10 @@ PSGitRepo? _processGitRepo(
 }
 
 PSHost? _processHost(
-    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  YamlScalar key,
+  YamlNode value,
+  ResourceProvider? resourceProvider,
+) {
   if (value is YamlScalar) {
     // dependencies:
     //   mypkg:
@@ -89,25 +104,34 @@ PSHost? _processHost(
 }
 
 PSEntry? _processScalar(
-    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  YamlScalar key,
+  YamlNode value,
+  ResourceProvider? resourceProvider,
+) {
   if (value is! YamlScalar) {
     return null;
     //WARN?
   }
   return PSEntry(
-      _PSNode(key, resourceProvider), _PSNode(value, resourceProvider));
+    _PSNode(key, resourceProvider),
+    _PSNode(value, resourceProvider),
+  );
 }
 
 PSNodeList? _processScalarList(
-    YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+  YamlScalar key,
+  YamlNode value,
+  ResourceProvider? resourceProvider,
+) {
   if (value is! YamlList) {
     return null;
   }
   return _PSNodeList(
-      _PSNode(key, resourceProvider),
-      value.nodes
-          .whereType<YamlScalar>()
-          .map((n) => _PSNode(n, resourceProvider)));
+    _PSNode(key, resourceProvider),
+    value.nodes.whereType<YamlScalar>().map(
+      (n) => _PSNode(n, resourceProvider),
+    ),
+  );
 }
 
 /// Representation of a key/value pair a map from package name to
@@ -266,8 +290,11 @@ abstract class PSNodeList with IterableMixin<PSNode> {
 }
 
 abstract class Pubspec {
-  factory Pubspec.parse(String pubspec,
-      {Uri? sourceUrl, ResourceProvider? resourceProvider}) {
+  factory Pubspec.parse(
+    String pubspec, {
+    Uri? sourceUrl,
+    ResourceProvider? resourceProvider,
+  }) {
     try {
       var yaml = loadYamlNode(pubspec, sourceUrl: sourceUrl);
       return Pubspec.parseYaml(yaml, resourceProvider: resourceProvider);
@@ -276,8 +303,10 @@ abstract class Pubspec {
     }
   }
 
-  factory Pubspec.parseYaml(YamlNode yaml,
-      {ResourceProvider? resourceProvider}) {
+  factory Pubspec.parseYaml(
+    YamlNode yaml, {
+    ResourceProvider? resourceProvider,
+  }) {
     return _Pubspec(yaml, resourceProvider: resourceProvider);
   }
 
@@ -357,7 +386,10 @@ class _PSDependency extends PSDependency {
   PSGitRepo? git;
 
   factory _PSDependency(
-      YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
+    YamlScalar key,
+    YamlNode value,
+    ResourceProvider? resourceProvider,
+  ) {
     _PSDependency dep = _PSDependency._();
 
     dep.name = _PSNode(key, resourceProvider);
@@ -502,8 +534,8 @@ class _PSNode implements PSNode {
   final ResourceProvider? resourceProvider;
 
   _PSNode(YamlScalar node, this.resourceProvider)
-      : text = node.value?.toString(),
-        span = node.span;
+    : text = node.value?.toString(),
+      span = node.span;
 
   @override
   Source get source {

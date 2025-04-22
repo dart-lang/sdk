@@ -80,8 +80,10 @@ class NamedTypeResolver with ScopeHelpers {
   /// given [node] is resolved, all its children must be already resolved.
   ///
   /// The client must set [nameScope] before calling [resolve].
-  void resolve(NamedTypeImpl node,
-      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
+  void resolve(
+    NamedTypeImpl node, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+  }) {
     rewriteResult = null;
     hasErrorReported = false;
 
@@ -134,7 +136,10 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// Return type arguments, exactly [parameterCount].
   List<TypeImpl> _buildTypeArguments(
-      NamedType node, TypeArgumentList argumentList, int parameterCount) {
+    NamedType node,
+    TypeArgumentList argumentList,
+    int parameterCount,
+  ) {
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
 
@@ -201,8 +206,11 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  TypeImpl _instantiateElement(NamedTypeImpl node, Element2 element,
-      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
+  TypeImpl _instantiateElement(
+    NamedTypeImpl node,
+    Element2 element, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+  }) {
     var nullability = _getNullability(node);
 
     var argumentList = node.typeArguments;
@@ -239,9 +247,7 @@ class NamedTypeResolver with ScopeHelpers {
         return _instantiateElementNever(nullability);
       } else if (element is TypeParameterElementImpl2) {
         _buildTypeArguments(node, argumentList, 0);
-        return element.instantiate(
-          nullabilitySuffix: nullability,
-        );
+        return element.instantiate(nullabilitySuffix: nullability);
       } else {
         _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
         return InvalidTypeImpl.instance;
@@ -258,8 +264,11 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       if (identical(node, redirectedConstructor_namedType)) {
-        return _inferRedirectedConstructor(element,
-            dataForTesting: dataForTesting, nodeForTesting: node);
+        return _inferRedirectedConstructor(
+          element,
+          dataForTesting: dataForTesting,
+          nodeForTesting: node,
+        );
       }
 
       return typeSystem.instantiateInterfaceToBounds2(
@@ -280,9 +289,7 @@ class NamedTypeResolver with ScopeHelpers {
     } else if (element is NeverElementImpl2) {
       return _instantiateElementNever(nullability);
     } else if (element is TypeParameterElementImpl2) {
-      return element.instantiate(
-        nullabilitySuffix: nullability,
-      );
+      return element.instantiate(nullabilitySuffix: nullability);
     } else {
       _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, element);
       return InvalidTypeImpl.instance;
@@ -302,8 +309,11 @@ class NamedTypeResolver with ScopeHelpers {
     return scopeLookupResult.getter2;
   }
 
-  void _resolveToElement(NamedTypeImpl node, Element2? element,
-      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
+  void _resolveToElement(
+    NamedTypeImpl node,
+    Element2? element, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+  }) {
     node.element2 = element;
 
     if (element == null) {
@@ -319,8 +329,11 @@ class NamedTypeResolver with ScopeHelpers {
       return;
     }
 
-    var type =
-        _instantiateElement(node, element, dataForTesting: dataForTesting);
+    var type = _instantiateElement(
+      node,
+      element,
+      dataForTesting: dataForTesting,
+    );
     type = _verifyNullability(node, type);
     node.type = type;
   }
@@ -433,16 +446,18 @@ class NamedTypeResolver with ScopeHelpers {
           errorReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
-            errorCode: CompileTimeErrorCode
-                .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+            errorCode:
+                CompileTimeErrorCode
+                    .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           );
         } else if (constructorUsage is ConstructorDeclaration &&
             constructorUsage.redirectedConstructor == parent) {
           errorReporter.atOffset(
             offset: errorRange.offset,
             length: errorRange.length,
-            errorCode: CompileTimeErrorCode
-                .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+            errorCode:
+                CompileTimeErrorCode
+                    .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
           );
         } else {
           throw UnimplementedError('${constructorUsage.runtimeType}');
@@ -456,8 +471,9 @@ class NamedTypeResolver with ScopeHelpers {
         errorCode =
             CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       } else if (parent is ImplementsClause) {
-        errorCode = CompileTimeErrorCode
-            .IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+        errorCode =
+            CompileTimeErrorCode
+                .IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       } else if (parent is MixinOnClause) {
         errorCode =
             CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
@@ -505,9 +521,10 @@ class _ErrorHelper {
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: instanceCreation.isConst
-              ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
-              : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
+          errorCode:
+              instanceCreation.isConst
+                  ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
+                  : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
           arguments: [node.name2.lexeme],
         );
         return true;

@@ -29,21 +29,19 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
-    var tTo =
-        typeParameter('TTo', bound: iterableNone(typeParameterTypeNone(tFrom)));
+    var tTo = typeParameter(
+      'TTo',
+      bound: iterableNone(typeParameterTypeNone(tFrom)),
+    );
     var cast = functionTypeNone(
       typeParameters: [tFrom, tTo],
-      formalParameters: [
-        requiredParameter(
-          type: typeParameterTypeNone(tFrom),
-        ),
-      ],
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(tFrom))],
       returnType: typeParameterTypeNone(tTo),
     );
-    _assertTypes(
-      _inferCall(cast, [stringNone]),
-      [stringNone, iterableNone(stringNone)],
-    );
+    _assertTypes(_inferCall(cast, [stringNone]), [
+      stringNone,
+      iterableNone(stringNone),
+    ]);
   }
 
   void test_boundedByOuterClass() {
@@ -59,11 +57,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     // class C<T extends A> {
     var CT = typeParameter('T', bound: typeA);
-    var C = class_2(
-      name: 'C',
-      superType: objectNone,
-      typeParameters: [CT],
-    );
+    var C = class_2(name: 'C', superType: objectNone, typeParameters: [CT]);
     //   S m<S extends T>(S);
     var S = typeParameter('S', bound: typeParameterTypeNone(CT));
     var m = method(
@@ -71,10 +65,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       typeParameterTypeNone(S),
       typeParameters: [S],
       formalParameters: [
-        requiredParameter(
-          name: '_',
-          type: typeParameterTypeNone(S),
-        ),
+        requiredParameter(name: '_', type: typeParameterTypeNone(S)),
       ],
     );
     C.firstFragment.methods = [m];
@@ -89,13 +80,19 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // B b;
     // cOfB.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfB.getMethod2('m')!.type, [typeB]), 'B Function(B)');
+      _inferCall2(cOfB.getMethod2('m')!.type, [typeB]),
+      'B Function(B)',
+    );
     // cOfA.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfA.getMethod2('m')!.type, [typeB]), 'B Function(B)');
+      _inferCall2(cOfA.getMethod2('m')!.type, [typeB]),
+      'B Function(B)',
+    );
     // cOfObject.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfObject.getMethod2('m')!.type, [typeB]), 'B Function(B)');
+      _inferCall2(cOfObject.getMethod2('m')!.type, [typeB]),
+      'B Function(B)',
+    );
   }
 
   void test_boundedByOuterClassSubstituted() {
@@ -111,11 +108,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     // class C<T extends A> {
     var CT = typeParameter('T', bound: typeA);
-    var C = class_2(
-      name: 'C',
-      superType: objectNone,
-      typeParameters: [CT],
-    );
+    var C = class_2(name: 'C', superType: objectNone, typeParameters: [CT]);
     //   S m<S extends Iterable<T>>(S);
     var iterableOfT = iterableNone(typeParameterTypeNone(CT));
     var S = typeParameter('S', bound: iterableOfT);
@@ -124,10 +117,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       typeParameterTypeNone(S),
       typeParameters: [S],
       formalParameters: [
-        requiredParameter(
-          name: '_',
-          type: typeParameterTypeNone(S),
-        ),
+        requiredParameter(name: '_', type: typeParameterTypeNone(S)),
       ],
     );
     C.firstFragment.methods = [m];
@@ -142,14 +132,20 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // List<B> b;
     var listOfB = listNone(typeB);
     // cOfB.m(b); // infer <B>
-    _assertType(_inferCall2(cOfB.getMethod2('m')!.type, [listOfB]),
-        'List<B> Function(List<B>)');
+    _assertType(
+      _inferCall2(cOfB.getMethod2('m')!.type, [listOfB]),
+      'List<B> Function(List<B>)',
+    );
     // cOfA.m(b); // infer <B>
-    _assertType(_inferCall2(cOfA.getMethod2('m')!.type, [listOfB]),
-        'List<B> Function(List<B>)');
+    _assertType(
+      _inferCall2(cOfA.getMethod2('m')!.type, [listOfB]),
+      'List<B> Function(List<B>)',
+    );
     // cOfObject.m(b); // infer <B>
-    _assertType(_inferCall2(cOfObject.getMethod2('m')!.type, [listOfB]),
-        'List<B> Function(List<B>)');
+    _assertType(
+      _inferCall2(cOfObject.getMethod2('m')!.type, [listOfB]),
+      'List<B> Function(List<B>)',
+    );
   }
 
   void test_boundedRecursively() {
@@ -160,15 +156,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       superType: objectNone,
       typeParameters: [T],
     );
-    T.bound = interfaceTypeNone(
-      A,
-      typeArguments: [typeParameterTypeNone(T)],
-    );
+    T.bound = interfaceTypeNone(A, typeArguments: [typeParameterTypeNone(T)]);
 
     // class B extends A<B> {}
     var B = class_2(name: 'B');
-    B.firstFragment.supertype =
-        interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
+    B.firstFragment.supertype = interfaceTypeNone(
+      A,
+      typeArguments: [interfaceTypeNone(B)],
+    );
     var typeB = interfaceTypeNone(B);
 
     // <S extends A<S>>
@@ -188,12 +183,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     _assertTypes(_inferCall(clone, [typeB, typeB]), [typeB]);
 
     // Something invalid...
-    _assertTypes(
-      _inferCall(clone, [stringNone, numNone], expectError: true),
-      [
-        interfaceTypeNone(A, typeArguments: [objectQuestion]),
-      ],
-    );
+    _assertTypes(_inferCall(clone, [stringNone, numNone], expectError: true), [
+      interfaceTypeNone(A, typeArguments: [objectQuestion]),
+    ]);
   }
 
   /// https://github.com/dart-lang/language/issues/1182#issuecomment-702272641
@@ -202,9 +194,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     var rawType = functionTypeNone(
       typeParameters: [T],
-      formalParameters: [
-        requiredParameter(type: typeParameterTypeNone(T)),
-      ],
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
       returnType: voidNone,
     );
 
@@ -223,11 +213,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var tTo = typeParameter('TTo');
     var cast = functionTypeNone(
       typeParameters: [tFrom, tTo],
-      formalParameters: [
-        requiredParameter(
-          type: typeParameterTypeNone(tFrom),
-        ),
-      ],
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(tFrom))],
       returnType: typeParameterTypeNone(tTo),
     );
     _assertTypes(_inferCall(cast, [intNone]), [intNone, dynamicType]);
@@ -236,17 +222,10 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_genericCastFunctionWithUpperBound() {
     // <TFrom, TTo extends TFrom>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
-    var tTo = typeParameter(
-      'TTo',
-      bound: typeParameterTypeNone(tFrom),
-    );
+    var tTo = typeParameter('TTo', bound: typeParameterTypeNone(tFrom));
     var cast = functionTypeNone(
       typeParameters: [tFrom, tTo],
-      formalParameters: [
-        requiredParameter(
-          type: typeParameterTypeNone(tFrom),
-        ),
-      ],
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(tFrom))],
       returnType: typeParameterTypeNone(tTo),
     );
     _assertTypes(_inferCall(cast, [intNone]), [intNone, intNone]);
@@ -258,16 +237,18 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Since T is contravariant, choose num.
     var T = typeParameter('T', variance: Variance.contravariant);
     var tFunction = functionTypeNone(
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-        returnType: voidNone);
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
+      returnType: voidNone,
+    );
     var numFunction = functionTypeNone(
-        formalParameters: [requiredParameter(type: numNone)],
-        returnType: voidNone);
+      formalParameters: [requiredParameter(type: numNone)],
+      returnType: voidNone,
+    );
     var function = functionTypeNone(
       typeParameters: [T],
       formalParameters: [
         requiredParameter(type: typeParameterTypeNone(T)),
-        requiredParameter(type: tFunction)
+        requiredParameter(type: tFunction),
       ],
       returnType: typeParameterTypeNone(T),
     );
@@ -281,16 +262,18 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Since T is covariant, choose int.
     var T = typeParameter('T', variance: Variance.covariant);
     var tFunction = functionTypeNone(
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-        returnType: voidNone);
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
+      returnType: voidNone,
+    );
     var numFunction = functionTypeNone(
-        formalParameters: [requiredParameter(type: numNone)],
-        returnType: voidNone);
+      formalParameters: [requiredParameter(type: numNone)],
+      returnType: voidNone,
+    );
     var function = functionTypeNone(
       typeParameters: [T],
       formalParameters: [
         requiredParameter(type: typeParameterTypeNone(T)),
-        requiredParameter(type: tFunction)
+        requiredParameter(type: tFunction),
       ],
       returnType: typeParameterTypeNone(T),
     );
@@ -307,9 +290,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         requiredParameter(
           type: functionTypeNone(
             formalParameters: [
-              requiredParameter(
-                type: typeParameterTypeNone(T),
-              ),
+              requiredParameter(type: typeParameterTypeNone(T)),
             ],
             returnType: dynamicType,
           ),
@@ -320,11 +301,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     _assertTypes(
       _inferCall(cast, [
         functionTypeNone(
-          formalParameters: [
-            requiredParameter(type: numNone),
-          ],
+          formalParameters: [requiredParameter(type: numNone)],
           returnType: dynamicType,
-        )
+        ),
       ]),
       [numNone],
     );
@@ -349,9 +328,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: numNone);
     var f = functionTypeNone(
       typeParameters: [T],
-      formalParameters: [
-        requiredParameter(type: typeParameterTypeNone(T)),
-      ],
+      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
       returnType: dynamicType,
     );
     _assertTypes(_inferCall(f, [intNone]), [intNone]);
@@ -373,18 +350,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         ),
       ],
       returnType: functionTypeNone(
-        formalParameters: [
-          requiredParameter(type: typeParameterTypeNone(T)),
-        ],
+        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
         returnType: voidNone,
       ),
     );
     _assertTypes(
       _inferCall(f, [
         functionTypeNone(
-          formalParameters: [
-            requiredParameter(type: numNone),
-          ],
+          formalParameters: [requiredParameter(type: numNone)],
           returnType: intNone,
         ),
       ]),
@@ -408,9 +381,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         ),
       ],
       returnType: functionTypeNone(
-        formalParameters: [
-          requiredParameter(type: typeParameterTypeNone(T)),
-        ],
+        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
         returnType: nullNone,
       ),
     );
@@ -419,9 +390,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         f,
         [],
         returnType: functionTypeNone(
-          formalParameters: [
-            requiredParameter(type: numNone),
-          ],
+          formalParameters: [requiredParameter(type: numNone)],
           returnType: intQuestion,
         ),
       ),
@@ -445,20 +414,16 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         ),
       ],
       returnType: functionTypeNone(
-        formalParameters: [
-          requiredParameter(type: typeParameterTypeNone(T)),
-        ],
+        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
         returnType: typeParameterTypeNone(T),
       ),
     );
     _assertTypes(
       _inferCall(f, [
         functionTypeNone(
-          formalParameters: [
-            requiredParameter(type: numNone),
-          ],
+          formalParameters: [requiredParameter(type: numNone)],
           returnType: intNone,
-        )
+        ),
       ]),
       [intNone],
     );
@@ -479,18 +444,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
           ),
         ),
       ],
-      returnType: functionTypeNone(
-        returnType: typeParameterTypeNone(T),
-      ),
+      returnType: functionTypeNone(returnType: typeParameterTypeNone(T)),
     );
     _assertTypes(
       _inferCall(f, [
         functionTypeNone(
-          formalParameters: [
-            requiredParameter(type: numNone),
-          ],
+          formalParameters: [requiredParameter(type: numNone)],
           returnType: intNone,
-        )
+        ),
       ]),
       [intNone],
     );
@@ -535,9 +496,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         requiredParameter(
           type: functionTypeNone(
             formalParameters: [
-              requiredParameter(
-                type: typeParameterTypeNone(T),
-              ),
+              requiredParameter(type: typeParameterTypeNone(T)),
             ],
             returnType: dynamicType,
           ),
@@ -545,9 +504,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         requiredParameter(
           type: functionTypeNone(
             formalParameters: [
-              requiredParameter(
-                type: typeParameterTypeNone(T),
-              ),
+              requiredParameter(type: typeParameterTypeNone(T)),
             ],
             returnType: dynamicType,
           ),
@@ -558,17 +515,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     _assertTypes(
       _inferCall(cast, [
         functionTypeNone(
-          formalParameters: [
-            requiredParameter(type: intNone),
-          ],
+          formalParameters: [requiredParameter(type: intNone)],
           returnType: dynamicType,
         ),
         functionTypeNone(
-          formalParameters: [
-            requiredParameter(type: doubleNone),
-          ],
+          formalParameters: [requiredParameter(type: doubleNone)],
           returnType: dynamicType,
-        )
+        ),
       ]),
       [neverNone],
     );
@@ -600,20 +553,25 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void _assertTypes(List<DartType> actual, List<DartType> expected) {
-    var actualStr = actual.map((e) {
-      return e.getDisplayString();
-    }).toList();
+    var actualStr =
+        actual.map((e) {
+          return e.getDisplayString();
+        }).toList();
 
-    var expectedStr = expected.map((e) {
-      return e.getDisplayString();
-    }).toList();
+    var expectedStr =
+        expected.map((e) {
+          return e.getDisplayString();
+        }).toList();
 
     expect(actualStr, expectedStr);
   }
 
-  List<DartType> _inferCall(FunctionTypeImpl ft, List<TypeImpl> arguments,
-      {TypeImpl returnType = UnknownInferredType.instance,
-      bool expectError = false}) {
+  List<DartType> _inferCall(
+    FunctionTypeImpl ft,
+    List<TypeImpl> arguments, {
+    TypeImpl returnType = UnknownInferredType.instance,
+    bool expectError = false,
+  }) {
     var listener = RecordingErrorListener();
 
     var reporter = ErrorReporter(
@@ -626,9 +584,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       declaredReturnType: ft.returnType,
       contextReturnType: returnType,
       errorReporter: reporter,
-      errorEntity: NullLiteralImpl(
-        literal: KeywordToken(Keyword.NULL, 0),
-      ),
+      errorEntity: NullLiteralImpl(literal: KeywordToken(Keyword.NULL, 0)),
       genericMetadataIsEnabled: true,
       inferenceUsingBoundsIsEnabled: true,
       strictInference: false,
@@ -638,24 +594,30 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       nodeForTesting: null,
     );
     inferrer.constrainArguments2(
-        parameters: ft.formalParameters,
-        argumentTypes: arguments,
-        nodeForTesting: null);
+      parameters: ft.formalParameters,
+      argumentTypes: arguments,
+      nodeForTesting: null,
+    );
     var typeArguments = inferrer.chooseFinalTypes();
 
     if (expectError) {
-      expect(listener.errors.map((e) => e.errorCode).toList(),
-          [CompileTimeErrorCode.COULD_NOT_INFER],
-          reason: 'expected exactly 1 could not infer error.');
+      expect(
+        listener.errors.map((e) => e.errorCode).toList(),
+        [CompileTimeErrorCode.COULD_NOT_INFER],
+        reason: 'expected exactly 1 could not infer error.',
+      );
     } else {
       expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
     }
     return typeArguments;
   }
 
-  FunctionType _inferCall2(FunctionTypeImpl ft, List<TypeImpl> arguments,
-      {TypeImpl returnType = UnknownInferredType.instance,
-      bool expectError = false}) {
+  FunctionType _inferCall2(
+    FunctionTypeImpl ft,
+    List<TypeImpl> arguments, {
+    TypeImpl returnType = UnknownInferredType.instance,
+    bool expectError = false,
+  }) {
     var typeArguments = _inferCall(
       ft,
       arguments,

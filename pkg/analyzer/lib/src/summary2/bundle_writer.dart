@@ -89,9 +89,7 @@ class BundleWriter {
     _sink.writeUInt32(stringTableOffset);
 
     var bytes = _sink.takeBytes();
-    return BundleWriterResult(
-      resolutionBytes: bytes,
-    );
+    return BundleWriterResult(resolutionBytes: bytes);
   }
 
   void writeLibraryElement(LibraryElementImpl libraryElement) {
@@ -116,7 +114,8 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
     _resolutionSink.writeElement2(libraryElement.entryPoint2);
     _writeFieldNameNonPromotabilityInfo(
-        libraryElement.fieldNameNonPromotabilityInfo);
+      libraryElement.fieldNameNonPromotabilityInfo,
+    );
 
     _libraries.add(
       _Library(
@@ -341,7 +340,8 @@ class BundleWriter {
   }
 
   void _writeFieldNameNonPromotabilityInfo(
-      Map<String, FieldNameNonPromotabilityInfo>? info) {
+    Map<String, FieldNameNonPromotabilityInfo>? info,
+  ) {
     _resolutionSink.writeOptionalObject(info, (info) {
       _resolutionSink.writeMap(
         info,
@@ -663,7 +663,8 @@ class BundleWriter {
   }
 
   static TypeParameterVarianceTag _encodeVariance(
-      TypeParameterElementImpl element) {
+    TypeParameterElementImpl element,
+  ) {
     if (element.isLegacyCovariant) {
       return TypeParameterVarianceTag.legacy;
     }
@@ -686,9 +687,7 @@ class BundleWriter {
 class BundleWriterResult {
   final Uint8List resolutionBytes;
 
-  BundleWriterResult({
-    required this.resolutionBytes,
-  });
+  BundleWriterResult({required this.resolutionBytes});
 }
 
 class ResolutionSink extends _SummaryDataWriter {
@@ -932,10 +931,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeNode(AstNode node) {
-    var astWriter = AstBinaryWriter(
-      sink: this,
-      stringIndexer: _stringIndexer,
-    );
+    var astWriter = AstBinaryWriter(sink: this, stringIndexer: _stringIndexer);
     node.accept(astWriter);
   }
 
@@ -1120,9 +1116,7 @@ class StringIndexer {
 class UnitToWriteAst {
   final CompilationUnit node;
 
-  UnitToWriteAst({
-    required this.node,
-  });
+  UnitToWriteAst({required this.node});
 }
 
 class _BundleWriterReferences {
@@ -1211,9 +1205,8 @@ class _LocalElementIndexer {
 class _SummaryDataWriter extends BufferedSink {
   final StringIndexer _stringIndexer;
 
-  _SummaryDataWriter({
-    required StringIndexer stringIndexer,
-  }) : _stringIndexer = stringIndexer;
+  _SummaryDataWriter({required StringIndexer stringIndexer})
+    : _stringIndexer = stringIndexer;
 
   void _writeFormalParameterKind(ParameterElementMixin p) {
     if (p.isRequiredPositional) {

@@ -31,8 +31,10 @@ class ErrorProcessorMatcher extends Matcher {
   ErrorProcessorMatcher(this.required);
 
   @override
-  Description describe(Description desc) => desc
-    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
+  Description describe(Description desc) =>
+      desc..add(
+        "an ErrorProcessor setting ${required.code} to ${required.severity}",
+      );
 
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {
@@ -107,9 +109,11 @@ analyzer:
       options.errorProcessors,
       unorderedMatches([
         ErrorProcessorMatcher(
-            ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
+          ErrorProcessor('toplevelerror', ErrorSeverity.WARNING),
+        ),
         ErrorProcessorMatcher(
-            ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING)),
+          ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING),
+        ),
       ]),
     );
   }
@@ -351,25 +355,20 @@ linter:
 
   AnalysisOptions _getOptionsObject(String filePath) =>
       AnalysisOptionsImpl.fromYaml(
-          optionsMap: provider.getOptions(getFolder(filePath)));
+        optionsMap: provider.getOptions(getFolder(filePath)),
+      );
 }
 
 class TestRule extends LintRule {
   static const LintCode code = LintCode(
-      'fantastic_test_rule', 'Fantastic test rule.',
-      correctionMessage: 'Try fantastic test rule.');
+    'fantastic_test_rule',
+    'Fantastic test rule.',
+    correctionMessage: 'Try fantastic test rule.',
+  );
 
-  TestRule()
-      : super(
-          name: 'fantastic_test_rule',
-          description: '',
-        );
+  TestRule() : super(name: 'fantastic_test_rule', description: '');
 
-  TestRule.withName(String name)
-      : super(
-          name: name,
-          description: '',
-        );
+  TestRule.withName(String name) : super(name: name, description: '');
 
   @override
   LintCode get lintCode => code;

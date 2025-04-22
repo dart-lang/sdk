@@ -33,7 +33,8 @@ List<int> f() {
   }
 
   test_class_instanceField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final int i = f();
   const A();
@@ -41,30 +42,37 @@ class A {
 int f() {
   return 3;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 26, 3),
-      error(
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 26, 3),
+        error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
           33,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
   }
 
   test_class_instanceField_asExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 dynamic y = 2;
 class A {
   const A();
   final x = y as num;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
           27,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
   }
 
   test_class_staticField() async {
@@ -79,40 +87,44 @@ int f() {
 ''');
   }
 
-//   test_enum_factoryConstructor() async {
-//     await assertErrorsInCode(r'''
-// enum E {
-//   v;
-//   final int i = f();
-//   const factory E();
-// }
-// int f() => 0;
-// ''', [
-//       error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 30, 3),
-//       error(
-//           CompileTimeErrorCode
-//               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-//           37,
-//           5),
-//     ]);
-//   }
+  //   test_enum_factoryConstructor() async {
+  //     await assertErrorsInCode(r'''
+  // enum E {
+  //   v;
+  //   final int i = f();
+  //   const factory E();
+  // }
+  // int f() => 0;
+  // ''', [
+  //       error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 30, 3),
+  //       error(
+  //           CompileTimeErrorCode
+  //               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+  //           37,
+  //           5),
+  //     ]);
+  //   }
 
   test_enum_instanceField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   final int i = f();
   const E();
 }
 int f() => 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 30, 3),
-      error(
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 30, 3),
+        error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
           37,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
   }
 
   test_enum_staticField() async {

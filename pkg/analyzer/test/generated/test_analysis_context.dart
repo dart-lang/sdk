@@ -33,9 +33,7 @@ class TestAnalysisContext implements AnalysisContext {
       asyncLibrary: sdkElements.asyncLibrary,
     );
 
-    _typeSystem = TypeSystemImpl(
-      typeProvider: _typeProvider,
-    );
+    _typeSystem = TypeSystemImpl(typeProvider: _typeProvider);
 
     _setLibraryTypeSystem(sdkElements.coreLibrary);
     _setLibraryTypeSystem(sdkElements.asyncLibrary);

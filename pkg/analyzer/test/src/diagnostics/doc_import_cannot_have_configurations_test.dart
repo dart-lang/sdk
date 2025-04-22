@@ -16,12 +16,13 @@ void main() {
 @reflectiveTest
 class DocImportCannotHaveConfigurationsTest extends PubPackageResolutionTest {
   test_configurations() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// @docImport 'dart:math' if (dart.library.html) 'dart:html';
 class C {}
-''', [
-      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS, 27, 34),
-    ]);
+''',
+      [error(WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS, 27, 34)],
+    );
   }
 
   test_noConfigurations() async {

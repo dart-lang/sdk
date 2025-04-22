@@ -17,13 +17,14 @@ main() {
 class RedirectToNonConstConstructorTest extends PubPackageResolutionTest {
   test_constRedirector_cannotResolveRedirectee() async {
     // No crash when redirectee cannot be resolved.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const factory A.b() = A.a;
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 34, 3)],
+    );
   }
 
   test_constRedirector_constRedirectee() async {
@@ -59,48 +60,57 @@ class A {
   }
 
   test_constRedirector_nonConstRedirectee() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.a();
   const factory A.b() = A.a;
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 43, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 43, 3)],
+    );
   }
 
   test_constRedirector_nonConstRedirectee_viaInitializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.a();
   const A.b() : this.a();
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 40, 1)],
+    );
   }
 
   test_constRedirector_nonConstRedirectee_viaInitializer_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A();
   const A.named() : this();
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 37, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 37, 4)],
+    );
   }
 
   test_constRedirector_viaInitializer_cannotResolveRedirectee() async {
     // No crash when redirectee cannot be resolved.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A.b() : this.a();
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, 26,
-          8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+          26,
+          8,
+        ),
+      ],
+    );
   }
 
   test_redirect_to_const() async {

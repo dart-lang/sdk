@@ -22,14 +22,20 @@ mixin IfElementConditionFromDeferredLibraryTestCases
   test_inList_deferred() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const [if(a.c) 0];
-}''', [
-      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 61,
-          1),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_inList_nonConst() async {
@@ -55,14 +61,20 @@ f() {
   test_inMap_deferred() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const {if(a.c) 0 : 0};
-}''', [
-      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 61,
-          1),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_inMap_notConst() async {
@@ -88,14 +100,20 @@ f() {
   test_inSet_deferred() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 const bool c = true;''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const {if(a.c) 0};
-}''', [
-      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 61,
-          1),
-    ]);
+}''',
+      [
+        error(
+          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_inSet_notConst() async {

@@ -76,16 +76,25 @@ mixin ResourceProviderMixin {
     return resourceProvider.getFolder(convertedPath);
   }
 
-  String join(String part1,
-          [String? part2,
-          String? part3,
-          String? part4,
-          String? part5,
-          String? part6,
-          String? part7,
-          String? part8]) =>
-      resourceProvider.pathContext
-          .join(part1, part2, part3, part4, part5, part6, part7, part8);
+  String join(
+    String part1, [
+    String? part2,
+    String? part3,
+    String? part4,
+    String? part5,
+    String? part6,
+    String? part7,
+    String? part8,
+  ]) => resourceProvider.pathContext.join(
+    part1,
+    part2,
+    part3,
+    part4,
+    part5,
+    part6,
+    part7,
+    part8,
+  );
 
   void modifyFile(String path, String content) {
     String convertedPath = convertPath(path);
@@ -153,8 +162,8 @@ mixin ResourceProviderMixin {
     required String packagePath,
     required String name,
   }) {
-    var builder = PackageConfigFileBuilder()
-      ..add(name: name, rootPath: packagePath);
+    var builder =
+        PackageConfigFileBuilder()..add(name: name, rootPath: packagePath);
     newPackageConfigJsonFileFromBuilder(packagePath, builder);
   }
 

@@ -16,63 +16,73 @@ main() {
 @reflectiveTest
 class TypeAliasCannotReferenceItselfTest extends PubPackageResolutionTest {
   test_functionTypeAlias_typeParameterBounds() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A<T extends A<int>>();
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_functionTypedParameter_returnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A(A b());
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_generic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F = void Function(List<G> l);
 typedef G = void Function(List<F> l);
 main() {
   F? foo(G? g) => g;
   foo(null);
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 46, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 46, 1),
+      ],
+    );
   }
 
   test_genericTypeAlias_typeParameterBounds() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A<T extends A<int>> = void Function();
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_infiniteParameterBoundCycle() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X extends F<X>> = F Function();
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_issue11987() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef void F(List<G> l);
 typedef void G(List<F> l);
 main() {
   F? foo(G? g) => g;
   foo(null);
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 13, 1),
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 40, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 13, 1),
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 40, 1),
+      ],
+    );
   }
 
   test_issue19459() async {
@@ -89,85 +99,97 @@ typedef D F();
   }
 
   test_nonFunction_aliasedType_cycleOf2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T1 = T2;
 typedef T2 = T1;
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 2),
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 25, 2),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 2),
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 25, 2),
+      ],
+    );
   }
 
   test_nonFunction_aliasedType_directly_functionWithIt() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T = void Function(T);
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_nonFunction_aliasedType_directly_it_none() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T = T;
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_nonFunction_aliasedType_directly_it_question() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T = T?;
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_nonFunction_aliasedType_directly_ListOfIt() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T = List<T>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_nonFunction_typeParameterBounds() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef T<X extends T<Never>> = List<X>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_parameterType_named() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A({A a});
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_parameterType_positional() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A([A a]);
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_parameterType_required() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A(A a);
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_parameterType_typeArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A(List<A> a);
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 
   test_referencesReturnType_inTypeAlias() async {
@@ -191,28 +213,33 @@ class C {
   }
 
   test_returnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A A();
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1)],
+    );
   }
 
   test_returnType_indirect() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef B A();
 typedef A B();
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1),
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 25, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1),
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 25, 1),
+      ],
+    );
   }
 
   test_usingRecordType_directly() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F = (F, int) Function();
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1)],
+    );
   }
 }

@@ -145,8 +145,9 @@ class ApiSignature {
     if (_offset + spaceNeeded > oldLength) {
       int newLength = 2 * (_offset + spaceNeeded);
       ByteData newData = ByteData(newLength);
-      Uint8List.view(newData.buffer)
-          .setRange(0, oldLength, Uint8List.view(_data.buffer));
+      Uint8List.view(
+        newData.buffer,
+      ).setRange(0, oldLength, Uint8List.view(_data.buffer));
       _data = newData;
     }
   }

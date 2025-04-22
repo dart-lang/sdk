@@ -40,8 +40,9 @@ A f(var p) {
 }''';
     CompilationUnit unit = parseCompilationUnit(source);
     List<AstNode> nodes = <AstNode>[];
-    _BreadthFirstVisitorTestHelper visitor =
-        _BreadthFirstVisitorTestHelper(nodes);
+    _BreadthFirstVisitorTestHelper visitor = _BreadthFirstVisitorTestHelper(
+      nodes,
+    );
     visitor.visitAllNodes(unit);
     expect(nodes, hasLength(47));
     expect(nodes[0], isCompilationUnit);

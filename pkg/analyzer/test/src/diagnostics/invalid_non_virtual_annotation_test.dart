@@ -22,27 +22,29 @@ class InvalidNonVirtualAnnotationTest extends PubPackageResolutionTest {
   }
 
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 class C {}
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_class_abstract_member() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 abstract class C {
   @nonVirtual
   void m();
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 56, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 56, 10)],
+    );
   }
 
   test_class_getter() async {
@@ -91,46 +93,50 @@ class C {
   }
 
   test_class_static_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
    @nonVirtual
    static int f = 0;
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 48, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 48, 10)],
+    );
   }
 
   test_class_static_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class C {
    @nonVirtual
    static void m() {}
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 48, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 48, 10)],
+    );
   }
 
   test_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 enum E {
   a, b, c
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_enum_constant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 enum E {
@@ -138,66 +144,71 @@ enum E {
   a,
   b, c
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 46, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 46, 10)],
+    );
   }
 
   test_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 extension E on Object {}
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_extension_member() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 extension E on Object {
    @nonVirtual
    void m() {}
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 62, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 62, 10)],
+    );
   }
 
   test_extensionType_instance_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 extension type E(int i) {
   @nonVirtual
   void m() { }
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 63, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 63, 10)],
+    );
   }
 
   test_import() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @nonVirtual
 import 'package:meta/meta.dart';
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 1, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 1, 10)],
+    );
   }
 
   test_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 mixin M {}
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_mixin_instance_member() async {
@@ -212,83 +223,90 @@ mixin M {
   }
 
   test_mixin_static_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 mixin M {
   @nonVirtual
   static int f = 0;
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 10)],
+    );
   }
 
   test_mixin_static_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 mixin M {
   @nonVirtual
   static void m() {}
 }
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 47, 10)],
+    );
   }
 
   test_top_level_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 m() {}
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_top_level_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 int get g =>  0;
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_top_level_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 set s(int v) {}
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_top_level_var() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 int x = 0;
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 
   test_typedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
 typedef bool predicate(Object o);
-''', [
-      error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10),
-    ]);
+''',
+      [error(WarningCode.INVALID_NON_VIRTUAL_ANNOTATION, 35, 10)],
+    );
   }
 }

@@ -16,23 +16,25 @@ main() {
 @reflectiveTest
 class ReturnWithoutValueTest extends PubPackageResolutionTest {
   test_async_futureInt() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<int> f() async {
   return;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6)],
+    );
   }
 
   test_async_futureObject() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Future<Object> f() async {
   return;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 29, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 29, 6)],
+    );
   }
 
   test_catchError_futureOfVoid() async {
@@ -46,25 +48,27 @@ void f(Future<void> future) {
   }
 
   test_factoryConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   factory A() {
     return;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 30, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 30, 6)],
+    );
   }
 
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f() {
   return;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 12, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 12, 6)],
+    );
   }
 
   test_function_async_block_empty__to_dynamic() async {
@@ -110,7 +114,8 @@ void f() {
   }
 
   test_functionExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   return (int y) {
     if (y < 0) {
@@ -119,9 +124,9 @@ f() {
     return 0;
   };
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 48, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 48, 6)],
+    );
   }
 
   test_functionExpression_async_block_empty__to_Object() async {
@@ -133,29 +138,31 @@ Object Function() f = () async {
   }
 
   test_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int m() {
     return;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6)],
+    );
   }
 
   test_multipleInconsistentReturns() async {
     // Tests that only the RETURN_WITHOUT_VALUE warning is created, and no
     // MIXED_RETURN_TYPES are created.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int f(int x) {
   if (x < 0) {
     return 1;
   }
   return;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 50, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 50, 6)],
+    );
   }
 }

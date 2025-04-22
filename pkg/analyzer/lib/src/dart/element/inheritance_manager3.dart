@@ -21,10 +21,7 @@ class CandidatesConflict extends Conflict {
   /// The list has at least two items, because the only item is always valid.
   final List<ExecutableElementOrMember> candidates;
 
-  CandidatesConflict({
-    required super.name,
-    required this.candidates,
-  });
+  CandidatesConflict({required super.name, required this.candidates});
 
   List<ExecutableElement2> get candidates2 =>
       candidates.map((e) => e.asElement2).toList();
@@ -35,9 +32,7 @@ class Conflict {
   /// The name for which we failed to find a valid signature.
   final Name name;
 
-  Conflict({
-    required this.name,
-  });
+  Conflict({required this.name});
 }
 
 /// Failure because of a getter and a method from direct superinterfaces.
@@ -77,8 +72,10 @@ class HasNonExtensionAndExtensionMemberConflict extends Conflict {
 
 /// Manages knowledge about interface types and their members.
 class InheritanceManager3 {
-  static final _noSuchMethodName =
-      Name(null, MethodElement2.NO_SUCH_METHOD_METHOD_NAME);
+  static final _noSuchMethodName = Name(
+    null,
+    MethodElement2.NO_SUCH_METHOD_METHOD_NAME,
+  );
 
   /// Cached instance interfaces for [InterfaceElementImpl].
   final Map<InterfaceElementImpl, Interface> _interfaces = {};
@@ -123,12 +120,7 @@ class InheritanceManager3 {
     }
 
     if (validOverrides.isEmpty) {
-      conflicts?.add(
-        CandidatesConflict(
-          name: name,
-          candidates: candidates,
-        ),
-      );
+      conflicts?.add(CandidatesConflict(name: name, candidates: candidates));
       return null;
     }
 
@@ -161,7 +153,9 @@ class InheritanceManager3 {
   ///
   /// This is equivalent to `getInheritedMap2(type)[name]`.
   ExecutableElementOrMember? getInherited2(
-      InterfaceElementImpl element, Name name) {
+    InterfaceElementImpl element,
+    Name name,
+  ) {
     return getInheritedMap2(element)[name];
   }
 
@@ -183,7 +177,9 @@ class InheritanceManager3 {
   // This is a replacement for `getInherited2`.
   @experimental
   ExecutableElement2OrMember? getInherited4(
-      InterfaceElement2 element, Name name) {
+    InterfaceElement2 element,
+    Name name,
+  ) {
     element as InterfaceElementImpl2; // TODO(scheglov): remove cast
     var oldElement = getInherited2(element.asElement, name);
     return oldElement?.asElement2;
@@ -193,7 +189,8 @@ class InheritanceManager3 {
   /// inherits from the superclasses and mixins.
   @experimental
   Map<Name, ExecutableElement2> getInheritedConcreteMap(
-      InterfaceElement2 element) {
+    InterfaceElement2 element,
+  ) {
     element as InterfaceElementImpl2; // TODO(scheglov): remove cast
     var map = getInheritedConcreteMap2(element.asElement);
     return map.mapValue((element) => element.asElement2);
@@ -202,7 +199,8 @@ class InheritanceManager3 {
   /// Return signatures of all concrete members that the given [element] inherits
   /// from the superclasses and mixins.
   Map<Name, ExecutableElementOrMember> getInheritedConcreteMap2(
-      InterfaceElementImpl element) {
+    InterfaceElementImpl element,
+  ) {
     if (element is ExtensionTypeElementImpl) {
       return const {};
     }
@@ -329,7 +327,9 @@ class InheritanceManager3 {
     bool forSuper = false,
   }) {
     globalResultRequirements?.notifyInterfaceRequest(
-        element: element.asElement2, nameObj: name);
+      element: element.asElement2,
+      nameObj: name,
+    );
     var interface = getInterface(element);
     if (forSuper) {
       if (element is ExtensionTypeElementImpl) {
@@ -409,12 +409,11 @@ class InheritanceManager3 {
   /// Returns `null` if no members would be overridden.
   @experimental
   List<ExecutableElement2>? getOverridden(
-      InterfaceElement2 element, Name name) {
+    InterfaceElement2 element,
+    Name name,
+  ) {
     element as InterfaceElementImpl2; // TODO(scheglov): remove cast
-    var elements = getOverridden2(
-      element.asElement,
-      name,
-    );
+    var elements = getOverridden2(element.asElement, name);
     if (elements == null) {
       return null;
     }
@@ -425,7 +424,9 @@ class InheritanceManager3 {
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
   List<ExecutableElementOrMember>? getOverridden2(
-      InterfaceElementImpl element, Name name) {
+    InterfaceElementImpl element,
+    Name name,
+  ) {
     var interface = getInterface(element);
     return interface.overridden[name];
   }
@@ -434,7 +435,9 @@ class InheritanceManager3 {
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
   List<ExecutableElement2>? getOverridden4(
-      InterfaceElement2 element, Name name) {
+    InterfaceElement2 element,
+    Name name,
+  ) {
     var interface = getInterface2(element);
     var fragments = interface.overridden[name];
     return fragments?.map((fragment) => fragment.asElement2).toList();
@@ -514,7 +517,9 @@ class InheritanceManager3 {
   /// getters, all methods, or all setter.  If a conflict found, return the
   /// new [Conflict] instance that describes it.
   Conflict? _checkForGetterMethodConflict(
-      Name name, List<ExecutableElementOrMember> candidates) {
+    Name name,
+    List<ExecutableElementOrMember> candidates,
+  ) {
     assert(candidates.length > 1);
 
     ExecutableElementOrMember? getter;
@@ -638,10 +643,7 @@ class InheritanceManager3 {
       var mixinConflicts = <Conflict>[];
       for (var entry in mixinInterface.map.entries) {
         var name = entry.key;
-        var candidate = ExecutableMember.from2(
-          entry.value,
-          substitution,
-        );
+        var candidate = ExecutableMember.from2(entry.value, substitution);
         var candidate2 = candidate.asElement2;
 
         var currentList = namedCandidates[name];
@@ -751,8 +753,10 @@ class InheritanceManager3 {
       }
     }
 
-    implemented =
-        implemented.map<Name, ExecutableElementOrMember>((key, value) {
+    implemented = implemented.map<Name, ExecutableElementOrMember>((
+      key,
+      value,
+    ) {
       var result = _inheritCovariance(fragment, namedCandidates, key, value);
       return MapEntry(key, result);
     });
@@ -760,12 +764,17 @@ class InheritanceManager3 {
     var implemented2 = implemented.mapValue((value) => value.asElement2);
 
     var namedCandidates2 = namedCandidates.map<Name, List<ExecutableElement2>>(
-        (key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()));
+      (key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()),
+    );
 
-    var superImplemented2 = superImplemented
-        .map((e) => e.map<Name, ExecutableElement2>(
-            (key, value) => MapEntry(key, value.asElement2)))
-        .toList();
+    var superImplemented2 =
+        superImplemented
+            .map(
+              (e) => e.map<Name, ExecutableElement2>(
+                (key, value) => MapEntry(key, value.asElement2),
+              ),
+            )
+            .toList();
 
     return Interface._(
       map: interface,
@@ -823,11 +832,13 @@ class InheritanceManager3 {
         var name = entry.key;
         var executable = ExecutableMember.from2(entry.value, substitution);
         if (executable.isExtensionTypeMember) {
-          (extensionCandidates[name] ??= _ExtensionTypeCandidates(name))
-              .add(executable);
+          (extensionCandidates[name] ??= _ExtensionTypeCandidates(name)).add(
+            executable,
+          );
         } else {
-          (notExtensionCandidates[name] ??= _ExtensionTypeCandidates(name))
-              .add(executable);
+          (notExtensionCandidates[name] ??= _ExtensionTypeCandidates(name)).add(
+            executable,
+          );
         }
       }
     }
@@ -928,12 +939,7 @@ class InheritanceManager3 {
       );
 
       if (combinedSignature == null) {
-        conflicts.add(
-          CandidatesConflict(
-            name: name,
-            candidates: notPrecluded,
-          ),
-        );
+        conflicts.add(CandidatesConflict(name: name, candidates: notPrecluded));
         continue;
       }
 
@@ -1033,9 +1039,10 @@ class InheritanceManager3 {
 
     var implemented2 = implemented.mapValue((value) => value.asElement2);
 
-    var interfaceCandidates2 =
-        interfaceCandidates.map<Name, List<ExecutableElement2>>((key, value) =>
-            MapEntry(key, value.map((e) => e.asElement2).toList()));
+    var interfaceCandidates2 = interfaceCandidates.map<
+      Name,
+      List<ExecutableElement2>
+    >((key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()));
 
     var superInterface2 = superInterface.mapValue((value) => value.asElement2);
 
@@ -1051,10 +1058,8 @@ class InheritanceManager3 {
       redeclared2: const {},
       superImplemented: [superInterface],
       superImplemented2: [superInterface2],
-      conflicts: <Conflict>[
-        ...superConflicts,
-        ...interfaceConflicts,
-      ].toFixedList(),
+      conflicts:
+          <Conflict>[...superConflicts, ...interfaceConflicts].toFixedList(),
     );
   }
 
@@ -1090,9 +1095,7 @@ class InheritanceManager3 {
         var parameter = parameters[i];
         if (parameter.isCovariant) {
           covariantParameters ??= {};
-          covariantParameters.add(
-            _ParameterDesc(i, parameter),
-          );
+          covariantParameters.add(_ParameterDesc(i, parameter));
         }
       }
     }
@@ -1110,7 +1113,7 @@ class InheritanceManager3 {
       );
       if (parameter.isCovariant != shouldBeCovariant) {
         transformedParameters ??= [
-          for (var parameter in parameters) parameter.declaration
+          for (var parameter in parameters) parameter.declaration,
         ];
         transformedParameters[index] = parameter.declaration.copyWith(
           isCovariant: shouldBeCovariant,
@@ -1179,11 +1182,13 @@ class InheritanceManager3 {
       return first;
     }
 
-    var resultType = validOverrides.map((e) {
-      return typeSystem.normalize(e.type) as FunctionTypeImpl;
-    }).reduce((previous, next) {
-      return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
-    });
+    var resultType = validOverrides
+        .map((e) {
+          return typeSystem.normalize(e.type) as FunctionTypeImpl;
+        })
+        .reduce((previous, next) {
+          return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
+        });
 
     for (var executable in validOverrides) {
       if (executable.type == resultType) {

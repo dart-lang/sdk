@@ -25,10 +25,10 @@ class SubtypeHelper {
   final InterfaceTypeImpl _objectQuestion;
 
   SubtypeHelper(this._typeSystem)
-      : _typeProvider = _typeSystem.typeProvider,
-        _nullNone = _typeSystem.nullNone,
-        _objectNone = _typeSystem.objectNone,
-        _objectQuestion = _typeSystem.objectQuestion;
+    : _typeProvider = _typeSystem.typeProvider,
+      _nullNone = _typeSystem.nullNone,
+      _objectNone = _typeSystem.objectNone,
+      _objectQuestion = _typeSystem.objectQuestion;
 
   /// Return `true` if [T0] is a subtype of [T1].
   bool isSubtypeOf(TypeImpl T0, TypeImpl T1) {
@@ -341,8 +341,10 @@ class SubtypeHelper {
 
   /// Check that [f] is a subtype of [g].
   bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionTypeImpl g) {
-    var fresh =
-        _typeSystem.relateTypeParameters2(f.typeParameters, g.typeParameters);
+    var fresh = _typeSystem.relateTypeParameters2(
+      f.typeParameters,
+      g.typeParameters,
+    );
     if (fresh == null) {
       return false;
     }

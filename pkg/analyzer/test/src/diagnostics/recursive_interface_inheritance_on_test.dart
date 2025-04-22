@@ -16,30 +16,35 @@ main() {
 @reflectiveTest
 class RecursiveInterfaceInheritanceOnTest extends PubPackageResolutionTest {
   test_1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A on A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_1_inAugmentation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A {}
 augment mixin A on A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1)],
+    );
   }
 
   test_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin A on B {}
 mixin B on A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 22, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 22, 1),
+      ],
+    );
   }
 }

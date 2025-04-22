@@ -81,17 +81,19 @@ class ElementResolver {
 
   final MethodInvocationResolver _methodInvocationResolver;
 
-  late final _commentReferenceResolver =
-      CommentReferenceResolver(_typeProvider, _resolver);
+  late final _commentReferenceResolver = CommentReferenceResolver(
+    _typeProvider,
+    _resolver,
+  );
 
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
   ElementResolver(this._resolver)
-      : _definingLibrary = _resolver.definingLibrary,
-        _methodInvocationResolver = MethodInvocationResolver(
-          _resolver,
-          inferenceHelper: _resolver.inferenceHelper,
-        );
+    : _definingLibrary = _resolver.definingLibrary,
+      _methodInvocationResolver = MethodInvocationResolver(
+        _resolver,
+        inferenceHelper: _resolver.inferenceHelper,
+      );
 
   /// Return `true` iff the current enclosing function is a constant constructor
   /// declaration.
@@ -164,11 +166,14 @@ class ElementResolver {
   }
 
   void visitDotShorthandConstructorInvocation(
-      covariant DotShorthandConstructorInvocationImpl node) {
+    covariant DotShorthandConstructorInvocationImpl node,
+  ) {
     var invokedConstructor = node.element;
     var argumentList = node.argumentList;
-    var parameters =
-        _resolveArgumentsToFunction(argumentList, invokedConstructor);
+    var parameters = _resolveArgumentsToFunction(
+      argumentList,
+      invokedConstructor,
+    );
     if (parameters != null) {
       argumentList.correspondingStaticParameters2 = parameters;
     }
@@ -180,12 +185,15 @@ class ElementResolver {
   /// [DotShorthandConstructorInvocation] in the process, then returns that new
   /// node. Otherwise, returns `null`.
   RewrittenMethodInvocationImpl? visitDotShorthandInvocation(
-      covariant DotShorthandInvocationImpl node,
-      {List<WhyNotPromotedGetter>? whyNotPromotedArguments,
-      required TypeImpl contextType}) {
+    covariant DotShorthandInvocationImpl node, {
+    List<WhyNotPromotedGetter>? whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
     whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolveDotShorthand(
-        node, whyNotPromotedArguments);
+      node,
+      whyNotPromotedArguments,
+    );
   }
 
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
@@ -265,11 +273,14 @@ class ElementResolver {
   }
 
   void visitInstanceCreationExpression(
-      covariant InstanceCreationExpressionImpl node) {
+    covariant InstanceCreationExpressionImpl node,
+  ) {
     var invokedConstructor = node.constructorName.element;
     var argumentList = node.argumentList;
-    var parameters =
-        _resolveArgumentsToFunction(argumentList, invokedConstructor);
+    var parameters = _resolveArgumentsToFunction(
+      argumentList,
+      invokedConstructor,
+    );
     if (parameters != null) {
       argumentList.correspondingStaticParameters2 = parameters;
     }
@@ -287,13 +298,17 @@ class ElementResolver {
   ///
   /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
   /// process, then returns that new node. Otherwise, returns `null`.
-  FunctionExpressionInvocationImpl? visitMethodInvocation(MethodInvocation node,
-      {List<WhyNotPromotedGetter>? whyNotPromotedArguments,
-      required TypeImpl contextType}) {
+  FunctionExpressionInvocationImpl? visitMethodInvocation(
+    MethodInvocation node, {
+    List<WhyNotPromotedGetter>? whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
     whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolve(
-        node as MethodInvocationImpl, whyNotPromotedArguments,
-        contextType: contextType);
+      node as MethodInvocationImpl,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
   }
 
   void visitMixinDeclaration(MixinDeclaration node) {
@@ -321,7 +336,8 @@ class ElementResolver {
   }
 
   void visitRedirectingConstructorInvocation(
-      covariant RedirectingConstructorInvocationImpl node) {
+    covariant RedirectingConstructorInvocationImpl node,
+  ) {
     var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass is! InterfaceElementImpl2) {
       // TODO(brianwilkerson): Report this error.
@@ -359,7 +375,8 @@ class ElementResolver {
   }
 
   void visitSuperConstructorInvocation(
-      covariant SuperConstructorInvocationImpl node) {
+    covariant SuperConstructorInvocationImpl node,
+  ) {
     var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass is! InterfaceElementImpl2) {
       // TODO(brianwilkerson): Report this error.
@@ -391,8 +408,9 @@ class ElementResolver {
     } else {
       if (element.isFactory &&
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
-          !element.enclosingElement2.constructors2
-              .every((constructor) => constructor.isFactory)) {
+          !element.enclosingElement2.constructors2.every(
+            (constructor) => constructor.isFactory,
+          )) {
         _errorReporter.atNode(
           node,
           CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
@@ -409,8 +427,9 @@ class ElementResolver {
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
-        _resolver.libraryFragment
-            .shouldIgnoreUndefinedNamedType(extendedNamedType)) {
+        _resolver.libraryFragment.shouldIgnoreUndefinedNamedType(
+          extendedNamedType,
+        )) {
       return;
     }
     var argumentList = node.argumentList;
@@ -434,10 +453,7 @@ class ElementResolver {
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
         );
       case SuperContext.extension:
-        _errorReporter.atNode(
-          node,
-          CompileTimeErrorCode.SUPER_IN_EXTENSION,
-        );
+        _errorReporter.atNode(node, CompileTimeErrorCode.SUPER_IN_EXTENSION);
       case SuperContext.extensionType:
         _errorReporter.atNode(
           node,
@@ -482,7 +498,9 @@ class ElementResolver {
   /// Resolve the names in the given [combinators] in the scope of the given
   /// [library].
   void _resolveCombinators(
-      LibraryElementImpl? library, NodeList<Combinator> combinators) {
+    LibraryElementImpl? library,
+    NodeList<Combinator> combinators,
+  ) {
     if (library == null) {
       //
       // The library will be null if the directive containing the combinators
@@ -490,8 +508,9 @@ class ElementResolver {
       //
       return;
     }
-    Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library);
+    Namespace namespace = NamespaceBuilder().createExportNamespaceForLibrary(
+      library,
+    );
     for (Combinator combinator in combinators) {
       NodeList<SimpleIdentifier> names;
       if (combinator is HideCombinator) {

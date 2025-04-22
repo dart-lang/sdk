@@ -31,21 +31,20 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
     required EncodeContext context,
     required ClassElementImpl2 element,
   }) {
-    return context.withTypeParameters(
-      element.typeParameters2,
-      (typeParameters) {
-        return ClassItem(
-          id: id,
-          metadata: ManifestMetadata.encode(context, element.metadata2),
-          typeParameters: typeParameters,
-          supertype: element.supertype?.encode(context),
-          mixins: element.mixins.encode(context),
-          interfaces: element.interfaces.encode(context),
-          declaredMembers: {},
-          inheritedMembers: {},
-        );
-      },
-    );
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return ClassItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        supertype: element.supertype?.encode(context),
+        mixins: element.mixins.encode(context),
+        interfaces: element.interfaces.encode(context),
+        declaredMembers: {},
+        inheritedMembers: {},
+      );
+    });
   }
 
   factory ClassItem.read(SummaryDataReader reader) {
@@ -242,7 +241,8 @@ sealed class InstanceItemMemberItem<E extends ExecutableElementImpl2>
   }
 
   static InstanceItemMemberItem<ExecutableElementImpl2> read(
-      SummaryDataReader reader) {
+    SummaryDataReader reader,
+  ) {
     var kind = reader.readEnum(_ManifestItemKind2.values);
     switch (kind) {
       case _ManifestItemKind2.instanceDuplicate:
@@ -449,9 +449,10 @@ class InterfaceItemConstructorItem
         isConst: element.isConst,
         isFactory: element.isFactory,
         functionType: element.type.encode(context),
-        constantInitializers: element.constantInitializers
-            .map((initializer) => ManifestNode.encode(context, initializer))
-            .toFixedList(),
+        constantInitializers:
+            element.constantInitializers
+                .map((initializer) => ManifestNode.encode(context, initializer))
+                .toFixedList(),
       );
     });
   }
@@ -493,14 +494,10 @@ class InterfaceItemConstructorItem
 class ManifestAnnotation {
   final ManifestNode ast;
 
-  ManifestAnnotation({
-    required this.ast,
-  });
+  ManifestAnnotation({required this.ast});
 
   factory ManifestAnnotation.read(SummaryDataReader reader) {
-    return ManifestAnnotation(
-      ast: ManifestNode.read(reader),
-    );
+    return ManifestAnnotation(ast: ManifestNode.read(reader));
   }
 
   bool match(MatchContext context, ElementAnnotationImpl annotation) {
@@ -526,10 +523,7 @@ sealed class ManifestItem<E extends AnnotatableElementImpl> {
   final ManifestItemId id;
   final ManifestMetadata metadata;
 
-  ManifestItem({
-    required this.id,
-    required this.metadata,
-  });
+  ManifestItem({required this.id, required this.metadata});
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
@@ -546,18 +540,17 @@ sealed class ManifestItem<E extends AnnotatableElementImpl> {
 class ManifestMetadata {
   final List<ManifestAnnotation> annotations;
 
-  ManifestMetadata({
-    required this.annotations,
-  });
+  ManifestMetadata({required this.annotations});
 
   factory ManifestMetadata.encode(
     EncodeContext context,
     MetadataImpl metadata,
   ) {
     return ManifestMetadata(
-      annotations: metadata.annotations.map((annotation) {
-        return ManifestAnnotation.encode(context, annotation);
-      }).toFixedList(),
+      annotations:
+          metadata.annotations.map((annotation) {
+            return ManifestAnnotation.encode(context, annotation);
+          }).toFixedList(),
     );
   }
 
@@ -602,31 +595,30 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
     required super.declaredMembers,
     required super.inheritedMembers,
     required this.superclassConstraints,
-  })  : assert(supertype == null),
-        assert(mixins.isEmpty),
-        assert(superclassConstraints.isNotEmpty);
+  }) : assert(supertype == null),
+       assert(mixins.isEmpty),
+       assert(superclassConstraints.isNotEmpty);
 
   factory MixinItem.fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required MixinElementImpl2 element,
   }) {
-    return context.withTypeParameters(
-      element.typeParameters2,
-      (typeParameters) {
-        return MixinItem(
-          id: id,
-          metadata: ManifestMetadata.encode(context, element.metadata2),
-          typeParameters: typeParameters,
-          supertype: element.supertype?.encode(context),
-          mixins: element.mixins.encode(context),
-          interfaces: element.interfaces.encode(context),
-          declaredMembers: {},
-          inheritedMembers: {},
-          superclassConstraints: element.superclassConstraints.encode(context),
-        );
-      },
-    );
+    return context.withTypeParameters(element.typeParameters2, (
+      typeParameters,
+    ) {
+      return MixinItem(
+        id: id,
+        metadata: ManifestMetadata.encode(context, element.metadata2),
+        typeParameters: typeParameters,
+        supertype: element.supertype?.encode(context),
+        mixins: element.mixins.encode(context),
+        interfaces: element.interfaces.encode(context),
+        declaredMembers: {},
+        inheritedMembers: {},
+        superclassConstraints: element.superclassConstraints.encode(context),
+      );
+    });
   }
 
   factory MixinItem.read(SummaryDataReader reader) {
@@ -754,10 +746,7 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
 
 sealed class TopLevelItem<E extends AnnotatableElementImpl>
     extends ManifestItem<E> {
-  TopLevelItem({
-    required super.id,
-    required super.metadata,
-  });
+  TopLevelItem({required super.id, required super.metadata});
 
   static TopLevelItem<AnnotatableElementImpl> read(SummaryDataReader reader) {
     var kind = reader.readEnum(_ManifestItemKind.values);

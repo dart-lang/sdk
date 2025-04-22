@@ -28,10 +28,10 @@ class ReturnTypeVerifier {
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
     required bool strictCasts,
-  })  : _typeProvider = typeProvider,
-        _typeSystem = typeSystem,
-        _errorReporter = errorReporter,
-        _strictCasts = strictCasts;
+  }) : _typeProvider = typeProvider,
+       _typeSystem = typeSystem,
+       _errorReporter = errorReporter,
+       _strictCasts = strictCasts;
 
   DartType get _flattenedReturnType {
     var returnType = enclosingExecutable.returnType;
@@ -85,10 +85,7 @@ class ReturnTypeVerifier {
     void checkElement(ClassElementImpl2 expectedElement, ErrorCode errorCode) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
-        _errorReporter.atNode(
-          returnType,
-          errorCode,
-        );
+        _errorReporter.atNode(returnType, errorCode);
       }
 
       // It is a compile-time error if the declared return type of
@@ -219,8 +216,11 @@ class ReturnTypeVerifier {
             S is! RecordType &&
             expression is ParenthesizedExpression) {
           var field = T.positionalFields.first;
-          if (_typeSystem.isAssignableTo(field.type, S,
-              strictCasts: _strictCasts)) {
+          if (_typeSystem.isAssignableTo(
+            field.type,
+            S,
+            strictCasts: _strictCasts,
+          )) {
             _errorReporter.atNode(
               expression,
               CompileTimeErrorCode

@@ -53,9 +53,6 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
 
   void _check(TypeImpl T, String expected) {
     var result = typeSystem.futureOrBase(T);
-    expect(
-      result.getDisplayString(),
-      expected,
-    );
+    expect(result.getDisplayString(), expected);
   }
 }

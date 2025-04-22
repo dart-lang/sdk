@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class IllegalEnumValuesDeclarationTest extends PubPackageResolutionTest {
   test_class_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   int values = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 41, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 41, 6)],
+    );
   }
 
   test_class_field_static() async {
@@ -34,13 +35,14 @@ abstract class A implements Enum {
   }
 
   test_class_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   int get values => 0;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 45, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 45, 6)],
+    );
   }
 
   test_class_getter_static() async {
@@ -52,13 +54,14 @@ abstract class A implements Enum {
   }
 
   test_class_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   void values() {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 42, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 42, 6)],
+    );
   }
 
   test_class_method_static() async {
@@ -70,13 +73,14 @@ abstract class A implements Enum {
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A implements Enum {
   set values(int _) {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 41, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 41, 6)],
+    );
   }
 
   test_class_setter_static() async {
@@ -88,13 +92,14 @@ abstract class A implements Enum {
   }
 
   test_mixin_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on Enum {
   int values = 0;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 24, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 24, 6)],
+    );
   }
 
   test_mixin_field_static() async {
@@ -106,13 +111,14 @@ mixin M on Enum {
   }
 
   test_mixin_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on Enum {
   int get values => 0;
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 28, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 28, 6)],
+    );
   }
 
   test_mixin_getter_static() async {
@@ -124,13 +130,14 @@ mixin M on Enum {
   }
 
   test_mixin_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on Enum {
   void values() {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 25, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 25, 6)],
+    );
   }
 
   test_mixin_method_static() async {
@@ -142,13 +149,14 @@ mixin M on Enum {
   }
 
   test_mixin_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M on Enum {
   set values(int _) {}
 }
-''', [
-      error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 24, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 24, 6)],
+    );
   }
 
   test_mixin_setter_static() async {

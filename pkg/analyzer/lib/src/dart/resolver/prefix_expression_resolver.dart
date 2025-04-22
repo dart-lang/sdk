@@ -26,13 +26,10 @@ class PrefixExpressionResolver {
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
 
-  PrefixExpressionResolver({
-    required ResolverVisitor resolver,
-  })  : _resolver = resolver,
-        _typePropertyResolver = resolver.typePropertyResolver,
-        _assignmentShared = AssignmentExpressionShared(
-          resolver: resolver,
-        );
+  PrefixExpressionResolver({required ResolverVisitor resolver})
+    : _resolver = resolver,
+      _typePropertyResolver = resolver.typePropertyResolver,
+      _assignmentShared = AssignmentExpressionShared(resolver: resolver);
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -81,7 +78,9 @@ class PrefixExpressionResolver {
         innerContextType = UnknownInferredType.instance;
       }
       _resolver.analyzeExpression(
-          operand, SharedTypeSchemaView(innerContextType));
+        operand,
+        SharedTypeSchemaView(innerContextType),
+      );
       _resolver.popRewrite();
     }
 
@@ -94,10 +93,15 @@ class PrefixExpressionResolver {
   ///
   // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      PrefixExpressionImpl node, TypeImpl type) {
+    PrefixExpressionImpl node,
+    TypeImpl type,
+  ) {
     var operandWriteType = node.writeType!;
-    if (!_typeSystem.isAssignableTo(type, operandWriteType,
-        strictCasts: _resolver.analysisOptions.strictCasts)) {
+    if (!_typeSystem.isAssignableTo(
+      type,
+      operandWriteType,
+      strictCasts: _resolver.analysisOptions.strictCasts,
+    )) {
       _resolver.errorReporter.atNode(
         node,
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
@@ -232,8 +236,12 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.element;
           if (element is PromotableElementImpl2) {
-            _resolver.flowAnalysis.flow
-                ?.write(node, element, SharedTypeView(staticType), null);
+            _resolver.flowAnalysis.flow?.write(
+              node,
+              element,
+              SharedTypeView(staticType),
+              null,
+            );
           }
         }
       }
@@ -246,12 +254,16 @@ class PrefixExpressionResolver {
     var operand = node.operand;
 
     _resolver.analyzeExpression(
-        operand, SharedTypeSchemaView(_typeProvider.boolType));
+      operand,
+      SharedTypeSchemaView(_typeProvider.boolType),
+    );
     operand = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(operand);
 
-    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
-        whyNotPromoted: whyNotPromoted);
+    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(
+      operand,
+      whyNotPromoted: whyNotPromoted,
+    );
 
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
 

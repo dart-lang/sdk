@@ -45,9 +45,14 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   TypeImpl? _type;
 
-  NamedTypeBuilder(this.linker, this.typeSystem, this.element3, this.arguments,
-      this.nullabilitySuffix,
-      {this.node});
+  NamedTypeBuilder(
+    this.linker,
+    this.typeSystem,
+    this.element3,
+    this.arguments,
+    this.nullabilitySuffix, {
+    this.node,
+  });
 
   factory NamedTypeBuilder.of(
     Linker linker,
@@ -65,8 +70,13 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-        linker, typeSystem, element, arguments, nullabilitySuffix,
-        node: node);
+      linker,
+      typeSystem,
+      element,
+      arguments,
+      nullabilitySuffix,
+      node: node,
+    );
   }
 
   factory NamedTypeBuilder.v2({
@@ -161,8 +171,13 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     return NamedTypeBuilder(
-        linker, typeSystem, element3, arguments, nullabilitySuffix,
-        node: node);
+      linker,
+      typeSystem,
+      element3,
+      arguments,
+      nullabilitySuffix,
+      node: node,
+    );
   }
 
   TypeImpl _buildAliasedType(TypeAnnotation? node) {
@@ -318,7 +333,8 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   static List<TypeParameterElementImpl2> _typeParameters(
-      TypeParameterListImpl? node) {
+    TypeParameterListImpl? node,
+  ) {
     if (node != null) {
       return node.typeParameters
           .map((p) => p.declaredFragment!.element)

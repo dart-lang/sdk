@@ -237,19 +237,31 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementKind implements Comparable<ElementKind> {
-  static const ElementKind AUGMENTATION_IMPORT =
-      ElementKind('AUGMENTATION_IMPORT', 0, "augmentation import");
+  static const ElementKind AUGMENTATION_IMPORT = ElementKind(
+    'AUGMENTATION_IMPORT',
+    0,
+    "augmentation import",
+  );
 
   static const ElementKind CLASS = ElementKind('CLASS', 1, "class");
 
-  static const ElementKind CLASS_AUGMENTATION =
-      ElementKind('CLASS_AUGMENTATION', 2, "class augmentation");
+  static const ElementKind CLASS_AUGMENTATION = ElementKind(
+    'CLASS_AUGMENTATION',
+    2,
+    "class augmentation",
+  );
 
-  static const ElementKind COMPILATION_UNIT =
-      ElementKind('COMPILATION_UNIT', 3, "compilation unit");
+  static const ElementKind COMPILATION_UNIT = ElementKind(
+    'COMPILATION_UNIT',
+    3,
+    "compilation unit",
+  );
 
-  static const ElementKind CONSTRUCTOR =
-      ElementKind('CONSTRUCTOR', 4, "constructor");
+  static const ElementKind CONSTRUCTOR = ElementKind(
+    'CONSTRUCTOR',
+    4,
+    "constructor",
+  );
 
   static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 5, "<dynamic>");
 
@@ -257,35 +269,53 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind ERROR = ElementKind('ERROR', 7, "<error>");
 
-  static const ElementKind EXPORT =
-      ElementKind('EXPORT', 8, "export directive");
+  static const ElementKind EXPORT = ElementKind(
+    'EXPORT',
+    8,
+    "export directive",
+  );
 
   static const ElementKind EXTENSION = ElementKind('EXTENSION', 9, "extension");
 
-  static const ElementKind EXTENSION_TYPE =
-      ElementKind('EXTENSION_TYPE', 10, "extension type");
+  static const ElementKind EXTENSION_TYPE = ElementKind(
+    'EXTENSION_TYPE',
+    10,
+    "extension type",
+  );
 
   static const ElementKind FIELD = ElementKind('FIELD', 11, "field");
 
   static const ElementKind FUNCTION = ElementKind('FUNCTION', 12, "function");
 
-  static const ElementKind GENERIC_FUNCTION_TYPE =
-      ElementKind('GENERIC_FUNCTION_TYPE', 13, 'generic function type');
+  static const ElementKind GENERIC_FUNCTION_TYPE = ElementKind(
+    'GENERIC_FUNCTION_TYPE',
+    13,
+    'generic function type',
+  );
 
   static const ElementKind GETTER = ElementKind('GETTER', 14, "getter");
 
-  static const ElementKind IMPORT =
-      ElementKind('IMPORT', 15, "import directive");
+  static const ElementKind IMPORT = ElementKind(
+    'IMPORT',
+    15,
+    "import directive",
+  );
 
   static const ElementKind LABEL = ElementKind('LABEL', 16, "label");
 
   static const ElementKind LIBRARY = ElementKind('LIBRARY', 17, "library");
 
-  static const ElementKind LIBRARY_AUGMENTATION =
-      ElementKind('LIBRARY_AUGMENTATION', 18, "library augmentation");
+  static const ElementKind LIBRARY_AUGMENTATION = ElementKind(
+    'LIBRARY_AUGMENTATION',
+    18,
+    "library augmentation",
+  );
 
-  static const ElementKind LOCAL_VARIABLE =
-      ElementKind('LOCAL_VARIABLE', 19, "local variable");
+  static const ElementKind LOCAL_VARIABLE = ElementKind(
+    'LOCAL_VARIABLE',
+    19,
+    "local variable",
+  );
 
   static const ElementKind METHOD = ElementKind('METHOD', 20, "method");
 
@@ -295,8 +325,11 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind NEVER = ElementKind('NEVER', 23, "<never>");
 
-  static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 24, "parameter");
+  static const ElementKind PARAMETER = ElementKind(
+    'PARAMETER',
+    24,
+    "parameter",
+  );
 
   static const ElementKind PART = ElementKind('PART', 25, "part");
 
@@ -306,17 +339,29 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind SETTER = ElementKind('SETTER', 28, "setter");
 
-  static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 29, "top level variable");
+  static const ElementKind TOP_LEVEL_VARIABLE = ElementKind(
+    'TOP_LEVEL_VARIABLE',
+    29,
+    "top level variable",
+  );
 
-  static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 30, "function type alias");
+  static const ElementKind FUNCTION_TYPE_ALIAS = ElementKind(
+    'FUNCTION_TYPE_ALIAS',
+    30,
+    "function type alias",
+  );
 
-  static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 31, "type parameter");
+  static const ElementKind TYPE_PARAMETER = ElementKind(
+    'TYPE_PARAMETER',
+    31,
+    "type parameter",
+  );
 
-  static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 32, "type alias");
+  static const ElementKind TYPE_ALIAS = ElementKind(
+    'TYPE_ALIAS',
+    32,
+    "type alias",
+  );
 
   static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 33, "<universe>");
 
@@ -351,7 +396,7 @@ class ElementKind implements Comparable<ElementKind> {
     TOP_LEVEL_VARIABLE,
     FUNCTION_TYPE_ALIAS,
     TYPE_PARAMETER,
-    UNIVERSE
+    UNIVERSE,
   ];
 
   /// The name of this element kind.
@@ -404,10 +449,7 @@ class LibraryLanguageVersion {
   /// The version specified using `@dart` override, `null` if absent or invalid.
   final Version? override;
 
-  LibraryLanguageVersion({
-    required this.package,
-    required this.override,
-  });
+  LibraryLanguageVersion({required this.package, required this.override});
 
   /// The effective language version for the library.
   Version get effective {

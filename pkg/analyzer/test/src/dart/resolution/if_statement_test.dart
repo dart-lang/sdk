@@ -127,15 +127,16 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case <int>[var a || var a] when a > 0) {
     a;
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 45, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 45, 8)],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -208,16 +209,22 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_notConsistent_differentFinality() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a || [final int a] when a > 0) {
     a;
   }
 }
-''', [
-      error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 53, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
+          53,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -289,16 +296,22 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_notConsistent_differentType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a || [double a] when a > 0) {
     a;
   }
 }
-''', [
-      error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
+          50,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -369,16 +382,19 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a || 2 || 3 when a > 0) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
+      ],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -447,15 +463,16 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_12() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a || int a || 3 when a > 0) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1)],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -611,15 +628,16 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_13() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a || 2 || int a when a > 0) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1)],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -692,16 +710,19 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case 1 || int a || 3 when a > 0) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
+      ],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -770,15 +791,16 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_23() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case 1 || int a || int a when a > 0) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1)],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -857,7 +879,8 @@ IfStatement
     // but they are considered initialized after the entire case pattern,
     // before the guard expression if there is one. However, all pattern
     // variables are in scope in the entire pattern.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 void f(Object? x) {
   if (x case [int a, == a] when a > 0) {
@@ -866,12 +889,21 @@ void f(Object? x) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 57,
-          1),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 57, 1,
-          contextMessages: [message(testFile, 51, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          57,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          57,
+          1,
+          contextMessages: [message(testFile, 51, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -949,7 +981,8 @@ IfStatement
   }
 
   test_caseClause_variables_scope_logicalOr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 void f(Object? x) {
   if (x case bool a || a when a) {
@@ -958,10 +991,12 @@ void f(Object? x) {
     a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
+        error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
+      ],
+    );
 
     var node = findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
@@ -1025,7 +1060,8 @@ IfStatement
   }
 
   test_caseClause_variables_single() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case int a when a > 0) {
     a;
@@ -1033,9 +1069,9 @@ void f(Object? x) {
     a; // error
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 75, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 75, 1)],
+    );
 
     var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
@@ -1099,16 +1135,19 @@ IfStatement
   }
 
   test_expression_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     if (super) {}
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 31, 5),
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 31, 5),
+        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
+      ],
+    );
 
     var node = findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
@@ -1322,10 +1361,7 @@ IfStatement
 class InferenceUpdate4Test extends PubPackageResolutionTest {
   @override
   List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.inference_update_4.enableString,
-    ];
+    return [...super.experiments, Feature.inference_update_4.enableString];
   }
 
   test_finalPromotionKept_isExpression() async {
@@ -1343,9 +1379,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.ifStatement('if (x is int) {'),
-      r'''
+    assertResolvedNodeText(findNode.ifStatement('if (x is int) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1388,8 +1422,7 @@ IfStatement
           staticType: bool Function()
         semicolon: ;
     rightBracket: }
-''',
-    );
+''');
   }
 
   test_finalPromotionKept_isExpression_late() async {
@@ -1407,9 +1440,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.ifStatement('if (x is int) {'),
-      r'''
+    assertResolvedNodeText(findNode.ifStatement('if (x is int) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1452,8 +1483,7 @@ IfStatement
           staticType: bool Function()
         semicolon: ;
     rightBracket: }
-''',
-    );
+''');
   }
 
   test_finalPromotionKept_notEqNull() async {
@@ -1471,9 +1501,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.ifStatement('if (x != null) {'),
-      r'''
+    assertResolvedNodeText(findNode.ifStatement('if (x != null) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1518,8 +1546,7 @@ IfStatement
           staticType: bool Function()
         semicolon: ;
     rightBracket: }
-''',
-    );
+''');
   }
 
   test_finalPromotionKept_notEqNull_late() async {
@@ -1537,9 +1564,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(
-      findNode.ifStatement('if (x != null) {'),
-      r'''
+    assertResolvedNodeText(findNode.ifStatement('if (x != null) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1584,7 +1609,6 @@ IfStatement
           staticType: bool Function()
         semicolon: ;
     rightBracket: }
-''',
-    );
+''');
   }
 }

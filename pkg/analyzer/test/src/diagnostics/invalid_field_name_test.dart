@@ -17,46 +17,55 @@ main() {
 @reflectiveTest
 class InvalidFieldName_RecordLiteralTest extends PubPackageResolutionTest {
   void test_fromObject() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var r = (hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 9, 8),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 22, 12),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 39, 11),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 55, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 9, 8),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 22, 12),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 39, 11),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 55, 8),
+      ],
+    );
   }
 
   void test_fromObject_noWarningForStaticMembers() async {
     await assertNoErrorsInCode(
-        'var r = (hash: 1, hashAll: 2, hashAllUnordered: 3);');
+      'var r = (hash: 1, hashAll: 2, hashAllUnordered: 3);',
+    );
   }
 
   void test_fromObject_withPositional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var r = (0, hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 12, 8),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 25, 12),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 42, 11),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 58, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 12, 8),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 25, 12),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 42, 11),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 58, 8),
+      ],
+    );
   }
 
   void test_positional_named_conflict() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var r = (0, $1: 2);
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 12, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 12, 2)],
+    );
   }
 
   void test_positional_named_conflict_namedBeforePositional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var r = ($1: 2, 1);
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 9, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 9, 2)],
+    );
   }
 
   void test_positional_named_leadingZero() async {
@@ -72,11 +81,12 @@ var r = (0, $2: 2);
   }
 
   void test_private() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 var r = (_a: 1, b: 2);
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 9, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 9, 2)],
+    );
   }
 }
 
@@ -84,14 +94,17 @@ var r = (_a: 1, b: 2);
 class InvalidFieldName_RecordTypeAnnotationTest
     extends PubPackageResolutionTest {
   void test_fromObject_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int hashCode, int noSuchMethod, int runtimeType, int toString}) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 13, 8),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 27, 12),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 45, 11),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 62, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 13, 8),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 27, 12),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 45, 11),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 62, 8),
+      ],
+    );
   }
 
   void test_fromObject_noWarningForStaticMembers() async {
@@ -102,22 +115,26 @@ void g((int hashAll,) r) {}
   }
 
   void test_fromObject_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int hashCode, int noSuchMethod, int runtimeType, int toString) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 12, 8),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 26, 12),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 44, 11),
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 61, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 12, 8),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 26, 12),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 44, 11),
+        error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 61, 8),
+      ],
+    );
   }
 
   void test_positional_named_conflict() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String, {int $2}) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 26, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 26, 2)],
+    );
   }
 
   void test_positional_named_leadingZero() async {
@@ -133,11 +150,12 @@ void f(({int $22}) r) {}
   }
 
   void test_positional_positional_conflict() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int $2, int b) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 12, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 12, 2)],
+    );
   }
 
   void test_positional_positional_noConflict_same() async {
@@ -153,38 +171,42 @@ void f((int $4, int b) r) {}
   }
 
   void test_private_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int _a}) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 13, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 13, 2)],
+    );
   }
 
   void test_private_positional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int _a, int b) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 12, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 12, 2)],
+    );
   }
 
   void test_wildcard_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(({int _, int b}) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 13, 1)],
+    );
   }
 
   void test_wildcard_named_preWildcards() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 void f(({int _, int b}) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 57, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 57, 1)],
+    );
   }
 
   void test_wildcard_positional() async {
@@ -194,13 +216,14 @@ void f((int _, int b) r) {}
   }
 
   void test_wildcard_positional_preWildcards() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 void f((int _, int b) r) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 56, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 56, 1)],
+    );
   }
 }

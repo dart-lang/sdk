@@ -16,32 +16,40 @@ main() {
 @reflectiveTest
 class RecursiveIncludeFileTest extends AbstractAnalysisOptionsTest {
   void test_itself() {
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: analysis_options.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
-        9,
-        21,
-        text: "The include file 'analysis_options.yaml' "
-            "in '${convertPath('/analysis_options.yaml')}' includes itself recursively.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          9,
+          21,
+          text:
+              "The include file 'analysis_options.yaml' "
+              "in '${convertPath('/analysis_options.yaml')}' includes itself recursively.",
+        ),
+      ],
+    );
   }
 
   void test_itself_inList() {
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include:
   - analysis_options.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
-        13,
-        21,
-        text: "The include file 'analysis_options.yaml' "
-            "in '${convertPath('/analysis_options.yaml')}' includes itself recursively.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          13,
+          21,
+          text:
+              "The include file 'analysis_options.yaml' "
+              "in '${convertPath('/analysis_options.yaml')}' includes itself recursively.",
+        ),
+      ],
+    );
   }
 
   void test_recursive() {
@@ -51,36 +59,43 @@ include: b.yaml
     newFile('/b.yaml', '''
 include: analysis_options.yaml
 ''');
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: a.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
-        9,
-        6,
-        text: "The include file 'analysis_options.yaml' "
-            "in '${convertPath('/b.yaml')}' includes itself recursively.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          9,
+          6,
+          text:
+              "The include file 'analysis_options.yaml' "
+              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+        ),
+      ],
+    );
   }
 
   void test_recursive_itself() {
     newFile('/a.yaml', '''
 include: a.yaml
 ''');
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: a.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
-        9,
-        6,
-        messageContains: [
-          "Warning in the included options file ${convertPath('/a.yaml')}",
-          ": The file includes itself recursively."
-        ],
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+          9,
+          6,
+          messageContains: [
+            "Warning in the included options file ${convertPath('/a.yaml')}",
+            ": The file includes itself recursively.",
+          ],
+        ),
+      ],
+    );
   }
 
   void test_recursive_listAtTop() {
@@ -92,19 +107,23 @@ include: analysis_options.yaml
 ''');
     newFile('/empty.yaml', '''
 ''');
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include:
   - empty.yaml
   - a.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
-        13,
-        10,
-        text: "The include file 'analysis_options.yaml' "
-            "in '${convertPath('/b.yaml')}' includes itself recursively.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          13,
+          10,
+          text:
+              "The include file 'analysis_options.yaml' "
+              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+        ),
+      ],
+    );
   }
 
   void test_recursive_listIncluded() {
@@ -118,17 +137,21 @@ include: analysis_options.yaml
 ''');
     newFile('/empty.yaml', '''
 ''');
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: a.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
-        9,
-        6,
-        text: "The include file 'analysis_options.yaml' "
-            "in '${convertPath('/b.yaml')}' includes itself recursively.",
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+          9,
+          6,
+          text:
+              "The include file 'analysis_options.yaml' "
+              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+        ),
+      ],
+    );
   }
 
   void test_recursive_notInBeginning() {
@@ -138,18 +161,21 @@ include: b.yaml
     newFile('/b.yaml', '''
 include: a.yaml
 ''');
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: a.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
-        9,
-        6,
-        messageContains: [
-          "Warning in the included options file ${convertPath('/a.yaml')}",
-          ": The file includes itself recursively."
-        ],
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+          9,
+          6,
+          messageContains: [
+            "Warning in the included options file ${convertPath('/a.yaml')}",
+            ": The file includes itself recursively.",
+          ],
+        ),
+      ],
+    );
   }
 }

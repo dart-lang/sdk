@@ -43,11 +43,13 @@ class _PackageMapUriResolverTest {
     String pkgFileB = provider.convertPath('/pkgB/lib/src/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
-      'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))]
-    });
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, List<Folder>>{
+        'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
+        'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))],
+      },
+    );
     {
       var path = provider.convertPath('/pkgA/lib/libA.dart');
       var uri = resolver.pathToUri(path);
@@ -70,7 +72,7 @@ class _PackageMapUriResolverTest {
     var b = provider.newFile(provider.convertPath('/bbb/b.dart'), '');
     expect(() {
       PackageMapUriResolver(provider, <String, List<Folder>>{
-        'pkg': <Folder>[a.parent, b.parent]
+        'pkg': <Folder>[a.parent, b.parent],
       });
     }, throwsArgumentError);
   }
@@ -87,11 +89,13 @@ class _PackageMapUriResolverTest {
     String pkgFileB = provider.convertPath('/pkgB/lib/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
-      'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))]
-    });
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, List<Folder>>{
+        'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
+        'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))],
+      },
+    );
     {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
       var result = resolver.resolveAbsolute(uri)!;
@@ -111,9 +115,7 @@ class _PackageMapUriResolverTest {
   void test_resolve_OK_withNonAscii() {
     var resolver = PackageMapUriResolver(provider, {
       'aaa': <Folder>[
-        provider.getFolder(
-          provider.convertPath('/packages/aaa/lib'),
-        ),
+        provider.getFolder(provider.convertPath('/packages/aaa/lib')),
       ],
     });
 
@@ -128,9 +130,7 @@ class _PackageMapUriResolverTest {
   void test_resolve_OK_withSpace() {
     var resolver = PackageMapUriResolver(provider, {
       'aaa': <Folder>[
-        provider.getFolder(
-          provider.convertPath('/packages/aaa/lib'),
-        ),
+        provider.getFolder(provider.convertPath('/packages/aaa/lib')),
       ],
     });
 

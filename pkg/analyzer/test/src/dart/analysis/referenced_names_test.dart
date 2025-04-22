@@ -425,10 +425,7 @@ main() {
     expect(names, unorderedEquals(['A', 'B', 'C']));
   }
 
-  Set<String> _computeReferencedNames(
-    String code, {
-    FeatureSet? featureSet,
-  }) {
+  Set<String> _computeReferencedNames(String code, {FeatureSet? featureSet}) {
     var parseResult = parseString(
       content: code,
       featureSet: featureSet ?? FeatureSets.latestWithExperiments,

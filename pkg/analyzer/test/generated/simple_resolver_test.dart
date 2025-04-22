@@ -126,10 +126,7 @@ class A {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
@@ -145,10 +142,7 @@ class B {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_argumentResolution_setter_static() async {
@@ -161,10 +155,7 @@ class A {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_argumentResolution_setter_static_propertyAccess() async {
@@ -180,10 +171,7 @@ class B {
   set sss(x) {}
 }''');
     var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(
-      rhs.correspondingParameter,
-      findElement2.parameter('x'),
-    );
+    expect(rhs.correspondingParameter, findElement2.parameter('x'));
   }
 
   test_breakTarget_labeled() async {
@@ -532,16 +520,19 @@ SimpleIdentifier
   }
 
   test_forEachLoops_nonConflicting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   List list = [1,2,3];
   for (int x in list) {}
   for (int x in list) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      ],
+    );
   }
 
   test_forLoops_nonConflicting() async {
@@ -592,7 +583,8 @@ SimpleIdentifier
   }
 
   test_getter_fromMixins_property_access() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B {}
 mixin M1 {
   get x => null;
@@ -604,9 +596,9 @@ class C extends B with M1, M2 {}
 void main() {
   var y = new C().x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1)],
+    );
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
@@ -655,7 +647,8 @@ main() {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
@@ -671,9 +664,9 @@ class G extends Object with p.V {}
 class H extends D<p.W> {
   H(int i) : super(i);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
   }
 
   test_import_show_doesNotExist() async {
@@ -682,7 +675,8 @@ class H extends D<p.W> {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
@@ -698,9 +692,9 @@ class G extends Object with V {}
 class H extends D<W> {
   H(int i) : super(i);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
   }
 
   test_import_spaceInUri() async {
@@ -728,13 +722,14 @@ f() {
   }
 
   test_indexExpression_typeParameters_invalidAssignmentWarning() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
-}''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 4),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 4)],
+    );
   }
 
   test_indirectOperatorThroughCall() async {
@@ -767,25 +762,27 @@ class A {
   }
 
   test_isValidMixin_badSuperclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A extends B {}
 class B {}
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1),
-    ]);
+class C = Object with A;''',
+      [error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1)],
+    );
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isFalse);
   }
 
   test_isValidMixin_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() {}
 }
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1),
-    ]);
+class C = Object with A;''',
+      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1)],
+    );
 
     var a = findElement2.class_('A');
     expect(a.isValidMixin, isFalse);
@@ -1165,10 +1162,7 @@ f(@A p1, @A int p2) {}''');
 const A = null;
 @A typedef F<A>();''');
 
-    expect(
-      findElement2.typeAlias('F').metadata2.annotations,
-      hasLength(1),
-    );
+    expect(findElement2.typeAlias('F').metadata2.annotations, hasLength(1));
 
     var annotation = findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''

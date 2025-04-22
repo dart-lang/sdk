@@ -158,7 +158,8 @@ library
 
   test_getter_inferred_type_nonStatic_implicit_return() async {
     var library = await buildLibrary(
-        'class C extends D { get f => null; } abstract class D { int get f; }');
+      'class C extends D { get f => null; } abstract class D { int get f; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -314,8 +315,9 @@ library
   }
 
   test_implicitTopLevelVariable_getterFirst() async {
-    var library =
-        await buildLibrary('int get x => 0; void set x(int value) {}');
+    var library = await buildLibrary(
+      'int get x => 0; void set x(int value) {}',
+    );
     configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
@@ -362,8 +364,9 @@ library
   }
 
   test_implicitTopLevelVariable_setterFirst() async {
-    var library =
-        await buildLibrary('void set x(int value) {} int get x => 0;');
+    var library = await buildLibrary(
+      'void set x(int value) {} int get x => 0;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -524,8 +527,9 @@ library
   }
 
   test_setters() async {
-    var library =
-        await buildLibrary('void set x(int value) {} set y(value) {}');
+    var library = await buildLibrary(
+      'void set x(int value) {} set y(value) {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1286,9 +1290,12 @@ library
   test_variable_getterInPart_setterInPart() async {
     newFile('$testPackageLibPath/a.dart', 'part of my.lib; int get x => 42;');
     newFile(
-        '$testPackageLibPath/b.dart', 'part of my.lib; void set x(int _) {}');
-    var library =
-        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
+      '$testPackageLibPath/b.dart',
+      'part of my.lib; void set x(int _) {}',
+    );
+    var library = await buildLibrary(
+      'library my.lib; part "a.dart"; part "b.dart";',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1966,8 +1973,9 @@ library
 
   test_variable_propagatedType_final_dep_inPart() async {
     newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
-    var library =
-        await buildLibrary('library lib; part "a.dart"; final b = a / 2;');
+    var library = await buildLibrary(
+      'library lib; part "a.dart"; final b = a / 2;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2086,10 +2094,13 @@ library
 
   test_variable_setterInPart_getterInPart() async {
     newFile(
-        '$testPackageLibPath/a.dart', 'part of my.lib; void set x(int _) {}');
+      '$testPackageLibPath/a.dart',
+      'part of my.lib; void set x(int _) {}',
+    );
     newFile('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
-    var library =
-        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    var library = await buildLibrary(
+      'library my.lib; part "a.dart"; part "b.dart";',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>

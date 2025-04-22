@@ -40,28 +40,35 @@ mixin ErrorDetectionHelpers {
   /// parameter. The [actualStaticType] is the actual static type of the
   /// argument.
   void checkForArgumentTypeNotAssignable(
-      Expression expression,
-      TypeImpl expectedStaticType,
-      TypeImpl actualStaticType,
-      ErrorCode errorCode,
-      {Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
+    Expression expression,
+    TypeImpl expectedStaticType,
+    TypeImpl actualStaticType,
+    ErrorCode errorCode, {
+    Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     if (expectedStaticType is! VoidType &&
         checkForUseOfVoidResult(expression)) {
       return;
     }
 
     checkForAssignableExpressionAtType(
-        expression, actualStaticType, expectedStaticType, errorCode,
-        whyNotPromoted: whyNotPromoted);
+      expression,
+      actualStaticType,
+      expectedStaticType,
+      errorCode,
+      whyNotPromoted: whyNotPromoted,
+    );
   }
 
   /// Verify that the given [argument] can be assigned to its corresponding
   /// parameter.
   ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-  void checkForArgumentTypeNotAssignableForArgument(ExpressionImpl argument,
-      {bool promoteParameterToNullable = false,
-      Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
+  void checkForArgumentTypeNotAssignableForArgument(
+    ExpressionImpl argument, {
+    bool promoteParameterToNullable = false,
+    Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     _checkForArgumentTypeNotAssignableForArgument(
       argument:
           argument is NamedExpressionImpl ? argument.expression : argument,
@@ -72,18 +79,22 @@ mixin ErrorDetectionHelpers {
   }
 
   void checkForAssignableExpressionAtType(
-      Expression expression,
-      TypeImpl actualStaticType,
-      TypeImpl expectedStaticType,
-      ErrorCode errorCode,
-      {Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
+    Expression expression,
+    TypeImpl actualStaticType,
+    TypeImpl expectedStaticType,
+    ErrorCode errorCode, {
+    Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     if (expectedStaticType is! VoidType &&
         checkForUseOfVoidResult(expression)) {
       return;
     }
 
-    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
-        strictCasts: strictCasts)) {
+    if (!typeSystem.isAssignableTo(
+      actualStaticType,
+      expectedStaticType,
+      strictCasts: strictCasts,
+    )) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
           return getErrorNode(node.target);
@@ -99,8 +110,11 @@ mixin ErrorDetectionHelpers {
           actualStaticType is! RecordType &&
           expression is ParenthesizedExpression) {
         var field = expectedStaticType.positionalFields.first;
-        if (typeSystem.isAssignableTo(field.type, actualStaticType,
-            strictCasts: strictCasts)) {
+        if (typeSystem.isAssignableTo(
+          field.type,
+          actualStaticType,
+          strictCasts: strictCasts,
+        )) {
           errorReporter.atNode(
             expression,
             CompileTimeErrorCode
@@ -119,22 +133,27 @@ mixin ErrorDetectionHelpers {
           if (expectedPositionalFields != 0 &&
               actualPositionalFields != expectedPositionalFields) {
             additionalInfo.add(
-                'Expected $expectedPositionalFields positional arguments, but got $actualPositionalFields instead.');
+              'Expected $expectedPositionalFields positional arguments, but got $actualPositionalFields instead.',
+            );
           }
           var actualNamedFieldsLength = actualStaticType.namedFields.length;
           var expectedNamedFieldsLength = expectedStaticType.namedFields.length;
           if (expectedNamedFieldsLength != 0 &&
               actualNamedFieldsLength != expectedNamedFieldsLength) {
             additionalInfo.add(
-                'Expected $expectedNamedFieldsLength named arguments, but got $actualNamedFieldsLength instead.');
+              'Expected $expectedNamedFieldsLength named arguments, but got $actualNamedFieldsLength instead.',
+            );
           }
           var namedFields = expectedStaticType.namedFields;
           if (namedFields.isNotEmpty) {
             for (var field in actualStaticType.namedFields) {
-              if (!namedFields.any((element) =>
-                  element.name == field.name && field.type == element.type)) {
+              if (!namedFields.any(
+                (element) =>
+                    element.name == field.name && field.type == element.type,
+              )) {
                 additionalInfo.add(
-                    'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString()}`.');
+                  'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString()}`.',
+                );
               }
             }
           }
@@ -145,10 +164,12 @@ mixin ErrorDetectionHelpers {
           arguments: [
             actualStaticType,
             expectedStaticType,
-            additionalInfo.join(' ')
+            additionalInfo.join(' '),
           ],
-          contextMessages:
-              computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+          contextMessages: computeWhyNotPromotedMessages(
+            expression,
+            whyNotPromoted?.call(),
+          ),
         );
         return;
       }
@@ -156,8 +177,10 @@ mixin ErrorDetectionHelpers {
         getErrorNode(expression),
         errorCode,
         arguments: [actualStaticType, expectedStaticType],
-        contextMessages:
-            computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+        contextMessages: computeWhyNotPromotedMessages(
+          expression,
+          whyNotPromoted?.call(),
+        ),
       );
     }
   }
@@ -169,26 +192,31 @@ mixin ErrorDetectionHelpers {
   /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
   /// [CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
   void checkForFieldInitializerNotAssignable(
-      ConstructorFieldInitializerImpl initializer,
-      FieldElement2OrMember fieldElement,
-      {required bool isConstConstructor,
-      required Map<SharedTypeView, NonPromotionReason> Function()?
-          whyNotPromoted}) {
+    ConstructorFieldInitializerImpl initializer,
+    FieldElement2OrMember fieldElement, {
+    required bool isConstConstructor,
+    required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     // prepare field type
     var fieldType = fieldElement.type;
     // prepare expression type
     Expression expression = initializer.expression;
     // test the static type of the expression
     var staticType = expression.typeOrThrow;
-    if (typeSystem.isAssignableTo(staticType, fieldType,
-        strictCasts: strictCasts)) {
+    if (typeSystem.isAssignableTo(
+      staticType,
+      fieldType,
+      strictCasts: strictCasts,
+    )) {
       if (fieldType is! VoidType) {
         checkForUseOfVoidResult(expression);
       }
       return;
     }
-    var messages =
-        computeWhyNotPromotedMessages(expression, whyNotPromoted?.call());
+    var messages = computeWhyNotPromotedMessages(
+      expression,
+      whyNotPromoted?.call(),
+    );
     // report problem
     if (isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
@@ -210,26 +238,26 @@ mixin ErrorDetectionHelpers {
 
     // TODO(brianwilkerson): Define a hint corresponding to these errors and
     // report it if appropriate.
-//        // test the propagated type of the expression
-//        Type propagatedType = expression.getPropagatedType();
-//        if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
-//          return false;
-//        }
-//        // report problem
-//        if (isEnclosingConstructorConst) {
-//          errorReporter.reportTypeErrorForNode(
-//              CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-//              expression,
-//              propagatedType == null ? staticType : propagatedType,
-//              fieldType);
-//        } else {
-//          errorReporter.reportTypeErrorForNode(
-//              StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
-//              expression,
-//              propagatedType == null ? staticType : propagatedType,
-//              fieldType);
-//        }
-//        return true;
+    //        // test the propagated type of the expression
+    //        Type propagatedType = expression.getPropagatedType();
+    //        if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
+    //          return false;
+    //        }
+    //        // report problem
+    //        if (isEnclosingConstructorConst) {
+    //          errorReporter.reportTypeErrorForNode(
+    //              CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+    //              expression,
+    //              propagatedType == null ? staticType : propagatedType,
+    //              fieldType);
+    //        } else {
+    //          errorReporter.reportTypeErrorForNode(
+    //              StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+    //              expression,
+    //              propagatedType == null ? staticType : propagatedType,
+    //              fieldType);
+    //        }
+    //        return true;
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -244,15 +272,9 @@ mixin ErrorDetectionHelpers {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      errorReporter.atNode(
-        methodName,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-      );
+      errorReporter.atNode(methodName, CompileTimeErrorCode.USE_OF_VOID_RESULT);
     } else {
-      errorReporter.atNode(
-        expression,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-      );
+      errorReporter.atNode(expression, CompileTimeErrorCode.USE_OF_VOID_RESULT);
     }
 
     return true;
@@ -301,8 +323,9 @@ mixin ErrorDetectionHelpers {
   /// [whyNotPromoted] should be the non-promotion details returned by the flow
   /// analysis engine.
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
-      SyntacticEntity errorEntity,
-      Map<SharedTypeView, NonPromotionReason>? whyNotPromoted);
+    SyntacticEntity errorEntity,
+    Map<SharedTypeView, NonPromotionReason>? whyNotPromoted,
+  );
 
   /// If an assignment from [type] to [context] is a case of an implicit 'call'
   /// method, returns the element of the 'call' method.
@@ -313,7 +336,10 @@ mixin ErrorDetectionHelpers {
   /// > a method named `call`. In the case where the context type for `e`
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
   MethodElement2OrMember? getImplicitCallMethod(
-      DartType type, DartType context, SyntacticEntity errorNode) {
+    DartType type,
+    DartType context,
+    SyntacticEntity errorNode,
+  ) {
     var visitedTypes = {type};
     while (type is TypeParameterType) {
       if (type.nullabilitySuffix != NullabilitySuffix.none) {
@@ -367,11 +393,12 @@ mixin ErrorDetectionHelpers {
         staticParameterType = typeSystem.makeNullable(staticParameterType);
       }
       checkForArgumentTypeNotAssignable(
-          argument,
-          staticParameterType,
-          argument.typeOrThrow,
-          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-          whyNotPromoted: whyNotPromoted);
+        argument,
+        staticParameterType,
+        argument.typeOrThrow,
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        whyNotPromoted: whyNotPromoted,
+      );
     }
   }
 }

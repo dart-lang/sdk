@@ -76,14 +76,15 @@ MethodInvocation
 @reflectiveTest
 class ForTest extends PubPackageResolutionTest {
   test_awaitForIn_int_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() async {
   await for (int e in a()) {}
 }
 T a<T>() => throw '';
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -103,14 +104,15 @@ MethodInvocation
   }
 
   test_awaitForIn_var_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() async {
   await for (var e in a()) {}
 }
 T a<T>() => throw '';
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -166,14 +168,15 @@ MethodInvocation
   }
 
   test_forIn_dynamic_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   for (var e in a()) {}
 }
 T a<T>() => throw '';
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -193,14 +196,15 @@ MethodInvocation
   }
 
   test_forIn_int_downward() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   for (int e in a()) {}
 }
 T a<T>() => throw '';
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''

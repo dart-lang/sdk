@@ -70,7 +70,8 @@ abstract class AnalysisSession {
   /// Throw [ArgumentError] if the [element] was not produced by this session.
   @experimental
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
-      LibraryElement2 element);
+    LibraryElement2 element,
+  );
 
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library containing the given absolute,
@@ -94,6 +95,8 @@ abstract class AnalysisSession {
 /// might be inconsistent with any previously returned results.
 class InconsistentAnalysisException extends AnalysisException {
   InconsistentAnalysisException()
-      : super('Requested result might be inconsistent with previously '
-            'returned results');
+    : super(
+        'Requested result might be inconsistent with previously '
+        'returned results',
+      );
 }

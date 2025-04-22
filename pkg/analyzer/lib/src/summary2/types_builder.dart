@@ -141,9 +141,7 @@ class TypesBuilder {
       element.supertype = superType;
     }
 
-    element.mixins = _toInterfaceTypeList(
-      node.withClause.mixinTypes,
-    );
+    element.mixins = _toInterfaceTypeList(node.withClause.mixinTypes);
 
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
@@ -242,11 +240,12 @@ class TypesBuilder {
     var fragment = node.declaredFragment!;
 
     var typeSystem = fragment.library.typeSystem;
-    var interfaces = node.implementsClause?.interfaces
-        .map((e) => e.type)
-        .whereType<InterfaceType>()
-        .where(typeSystem.isValidExtensionTypeSuperinterface)
-        .toFixedList();
+    var interfaces =
+        node.implementsClause?.interfaces
+            .map((e) => e.type)
+            .whereType<InterfaceType>()
+            .where(typeSystem.isValidExtensionTypeSuperinterface)
+            .toFixedList();
     if (interfaces != null) {
       fragment.interfaces = interfaces;
     }
@@ -403,10 +402,12 @@ class _MixinInference {
 
   late final InterfacesMerger interfacesMerger;
 
-  _MixinInference(this.element, this.featureSet,
-      {required this.typeSystemOperations})
-      : typeSystem = element.library.typeSystem,
-        classType = element.element.thisType {
+  _MixinInference(
+    this.element,
+    this.featureSet, {
+    required this.typeSystemOperations,
+  }) : typeSystem = element.library.typeSystem,
+       classType = element.element.thisType {
     interfacesMerger = InterfacesMerger(typeSystem);
     interfacesMerger.addWithSupertypes(element.supertype);
   }
@@ -494,9 +495,10 @@ class _MixinInference {
           supertypeConstraints = rawType.superclassConstraints;
           instantiate = (typeArguments) {
             return mixinElement.instantiateImpl(
-              typeArguments: typeArguments,
-              nullabilitySuffix: mixinType.nullabilitySuffix,
-            ) as InterfaceTypeImpl;
+                  typeArguments: typeArguments,
+                  nullabilitySuffix: mixinType.nullabilitySuffix,
+                )
+                as InterfaceTypeImpl;
           };
         }
       }
@@ -531,8 +533,9 @@ class _MixinInference {
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
-      inferenceUsingBoundsIsEnabled:
-          featureSet.isEnabled(Feature.inference_using_bounds),
+      inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
+        Feature.inference_using_bounds,
+      ),
       strictInference: false,
       strictCasts: false,
       typeSystemOperations: typeSystemOperations,
@@ -600,20 +603,28 @@ class _MixinsInference {
 
     try {
       // Casts aren't relevant for mixin inference.
-      var typeSystemOperations =
-          TypeSystemOperations(element.library.typeSystem, strictCasts: false);
+      var typeSystemOperations = TypeSystemOperations(
+        element.library.typeSystem,
+        strictCasts: false,
+      );
 
       if (declaration.withClause case var withClause?) {
-        var inference = _MixinInference(element, featureSet,
-            typeSystemOperations: typeSystemOperations);
+        var inference = _MixinInference(
+          element,
+          featureSet,
+          typeSystemOperations: typeSystemOperations,
+        );
         var inferred = inference.perform(withClause);
         element.mixins = inferred;
         declarationMixins.addAll(inferred);
       }
 
       for (var augmentation in declaration.augmentations) {
-        var inference = _MixinInference(element, featureSet,
-            typeSystemOperations: typeSystemOperations);
+        var inference = _MixinInference(
+          element,
+          featureSet,
+          typeSystemOperations: typeSystemOperations,
+        );
         inference.addTypes(
           augmentation.fromDeclaration.mapInterfaceTypes(declarationMixins),
         );

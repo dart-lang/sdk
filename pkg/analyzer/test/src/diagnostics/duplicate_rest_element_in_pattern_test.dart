@@ -16,14 +16,21 @@ main() {
 @reflectiveTest
 class DuplicateRestElementInPatternTest extends PubPackageResolutionTest {
   test_listPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(List<int> x) {
   if (x case [..., ...]) {}
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN, 41, 3,
-          contextMessages: [message(testFile, 36, 3)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
+          41,
+          3,
+          contextMessages: [message(testFile, 36, 3)],
+        ),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern

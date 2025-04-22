@@ -29,13 +29,19 @@ base class Bar implements Foo {}
 base class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base class Bar implements Foo {}
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          3,
+        ),
+      ],
+    );
   }
 
   test_class_outside_sealed() async {
@@ -43,24 +49,31 @@ base class Bar implements Foo {}
 base class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 sealed class B extends A {}
 base class C implements B {}
-''', [
-      error(
-        CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-        69,
-        1,
-        text:
-            "The class 'A' can't be implemented outside of its library because it's a base class.",
-        contextMessages: [
-          ExpectedContextMessage(a, 11, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          69,
+          1,
+          text:
+              "The class 'A' can't be implemented outside of its library because it's a base class.",
+          contextMessages: [
+            ExpectedContextMessage(
+              a,
+              11,
+              1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
-        ],
-      ),
-    ]);
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_class_outside_sealed_noBase() async {
@@ -70,24 +83,31 @@ base class C implements B {}
 base class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 sealed class B extends A {}
 class C implements B {}
-''', [
-      error(
-        CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-        64,
-        1,
-        text:
-            "The class 'A' can't be implemented outside of its library because it's a base class.",
-        contextMessages: [
-          ExpectedContextMessage(a, 11, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          64,
+          1,
+          text:
+              "The class 'A' can't be implemented outside of its library because it's a base class.",
+          contextMessages: [
+            ExpectedContextMessage(
+              a,
+              11,
+              1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
-        ],
-      ),
-    ]);
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaExtends() async {
@@ -95,14 +115,20 @@ class C implements B {}
 base class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 base class B extends A {}
 base class C implements B {}
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 67,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          67,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaTypedef_inside() async {
@@ -111,13 +137,19 @@ base class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base class Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          10,
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaTypedef_outside() async {
@@ -125,14 +157,20 @@ base class Bar implements FooTypedef {}
 base class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 base class Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 71,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          71,
+          10,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_inside() async {
@@ -149,25 +187,32 @@ base class C = Object with M implements B;
 base class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 sealed class B extends A {}
 mixin M {}
 base class C = Object with M implements B;
-''', [
-      error(
-        CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-        96,
-        1,
-        text:
-            "The class 'A' can't be implemented outside of its library because it's a base class.",
-        contextMessages: [
-          ExpectedContextMessage(a, 11, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          96,
+          1,
+          text:
+              "The class 'A' can't be implemented outside of its library because it's a base class.",
+          contextMessages: [
+            ExpectedContextMessage(
+              a,
+              11,
+              1,
               text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.")
-        ],
-      ),
-    ]);
+                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_enum_inside() async {
@@ -182,13 +227,19 @@ enum Bar implements Foo { bar }
 base class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 enum Bar implements Foo { bar }
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 39,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          39,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_outside_viaTypedef_inside() async {
@@ -197,13 +248,19 @@ base class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 39,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          39,
+          10,
+        ),
+      ],
+    );
   }
 
   test_enum_outside_viaTypedef_outside() async {
@@ -211,14 +268,20 @@ enum Bar implements FooTypedef { bar }
 base class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 65,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          65,
+          10,
+        ),
+      ],
+    );
   }
 
   test_mixin_inside() async {
@@ -233,13 +296,19 @@ base mixin Bar implements Foo {}
 base class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base mixin Bar implements Foo {}
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          3,
+        ),
+      ],
+    );
   }
 
   test_mixin_outside_viaTypedef_inside() async {
@@ -248,13 +317,19 @@ base class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 base mixin Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 45,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          45,
+          10,
+        ),
+      ],
+    );
   }
 
   test_mixin_outside_viaTypedef_outside() async {
@@ -262,13 +337,19 @@ base mixin Bar implements FooTypedef {}
 base class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 base mixin Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 71,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          71,
+          10,
+        ),
+      ],
+    );
   }
 }

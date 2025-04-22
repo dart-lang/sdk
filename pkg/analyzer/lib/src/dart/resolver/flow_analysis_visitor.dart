@@ -54,9 +54,11 @@ class FlowAnalysisDataForTesting {
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
-  final Map<AstNode,
-          AssignedVariablesForTesting<AstNode, PromotableElementImpl2>>
-      assignedVariables = {};
+  final Map<
+    AstNode,
+    AssignedVariablesForTesting<AstNode, PromotableElementImpl2>
+  >
+  assignedVariables = {};
 
   /// For each expression that led to an error because it was not promoted, a
   /// string describing the reason it was not promoted.
@@ -85,18 +87,30 @@ class FlowAnalysisHelper {
   final TypeAnalyzerOptions typeAnalyzerOptions;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
-      PromotableElementImpl2, SharedTypeView>? flow;
+  FlowAnalysis<
+    AstNodeImpl,
+    StatementImpl,
+    ExpressionImpl,
+    PromotableElementImpl2,
+    SharedTypeView
+  >?
+  flow;
 
-  FlowAnalysisHelper(bool retainDataForTesting,
-      {required TypeSystemOperations typeSystemOperations,
-      required TypeAnalyzerOptions typeAnalyzerOptions})
-      : this._(typeSystemOperations,
-            retainDataForTesting ? FlowAnalysisDataForTesting() : null,
-            typeAnalyzerOptions: typeAnalyzerOptions);
+  FlowAnalysisHelper(
+    bool retainDataForTesting, {
+    required TypeSystemOperations typeSystemOperations,
+    required TypeAnalyzerOptions typeAnalyzerOptions,
+  }) : this._(
+         typeSystemOperations,
+         retainDataForTesting ? FlowAnalysisDataForTesting() : null,
+         typeAnalyzerOptions: typeAnalyzerOptions,
+       );
 
-  FlowAnalysisHelper._(this.typeOperations, this.dataForTesting,
-      {required this.typeAnalyzerOptions});
+  FlowAnalysisHelper._(
+    this.typeOperations,
+    this.dataForTesting, {
+    required this.typeAnalyzerOptions,
+  });
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -108,9 +122,11 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.asExpression_end(expression,
-        subExpressionType: SharedTypeView(expression.typeOrThrow),
-        castType: SharedTypeView(typeAnnotation.typeOrThrow));
+    flow!.asExpression_end(
+      expression,
+      subExpressionType: SharedTypeView(expression.typeOrThrow),
+      castType: SharedTypeView(typeAnnotation.typeOrThrow),
+    );
   }
 
   void assignmentExpression(AssignmentExpressionImpl node) {
@@ -118,7 +134,9 @@ class FlowAnalysisHelper {
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
       flow!.ifNullExpression_rightBegin(
-          node.leftHandSide, SharedTypeView(node.readType!));
+        node.leftHandSide,
+        SharedTypeView(node.readType!),
+      );
     }
   }
 
@@ -144,18 +162,33 @@ class FlowAnalysisHelper {
   /// information within the body or initializer. If `null`, the entire [node]
   /// will be visited.
   void bodyOrInitializer_enter(
-      AstNodeImpl node, FormalParameterList? parameters,
-      {void Function(AstVisitor<Object?> visitor)? visit}) {
+    AstNodeImpl node,
+    FormalParameterList? parameters, {
+    void Function(AstVisitor<Object?> visitor)? visit,
+  }) {
     inferenceLogWriter?.enterBodyOrInitializer(node);
     assert(flow == null);
-    assignedVariables = computeAssignedVariables(node, parameters,
-        retainDataForTesting: dataForTesting != null, visit: visit);
+    assignedVariables = computeAssignedVariables(
+      node,
+      parameters,
+      retainDataForTesting: dataForTesting != null,
+      visit: visit,
+    );
     if (dataForTesting != null) {
-      dataForTesting!.assignedVariables[node] = assignedVariables
-          as AssignedVariablesForTesting<AstNodeImpl, PromotableElementImpl2>;
+      dataForTesting!.assignedVariables[node] =
+          assignedVariables
+              as AssignedVariablesForTesting<
+                AstNodeImpl,
+                PromotableElementImpl2
+              >;
     }
-    flow = FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
-        PromotableElementImpl2, SharedTypeView>(
+    flow = FlowAnalysis<
+      AstNodeImpl,
+      StatementImpl,
+      ExpressionImpl,
+      PromotableElementImpl2,
+      SharedTypeView
+    >(
       typeOperations,
       assignedVariables!,
       typeAnalyzerOptions: typeAnalyzerOptions,
@@ -198,8 +231,10 @@ class FlowAnalysisHelper {
   }
 
   void executableDeclaration_enter(
-      AstNodeImpl node, FormalParameterList? parameters,
-      {required bool isClosure}) {
+    AstNodeImpl node,
+    FormalParameterList? parameters, {
+    required bool isClosure,
+  }) {
     if (isClosure) {
       flow!.functionExpression_begin(node);
     }
@@ -212,8 +247,12 @@ class FlowAnalysisHelper {
             parameter.declaredFragment!.element as PromotableElementImpl2;
         // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
         // around a failure in duplicate_definition_test.dart; fix this.
-        flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
-            initialized: true, skipDuplicateCheck: true);
+        flow!.declare(
+          declaredElement,
+          SharedTypeView(declaredElement.type),
+          initialized: true,
+          skipDuplicateCheck: true,
+        );
       }
     }
   }
@@ -312,18 +351,23 @@ class FlowAnalysisHelper {
         var variable = variables[i];
         var declaredElement =
             variable.declaredElement2 as PromotableElementImpl2;
-        flow!.declare(declaredElement, SharedTypeView(declaredElement.type),
-            initialized: variable.initializer != null);
+        flow!.declare(
+          declaredElement,
+          SharedTypeView(declaredElement.type),
+          initialized: variable.initializer != null,
+        );
       }
     }
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNodeImpl, PromotableElementImpl2>
-      computeAssignedVariables(
-          AstNodeImpl node, FormalParameterList? parameters,
-          {bool retainDataForTesting = false,
-          void Function(AstVisitor<Object?> visitor)? visit}) {
+  computeAssignedVariables(
+    AstNodeImpl node,
+    FormalParameterList? parameters, {
+    bool retainDataForTesting = false,
+    void Function(AstVisitor<Object?> visitor)? visit,
+  }) {
     AssignedVariables<AstNodeImpl, PromotableElementImpl2> assignedVariables =
         retainDataForTesting
             ? AssignedVariablesForTesting()
@@ -344,8 +388,11 @@ class FlowAnalysisHelper {
   /// not specify a label), so the default enclosing target is returned.
   ///
   /// [isBreak] is `true` for `break`, and `false` for `continue`.
-  static StatementImpl? getLabelTarget(AstNode? node, Element2? element,
-      {required bool isBreak}) {
+  static StatementImpl? getLabelTarget(
+    AstNode? node,
+    Element2? element, {
+    required bool isBreak,
+  }) {
     for (; node != null; node = node.parent) {
       if (element == null) {
         switch (node) {
@@ -399,11 +446,17 @@ class FlowAnalysisHelper {
 
 class TypeSystemOperations
     with
-        TypeAnalyzerOperationsMixin<PromotableElementImpl2, InterfaceTypeImpl,
-            InterfaceElementImpl2>
+        TypeAnalyzerOperationsMixin<
+          PromotableElementImpl2,
+          InterfaceTypeImpl,
+          InterfaceElementImpl2
+        >
     implements
-        TypeAnalyzerOperations<PromotableElementImpl2, InterfaceTypeImpl,
-            InterfaceElementImpl2> {
+        TypeAnalyzerOperations<
+          PromotableElementImpl2,
+          InterfaceTypeImpl,
+          InterfaceElementImpl2
+        > {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -465,10 +518,14 @@ class TypeSystemOperations
     if (type is InvalidType) {
       return TypeClassification.potentiallyNullable;
     } else if (isSubtypeOfInternal(
-        unwrapped, typeSystem.typeProvider.objectType)) {
+      unwrapped,
+      typeSystem.typeProvider.objectType,
+    )) {
       return TypeClassification.nonNullable;
     } else if (isSubtypeOfInternal(
-        unwrapped, typeSystem.typeProvider.nullType)) {
+      unwrapped,
+      typeSystem.typeProvider.nullType,
+    )) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -476,19 +533,25 @@ class TypeSystemOperations
   }
 
   @override
-  TypeConstraintGenerator<PromotableElementImpl2, InterfaceTypeImpl,
-          InterfaceElementImpl2, AstNodeImpl>
-      createTypeConstraintGenerator(
-          {required covariant TypeConstraintGenerationDataForTesting?
-              typeConstraintGenerationDataForTesting,
-          required List<SharedTypeParameterView> typeParametersToInfer,
-          required covariant TypeSystemOperations typeAnalyzerOperations,
-          required bool inferenceUsingBoundsIsEnabled}) {
+  TypeConstraintGenerator<
+    PromotableElementImpl2,
+    InterfaceTypeImpl,
+    InterfaceElementImpl2,
+    AstNodeImpl
+  >
+  createTypeConstraintGenerator({
+    required covariant TypeConstraintGenerationDataForTesting?
+    typeConstraintGenerationDataForTesting,
+    required List<SharedTypeParameterView> typeParametersToInfer,
+    required covariant TypeSystemOperations typeAnalyzerOperations,
+    required bool inferenceUsingBoundsIsEnabled,
+  }) {
     return TypeConstraintGatherer(
-        typeParameters: typeParametersToInfer.cast<TypeParameterElementImpl2>(),
-        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-        typeSystemOperations: typeAnalyzerOperations,
-        dataForTesting: typeConstraintGenerationDataForTesting);
+      typeParameters: typeParametersToInfer.cast<TypeParameterElementImpl2>(),
+      inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+      typeSystemOperations: typeAnalyzerOperations,
+      dataForTesting: typeConstraintGenerationDataForTesting,
+    );
   }
 
   @override
@@ -498,8 +561,12 @@ class TypeSystemOperations
 
   @override
   SharedTypeView factor(SharedTypeView from, SharedTypeView what) {
-    return SharedTypeView(typeSystem.factor(
-        from.unwrapTypeView<TypeImpl>(), what.unwrapTypeView<TypeImpl>()));
+    return SharedTypeView(
+      typeSystem.factor(
+        from.unwrapTypeView<TypeImpl>(),
+        what.unwrapTypeView<TypeImpl>(),
+      ),
+    );
   }
 
   @override
@@ -520,7 +587,9 @@ class TypeSystemOperations
 
   @override
   Variance getTypeParameterVariance(
-      InterfaceElementImpl2 typeDeclaration, int parameterIndex) {
+    InterfaceElementImpl2 typeDeclaration,
+    int parameterIndex,
+  ) {
     return typeDeclaration.typeParameters2[parameterIndex].variance;
   }
 
@@ -531,15 +600,22 @@ class TypeSystemOperations
 
   @override
   SharedTypeView greatestClosure(SharedTypeSchemaView schema) {
-    return SharedTypeView(typeSystem
-        .greatestClosureOfSchema(schema.unwrapTypeSchemaView<TypeImpl>()));
+    return SharedTypeView(
+      typeSystem.greatestClosureOfSchema(
+        schema.unwrapTypeSchemaView<TypeImpl>(),
+      ),
+    );
   }
 
   @override
   TypeImpl greatestClosureOfTypeInternal(
-      TypeImpl type, List<SharedTypeParameter> typeParametersToEliminate) {
+    TypeImpl type,
+    List<SharedTypeParameter> typeParametersToEliminate,
+  ) {
     return typeSystem.greatestClosure(
-        type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
+      type,
+      typeParametersToEliminate.cast<TypeParameterElementImpl2>(),
+    );
   }
 
   @override
@@ -550,8 +626,10 @@ class TypeSystemOperations
   @override
   bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType) {
     return typeSystem.isAssignableTo(
-        fromType.unwrapTypeView<TypeImpl>(), toType.unwrapTypeView<TypeImpl>(),
-        strictCasts: strictCasts);
+      fromType.unwrapTypeView<TypeImpl>(),
+      toType.unwrapTypeView<TypeImpl>(),
+      strictCasts: strictCasts,
+    );
   }
 
   @override
@@ -624,11 +702,14 @@ class TypeSystemOperations
   }
 
   @override
-  bool isTypeSchemaSatisfied(
-      {required SharedTypeSchemaView typeSchema,
-      required SharedTypeView type}) {
+  bool isTypeSchemaSatisfied({
+    required SharedTypeSchemaView typeSchema,
+    required SharedTypeView type,
+  }) {
     return typeSystem.isSubtypeOf(
-        type.unwrapTypeView<TypeImpl>(), typeSchema.unwrapTypeSchemaView());
+      type.unwrapTypeView<TypeImpl>(),
+      typeSchema.unwrapTypeSchemaView(),
+    );
   }
 
   @override
@@ -638,16 +719,24 @@ class TypeSystemOperations
 
   @override
   SharedTypeSchemaView iterableTypeSchema(
-      SharedTypeSchemaView elementTypeSchema) {
-    return SharedTypeSchemaView(typeSystem.typeProvider
-        .iterableType(elementTypeSchema.unwrapTypeSchemaView<TypeImpl>()));
+    SharedTypeSchemaView elementTypeSchema,
+  ) {
+    return SharedTypeSchemaView(
+      typeSystem.typeProvider.iterableType(
+        elementTypeSchema.unwrapTypeSchemaView<TypeImpl>(),
+      ),
+    );
   }
 
   @override
   TypeImpl leastClosureOfTypeInternal(
-      TypeImpl type, List<SharedTypeParameter> typeParametersToEliminate) {
+    TypeImpl type,
+    List<SharedTypeParameter> typeParametersToEliminate,
+  ) {
     return typeSystem.leastClosure(
-        type, typeParametersToEliminate.cast<TypeParameterElementImpl2>());
+      type,
+      typeParametersToEliminate.cast<TypeParameterElementImpl2>(),
+    );
   }
 
   @override
@@ -707,7 +796,8 @@ class TypeSystemOperations
 
   @override
   ({SharedTypeView keyType, SharedTypeView valueType})? matchMapType(
-      SharedTypeView type) {
+    SharedTypeView type,
+  ) {
     var mapElement = typeSystem.typeProvider.mapElement2;
     var mapType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(mapElement);
     if (mapType != null) {
@@ -728,21 +818,23 @@ class TypeSystemOperations
 
   @override
   TypeDeclarationMatchResult<InterfaceTypeImpl, InterfaceElementImpl2>?
-      matchTypeDeclarationTypeInternal(TypeImpl type) {
+  matchTypeDeclarationTypeInternal(TypeImpl type) {
     if (isInterfaceTypeInternal(type)) {
       InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
       return TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
-          typeDeclarationType: interfaceType,
-          typeDeclaration: interfaceType.element3,
-          typeArguments: interfaceType.typeArguments);
+        typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+        typeDeclarationType: interfaceType,
+        typeDeclaration: interfaceType.element3,
+        typeArguments: interfaceType.typeArguments,
+      );
     } else if (isExtensionTypeInternal(type)) {
       InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
       return TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
-          typeDeclarationType: interfaceType,
-          typeDeclaration: interfaceType.element3,
-          typeArguments: interfaceType.typeArguments);
+        typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+        typeDeclarationType: interfaceType,
+        typeDeclaration: interfaceType.element3,
+        typeArguments: interfaceType.typeArguments,
+      );
     } else {
       return null;
     }
@@ -761,42 +853,53 @@ class TypeSystemOperations
   @override
   SharedTypeView normalize(SharedTypeView type) {
     return SharedTypeView(
-        typeSystem.normalize(type.unwrapTypeView<TypeImpl>()));
+      typeSystem.normalize(type.unwrapTypeView<TypeImpl>()),
+    );
   }
 
   @override
   SharedTypeView promoteToNonNull(SharedTypeView type) {
     return SharedTypeView(
-        typeSystem.promoteToNonNull(type.unwrapTypeView<TypeImpl>()));
+      typeSystem.promoteToNonNull(type.unwrapTypeView<TypeImpl>()),
+    );
   }
 
   @override
-  TypeImpl recordTypeInternal(
-      {required List<SharedType> positional,
-      required List<(String, SharedType)> named}) {
+  TypeImpl recordTypeInternal({
+    required List<SharedType> positional,
+    required List<(String, SharedType)> named,
+  }) {
     return RecordTypeImpl(
-      positionalFields: positional.map((type) {
-        return RecordTypePositionalFieldImpl(type: type as DartType);
-      }).toList(),
-      namedFields: named.map((namedType) {
-        var (name, type) = namedType;
-        return RecordTypeNamedFieldImpl(name: name, type: type as DartType);
-      }).toList(),
+      positionalFields:
+          positional.map((type) {
+            return RecordTypePositionalFieldImpl(type: type as DartType);
+          }).toList(),
+      namedFields:
+          named.map((namedType) {
+            var (name, type) = namedType;
+            return RecordTypeNamedFieldImpl(name: name, type: type as DartType);
+          }).toList(),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
   SharedTypeSchemaView streamTypeSchema(
-      SharedTypeSchemaView elementTypeSchema) {
-    return SharedTypeSchemaView(typeSystem.typeProvider
-        .streamType(elementTypeSchema.unwrapTypeSchemaView<TypeImpl>()));
+    SharedTypeSchemaView elementTypeSchema,
+  ) {
+    return SharedTypeSchemaView(
+      typeSystem.typeProvider.streamType(
+        elementTypeSchema.unwrapTypeSchemaView<TypeImpl>(),
+      ),
+    );
   }
 
   @override
   SharedTypeView? tryPromoteToType(SharedTypeView to, SharedTypeView from) {
     var result = typeSystem.tryPromoteToType(
-        to.unwrapTypeView<TypeImpl>(), from.unwrapTypeView<TypeImpl>());
+      to.unwrapTypeView<TypeImpl>(),
+      from.unwrapTypeView<TypeImpl>(),
+    );
     return result == null ? null : SharedTypeView(result);
   }
 
@@ -812,7 +915,8 @@ class TypeSystemOperations
 
   @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
-      covariant ExecutableElement2 property) {
+    covariant ExecutableElement2 property,
+  ) {
     if (property.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
     if (property is! PropertyAccessorElement2) {
       return PropertyNonPromotabilityReason.isNotField;
@@ -1177,9 +1281,10 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
     var variable = node.element as VariableElement2OrMember;
     if (variable is PromotableElementImpl2) {
-      var promotedType = isRead
-          ? _manager.flow?.variableRead(node, variable)
-          : _manager.flow?.promotedType(variable);
+      var promotedType =
+          isRead
+              ? _manager.flow?.variableRead(node, variable)
+              : _manager.flow?.promotedType(variable);
       if (promotedType != null) {
         return promotedType.unwrapTypeView<TypeImpl>();
       }

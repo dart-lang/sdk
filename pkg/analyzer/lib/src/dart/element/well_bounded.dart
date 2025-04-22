@@ -13,10 +13,7 @@ class NotWellBoundedTypeResult implements TypeBoundedResult {
   final String elementName;
   final List<TypeArgumentIssue> issues;
 
-  NotWellBoundedTypeResult._({
-    required this.elementName,
-    required this.issues,
-  });
+  NotWellBoundedTypeResult._({required this.elementName, required this.issues});
 }
 
 class RegularBoundedTypeResult implements WellBoundedTypeResult {
@@ -107,9 +104,7 @@ class TypeBoundedHelper {
 
       if (!typeSystem.isSubtypeOf(typeArgument, bound)) {
         issues ??= <TypeArgumentIssue>[];
-        issues.add(
-          TypeArgumentIssue(i, typeParameter, bound, typeArgument),
-        );
+        issues.add(TypeArgumentIssue(i, typeParameter, bound, typeArgument));
       }
     }
 

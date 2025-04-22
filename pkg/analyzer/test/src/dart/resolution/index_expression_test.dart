@@ -83,7 +83,8 @@ MethodInvocation
   }
 
   test_contextType_readWrite_writeLower() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int operator [](num index) => 0;
   operator []=(int index, int value) {}
@@ -94,9 +95,9 @@ void f(A a) {
 }
 
 T g<T>() => throw 0;
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 3)],
+    );
 
     var node = findNode.methodInvocation('g()');
     assertResolvedNodeText(node, r'''
@@ -296,7 +297,8 @@ IndexExpression
   }
 
   test_read_index_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     this[super];
@@ -304,9 +306,9 @@ class A {
 
   int operator[](Object index) => 0;
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5)],
+    );
 
     var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
@@ -325,13 +327,14 @@ IndexExpression
   }
 
   test_read_index_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(List<int> a) {
   a[b];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1)],
+    );
 
     var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
@@ -533,13 +536,14 @@ IndexExpression
   }
 
   test_read_target_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   a[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
 
     var node = findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''

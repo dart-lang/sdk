@@ -33,23 +33,25 @@ void f(Future<dynamic> future, String Function(dynamic, StackTrace) cb) {
   }
 
   test_invalidReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, String Function(dynamic, StackTrace) cb) {
   future.catchError(cb);
 }
-''', [
-      error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 90, 2),
-    ]);
+''',
+      [error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 90, 2)],
+    );
   }
 
   test_nullableReturnType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, String? Function(dynamic, StackTrace) cb) {
   future.catchError(cb);
 }
-''', [
-      error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 91, 2),
-    ]);
+''',
+      [error(WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR, 91, 2)],
+    );
   }
 
   test_returnTypeIsFuture() async {

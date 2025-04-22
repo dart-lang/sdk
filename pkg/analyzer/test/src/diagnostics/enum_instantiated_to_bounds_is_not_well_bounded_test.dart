@@ -17,17 +17,21 @@ main() {
 class EnumInstantiatedToBoundsIsNotWellBoundedTest
     extends PubPackageResolutionTest {
   test_enum_it() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef A<X> = X Function(X);
 
 enum E<T extends A<T>, U> {
   v<Never, int>()
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED,
           36,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

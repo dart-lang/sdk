@@ -21,9 +21,7 @@ List<AstNode> getNotPotentiallyConstants(
   AstNode node, {
   required FeatureSet featureSet,
 }) {
-  var collector = _Collector(
-    featureSet: featureSet,
-  );
+  var collector = _Collector(featureSet: featureSet);
   collector.collect(node);
   return collector.nodes;
 }

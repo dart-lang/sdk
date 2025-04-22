@@ -36,10 +36,7 @@ class AssignmentVerifier {
     if (requested != null) {
       if (requested is VariableElement2) {
         if (requested.isConst) {
-          _errorReporter.atNode(
-            node,
-            CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
-          );
+          _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_CONST);
         }
       }
       return;
@@ -49,21 +46,12 @@ class AssignmentVerifier {
         recovery is InterfaceElement2 ||
         recovery is TypeAliasElement2 ||
         recovery is TypeParameterElement2) {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_TYPE);
     } else if (recovery is LocalFunctionElement ||
         recovery is TopLevelFunctionElement) {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION);
     } else if (recovery is MethodElement2) {
-      _errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
-      );
+      _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_METHOD);
     } else if (recovery is PrefixElement2) {
       if (recovery.name3 case var prefixName?) {
         _errorReporter.atNode(
@@ -84,18 +72,12 @@ class AssignmentVerifier {
       }
 
       if (variable.isConst) {
-        _errorReporter.atNode(
-          node,
-          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
-        );
+        _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_CONST);
       } else if (variable is FieldElement2 && variable.isSynthetic) {
         _errorReporter.atNode(
           node,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [
-            variableName,
-            variable.enclosingElement2.displayName,
-          ],
+          arguments: [variableName, variable.enclosingElement2.displayName],
         );
       } else {
         _errorReporter.atNode(

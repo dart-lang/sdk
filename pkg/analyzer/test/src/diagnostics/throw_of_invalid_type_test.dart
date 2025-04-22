@@ -32,12 +32,13 @@ f(int a) {
   }
 
   test_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int? a) {
   throw a;
 }
-''', [
-      error(CompileTimeErrorCode.THROW_OF_INVALID_TYPE, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.THROW_OF_INVALID_TYPE, 20, 1)],
+    );
   }
 }

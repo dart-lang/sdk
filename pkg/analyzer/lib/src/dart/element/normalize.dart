@@ -46,11 +46,10 @@ class NormalizeHelper {
 
     return FunctionTypeImpl.v2(
       typeParameters: functionType.typeParameters,
-      formalParameters: functionType.formalParameters.map((e) {
-        return e.copyWith(
-          type: _normalize(e.type),
-        );
-      }).toFixedList(),
+      formalParameters:
+          functionType.formalParameters.map((e) {
+            return e.copyWith(type: _normalize(e.type));
+          }).toFixedList(),
       returnType: _normalize(functionType.returnType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -142,17 +141,19 @@ class NormalizeHelper {
     // NORM(Record(T0, ..., Tn)) = Record(R0, ..., Rn) where Ri is NORM(Ti)
     if (T is RecordTypeImpl) {
       return RecordTypeImpl(
-        positionalFields: T.positionalFields.map((field) {
-          return RecordTypePositionalFieldImpl(
-            type: _normalize(field.type),
-          );
-        }).toFixedList(),
-        namedFields: T.namedFields.map((field) {
-          return RecordTypeNamedFieldImpl(
-            name: field.name,
-            type: _normalize(field.type),
-          );
-        }).toFixedList(),
+        positionalFields:
+            T.positionalFields.map((field) {
+              return RecordTypePositionalFieldImpl(
+                type: _normalize(field.type),
+              );
+            }).toFixedList(),
+        namedFields:
+            T.namedFields.map((field) {
+              return RecordTypeNamedFieldImpl(
+                name: field.name,
+                type: _normalize(field.type),
+              );
+            }).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }
@@ -237,7 +238,9 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// * let S be NORM(T)
   TypeImpl _typeParameterType_promoted(
-      TypeParameterElementImpl2 X, TypeImpl S) {
+    TypeParameterElementImpl2 X,
+    TypeImpl S,
+  ) {
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;
@@ -245,18 +248,14 @@ class NormalizeHelper {
 
     // * if S is a top type then X
     if (typeSystem.isTop(S)) {
-      return X.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      return X.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     }
 
     // * if S is X then X
     if (S is TypeParameterType &&
         S.nullabilitySuffix == NullabilitySuffix.none &&
         S.element3 == X) {
-      return X.instantiate(
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      return X.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     }
 
     // * if S is Object and NORM(B) is Object where B is the bound of X then X
@@ -266,9 +265,7 @@ class NormalizeHelper {
         var B_norm = _normalize(B);
         if (B_norm.nullabilitySuffix == NullabilitySuffix.none &&
             B_norm.isDartCoreObject) {
-          return X.instantiate(
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
+          return X.instantiate(nullabilitySuffix: NullabilitySuffix.none);
         }
       }
     }

@@ -83,13 +83,14 @@ class C {
   }
 
   test_class_field_noConstructor_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   final int x;
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 31, 1)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -139,14 +140,15 @@ class C {
   }
 
   test_class_instanceField_final_factoryConstructor_only() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int x;
 
   factory A() => throw 0;
-}''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1)],
+    );
   }
 
   test_enum_field_constructorFieldInitializer() async {
@@ -179,88 +181,97 @@ enum E {
   }
 
   test_enum_field_noConstructor_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   final int x;
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 26, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 26, 1)],
+    );
   }
 
   test_extension_static() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {
   static final F;
-}''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 39, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 39, 1)],
+    );
   }
 
   test_instanceField_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final F;
-}''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1)],
+    );
   }
 
   test_instanceField_final_static() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static final F;
-}''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 25, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 25, 1)],
+    );
   }
 
   test_library_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final F;
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 6, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 6, 1)],
+    );
   }
 
   test_local_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   final int x;
-}''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+}''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+    );
   }
 
   test_localVariable_initializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   late final x = 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+    );
   }
 
   test_localVariable_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   late final x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+    );
   }
 
   test_mixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   final int x;
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1)],
+    );
   }
 
   test_mixin_OK() async {
@@ -278,10 +289,11 @@ external final int x;
   }
 
   test_topLevel_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final int x;
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 10, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 10, 1)],
+    );
   }
 }

@@ -37,8 +37,13 @@ class MulticastInstrumentationService implements InstrumentationService {
   }
 
   @override
-  void logLogEntry(String level, DateTime time, String message,
-      Object exception, StackTrace stackTrace) {
+  void logLogEntry(
+    String level,
+    DateTime time,
+    String message,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
     for (var service in _services) {
       service.logLogEntry(level, time, message, exception, stackTrace);
     }
@@ -53,7 +58,11 @@ class MulticastInstrumentationService implements InstrumentationService {
 
   @override
   void logPluginError(
-      PluginData plugin, String code, String message, String stackTrace) {
+    PluginData plugin,
+    String code,
+    String message,
+    String stackTrace,
+  ) {
     for (var service in _services) {
       service.logPluginError(plugin, code, message, stackTrace);
     }
@@ -61,7 +70,10 @@ class MulticastInstrumentationService implements InstrumentationService {
 
   @override
   void logPluginException(
-      PluginData plugin, Object exception, StackTrace? stackTrace) {
+    PluginData plugin,
+    Object exception,
+    StackTrace? stackTrace,
+  ) {
     for (var service in _services) {
       service.logPluginException(plugin, exception, stackTrace);
     }
@@ -110,11 +122,21 @@ class MulticastInstrumentationService implements InstrumentationService {
   }
 
   @override
-  void logVersion(String uuid, String clientId, String clientVersion,
-      String serverVersion, String sdkVersion) {
+  void logVersion(
+    String uuid,
+    String clientId,
+    String clientVersion,
+    String serverVersion,
+    String sdkVersion,
+  ) {
     for (var service in _services) {
       service.logVersion(
-          uuid, clientId, clientVersion, serverVersion, sdkVersion);
+        uuid,
+        clientId,
+        clientVersion,
+        serverVersion,
+        sdkVersion,
+      );
     }
   }
 

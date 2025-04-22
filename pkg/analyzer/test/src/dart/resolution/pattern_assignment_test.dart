@@ -17,16 +17,17 @@ main() {
 @reflectiveTest
 class PatternAssignmentResolutionTest extends PubPackageResolutionTest {
   test_assignable_final_definitelyAssigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   final int a;
   a = 0;
   (a) = 1;
   a;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 38, 1)],
+    );
   }
 
   test_assignable_final_definitelyUnassigned() async {
@@ -40,7 +41,8 @@ void f() {
   }
 
   test_assignable_final_notDefinitelyUnassigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(bool flag) {
   final int a;
   if (flag) {
@@ -49,22 +51,23 @@ void f(bool flag) {
   (a) = 1;
   a;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 67, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 67, 1)],
+    );
   }
 
   test_assignable_lateFinal_definitelyAssigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   late final int a;
   a = 0;
   (a) = 1;
   a;
 }
-''', [
-      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 43, 1)],
+    );
   }
 
   test_assignable_lateFinal_definitelyUnassigned() async {
@@ -340,45 +343,52 @@ PatternAssignment
     // Note: the error is reporting during parsing but we test it here to make
     // sure that error recovery produces an AST that can be analyzed without
     // crashing.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(a, y) {
   [a, var d] = y;
   d;
 }
-''', [
-      // The reference doesn't resolve so the errors include
-      // UNUSED_LOCAL_VARIABLE and UNDEFINED_IDENTIFIER.
-      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
-    ]);
+''',
+      [
+        // The reference doesn't resolve so the errors include
+        // UNUSED_LOCAL_VARIABLE and UNDEFINED_IDENTIFIER.
+        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+      ],
+    );
   }
 
   test_declaredVariable_inPatternAssignment_unreferenced() async {
     // Note: the error is reporting during parsing but we test it here to make
     // sure that error recovery produces an AST that can be analyzed without
     // crashing.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(a, y) {
   [a, var d] = y;
 }
-''', [
-      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
-    ]);
+''',
+      [
+        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+      ],
+    );
   }
 
   test_final_becomesDefinitelyAssigned() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   final int a;
   (a) = 0;
   a;
   a = 1;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 44, 1)],
+    );
   }
 
   test_promotes() async {

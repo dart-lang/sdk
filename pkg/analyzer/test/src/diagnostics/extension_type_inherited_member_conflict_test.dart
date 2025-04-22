@@ -9,9 +9,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(
-      ExtensionTypeInheritedMemberConflictTest_extension2,
-    );
+    defineReflectiveTests(ExtensionTypeInheritedMemberConflictTest_extension2);
     defineReflectiveTests(
       ExtensionTypeInheritedMemberConflictTest_extensionAndNot,
     );
@@ -25,7 +23,8 @@ main() {
 class ExtensionTypeInheritedMemberConflictTest_extension2
     extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A1(int it) {
   void foo() {}
 }
@@ -35,37 +34,36 @@ extension type A2(int it) {
 }
 
 extension type B(int it) implements A1, A2 {}
-''', [
-      error(
-        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
-        109,
-        1,
-        contextMessages: [
-          message(testFile, 35, 3),
-          message(testFile, 82, 3),
-        ],
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          109,
+          1,
+          contextMessages: [message(testFile, 35, 3), message(testFile, 82, 3)],
+        ),
+      ],
+    );
   }
 
   test_conflict_representationField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(String bar) {}
 
 extension type B(String bar) {}
 
 extension type C(String foo) implements A, B {}
-''', [
-      error(
-        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
-        81,
-        1,
-        contextMessages: [
-          message(testFile, 24, 3),
-          message(testFile, 57, 3),
-        ],
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          81,
+          1,
+          contextMessages: [message(testFile, 24, 3), message(testFile, 57, 3)],
+        ),
+      ],
+    );
   }
 
   test_noConflict_redeclared() async {
@@ -103,7 +101,8 @@ extension type C(int it) implements B1, B2 {}
 class ExtensionTypeInheritedMemberConflictTest_extensionAndNot
     extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void foo() {}
 }
@@ -113,17 +112,16 @@ extension type B(A it) {
 }
 
 extension type C(A it) implements A, B {}
-''', [
-      error(
-        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
-        88,
-        1,
-        contextMessages: [
-          message(testFile, 17, 3),
-          message(testFile, 61, 3),
-        ],
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          88,
+          1,
+          contextMessages: [message(testFile, 17, 3), message(testFile, 61, 3)],
+        ),
+      ],
+    );
   }
 
   test_redeclared() async {
@@ -147,7 +145,8 @@ extension type C(A it) implements A, B {
 class ExtensionTypeInheritedMemberConflictTest_notExtension
     extends PubPackageResolutionTest {
   test_conflict() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void foo(int a) {}
 }
@@ -161,14 +160,16 @@ class C implements A, B {
 }
 
 extension type D(C it) implements A, B {}
-''', [
-      error(
-        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
-        139,
-        1,
-        contextMessages: [message(testFile, 17, 3), message(testFile, 51, 3)],
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+          139,
+          1,
+          contextMessages: [message(testFile, 17, 3), message(testFile, 51, 3)],
+        ),
+      ],
+    );
   }
 
   test_noConflict_notExtension_combined() async {

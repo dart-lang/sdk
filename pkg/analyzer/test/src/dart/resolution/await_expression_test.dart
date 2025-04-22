@@ -61,15 +61,16 @@ f(Future<int>? a) async {
   }
 
   test_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() async {
     await super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5)],
+    );
 
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
@@ -110,13 +111,14 @@ AwaitExpression
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() async {
   await unresolved;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 25, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 25, 10)],
+    );
 
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
@@ -131,15 +133,16 @@ AwaitExpression
   }
 
   test_unresolved_prefixedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
 
 void f() async {
   await prefix.unresolved;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 63, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 63, 10)],
+    );
 
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
@@ -162,13 +165,14 @@ AwaitExpression
   }
 
   test_unresolved_propertyAccess() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() async {
   await 0.isEven.unresolved;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 10)],
+    );
 
     var node = findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''

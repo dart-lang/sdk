@@ -66,8 +66,9 @@ main() {
     });
 
     test('different ignore patterns root', () {
-      var filter = PathFilter(
-          root('/home/my'), root('/home'), ['my/test/ignored/*.dart'], context);
+      var filter = PathFilter(root('/home/my'), root('/home'), [
+        'my/test/ignored/*.dart',
+      ], context);
       expect(filter.ignored(root('/home/my/lib/a.dart')), isFalse);
       expect(filter.ignored(root('/home/my/test/ignored/b.dart')), isTrue);
     });

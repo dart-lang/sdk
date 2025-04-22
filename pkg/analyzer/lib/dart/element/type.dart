@@ -144,10 +144,7 @@ abstract class DartType {
   R accept<R>(TypeVisitor<R> visitor);
 
   /// Use the given [visitor] to visit this type.
-  R acceptWithArgument<R, A>(
-    TypeVisitorWithArgument<R, A> visitor,
-    A argument,
-  );
+  R acceptWithArgument<R, A>(TypeVisitorWithArgument<R, A> visitor, A argument);
 
   /// Return the canonical interface that this type implements for [element],
   /// or `null` if such an interface does not exist.
@@ -349,7 +346,9 @@ abstract class InterfaceType implements ParameterizedType {
   /// NoSuchMethodException is thrown.
   /// </blockquote>
   ConstructorElement2? lookUpConstructor2(
-      String? name, LibraryElement2 library);
+    String? name,
+    LibraryElement2 library,
+  );
 
   /// Return the getter with the given [name].
   ///

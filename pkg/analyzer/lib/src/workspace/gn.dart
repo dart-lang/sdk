@@ -55,7 +55,8 @@ class GnWorkspace extends Workspace {
   ) {
     if (summaryData != null) {
       throw UnsupportedError(
-          'Summary files are not supported in a GN workspace.');
+        'Summary files are not supported in a GN workspace.',
+      );
     }
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
@@ -147,14 +148,17 @@ class GnWorkspace extends Workspace {
     File buildGnFile,
   ) {
     path.Context pathContext = provider.pathContext;
-    String sourceDirectory =
-        pathContext.relative(buildGnFile.parent.path, from: root);
+    String sourceDirectory = pathContext.relative(
+      buildGnFile.parent.path,
+      from: root,
+    );
     var outDirectory = _getOutDirectory(root, provider);
     if (outDirectory == null) {
       return const <File>[];
     }
     Folder genDir = outDirectory.getChildAssumingFolder(
-        pathContext.join('dartlang', 'gen', sourceDirectory));
+      pathContext.join('dartlang', 'gen', sourceDirectory),
+    );
     if (!genDir.exists) {
       return const <File>[];
     }
@@ -174,8 +178,9 @@ class GnWorkspace extends Workspace {
     const String fuchsiaDirConfigFile = '.fx-build-dir';
 
     path.Context pathContext = provider.pathContext;
-    File configFile =
-        provider.getFile(pathContext.join(root, fuchsiaDirConfigFile));
+    File configFile = provider.getFile(
+      pathContext.join(root, fuchsiaDirConfigFile),
+    );
     if (configFile.exists) {
       String buildDirPath = configFile.readAsStringSync().trim();
       if (buildDirPath.isNotEmpty) {
@@ -189,14 +194,14 @@ class GnWorkspace extends Workspace {
     if (!outDirectory.exists) {
       return null;
     }
-    return outDirectory.getChildren().whereType<Folder>().firstWhereOrNull(
-      (folder) {
-        String baseName = pathContext.basename(folder.path);
-        // Taking a best guess to identify a build dir. This is clearly a fallback
-        // to the config-based method.
-        return baseName.startsWith('debug') || baseName.startsWith('release');
-      },
-    );
+    return outDirectory.getChildren().whereType<Folder>().firstWhereOrNull((
+      folder,
+    ) {
+      String baseName = pathContext.basename(folder.path);
+      // Taking a best guess to identify a build dir. This is clearly a fallback
+      // to the config-based method.
+      return baseName.startsWith('debug') || baseName.startsWith('release');
+    });
   }
 }
 
@@ -240,8 +245,11 @@ class GnWorkspacePackage extends WorkspacePackage {
     if (filePath == null) return false;
     var libFolder = workspace.provider.pathContext.join(root, 'lib');
     if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
-      var libSrcFolder =
-          workspace.provider.pathContext.join(root, 'lib', 'src');
+      var libSrcFolder = workspace.provider.pathContext.join(
+        root,
+        'lib',
+        'src',
+      );
       return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
     }
     return false;

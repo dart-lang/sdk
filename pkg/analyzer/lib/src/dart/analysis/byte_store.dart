@@ -121,7 +121,7 @@ class MemoryCachingByteStore implements ByteStore {
   final Cache<String, Uint8List> _cache;
 
   MemoryCachingByteStore(this._store, int maxSizeBytes)
-      : _cache = Cache<String, Uint8List>(maxSizeBytes, (v) => v.length);
+    : _cache = Cache<String, Uint8List>(maxSizeBytes, (v) => v.length);
 
   @override
   Uint8List? get(String key) {

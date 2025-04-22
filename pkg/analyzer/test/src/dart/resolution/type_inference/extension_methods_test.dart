@@ -383,7 +383,8 @@ main() {
   }
 
   test_override_downward_hasTypeArguments_wrongNumber() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E<T> on Set<T> {
   void foo() {}
 }
@@ -391,10 +392,15 @@ extension E<T> on Set<T> {
 main() {
   E<int, bool>({}).foo();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 58,
-          11),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          58,
+          11,
+        ),
+      ],
+    );
     var literal = findNode.setOrMapLiteral('{}).');
     assertType(literal, 'Set<dynamic>');
   }
@@ -645,7 +651,8 @@ AssignmentExpression
   }
 
   test_override_inferTypeArguments_error_couldNotInfer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E<T extends num> on T {
   void foo() {}
 }
@@ -653,10 +660,15 @@ extension E<T extends num> on T {
 f(String s) {
   E(s).foo();
 }
-''', [
-      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 71,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          71,
+          1,
+        ),
+      ],
+    );
     var override = findNode.extensionOverride('E(s)');
     assertElementTypes(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'num');

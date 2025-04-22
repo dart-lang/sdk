@@ -15,8 +15,11 @@ final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');
 
 /// Create a library name prefix based on [libraryPath], [projectRoot] and
 /// current [packageName].
-String createLibraryNamePrefix(
-    {required String libraryPath, String? projectRoot, String? packageName}) {
+String createLibraryNamePrefix({
+  required String libraryPath,
+  String? projectRoot,
+  String? packageName,
+}) {
   // Use the posix context to canonicalize separators (`\`).
   var libraryDirectory = path.posix.dirname(libraryPath);
   var relativePath = path.posix.relative(libraryDirectory, from: projectRoot);
@@ -60,18 +63,15 @@ abstract class _AbstractSpelunker {
   FeatureSet featureSet;
 
   _AbstractSpelunker({StringSink? sink, FeatureSet? featureSet})
-      : sink = sink ?? stdout,
-        featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
+    : sink = sink ?? stdout,
+      featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
   String getSource();
 
   void spelunk() {
     var contents = getSource();
 
-    var parseResult = parseString(
-      content: contents,
-      featureSet: featureSet,
-    );
+    var parseResult = parseString(content: contents, featureSet: featureSet);
 
     var visitor = _SourceVisitor(sink);
     parseResult.unit.accept(visitor);
@@ -128,6 +128,7 @@ class _SourceVisitor extends GeneralizingAstVisitor {
     }
 
     sink.writeln(
-        '${"  " * indent}${asString(node)} ${getTrailingComment(node)}');
+      '${"  " * indent}${asString(node)} ${getTrailingComment(node)}',
+    );
   }
 }

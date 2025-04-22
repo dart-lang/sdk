@@ -26,8 +26,10 @@ class ErrorReporterTest extends PubPackageResolutionTest {
     await resolveTestCode('class A {}');
     var element = findElement2.class_('A');
     var firstFragment = element.firstFragment;
-    var reporter =
-        ErrorReporter(listener, firstFragment.libraryFragment.source);
+    var reporter = ErrorReporter(
+      listener,
+      firstFragment.libraryFragment.source,
+    );
     reporter.atElement2(
       element,
       CompileTimeErrorCode.CAST_TO_NON_TYPE,
@@ -45,8 +47,10 @@ extension on int {}
     var element = findElement2.unnamedExtension();
 
     var firstFragment = element.firstFragment;
-    var reporter =
-        ErrorReporter(listener, firstFragment.libraryFragment.source);
+    var reporter = ErrorReporter(
+      listener,
+      firstFragment.libraryFragment.source,
+    );
     reporter.atElement2(
       element,
       CompileTimeErrorCode.CAST_TO_NON_TYPE,
@@ -71,17 +75,23 @@ main() {
     var aImport = findElement2.importFind('package:test/a.dart');
     var bImport = findElement2.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').instantiate(
-      typeArguments: [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    var secondType = bImport.class_('B').instantiate(
-      typeArguments: [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var firstType = aImport
+        .class_('A')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+    var secondType = bImport
+        .class_('B')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
 
     var reporter = ErrorReporter(
-        listener, firstType.element3.firstFragment.libraryFragment.source);
+      listener,
+      firstType.element3.firstFragment.libraryFragment.source,
+    );
 
     reporter.atNode(
       findNode.simple('x'),
@@ -107,17 +117,23 @@ main() {
     var aImport = findElement2.importFind('package:test/a.dart');
     var bImport = findElement2.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').instantiate(
-      typeArguments: [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    var secondType = bImport.class_('A').instantiate(
-      typeArguments: [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var firstType = aImport
+        .class_('A')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+    var secondType = bImport
+        .class_('A')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
 
     var reporter = ErrorReporter(
-        listener, firstType.element3.firstFragment.libraryFragment.source);
+      listener,
+      firstType.element3.firstFragment.libraryFragment.source,
+    );
     reporter.atNode(
       findNode.simple('x'),
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,

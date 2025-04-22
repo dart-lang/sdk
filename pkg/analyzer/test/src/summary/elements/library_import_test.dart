@@ -19,9 +19,7 @@ main() {
 
 abstract class LibraryImportElementTest extends ElementsBaseTest {
   test_import_configurations_useDefault() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-    };
+    declaredVariables = {'dart.library.io': 'false'};
     newFile('$testPackageLibPath/foo.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
@@ -720,8 +718,9 @@ import 'foo.dart';
   test_imports() async {
     newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     newFile('$testPackageLibPath/b.dart', 'library b; class D {}');
-    var library =
-        await buildLibrary('import "a.dart"; import "b.dart"; C c; D d;');
+    var library = await buildLibrary(
+      'import "a.dart"; import "b.dart"; C c; D d;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -819,8 +818,9 @@ import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    var p1 = library.definingCompilationUnit.prefixes
-        .singleWhere((prefix) => prefix.name3 == 'p1');
+    var p1 = library.definingCompilationUnit.prefixes.singleWhere(
+      (prefix) => prefix.name3 == 'p1',
+    );
     var libraryImports = library.definingCompilationUnit.libraryImports;
     var import_async = libraryImports[0];
     var import_math = libraryImports[2];

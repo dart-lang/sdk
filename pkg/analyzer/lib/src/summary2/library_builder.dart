@@ -208,9 +208,10 @@ class LibraryBuilder {
       if (enumFragment is! EnumElementImpl) continue;
       if (hasConstructor(enumFragment)) continue;
 
-      var constructor = ConstructorElementImpl('', -1)
-        ..isConst = true
-        ..isSynthetic = true;
+      var constructor =
+          ConstructorElementImpl('', -1)
+            ..isConst = true
+            ..isSynthetic = true;
       var containerRef = enumFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
       reference.element = constructor;
@@ -218,10 +219,8 @@ class LibraryBuilder {
       constructor.typeName = enumFragment.name2;
       constructor.name2 = 'new';
 
-      enumFragment.constructors = [
-        ...enumFragment.constructors,
-        constructor,
-      ].toFixedList();
+      enumFragment.constructors =
+          [...enumFragment.constructors, constructor].toFixedList();
     }
   }
 
@@ -254,9 +253,10 @@ class LibraryBuilder {
 
   /// Computes which fields in this library are promotable.
   void computeFieldPromotability() {
-    _FieldPromotability(this,
-            enabled: element.featureSet.isEnabled(Feature.inference_update_2))
-        .perform();
+    _FieldPromotability(
+      this,
+      enabled: element.featureSet.isEnabled(Feature.inference_update_2),
+    ).perform();
   }
 
   void declare(String name, Reference reference) {
@@ -404,30 +404,31 @@ class LibraryBuilder {
     required FileKind kind,
     required CompilationUnitElementImpl containerUnit,
   }) {
-    containerUnit.libraryExports = kind.libraryExports.map((state) {
-      return _buildLibraryExport(state);
-    }).toFixedList();
+    containerUnit.libraryExports =
+        kind.libraryExports.map((state) {
+          return _buildLibraryExport(state);
+        }).toFixedList();
 
-    containerUnit.libraryImports = kind.libraryImports.map((state) {
-      return _buildLibraryImport(
-        containerUnit: containerUnit,
-        state: state,
-      );
-    }).toFixedList();
+    containerUnit.libraryImports =
+        kind.libraryImports.map((state) {
+          return _buildLibraryImport(
+            containerUnit: containerUnit,
+            state: state,
+          );
+        }).toFixedList();
 
-    containerUnit.parts = kind.partIncludes.map((partState) {
-      return _buildPartInclude(
-        containerLibrary: element,
-        containerUnit: containerUnit,
-        state: partState,
-      );
-    }).toFixedList();
+    containerUnit.parts =
+        kind.partIncludes.map((partState) {
+          return _buildPartInclude(
+            containerLibrary: element,
+            containerUnit: containerUnit,
+            state: partState,
+          );
+        }).toFixedList();
   }
 
   LibraryExportElementImpl _buildLibraryExport(LibraryExportState state) {
-    var combinators = _buildCombinators(
-      state.unlinked.combinators,
-    );
+    var combinators = _buildCombinators(state.unlinked.combinators);
 
     DirectiveUri uri;
     switch (state) {
@@ -507,9 +508,7 @@ class LibraryBuilder {
       );
     });
 
-    var combinators = _buildCombinators(
-      state.unlinked.combinators,
-    );
+    var combinators = _buildCombinators(state.unlinked.combinators);
 
     DirectiveUri uri;
     switch (state) {
@@ -631,8 +630,9 @@ class LibraryBuilder {
           unitElement.isSynthetic = !partFile.exists;
           unitElement.setCodeRange(0, partUnitNode.length);
 
-          var unitReference =
-              reference.getChild('@fragment').getChild(partFile.uriStr);
+          var unitReference = reference
+              .getChild('@fragment')
+              .getChild(partFile.uriStr);
           _bindReference(unitReference, unitElement);
 
           units.add(
@@ -643,10 +643,7 @@ class LibraryBuilder {
             ),
           );
 
-          _buildDirectives(
-            kind: includedPart,
-            containerUnit: unitElement,
-          );
+          _buildDirectives(kind: includedPart, containerUnit: unitElement);
 
           directiveUri = DirectiveUriWithUnitImpl(
             relativeUriString: state.selectedUri.relativeUriStr,
@@ -683,9 +680,7 @@ class LibraryBuilder {
         }
     }
 
-    return PartElementImpl(
-      uri: directiveUri,
-    );
+    return PartElementImpl(uri: directiveUri);
   }
 
   /// We want to have stable references for `loadLibrary` function. But we
@@ -733,9 +728,7 @@ class LibraryBuilder {
     var libraryReference = rootReference.getChild(libraryUriStr);
 
     var libraryUnitNode = performance.run('libraryFile', (performance) {
-      return libraryFile.parse(
-        performance: performance,
-      );
+      return libraryFile.parse(performance: performance);
     });
 
     var name = '';
@@ -828,8 +821,13 @@ class LinkingUnit {
 
 /// This class examines all the [InterfaceElementImpl2]s in a library and
 /// determines which fields are promotable within that library.
-class _FieldPromotability extends FieldPromotability<InterfaceElementImpl2,
-    FieldElementImpl2, GetterElementImpl> {
+class _FieldPromotability
+    extends
+        FieldPromotability<
+          InterfaceElementImpl2,
+          FieldElementImpl2,
+          GetterElementImpl
+        > {
   /// The [_libraryBuilder] for the library being analyzed.
   final LibraryBuilder _libraryBuilder;
 
@@ -877,22 +875,13 @@ class _FieldPromotability extends FieldPromotability<InterfaceElementImpl2,
     // recording the non-synthetic instance fields and getters of each.
     var element = _libraryBuilder.element;
     for (var class_ in element.classes) {
-      _handleMembers(
-        addClass(class_, isAbstract: class_.isAbstract),
-        class_,
-      );
+      _handleMembers(addClass(class_, isAbstract: class_.isAbstract), class_);
     }
     for (var enum_ in element.enums) {
-      _handleMembers(
-        addClass(enum_, isAbstract: false),
-        enum_,
-      );
+      _handleMembers(addClass(enum_, isAbstract: false), enum_);
     }
     for (var mixin_ in element.mixins) {
-      _handleMembers(
-        addClass(mixin_, isAbstract: true),
-        mixin_,
-      );
+      _handleMembers(addClass(mixin_, isAbstract: true), mixin_);
     }
 
     // Private representation fields of extension types are always promotable.
@@ -923,7 +912,7 @@ class _FieldPromotability extends FieldPromotability<InterfaceElementImpl2,
           conflictingFields: value.conflictingFields,
           conflictingGetters: value.conflictingGetters,
           conflictingNsmClasses: value.conflictingNsmClasses,
-        )
+        ),
     };
   }
 

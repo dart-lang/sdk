@@ -298,13 +298,14 @@ const foo = 42;
   }
 
   test_location_partDirective_fileDoesNotExist() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @foo
 part 'a.dart';
 const foo = 42;
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 10, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 10, 8)],
+    );
 
     _assertAtFoo42();
   }

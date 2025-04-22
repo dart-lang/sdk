@@ -38,8 +38,10 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
           // Not sure why this breaks under Windows, but testing to see whether
           // we are running Windows causes the type to change. For now we print
           // the type out of curiosity.
-          print('PhysicalResourceProviderWatchTest:test_watchFile_delete '
-              'received an event with type = ${changesReceived[0].type}');
+          print(
+            'PhysicalResourceProviderWatchTest:test_watchFile_delete '
+            'received an event with type = ${changesReceived[0].type}',
+          );
         } else {
           expect(changesReceived[0].type, equals(ChangeType.REMOVE));
         }
@@ -138,7 +140,9 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
   }
 
   _watchingFile(
-      String filePath, Function(List<WatchEvent> changesReceived) test) {
+    String filePath,
+    Function(List<WatchEvent> changesReceived) test,
+  ) {
     // Delay before we start watching the file.  This is necessary
     // because on MacOS, file modifications that occur just before we
     // start watching are sometimes misclassified as happening just after
@@ -156,7 +160,9 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
   }
 
   _watchingFolder(
-      String filePath, Function(List<WatchEvent> changesReceived) test) {
+    String filePath,
+    Function(List<WatchEvent> changesReceived) test,
+  ) {
     // Delay before we start watching the folder.  This is necessary
     // because on MacOS, file modifications that occur just before we
     // start watching are sometimes misclassified as happening just after

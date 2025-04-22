@@ -79,10 +79,14 @@ analyzer:
     unused_local_variable: true # skipped
     use_of_void_result: unsupported_action # skipped
 ''');
-      expect(context.getProcessor(invalid_assignment)!.severity,
-          ErrorSeverity.ERROR);
       expect(
-          context.getProcessor(assignment_of_do_not_store)!.severity, isNull);
+        context.getProcessor(invalid_assignment)!.severity,
+        ErrorSeverity.ERROR,
+      );
+      expect(
+        context.getProcessor(assignment_of_do_not_store)!.severity,
+        isNull,
+      );
       expect(context.getProcessor(unused_local_variable), isNull);
       expect(context.getProcessor(use_of_void_result), isNull);
     });
@@ -109,17 +113,20 @@ analyzer:
       test('yaml map', () {
         var options = AnalysisOptionsProvider().getOptionsFromString(config);
         var errorConfig = ErrorConfig(
-            (options['analyzer'] as YamlMap)['errors'] as YamlNode?);
+          (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
+        );
         expect(errorConfig.processors, hasLength(2));
 
         // ignore
-        var missingReturnProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(assignment_of_do_not_store));
+        var missingReturnProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(assignment_of_do_not_store),
+        );
         expect(missingReturnProcessor.severity, isNull);
 
         // error
-        var unusedLocalProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(unused_local_variable));
+        var unusedLocalProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(unused_local_variable),
+        );
         expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
 
         // skip
@@ -132,19 +139,21 @@ analyzer:
         var options = wrap({
           'invalid_assignment': 'unsupported_action', // should be skipped
           'assignment_of_do_not_store': 'false',
-          'unused_local_variable': 'error'
+          'unused_local_variable': 'error',
         });
         var errorConfig = ErrorConfig(options);
         expect(errorConfig.processors, hasLength(2));
 
         // ignore
-        var missingReturnProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(assignment_of_do_not_store));
+        var missingReturnProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(assignment_of_do_not_store),
+        );
         expect(missingReturnProcessor.severity, isNull);
 
         // error
-        var unusedLocalProcessor = errorConfig.processors
-            .firstWhere((p) => p.appliesTo(unused_local_variable));
+        var unusedLocalProcessor = errorConfig.processors.firstWhere(
+          (p) => p.appliesTo(unused_local_variable),
+        );
         expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
 
         // skip
@@ -156,9 +165,11 @@ analyzer:
 
     test('configure lints', () {
       var options = AnalysisOptionsProvider().getOptionsFromString(
-          'analyzer:\n  errors:\n    annotate_overrides: warning\n');
-      var errorConfig =
-          ErrorConfig((options['analyzer'] as YamlMap)['errors'] as YamlNode?);
+        'analyzer:\n  errors:\n    annotate_overrides: warning\n',
+      );
+      var errorConfig = ErrorConfig(
+        (options['analyzer'] as YamlMap)['errors'] as YamlNode?,
+      );
       expect(errorConfig.processors, hasLength(1));
 
       ErrorProcessor processor = errorConfig.processors.first;
@@ -173,7 +184,8 @@ class _TestContext {
 
   void configureOptions(String options) {
     analysisOptions = AnalysisOptionsImpl.fromYaml(
-        optionsMap: AnalysisOptionsProvider().getOptionsFromString(options));
+      optionsMap: AnalysisOptionsProvider().getOptionsFromString(options),
+    );
   }
 
   ErrorProcessor? getProcessor(AnalysisError error) {

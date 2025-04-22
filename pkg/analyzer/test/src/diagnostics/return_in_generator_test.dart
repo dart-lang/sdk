@@ -24,13 +24,14 @@ f() async {
   }
 
   test_asyncStar_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() async* {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 15, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 15, 6)],
+    );
   }
 
   test_asyncStar_blockBody_noValue() async {
@@ -42,11 +43,12 @@ Stream<int> f() async* {
   }
 
   test_asyncStar_expressionBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() async* => 0;
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 11, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 11, 2)],
+    );
   }
 
   test_sync() async {
@@ -58,13 +60,14 @@ f() {
   }
 
   test_syncStar_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() sync* {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 14, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 14, 6)],
+    );
   }
 
   test_syncStar_blockBody_noValue() async {
@@ -76,10 +79,11 @@ Iterable<int> f() sync* {
   }
 
   test_syncStar_expressionBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() sync* => 0;
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 10, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 10, 2)],
+    );
   }
 }

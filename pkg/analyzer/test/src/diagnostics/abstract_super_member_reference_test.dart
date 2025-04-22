@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class AbstractSuperMemberReferenceTest extends PubPackageResolutionTest {
   test_methodInvocation_mixin_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo(int _) {}
 }
@@ -26,9 +27,9 @@ mixin M implements A {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 82, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 82, 3)],
+    );
 
     var node = findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -91,7 +92,8 @@ MethodInvocation
   }
 
   test_methodInvocation_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   void foo();
   noSuchMethod(im) => 42;
@@ -101,9 +103,9 @@ class B extends Object with A {
   void foo() => super.foo(); // ref
   noSuchMethod(im) => 87;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 107, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 107, 3)],
+    );
 
     var node = findNode.methodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
@@ -125,7 +127,8 @@ MethodInvocation
   }
 
   test_methodInvocation_superHasAbstract() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   void foo(int _);
 }
@@ -137,9 +140,9 @@ abstract class B extends A {
 
   void foo(int _) {} // does not matter
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 95, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 95, 3)],
+    );
 
     var node = findNode.methodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -270,7 +273,8 @@ MethodInvocation
   }
 
   test_propertyAccess_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   int get foo;
 }
@@ -280,9 +284,9 @@ abstract class B extends A {
     super.foo; // ref
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 86, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 86, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -300,7 +304,8 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_mixin_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -310,9 +315,9 @@ mixin M implements A {
     super.foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -330,7 +335,8 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -340,9 +346,9 @@ class B extends Object with A {
   int get foo => super.foo; // ref
   noSuchMethod(im) => 2;
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 108, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 108, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -388,7 +394,8 @@ PropertyAccess
   }
 
   test_propertyAccess_getter_superImplements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -399,9 +406,9 @@ abstract class B implements A {
 class C extends B {
   int get foo => super.foo; // ref
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -449,7 +456,8 @@ PropertyAccess
   }
 
   test_propertyAccess_method_tearOff_abstract() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   void foo();
 }
@@ -459,9 +467,9 @@ abstract class B extends A {
     super.foo; // ref
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 90, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 90, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -479,7 +487,8 @@ PropertyAccess
   }
 
   test_propertyAccess_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   set foo(int _);
 }
@@ -489,9 +498,9 @@ abstract class B extends A {
     super.foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3)],
+    );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -520,7 +529,8 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_mixin_implements() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set foo(int _) {}
 }
@@ -530,9 +540,9 @@ mixin M implements A {
     super.foo = 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 81, 3)],
+    );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression
@@ -561,7 +571,8 @@ AssignmentExpression
   }
 
   test_propertyAccess_setter_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   set foo(int a);
   noSuchMethod(im) {}
@@ -571,9 +582,9 @@ class B extends Object with A {
   set foo(int a) => super.foo = a; // ref
   noSuchMethod(im) {}
 }
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 111, 3)],
+    );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
 AssignmentExpression

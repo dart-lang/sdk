@@ -16,27 +16,41 @@ main() {
 @reflectiveTest
 class RedirectToAbstractClassConstructorTest extends PubPackageResolutionTest {
   test_abstractRedirectsToSelf() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   factory A() = A._;
   A._();
 }
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR, 35, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
+          35,
+          3,
+        ),
+      ],
+    );
   }
 
   test_redirectsToAbstractSubclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A.named() = B;
   A();
 }
 
 abstract class B extends A {}
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR, 32, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
+          32,
+          1,
+        ),
+      ],
+    );
   }
 
   test_redirectsToSubclass() async {

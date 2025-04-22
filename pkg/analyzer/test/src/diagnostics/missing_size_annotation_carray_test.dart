@@ -27,14 +27,15 @@ final class C extends Struct {
   }
 
   test_two() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class C extends Struct {
   external Array<Uint8> a0;
 }
-''', [
-      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 62, 12),
-    ]);
+''',
+      [error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 62, 12)],
+    );
   }
 }

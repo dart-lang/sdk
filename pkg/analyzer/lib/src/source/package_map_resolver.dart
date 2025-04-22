@@ -33,8 +33,9 @@ class PackageMapUriResolver extends UriResolver {
     packageMap.forEach((name, folders) {
       if (folders.length != 1) {
         throw ArgumentError(
-            'Exactly one folder must be specified for a package.'
-            'Found $name = $folders');
+          'Exactly one folder must be specified for a package.'
+          'Found $name = $folders',
+        );
       }
     });
   }

@@ -82,15 +82,16 @@ PatternVariableDeclarationStatement
   }
 
   test_rewrite_expression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a) = A();
 }
 
 class A {}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -157,15 +158,16 @@ PatternVariableDeclarationStatement
   }
 
   test_var_typed_typeSchema() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (int a) = g();
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -233,14 +235,17 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_multiple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) x) {
   var (a, b) = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -276,15 +281,16 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_recordPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a,) = g((0,));
 }
 
 T g<T>(T a) => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1)],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -330,26 +336,38 @@ PatternVariableDeclarationStatement
   }
 
   test_var_withKeyword_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (final a) = 0;
   a;
 }
-''', [
-      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 18,
-          5),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          18,
+          5,
+        ),
+      ],
+    );
   }
 
   test_var_withKeyword_var() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (var a) = 0;
   a;
 }
-''', [
-      error(ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT, 18,
-          3),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          18,
+          3,
+        ),
+      ],
+    );
   }
 }

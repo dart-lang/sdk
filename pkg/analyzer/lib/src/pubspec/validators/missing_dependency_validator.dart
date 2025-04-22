@@ -45,7 +45,7 @@ class MissingDependencyValidator {
   final Set noDepsPackages = <String>{'flutter_gen'};
 
   MissingDependencyValidator(this.contents, this.source, this.provider)
-      : recorder = RecordingErrorListener() {
+    : recorder = RecordingErrorListener() {
     reporter = ErrorReporter(recorder, source);
   }
 
@@ -71,13 +71,17 @@ class MissingDependencyValidator {
         return field.nodes;
       }
       _reportErrorForNode(
-          field, PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP, [key]);
+        field,
+        PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP,
+        [key],
+      );
       return <String, YamlNode>{};
     }
 
     var dependencies = getDeclaredDependencies(PubspecField.DEPENDENCIES_FIELD);
-    var devDependencies =
-        getDeclaredDependencies(PubspecField.DEV_DEPENDENCIES_FIELD);
+    var devDependencies = getDeclaredDependencies(
+      PubspecField.DEV_DEPENDENCIES_FIELD,
+    );
 
     var packageName = contents.nodes[PubspecField.NAME_FIELD]?.value.toString();
     // Ensure that the package itself is not listed as a dependency.
@@ -90,7 +94,7 @@ class MissingDependencyValidator {
 
     var availableDeps = [
       if (dependencies.isNotEmpty)
-        for (var dep in dependencies.entries) dep.key.toString()
+        for (var dep in dependencies.entries) dep.key.toString(),
     ];
     var availableDevDeps = [
       if (devDependencies.isNotEmpty)
@@ -113,9 +117,10 @@ class MissingDependencyValidator {
         addDevDeps.add(name);
       }
     }
-    var message = addDeps.isNotEmpty
-        ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
-        : '';
+    var message =
+        addDeps.isNotEmpty
+            ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
+            : '';
     if (addDevDeps.isNotEmpty) {
       message = message.isNotEmpty ? '$message,' : message;
       message =
@@ -123,11 +128,12 @@ class MissingDependencyValidator {
     }
     if (addDeps.isNotEmpty || addDevDeps.isNotEmpty) {
       _reportErrorForNode(
-          contents.nodes.values.first,
-          PubspecWarningCode.MISSING_DEPENDENCY,
-          [message],
-          [],
-          MissingDependencyData(addDeps, addDevDeps, removeDevDeps));
+        contents.nodes.values.first,
+        PubspecWarningCode.MISSING_DEPENDENCY,
+        [message],
+        [],
+        MissingDependencyData(addDeps, addDevDeps, removeDevDeps),
+      );
     }
     return recorder.errors;
   }

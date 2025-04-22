@@ -167,7 +167,8 @@ void main() {
   }
 
   test_compoundAssignment_simpleIdentifier_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 class B extends A {
@@ -181,9 +182,9 @@ void set topLevel(A value) {}
 main() {
   var /*@type=B*/ v = topLevel += 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 152, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 152, 1)],
+    );
     _assertTypeAnnotations();
   }
 
@@ -238,7 +239,11 @@ void test(List<A> listA, List<B> listB) {
 ''';
     await resolveTestCode(code);
     void assertTypes(
-        String vSearch, String vType, String fSearch, String fType) {
+      String vSearch,
+      String vType,
+      String fSearch,
+      String fType,
+    ) {
       var node = findNode.declaredIdentifier(vSearch);
 
       var element = node.declaredElement2 as LocalVariableElement2;
@@ -504,24 +509,28 @@ main() {
         }
         int closeIndex = code.indexOf('*/', openIndex + 1);
         expect(closeIndex, isPositive);
-        types[openIndex] =
-            code.substring(openIndex + prefix.length, closeIndex);
+        types[openIndex] = code.substring(
+          openIndex + prefix.length,
+          closeIndex,
+        );
         lastIndex = closeIndex;
       }
     }
 
-    unit.accept(FunctionAstVisitor(
-      simpleIdentifier: (node) {
-        var comment = node.token.precedingComments;
-        if (comment != null) {
-          var expectedType = types[comment.offset];
-          if (expectedType != null) {
-            var element = node.element as VariableElement2;
-            String actualType = typeString(element.type);
-            expect(actualType, expectedType, reason: '@${comment.offset}');
+    unit.accept(
+      FunctionAstVisitor(
+        simpleIdentifier: (node) {
+          var comment = node.token.precedingComments;
+          if (comment != null) {
+            var expectedType = types[comment.offset];
+            if (expectedType != null) {
+              var element = node.element as VariableElement2;
+              String actualType = typeString(element.type);
+              expect(actualType, expectedType, reason: '@${comment.offset}');
+            }
           }
-        }
-      },
-    ));
+        },
+      ),
+    );
   }
 }

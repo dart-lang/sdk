@@ -189,15 +189,16 @@ SimpleIdentifier
   }
 
   test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:core' as mycore;
 
 main() {
   dynamic;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7)],
+    );
 
     var node = findNode.simple('dynamic;');
     assertResolvedNodeText(node, r'''
@@ -262,7 +263,8 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_constructor_returnBody() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 
 class C {
@@ -270,9 +272,9 @@ class C {
     return a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 43, 1)],
+    );
 
     var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
@@ -284,17 +286,23 @@ SimpleIdentifier
   }
 
   test_expression_topLevelVariable_constructor_returnExpression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 
 class C {
   C() => a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 30, 5),
-      error(
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 33, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 30, 5),
+        error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          33,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.simple('a;');
     assertResolvedNodeText(node, r'''
@@ -347,7 +355,8 @@ SimpleIdentifier
   }
 
   test_implicitCall_tearOff_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int call() => 0;
 }
@@ -355,9 +364,9 @@ class A {
 int Function() foo(A? a) {
   return a;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1)],
+    );
 
     var identifier = findNode.simple('a;');
     assertResolvedNodeText(identifier, r'''
@@ -535,15 +544,16 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_named_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on ({int foo}) {
   void f() {
     bar;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 46, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 46, 3)],
+    );
 
     var node = findNode.simple('bar;');
     assertResolvedNodeText(node, r'''
@@ -611,15 +621,16 @@ SimpleIdentifier
   }
 
   test_inExtension_onRecordType_positional_2_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   void f() {
     $3;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 48, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 48, 2)],
+    );
 
     var node = findNode.simple(r'$3;');
     assertResolvedNodeText(node, r'''

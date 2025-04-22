@@ -22,6 +22,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -32,35 +33,6 @@ export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 export 'package:linter/src/lint_names.dart';
-
-// TODO(srawlins): This is duplicate with
-// pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart and
-// and pkg/analysis_server/test/analysis_server_base.dart. Keep them as
-// consistent with each other as they are today. Ultimately combine them in a
-// shared analyzer test utilities package.
-String analysisOptionsContent({
-  List<String> experiments = const [],
-  List<String> rules = const [],
-}) {
-  var buffer = StringBuffer();
-
-  buffer.writeln('analyzer:');
-  buffer.writeln('  enable-experiment:');
-  for (var experiment in experiments) {
-    buffer.writeln('    - $experiment');
-  }
-
-  buffer.writeln('  optional-checks:');
-  buffer.writeln('    propagate-linter-exceptions: true');
-
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  for (var rule in rules) {
-    buffer.writeln('    - $rule');
-  }
-
-  return buffer.toString();
-}
 
 ExpectedDiagnostic error(
   ErrorCode code,

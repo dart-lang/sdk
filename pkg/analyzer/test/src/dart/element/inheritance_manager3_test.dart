@@ -788,11 +788,7 @@ abstract class A {
   void foo();
 }
 ''');
-    _assertGetMember(
-      className: 'A',
-      name: 'foo',
-      concrete: true,
-    );
+    _assertGetMember(className: 'A', name: 'foo', concrete: true);
   }
 
   test_getMember_concrete_fromMixedClass() async {
@@ -892,11 +888,7 @@ abstract class C extends B {}
     await resolveTestCode('''
 abstract class A {}
 ''');
-    _assertGetMember(
-      className: 'A',
-      name: 'foo',
-      concrete: true,
-    );
+    _assertGetMember(className: 'A', name: 'foo', concrete: true);
   }
 
   test_getMember_concrete_noSuchMethod() async {
@@ -936,13 +928,9 @@ class A {
 
 abstract class B extends Object with A {}
 ''');
-// noSuchMethod forwarders are not mixed-in.
+    // noSuchMethod forwarders are not mixed-in.
     // https://github.com/dart-lang/sdk/issues/33553#issuecomment-424638320
-    _assertGetMember(
-      className: 'B',
-      name: 'foo',
-      concrete: true,
-    );
+    _assertGetMember(className: 'B', name: 'foo', concrete: true);
   }
 
   test_getMember_concrete_noSuchMethod_moreSpecificSignature() async {
@@ -998,7 +986,9 @@ abstract class B<XB> extends A<XB> {}
     var typeXB = XB.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     var B = findElement2.classOrMixin('B');
     var typeB = B.instantiate(
-        typeArguments: [typeXB], nullabilitySuffix: NullabilitySuffix.none);
+      typeArguments: [typeXB],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
     var foo = manager.getMember3(typeB, Name(null, 'foo'))!;
     var foo2 = manager.getMember4(B, Name(null, 'foo'))!;
     checkTextendsFooT(foo.type.typeParameters.single);
@@ -1027,7 +1017,9 @@ abstract class D<XD> extends C<XD> {}
     var typeXD = XD.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     var D = findElement2.classOrMixin('D');
     var typeD = D.instantiate(
-        typeArguments: [typeXD], nullabilitySuffix: NullabilitySuffix.none);
+      typeArguments: [typeXD],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
     var foo = manager.getMember3(typeD, Name(null, 'foo'))!;
     var foo2 = manager.getMember4(D, Name(null, 'foo'))!;
     checkTextendsFooT(foo.type.typeParameters.single);
@@ -1079,11 +1071,12 @@ class C {
   void foo<U>(Object a, U b, covariant Object c) {}
 }
 ''');
-    var member = manager.getMember4(
-      findElement2.classOrMixin('B'),
-      Name(null, 'foo'),
-      concrete: true,
-    )!;
+    var member =
+        manager.getMember4(
+          findElement2.classOrMixin('B'),
+          Name(null, 'foo'),
+          concrete: true,
+        )!;
     expect(member.formalParameters[0].isCovariant, isTrue);
     expect(member.formalParameters[1].isCovariant, isFalse);
     expect(member.formalParameters[2].isCovariant, isTrue);
@@ -1099,10 +1092,8 @@ abstract class B extends A {
   void foo(int a);
 }
 ''');
-    var member = manager.getMember4(
-      findElement2.classOrMixin('B'),
-      Name(null, 'foo'),
-    )!;
+    var member =
+        manager.getMember4(findElement2.classOrMixin('B'), Name(null, 'foo'))!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
@@ -1110,8 +1101,10 @@ abstract class B extends A {
   }
 
   @FailingTest(
-      reason: 'The baseElement and the element associated with the declaration '
-          'are not the same')
+    reason:
+        'The baseElement and the element associated with the declaration '
+        'are not the same',
+  )
   test_getMember_method_covariantByDeclaration_merged() async {
     await resolveTestCode('''
 class A {
@@ -1124,11 +1117,12 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember4(
-      findElement2.classOrMixin('C'),
-      Name(null, 'foo'),
-      concrete: true,
-    )!;
+    var member =
+        manager.getMember4(
+          findElement2.classOrMixin('C'),
+          Name(null, 'foo'),
+          concrete: true,
+        )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     expect(member.baseElement, same(findElement2.method('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
@@ -1364,10 +1358,8 @@ abstract class B extends A {
   set foo(int a);
 }
 ''');
-    var member = manager.getMember4(
-      findElement2.classOrMixin('B'),
-      Name(null, 'foo='),
-    )!;
+    var member =
+        manager.getMember4(findElement2.classOrMixin('B'), Name(null, 'foo='))!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
@@ -1375,8 +1367,10 @@ abstract class B extends A {
   }
 
   @FailingTest(
-      reason: 'The baseElement and the element associated with the declaration '
-          'are not the same')
+    reason:
+        'The baseElement and the element associated with the declaration '
+        'are not the same',
+  )
   test_getMember_setter_covariantByDeclaration_merged() async {
     await resolveTestCode('''
 class A {
@@ -1389,11 +1383,12 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember4(
-      findElement2.classOrMixin('C'),
-      Name(null, 'foo='),
-      concrete: true,
-    )!;
+    var member =
+        manager.getMember4(
+          findElement2.classOrMixin('C'),
+          Name(null, 'foo='),
+          concrete: true,
+        )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     expect(member.baseElement, same(findElement2.setter('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
@@ -1409,11 +1404,7 @@ class B extends A {
   noSuchMethod(_) {}
 }
 ''');
-    _assertGetMember(
-      className: 'B',
-      name: 'foo',
-      forSuper: true,
-    );
+    _assertGetMember(className: 'B', name: 'foo', forSuper: true);
   }
 
   test_getMember_super_forMixin_interface() async {
@@ -1424,11 +1415,7 @@ abstract class A {
 
 mixin M implements A {}
 ''');
-    _assertGetMember(
-      className: 'M',
-      name: 'foo',
-      forSuper: true,
-    );
+    _assertGetMember(className: 'M', name: 'foo', forSuper: true);
   }
 
   test_getMember_super_forMixin_superclassConstraint() async {
@@ -1501,11 +1488,7 @@ class A {}
 
 class B extends A {}
 ''');
-    _assertGetMember(
-      className: 'B',
-      name: 'foo',
-      forSuper: true,
-    );
+    _assertGetMember(className: 'B', name: 'foo', forSuper: true);
   }
 
   test_getMember_super_noSuchMember() async {
@@ -1539,10 +1522,14 @@ class C extends B implements A {
   void m() {}
 }
 ''');
-    _assertGetOverridden4(className: 'C', name: 'm', expected: '''
+    _assertGetOverridden4(
+      className: 'C',
+      name: 'm',
+      expected: '''
 A.m: void Function()
 B.m: void Function()
-''');
+''',
+    );
   }
 
   test_getOverridden_shadowsTransitiveOverrides() async {
@@ -1557,9 +1544,13 @@ class C extends B {
   void m() {}
 }
 ''');
-    _assertGetOverridden4(className: 'C', name: 'm', expected: '''
+    _assertGetOverridden4(
+      className: 'C',
+      name: 'm',
+      expected: '''
 B.m: void Function()
-''');
+''',
+    );
   }
 }
 
@@ -2958,14 +2949,17 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertExecutableList(
-      List<ExecutableElement2>? elements, String? expected) {
-    var elementsString = elements == null
-        ? null
-        : [
-            for (var element in elements)
-              '${element.enclosingElement2?.name3}.${element.lookupName}: '
-                  '${typeString(element.type)}\n'
-          ].sorted().join();
+    List<ExecutableElement2>? elements,
+    String? expected,
+  ) {
+    var elementsString =
+        elements == null
+            ? null
+            : [
+              for (var element in elements)
+                '${element.enclosingElement2?.name3}.${element.lookupName}: '
+                    '${typeString(element.type)}\n',
+            ].sorted().join();
     expect(elementsString, expected);
   }
 
@@ -3004,11 +2998,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     required String name,
     String? expected,
   }) {
-    _assertGetMember(
-      className: className,
-      name: name,
-      expected: expected,
-    );
+    _assertGetMember(className: className, name: name, expected: expected);
 
     _assertGetMember(
       className: className,
@@ -3044,7 +3034,9 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertNameToExecutableMap(
-      Map<Name, ExecutableElement2> map, String expected) {
+    Map<Name, ExecutableElement2> map,
+    String expected,
+  ) {
     var lines = <String>[];
     for (var entry in map.entries) {
       var element = entry.value;
@@ -3095,10 +3087,7 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
     inheritance.getInheritedMap2(element);
 
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
@@ -3128,9 +3117,9 @@ class _InterfacePrinter {
     required TreeStringSink sink,
     required ElementPrinter elementPrinter,
     required _InstancePrinterConfiguration configuration,
-  })  : _sink = sink,
-        _elementPrinter = elementPrinter,
-        _configuration = configuration;
+  }) : _sink = sink,
+       _elementPrinter = elementPrinter,
+       _configuration = configuration;
 
   void write(Interface interface) {
     _writeNameToMap('map', interface.map2);
@@ -3160,9 +3149,7 @@ class _InterfacePrinter {
   List<MapEntry<Name, T>> _sortedEntries<T>(
     Iterable<MapEntry<Name, T>> entries,
   ) {
-    return entries.sortedBy(
-      (e) => '${e.key.name} ${e.key.libraryUri}',
-    );
+    return entries.sortedBy((e) => '${e.key.name} ${e.key.libraryUri}');
   }
 
   List<ExecutableElement2> _withoutObject(List<ExecutableElement2> elements) {
@@ -3231,10 +3218,11 @@ class _InterfacePrinter {
     String name,
     Map<Name, List<ExecutableElement2>> map,
   ) {
-    var isEmpty = map.values.flattenedToList.where((element) {
-      if (_configuration.withObjectMembers) return true;
-      return !element.isObjectMember;
-    }).isEmpty;
+    var isEmpty =
+        map.values.flattenedToList.where((element) {
+          if (_configuration.withObjectMembers) return true;
+          return !element.isObjectMember;
+        }).isEmpty;
     if (isEmpty) return;
 
     _sink.writelnWithIndent(name);

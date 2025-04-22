@@ -18,12 +18,13 @@ void main() {
 class NullArgumentToNonNullCompleterCompleteTest
     extends PubPackageResolutionTest {
   test_absent() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f() => Completer<int>().complete();
-''', [
-      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 33, 27),
-    ]);
+''',
+      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 33, 27)],
+    );
   }
 
   test_dynamic() async {
@@ -36,12 +37,13 @@ void f() {
   }
 
   test_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f() => Completer<int>().complete(null);
-''', [
-      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 59, 4),
-    ]);
+''',
+      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 59, 4)],
+    );
   }
 
   test_nullable() async {
@@ -56,23 +58,25 @@ void f() {
   }
 
   test_nullType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f(Null a) => Completer<int>().complete(a);
-''', [
-      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 65, 1),
-    ]);
+''',
+      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 65, 1)],
+    );
   }
 }
 
 @reflectiveTest
 class NullArgumentToNonNullFutureValueTest extends PubPackageResolutionTest {
   test_absent() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo() => Future<int>.value();
-''', [
-      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 14, 19),
-    ]);
+''',
+      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 14, 19)],
+    );
   }
 
   test_dynamic() async {
@@ -85,11 +89,12 @@ void f() {
   }
 
   test_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo() => Future<int>.value(null);
-''', [
-      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 32, 4),
-    ]);
+''',
+      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 32, 4)],
+    );
   }
 
   test_nullable() async {
@@ -102,10 +107,11 @@ void f() {
   }
 
   test_nullType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo(Null a) => Future<int>.value(a);
-''', [
-      error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 38, 1),
-    ]);
+''',
+      [error(WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE, 38, 1)],
+    );
   }
 }

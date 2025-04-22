@@ -90,7 +90,8 @@ IfElement
     // but they are considered initialized after the entire case pattern,
     // before the guard expression if there is one. However, all pattern
     // variables are in scope in the entire pattern.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 void f(Object x) {
   [
@@ -100,12 +101,21 @@ void f(Object x) {
       a
   ];
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 62,
-          1),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
-          contextMessages: [message(testFile, 56, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          62,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          62,
+          1,
+          contextMessages: [message(testFile, 56, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
@@ -171,7 +181,8 @@ IfElement
   }
 
   test_caseClause_variables_single() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   [
     if (x case int a when a > 0)
@@ -180,9 +191,9 @@ void f(Object x) {
       a // error
   ];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1)],
+    );
 
     var node = findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
@@ -234,16 +245,19 @@ IfElement
   }
 
   test_expression_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     [if (super) 0 else 1];
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
+        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
+      ],
+    );
 
     var node = findNode.singleIfElement;
     assertResolvedNodeText(node, r'''

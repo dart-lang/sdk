@@ -24,83 +24,119 @@ main() {
 @reflectiveTest
 class ClassDeclarationTest extends AbstractRecoveryTest {
   void test_implementsBeforeExtends() {
-    testRecovery('''
+    testRecovery(
+      '''
 class A implements B extends C {}
-''', [ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS], '''
+''',
+      [ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS],
+      '''
 class A extends C implements B {}
-''');
+''',
+    );
   }
 
   void test_implementsBeforeWith() {
-    testRecovery('''
+    testRecovery(
+      '''
 class A extends B implements C with D {}
-''', [ParserErrorCode.IMPLEMENTS_BEFORE_WITH], '''
+''',
+      [ParserErrorCode.IMPLEMENTS_BEFORE_WITH],
+      '''
 class A extends B with D implements C {}
-''');
+''',
+    );
   }
 
   void test_implementsBeforeWithBeforeExtends() {
-    testRecovery('''
+    testRecovery(
+      '''
 class A implements B with C extends D {}
-''', [
-      ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
-      ParserErrorCode.WITH_BEFORE_EXTENDS
-    ], '''
+''',
+      [
+        ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
+        ParserErrorCode.WITH_BEFORE_EXTENDS,
+      ],
+      '''
 class A extends D with C implements B {}
-''');
+''',
+    );
   }
 
   void test_multipleExtends() {
-    testRecovery('''
+    testRecovery(
+      '''
 class A extends B extends C {}
-''', [ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES], '''
+''',
+      [ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES],
+      '''
 class A extends B {}
-''');
+''',
+    );
   }
 
   void test_multipleImplements() {
-    testRecovery('''
+    testRecovery(
+      '''
 class A implements B implements C, D {}
-''', [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES], '''
+''',
+      [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES],
+      '''
 class A implements B, C, D {}
-''');
+''',
+    );
   }
 
   void test_multipleWith() {
-    testRecovery('''
+    testRecovery(
+      '''
 class A extends B with C, D with E {}
-''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+''',
+      [ParserErrorCode.MULTIPLE_WITH_CLAUSES],
+      '''
 class A extends B with C, D, E {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_typing_extends() {
-    testRecovery('''
+    testRecovery(
+      '''
 class Foo exte
 class UnrelatedClass extends Bar {}
-''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+''',
+      [ParserErrorCode.MULTIPLE_WITH_CLAUSES],
+      '''
 class Foo {}
 class UnrelatedClass extends Bar {}
-''');
+''',
+    );
   }
 
   void test_typing_extends_identifier() {
-    testRecovery('''
+    testRecovery(
+      '''
 class Foo extends CurrentlyTypingHere
 class UnrelatedClass extends Bar {}
-''', [ParserErrorCode.EXPECTED_CLASS_BODY], '''
+''',
+      [ParserErrorCode.EXPECTED_CLASS_BODY],
+      '''
 class Foo extends CurrentlyTypingHere {}
 class UnrelatedClass extends Bar {}
-''');
+''',
+    );
   }
 
   void test_withBeforeExtends() {
-    testRecovery('''
+    testRecovery(
+      '''
 class A with B extends C {}
-''', [ParserErrorCode.WITH_BEFORE_EXTENDS], '''
+''',
+      [ParserErrorCode.WITH_BEFORE_EXTENDS],
+      '''
 class A extends C with B {}
-''');
+''',
+    );
   }
 }
 
@@ -109,83 +145,111 @@ class A extends C with B {}
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
   void test_declarationBeforeDirective_export() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C { }
 export 'bar.dart';
-''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+''',
+      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      '''
 export 'bar.dart';
 class C { }
-''');
+''',
+    );
   }
 
   void test_declarationBeforeDirective_import() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C { }
 import 'bar.dart';
-''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+''',
+      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      '''
 import 'bar.dart';
 class C { }
-''');
+''',
+    );
   }
 
   void test_declarationBeforeDirective_part() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C { }
 part 'bar.dart';
-''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+''',
+      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      '''
 part 'bar.dart';
 class C { }
-''');
+''',
+    );
   }
 
   void test_declarationBeforeDirective_part_of() {
-    testRecovery('''
+    testRecovery(
+      '''
 class C { }
 part of foo;
-''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+''',
+      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      '''
 part of foo;
 class C { }
-''');
+''',
+    );
   }
 
   void test_exportBeforeLibrary() {
-    testRecovery('''
+    testRecovery(
+      '''
 export 'bar.dart';
 library l;
-''', [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST], '''
+''',
+      [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST],
+      '''
 library l;
 export 'bar.dart';
-''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
+''',
+      adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd,
+    );
   }
 
   void test_importBeforeLibrary() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart';
 library l;
-''', [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST], '''
+''',
+      [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST],
+      '''
 library l;
 import 'bar.dart';
-''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
+''',
+      adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd,
+    );
   }
 
   void test_partBeforeLibrary() {
-    testRecovery('''
+    testRecovery(
+      '''
 part 'foo.dart';
 library l;
-''', [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST], '''
+''',
+      [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST],
+      '''
 library l;
 part 'foo.dart';
-''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
+''',
+      adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd,
+    );
   }
 
   CompilationUnitImpl _moveFirstDirectiveToEnd(CompilationUnitImpl unit) {
     return CompilationUnitImpl(
       beginToken: unit.directives.skip(1).first.beginToken,
       scriptTag: unit.scriptTag,
-      directives: [
-        ...unit.directives.skip(1),
-        unit.directives.first,
-      ],
+      directives: [...unit.directives.skip(1), unit.directives.first],
       declarations: unit.declarations,
       endToken: unit.endToken,
       featureSet: unit.featureSet,
@@ -201,81 +265,117 @@ part 'foo.dart';
 @reflectiveTest
 class ImportDirectiveTest extends AbstractRecoveryTest {
   void test_combinatorsBeforeAndAfterPrefix() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' show A as p show B;
-''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
+''',
+      [ParserErrorCode.PREFIX_AFTER_COMBINATOR],
+      '''
 import 'bar.dart' as p show A show B;
-''');
+''',
+    );
   }
 
   void test_combinatorsBeforePrefix() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' show A as p;
-''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
+''',
+      [ParserErrorCode.PREFIX_AFTER_COMBINATOR],
+      '''
 import 'bar.dart' as p show A;
-''');
+''',
+    );
   }
 
   void test_combinatorsBeforePrefixAfterDeferred() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' deferred show A as p;
-''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
+''',
+      [ParserErrorCode.PREFIX_AFTER_COMBINATOR],
+      '''
 import 'bar.dart' deferred as p show A;
-''');
+''',
+    );
   }
 
   void test_deferredAfterPrefix() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' as p deferred;
-''', [ParserErrorCode.DEFERRED_AFTER_PREFIX], '''
+''',
+      [ParserErrorCode.DEFERRED_AFTER_PREFIX],
+      '''
 import 'bar.dart' deferred as p;
-''');
+''',
+    );
   }
 
   void test_duplicatePrefix() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' as p as q;
-''', [ParserErrorCode.DUPLICATE_PREFIX], '''
+''',
+      [ParserErrorCode.DUPLICATE_PREFIX],
+      '''
 import 'bar.dart' as p;
-''');
+''',
+    );
   }
 
   void test_unknownTokenAtEnd() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' as p sh;
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.UNEXPECTED_TOKEN],
+      '''
 import 'bar.dart' as p;
-''');
+''',
+    );
   }
 
   void test_unknownTokenBeforePrefix() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' d as p;
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.UNEXPECTED_TOKEN],
+      '''
 import 'bar.dart' as p;
-''');
+''',
+    );
   }
 
   void test_unknownTokenBeforePrefixAfterCombinatorMissingSemicolon() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' d show A as p
 import 'b.dart';
-''', [
-      ParserErrorCode.UNEXPECTED_TOKEN,
-      ParserErrorCode.PREFIX_AFTER_COMBINATOR,
-      ParserErrorCode.EXPECTED_TOKEN
-    ], '''
+''',
+      [
+        ParserErrorCode.UNEXPECTED_TOKEN,
+        ParserErrorCode.PREFIX_AFTER_COMBINATOR,
+        ParserErrorCode.EXPECTED_TOKEN,
+      ],
+      '''
 import 'bar.dart' as p show A;
 import 'b.dart';
-''');
+''',
+    );
   }
 
   void test_unknownTokenBeforePrefixAfterDeferred() {
-    testRecovery('''
+    testRecovery(
+      '''
 import 'bar.dart' deferred s as p;
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.UNEXPECTED_TOKEN],
+      '''
 import 'bar.dart' deferred as p;
-''');
+''',
+    );
   }
 }
 
@@ -287,21 +387,25 @@ class MisplacedMetadataTest extends AbstractRecoveryTest {
     // This test fails because `findMemberName` doesn't recognize that the `@`
     // isn't a valid token in the stream leading up to a member name. That
     // causes `parseMethod` to attempt to parse from the `x` as a function body.
-    testRecovery('''
+    testRecovery(
+      '''
 class A {
   const A([x]);
 }
 class B {
   dynamic @A(const A()) x;
 }
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''',
+      [ParserErrorCode.UNEXPECTED_TOKEN],
+      '''
 class A {
   const A([x]);
 }
 class B {
   @A(const A()) dynamic x;
 }
-''');
+''',
+    );
   }
 }
 
@@ -310,48 +414,68 @@ class B {
 @reflectiveTest
 class MixinDeclarationTest extends AbstractRecoveryTest {
   void test_implementsBeforeOn() {
-    testRecovery('''
+    testRecovery(
+      '''
 mixin A implements B on C {}
-''', [ParserErrorCode.IMPLEMENTS_BEFORE_ON], '''
+''',
+      [ParserErrorCode.IMPLEMENTS_BEFORE_ON],
+      '''
 mixin A on C implements B {}
-''');
+''',
+    );
   }
 
   void test_multipleImplements() {
-    testRecovery('''
+    testRecovery(
+      '''
 mixin A implements B implements C, D {}
-''', [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES], '''
+''',
+      [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES],
+      '''
 mixin A implements B, C, D {}
-''');
+''',
+    );
   }
 
   void test_multipleOn() {
-    testRecovery('''
+    testRecovery(
+      '''
 mixin A on B on C {}
-''', [ParserErrorCode.MULTIPLE_ON_CLAUSES], '''
+''',
+      [ParserErrorCode.MULTIPLE_ON_CLAUSES],
+      '''
 mixin A on B, C {}
-''');
+''',
+    );
   }
 
   @failingTest
   void test_typing_implements() {
-    testRecovery('''
+    testRecovery(
+      '''
 mixin Foo imple
 mixin UnrelatedMixin on Bar {}
-''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+''',
+      [ParserErrorCode.MULTIPLE_WITH_CLAUSES],
+      '''
 mixin Foo {}
 mixin UnrelatedMixin on Bar {}
-''');
+''',
+    );
   }
 
   void test_typing_implements_identifier() {
-    testRecovery('''
+    testRecovery(
+      '''
 mixin Foo implements CurrentlyTypingHere
 mixin UnrelatedMixin on Bar {}
-''', [ParserErrorCode.EXPECTED_MIXIN_BODY], '''
+''',
+      [ParserErrorCode.EXPECTED_MIXIN_BODY],
+      '''
 mixin Foo implements CurrentlyTypingHere {}
 mixin UnrelatedMixin on Bar {}
-''');
+''',
+    );
   }
 }
 
@@ -361,39 +485,47 @@ mixin UnrelatedMixin on Bar {}
 class TryStatementTest extends AbstractRecoveryTest {
   @failingTest
   void test_finallyBeforeCatch() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() {
   try {
   } finally {
   } catch (e) {
   }
 }
-''', [/*ParserErrorCode.CATCH_AFTER_FINALLY*/], '''
+''',
+      [/*ParserErrorCode.CATCH_AFTER_FINALLY*/],
+      '''
 f() {
   try {
   } catch (e) {
   } finally {
   }
 }
-''');
+''',
+    );
   }
 
   @failingTest
   void test_finallyBeforeOn() {
-    testRecovery('''
+    testRecovery(
+      '''
 f() {
   try {
   } finally {
   } on String {
   }
 }
-''', [/*ParserErrorCode.CATCH_AFTER_FINALLY*/], '''
+''',
+      [/*ParserErrorCode.CATCH_AFTER_FINALLY*/],
+      '''
 f() {
   try {
   } on String {
   } finally {
   }
 }
-''');
+''',
+    );
   }
 }

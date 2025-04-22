@@ -16,54 +16,84 @@ main() {
 @reflectiveTest
 class ConstEvalForElementTest extends PubPackageResolutionTest {
   test_listLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = [for (int i = 0; i < 3; i++) i];
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          31),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          31,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
+      ],
+    );
   }
 
   test_listLiteral_forIn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const Set set = {};
 const x = [for(final i in set) i];
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 30,
-          23),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 21),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          30,
+          23,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 21),
+      ],
+    );
   }
 
   test_mapLiteral_forIn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {for (final i in const []) i: null};
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          35),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 33),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          35,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 33),
+      ],
+    );
   }
 
   test_mapLiteral_forIn_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {if (true) for (final i in const []) i: null};
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          45),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 21, 33),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          45,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 21, 33),
+      ],
+    );
   }
 
   test_setLiteral_forIn() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const Set set = {};
 const x = {for (final i in set) i};
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 30,
-          24),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          30,
+          24,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
+      ],
+    );
   }
 }

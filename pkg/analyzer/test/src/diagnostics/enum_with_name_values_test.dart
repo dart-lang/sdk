@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class EnumWithNameValuesTest extends PubPackageResolutionTest {
   test_name() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum values {
   v
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_WITH_NAME_VALUES, 5, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_WITH_NAME_VALUES, 5, 6)],
+    );
   }
 }

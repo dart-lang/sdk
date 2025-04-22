@@ -27,14 +27,15 @@ f() {
   }
 
   test_binary_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {}
 f() {
   E('a') + 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 40, 1)],
+    );
 
     var node = findNode.binary('+ 1');
     assertResolvedNodeText(node, r'''
@@ -76,7 +77,8 @@ f(A a) {
   }
 
   test_index_get_hasNone() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {}
@@ -84,13 +86,14 @@ extension E on A {}
 f(A a) {
   E(a)[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3)],
+    );
   }
 
   test_index_get_hasSetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -100,9 +103,9 @@ extension E on A {
 f(A a) {
   E(a)[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3)],
+    );
   }
 
   test_index_getSet_hasBoth() async {
@@ -121,7 +124,8 @@ f(A a) {
   }
 
   test_index_getSet_hasGetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -131,13 +135,14 @@ extension E on A {
 f(A a) {
   E(a)[0] += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3)],
+    );
   }
 
   test_index_getSet_hasNone() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {}
@@ -145,14 +150,17 @@ extension E on A {}
 f(A a) {
   E(a)[0] += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
+        error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
+      ],
+    );
   }
 
   test_index_getSet_hasSetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -162,13 +170,14 @@ extension E on A {
 f(A a) {
   E(a)[0] += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3)],
+    );
   }
 
   test_index_set_hasGetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -178,13 +187,14 @@ extension E on A {
 f(A a) {
   E(a)[0] = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3)],
+    );
   }
 
   test_index_set_hasNone() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {}
@@ -192,9 +202,9 @@ extension E on A {}
 f(A a) {
   E(a)[0] = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3)],
+    );
   }
 
   test_index_set_hasSetter() async {
@@ -223,13 +233,14 @@ f() {
   }
 
   test_prefix_minus_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on String {}
 f() {
   -E('a');
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 33, 1)],
+    );
   }
 }

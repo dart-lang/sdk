@@ -129,7 +129,7 @@ abstract class DartObject {
   /// If the object being represented is not a [Record] `null` is returned
   /// instead.
   ({List<DartObject> positional, Map<String, DartObject> named})?
-      toRecordValue();
+  toRecordValue();
 
   /// Return a set corresponding to the value of the object being represented,
   /// or `null` if

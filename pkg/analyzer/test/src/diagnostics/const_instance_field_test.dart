@@ -16,22 +16,24 @@ main() {
 @reflectiveTest
 class ConstInstanceFieldTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   const int f = 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_INSTANCE_FIELD, 12, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_INSTANCE_FIELD, 12, 5)],
+    );
   }
 
   test_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin C {
   const int f = 0;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_INSTANCE_FIELD, 12, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_INSTANCE_FIELD, 12, 5)],
+    );
   }
 }

@@ -17,10 +17,7 @@ final class AnalyzedLibrary extends AnalysisDriverEvent {
   final LibraryFileKind library;
   final RequirementsManifest? requirements;
 
-  AnalyzedLibrary({
-    required this.library,
-    required this.requirements,
-  });
+  AnalyzedLibrary({required this.library, required this.requirements});
 }
 
 /// The event that we wanted to analyze [file], so analyze [library].
@@ -28,10 +25,7 @@ final class AnalyzeFile extends AnalysisDriverEvent {
   final FileState file;
   final LibraryFileKind library;
 
-  AnalyzeFile({
-    required this.file,
-    required this.library,
-  });
+  AnalyzeFile({required this.file, required this.library});
 }
 
 /// The event that we were not able to reuse the existing linked bundle
@@ -58,20 +52,14 @@ final class GetErrorsCannotReuse extends AnalysisDriverEvent {
   final LibraryFileKind library;
   final RequirementFailure failure;
 
-  GetErrorsCannotReuse({
-    required this.library,
-    required this.failure,
-  });
+  GetErrorsCannotReuse({required this.library, required this.failure});
 }
 
 final class GetErrorsFromBytes extends AnalysisDriverEvent {
   final FileState file;
   final LibraryFileKind library;
 
-  GetErrorsFromBytes({
-    required this.file,
-    required this.library,
-  });
+  GetErrorsFromBytes({required this.file, required this.library});
 }
 
 /// The event that libraries for [cycle] were linked, and accumulated the
@@ -96,10 +84,7 @@ final class ProduceErrorsCannotReuse extends AnalysisDriverEvent {
   final LibraryFileKind library;
   final RequirementFailure failure;
 
-  ProduceErrorsCannotReuse({
-    required this.library,
-    required this.failure,
-  });
+  ProduceErrorsCannotReuse({required this.library, required this.failure});
 }
 
 /// The event that the existing summary bundle for [cycle] were reused,
@@ -107,7 +92,5 @@ final class ProduceErrorsCannotReuse extends AnalysisDriverEvent {
 final class ReuseLinkLibraryCycleBundle extends AnalysisDriverEvent {
   final LibraryCycle cycle;
 
-  ReuseLinkLibraryCycleBundle({
-    required this.cycle,
-  });
+  ReuseLinkLibraryCycleBundle({required this.cycle});
 }

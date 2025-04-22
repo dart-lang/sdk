@@ -66,7 +66,8 @@ GuardedPattern
   }
 
   test_class_field_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static final a = 0;
 }
@@ -74,10 +75,15 @@ class A {
 void f(x) {
   if (x case A.a) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          60, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          60,
+          3,
+        ),
+      ],
+    );
   }
 
   test_doubleLiteral() async {
@@ -282,15 +288,21 @@ GuardedPattern
   }
 
   test_listLiteral_element_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   final a = 0;
   if (x case const [a]) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          47, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          47,
+          1,
+        ),
+      ],
+    );
   }
 
   test_localVariable_const() async {
@@ -314,15 +326,21 @@ GuardedPattern
   }
 
   test_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   var a = 0;
   if (x case a) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          38, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          38,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mapLiteral_entries_intLiteral_intLiteral() async {
@@ -388,15 +406,21 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_key_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   final a = 0;
   if (x case const {a: 1}) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          47, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          47,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mapLiteral_entries_value_localVariable_const() async {
@@ -432,15 +456,21 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_value_localVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   final a = 0;
   if (x case const {0: a}) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          50,
+          1,
+        ),
+      ],
+    );
   }
 
   test_setLiteral_element_intLiteral() async {
@@ -496,17 +526,23 @@ GuardedPattern
   }
 
   test_switch_constPattern_parameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(var e, int a) {
   switch (e) {
     case const (3 + a):
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          58, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          58,
+          1,
+        ),
+      ],
+    );
   }
 
   test_topLevelVariable_const() async {
@@ -531,16 +567,22 @@ GuardedPattern
   }
 
   test_topLevelVariable_notConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final a = 0;
 
 void f(x) {
   if (x case a) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          39,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
@@ -555,13 +597,14 @@ GuardedPattern
   }
 
   test_unresolvedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   if (x case foo) {}
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3)],
+    );
 
     var node = findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''

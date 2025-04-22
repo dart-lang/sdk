@@ -208,7 +208,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         // TODO(jwren): Do we want to take all constant expressions into account?
         // If for(; true; ) (or for(;;)), and the body doesn't return or the body
         // doesn't have a break, then return true.
-        bool implicitOrExplicitTrue = conditionExpression == null ||
+        bool implicitOrExplicitTrue =
+            conditionExpression == null ||
             (conditionExpression is BooleanLiteral &&
                 conditionExpression.value);
         if (implicitOrExplicitTrue) {
@@ -453,7 +454,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitNode(AstNode node) {
     throw StateError(
-        'Missing a visit method for a node of type ${node.runtimeType}');
+      'Missing a visit method for a node of type ${node.runtimeType}',
+    );
   }
 
   @override
@@ -470,8 +472,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitPatternVariableDeclarationStatement(
-          PatternVariableDeclarationStatement node) =>
-      _nodeExits(node.declaration);
+    PatternVariableDeclarationStatement node,
+  ) => _nodeExits(node.declaration);
 
   @override
   bool visitPostfixExpression(PostfixExpression node) => false;
@@ -695,7 +697,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   bool _visitVariableDeclarations(
-      NodeList<VariableDeclaration> variableDeclarations) {
+    NodeList<VariableDeclaration> variableDeclarations,
+  ) {
     for (int i = variableDeclarations.length - 1; i >= 0; i--) {
       if (variableDeclarations[i].accept(this)!) {
         return true;

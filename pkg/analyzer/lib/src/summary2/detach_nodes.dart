@@ -80,9 +80,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitFormalParameterElement(
-    FormalParameterElement element,
-  ) {
+  void visitFormalParameterElement(FormalParameterElement element) {
     _detachConstVariable(element);
     super.visitFormalParameterElement(element);
   }

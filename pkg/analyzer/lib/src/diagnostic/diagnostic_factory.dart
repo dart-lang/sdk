@@ -45,8 +45,12 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
-  AnalysisError duplicateDefinition(ErrorCode code, Element2 duplicateElement,
-      Element2 originalElement, List<Object> arguments) {
+  AnalysisError duplicateDefinition(
+    ErrorCode code,
+    Element2 duplicateElement,
+    Element2 originalElement,
+    List<Object> arguments,
+  ) {
     var duplicate = duplicateElement.nonSynthetic2;
     var duplicateFragment = duplicate.firstFragment;
     var original = originalElement.nonSynthetic2;
@@ -72,11 +76,12 @@ class DiagnosticFactory {
   /// Return a diagnostic indicating that [duplicateNode] reuses a name
   /// already used by [originalNode].
   AnalysisError duplicateDefinitionForNodes(
-      Source source,
-      ErrorCode code,
-      SyntacticEntity duplicateNode,
-      SyntacticEntity originalNode,
-      List<Object> arguments) {
+    Source source,
+    ErrorCode code,
+    SyntacticEntity duplicateNode,
+    SyntacticEntity originalNode,
+    List<Object> arguments,
+  ) {
     return AnalysisError.tmp(
       source: source,
       offset: duplicateNode.offset,
@@ -97,8 +102,11 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  AnalysisError duplicateFieldDefinitionInLiteral(Source source,
-      NamedExpression duplicateField, NamedExpression originalField) {
+  AnalysisError duplicateFieldDefinitionInLiteral(
+    Source source,
+    NamedExpression duplicateField,
+    NamedExpression originalField,
+  ) {
     var duplicateNode = duplicateField.name.label;
     var duplicateName = duplicateNode.name;
     return AnalysisError.tmp(
@@ -125,9 +133,10 @@ class DiagnosticFactory {
   /// This method requires that both the [duplicateField] and [originalField]
   /// have a non-null `name`.
   AnalysisError duplicateFieldDefinitionInType(
-      Source source,
-      RecordTypeAnnotationField duplicateField,
-      RecordTypeAnnotationField originalField) {
+    Source source,
+    RecordTypeAnnotationField duplicateField,
+    RecordTypeAnnotationField originalField,
+  ) {
     var duplicateNode = duplicateField.name!;
     var duplicateName = duplicateNode.lexeme;
     return AnalysisError.tmp(
@@ -205,7 +214,10 @@ class DiagnosticFactory {
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
   AnalysisError equalElementsInConstSet(
-      Source source, Expression duplicateElement, Expression originalElement) {
+    Source source,
+    Expression duplicateElement,
+    Expression originalElement,
+  ) {
     return AnalysisError.tmp(
       source: source,
       offset: duplicateElement.offset,
@@ -226,7 +238,10 @@ class DiagnosticFactory {
   /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
   /// is a duplicate of the [originalKey].
   AnalysisError equalKeysInConstMap(
-      Source source, Expression duplicateKey, Expression originalKey) {
+    Source source,
+    Expression duplicateKey,
+    Expression originalKey,
+  ) {
     return AnalysisError.tmp(
       source: source,
       offset: duplicateKey.offset,
@@ -247,7 +262,10 @@ class DiagnosticFactory {
   /// Return a diagnostic indicating that the [duplicateKey] (in a map pattern)
   /// is a duplicate of the [originalKey].
   AnalysisError equalKeysInMapPattern(
-      Source source, Expression duplicateKey, Expression originalKey) {
+    Source source,
+    Expression duplicateKey,
+    Expression originalKey,
+  ) {
     return AnalysisError.tmp(
       source: source,
       offset: duplicateKey.offset,
@@ -265,8 +283,13 @@ class DiagnosticFactory {
     );
   }
 
-  AnalysisError invalidNullAwareAfterShortCircuit(Source source, int offset,
-      int length, List<Object> arguments, Token previousToken) {
+  AnalysisError invalidNullAwareAfterShortCircuit(
+    Source source,
+    int offset,
+    int length,
+    List<Object> arguments,
+    Token previousToken,
+  ) {
     var lexeme = previousToken.lexeme;
     return AnalysisError.tmp(
       source: source,
@@ -290,12 +313,13 @@ class DiagnosticFactory {
   /// Return a diagnostic indicating that [member] is not a correct override of
   /// [superMember].
   AnalysisError invalidOverride(
-      Source source,
-      ErrorCode errorCode,
-      SyntacticEntity errorNode,
-      ExecutableElement2 member,
-      ExecutableElement2 superMember,
-      String memberName) {
+    Source source,
+    ErrorCode errorCode,
+    SyntacticEntity errorNode,
+    ExecutableElement2 member,
+    ExecutableElement2 superMember,
+    String memberName,
+  ) {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
@@ -333,7 +357,7 @@ class DiagnosticFactory {
             offset: superFragment.nameOffset2 ?? -1,
             length: superFragment.name2!.length,
             url: null,
-          )
+          ),
       ],
     );
   }
@@ -351,11 +375,12 @@ class DiagnosticFactory {
     if (declarationOffset >= 0) {
       contextMessages = [
         DiagnosticMessageImpl(
-            filePath: source.fullName,
-            message: "The declaration of '$name' is here.",
-            offset: declarationOffset,
-            length: name.length,
-            url: null)
+          filePath: source.fullName,
+          message: "The declaration of '$name' is here.",
+          offset: declarationOffset,
+          length: name.length,
+          url: null,
+        ),
       ];
     }
     return AnalysisError.tmp(

@@ -49,8 +49,14 @@ class IgnoreValidator {
   /// Initialize a newly created validator to report any issues with ignore
   /// comments in the file being analyzed. The diagnostics will be reported to
   /// the [_errorReporter].
-  IgnoreValidator(this._errorReporter, this._reportedErrors, this._ignoreInfo,
-      this._lineInfo, this._unignorableNames, this._validateUnnecessaryIgnores);
+  IgnoreValidator(
+    this._errorReporter,
+    this._reportedErrors,
+    this._ignoreInfo,
+    this._lineInfo,
+    this._unignorableNames,
+    this._validateUnnecessaryIgnores,
+  );
 
   /// Report any issues with ignore comments in the file being analyzed.
   void reportErrors() {
@@ -81,7 +87,10 @@ class IgnoreValidator {
       }
     }
     _reportUnignorableAndDuplicateIgnores(
-        unignorable, duplicated, ignoredForFile);
+      unignorable,
+      duplicated,
+      ignoredForFile,
+    );
     for (var ignoredOnLine in ignoredOnLineMap.values) {
       var namedIgnoredOnLine = <String>{};
       var typesIgnoredOnLine = <String>{};
@@ -105,7 +114,10 @@ class IgnoreValidator {
         }
       }
       _reportUnignorableAndDuplicateIgnores(
-          unignorable, duplicated, ignoredOnLine);
+        unignorable,
+        duplicated,
+        ignoredOnLine,
+      );
     }
 
     //
@@ -129,16 +141,17 @@ class IgnoreValidator {
       forFile: true,
     );
     for (var ignoredOnLine in ignoredOnLineMap.values) {
-      _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
-        ignoredOnLine,
-      );
+      _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredOnLine);
     }
   }
 
   /// Report the names that are [unignorable] or [duplicated] and remove them
   /// from the [list] of names from which they were extracted.
-  void _reportUnignorableAndDuplicateIgnores(List<IgnoredElement> unignorable,
-      List<IgnoredElement> duplicated, List<IgnoredElement> list) {
+  void _reportUnignorableAndDuplicateIgnores(
+    List<IgnoredElement> unignorable,
+    List<IgnoredElement> duplicated,
+    List<IgnoredElement> list,
+  ) {
     // TODO(brianwilkerson): Uncomment the code below after the unignorable
     //  ignores in the Flutter code base have been cleaned up.
     // for (var unignorableName in unignorable) {
@@ -199,17 +212,19 @@ class IgnoreValidator {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
               _errorReporter.atOffset(
-                  errorCode: WarningCode.REPLACED_LINT_USE,
-                  offset: ignoredName.offset,
-                  length: name.length,
-                  arguments: [name, since, replacedBy]);
+                errorCode: WarningCode.REPLACED_LINT_USE,
+                offset: ignoredName.offset,
+                length: name.length,
+                arguments: [name, since, replacedBy],
+              );
               continue;
             } else {
               _errorReporter.atOffset(
-                  errorCode: WarningCode.REMOVED_LINT_USE,
-                  offset: ignoredName.offset,
-                  length: name.length,
-                  arguments: [name, since]);
+                errorCode: WarningCode.REMOVED_LINT_USE,
+                offset: ignoredName.offset,
+                length: name.length,
+                arguments: [name, since],
+              );
               continue;
             }
           }
@@ -247,20 +262,23 @@ class IgnoreValidator {
 
         late ErrorCode lintCode;
         if (forFile) {
-          lintCode = diagnosticsOnLine > 1
-              ? unnecessaryIgnoreNameFileLintCode
-              : unnecessaryIgnoreFileLintCode;
+          lintCode =
+              diagnosticsOnLine > 1
+                  ? unnecessaryIgnoreNameFileLintCode
+                  : unnecessaryIgnoreFileLintCode;
         } else {
-          lintCode = diagnosticsOnLine > 1
-              ? unnecessaryIgnoreNameLocationLintCode
-              : unnecessaryIgnoreLocationLintCode;
+          lintCode =
+              diagnosticsOnLine > 1
+                  ? unnecessaryIgnoreNameLocationLintCode
+                  : unnecessaryIgnoreLocationLintCode;
         }
 
         _errorReporter.atOffset(
-            errorCode: lintCode,
-            offset: ignoredName.offset,
-            length: name.length,
-            arguments: [name]);
+          errorCode: lintCode,
+          offset: ignoredName.offset,
+          length: name.length,
+          arguments: [name],
+        );
       }
     }
   }
@@ -281,7 +299,10 @@ extension on AnalysisError {
 
 extension on List<IgnoredElement> {
   void removeByName(String name) {
-    removeWhere((ignoredElement) =>
-        ignoredElement is IgnoredDiagnosticName && ignoredElement.name == name);
+    removeWhere(
+      (ignoredElement) =>
+          ignoredElement is IgnoredDiagnosticName &&
+          ignoredElement.name == name,
+    );
   }
 }

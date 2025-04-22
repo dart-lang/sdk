@@ -20,18 +20,25 @@ main() {
     group('error code reporting', () {
       test('reportLintForToken (custom)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
-        rule.reportLintForToken(Token.eof(0),
-            errorCode: customCode, ignoreSyntheticTokens: false);
+        rule.reportLintForToken(
+          Token.eof(0),
+          errorCode: customCode,
+          ignoreSyntheticTokens: false,
+        );
         expect(reporter.code, customCode);
       });
       test('reportLintForToken (default)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
         rule.reportLintForToken(Token.eof(0), ignoreSyntheticTokens: false);
@@ -39,8 +46,10 @@ main() {
       });
       test('reportLint (custom)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
@@ -51,8 +60,10 @@ main() {
       });
       test('reportLint (default)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
@@ -66,8 +77,10 @@ main() {
 }
 
 const LintCode customCode = LintCode(
-    'hash_and_equals', 'Override `==` if overriding `hashCode`.',
-    correctionMessage: 'Implement `==`.');
+  'hash_and_equals',
+  'Override `==` if overriding `hashCode`.',
+  correctionMessage: 'Implement `==`.',
+);
 
 class CollectingReporter extends ErrorReporter {
   ErrorCode? code;
@@ -109,14 +122,13 @@ class CollectingReporter extends ErrorReporter {
 }
 
 class TestRule extends LintRule {
-  static const LintCode code =
-      LintCode('test_rule', 'Test rule.', correctionMessage: 'Try test rule.');
+  static const LintCode code = LintCode(
+    'test_rule',
+    'Test rule.',
+    correctionMessage: 'Try test rule.',
+  );
 
-  TestRule()
-      : super(
-          name: 'test_rule',
-          description: '',
-        );
+  TestRule() : super(name: 'test_rule', description: '');
 
   @override
   LintCode get lintCode => code;

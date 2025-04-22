@@ -16,14 +16,17 @@ main() {
 @reflectiveTest
 class InlineArrayTest extends PubPackageResolutionTest {
   test_array_negativeDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array(-1)
   external Array<Int8> arr;
 }
-''', [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 2)]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 2)],
+    );
   }
 
   test_array_positiveDimension() async {
@@ -38,25 +41,31 @@ final class MyStruct extends Struct {
   }
 
   test_array_zeroDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array(0)
   external Array<Int8> arr;
 }
-''', [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 1)]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 67, 1)],
+    );
   }
 
   test_multi_negativeDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array.multi([-2, 2])
   external Array<Array<Int8>> arr;
 }
-''', [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 2)]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 2)],
+    );
   }
 
   test_multi_positiveDimension() async {
@@ -71,25 +80,31 @@ final class MyStruct extends Struct {
   }
 
   test_multi_zeroDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array.multi([0, 2])
   external Array<Array<Int8>> arr;
 }
-''', [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 1)]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 74, 1)],
+    );
   }
 
   test_variable_negativeDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array.variable(-1)
   external Array<Array<Int8>> arr;
 }
-''', [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 76, 2)]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 76, 2)],
+    );
   }
 
   test_variable_positiveDimension() async {
@@ -115,25 +130,31 @@ final class MyStruct extends Struct {
   }
 
   test_variable_zeroDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array.variable(0)
   external Array<Array<Int8>> arr;
 }
-''', [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 76, 1)]);
+''',
+      [error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 76, 1)],
+    );
   }
 
   test_variableMulti_negativeDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array.variableMulti(variableDimension: -1, [2, 2])
   external Array<Array<Array<Int8>>> arr;
 }
-''', [error(FfiCode.NEGATIVE_VARIABLE_DIMENSION, 100, 2)]);
+''',
+      [error(FfiCode.NEGATIVE_VARIABLE_DIMENSION, 100, 2)],
+    );
   }
 
   test_variableMulti_positiveDimension() async {
@@ -170,14 +191,17 @@ final class MyStruct extends Struct {
   }
 
   test_variableWithVariableDimension_negativeDimension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 
 final class MyStruct extends Struct {
   @Array.variableWithVariableDimension(-1)
   external Array<Int8> arr;
 }
-''', [error(FfiCode.NEGATIVE_VARIABLE_DIMENSION, 97, 2)]);
+''',
+      [error(FfiCode.NEGATIVE_VARIABLE_DIMENSION, 97, 2)],
+    );
   }
 
   test_variableWithVariableDimension_positiveDimension() async {

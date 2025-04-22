@@ -70,10 +70,7 @@ class ParserDiagnosticsTest {
     required bool withTokenPreviousNext,
   }) {
     var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
+    var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
@@ -82,8 +79,9 @@ class ParserDiagnosticsTest {
       ResolvedAstPrinter(
         sink: sink,
         elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration()
-          ..withTokenPreviousNext = withTokenPreviousNext,
+        configuration:
+            ResolvedNodeTextConfiguration()
+              ..withTokenPreviousNext = withTokenPreviousNext,
         withResolution: false,
         withOffsets: withOffsets,
       ),

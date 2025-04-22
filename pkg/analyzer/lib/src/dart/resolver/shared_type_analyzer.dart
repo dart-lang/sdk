@@ -13,15 +13,22 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-typedef SharedPatternField
-    = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
+typedef SharedPatternField =
+    shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// Implementation of [shared.TypeAnalyzerErrors] that reports errors using the
 /// analyzer's [ErrorReporter] class.
 class SharedTypeAnalyzerErrors
     implements
-        shared.TypeAnalyzerErrors<AstNodeImpl, StatementImpl, ExpressionImpl,
-            PromotableElementImpl2, SharedTypeView, DartPatternImpl, void> {
+        shared.TypeAnalyzerErrors<
+          AstNodeImpl,
+          StatementImpl,
+          ExpressionImpl,
+          PromotableElementImpl2,
+          SharedTypeView,
+          DartPatternImpl,
+          void
+        > {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
@@ -30,11 +37,12 @@ class SharedTypeAnalyzerErrors
   void assertInErrorRecovery() {}
 
   @override
-  void caseExpressionTypeMismatch(
-      {required Expression scrutinee,
-      required Expression caseExpression,
-      required SharedTypeView scrutineeType,
-      required SharedTypeView caseExpressionType}) {
+  void caseExpressionTypeMismatch({
+    required Expression scrutinee,
+    required Expression caseExpression,
+    required SharedTypeView scrutineeType,
+    required SharedTypeView caseExpressionType,
+  }) {
     _errorReporter.atNode(
       caseExpression,
       CompileTimeErrorCode
@@ -95,13 +103,8 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void emptyMapPattern({
-    required DartPattern pattern,
-  }) {
-    _errorReporter.atNode(
-      pattern,
-      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
-    );
+  void emptyMapPattern({required DartPattern pattern}) {
+    _errorReporter.atNode(pattern, CompileTimeErrorCode.EMPTY_MAP_PATTERN);
   }
 
   @override
@@ -150,10 +153,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void nonBooleanCondition({required Expression node}) {
-    _errorReporter.atNode(
-      node,
-      CompileTimeErrorCode.NON_BOOL_CONDITION,
-    );
+    _errorReporter.atNode(node, CompileTimeErrorCode.NON_BOOL_CONDITION);
   }
 
   @override
@@ -184,8 +184,10 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void refutablePatternInIrrefutableContext(
-      {required AstNode pattern, required AstNode context}) {
+  void refutablePatternInIrrefutableContext({
+    required AstNode pattern,
+    required AstNode context,
+  }) {
     _errorReporter.atNode(
       pattern,
       CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
@@ -229,8 +231,10 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void switchCaseCompletesNormally(
-      {required covariant SwitchStatementImpl node, required int caseIndex}) {
+  void switchCaseCompletesNormally({
+    required covariant SwitchStatementImpl node,
+    required int caseIndex,
+  }) {
     _errorReporter.atToken(
       node.members[caseIndex].keyword,
       CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,

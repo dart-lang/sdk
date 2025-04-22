@@ -567,10 +567,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_asInstanceOf_hasBound_promoted() {
     var T = typeParameter('T');
     _assert_asInstanceOf(
-      typeParameterTypeNone(
-        T,
-        promotedBound: listNone(intNone),
-      ),
+      typeParameterTypeNone(T, promotedBound: listNone(intNone)),
       typeProvider.iterableElement2,
       'Iterable<int>',
     );
@@ -579,10 +576,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_asInstanceOf_hasBound_promoted_noMatch() {
     var T = typeParameter('T');
     _assert_asInstanceOf(
-      typeParameterTypeNone(
-        T,
-        promotedBound: numNone,
-      ),
+      typeParameterTypeNone(T, promotedBound: numNone),
       typeProvider.iterableElement2,
       null,
     );
@@ -614,9 +608,6 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     String? expected,
   ) {
     var result = type.asInstanceOf2(element);
-    expect(
-      result?.getDisplayString(),
-      expected,
-    );
+    expect(result?.getDisplayString(), expected);
   }
 }

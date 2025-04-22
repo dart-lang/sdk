@@ -15,6 +15,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -2170,7 +2171,10 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 has plugin2 enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(experiments: experiments, plugins: [plugin2.name]),
+      analysisOptionsContent(
+        experiments: experiments,
+        legacyPlugins: [plugin2.name],
+      ),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2213,7 +2217,10 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 also has plugin1 enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(experiments: experiments, plugins: [plugin1.name]),
+      analysisOptionsContent(
+        experiments: experiments,
+        legacyPlugins: [plugin1.name],
+      ),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2449,7 +2456,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
       packagePath,
       analysisOptionsContent(
         experiments: experiments,
-        plugins: plugins.map((plugin) => plugin.name).toList(),
+        legacyPlugins: plugins.map((plugin) => plugin.name).toList(),
       ),
     );
 

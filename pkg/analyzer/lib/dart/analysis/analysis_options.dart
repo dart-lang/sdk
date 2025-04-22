@@ -82,16 +82,17 @@ final class GitPluginSource implements PluginSource {
   final String? _ref;
 
   GitPluginSource({required String url, String? path, String? ref})
-      : _url = url,
-        _path = path,
-        _ref = ref;
+    : _url = url,
+      _path = path,
+      _ref = ref;
 
   @override
   String toYaml({required String name}) {
-    var buffer = StringBuffer()
-      ..writeln('  $name:')
-      ..writeln('    git:')
-      ..writeln('      url: $_url');
+    var buffer =
+        StringBuffer()
+          ..writeln('  $name:')
+          ..writeln('    git:')
+          ..writeln('      url: $_url');
     if (_ref != null) {
       buffer.writeln('      ref: $_ref');
     }
@@ -159,7 +160,7 @@ final class VersionedPluginSource implements PluginSource {
   final String _constraint;
 
   VersionedPluginSource({required String constraint})
-      : _constraint = constraint;
+    : _constraint = constraint;
 
   @override
   String toYaml({required String name}) => '  $name: $_constraint\n';

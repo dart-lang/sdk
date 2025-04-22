@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class NonVoidReturnForSetterTest extends PubPackageResolutionTest {
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int set x(int v) {
   return 42;
-}''', [
-      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 0, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 0, 3)],
+    );
   }
 
   test_function_no_return() async {
@@ -37,14 +38,15 @@ void set x(v) {}
   }
 
   test_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int set x(int v) {
     return 42;
   }
-}''', [
-      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 3),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 3)],
+    );
   }
 
   test_method_no_return() async {

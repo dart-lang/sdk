@@ -170,8 +170,10 @@ class Reference {
       childrenUnionAsMap[childrenUnion.name] = childrenUnion;
       return childrenUnionAsMap[name] = Reference._(this, name);
     }
-    return (childrenUnion as Map<String, Reference>)[name] ??=
-        Reference._(this, name);
+    return (childrenUnion as Map<String, Reference>)[name] ??= Reference._(
+      this,
+      name,
+    );
   }
 
   /// Returns children with the given name.

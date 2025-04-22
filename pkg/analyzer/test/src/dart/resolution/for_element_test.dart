@@ -12,7 +12,8 @@ main() {
     defineReflectiveTests(ForElementResolutionTest_ForEachPartsWithDeclaration);
     defineReflectiveTests(ForElementResolutionTest_ForEachPartsWithPattern);
     defineReflectiveTests(
-        ForElementResolutionTest_ForEachPartsWithPattern_await);
+      ForElementResolutionTest_ForEachPartsWithPattern_await,
+    );
     defineReflectiveTests(ForElementResolutionTest_ForPartsWithDeclarations);
     defineReflectiveTests(ForElementResolutionTest_ForPartsWithPattern);
   });
@@ -138,13 +139,14 @@ ForElement
   }
 
   test_iterable_Object() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   [for (var (a) in x) a];
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 38, 1)],
+    );
     var node = findNode.forElement('for');
     assertResolvedNodeText(node, r'''
 ForElement
@@ -451,13 +453,14 @@ ForElement
   }
 
   test_iterable_Object() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) async {
   [await for (var (a) in x) a];
 }
-''', [
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 50, 1)],
+    );
     var node = findNode.forElement('for');
     assertResolvedNodeText(node, r'''
 ForElement

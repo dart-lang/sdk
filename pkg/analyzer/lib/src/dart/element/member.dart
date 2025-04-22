@@ -27,9 +27,7 @@ class ConstructorMember extends ExecutableMember
   ConstructorMember({
     required ConstructorElementImpl super.declaration,
     required super.substitution,
-  }) : super(
-          typeParameters: const <TypeParameterElementImpl>[],
-        );
+  }) : super(typeParameters: const <TypeParameterElementImpl>[]);
 
   @override
   ConstructorElementImpl2 get baseElement => _element2;
@@ -50,9 +48,11 @@ class ConstructorMember extends ExecutableMember
   @override
   List<ConstructorFragment> get fragments {
     return [
-      for (ConstructorFragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
+      for (
+        ConstructorFragment? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
         fragment,
     ];
   }
@@ -207,10 +207,7 @@ abstract class ExecutableMember extends Member
 
   @override
   List<Element2> get children2 {
-    return [
-      ...typeParameters2,
-      ...formalParameters,
-    ];
+    return [...typeParameters2, ...formalParameters];
   }
 
   @override
@@ -230,9 +227,11 @@ abstract class ExecutableMember extends Member
   @override
   List<ExecutableFragment> get fragments {
     return [
-      for (ExecutableFragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
+      for (
+        ExecutableFragment? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
         fragment,
     ];
   }
@@ -400,10 +399,7 @@ abstract class ExecutableMember extends Member
           substitution: combined,
         );
       case MethodElementImpl():
-        return MethodMember(
-          declaration: declaration,
-          substitution: combined,
-        );
+        return MethodMember(declaration: declaration, substitution: combined);
       case PropertyAccessorElementImpl():
         return PropertyAccessorMember(
           declaration: declaration,
@@ -452,10 +448,7 @@ class FieldFormalParameterMember extends ParameterMember
       return null;
     }
 
-    return FieldMember(
-      declaration: field,
-      substitution: substitution,
-    );
+    return FieldMember(declaration: field, substitution: substitution);
   }
 
   @override
@@ -502,9 +495,11 @@ class FieldMember extends VariableMember
   @override
   List<FieldFragment> get fragments {
     return [
-      for (FieldFragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
+      for (
+        FieldFragment? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
         fragment,
     ];
   }
@@ -580,10 +575,14 @@ class FieldMember extends VariableMember
   }
 
   @override
-  String displayString2(
-      {bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
     return _element2.displayString2(
-        multiline: multiline, preferTypeAlias: preferTypeAlias);
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
   }
 
   @override
@@ -629,10 +628,7 @@ class FieldMember extends VariableMember
     if (substitution.map.isEmpty) {
       return element;
     }
-    return FieldMember(
-      declaration: element,
-      substitution: substitution,
-    );
+    return FieldMember(declaration: element, substitution: substitution);
   }
 }
 
@@ -664,9 +660,11 @@ class GetterMember extends PropertyAccessorMember
   @override
   List<GetterFragment> get fragments {
     return [
-      for (GetterFragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
+      for (
+        GetterFragment? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
         fragment,
     ];
   }
@@ -724,13 +722,13 @@ abstract class Member implements ElementOrMember {
 
   /// Initialize a newly created element to represent a member, based on the
   /// [declaration], and applied [substitution].
-  Member({
-    required ElementImpl declaration,
-    required this.substitution,
-  }) : _declaration = declaration {
+  Member({required ElementImpl declaration, required this.substitution})
+    : _declaration = declaration {
     if (_declaration is Member) {
-      throw StateError('Members must be created from a declaration, but is '
-          '(${_declaration.runtimeType}) "$_declaration".');
+      throw StateError(
+        'Members must be created from a declaration, but is '
+        '(${_declaration.runtimeType}) "$_declaration".',
+      );
     }
   }
 
@@ -807,9 +805,7 @@ abstract class Member implements ElementOrMember {
   }
 
   String getExtendedDisplayName2({String? shortName}) {
-    return _element2.getExtendedDisplayName2(
-      shortName: shortName,
-    );
+    return _element2.getExtendedDisplayName2(shortName: shortName);
   }
 
   @override
@@ -855,9 +851,11 @@ class MethodMember extends ExecutableMember
   @override
   List<MethodFragment> get fragments {
     return [
-      for (MethodFragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
+      for (
+        MethodFragment? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
         fragment,
     ];
   }
@@ -937,10 +935,7 @@ class ParameterMember extends VariableMember
 
   @override
   List<Element2> get children2 {
-    return [
-      ...typeParameters2,
-      ...formalParameters,
-    ];
+    return [...typeParameters2, ...formalParameters];
   }
 
   @override
@@ -970,9 +965,11 @@ class ParameterMember extends VariableMember
   @override
   List<FormalParameterFragment> get fragments {
     return [
-      for (FormalParameterFragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
+      for (
+        FormalParameterFragment? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
         fragment,
     ];
   }
@@ -1045,10 +1042,14 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  String displayString2(
-      {bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
     return _element2.displayString2(
-        multiline: multiline, preferTypeAlias: preferTypeAlias);
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
   }
 
   @override
@@ -1071,7 +1072,9 @@ class ParameterMember extends VariableMember
   }
 
   static ParameterElementMixin from(
-      ParameterElementMixin element, MapSubstitution substitution) {
+    ParameterElementMixin element,
+    MapSubstitution substitution,
+  ) {
     ParameterElementImpl declaration;
     var combined = substitution;
     if (element is ParameterMember) {
@@ -1091,10 +1094,7 @@ class ParameterMember extends VariableMember
       return element;
     }
 
-    return ParameterMember(
-      declaration: declaration,
-      substitution: combined,
-    );
+    return ParameterMember(declaration: declaration, substitution: combined);
   }
 }
 
@@ -1186,10 +1186,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
     var variable = declaration.variable2;
     switch (variable) {
       case FieldElementImpl():
-        return FieldMember(
-          declaration: variable,
-          substitution: substitution,
-        );
+        return FieldMember(declaration: variable, substitution: substitution);
       default:
         return variable;
     }
@@ -1251,9 +1248,11 @@ class SetterMember extends PropertyAccessorMember
   @override
   List<SetterFragment> get fragments {
     return [
-      for (SetterFragment? fragment = firstFragment;
-          fragment != null;
-          fragment = fragment.nextFragment)
+      for (
+        SetterFragment? fragment = firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
         fragment,
     ];
   }
@@ -1421,9 +1420,7 @@ class _SubstitutedTypeParameters {
       var newElement = TypeParameterElementImpl.synthetic(element.name);
       newElements.add(newElement);
       newTypes.add(
-        newElement.instantiate(
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
+        newElement.instantiate(nullabilitySuffix: NullabilitySuffix.none),
       );
     }
 
@@ -1446,10 +1443,7 @@ class _SubstitutedTypeParameters {
 
     return _SubstitutedTypeParameters._(
       newElements,
-      Substitution.fromMap2({
-        ...substitution.map,
-        ...substitution2.map,
-      }),
+      Substitution.fromMap2({...substitution.map, ...substitution2.map}),
     );
   }
 

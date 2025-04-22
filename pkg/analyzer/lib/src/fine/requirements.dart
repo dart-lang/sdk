@@ -53,9 +53,7 @@ class ExportRequirement {
     );
   }
 
-  ExportFailure? isSatisfied({
-    required LinkedElementFactory elementFactory,
-  }) {
+  ExportFailure? isSatisfied({required LinkedElementFactory elementFactory}) {
     var libraryElement = elementFactory.libraryOfUri(exportedUri);
     var libraryManifest = libraryElement?.manifest;
     if (libraryManifest == null) {
@@ -152,9 +150,7 @@ final class ExportRequirementHideCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> hiddenBaseNames;
 
-  ExportRequirementHideCombinator({
-    required this.hiddenBaseNames,
-  });
+  ExportRequirementHideCombinator({required this.hiddenBaseNames});
 
   factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
     return ExportRequirementHideCombinator(
@@ -174,9 +170,7 @@ final class ExportRequirementShowCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> shownBaseNames;
 
-  ExportRequirementShowCombinator({
-    required this.shownBaseNames,
-  });
+  ExportRequirementShowCombinator({required this.shownBaseNames});
 
   factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
     return ExportRequirementShowCombinator(
@@ -197,7 +191,7 @@ class RequirementsManifest {
 
   /// LibraryUri => TopName => MemberName => ID
   final Map<Uri, Map<LookupName, Map<LookupName, ManifestItemId?>>>
-      interfaceMembers = {};
+  interfaceMembers = {};
 
   final List<ExportRequirement> exportRequirements = [];
 
@@ -209,9 +203,8 @@ class RequirementsManifest {
     Map<LookupName, ManifestItemId?> readNameToIdMap() {
       return reader.readMap(
         readKey: () => LookupName.read(reader),
-        readValue: () => reader.readOptionalObject(
-          () => ManifestItemId.read(reader),
-        ),
+        readValue:
+            () => reader.readOptionalObject(() => ManifestItemId.read(reader)),
       );
     }
 
@@ -478,25 +471,27 @@ class RequirementsManifest {
           continue;
         }
 
-        var combinators = export.combinators.map((combinator) {
-          switch (combinator) {
-            case HideElementCombinator():
-              return ExportRequirementHideCombinator(
-                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
-              );
-            case ShowElementCombinator():
-              return ExportRequirementShowCombinator(
-                shownBaseNames: combinator.shownNames.toBaseNameSet(),
-              );
-          }
-        }).toList();
+        var combinators =
+            export.combinators.map((combinator) {
+              switch (combinator) {
+                case HideElementCombinator():
+                  return ExportRequirementHideCombinator(
+                    hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
+                  );
+                case ShowElementCombinator():
+                  return ExportRequirementShowCombinator(
+                    shownBaseNames: combinator.shownNames.toBaseNameSet(),
+                  );
+              }
+            }).toList();
 
         // SAFETY: every library has the manifest.
         var manifest = exportedLibrary.manifest!;
 
         var exportedIds = <LookupName, ManifestItemId>{};
-        var exportMap =
-            NamespaceBuilder().createExportNamespaceForDirective2(export);
+        var exportMap = NamespaceBuilder().createExportNamespaceForDirective2(
+          export,
+        );
         for (var entry in exportMap.definedNames2.entries) {
           var lookupName = entry.key.asLookupName;
           // TODO(scheglov): must always be not null.
@@ -519,7 +514,4 @@ class RequirementsManifest {
   }
 }
 
-enum _ExportRequirementCombinatorKind {
-  hide,
-  show,
-}
+enum _ExportRequirementCombinatorKind { hide, show }

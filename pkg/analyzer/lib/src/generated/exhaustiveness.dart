@@ -36,23 +36,17 @@ class AnalyzerDartTemplateBuffer
 
   @override
   void write(String text) {
-    parts.add(
-      MissingPatternTextPart(text),
-    );
+    parts.add(MissingPatternTextPart(text));
   }
 
   @override
   void writeBoolValue(bool value) {
-    parts.add(
-      MissingPatternTextPart('$value'),
-    );
+    parts.add(MissingPatternTextPart('$value'));
   }
 
   @override
   void writeCoreType(String name) {
-    parts.add(
-      MissingPatternTextPart(name),
-    );
+    parts.add(MissingPatternTextPart(name));
   }
 
   @override
@@ -64,10 +58,7 @@ class AnalyzerDartTemplateBuffer
     }
 
     parts.add(
-      MissingPatternEnumValuePart(
-        enumElement2: enumElement,
-        value2: value,
-      ),
+      MissingPatternEnumValuePart(enumElement2: enumElement, value2: value),
     );
   }
 
@@ -78,9 +69,7 @@ class AnalyzerDartTemplateBuffer
 
   @override
   void writeGeneralType(TypeImpl type, String name) {
-    parts.add(
-      MissingPatternTypePart(type),
-    );
+    parts.add(MissingPatternTypePart(type));
   }
 }
 
@@ -123,15 +112,23 @@ class AnalyzerEnumOperations
   }
 }
 
-class AnalyzerExhaustivenessCache extends ExhaustivenessCache<TypeImpl,
-    InterfaceElement2, EnumElement2, FieldElement2, DartObject> {
+class AnalyzerExhaustivenessCache
+    extends
+        ExhaustivenessCache<
+          TypeImpl,
+          InterfaceElement2,
+          EnumElement2,
+          FieldElement2,
+          DartObject
+        > {
   final TypeSystemImpl typeSystem;
 
   AnalyzerExhaustivenessCache(this.typeSystem, LibraryElement2 enclosingLibrary)
-      : super(
-            AnalyzerTypeOperations(typeSystem, enclosingLibrary),
-            const AnalyzerEnumOperations(),
-            AnalyzerSealedClassOperations(typeSystem));
+    : super(
+        AnalyzerTypeOperations(typeSystem, enclosingLibrary),
+        const AnalyzerEnumOperations(),
+        AnalyzerSealedClassOperations(typeSystem),
+      );
 }
 
 class AnalyzerSealedClassOperations
@@ -142,7 +139,8 @@ class AnalyzerSealedClassOperations
 
   @override
   List<InterfaceElementImpl2> getDirectSubclasses(
-      InterfaceElementImpl2 sealedClass) {
+    InterfaceElementImpl2 sealedClass,
+  ) {
     List<InterfaceElementImpl2> subclasses = [];
     var library = sealedClass.library2;
     outer:
@@ -194,8 +192,10 @@ class AnalyzerSealedClassOperations
   }
 
   @override
-  TypeImpl? getSubclassAsInstanceOf(InterfaceElementImpl2 subClass,
-      covariant InterfaceTypeImpl sealedClassType) {
+  TypeImpl? getSubclassAsInstanceOf(
+    InterfaceElementImpl2 subClass,
+    covariant InterfaceTypeImpl sealedClassType,
+  ) {
     var thisType = subClass.thisType;
     var asSealedClass = thisType.asInstanceOf2(sealedClassType.element3)!;
     if (thisType.typeArguments.isEmpty) {
@@ -211,12 +211,16 @@ class AnalyzerSealedClassOperations
       }
       if (trivialSubstitution) {
         Substitution substitution = Substitution.fromPairs2(
-            subClass.typeParameters2, sealedClassType.typeArguments);
+          subClass.typeParameters2,
+          sealedClassType.typeArguments,
+        );
         for (int i = 0; i < subClass.typeParameters2.length; i++) {
           var bound = subClass.typeParameters2[i].bound;
           if (bound != null &&
-              !_typeSystem.isSubtypeOf(sealedClassType.typeArguments[i],
-                  substitution.substituteType(bound))) {
+              !_typeSystem.isSubtypeOf(
+                sealedClassType.typeArguments[i],
+                substitution.substituteType(bound),
+              )) {
             trivialSubstitution = false;
             break;
           }
@@ -227,8 +231,9 @@ class AnalyzerSealedClassOperations
     }
     if (trivialSubstitution) {
       return subClass.instantiateImpl(
-          typeArguments: sealedClassType.typeArguments,
-          nullabilitySuffix: NullabilitySuffix.none);
+        typeArguments: sealedClassType.typeArguments,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
     } else {
       return TypeParameterReplacer.replaceTypeVariables(_typeSystem, thisType);
     }
@@ -521,13 +526,17 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
 
   @override
   StaticType createListType(
-      TypeImpl type, ListTypeRestriction<TypeImpl> restriction) {
+    TypeImpl type,
+    ListTypeRestriction<TypeImpl> restriction,
+  ) {
     return cache.getListStaticType(type, restriction);
   }
 
   @override
   StaticType createMapType(
-      TypeImpl type, MapTypeRestriction<TypeImpl> restriction) {
+    TypeImpl type,
+    MapTypeRestriction<TypeImpl> restriction,
+  ) {
     return cache.getMapStaticType(type, restriction);
   }
 
@@ -543,12 +552,19 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
   }
 
   @override
-  Space dispatchPattern(Path path, StaticType contextType, DartPattern pattern,
-      {required bool nonNull}) {
+  Space dispatchPattern(
+    Path path,
+    StaticType contextType,
+    DartPattern pattern, {
+    required bool nonNull,
+  }) {
     if (pattern is DeclaredVariablePatternImpl) {
       return createVariableSpace(
-          path, contextType, pattern.declaredElement2!.type,
-          nonNull: nonNull);
+        path,
+        contextType,
+        pattern.declaredElement2!.type,
+        nonNull: nonNull,
+      );
     } else if (pattern is ObjectPattern) {
       var properties = <String, DartPattern>{};
       var extensionPropertyTypes = <String, TypeImpl>{};
@@ -574,12 +590,21 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
           extensionPropertyTypes[name] = extensionPropertyType;
         }
       }
-      return createObjectSpace(path, contextType, pattern.type.typeOrThrow,
-          properties, extensionPropertyTypes,
-          nonNull: nonNull);
+      return createObjectSpace(
+        path,
+        contextType,
+        pattern.type.typeOrThrow,
+        properties,
+        extensionPropertyTypes,
+        nonNull: nonNull,
+      );
     } else if (pattern is WildcardPattern) {
-      return createWildcardSpace(path, contextType, pattern.type?.typeOrThrow,
-          nonNull: nonNull);
+      return createWildcardSpace(
+        path,
+        contextType,
+        pattern.type?.typeOrThrow,
+        nonNull: nonNull,
+      );
     } else if (pattern is RecordPatternImpl) {
       var positionalTypes = <TypeImpl>[];
       var positionalPatterns = <DartPattern>[];
@@ -607,32 +632,55 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
         nullabilitySuffix: NullabilitySuffix.none,
       );
       return createRecordSpace(
-          path, contextType, recordType, positionalPatterns, namedPatterns);
+        path,
+        contextType,
+        recordType,
+        positionalPatterns,
+        namedPatterns,
+      );
     } else if (pattern is LogicalOrPattern) {
       return createLogicalOrSpace(
-          path, contextType, pattern.leftOperand, pattern.rightOperand,
-          nonNull: nonNull);
+        path,
+        contextType,
+        pattern.leftOperand,
+        pattern.rightOperand,
+        nonNull: nonNull,
+      );
     } else if (pattern is NullCheckPattern) {
       return createNullCheckSpace(path, contextType, pattern.pattern);
     } else if (pattern is ParenthesizedPattern) {
-      return dispatchPattern(path, contextType, pattern.pattern,
-          nonNull: nonNull);
+      return dispatchPattern(
+        path,
+        contextType,
+        pattern.pattern,
+        nonNull: nonNull,
+      );
     } else if (pattern is NullAssertPattern) {
       return createNullAssertSpace(path, contextType, pattern.pattern);
     } else if (pattern is CastPattern) {
       return createCastSpace(
-          path, contextType, pattern.type.typeOrThrow, pattern.pattern,
-          nonNull: nonNull);
+        path,
+        contextType,
+        pattern.type.typeOrThrow,
+        pattern.pattern,
+        nonNull: nonNull,
+      );
     } else if (pattern is LogicalAndPattern) {
       return createLogicalAndSpace(
-          path, contextType, pattern.leftOperand, pattern.rightOperand,
-          nonNull: nonNull);
+        path,
+        contextType,
+        pattern.leftOperand,
+        pattern.rightOperand,
+        nonNull: nonNull,
+      );
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);
     } else if (pattern is ListPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
-      assert(type.element3 == cache.typeSystem.typeProvider.listElement2 &&
-          type.typeArguments.length == 1);
+      assert(
+        type.element3 == cache.typeSystem.typeProvider.listElement2 &&
+            type.typeArguments.length == 1,
+      );
       var elementType = type.typeArguments[0];
       List<DartPattern> headElements = [];
       DartPattern? restElement;
@@ -648,18 +696,22 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
           headElements.add(element as DartPattern);
         }
       }
-      return createListSpace(path,
-          type: type,
-          elementType: elementType,
-          headElements: headElements,
-          tailElements: tailElements,
-          restElement: restElement,
-          hasRest: hasRest,
-          hasExplicitTypeArgument: pattern.typeArguments != null);
+      return createListSpace(
+        path,
+        type: type,
+        elementType: elementType,
+        headElements: headElements,
+        tailElements: tailElements,
+        restElement: restElement,
+        hasRest: hasRest,
+        hasExplicitTypeArgument: pattern.typeArguments != null,
+      );
     } else if (pattern is MapPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
-      assert(type.element3 == cache.typeSystem.typeProvider.mapElement2 &&
-          type.typeArguments.length == 2);
+      assert(
+        type.element3 == cache.typeSystem.typeProvider.mapElement2 &&
+            type.typeArguments.length == 2,
+      );
       var keyType = type.typeArguments[0];
       var valueType = type.typeArguments[1];
       Map<MapKey, DartPattern> entries = {};
@@ -678,12 +730,14 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
         }
       }
 
-      return createMapSpace(path,
-          type: cache.typeSystem.typeProvider.mapType(keyType, valueType),
-          keyType: keyType,
-          valueType: valueType,
-          entries: entries,
-          hasExplicitTypeArguments: pattern.typeArguments != null);
+      return createMapSpace(
+        path,
+        type: cache.typeSystem.typeProvider.mapType(keyType, valueType),
+        keyType: keyType,
+        valueType: valueType,
+        entries: entries,
+        hasExplicitTypeArguments: pattern.typeArguments != null,
+      );
     } else if (pattern is ConstantPattern) {
       var value = constantPatternValues[pattern];
       if (value != null) {
@@ -734,7 +788,10 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     StaticType staticType;
     if (value.hasPrimitiveEquality(featureSet)) {
       staticType = cache.getUniqueStaticType<DartObjectImpl>(
-          type, value, value.state.toString());
+        type,
+        value,
+        value.state.toString(),
+      );
     } else {
       // If [value] doesn't have primitive equality we cannot tell if it is
       // equal to itself.
@@ -785,7 +842,9 @@ class TypeParameterReplacer extends ReplacementVisitor {
   }
 
   static TypeImpl replaceTypeVariables(
-      TypeSystemImpl typeSystem, TypeImpl type) {
+    TypeSystemImpl typeSystem,
+    TypeImpl type,
+  ) {
     return TypeParameterReplacer(typeSystem)._replaceTypeParameterTypes(type);
   }
 }

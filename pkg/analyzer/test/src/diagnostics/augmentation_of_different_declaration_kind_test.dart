@@ -24,14 +24,20 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment enum A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_augmentedBy_extension() async {
@@ -41,14 +47,20 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment extension A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_augmentedBy_extensionType() async {
@@ -58,14 +70,20 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment extension type A(int it) {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_augmentedBy_function() async {
@@ -75,14 +93,20 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment void A() {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_augmentedBy_mixin() async {
@@ -92,14 +116,20 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment mixin A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_augmentedBy_typedef() async {
@@ -109,14 +139,20 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment typedef A = int;
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_augmentedBy_variable() async {
@@ -126,14 +162,20 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment int A = 0;
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_constructor_augmentedBy_constructor() async {
@@ -163,16 +205,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment int foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_constructor_augmentedBy_getter() async {
@@ -184,16 +232,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment int get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_constructor_augmentedBy_method() async {
@@ -205,16 +259,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_constructor_augmentedBy_setter() async {
@@ -226,16 +286,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment set foo(int _) {}
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_field_augmentedBy_constructor() async {
@@ -247,16 +313,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment A.foo();
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_field_augmentedBy_field() async {
@@ -304,16 +376,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_field_augmentedBy_setter() async {
@@ -343,16 +421,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_method_augmentedBy_constructor() async {
@@ -364,16 +448,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment A.foo();
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_method_augmentedBy_field() async {
@@ -385,16 +475,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment int foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_method_augmentedBy_getter() async {
@@ -406,16 +502,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment int get foo => 0;
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_method_augmentedBy_method() async {
@@ -445,16 +547,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment set foo(int _) {}
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_setter_augmentedBy_method() async {
@@ -466,16 +574,22 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {
   augment void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_enum_augmentedBy_class() async {
@@ -485,14 +599,20 @@ part 'test.dart';
 enum A {v}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_enum_constant_augmentedBy_constant() async {
@@ -522,16 +642,22 @@ enum A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment enum A {;
   augment static void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 39,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          39,
+          7,
+        ),
+      ],
+    );
   }
 
   test_enum_method_augmentedBy_constant() async {
@@ -544,16 +670,22 @@ enum A {
 }
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment enum A {
   augment foo(),
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 38,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          38,
+          7,
+        ),
+      ],
+    );
   }
 
   test_extension_augmentedBy_class() async {
@@ -563,14 +695,20 @@ part 'test.dart';
 extension A on int {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_extensionType_augmentedBy_class() async {
@@ -580,14 +718,20 @@ part 'test.dart';
 extension type A(int it) {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_mixin_augmentedBy_class() async {
@@ -597,14 +741,20 @@ part 'test.dart';
 mixin A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class A {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_topFunction_augmentedBy_class() async {
@@ -614,14 +764,20 @@ part 'test.dart';
 void foo() {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class foo {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_topGetter_augmentedBy_class() async {
@@ -631,14 +787,20 @@ part 'test.dart';
 int get foo => 0;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class foo {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          19,
+          7,
+        ),
+      ],
+    );
   }
 
   test_topSetter_augmentedBy_class() async {
@@ -648,12 +810,13 @@ part 'test.dart';
 set foo(int _) {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part of 'a.dart';
 
 augment class foo {}
-''', [
-      error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION, 19, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION, 19, 7)],
+    );
   }
 }

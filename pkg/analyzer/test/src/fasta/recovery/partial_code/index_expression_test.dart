@@ -15,36 +15,21 @@ class IndexStatementTest extends PartialCodeTest {
     buildTests(
       'index_assignment',
       [
-        TestDescriptor(
-          'missing_index_no_space',
-          'intList[] = 0;',
-          [ParserErrorCode.MISSING_IDENTIFIER],
-          'intList[_s_] = 0;',
-        ),
-        TestDescriptor(
-          'missing_index_with_space',
-          'intList[ ] = 0;',
-          [ParserErrorCode.MISSING_IDENTIFIER],
-          'intList[_s_] = 0;',
-        ),
-        TestDescriptor(
-          'trailing_comma',
-          'intList[x,] = 0;',
-          [ParserErrorCode.EXPECTED_TOKEN],
-          'intList[x] = 0;',
-        ),
-        TestDescriptor(
-          'trailing_comma_and_identifier',
-          'intList[x,y] = 0;',
-          [ParserErrorCode.EXPECTED_TOKEN],
-          'intList[x] = 0;',
-        ),
-        TestDescriptor(
-          'trailing_identifier_no_comma',
-          'intList[x y] = 0;',
-          [ParserErrorCode.EXPECTED_TOKEN],
-          'intList[x] = 0;',
-        ),
+        TestDescriptor('missing_index_no_space', 'intList[] = 0;', [
+          ParserErrorCode.MISSING_IDENTIFIER,
+        ], 'intList[_s_] = 0;'),
+        TestDescriptor('missing_index_with_space', 'intList[ ] = 0;', [
+          ParserErrorCode.MISSING_IDENTIFIER,
+        ], 'intList[_s_] = 0;'),
+        TestDescriptor('trailing_comma', 'intList[x,] = 0;', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], 'intList[x] = 0;'),
+        TestDescriptor('trailing_comma_and_identifier', 'intList[x,y] = 0;', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], 'intList[x] = 0;'),
+        TestDescriptor('trailing_identifier_no_comma', 'intList[x y] = 0;', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], 'intList[x] = 0;'),
       ],
       [], //PartialCodeTest.statementSuffixes,
       head: 'f() { ',

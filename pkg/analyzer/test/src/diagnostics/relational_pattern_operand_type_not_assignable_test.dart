@@ -71,7 +71,8 @@ void f(A x) {
   }
 
   test_eqEq_covariantParameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   bool operator ==(covariant A other) => true;
 }
@@ -82,10 +83,15 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
-          101, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+          101,
+          1,
+        ),
+      ],
+    );
   }
 
   test_eqEq_externalType_right() async {
@@ -144,7 +150,8 @@ void f(A x) {
   }
 
   test_greaterThan() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   bool operator >(A other) => true;
 }
@@ -155,9 +162,14 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
-          89, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+          89,
+          1,
+        ),
+      ],
+    );
   }
 }

@@ -124,10 +124,7 @@ class LinkedElementFactory {
       }
       var readers = _libraryReaders.keys.map((uri) => uri.toString()).toList();
       if (readers.length > 50) {
-        readers = [
-          ...readers.take(50),
-          '... (${readers.length} total)',
-        ];
+        readers = [...readers.take(50), '... (${readers.length} total)'];
       }
       throw ArgumentError(
         'Missing library: $uri\n'
@@ -138,9 +135,7 @@ class LinkedElementFactory {
       );
     }
 
-    var libraryElement = reader.readElement(
-      librarySource: librarySource,
-    );
+    var libraryElement = reader.readElement(librarySource: librarySource);
     setLibraryTypeSystem(libraryElement);
     return libraryElement;
   }

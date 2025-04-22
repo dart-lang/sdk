@@ -418,5 +418,5 @@ enum IndexSyntheticElementKind {
   enumToString,
 
   /// The containing unit itself.
-  unit
+  unit,
 }

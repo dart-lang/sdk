@@ -26,13 +26,10 @@ class PostfixExpressionResolver {
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
 
-  PostfixExpressionResolver({
-    required ResolverVisitor resolver,
-  })  : _resolver = resolver,
-        _typePropertyResolver = resolver.typePropertyResolver,
-        _assignmentShared = AssignmentExpressionShared(
-          resolver: resolver,
-        );
+  PostfixExpressionResolver({required ResolverVisitor resolver})
+    : _resolver = resolver,
+      _typePropertyResolver = resolver.typePropertyResolver,
+      _assignmentShared = AssignmentExpressionShared(resolver: resolver);
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -77,10 +74,16 @@ class PostfixExpressionResolver {
   ///
   // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      PostfixExpressionImpl node, Expression operand, TypeImpl type) {
+    PostfixExpressionImpl node,
+    Expression operand,
+    TypeImpl type,
+  ) {
     var operandWriteType = node.writeType!;
-    if (!_typeSystem.isAssignableTo(type, operandWriteType,
-        strictCasts: _resolver.analysisOptions.strictCasts)) {
+    if (!_typeSystem.isAssignableTo(
+      type,
+      operandWriteType,
+      strictCasts: _resolver.analysisOptions.strictCasts,
+    )) {
       _resolver.errorReporter.atNode(
         node,
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
@@ -119,7 +122,8 @@ class PostfixExpressionResolver {
       return TokenType.MINUS.lexeme;
     } else {
       throw UnsupportedError(
-          'Unsupported postfix operator ${expression.operator.lexeme}');
+        'Unsupported postfix operator ${expression.operator.lexeme}',
+      );
     }
   }
 
@@ -178,8 +182,9 @@ class PostfixExpressionResolver {
       if (operand is SimpleIdentifier) {
         var element = operand.element;
         if (element is PromotableElementImpl2) {
-          if (_resolver.definingLibrary.featureSet
-              .isEnabled(Feature.inference_update_4)) {
+          if (_resolver.definingLibrary.featureSet.isEnabled(
+            Feature.inference_update_4,
+          )) {
             _resolver.flowAnalysis.flow?.postIncDec(
               node,
               element,
@@ -187,7 +192,11 @@ class PostfixExpressionResolver {
             );
           } else {
             _resolver.flowAnalysis.flow?.write(
-                node, element, SharedTypeView(operatorReturnType), null);
+              node,
+              element,
+              SharedTypeView(operatorReturnType),
+              null,
+            );
           }
         }
       }
@@ -197,8 +206,10 @@ class PostfixExpressionResolver {
     _resolver.nullShortingTermination(node);
   }
 
-  void _resolveNullCheck(PostfixExpressionImpl node,
-      {required TypeImpl contextType}) {
+  void _resolveNullCheck(
+    PostfixExpressionImpl node, {
+    required TypeImpl contextType,
+  }) {
     var operand = node.operand;
 
     if (operand is SuperExpression) {
@@ -212,7 +223,9 @@ class PostfixExpressionResolver {
     }
 
     _resolver.analyzeExpression(
-        operand, SharedTypeSchemaView(_typeSystem.makeNullable(contextType)));
+      operand,
+      SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
+    );
     operand = _resolver.popRewrite()!;
 
     var operandType = operand.typeOrThrow;

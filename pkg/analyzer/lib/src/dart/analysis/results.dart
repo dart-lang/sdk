@@ -36,9 +36,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
-  AnalysisResultImpl({
-    required this.session,
-  });
+  AnalysisResultImpl({required this.session});
 }
 
 /// A visitor which locates the [AstNode] which declares [element].
@@ -185,7 +183,11 @@ class ElementDeclarationResultImpl
   final ResolvedUnitResult? resolvedUnit;
 
   ElementDeclarationResultImpl(
-      this.fragment, this.node, this.parsedUnit, this.resolvedUnit);
+    this.fragment,
+    this.node,
+    this.parsedUnit,
+    this.resolvedUnit,
+  );
 }
 
 class ErrorsResultImpl implements ErrorsResult {
@@ -247,13 +249,11 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   @override
   final bool isPart;
 
-  FileResultImpl({
-    required super.session,
-    required this.fileState,
-  })  : content = fileState.content,
-        lineInfo = fileState.lineInfo,
-        isLibrary = fileState.kind is LibraryFileKind,
-        isPart = fileState.kind is PartFileKind;
+  FileResultImpl({required super.session, required this.fileState})
+    : content = fileState.content,
+      lineInfo = fileState.lineInfo,
+      isLibrary = fileState.kind is LibraryFileKind,
+      isPart = fileState.kind is PartFileKind;
 
   @override
   AnalysisOptions get analysisOptions => fileState.analysisOptions;
@@ -280,10 +280,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl({
-    required super.session,
-    required this.units,
-  });
+  ParsedLibraryResultImpl({required super.session, required this.units});
 
   @Deprecated('Use getFragmentDeclaration() instead')
   @override
@@ -303,8 +300,10 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = fragment.element.displayName;
-        throw ArgumentError('Element (${fragment.runtimeType}) $elementStr is '
-            'not defined in this library.');
+        throw ArgumentError(
+          'Element (${fragment.runtimeType}) $elementStr is '
+          'not defined in this library.',
+        );
       },
     );
 
@@ -317,7 +316,11 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(
-        fragment, declaration, unitResult, null);
+      fragment,
+      declaration,
+      unitResult,
+      null,
+    );
   }
 }
 
@@ -431,8 +434,10 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = fragment.element.displayName;
-        throw ArgumentError('Element (${fragment.runtimeType}) $elementStr is '
-            'not defined in this library.');
+        throw ArgumentError(
+          'Element (${fragment.runtimeType}) $elementStr is '
+          'not defined in this library.',
+        );
       },
     );
 
@@ -445,7 +450,11 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(
-        fragment, declaration, null, unitResult);
+      fragment,
+      declaration,
+      null,
+      unitResult,
+    );
   }
 
   @override

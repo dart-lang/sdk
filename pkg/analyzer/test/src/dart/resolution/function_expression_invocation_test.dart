@@ -310,13 +310,20 @@ FunctionExpressionInvocation
   }
 
   test_expression_recordType_noCall() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((String,) a) {
   a();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 24, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          24,
+          1,
+        ),
+      ],
+    );
     var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
@@ -407,13 +414,14 @@ FunctionExpressionInvocation
   }
 
   test_formalParameter_tooManyArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int Function() g, int a) {
   g(a);
 }
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 38, 1)],
+    );
 
     var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
@@ -515,15 +523,21 @@ FunctionExpressionInvocation
   }
 
   test_invalidConst_topLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const id = identical;
 const a = 0;
 const b = 0;
 const c = id(a, b);
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
-          8),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          58,
+          8,
+        ),
+      ],
+    );
 
     var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
@@ -553,14 +567,17 @@ FunctionExpressionInvocation
   }
 
   test_never() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never x) {
   x<int>(1 + 2);
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(WarningCode.DEAD_CODE, 26, 8),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+        error(WarningCode.DEAD_CODE, 26, 8),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -603,13 +620,20 @@ FunctionExpressionInvocation
   }
 
   test_neverQ() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Never? x) {
   x<int>(1 + 2);
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 21, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+          21,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''

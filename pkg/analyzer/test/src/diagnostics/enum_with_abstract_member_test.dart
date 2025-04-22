@@ -16,35 +16,38 @@ main() {
 @reflectiveTest
 class EnumWithAbstractMemberTest extends PubPackageResolutionTest {
   test_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   int get foo;
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 12)],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   void foo();
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 11)],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   set foo(int _);
 }
-''', [
-      error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 15)],
+    );
   }
 }

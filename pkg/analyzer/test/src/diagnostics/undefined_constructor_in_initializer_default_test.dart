@@ -28,17 +28,23 @@ class B extends A {
   }
 
   test_implicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.named() {}
 }
 class B extends A {
   B();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-          49, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          49,
+          1,
+        ),
+      ],
+    );
   }
 
   test_implicit_defined() async {
@@ -53,16 +59,22 @@ class B extends A {
   }
 
   test_unnamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A.named() {}
 }
 class B extends A {
   B() : super();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-          55, 7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          55,
+          7,
+        ),
+      ],
+    );
   }
 }

@@ -81,8 +81,9 @@ class _FakeAnalysisDriver implements AnalysisDriver {
 
   @override
   AnalysisSessionImpl get currentSession {
-    _currentSession = fileResolver.contextObjects?.analysisSession
-        as _MicroAnalysisSessionImpl;
+    _currentSession =
+        fileResolver.contextObjects?.analysisSession
+            as _MicroAnalysisSessionImpl;
     return _currentSession;
   }
 

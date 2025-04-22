@@ -20,7 +20,9 @@ class ThisLookup {
   /// If a matching element is found, a [LexicalLookupResult] is returned.
   /// Otherwise `null` is returned.
   static LexicalLookupResult? lookupGetter(
-      ResolverVisitor resolver, SimpleIdentifier node) {
+    ResolverVisitor resolver,
+    SimpleIdentifier node,
+  ) {
     var id = node.name;
     var thisType = resolver.thisType;
     if (thisType == null) {
@@ -37,16 +39,12 @@ class ThisLookup {
 
     var callFunctionType = propertyResult.callFunctionType;
     if (callFunctionType != null) {
-      return LexicalLookupResult(
-        callFunctionType: callFunctionType,
-      );
+      return LexicalLookupResult(callFunctionType: callFunctionType);
     }
 
     var recordField = propertyResult.recordField;
     if (recordField != null) {
-      return LexicalLookupResult(
-        recordField: recordField,
-      );
+      return LexicalLookupResult(recordField: recordField);
     }
 
     var getterElement = propertyResult.getter2;
@@ -63,7 +61,9 @@ class ThisLookup {
   /// If a matching element is found, a [LexicalLookupResult] is returned.
   /// Otherwise `null` is returned.
   static LexicalLookupResult? lookupSetter(
-      ResolverVisitor resolver, SimpleIdentifier node) {
+    ResolverVisitor resolver,
+    SimpleIdentifier node,
+  ) {
     var id = node.name;
     var thisType = resolver.thisType;
     if (thisType == null) {

@@ -17,15 +17,19 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/inheritance/data',
+    ),
+  );
   return runTests<String>(
     dataDir,
     args: args,
     createUriForFileName: createUriForFileName,
     onFailure: onFailure,
-    runTest:
-        runTestFor(const _InheritanceDataComputer(), [analyzerDefaultConfig]),
+    runTest: runTestFor(const _InheritanceDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
   );
 }
 
@@ -55,16 +59,25 @@ class _InheritanceDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(TestConfig config, TestingData testingData, Id id,
-      List<AnalysisError> errors) {
+  String computeErrorData(
+    TestConfig config,
+    TestingData testingData,
+    Id id,
+    List<AnalysisError> errors,
+  ) {
     return errors.map((e) => e.errorCode).join(',');
   }
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String>> actualMap) {
-    _InheritanceDataExtractor(unit.declaredFragment!.source.uri, actualMap)
-        .run(unit);
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<String>> actualMap,
+  ) {
+    _InheritanceDataExtractor(
+      unit.declaredFragment!.source.uri,
+      actualMap,
+    ).run(unit);
   }
 }
 
@@ -85,7 +98,11 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
       var element = node.declaredFragment!.element;
 
       void registerMember(
-          MemberId id, int offset, Object object, DartType type) {
+        MemberId id,
+        int offset,
+        Object object,
+        DartType type,
+      ) {
         registerValue(uri, offset, id, type.getDisplayString(), object);
       }
 
@@ -99,14 +116,12 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
           continue;
         }
 
-        var id = MemberId.internal(
-          name.name,
-          className: element.name3,
-        );
+        var id = MemberId.internal(name.name, className: element.name3);
 
-        var offset = enclosingClass == element
-            ? executable.firstFragment.nameOffset2
-            : element.firstFragment.nameOffset2;
+        var offset =
+            enclosingClass == element
+                ? executable.firstFragment.nameOffset2
+                : element.firstFragment.nameOffset2;
         offset ??= -1;
 
         DartType type;

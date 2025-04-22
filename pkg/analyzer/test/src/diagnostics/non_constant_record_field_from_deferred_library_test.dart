@@ -20,15 +20,19 @@ class NonConstantRecordFieldFromDeferredLibraryTest
     newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib1.dart' deferred as a;
 var v = const (a.c, );
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY,
           51,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_const_notDeferred() async {

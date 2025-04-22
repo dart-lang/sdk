@@ -61,14 +61,16 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
       required DartSdk sdk,
-    })? updateAnalysisOptions2,
+    })?
+    updateAnalysisOptions2,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required DartSdk sdk,
-    })? updateAnalysisOptions3,
+    })?
+    updateAnalysisOptions3,
     bool enableLintRuleTiming = false,
   }) : resourceProvider =
-            resourceProvider ?? PhysicalResourceProvider.INSTANCE {
+           resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     performanceLog ??= PerformanceLog(null);
@@ -105,9 +107,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     );
 
     byteStore ??= MemoryByteStore();
-    var linkedBundleProvider = LinkedBundleProvider(
-      byteStore: byteStore,
-    );
+    var linkedBundleProvider = LinkedBundleProvider(byteStore: byteStore);
 
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
@@ -115,14 +115,17 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     // While users can use the deprecated `updateAnalysisOptions2` and the new
     // `updateAnalysisOptions3` parameter, prefer `updateAnalysisOptions3`, but
     // create a new closure with the signature of the old.
-    var updateAnalysisOptions = updateAnalysisOptions3 != null
-        ? ({
-            required AnalysisOptionsImpl analysisOptions,
-            required ContextRoot? contextRoot,
-            required DartSdk sdk,
-          }) =>
-            updateAnalysisOptions3(analysisOptions: analysisOptions, sdk: sdk)
-        : updateAnalysisOptions2;
+    var updateAnalysisOptions =
+        updateAnalysisOptions3 != null
+            ? ({
+              required AnalysisOptionsImpl analysisOptions,
+              required ContextRoot? contextRoot,
+              required DartSdk sdk,
+            }) => updateAnalysisOptions3(
+              analysisOptions: analysisOptions,
+              sdk: sdk,
+            )
+            : updateAnalysisOptions2;
     for (var root in roots) {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
@@ -177,9 +180,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   }
 
   @override
-  Future<void> dispose({
-    bool forTesting = false,
-  }) async {
+  Future<void> dispose({bool forTesting = false}) async {
     for (var analysisContext in contexts) {
       await analysisContext.driver.dispose2();
     }
@@ -198,7 +199,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     var pathContext = resourceProvider.pathContext;
     if (!pathContext.isAbsolute(path) || pathContext.normalize(path) != path) {
       throw ArgumentError(
-          'Only absolute normalized paths are supported: $path');
+        'Only absolute normalized paths are supported: $path',
+      );
     }
   }
 }

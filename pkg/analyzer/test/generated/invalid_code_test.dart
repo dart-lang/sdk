@@ -203,8 +203,8 @@ typedef F(a<TT extends TT>(e));
   }
 
   test_fuzz_08() async {
-//    class{const v
-//    v=((){try catch
+    //    class{const v
+    //    v=((){try catch
     // When we resolve initializers of typed constant variables,
     // we should build locale elements.
     await _assertCanBeAnalyzed(r'''

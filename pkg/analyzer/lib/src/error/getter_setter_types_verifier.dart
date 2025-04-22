@@ -22,8 +22,8 @@ class GetterSetterTypesVerifier {
   GetterSetterTypesVerifier({
     required this.library,
     required ErrorReporter errorReporter,
-  })  : _typeSystem = library.typeSystem,
-        _errorReporter = errorReporter;
+  }) : _typeSystem = library.typeSystem,
+       _errorReporter = errorReporter;
 
   bool get _skipGetterSetterTypesCheck {
     return library.featureSet.isEnabled(Feature.getter_setter_error);
@@ -40,7 +40,9 @@ class GetterSetterTypesVerifier {
   }
 
   void checkExtensionType(
-      ExtensionTypeElementImpl2 element, Interface interface) {
+    ExtensionTypeElementImpl2 element,
+    Interface interface,
+  ) {
     if (_skipGetterSetterTypesCheck) {
       return;
     }

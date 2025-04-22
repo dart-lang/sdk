@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class UndefinedEnumConstructorNamedTest extends PubPackageResolutionTest {
   test_it() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v.named()
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5)],
+    );
   }
 }

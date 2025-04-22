@@ -10,8 +10,8 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
-typedef ReferenceFinderCallback = void Function(
-    ConstantEvaluationTarget dependency);
+typedef ReferenceFinderCallback =
+    void Function(ConstantEvaluationTarget dependency);
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build the full set of dependencies for all constant
@@ -114,9 +114,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   /// treated as "const".
   bool treatFinalInstanceVarAsConst = false;
 
-  ConstantFinder({
-    required this.configuration,
-  });
+  ConstantFinder({required this.configuration});
 
   @override
   void visitAnnotation(Annotation node) {
@@ -125,9 +123,11 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     if (elementAnnotation == null) {
       // Analyzer ignores annotations on "part of" directives and on enum
       // constant declarations.
-      assert(node.parent is PartDirective ||
-          node.parent is PartOfDirective ||
-          node.parent is EnumConstantDeclaration);
+      assert(
+        node.parent is PartDirective ||
+            node.parent is PartOfDirective ||
+            node.parent is EnumConstantDeclaration,
+      );
     } else {
       constantsToCompute.add(elementAnnotation);
     }

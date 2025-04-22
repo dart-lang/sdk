@@ -47,9 +47,13 @@ class RecordTypeAnnotationResolver {
 
         var previousField = usedNames[name];
         if (previousField != null) {
-          errorReporter.reportError(DiagnosticFactory()
-              .duplicateFieldDefinitionInType(
-                  errorReporter.source, field, previousField));
+          errorReporter.reportError(
+            DiagnosticFactory().duplicateFieldDefinitionInType(
+              errorReporter.source,
+              field,
+              previousField,
+            ),
+          );
         } else {
           usedNames[name] = field;
         }
@@ -84,7 +88,8 @@ class RecordTypeAnnotationResolver {
               );
             }
           } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
-              name)) {
+            name,
+          )) {
             errorReporter.atToken(
               nameToken,
               CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
@@ -102,25 +107,26 @@ class RecordTypeAnnotationResolver {
   }
 
   void _buildType(RecordTypeAnnotationImpl node) {
-    var positionalFields = node.positionalFields.map((field) {
-      return RecordTypePositionalFieldImpl(
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
+    var positionalFields =
+        node.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(type: field.type.typeOrThrow);
+        }).toList();
 
-    var namedFields = node.namedFields?.fields.map((field) {
-      return RecordTypeNamedFieldImpl(
-        name: field.name.lexeme,
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
+    var namedFields =
+        node.namedFields?.fields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name.lexeme,
+            type: field.type.typeOrThrow,
+          );
+        }).toList();
 
     node.type = RecordTypeImpl(
       positionalFields: positionalFields,
       namedFields: namedFields ?? const [],
-      nullabilitySuffix: node.question != null
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.none,
+      nullabilitySuffix:
+          node.question != null
+              ? NullabilitySuffix.question
+              : NullabilitySuffix.none,
     );
   }
 }

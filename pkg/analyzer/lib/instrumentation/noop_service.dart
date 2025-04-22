@@ -22,19 +22,31 @@ class NoopInstrumentationService implements InstrumentationService {
   void logInfo(String message, [dynamic exception]) {}
 
   @override
-  void logLogEntry(String level, DateTime time, String message,
-      Object exception, StackTrace stackTrace) {}
+  void logLogEntry(
+    String level,
+    DateTime time,
+    String message,
+    Object exception,
+    StackTrace stackTrace,
+  ) {}
 
   @override
   void logNotification(String notification) {}
 
   @override
   void logPluginError(
-      PluginData plugin, String code, String message, String stackTrace) {}
+    PluginData plugin,
+    String code,
+    String message,
+    String stackTrace,
+  ) {}
 
   @override
   void logPluginException(
-      PluginData plugin, Object exception, StackTrace? stackTrace) {}
+    PluginData plugin,
+    Object exception,
+    StackTrace? stackTrace,
+  ) {}
 
   @override
   void logPluginNotification(String pluginId, String notification) {}
@@ -55,8 +67,13 @@ class NoopInstrumentationService implements InstrumentationService {
   void logResponse(String response) {}
 
   @override
-  void logVersion(String uuid, String clientId, String clientVersion,
-      String serverVersion, String sdkVersion) {}
+  void logVersion(
+    String uuid,
+    String clientId,
+    String clientVersion,
+    String serverVersion,
+    String sdkVersion,
+  ) {}
 
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {}

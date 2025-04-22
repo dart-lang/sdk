@@ -23,25 +23,33 @@ class A<T> {
   const A() : f = T.foo;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart';
 const a = const A();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-        29,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(lib, 46, 5,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          29,
+          9,
+          contextMessages: [
+            ExpectedContextMessage(
+              lib,
+              46,
+              5,
               text:
-                  "The error is in the field initializer of 'A', and occurs here."),
-        ],
-      ),
-    ]);
+                  "The error is in the field initializer of 'A', and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_length_invalidTarget() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main() {
   const RequiresNonEmptyList([1]);
 }
@@ -49,30 +57,37 @@ void main() {
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
 }
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-        16,
-        31,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 138, 14,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          16,
+          31,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              138,
+              14,
               text:
-                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
-        ],
-      ),
-    ]);
+                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_nonStaticField_inGenericClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   const C();
   T? get t => null;
 }
 
 const x = const C().t;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11)],
+    );
   }
 }

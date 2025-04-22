@@ -16,29 +16,43 @@ main() {
 @reflectiveTest
 class ConstConstructorWithNonConstSuperTest extends PubPackageResolutionTest {
   test_class_explicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A();
 }
 class B extends A {
   const B(): super();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 52, 7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+          52,
+          7,
+        ),
+      ],
+    );
   }
 
   test_class_implicit() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A();
 }
 class B extends A {
   const B();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 47, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+          47,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_redirectConst_superConst() async {
@@ -56,7 +70,8 @@ class B extends A {
   }
 
   test_class_redirectConst_superNotConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory A() = A._;
   A._();
@@ -66,10 +81,15 @@ class B extends A {
   const B.foo() : this.bar();
   const B.bar() : super._();
 }
-''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 111, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+          111,
+          9,
+        ),
+      ],
+    );
   }
 
   test_enum() async {

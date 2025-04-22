@@ -69,8 +69,10 @@ class SourceRange {
   /// [otherRange].
   SourceRange getUnion(SourceRange otherRange) {
     int newOffset = math.min(offset, otherRange.offset);
-    int newEnd =
-        math.max(offset + length, otherRange.offset + otherRange.length);
+    int newEnd = math.max(
+      offset + length,
+      otherRange.offset + otherRange.length,
+    );
     return SourceRange(newOffset, newEnd - newOffset);
   }
 

@@ -20,11 +20,12 @@ class DuplicateShownNameTest extends PubPackageResolutionTest {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 export 'lib1.dart' show A, B, A;
-''', [
-      error(WarningCode.DUPLICATE_SHOWN_NAME, 30, 1),
-    ]);
+''',
+      [error(WarningCode.DUPLICATE_SHOWN_NAME, 30, 1)],
+    );
   }
 
   test_part_shown() async {

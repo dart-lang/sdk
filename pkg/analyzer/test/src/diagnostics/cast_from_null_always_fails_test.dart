@@ -16,23 +16,25 @@ main() {
 @reflectiveTest
 class CastFromNullAlwaysFailsTest extends PubPackageResolutionTest {
   test_castPattern_Null_nonNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Null n, num m) {
   (m as int) = n;
 }
-''', [
-      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 27, 8),
-    ]);
+''',
+      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 27, 8)],
+    );
   }
 
   test_castPattern_Null_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Null n, num? m) {
   (m as int?) = n;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST_PATTERN, 30, 2),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_CAST_PATTERN, 30, 2)],
+    );
   }
 
   test_castPattern_nullable_nullable() async {
@@ -52,33 +54,36 @@ void f(Null n) {
   }
 
   test_Null_Never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Null n) {
   n as Never;
 }
-''', [
-      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 10),
-    ]);
+''',
+      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 10)],
+    );
   }
 
   test_Null_nonNullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Null n) {
   n as int;
 }
-''', [
-      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 8),
-    ]);
+''',
+      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 8)],
+    );
   }
 
   test_Null_nonNullableTypeVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f<T extends Object>(Null n) {
   n as T;
 }
-''', [
-      error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 37, 6),
-    ]);
+''',
+      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 37, 6)],
+    );
   }
 
   test_Null_nullable() async {

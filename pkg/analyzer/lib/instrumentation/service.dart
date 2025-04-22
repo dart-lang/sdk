@@ -28,8 +28,13 @@ abstract class InstrumentationService {
   /// Log that a log entry that was written to the analysis engine's log. The log
   /// entry has the given [level] and [message], and was created at the given
   /// [time].
-  void logLogEntry(String level, DateTime time, String message,
-      Object exception, StackTrace stackTrace);
+  void logLogEntry(
+    String level,
+    DateTime time,
+    String message,
+    Object exception,
+    StackTrace stackTrace,
+  );
 
   /// Log that a notification has been sent to the client.
   void logNotification(String notification);
@@ -37,12 +42,19 @@ abstract class InstrumentationService {
   /// Log the fact that an error, described by the given [message], was reported
   /// by the given [plugin].
   void logPluginError(
-      PluginData plugin, String code, String message, String stackTrace);
+    PluginData plugin,
+    String code,
+    String message,
+    String stackTrace,
+  );
 
   /// Log that the given non-priority [exception] was thrown, with the given
   /// [stackTrace] by the given [plugin].
   void logPluginException(
-      PluginData plugin, Object exception, StackTrace? stackTrace);
+    PluginData plugin,
+    Object exception,
+    StackTrace? stackTrace,
+  );
 
   /// Log a notification from the plugin with the given [pluginId].
   void logPluginNotification(String pluginId, String notification);
@@ -67,8 +79,13 @@ abstract class InstrumentationService {
 
   /// Signal that the client has started analysis server.
   /// This method should be invoked exactly one time.
-  void logVersion(String uuid, String clientId, String clientVersion,
-      String serverVersion, String sdkVersion);
+  void logVersion(
+    String uuid,
+    String clientId,
+    String clientVersion,
+    String serverVersion,
+    String sdkVersion,
+  );
 
   /// Log that the file system watcher sent an event. The [folderPath] is the
   /// path to the folder containing the changed file, the [filePath] is the path

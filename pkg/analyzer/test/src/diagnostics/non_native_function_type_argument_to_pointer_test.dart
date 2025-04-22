@@ -18,7 +18,8 @@ main() {
 class NonNativeFunctionTypeArgumentToPointerTest
     extends PubPackageResolutionTest {
   test_asFunction_1() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef R = Int8 Function(Int8);
 class C {
@@ -26,15 +27,18 @@ class C {
     p.asFunction<R>();
   }
 }
-''', [
-      // This changed from a method to a extension method, uses Dart semantics
-      // instead of manual check now.
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 98, 10),
-    ]);
+''',
+      [
+        // This changed from a method to a extension method, uses Dart semantics
+        // instead of manual check now.
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 98, 10),
+      ],
+    );
   }
 
   test_asFunction_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef TPrime = int Function(int);
 typedef F = String Function(String);
@@ -43,13 +47,14 @@ class C {
     p.asFunction<F>();
   }
 }
-''', [
-      error(FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, 165, 1),
-    ]);
+''',
+      [error(FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, 165, 1)],
+    );
   }
 
   test_asFunction_F() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:ffi';
 typedef R = int Function(int);
 class C<T extends Function> {
@@ -57,9 +62,9 @@ class C<T extends Function> {
     p.asFunction<R>();
   }
 }
-''', [
-      error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 125, 1),
-    ]);
+''',
+      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 125, 1)],
+    );
   }
 
   test_asFunction_Pointer_Opaque() async {

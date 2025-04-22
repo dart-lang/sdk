@@ -18,16 +18,21 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// Looks up the identifier with [name] and validates that its type type
   /// stringifies to [type] and that its generics match the given stringified
   /// output.
-  FunctionType expectFunctionType(String name, String type,
-      {String typeParams = '[]',
-      String typeFormals = '[]',
-      String? identifierType}) {
+  FunctionType expectFunctionType(
+    String name,
+    String type, {
+    String typeParams = '[]',
+    String typeFormals = '[]',
+    String? identifierType,
+  }) {
     identifierType ??= type;
 
     String typeParametersStr(List<TypeParameterElement2> elements) {
-      var elementsStr = elements.map((e) {
-        return e.displayString2();
-      }).join(', ');
+      var elementsStr = elements
+          .map((e) {
+            return e.displayString2();
+          })
+          .join(', ');
       return '[$elementsStr]';
     }
 

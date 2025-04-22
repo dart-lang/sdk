@@ -244,8 +244,10 @@ InstanceCreationExpression
 ''');
   }
 
-  Future<InstanceCreationExpression> _resolveImplicitConst(String expr,
-      {String? prefix}) async {
+  Future<InstanceCreationExpression> _resolveImplicitConst(
+    String expr, {
+    String? prefix,
+  }) async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A();
