@@ -59,6 +59,26 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
+  /// The [InstanceElement2] of the enclosing executable [AstNode].
+  InstanceElement2? get enclosingInstanceElement2 {
+    for (var node in withParents) {
+      var element = switch (node) {
+        ClassDeclaration(:var declaredFragment?) => declaredFragment.element,
+        EnumDeclaration(:var declaredFragment?) => declaredFragment.element,
+        ExtensionDeclaration(:var declaredFragment?) =>
+          declaredFragment.element,
+        ExtensionTypeDeclaration(:var declaredFragment?) =>
+          declaredFragment.element,
+        MixinDeclaration(:var declaredFragment?) => declaredFragment.element,
+        _ => null,
+      };
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   AstNode? get enclosingUnitChild {
     for (var node in withParents) {
       if (node.parent is CompilationUnit) {
