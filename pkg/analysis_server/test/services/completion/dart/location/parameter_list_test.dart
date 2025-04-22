@@ -95,6 +95,116 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_afterRequired_beforeVariableName() async {
+    allowedIdentifiers = {'int', 'String'};
+    await computeSuggestions('''
+class A {
+  A({required ^ s});
+}
+  ''');
+    assertResponse(r'''
+suggestions
+  String
+    kind: class
+  int
+    kind: class
+  void
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterRequired_withoutVariableName() async {
+    allowedIdentifiers = {'int', 'String'};
+    await computeSuggestions('''
+class A {
+  A({required ^});
+}
+''');
+    assertResponse(r'''
+suggestions
+  String
+    kind: class
+  int
+    kind: class
+  this
+    kind: keyword
+  void
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  super
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterRequiredVariableName() async {
+    allowedIdentifiers = {'String'};
+    await computeSuggestions('''
+class A {
+  A({required S^});
+}
+  ''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  String
+    kind: class
+  super
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterType() async {
+    allowedIdentifiers = {'T'};
+    await computeSuggestions('''
+class Bar<T extends Foo> {const Bar(T^ k);T m(T a, T b){}final T f = null;}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  T
+    kind: typeParameter
+''');
+  }
+
+  Future<void> test_beforeType() async {
+    allowedIdentifiers = {'T'};
+    await computeSuggestions('''
+class Bar<T extends Foo> {const Bar(^T k);T m(T a, T b){}final T f = null;}
+''');
+    assertResponse(r'''
+replacement
+  right: 1
+suggestions
+  this
+    kind: keyword
+  void
+    kind: keyword
+  T
+    kind: typeParameter
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  super
+    kind: keyword
+''');
+  }
 }
 
 @reflectiveTest
@@ -109,6 +219,40 @@ void f(^void Function() g) {}
     assertResponse(r'''
 replacement
   right: 4
+suggestions
+  void
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+''');
+  }
+
+  Future<void> test_named_last_afterCovariant() async {
+    await computeSuggestions('''
+void f({covariant ^}) {}
+''');
+    assertResponse('''
+suggestions
+  void
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  required
+    kind: keyword
+''');
+  }
+
+  Future<void> test_named_last_afterRequired() async {
+    await computeSuggestions('''
+void f({required ^}) {}
+''');
+    assertResponse('''
 suggestions
   void
     kind: keyword
@@ -141,8 +285,6 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  switch
-    kind: keyword
 ''');
   }
 
@@ -172,8 +314,6 @@ suggestions
   const
     kind: keyword
   null
-    kind: keyword
-  switch
     kind: keyword
 ''');
   }

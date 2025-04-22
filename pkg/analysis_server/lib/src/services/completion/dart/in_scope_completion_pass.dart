@@ -1348,7 +1348,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     }
 
-    keywordHelper.addFormalParameterKeywords(node);
+    keywordHelper.addFormalParameterKeywords(
+      node,
+      suggestRequired: true,
+      suggestVariableName: true,
+    );
     _forTypeAnnotation(node);
   }
 
@@ -1507,7 +1511,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     collector.completionLocation = 'FormalParameterList_parameter';
     var returnType = node.returnType;
     if (returnType != null && offset <= returnType.end) {
-      keywordHelper.addFormalParameterKeywords(node.parentFormalParameterList);
+      keywordHelper.addFormalParameterKeywords(
+        node.parentFormalParameterList,
+        suggestRequired: node.requiredKeyword == null,
+        suggestVariableName: node.name.lexeme.isEmpty,
+      );
       _forTypeAnnotation(node);
     } else if (returnType == null && offset < node.name.offset) {
       _forTypeAnnotation(node);
@@ -2551,24 +2559,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var name = node.name;
+    var noRequired = node.requiredKeyword == null;
     if (name != null && node.isSingleIdentifier) {
       collector.completionLocation = 'FormalParameterList_parameter';
+      keywordHelper.addFormalParameterKeywords(
+        node.parentFormalParameterList,
+        suggestRequired: name.keyword != Keyword.REQUIRED,
+        suggestCovariant: name.keyword != Keyword.COVARIANT,
+        suggestVariableName: true,
+      );
+      _forTypeAnnotation(node);
       if (name.isKeyword) {
-        if (name.keyword == Keyword.REQUIRED && node.covariantKeyword == null) {
-          keywordHelper.addKeyword(Keyword.COVARIANT);
-        }
-        _forTypeAnnotation(node);
         return;
-      } else if (name.isSynthetic) {
-        keywordHelper.addFormalParameterKeywords(
-          node.parentFormalParameterList,
-        );
-        _forTypeAnnotation(node);
-      } else {
-        keywordHelper.addFormalParameterKeywords(
-          node.parentFormalParameterList,
-        );
-        _forTypeAnnotation(node);
       }
     }
     var type = node.type;
@@ -2589,6 +2591,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type.beginToken.coversOffset(offset)) {
         keywordHelper.addFormalParameterKeywords(
           node.parentFormalParameterList,
+          suggestRequired: noRequired,
+          suggestVariableName:
+              node.name == null || type.beginToken.offset == offset,
         );
         _forTypeAnnotation(node);
       } else if (type is GenericFunctionType &&
@@ -2598,11 +2603,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else {
       var keyword = node.keyword;
-      if (keyword != null && offset <= keyword.end) {
+      if (keyword == null || offset <= keyword.end) {
         collector.completionLocation = 'FormalParameterList_parameter';
         var parent = node.parent;
-        if (parent is FormalParameterList) {
-          keywordHelper.addFormalParameterKeywords(parent);
+        if (parent
+            case FormalParameterList list ||
+                DefaultFormalParameter(parent: FormalParameterList list)) {
+          keywordHelper.addFormalParameterKeywords(
+            list,
+            suggestRequired: noRequired,
+            suggestVariableName: name.coversOffset(offset),
+          );
         }
         _forTypeAnnotation(node);
       }
