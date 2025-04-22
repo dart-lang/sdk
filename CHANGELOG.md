@@ -27,6 +27,10 @@
   breaking change in 3.0.0 that removed the `registerElement` APIs. See
   [#53264](https://github.com/dart-lang/sdk/issues/53264) for details.
 
+#### `dart:ffi`
+
+- Added `Array.elements` which exposes an `Iterable` over the `Array`'s content.
+
 ### Tools
 
 #### Analyzer
