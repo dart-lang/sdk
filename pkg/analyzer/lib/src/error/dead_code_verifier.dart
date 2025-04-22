@@ -285,20 +285,12 @@ class NullSafetyDeadCodeVerifier {
         );
         offset = node.end;
       } else if (parent is DoStatement) {
-        var doOffset = parent.doKeyword.offset;
-        var doEnd = parent.doKeyword.end;
         var whileOffset = parent.whileKeyword.offset;
         var whileEnd = parent.semicolon.end;
         var body = parent.body;
         if (body is Block) {
-          doEnd = body.leftBracket.end;
           whileOffset = body.rightBracket.offset;
         }
-        _errorReporter.atOffset(
-          offset: doOffset,
-          length: doEnd - doOffset,
-          errorCode: WarningCode.DEAD_CODE,
-        );
         _errorReporter.atOffset(
           offset: whileOffset,
           length: whileEnd - whileOffset,

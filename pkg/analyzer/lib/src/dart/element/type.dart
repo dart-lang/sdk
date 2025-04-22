@@ -1231,7 +1231,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
   final NullabilitySuffix nullabilitySuffix;
 
   @override
-  late final List<TypeImpl> positionalTypes = [
+  late final List<TypeImpl> positionalTypesShared = [
     for (var field in positionalFields) field.type,
   ];
 
@@ -1274,13 +1274,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
   List<RecordTypeNamedFieldImpl> get namedTypes => namedFields;
 
   @override
-  List<TypeImpl> get positionalTypesShared => positionalTypes;
-
-  @override
-  List<RecordTypeNamedFieldImpl> get sortedNamedTypes => namedTypes;
-
-  @override
-  List<SharedNamedType> get sortedNamedTypesShared => sortedNamedTypes;
+  List<SharedNamedType> get sortedNamedTypesShared => namedTypes;
 
   @override
   bool operator ==(Object other) {
