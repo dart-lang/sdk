@@ -2571,6 +2571,9 @@ abstract class SourceReportKind {
 
   /// Used to request branch coverage information.
   static const String kBranchCoverage = 'BranchCoverage';
+
+  /// Used to request function coverage information.
+  static const String kFunctionCoverage = 'FunctionCoverage';
 }
 
 /// An `ExceptionPauseMode` indicates how the isolate pauses when an exception
@@ -7874,6 +7877,11 @@ class SourceReportRange {
   @optional
   SourceReportCoverage? branchCoverage;
 
+  /// Function coverage information for this range. 
+  /// Provided only when the FunctionCoverage report has been requested and the range has been compiled.
+  @optional
+  SourceReportCoverage? functionCoverage;
+
   SourceReportRange({
     this.scriptIndex,
     this.startPos,
@@ -7883,6 +7891,7 @@ class SourceReportRange {
     this.coverage,
     this.possibleBreakpoints,
     this.branchCoverage,
+    this.functionCoverage,
   });
 
   SourceReportRange._fromJson(Map<String, dynamic> json) {
@@ -7899,6 +7908,9 @@ class SourceReportRange {
     branchCoverage = createServiceObject(
             json['branchCoverage'], const ['SourceReportCoverage'])
         as SourceReportCoverage?;
+    functionCoverage = createServiceObject(
+      json['functionCoverage'], const ['SourceReportCoverage'])
+      as SourceReportCoverage?;
   }
 
   Map<String, dynamic> toJson() => <String, Object?>{

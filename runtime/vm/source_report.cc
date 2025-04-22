@@ -22,6 +22,8 @@ const char* SourceReport::kCoverageStr = "Coverage";
 const char* SourceReport::kPossibleBreakpointsStr = "PossibleBreakpoints";
 const char* SourceReport::kProfileStr = "_Profile";
 const char* SourceReport::kBranchCoverageStr = "BranchCoverage";
+const char* SourceReport::kFunctionCoverageStr = "FunctionCoverage";
+
 
 SourceReport::SourceReport(intptr_t report_set,
                            CompileMode compile_mode,
@@ -411,6 +413,17 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
       pos = pos.Next();
     }
   }
+  if (report_function_coverage) {
+    JSONObject cov(jsobj, "functionCoverage");
+    JSONArray hits(&cov, "hits");
+  
+    for (const auto& entry : function_coverage_data_) {
+      if (entry.hit) {
+        hits.AddValue(GetTokenPosOrLine(script, entry.token_pos));
+      }
+    }
+  }
+  
   {
     JSONArray misses(&cov, "misses");
     TokenPosition pos = begin_pos;
@@ -422,6 +435,20 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
       pos = pos.Next();
     }
   }
+}
+
+void SourceReport::PrintFunctionCoverageData(JSONObject* range,
+  intptr_t script_index,
+  const Function& func,
+  const Code& code) {
+ASSERT(Thread::Current()->IsMutatorThread());
+
+JSONObject cov(range, "functionCoverage");
+JSONArray hits(&cov, "hits");
+
+if (func.usage_counter() > 0 || func.optimized_instruction_count() > 0) {
+hits.AddValue(GetTokenPosOrLine(Script::Handle(func.script()), func.token_pos()));
+}
 }
 
 void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
@@ -583,6 +610,9 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
     PrintCoverageData(&range, script_index, func, code,
                       /* report_branch_coverage */ true);
   }
+  if (IsReportRequested(kFunctionCoverage)) {
+    PrintFunctionCoverageData(&range, script_index, func, code);
+  }  
   if (IsReportRequested(kPossibleBreakpoints)) {
     PrintPossibleBreakpointsData(&range, func, code);
   }
@@ -693,7 +723,7 @@ void SourceReport::PrintJSON(JSONStream* js,
     JSONArray ranges(&report, "ranges");
 
     // Output constant coverage if coverage is requested.
-    if (IsReportRequested(kCoverage) || IsReportRequested(kBranchCoverage)) {
+    if (IsReportRequested(kCoverage) || IsReportRequested(kBranchCoverage) || IsReportRequested(kFunctionCoverage)) {
       // Find all scripts. We need to go though all scripts because a script
       // (even one we don't want) can add coverage to another library (i.e.
       // potentially one we want).

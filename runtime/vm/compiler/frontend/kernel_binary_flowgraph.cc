@@ -64,6 +64,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   body += SetupCapturedParameters(parsed_function()->function());
   body += BuildExpression();  // read initializer.
   body += Return(TokenPosition::kNoSource);
+  body += B->RecordFunctionCoverage(field_helper.position_);
+
 
   PrologueInfo prologue_info(-1, -1);
   if (B->IsCompiledForOsr()) {
@@ -4858,6 +4860,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement(TokenPosition* position) {
   list_length = ReadListLength();  // read number of updates.
   for (intptr_t i = 0; i < list_length; ++i) {
     updates += BuildExpression();  // read ith update.
+    updates += RecordFunctionCoverage(expression_token_position); 
     updates += Drop();
   }
 
@@ -4977,6 +4980,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchCase(SwitchHelper* helper,
 
   const bool is_default = ReadBool();  // read is_default.
   if (is_default) helper->set_default_case(case_index);
+  body_fragment += RecordFunctionCoverage(position_of_function_entry); 
   Fragment body_fragment = BuildStatementWithBranchCoverage();  // read body.
 
   if (body_fragment.entry == nullptr) {
@@ -5451,6 +5455,8 @@ Fragment StreamingFlowGraphBuilder::BuildIfStatement(TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
+  body += flow_graph_builder_->RecordFunctionCoverage(pos);
+
   TestFragment condition = TranslateConditionForControl();
 
   Fragment then_fragment(condition.CreateTrueSuccessor(flow_graph_builder_));
@@ -5556,6 +5562,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
   try_depth_inc();
   {
     TryCatchBlock block(flow_graph_builder_, try_handler_index);
+    try_body += flow_graph_builder_->RecordFunctionCoverage(position);
     try_body += BuildStatementWithBranchCoverage(position);  // read body.
     try_body += Goto(after_try);
   }
@@ -5609,6 +5616,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
       CatchBlock block(flow_graph_builder_, CurrentException(),
                        CurrentStackTrace(), try_handler_index);
 
+      catch_handler_body += flow_graph_builder_->RecordFunctionCoverage(catch_offset);                  
       catch_handler_body += BuildStatementWithBranchCoverage();  // read body.
 
       // Note: ExitScope adjusts context_depth_ so even if catch_handler_body
@@ -5712,6 +5720,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
   {
     TryFinallyBlock tfb(flow_graph_builder_, finalizer_offset);
     TryCatchBlock tcb(flow_graph_builder_, try_handler_index);
+    try_body += flow_graph_builder_->RecordFunctionCoverage(finalizer_offset);
     try_body += BuildStatementWithBranchCoverage(position);  // read body.
   }
   try_depth_dec();
@@ -5725,6 +5734,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
     try_body += Goto(finally_entry);
 
     Fragment finally_body(finally_entry);
+    finally_body += flow_graph_builder_->RecordFunctionCoverage(finalizer_offset);
     finally_body += BuildStatementWithBranchCoverage();  // read finalizer.
     finally_body += Goto(after_try);
   }
@@ -5749,6 +5759,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
   set_stack(nullptr);
 
   finally_body += BuildStatementWithBranchCoverage();  // read finalizer
+  finally_body += flow_graph_builder_->RecordFunctionCoverage(TokenPosition::kNoSource);
   if (finally_body.is_open()) {
     finally_body += LoadLocal(CurrentException());
     finally_body += LoadLocal(CurrentStackTrace());

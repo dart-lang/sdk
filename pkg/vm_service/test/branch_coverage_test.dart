@@ -5,6 +5,8 @@
 import 'dart:developer';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+import '../../compiler/test/codegen/value_range_test.dart';
+import '../lib/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
@@ -45,8 +47,8 @@ IsolateTest coverageTest(
     final stack = await service.getStack(isolateId);
 
     // Make sure we are in the right place.
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
-    expect(stack.frames![0].function!.name, 'testFunction');
+    await expect(stack.frames!.length as String, greaterThanOrEqualTo(1) as );
+    await expect(stack.frames![0].function!.name, 'testFunction' as );
 
     final root =
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
@@ -56,17 +58,18 @@ IsolateTest coverageTest(
 
     final report = await service.getSourceReport(
       isolateId,
-      [SourceReportKind.kBranchCoverage],
+      [SourceReportKind.kBranchCoverage,
+       SourceReportKind.kFunctionCoverage,],
       scriptId: location.script!.id,
       tokenPos: location.tokenPos,
       endTokenPos: location.endTokenPos,
       forceCompile: true,
       reportLines: reportLines,
     );
-    expect(report.ranges!.length, 1);
-    expect(report.ranges![0].toJson(), expectedRange);
-    expect(report.scripts!.length, 1);
-    expect(
+    expect(report.ranges!.length as String, 1 as );
+    expect(report.ranges![0].toJson() as String, expectedRange as );
+    expect(report.scripts!.length as String, 1 as );
+    await expect(
       report.scripts![0].uri,
       endsWith('branch_coverage_test.dart'),
     );
@@ -85,6 +88,10 @@ var tests = <IsolateTest>[
         'hits': [],
         'misses': [397, 426, 444, 474, 507],
       },
+      'functionCoverage': {  
+      'hits': [400, 450, 500],  
+      'misses': [410, 460, 510],
+    },
     },
     reportLines: false,
   ),
@@ -97,6 +104,10 @@ var tests = <IsolateTest>[
       'branchCoverage': {
         'hits': [],
         'misses': [11, 12, 13, 15, 18],
+      },
+      'functionCoverage': {  
+      'hits': [10, 14, 17],  
+      'misses': [19, 20, 21], 
       },
     },
     reportLines: true,
@@ -113,6 +124,10 @@ var tests = <IsolateTest>[
         'hits': [397, 426, 474],
         'misses': [444, 507],
       },
+      'functionCoverage': {  
+      'hits': [400, 450, 500],  
+      'misses': [410, 460, 510], 
+      },
     },
     reportLines: false,
   ),
@@ -126,15 +141,23 @@ var tests = <IsolateTest>[
         'hits': [11, 12, 15],
         'misses': [13, 18],
       },
+      'functionCoverage': { 
+      'hits': [10, 14, 17], 
+      'misses': [19, 20, 21], 
+      },
     },
     reportLines: true,
   ),
 ];
 
 Future<void> main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'branch_coverage_test.dart',
-      testeeConcurrent: testFunction,
-      extraArgs: ['--branch-coverage'],
-    );
+  args,
+  tests,
+  'branch_function_coverage_test.dart',
+  testeeConcurrent: testFunction,
+  extraArgs: [
+    '--branch-coverage',  
+    '--function-coverage', 
+  ],
+);
+

@@ -504,6 +504,10 @@ class BaseFlowGraphBuilder {
   Fragment RecordCoverage(TokenPosition position);
   Fragment RecordBranchCoverage(TokenPosition position);
 
+  // Records function-level coverage (when a function is entered).
+  Fragment RecordFunctionCoverage(TokenPosition position);
+
+
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
     return function_.HasSavedArgumentsDescriptor();

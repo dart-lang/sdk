@@ -28,6 +28,7 @@ class SourceReport {
     kPossibleBreakpoints = 0x4,
     kProfile = 0x8,
     kBranchCoverage = 0x10,
+    kFunctionCoverage = 0x20,
   };
 
   static const char* kCallSitesStr;
@@ -35,6 +36,8 @@ class SourceReport {
   static const char* kPossibleBreakpointsStr;
   static const char* kProfileStr;
   static const char* kBranchCoverageStr;
+  static const char* kFunctionCoverageStr;
+
 
   enum CompileMode { kNoCompile, kForceCompile };
 
@@ -148,6 +151,9 @@ class SourceReport {
   void CollectConstConstructorCoverageFromScripts(
       GrowableArray<ScriptTableEntry*>* local_script_table_entries);
 
+  bool report_function_coverage; 
+  std::vector<FunctionCoverageEntry> function_coverage_data_;
+
   intptr_t report_set_;
   CompileMode compile_mode_;
   bool report_lines_;
@@ -162,6 +168,13 @@ class SourceReport {
   DirectChainedHashMap<ScriptTableTrait> script_table_;
   intptr_t next_script_index_;
   intptr_t late_error_class_id_ = ClassId::kIllegalCid;
+};
+struct FunctionCoverageEntry {
+  const Function& function;
+  intptr_t call_count;
+
+  FunctionCoverageEntry(const Function& func, intptr_t calls)
+      : function(func), call_count(calls) {}
 };
 
 }  // namespace dart

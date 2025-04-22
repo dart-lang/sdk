@@ -1373,7 +1373,7 @@ main() {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kBranchCoverage);
+  SourceReport report(SourceReport::kFunctionCoverage | SourceReport::kBranchCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
@@ -1387,14 +1387,17 @@ main() {
       // the inner false case is hit, and the outer false case is missed.
       "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":135,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[1,34,82],\"misses\":[52,115]}},"
+      "\"functionCoverage\":{\"hits\":[1],\"misses\":[]}},"
 
       // Main is hit.
       "{\"scriptIndex\":0,\"startPos\":138,\"endPos\":160,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[138],\"misses\":[]}}],"
+      "\"functionCoverage\":{\"hits\":[138],\"misses\":[]}}"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+
       buffer);
 }
 
@@ -1439,7 +1442,7 @@ main() {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kBranchCoverage);
+  SourceReport report(SourceReport::kFunctionCoverage | SourceReport::kBranchCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
@@ -1453,11 +1456,13 @@ main() {
       // are all hit.
       "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":205,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[1,49,70,132,177],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[138],\"misses\":[]}}"
 
       // Main is hit.
       "{\"scriptIndex\":0,\"startPos\":208,\"endPos\":231,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[208],\"misses\":[]}}],"
-
+      "\"functionCoverage\":{\"hits\":[138],\"misses\":[]}}"
+      
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
@@ -1494,7 +1499,7 @@ main() {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kBranchCoverage);
+  SourceReport report(SourceReport::kFunctionCoverage | SourceReport::kBranchCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
@@ -1507,10 +1512,12 @@ main() {
       // In switchTest, the 1 case is hit and the others are missed.
       "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":132,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[1,73],\"misses\":[44,102]}},"
+      "\"functionCoverage\":{\"hits\":[1],\"misses\":[]}},"
 
       // Main is hit.
       "{\"scriptIndex\":0,\"startPos\":135,\"endPos\":161,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[135],\"misses\":[]}}],"
+      "\"functionCoverage\":{\"hits\":[138],\"misses\":[]}}"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -1557,7 +1564,7 @@ main() {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kBranchCoverage);
+  SourceReport report(SourceReport::kFunctionCoverage | SourceReport::kBranchCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
@@ -1571,15 +1578,18 @@ main() {
       // and the try/finally rethrows its exception.
       "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":126,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[1,29,62,76,89,120],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[1],\"misses\":[]}},"
 
       // In tryTestOuter, the exception thrown by tryTestInner causes both the
       // try and the catch to be hit.
       "{\"scriptIndex\":0,\"startPos\":129,\"endPos\":199,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[129,157,193],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[138],\"misses\":[]}}"
 
       // Main is hit.
       "{\"scriptIndex\":0,\"startPos\":202,\"endPos\":229,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[202],\"misses\":[]}}],"
+      "\"functionCoverage\":{\"hits\":[202],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -1616,7 +1626,7 @@ main() {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  SourceReport report(SourceReport::kCoverage | SourceReport::kBranchCoverage | SourceReport::kFunctionCoverage, SourceReport::kForceCompile);
   JSONStream js;
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
@@ -1629,18 +1639,22 @@ main() {
       // The super class constructor is hit.
       "{\"scriptIndex\":0,\"startPos\":31,\"endPos\":49,\"compiled\":true,"
       "\"coverage\":{\"hits\":[31],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[31],\"misses\":[]}},"
 
       // The class constructor is hit, as well as the super() call.
       "{\"scriptIndex\":0,\"startPos\":89,\"endPos\":118,\"compiled\":true,"
       "\"coverage\":{\"hits\":[89,111],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[89],\"misses\":[]}}," 
 
       // The method is called.
       "{\"scriptIndex\":0,\"startPos\":122,\"endPos\":141,\"compiled\":true,"
       "\"coverage\":{\"hits\":[122],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[122],\"misses\":[]}},"
 
       // Main is hit.
       "{\"scriptIndex\":0,\"startPos\":146,\"endPos\":181,\"compiled\":true,"
       "\"coverage\":{\"hits\":[146,171],\"misses\":[]}}],"
+      "\"functionCoverage\":{\"hits\":[146],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,"
@@ -1677,8 +1691,7 @@ main() {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kBranchCoverage,
-                      SourceReport::kForceCompile);
+  SourceReport report(SourceReport::kCoverage | SourceReport::kBranchCoverage | SourceReport::kFunctionCoverage, SourceReport::kForceCompile);
   JSONStream js;
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
@@ -1691,18 +1704,22 @@ main() {
       // The super class constructor is hit.
       "{\"scriptIndex\":0,\"startPos\":31,\"endPos\":49,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[31],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[31],\"misses\":[]}},"
 
       // The class constructor is hit.
       "{\"scriptIndex\":0,\"startPos\":89,\"endPos\":118,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[89],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[89],\"misses\":[]}}," 
 
       // The method is called.
       "{\"scriptIndex\":0,\"startPos\":122,\"endPos\":141,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[122],\"misses\":[]}},"
+      "\"functionCoverage\":{\"hits\":[122],\"misses\":[]}},"
 
       // Main is hit.
       "{\"scriptIndex\":0,\"startPos\":146,\"endPos\":181,\"compiled\":true,"
       "\"branchCoverage\":{\"hits\":[146],\"misses\":[]}}],"
+      "\"functionCoverage\":{\"hits\":[146],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\""

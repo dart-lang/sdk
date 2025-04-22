@@ -1326,8 +1326,14 @@ Fragment BaseFlowGraphBuilder::RecordBranchCoverage(TokenPosition position) {
   return RecordCoverageImpl(position, true /** is_branch_coverage **/);
 }
 
+Fragment BaseFlowGraphBuilder::RecordFunctionCoverage(TokenPosition position) {
+  return RecordCoverageImpl(position,true /*is_function_coverage=*/);
+}
+
 Fragment BaseFlowGraphBuilder::RecordCoverageImpl(TokenPosition position,
-                                                  bool is_branch_coverage) {
+  bool is_branch_coverage,
+  bool is_function_coverage)
+{
   Fragment instructions;
   if (!SupportsCoverage()) return instructions;
   if (!IG->coverage()) return instructions;

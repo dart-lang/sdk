@@ -146,7 +146,9 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     snapshot_is_dontneed_safe, false)                                          \
   V(NONPRODUCT, branch_coverage, BranchCoverage, branch_coverage,              \
     FLAG_branch_coverage)                                                      \
-  V(NONPRODUCT, coverage, Coverage, coverage, FLAG_coverage)
+  V(NONPRODUCT, coverage, Coverage, coverage, FLAG_coverage)                   \
+  V(NONPRODUCT, function_coverage, FunctionCoverage, function_coverage,        \
+    FLAG_function_coverage)
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
@@ -458,6 +460,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     isolate_group_flags_ =
         BranchCoverageBit::update(value, isolate_group_flags_);
   }
+
+  void set_function_coverage(bool value) {
+    isolate_group_flags_ =
+        FunctionCoverageBit::update(value, isolate_group_flags_);
+  }  
 
   void set_coverage(bool value) {
     isolate_group_flags_ = CoverageBit::update(value, isolate_group_flags_);
@@ -809,6 +816,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(SnapshotIsDontNeedSafe)                                                    \
   V(BranchCoverage)                                                            \
   V(Coverage)                                                                  \
+  V(FunctionCoverage)                                                          \
   V(HasDynamicallyExtendableClasses)
 
   // Isolate group specific flags.

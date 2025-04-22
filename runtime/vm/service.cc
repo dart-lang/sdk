@@ -3837,7 +3837,8 @@ static void GetPorts(Thread* thread, JSONStream* js) {
 static const char* const report_enum_names[] = {
     SourceReport::kCallSitesStr,           SourceReport::kCoverageStr,
     SourceReport::kPossibleBreakpointsStr, SourceReport::kProfileStr,
-    SourceReport::kBranchCoverageStr,      nullptr,
+    SourceReport::kBranchCoverageStr,      SourceReport::kFunctionCoverageStr, 
+    nullptr,
 };
 #endif
 
@@ -3874,6 +3875,8 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
       report_set |= SourceReport::kProfile;
     } else if (strcmp(*riter, SourceReport::kBranchCoverageStr) == 0) {
       report_set |= SourceReport::kBranchCoverage;
+    } else if (strcmp(*riter, SourceReport::kFunctionCoverageStr) == 0) { 
+      report_set |= SourceReport::kFunctionCoverage;
     }
     riter++;
   }
