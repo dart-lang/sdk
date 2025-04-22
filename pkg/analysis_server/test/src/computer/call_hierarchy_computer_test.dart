@@ -95,6 +95,12 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
     expect(offset, greaterThanOrEqualTo(0));
     return SourceRange(offset, (match ?? search).length);
   }
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
 }
 
 @reflectiveTest

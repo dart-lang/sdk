@@ -19,6 +19,12 @@ void main() {
 class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
   LibraryFragment get testUnitFragment => testUnit.declaredFragment!;
 
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_class() async {
     await resolveTestCode(r'''
 class AAA {}

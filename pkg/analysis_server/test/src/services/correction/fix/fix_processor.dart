@@ -181,6 +181,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   @override
   void setUp() {
+    // TODO(dantup): Many of these tests produce edits with \n on Windows (for
+    //  example AddKeyToConstructorsBulkTest.test_singleFile inserts \n before
+    //  the new constructor).
+    useLineEndingsForPlatform = false;
+
     super.setUp();
     verifyNoTestUnitErrors = false;
     _createAnalysisOptionsFile();

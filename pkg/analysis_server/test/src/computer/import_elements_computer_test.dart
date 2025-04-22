@@ -59,6 +59,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   @override
   void setUp() {
+    useLineEndingsForPlatform = false;
     super.setUp();
     path = convertPath('$testPackageLibPath/test.dart');
   }

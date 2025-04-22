@@ -28,6 +28,12 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
     return invocation.argumentList.arguments;
   }
 
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   void _assertArgumentRange(int index, SourceRange expectedRange) {
     var list = _argumentList;
     expect(
