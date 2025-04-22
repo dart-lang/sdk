@@ -164,7 +164,7 @@ final class ManifestElement {
     sink.writeUri(libraryUri);
     sink.writeStringUtf8(topLevelName);
     sink.writeOptionalStringUtf8(memberName);
-    sink.writeOptionalObject(id, (it) => it.write(sink));
+    id.writeOptional(sink);
   }
 
   static ManifestElement encode(EncodeContext context, Element2 element) {

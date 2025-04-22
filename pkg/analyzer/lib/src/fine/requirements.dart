@@ -185,13 +185,41 @@ final class ExportRequirementShowCombinator
   }
 }
 
+/// Includes all requirements from class-like items: classes, enums,
+/// extensions (NB), extension types, mixins.
+class InterfaceRequirements {
+  final Map<LookupName, ManifestItemId?> constructors;
+
+  /// These are "methods" in wide meaning: methods, getters, setters.
+  final Map<LookupName, ManifestItemId?> methods;
+
+  InterfaceRequirements({required this.constructors, required this.methods});
+
+  factory InterfaceRequirements.empty() {
+    return InterfaceRequirements(constructors: {}, methods: {});
+  }
+
+  factory InterfaceRequirements.read(SummaryDataReader reader) {
+    return InterfaceRequirements(
+      constructors: reader.readNameToIdMap(),
+      methods: reader.readNameToIdMap(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeNameToIdMap(constructors);
+    sink.writeNameToIdMap(methods);
+  }
+}
+
 class RequirementsManifest {
   /// LibraryUri => TopName => ID
   final Map<Uri, Map<LookupName, ManifestItemId?>> topLevels = {};
 
-  /// LibraryUri => TopName => MemberName => ID
-  final Map<Uri, Map<LookupName, Map<LookupName, ManifestItemId?>>>
-  interfaceMembers = {};
+  /// LibraryUri => TopName => InterfaceRequirements
+  ///
+  /// These are "methods" in wide meaning: methods, getters, setters.
+  final Map<Uri, Map<LookupName, InterfaceRequirements>> interfaces = {};
 
   final List<ExportRequirement> exportRequirements = [];
 
@@ -200,28 +228,20 @@ class RequirementsManifest {
   factory RequirementsManifest.read(SummaryDataReader reader) {
     var result = RequirementsManifest();
 
-    Map<LookupName, ManifestItemId?> readNameToIdMap() {
-      return reader.readMap(
-        readKey: () => LookupName.read(reader),
-        readValue:
-            () => reader.readOptionalObject(() => ManifestItemId.read(reader)),
-      );
-    }
-
     result.topLevels.addAll(
       reader.readMap(
         readKey: () => reader.readUri(),
-        readValue: readNameToIdMap,
+        readValue: () => reader.readNameToIdMap(),
       ),
     );
 
-    result.interfaceMembers.addAll(
+    result.interfaces.addAll(
       reader.readMap(
         readKey: () => reader.readUri(),
         readValue: () {
           return reader.readMap(
             readKey: () => LookupName.read(reader),
-            readValue: readNameToIdMap,
+            readValue: () => InterfaceRequirements.read(reader),
           );
         },
       ),
@@ -276,7 +296,7 @@ class RequirementsManifest {
       }
     }
 
-    for (var libraryEntry in interfaceMembers.entries) {
+    for (var libraryEntry in interfaces.entries) {
       var libraryUri = libraryEntry.key;
 
       var libraryElement = elementFactory.libraryOfUri(libraryUri);
@@ -295,10 +315,25 @@ class RequirementsManifest {
           );
         }
 
-        for (var memberEntry in interfaceEntry.value.entries) {
-          var memberName = memberEntry.key;
+        for (var methodEntry in interfaceEntry.value.constructors.entries) {
+          var memberName = methodEntry.key;
           var memberId = interfaceItem.getMemberId(memberName);
-          var expectedId = memberEntry.value;
+          var expectedId = methodEntry.value;
+          if (expectedId != memberId) {
+            return InstanceMemberIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              memberName: memberName,
+              expectedId: expectedId,
+              actualId: memberId,
+            );
+          }
+        }
+
+        for (var methodEntry in interfaceEntry.value.methods.entries) {
+          var memberName = methodEntry.key;
+          var memberId = interfaceItem.getMemberId(memberName);
+          var expectedId = methodEntry.value;
           if (expectedId != memberId) {
             return InstanceMemberIdMismatch(
               libraryUri: libraryUri,
@@ -342,7 +377,7 @@ class RequirementsManifest {
     // SAFETY: we don't export elements without name.
     interfaceName!;
 
-    var interfacesMap = interfaceMembers[libraryElement.uri] ??= {};
+    var interfacesMap = interfaces[libraryElement.uri] ??= {};
     var interfaceItem = manifest.items[interfaceName];
 
     // SAFETY: every interface element must be in the manifest.
@@ -350,8 +385,9 @@ class RequirementsManifest {
 
     var memberName = name.asLookupName;
     var memberId = interfaceItem.getMemberId(memberName);
-    var interfaceMap = interfacesMap[interfaceName] ??= {};
-    interfaceMap[memberName] = memberId;
+    var interface =
+        interfacesMap[interfaceName] ??= InterfaceRequirements.empty();
+    interface.constructors[memberName] = memberId;
   }
 
   /// This method is invoked by [InheritanceManager3] to notify the collector
@@ -379,7 +415,7 @@ class RequirementsManifest {
     // SAFETY: we don't export elements without name.
     interfaceName!;
 
-    var interfacesMap = interfaceMembers[libraryElement.uri] ??= {};
+    var interfacesMap = interfaces[libraryElement.uri] ??= {};
     var interfaceItem = manifest.items[interfaceName];
 
     // SAFETY: every interface element must be in the manifest.
@@ -387,8 +423,9 @@ class RequirementsManifest {
 
     var memberName = nameObj.name.asLookupName;
     var memberId = interfaceItem.getMemberId(memberName);
-    var interfaceMap = interfacesMap[interfaceName] ??= {};
-    interfaceMap[memberName] = memberId;
+    var interface =
+        interfacesMap[interfaceName] ??= InterfaceRequirements.empty();
+    interface.methods[memberName] = memberId;
   }
 
   /// This method is invoked by an import scope to notify the collector that
@@ -420,37 +457,25 @@ class RequirementsManifest {
     }
 
     for (var libUri in bundleLibraryUriList) {
-      interfaceMembers.remove(libUri);
+      interfaces.remove(libUri);
     }
   }
 
   void write(BufferedSink sink) {
-    void writeNameToIdMap(Map<LookupName, ManifestItemId?> map) {
-      sink.writeMap(
-        map,
-        writeKey: (name) => name.write(sink),
-        writeValue: (id) {
-          sink.writeOptionalObject(id, (id) {
-            id.write(sink);
-          });
-        },
-      );
-    }
-
     sink.writeMap(
       topLevels,
       writeKey: (uri) => sink.writeUri(uri),
-      writeValue: writeNameToIdMap,
+      writeValue: (map) => sink.writeNameToIdMap(map),
     );
 
     sink.writeMap(
-      interfaceMembers,
+      interfaces,
       writeKey: (uri) => sink.writeUri(uri),
       writeValue: (nameToInterfaceMap) {
         sink.writeMap(
           nameToInterfaceMap,
           writeKey: (name) => name.write(sink),
-          writeValue: writeNameToIdMap,
+          writeValue: (interface) => interface.write(sink),
         );
       },
     );
@@ -515,3 +540,22 @@ class RequirementsManifest {
 }
 
 enum _ExportRequirementCombinatorKind { hide, show }
+
+extension _BufferedSinkExtension on BufferedSink {
+  void writeNameToIdMap(Map<LookupName, ManifestItemId?> map) {
+    writeMap(
+      map,
+      writeKey: (name) => name.write(this),
+      writeValue: (id) => id.writeOptional(this),
+    );
+  }
+}
+
+extension _SummaryDataReaderExtension on SummaryDataReader {
+  Map<LookupName, ManifestItemId?> readNameToIdMap() {
+    return readMap(
+      readKey: () => LookupName.read(this),
+      readValue: () => ManifestItemId.readOptional(this),
+    );
+  }
+}

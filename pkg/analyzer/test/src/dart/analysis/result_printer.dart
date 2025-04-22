@@ -83,15 +83,20 @@ class BundleRequirementsPrinter {
   }
 
   void _writeInterfaces(RequirementsManifest requirements) {
-    var libEntries = requirements.interfaceMembers.sorted;
+    var libEntries = requirements.interfaces.sorted;
     sink.writeElements('interfaces', libEntries, (libEntry) {
       var interfaceEntries = libEntry.value.sorted;
       sink.writeElements('${libEntry.key}', interfaceEntries, (interfaceEntry) {
         sink.writelnWithIndent(interfaceEntry.key.asString);
         sink.withIndent(() {
           sink.writeElements(
+            'constructors',
+            interfaceEntry.value.constructors.sorted,
+            _writeNamedId,
+          );
+          sink.writeElements(
             'methods',
-            interfaceEntry.value.sorted,
+            interfaceEntry.value.methods.sorted,
             _writeNamedId,
           );
         });

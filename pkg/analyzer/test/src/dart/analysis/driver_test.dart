@@ -5506,7 +5506,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M1
 [status] idle
 ''',
@@ -5555,7 +5555,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M4
 [status] idle
 ''',
@@ -5613,7 +5613,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: <null>
 [status] idle
 ''',
@@ -5661,7 +5661,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: #M3
 [status] idle
 ''',
@@ -5722,7 +5722,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c1: #M1
 [status] idle
 ''',
@@ -5811,7 +5811,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: #M2
 [status] idle
 ''',
@@ -5859,7 +5859,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: <null>
 [status] idle
 ''',
@@ -5916,7 +5916,7 @@ class B extends A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -5934,7 +5934,7 @@ class B extends A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M1
 [status] idle
 ''',
@@ -5984,7 +5984,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M5
 [operation] getErrorsCannotReuse
   instanceMemberIdMismatch
@@ -6009,7 +6009,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M5
 [status] idle
 ''',
@@ -6070,7 +6070,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             new: #M1
 [status] idle
 ''',
@@ -6119,7 +6119,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             new: #M4
 [status] idle
 ''',
@@ -9223,7 +9223,7 @@ void f() {
     interfaces
       package:test/a.dart
         B
-          methods
+          constructors
             named: #M1
 [status] idle
 ''',
@@ -9278,7 +9278,7 @@ class B = A with M;
     interfaces
       package:test/a.dart
         B
-          methods
+          constructors
             named: #M6
 [status] idle
 ''',
