@@ -46,7 +46,7 @@ class BundleRequirementsPrinter {
     sink.writelnWithIndent('requirements');
     sink.withIndent(() {
       _writeTopLevels(requirements);
-      _writeInterfaceMembers(requirements);
+      _writeInterfaces(requirements);
       _writeExportRequirements(requirements);
     });
   }
@@ -82,14 +82,18 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeInterfaceMembers(RequirementsManifest requirements) {
+  void _writeInterfaces(RequirementsManifest requirements) {
     var libEntries = requirements.interfaceMembers.sorted;
-    sink.writeElements('interfaceMembers', libEntries, (libEntry) {
-      var topEntries = libEntry.value.sorted;
-      sink.writeElements('${libEntry.key}', topEntries, (topEntry) {
-        var memEntries = topEntry.value.sorted;
-        sink.writeElements(topEntry.key.asString, memEntries, (memEntry) {
-          _writeNamedId(memEntry);
+    sink.writeElements('interfaces', libEntries, (libEntry) {
+      var interfaceEntries = libEntry.value.sorted;
+      sink.writeElements('${libEntry.key}', interfaceEntries, (interfaceEntry) {
+        sink.writelnWithIndent(interfaceEntry.key.asString);
+        sink.withIndent(() {
+          sink.writeElements(
+            'methods',
+            interfaceEntry.value.sorted,
+            _writeNamedId,
+          );
         });
       });
     });

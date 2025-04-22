@@ -5503,10 +5503,11 @@ void f() {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          named: #M1
+          methods
+            named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -5551,10 +5552,11 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          named: #M4
+          methods
+            named: #M4
 [status] idle
 ''',
     );
@@ -5608,10 +5610,11 @@ void f() {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          c2: <null>
+          methods
+            c2: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -5655,10 +5658,11 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          c2: #M3
+          methods
+            c2: #M3
 [status] idle
 ''',
     );
@@ -5715,10 +5719,11 @@ void f() {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          c1: #M1
+          methods
+            c1: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -5803,10 +5808,11 @@ void f() {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          c2: #M2
+          methods
+            c2: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -5850,10 +5856,11 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          c2: <null>
+          methods
+            c2: <null>
 [status] idle
 ''',
     );
@@ -5906,10 +5913,11 @@ class B extends A {
       package:test/a.dart
         A: #M0
         named: <null>
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          named: #M1
+          methods
+            named: #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5923,10 +5931,11 @@ class B extends A {
       package:test/a.dart
         A: #M0
         named: <null>
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          named: #M1
+          methods
+            named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -5972,10 +5981,11 @@ class A {
       package:test/a.dart
         A: #M0
         named: <null>
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          named: #M5
+          methods
+            named: #M5
 [operation] getErrorsCannotReuse
   instanceMemberIdMismatch
     libraryUri: package:test/a.dart
@@ -5996,10 +6006,11 @@ class A {
       package:test/a.dart
         A: #M0
         named: <null>
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          named: #M5
+          methods
+            named: #M5
 [status] idle
 ''',
     );
@@ -6056,10 +6067,11 @@ void f() {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          new: #M1
+          methods
+            new: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -6104,10 +6116,11 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          new: #M4
+          methods
+            new: #M4
 [status] idle
 ''',
     );
@@ -6172,11 +6185,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -6239,11 +6253,12 @@ class B extends A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -6308,11 +6323,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -6375,11 +6391,12 @@ class B implements A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -6444,11 +6461,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -6511,11 +6529,12 @@ class B with A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -6579,11 +6598,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -6633,11 +6653,12 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M4
-          foo=: <null>
+          methods
+            foo: #M4
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -6703,11 +6724,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7386,15 +7408,17 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7439,11 +7463,12 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -7513,11 +7538,12 @@ void f(C c) {
         C: <null>
       package:test/a.dart
         C: #M3
-    interfaceMembers
+    interfaces
       package:test/a.dart
         C
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7585,11 +7611,12 @@ class C extends B {}
         C: <null>
       package:test/a.dart
         C: #M7
-    interfaceMembers
+    interfaces
       package:test/a.dart
         C
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -7654,11 +7681,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7721,11 +7749,12 @@ class B extends A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -7790,11 +7819,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7857,11 +7887,12 @@ class B implements A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -7926,11 +7957,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7993,11 +8025,12 @@ class B with A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -8054,11 +8087,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8098,15 +8132,17 @@ class A {}
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -8170,11 +8206,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8224,11 +8261,12 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M4
-          foo=: <null>
+          methods
+            foo: #M4
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -8294,11 +8332,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8391,15 +8430,17 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8449,11 +8490,12 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M2
+          methods
+            foo: <null>
+            foo=: #M2
 [status] idle
 ''',
     );
@@ -8518,11 +8560,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -8585,11 +8628,12 @@ class B extends A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
     );
@@ -8654,11 +8698,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -8721,11 +8766,12 @@ class B implements A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
     );
@@ -8790,11 +8836,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -8857,11 +8904,12 @@ class B with A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
     );
@@ -8925,11 +8973,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -8976,15 +9025,17 @@ class A {}
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -9048,11 +9099,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -9102,11 +9154,12 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M4
+          methods
+            foo: <null>
+            foo=: #M4
 [status] idle
 ''',
     );
@@ -9167,10 +9220,11 @@ void f() {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          named: #M1
+          methods
+            named: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -9221,10 +9275,11 @@ class B = A with M;
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          named: #M6
+          methods
+            named: #M6
 [status] idle
 ''',
     );
@@ -10234,11 +10289,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -10301,11 +10357,12 @@ mixin B on A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -10369,11 +10426,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -10423,11 +10481,12 @@ mixin A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M4
-          foo=: <null>
+          methods
+            foo: #M4
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -10493,11 +10552,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11176,15 +11236,17 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11229,11 +11291,12 @@ mixin A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -11298,11 +11361,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11365,11 +11429,12 @@ mixin B implements A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -11434,11 +11499,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11501,11 +11567,12 @@ mixin B on A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -11562,11 +11629,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11606,15 +11674,17 @@ mixin A {}
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -11678,11 +11748,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11732,11 +11803,12 @@ mixin A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M4
-          foo=: <null>
+          methods
+            foo: #M4
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -11802,11 +11874,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11899,15 +11972,17 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11957,11 +12032,12 @@ mixin A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M2
+          methods
+            foo: <null>
+            foo=: #M2
 [status] idle
 ''',
     );
@@ -12026,11 +12102,12 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M2
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -12093,11 +12170,12 @@ mixin B on A<double> {}
         B: <null>
       package:test/a.dart
         B: #M5
-    interfaceMembers
+    interfaces
       package:test/a.dart
         B
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
     );
@@ -12161,11 +12239,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -12212,15 +12291,17 @@ mixin A {}
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       dart:core
         Object
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
     );
@@ -12284,11 +12365,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M1
+          methods
+            foo: <null>
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -12338,11 +12420,12 @@ mixin A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: <null>
-          foo=: #M4
+          methods
+            foo: <null>
+            foo=: #M4
 [status] idle
 ''',
     );
