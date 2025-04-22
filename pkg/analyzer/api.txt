@@ -3924,8 +3924,6 @@ package:analyzer/dart/element/type.dart:
     element3 (getter: Null)
     namedFields (getter: List<RecordTypeNamedField>)
     positionalFields (getter: List<RecordTypePositionalField>)
-    positionalTypes (getter: List<DartType>, deprecated)
-    sortedNamedTypes (getter: List<RecordTypeNamedField>, deprecated)
   RecordTypeField (class extends Object):
     new (constructor: RecordTypeField Function())
     type (getter: DartType)

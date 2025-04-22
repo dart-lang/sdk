@@ -1,6 +1,8 @@
 ## 8.0.0-dev
 * Remove deprecated element model V1.
 * Remove deprecated `DartType.isStructurallyEqualTo`.
+* Remove deprecated `RecordType.positionalTypes`.
+* Remove deprecated `RecordType.sortedNamedTypes`.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.
