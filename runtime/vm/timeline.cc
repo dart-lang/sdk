@@ -77,7 +77,7 @@ DEFINE_FLAG(charp,
             nullptr,
             "Comma separated list of timeline streams to record. "
             "Valid values: all, API, Compiler, CompilerVerbose, Dart, "
-            "Debugger, Embedder, GC, Isolate, and VM.");
+            "Debugger, Embedder, GC, Isolate, Microtask, and VM.");
 DEFINE_FLAG(charp,
             timeline_recorder,
             DEFAULT_TIMELINE_RECORDER,

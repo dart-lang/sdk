@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.17.0';
+const String vmServiceVersion = '4.18.0';
 
 /// @optional
 const String optional = 'optional';

@@ -153,8 +153,9 @@ class RunCommand extends DartdevCommand {
           'timeline-streams',
           help: 'Enables recording for specific timeline streams.\n'
               'Valid streams include: all, API, Compiler, CompilerVerbose, Dart, '
-              'Debugger, Embedder, GC, Isolate, VM.\n'
-              'Defaults to "Compiler, Dart, GC" when --observe is provided.',
+              'Debugger, Embedder, GC, Isolate, Microtask, VM.\n'
+              'Defaults to "Compiler, Dart, GC, Microtask" when --observe is '
+              'provided.',
           valueHelp: 'str1, str2, ...',
           hide: !verbose,
         );

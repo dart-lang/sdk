@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.17
+# Dart VM Service Protocol 4.18
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.16_ of the Dart VM Service Protocol. This
+This document describes of _version 4.18_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -4994,5 +4994,6 @@ version | comments
 4.15 | Added `closureReceiver` property to `@Instance` and `Instance`.
 4.16 | Added `reloadFailureReason` property to `Event`. Added `createIdZone`, `deleteIdZone`, and `invalidateIdZone` RPCs. Added optional `idZoneId` parameter to `evaluate`, `evaluateInFrame`, `getInboundReferences`, `getInstances`, `getInstancesAsList`, `getObject`, `getRetainingPath`, `getStack`, and `invoke` RPCs.
 4.17 | Added `Timer` stream, added `TimerSignificantlyOverdue` event kind, and added `details` property to `Event`.
+4.18 | Added `Microtask` timeline stream.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
