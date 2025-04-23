@@ -842,14 +842,16 @@ package:analyzer/dart/ast/ast.dart:
     keyword (getter: Token)
     metadata (getter: NodeList<Annotation>)
     pattern (getter: DartPattern)
-  ForElement (class extends Object implements CollectionElement):
+  ForElement (class extends Object implements CollectionElement, ForLoop<CollectionElement>)
+  ForLoop (class<Body extends AstNode> extends Object implements AstNode, sealed (immediate subtypes: ForElement, ForLoopImpl, ForStatement)):
     awaitKeyword (getter: Token?)
-    body (getter: CollectionElement)
+    body (getter: Body)
     forKeyword (getter: Token)
     forLoopParts (getter: ForLoopParts)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
-  ForLoopParts (class extends Object implements AstNode, sealed (immediate subtypes: ForEachParts, ForLoopPartsImpl, ForParts))
+  ForLoopParts (class extends Object implements AstNode, sealed (immediate subtypes: ForEachParts, ForLoopPartsImpl, ForParts)):
+    parent (getter: ForLoop<AstNode>)
   ForParts (class extends Object implements ForLoopParts, sealed (immediate subtypes: ForPartsImpl, ForPartsWithDeclarations, ForPartsWithExpression, ForPartsWithPattern)):
     condition (getter: Expression?)
     leftSeparator (getter: Token)
@@ -861,13 +863,7 @@ package:analyzer/dart/ast/ast.dart:
     initialization (getter: Expression?)
   ForPartsWithPattern (class extends Object implements ForParts):
     variables (getter: PatternVariableDeclaration)
-  ForStatement (class extends Object implements Statement):
-    awaitKeyword (getter: Token?)
-    body (getter: Statement)
-    forKeyword (getter: Token)
-    forLoopParts (getter: ForLoopParts)
-    leftParenthesis (getter: Token)
-    rightParenthesis (getter: Token)
+  ForStatement (class extends Object implements Statement, ForLoop<Statement>)
   FormalParameter (class extends Object implements AstNode, sealed (immediate subtypes: DefaultFormalParameter, FormalParameterImpl, NormalFormalParameter)):
     covariantKeyword (getter: Token?)
     declaredFragment (getter: FormalParameterFragment?, experimental)

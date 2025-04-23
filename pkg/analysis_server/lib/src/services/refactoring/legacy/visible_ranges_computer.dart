@@ -35,11 +35,9 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     var loop = node.parent;
-    if (loop != null) {
-      for (var variable in node.variables.variables) {
-        _addLocalVariable(loop, variable.declaredElement2);
-        variable.initializer?.accept(this);
-      }
+    for (var variable in node.variables.variables) {
+      _addLocalVariable(loop, variable.declaredElement2);
+      variable.initializer?.accept(this);
     }
   }
 

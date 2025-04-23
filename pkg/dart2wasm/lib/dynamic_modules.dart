@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
-import 'package:kernel/target/targets.dart' show Target;
 import 'package:vm/metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadata;
 import 'package:vm/transformations/dynamic_interface_annotator.dart'
@@ -102,7 +101,6 @@ class DynamicModuleOutputData extends ModuleOutputData {
 class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
   @override
   final CoreTypes coreTypes;
-  final Target target;
   @override
   final LibraryIndex index;
   final Uri dynamicInterfaceSpecificationBaseUri;
@@ -111,7 +109,6 @@ class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
   DynamicMainModuleStrategy(
       super.component,
       this.coreTypes,
-      this.target,
       this.dynamicInterfaceSpecification,
       this.dynamicInterfaceSpecificationBaseUri)
       : index = coreTypes.index;
@@ -120,7 +117,7 @@ class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
   void prepareComponent() {
     // Annotate the kernel with info from dynamic interface.
     dynamic_interface_annotator.annotateComponent(dynamicInterfaceSpecification,
-        dynamicInterfaceSpecificationBaseUri, component, coreTypes, target);
+        dynamicInterfaceSpecificationBaseUri, component, coreTypes);
     _addImplicitPragmas();
     _addMetadataPragmas();
   }

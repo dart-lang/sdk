@@ -7481,30 +7481,14 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
 /// The basic structure of a for element.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ForElement implements CollectionElement {
-  /// The token representing the `await` keyword, or `null` if there was no
-  /// `await` keyword.
-  Token? get awaitKeyword;
-
-  /// The body of the loop.
-  CollectionElement get body;
-
-  /// The token representing the `for` keyword.
-  Token get forKeyword;
-
-  /// The parts of the for element that control the iteration.
-  ForLoopParts get forLoopParts;
-
-  /// The left parenthesis.
-  Token get leftParenthesis;
-
-  /// The right parenthesis.
-  Token get rightParenthesis;
-}
+abstract final class ForElement
+    implements CollectionElement, ForLoop<CollectionElement> {}
 
 final class ForElementImpl extends CollectionElementImpl
     with AstNodeWithNameScopeMixin
-    implements ForElement {
+    implements
+        ForElement,
+        ForLoopImpl<CollectionElement, CollectionElementImpl> {
   @override
   final Token? awaitKeyword;
 
@@ -7584,6 +7568,35 @@ final class ForElementImpl extends CollectionElementImpl
   }
 }
 
+/// A for or for-each statement or collection element.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class ForLoop<Body extends AstNode> implements AstNode {
+  /// The token representing the `await` keyword, or `null` if there's no
+  /// `await` keyword.
+  Token? get awaitKeyword;
+
+  /// The body of the loop.
+  Body get body;
+
+  /// The token representing the `for` keyword.
+  Token get forKeyword;
+
+  /// The parts of the for element that control the iteration.
+  ForLoopParts get forLoopParts;
+
+  /// The left parenthesis.
+  Token get leftParenthesis;
+
+  /// The right parenthesis.
+  Token get rightParenthesis;
+}
+
+sealed class ForLoopImpl<Body extends AstNode, BodyImpl extends Body>
+    implements AstNodeImpl, ForLoop<Body> {
+  @override
+  BodyImpl get body;
+}
+
 /// The parts of a for or for-each loop that control the iteration.
 ///
 ///   forLoopParts ::=
@@ -7595,9 +7608,15 @@ final class ForElementImpl extends CollectionElementImpl
 ///   expressionList ::=
 ///       [Expression] (',' [Expression])*
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class ForLoopParts implements AstNode {}
+sealed class ForLoopParts implements AstNode {
+  @override
+  ForLoop get parent;
+}
 
-sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
+sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {
+  @override
+  ForLoopImpl get parent => super.parent as ForLoopImpl;
+}
 
 /// A node representing a parameter to a function.
 ///
@@ -8094,30 +8113,11 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 ///     | [DeclaredIdentifier] 'in' [Expression]
 ///     | [SimpleIdentifier] 'in' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ForStatement implements Statement {
-  /// The token representing the `await` keyword, or `null` if there's no
-  /// `await` keyword.
-  Token? get awaitKeyword;
-
-  /// The body of the loop.
-  Statement get body;
-
-  /// The token representing the `for` keyword.
-  Token get forKeyword;
-
-  /// The parts of the for element that control the iteration.
-  ForLoopParts get forLoopParts;
-
-  /// The left parenthesis.
-  Token get leftParenthesis;
-
-  /// The right parenthesis.
-  Token get rightParenthesis;
-}
+abstract final class ForStatement implements Statement, ForLoop<Statement> {}
 
 final class ForStatementImpl extends StatementImpl
     with AstNodeWithNameScopeMixin
-    implements ForStatement {
+    implements ForStatement, ForLoopImpl<Statement, StatementImpl> {
   @override
   final Token? awaitKeyword;
 
