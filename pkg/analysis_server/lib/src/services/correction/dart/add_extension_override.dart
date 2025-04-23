@@ -5,8 +5,11 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -19,11 +22,20 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     if (node is! SimpleIdentifier) return const [];
     var parent = node.parent;
     Expression? target;
+    DartType? targetType;
     if (parent is MethodInvocation) {
       target = parent.target;
+      targetType = target?.staticType;
     } else if (parent is PropertyAccess) {
       target = parent.target;
+      targetType = target?.staticType;
+    } else if (parent is PrefixedIdentifier) {
+      target = parent.prefix;
+      targetType = target.staticType;
     }
+    targetType ??= node.enclosingInstanceElement2?.thisType;
+    if (targetType == null) return const [];
+
     var dartFixContext = context.dartFixContext;
     if (dartFixContext == null) return const [];
 
@@ -32,7 +44,11 @@ class AddExtensionOverride extends MultiCorrectionProducer {
 
     var nodeName = Name(libraryElement.uri, node.name);
     var extensions = libraryFragment.accessibleExtensions2
-        .havingMemberWithBaseName(nodeName);
+        .havingMemberWithBaseName(nodeName)
+        .applicableTo(
+          targetLibrary: libraryElement,
+          targetType: targetType as TypeImpl,
+        );
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name3;

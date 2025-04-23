@@ -20,6 +20,12 @@ void main() {
 
 @reflectiveTest
 class ConvertElementTest extends AbstractSingleUnitTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_CLASS() async {
     await resolveTestCode('''
 @deprecated

@@ -137,8 +137,9 @@ class ColorComputerTest extends AbstractContextTest {
     Map<String, int> expectedColorValues, {
     String? otherCode,
   }) async {
-    dartCode = _withCommonImports(dartCode);
-    otherCode = otherCode != null ? _withCommonImports(otherCode) : null;
+    dartCode = _withCommonImportsNormalized(dartCode);
+    otherCode =
+        otherCode != null ? _withCommonImportsNormalized(otherCode) : null;
 
     newFile(testPath, dartCode);
     if (otherCode != null) {
@@ -460,10 +461,12 @@ final a = [[COLOR]];
     await checkAllColors(testCode);
   }
 
-  String _withCommonImports(String code) => '''
+  String _withCommonImportsNormalized(String code) {
+    return normalizeSource('''
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/material.dart';
 
-$code''';
+$code''');
+  }
 }

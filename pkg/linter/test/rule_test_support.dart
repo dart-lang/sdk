@@ -41,20 +41,6 @@ ExpectedDiagnostic error(
   Pattern? messageContains,
 }) => _ExpectedError(code, offset, length, messageContains: messageContains);
 
-// TODO(srawlins): This is duplicate with
-// pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart.
-// Keep them as consistent with each other as they are today. Ultimately combine
-// them in a shared analyzer test utilities package.
-String pubspecYamlContent({String? name}) {
-  var buffer = StringBuffer();
-
-  if (name != null) {
-    buffer.writeln('name: $name');
-  }
-
-  return buffer.toString();
-}
-
 typedef DiagnosticMatcher = bool Function(AnalysisError error);
 
 /// A description of a diagnostic that is expected to be reported.

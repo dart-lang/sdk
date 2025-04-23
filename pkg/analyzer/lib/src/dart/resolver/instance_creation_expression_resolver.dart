@@ -56,17 +56,26 @@ class InstanceCreationExpressionResolver {
   }
 
   /// Resolves a [DotShorthandConstructorInvocation] node.
-  void resolveDotShorthand(DotShorthandConstructorInvocationImpl node) {
-    TypeImpl contextType =
+  void resolveDotShorthand(
+    DotShorthandConstructorInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
+    TypeImpl dotShorthandContextType =
         _resolver.getDotShorthandContext().unwrapTypeSchemaView();
 
     // The static namespace denoted by `S` is also the namespace denoted by
     // `FutureOr<S>`.
-    contextType = _resolver.typeSystem.futureOrBase(contextType);
+    dotShorthandContextType = _resolver.typeSystem.futureOrBase(
+      dotShorthandContextType,
+    );
 
     // TODO(kallentu): Support other context types
-    if (contextType is InterfaceTypeImpl) {
-      _resolveDotShorthandConstructorInvocation(node, contextType: contextType);
+    if (dotShorthandContextType is InterfaceTypeImpl) {
+      _resolveDotShorthandConstructorInvocation(
+        node,
+        contextType: contextType,
+        dotShorthandContextType: dotShorthandContextType,
+      );
     }
 
     // TODO(kallentu): Report error.
@@ -75,15 +84,16 @@ class InstanceCreationExpressionResolver {
   void _resolveDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocationImpl node, {
     required TypeImpl contextType,
+    required TypeImpl dotShorthandContextType,
   }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     _resolver.elementResolver.visitDotShorthandConstructorInvocation(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: contextType.element3,
+      typeElement: dotShorthandContextType.element3,
       constructorName: node.constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    DotShorthandConstructorInvocationInferrer(
+    var returnType = DotShorthandConstructorInvocationInferrer(
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
@@ -94,7 +104,7 @@ class InstanceCreationExpressionResolver {
       // `ConstructorElementToInfer.asType`.
       rawType: elementToInfer?.asType as FunctionTypeImpl?,
     );
-    node.recordStaticType(contextType, resolver: _resolver);
+    node.recordStaticType(returnType, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
       node.argumentList,
       whyNotPromotedArguments,

@@ -46,6 +46,8 @@ void f(List<String> a, List<String> b) {
   }
 
   Future<void> test_blockBody_expressionBody() async {
+    useLineEndingsForPlatform = false;
+
     await resolveTestCode(r'''
 void f(List<String> a, List<String> b) {
   var result = <String>[];
@@ -67,6 +69,8 @@ void f(List<String> a, List<String> b) {
   }
 
   Future<void> test_expressionBody_blockBody() async {
+    useLineEndingsForPlatform = false;
+
     await resolveTestCode(r'''
 void f(List<String> a, List<String> b) {
   var result = <String>[];
@@ -88,6 +92,8 @@ void f(List<String> a, List<String> b) {
   }
 
   Future<void> test_expressionBody_expressionBody() async {
+    useLineEndingsForPlatform = false;
+
     await resolveTestCode(r'''
 void f(List<String> a, List<String> b) {
   var result = <String>[];

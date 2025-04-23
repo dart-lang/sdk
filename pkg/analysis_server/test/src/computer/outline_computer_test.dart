@@ -48,6 +48,8 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   }
 
   Future<void> test_columnWithChildren() async {
+    useLineEndingsForPlatform = false;
+
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -161,6 +163,12 @@ class OutlineComputerTest extends AbstractOutlineComputerTest {
   String jsonOfPath(String path) {
     path = convertPath(path);
     return json.encode(path);
+  }
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
   }
 
   Future<void> test_class() async {

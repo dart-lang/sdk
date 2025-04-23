@@ -60,6 +60,12 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
     return SearchEngineImpl(allDrivers);
   }
 
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
     var a = newFile('$testPackageLibPath/a.dart', '''
 class A {
@@ -775,6 +781,12 @@ class B extends A {}
 @reflectiveTest
 class SearchEngineImplWithNonFunctionTypeAliasesTest
     extends SearchEngineImplTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_searchReferences_typeAlias_interfaceType() async {
     await resolveTestCode('''
 typedef A<T> = Map<T, String>;

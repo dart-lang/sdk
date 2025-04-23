@@ -50,4 +50,16 @@ class ManifestItemId {
     sink.writeUInt32(timestamp);
     sink.writeUInt32(randomBits);
   }
+
+  static ManifestItemId? readOptional(SummaryDataReader reader) {
+    return reader.readOptionalObject(() => ManifestItemId.read(reader));
+  }
+}
+
+extension ManifestItemIdExtension on ManifestItemId? {
+  void writeOptional(BufferedSink sink) {
+    sink.writeOptionalObject(this, (id) {
+      id.write(sink);
+    });
+  }
 }

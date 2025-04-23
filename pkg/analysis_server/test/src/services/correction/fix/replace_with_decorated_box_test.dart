@@ -307,8 +307,6 @@ void f() {
   }
 
   Future<void> test_hierarchy() async {
-    useLineEndingsForPlatform = false;
-
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 

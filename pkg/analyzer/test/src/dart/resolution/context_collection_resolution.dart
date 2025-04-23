@@ -38,36 +38,6 @@ import 'resolution.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
-// TODO(scheglov): This is duplicate with
-// pkg/linter/test/rule_test_support.dart. Keep them as consistent with each
-// other as they are today. Ultimately combine them in a shared analyzer test
-// utilities package.
-String pubspecYamlContent({
-  String? name,
-  String? sdkVersion,
-  List<PubspecYamlFileDependency> dependencies = const [],
-}) {
-  var buffer = StringBuffer();
-
-  if (name != null) {
-    buffer.writeln('name: $name');
-  }
-
-  if (sdkVersion != null) {
-    buffer.writeln('environment:');
-    buffer.writeln("  sdk: '$sdkVersion'");
-  }
-
-  if (dependencies.isNotEmpty) {
-    buffer.writeln('dependencies:');
-    for (var dependency in dependencies) {
-      buffer.writeln('  ${dependency.name}: ${dependency.version}');
-    }
-  }
-
-  return buffer.toString();
-}
-
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
@@ -449,13 +419,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
   void writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
   }
-}
-
-class PubspecYamlFileDependency {
-  final String name;
-  final String version;
-
-  PubspecYamlFileDependency({required this.name, this.version = 'any'});
 }
 
 mixin WithLanguage219Mixin on PubPackageResolutionTest {

@@ -98,6 +98,8 @@ template("_compiled_action") {
                 "--exec_strategy=" + rbe_expensive_exec_strategy,
                 "--",
               ]
+    } else if (!defined(invoker.pool)) {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
 
     args += [ rebase_path(host_executable, root_build_dir) ] + invoker.args
@@ -148,6 +150,8 @@ template("_prebuilt_tool_action") {
                 "--exec_strategy=" + rbe_expensive_exec_strategy,
                 "--",
               ]
+    } else if (!defined(invoker.pool)) {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
 
     args += [ rebase_path(invoker.binary, root_build_dir) ] + vm_args

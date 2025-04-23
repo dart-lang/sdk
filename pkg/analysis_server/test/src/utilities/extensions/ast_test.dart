@@ -178,7 +178,7 @@ class C {}
   void _assertTokens(List<String> expected) {
     expect(
       result.unit.fileHeader.map((token) => token.lexeme),
-      orderedEquals(expected),
+      orderedEquals(expected.map(normalizeSource)),
     );
   }
 }

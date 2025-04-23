@@ -71,13 +71,13 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     int index = 0,
   }) async {
     _setPositionOrRange(index);
-    if (useLineEndingsForPlatform) {
-      expected = normalizeNewlinesForPlatform(expected);
-      additionallyChangedFiles = additionallyChangedFiles?.map(
-        (key, value) =>
-            MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()),
-      );
-    }
+
+    expected = normalizeNewlinesForPlatform(expected);
+    additionallyChangedFiles = additionallyChangedFiles?.map(
+      (key, value) =>
+          MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()),
+    );
+
     // Remove any marker in the expected code. We allow markers to prevent an
     // otherwise empty line from having the leading whitespace be removed.
     expected = TestCode.parse(expected).code;
@@ -137,12 +137,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     return values.map((value) {
       return LinkedEditSuggestion(value, kind);
     }).toList();
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    useLineEndingsForPlatform = true;
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.

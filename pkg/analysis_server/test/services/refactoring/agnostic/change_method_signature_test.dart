@@ -39,6 +39,12 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   late final SelectionState selectionState;
   late final ValidSelectionState validSelectionState;
 
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   /// Create [testFile] with [rawCode], analyze availability in it.
   Future<Availability> _analyzeAvailability(String rawCode) async {
     var testCode = TestCode.parse(rawCode);
@@ -157,6 +163,12 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 @reflectiveTest
 class ChangeMethodSignatureTest_analyzeSelection
     extends AbstractChangeMethodSignatureTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_classConstructor_fieldFormal_explicitType() async {
     await _analyzeSelection(r'''
 class A {

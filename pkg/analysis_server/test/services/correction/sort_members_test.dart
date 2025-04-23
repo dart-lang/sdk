@@ -1793,6 +1793,6 @@ void f() {}
     );
     var edits = sorter.sort();
     var result = SourceEdit.applySequence(testCode, edits);
-    expect(result, expectedCode);
+    expect(result, normalizeSource(expectedCode));
   }
 }

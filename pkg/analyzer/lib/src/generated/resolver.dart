@@ -1240,7 +1240,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   bool isDotShorthand(ExpressionImpl node) {
-    // TODO(kallentu): Implement this for dot shorthand equality implementation.
+    if (node is DotShorthandMixin) {
+      return (node as DotShorthandMixin).isDotShorthand;
+    }
     return false;
   }
 
@@ -2416,8 +2418,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
 
     // If [isDotShorthand] is set, cache the context type for resolution.
-    if (node.isDotShorthand) {
-      pushDotShorthandContext(SharedTypeSchemaView(contextType));
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }
 
     checkUnreachableNode(node);
@@ -2454,10 +2456,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       case DotShorthandConstructorInvocationImpl():
         _instanceCreationExpressionResolver.resolveDotShorthand(
           rewrittenExpression,
+          contextType: contextType,
         );
     }
 
-    if (node.isDotShorthand) {
+    if (isDotShorthand(node)) {
       popDotShorthandContext();
     }
 
@@ -2472,8 +2475,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
 
     // If [isDotShorthand] is set, cache the context type for resolution.
-    if (node.isDotShorthand) {
-      pushDotShorthandContext(SharedTypeSchemaView(contextType));
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }
 
     checkUnreachableNode(node);
@@ -2485,7 +2488,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType,
     );
 
-    if (node.isDotShorthand) {
+    if (isDotShorthand(node)) {
       popDotShorthandContext();
     }
 

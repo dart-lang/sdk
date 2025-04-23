@@ -20,13 +20,6 @@ class CreateLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_LOCAL_VARIABLE;
 
-  @override
-  void setUp() {
-    super.setUp();
-    // TODO(dantup): Get these tests passing with either line ending.
-    useLineEndingsForPlatform = false;
-  }
-
   Future<void> test_functionType_named() async {
     await resolveTestCode('''
 typedef MY_FUNCTION(int p);
@@ -228,6 +221,8 @@ void f() {
   }
 
   Future<void> test_withImport() async {
+    useLineEndingsForPlatform = false;
+
     newFile('$workspaceRootPath/pkg/lib/a/a.dart', '''
 class A {}
 ''');

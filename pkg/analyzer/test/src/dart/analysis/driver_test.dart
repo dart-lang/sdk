@@ -5506,7 +5506,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M1
 [status] idle
 ''',
@@ -5535,10 +5535,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: named
+    constructorName: named
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -5555,7 +5555,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M4
 [status] idle
 ''',
@@ -5613,7 +5613,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: <null>
 [status] idle
 ''',
@@ -5641,10 +5641,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: c2
+    constructorName: c2
     expectedId: <null>
     actualId: #M3
 [operation] analyzeFile
@@ -5661,7 +5661,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: #M3
 [status] idle
 ''',
@@ -5722,7 +5722,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c1: #M1
 [status] idle
 ''',
@@ -5811,7 +5811,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: #M2
 [status] idle
 ''',
@@ -5839,10 +5839,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: c2
+    constructorName: c2
     expectedId: #M2
     actualId: <null>
 [operation] analyzeFile
@@ -5859,7 +5859,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             c2: <null>
 [status] idle
 ''',
@@ -5916,7 +5916,7 @@ class B extends A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -5934,7 +5934,7 @@ class B extends A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M1
 [status] idle
 ''',
@@ -5961,10 +5961,10 @@ class A {
     uri: package:test/test.dart
     flags: isLibrary
 [operation] cannotReuseLinkedBundle
-  instanceMemberIdMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: named
+    constructorName: named
     expectedId: #M1
     actualId: #M5
 [operation] linkLibraryCycle
@@ -5984,13 +5984,13 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M5
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: named
+    constructorName: named
     expectedId: #M1
     actualId: #M5
 [operation] analyzeFile
@@ -6009,7 +6009,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             named: #M5
 [status] idle
 ''',
@@ -6070,7 +6070,7 @@ void f() {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             new: #M1
 [status] idle
 ''',
@@ -6099,10 +6099,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: new
+    constructorName: new
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -6119,7 +6119,7 @@ class A {
     interfaces
       package:test/a.dart
         A
-          methods
+          constructors
             new: #M4
 [status] idle
 ''',
@@ -6631,10 +6631,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -7446,10 +7446,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: <null>
     actualId: #M2
 [operation] analyzeFile
@@ -8115,10 +8115,10 @@ class A {}
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: #M1
     actualId: <null>
 [operation] analyzeFile
@@ -8239,10 +8239,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -8468,10 +8468,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo=
+    methodName: foo=
     expectedId: <null>
     actualId: #M2
 [operation] analyzeFile
@@ -9001,10 +9001,10 @@ class A {}
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo=
+    methodName: foo=
     expectedId: #M1
     actualId: <null>
 [operation] analyzeFile
@@ -9132,10 +9132,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo=
+    methodName: foo=
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -9223,7 +9223,7 @@ void f() {
     interfaces
       package:test/a.dart
         B
-          methods
+          constructors
             named: #M1
 [status] idle
 ''',
@@ -9258,10 +9258,10 @@ class B = A with M;
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: B
-    memberName: named
+    constructorName: named
     expectedId: #M1
     actualId: #M6
 [operation] analyzeFile
@@ -9278,7 +9278,7 @@ class B = A with M;
     interfaces
       package:test/a.dart
         B
-          methods
+          constructors
             named: #M6
 [status] idle
 ''',
@@ -10459,10 +10459,10 @@ mixin A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -11274,10 +11274,10 @@ mixin A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: <null>
     actualId: #M2
 [operation] analyzeFile
@@ -11657,10 +11657,10 @@ mixin A {}
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: #M1
     actualId: <null>
 [operation] analyzeFile
@@ -11781,10 +11781,10 @@ mixin A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -12010,10 +12010,10 @@ mixin A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo=
+    methodName: foo=
     expectedId: <null>
     actualId: #M2
 [operation] analyzeFile
@@ -12267,10 +12267,10 @@ mixin A {}
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo=
+    methodName: foo=
     expectedId: #M1
     actualId: <null>
 [operation] analyzeFile
@@ -12398,10 +12398,10 @@ mixin A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo=
+    methodName: foo=
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile

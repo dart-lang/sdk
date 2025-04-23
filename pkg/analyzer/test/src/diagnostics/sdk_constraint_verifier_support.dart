@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_utilities/testing/test_support.dart';
+
 import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 

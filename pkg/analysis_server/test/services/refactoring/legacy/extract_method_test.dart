@@ -27,6 +27,12 @@ void main() {
 
 @reflectiveTest
 class AddLibraryImportsTest extends AbstractSingleUnitTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_dart_doubleQuotes() async {
     registerLintRules();
     newAnalysisOptionsYamlFile(

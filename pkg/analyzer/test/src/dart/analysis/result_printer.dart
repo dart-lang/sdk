@@ -83,15 +83,20 @@ class BundleRequirementsPrinter {
   }
 
   void _writeInterfaces(RequirementsManifest requirements) {
-    var libEntries = requirements.interfaceMembers.sorted;
+    var libEntries = requirements.interfaces.sorted;
     sink.writeElements('interfaces', libEntries, (libEntry) {
       var interfaceEntries = libEntry.value.sorted;
       sink.writeElements('${libEntry.key}', interfaceEntries, (interfaceEntry) {
         sink.writelnWithIndent(interfaceEntry.key.asString);
         sink.withIndent(() {
           sink.writeElements(
+            'constructors',
+            interfaceEntry.value.constructors.sorted,
+            _writeNamedId,
+          );
+          sink.writeElements(
             'methods',
-            interfaceEntry.value.sorted,
+            interfaceEntry.value.methods.sorted,
             _writeNamedId,
           );
         });
@@ -377,12 +382,21 @@ class DriverEventsPrinter {
       case ExportLibraryMissing():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
-      case InstanceMemberIdMismatch():
-        sink.writelnWithIndent('instanceMemberIdMismatch');
+      case InstanceMethodIdMismatch():
+        sink.writelnWithIndent('instanceMethodIdMismatch');
         sink.writeProperties({
           'libraryUri': failure.libraryUri,
           'interfaceName': failure.interfaceName.asString,
-          'memberName': failure.memberName.asString,
+          'methodName': failure.methodName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case InterfaceConstructorIdMismatch():
+        sink.writelnWithIndent('interfaceConstructorIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'constructorName': failure.constructorName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });

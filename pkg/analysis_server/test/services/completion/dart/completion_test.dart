@@ -5179,48 +5179,6 @@ suggestions
   Future<void> test_commentSnippets030_1() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
-class Bar<T extends Foo> {const Bar(^T k);T m(T a, T b){}final T f = null;}
-''');
-    assertResponse(r'''
-replacement
-  right: 1
-suggestions
-  this
-    kind: keyword
-  void
-    kind: keyword
-  T
-    kind: typeParameter
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  super
-    kind: keyword
-''');
-  }
-
-  Future<void> test_commentSnippets030_2() async {
-    allowedIdentifiers = {'T'};
-    await computeSuggestions('''
-class Bar<T extends Foo> {const Bar(T^ k);T m(T a, T b){}final T f = null;}
-''');
-    assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  this
-    kind: keyword
-  T
-    kind: typeParameter
-''');
-  }
-
-  Future<void> test_commentSnippets030_3() async {
-    allowedIdentifiers = {'T'};
-    await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T^ m(T a, T b){}final T f = null;}
 ''');
     assertResponse(r'''
@@ -5232,7 +5190,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_commentSnippets030_4() async {
+  Future<void> test_commentSnippets030_2() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T^ a, T b){}final T f = null;}
@@ -5246,7 +5204,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_commentSnippets030_5() async {
+  Future<void> test_commentSnippets030_3() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T^ b){}final T f = null;}
@@ -5260,7 +5218,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_commentSnippets030_6() async {
+  Future<void> test_commentSnippets030_4() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T b){}final T^ f = null;}
