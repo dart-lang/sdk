@@ -151,7 +151,7 @@ bool ServiceIsolate::IsRunning() {
 
 bool ServiceIsolate::IsServiceIsolateDescendant(Isolate* isolate) {
   MonitorLocker ml(monitor_);
-  return isolate->origin_id() == origin_;
+  return isolate->group()->id() == origin_;
 }
 
 Dart_Port ServiceIsolate::Port() {
@@ -297,7 +297,7 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   isolate_ = isolate;
   if (isolate_ != nullptr) {
     ASSERT(isolate->is_service_isolate());
-    origin_ = isolate_->origin_id();
+    origin_ = isolate_->group()->id();
   }
 }
 

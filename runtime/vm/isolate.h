@@ -679,13 +679,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Become* become() const { return become_; }
   void set_become(Become* become) { become_ = become; }
 
-  uint64_t id() const { return id_; }
+  Dart_Port id() const { return id_; }
 
   static void Init();
   static void Cleanup();
 
   static void ForEach(std::function<void(IsolateGroup*)> action);
-  static void RunWithIsolateGroup(uint64_t id,
+  static void RunWithIsolateGroup(Dart_Port id,
                                   std::function<void(IsolateGroup*)> action,
                                   std::function<void()> not_found);
 
@@ -886,7 +886,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   static IntrusiveDList<IsolateGroup>* isolate_groups_;
   static Random* isolate_group_random_;
 
-  uint64_t id_ = 0;
+  Dart_Port id_ = 0;
 
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
@@ -1065,8 +1065,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     ASSERT(main_port_ == 0);  // Only set main port once.
     main_port_ = port;
   }
-  Dart_Port origin_id();
-  void set_origin_id(Dart_Port id);
   void set_pause_capability(uint64_t value) { pause_capability_ = value; }
   uint64_t pause_capability() const { return pause_capability_; }
   void set_terminate_capability(uint64_t value) {
@@ -1665,9 +1663,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   Dart_IsolateCleanupCallback on_cleanup_callback_ = nullptr;
   char* name_ = nullptr;
   Dart_Port main_port_ = 0;
-  // Isolates created by Isolate.spawn have the same origin id.
-  Dart_Port origin_id_ = 0;
-  Mutex origin_id_mutex_;
   uint64_t pause_capability_ = 0;
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;

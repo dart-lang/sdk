@@ -1404,7 +1404,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   VM get vm => owner as VM;
   Isolate get isolate => this;
   int? number;
-  int? originNumber;
   DateTime? startTime;
   Duration? get upTime {
     if (startTime == null) {
@@ -1681,7 +1680,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     loading = false;
     runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
-    originNumber = int.tryParse(map['_originNumber']);
     if (map['rootLib'] != null) {
       rootLibrary = map['rootLib'];
     }

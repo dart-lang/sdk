@@ -17,7 +17,6 @@ final tests = <IsolateTest>[
     expect(result.isolateFlags, isNotNull);
     expect(result.isolateFlags!.length, isPositive);
     expect(result.isSystemIsolate, isFalse);
-    expect(result.json!['_originNumber'], result.number);
     expect(result.startTime, isPositive);
     expect(result.livePorts, isPositive);
     expect(result.pauseOnExit, isFalse);

@@ -102,12 +102,9 @@ DEFINE_NATIVE_ENTRY(SendPort_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-static bool InSameGroup(Isolate* sender, const SendPort& receiver) {
-  // Cannot determine whether sender is in same group (yet).
-  if (sender->origin_id() == ILLEGAL_PORT) return false;
-
+static bool InSameGroup(IsolateGroup* sender, const SendPort& receiver) {
   // Only allow arbitrary messages between isolates of the same IG.
-  return sender->origin_id() == receiver.origin_id();
+  return sender->id() == receiver.origin_id();
 }
 
 DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
@@ -115,7 +112,8 @@ DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   const Dart_Port destination_port_id = port.Id();
-  const bool same_group = InSameGroup(isolate, port);
+  IsolateGroup* group = thread->isolate_group();
+  const bool same_group = InSameGroup(group, port);
 #if defined(DEBUG)
   if (same_group) {
     ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(destination_port_id,
@@ -505,11 +503,11 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   if (!port.IsNull()) {
     GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
-    const bool same_group = InSameGroup(isolate, port);
+    IsolateGroup* group = thread->isolate_group();
+    const bool same_group = InSameGroup(group, port);
 #if defined(DEBUG)
     if (same_group) {
-      ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(port.Id(),
-                                                           isolate->group()));
+      ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(port.Id(), group));
     }
 #endif
     if (!same_group) {
@@ -557,7 +555,6 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
 class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
-                    Dart_Port origin_id,
                     const char* script_url,
                     PersistentHandle* closure_tuple_handle,
                     SerializedObjectBuffer* message_buffer,
@@ -582,7 +579,6 @@ class IsolateSpawnState {
   ~IsolateSpawnState();
 
   Dart_Port parent_port() const { return parent_port_; }
-  Dart_Port origin_id() const { return origin_id_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
@@ -606,7 +602,6 @@ class IsolateSpawnState {
 
  private:
   Dart_Port parent_port_;
-  Dart_Port origin_id_ = ILLEGAL_PORT;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
@@ -630,7 +625,6 @@ static const char* NewConstChar(const char* chars) {
 }
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
-                                     Dart_Port origin_id,
                                      const char* script_url,
                                      PersistentHandle* closure_tuple_handle,
                                      SerializedObjectBuffer* message_buffer,
@@ -642,7 +636,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* debug_name,
                                      IsolateGroup* isolate_group)
     : parent_port_(parent_port),
-      origin_id_(origin_id),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(script_url),
@@ -876,11 +869,6 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
-    if (state_->origin_id() != ILLEGAL_PORT) {
-      // origin_id is set to parent isolate main port id when spawning via
-      // spawnFunction.
-      child->set_origin_id(state_->origin_id());
-    }
     bool errors_are_fatal = state_->errors_are_fatal();
     Dart_Port on_error_port = state_->on_error_port();
     Dart_Port on_exit_port = state_->on_exit_port();
@@ -1119,10 +1107,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   }
 
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
-      port.Id(), isolate->origin_id(), String2UTF8(script_uri),
-      closure_tuple_handle, &message_buffer, utf8_package_config,
-      paused.value(), fatal_errors, on_exit_port, on_error_port,
-      utf8_debug_name, isolate->group()));
+      port.Id(), String2UTF8(script_uri), closure_tuple_handle, &message_buffer,
+      utf8_package_config, paused.value(), fatal_errors, on_exit_port,
+      on_error_port, utf8_debug_name, isolate->group()));
 
   isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
                                                          std::move(state));
