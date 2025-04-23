@@ -189,7 +189,11 @@ luci.list_view_entry(
 
 # VM isolate stress test console
 luci.list_view_entry(
-    builder = "iso-stress-linux",
+    builder = "iso-stress-linux-x64",
+    list_view = "iso-stress",
+)
+luci.list_view_entry(
+    builder = "iso-stress-linux-arm64",
     list_view = "iso-stress",
 )
 

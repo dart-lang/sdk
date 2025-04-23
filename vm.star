@@ -510,8 +510,15 @@ _nightly_builder(
 
 # Isolate stress test builder
 _vm_builder(
-    "iso-stress-linux",
+    "iso-stress-linux-x64",
     channels = ["try"],
     notifies = "dart-vm-team",
+    properties = slow_shards,
+)
+_nightly_builder(
+    "iso-stress-linux-arm64",
+    category = None,
+    channels = ["try"],
+    dimensions = [jammy, arm64],
     properties = slow_shards,
 )
