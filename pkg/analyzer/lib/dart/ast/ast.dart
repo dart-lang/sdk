@@ -118,6 +118,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ForEachPartsWithIdentifier,
         ForEachPartsWithPattern,
         ForElement,
+        ForLoop,
         ForLoopParts,
         FormalParameter,
         FormalParameterList,

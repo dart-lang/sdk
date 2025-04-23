@@ -1381,7 +1381,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
     if (node.isFullySynthetic) {
-      node.parent?.accept(this);
+      node.parent.accept(this);
     }
   }
 
