@@ -71,33 +71,6 @@ const filteredPathComponents = <String>[
   "ProductXARM64",
 ];
 
-const filteredSections = <String>[
-  // Covered by symbols
-  ".data",
-  ".data.rel.ro",
-  ".rodata",
-  ".text",
-
-  // Does not contribute to file size
-  ".bss",
-  ".tbss",
-
-  // Debug info / stripped
-  ".debug_abbrev",
-  ".debug_aranges",
-  ".debug_info",
-  ".debug_line",
-  ".debug_line_str",
-  ".debug_loc",
-  ".debug_loclists",
-  ".debug_macro",
-  ".debug_ranges",
-  ".debug_rnglists",
-  ".debug_str",
-  ".strtab",
-  ".symtab",
-];
-
 var cwd = Directory.current.path;
 String prettyPath(String path) {
   if (path.startsWith(cwd)) {
@@ -110,31 +83,28 @@ String prettyPath(String path) {
 }
 
 main(List<String> args) {
-  if (args.isEmpty) {
-    print("Usage: binary_size <binaries>");
+  if (args.length != 2) {
+    print("Usage: binary_size <stripped> <unstripped>");
     exit(1);
   }
 
-  for (var arg in args) {
-    analyze(arg);
-  }
-}
+  var strippedPath = args[0];
+  var unstrippedPath = args[1];
 
-analyze(String binaryPath) {
-  var nmExec = "nm";
-  var nmArgs = ["-a", "--demangle", "--line-numbers",
-                "--print-size", binaryPath];
-  var nmResult = Process.runSync(nmExec, nmArgs);
-  if (nmResult.exitCode != 0) {
-    print("+ ${nmExec} ${nmArgs.join(' ')}");
-    print(nmResult.exitCode);
-    print(nmResult.stdout);
-    print(nmResult.stderr);
+  var bloatyExec = "bloaty";
+  var bloatyArgs = ["-d", "symbols,compileunits", "--domain=file", "-n", "0",
+                    "--csv", "--debug-file", unstrippedPath, strippedPath];
+  var bloatyResult = Process.runSync(bloatyExec, bloatyArgs);
+  if (bloatyResult.exitCode != 0) {
+    print("+ ${bloatyExec} ${bloatyArgs.join(' ')}");
+    print(bloatyResult.exitCode);
+    print(bloatyResult.stdout);
+    print(bloatyResult.stderr);
     exit(1);
   }
 
   var root = new Symbol();
-  root.name = binaryPath;
+  root.name = strippedPath;
   root.type = "path";
   root.shallowSize = 0;
   var paths = new Map<String, Symbol>();
@@ -159,86 +129,30 @@ analyze(String binaryPath) {
     p.children.add(s);
   }
 
-  var lines = nmResult.stdout.split("\n");
-  var regex = new RegExp("([0-9a-f]+) ([0-9a-f]+) ([a-zA-z]) (.*)");
+  var lines = bloatyResult.stdout.split("\n");
+  var header = true;
   for (var line in lines) {
-    print(line);
-    var match = regex.firstMatch(line);
-    if (match == null) {
+    if (header) {
+      header = false;
+      continue;
+    }
+    if (line.isEmpty) {
       continue;
     }
 
-    var address = int.parse(match[1]!, radix: 16);
-    var size = int.parse(match[2]!, radix: 16);
-    var type = match[3];
-    if (type == "b" || type == "B") {
-      // Uninitialized data does not contribute to file size.
-      continue;
-    }
+    var columns = line.split(",");
+    var name = columns[0];
+    var path = columns[1];
+    var vmSize = int.parse(columns[2]);
+    var fileSize = int.parse(columns[3]);
 
-    var nameAndPath = match[4]!.split("\t");
-    var name = nameAndPath[0].trim();
-    var path = nameAndPath.length == 1 ? "" : nameAndPath[1].trim();
-    var colon = path.lastIndexOf(":");
-    if (colon > 0) {
-      path = path.substring(0, colon);
-    }
     path = prettyPath(path);
-
-    for (var prefix in const ["vtable for ",
-                              "typeinfo for ",
-                              "typeinfo name for "]) {
-      if (name.startsWith(prefix)) {
-        name = name.substring(prefix.length);
-        path = prefix;
-      }
-    }
 
     var s = new Symbol();
     s.name = name;
-    s.type = type;
-    s.shallowSize = size;
+    s.type = "symbol";
+    s.shallowSize = fileSize;
     addToPath(s, path);
-  }
-
-  var readExec = "readelf";
-  var readArgs = ["--sections", binaryPath];
-  var readResult = Process.runSync(readExec, readArgs);
-  if (readResult.exitCode != 0) {
-    print("+ ${readExec} ${readArgs.join(' ')}");
-    print(readResult.exitCode);
-    print(readResult.stdout);
-    print(readResult.stderr);
-    exit(1);
-  }
-
-  lines = readResult.stdout.split("\n");
-  var nameRegex = new RegExp("\\[([ 0-9a-f]+)\\] ([_0-9a-zA-Z.]+)");
-  var sizeRegex = new RegExp("([_0-9a-f]+)");
-  var sectionName = null;
-  for (var line in lines) {
-    print(line);
-    var match = nameRegex.firstMatch(line);
-    if (match != null) {
-      sectionName = match[2];
-      continue;
-    }
-    match = sizeRegex.firstMatch(line);
-    if (match != null) {
-      int size = int.parse(match[1]!, radix: 16);
-
-      if (sectionName != null && !filteredSections.contains(sectionName)) {
-        var s = new Symbol();
-        s.name = sectionName;
-        s.type = "section";
-        s.shallowSize = size;
-        addToPath(s, "");
-      }
-
-      sectionName = null;
-      continue;
-    }
-    sectionName = null;
   }
 
   root.compressTrivialPaths();
@@ -248,11 +162,11 @@ analyze(String binaryPath) {
   root.writeJson(json);
 
   var html = viewer.replaceAll("__DATA__", json.toString());
-  new File("${binaryPath}.html").writeAsStringSync(html);
+  new File("${strippedPath}.html").writeAsStringSync(html);
 
   // This written as a URL instead of path because some terminals will
   // automatically recognize it and make it a link.
-  var url = Directory.current.uri.resolve("${binaryPath}.html");
+  var url = Directory.current.uri.resolve("${strippedPath}.html");
   print("Wrote $url");
 }
 
