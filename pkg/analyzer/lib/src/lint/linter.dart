@@ -185,10 +185,6 @@ abstract class LintRule {
   /// Short description suitable for display in console output.
   final String description;
 
-  /// Deprecated field of lint groups (for example, 'style', 'errors', 'pub').
-  @Deprecated('Lint rule categories are no longer used.')
-  final Set<String> categories;
-
   /// Lint name.
   final String name;
 
@@ -197,8 +193,6 @@ abstract class LintRule {
 
   LintRule({
     required this.name,
-    @Deprecated('Lint rule categories are no longer used. Remove the argument.')
-    this.categories = const <String>{},
     required this.description,
     this.state = const State.stable(),
   });
