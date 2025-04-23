@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -124,6 +125,99 @@ DotShorthandInvocation
         staticType: int
     rightParenthesis: )
   staticInvokeType: C Function(int)
+  staticType: C
+''');
+  }
+
+  test_call_getter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  const C();
+  static C get id1 => const C();
+  C call() => const C();
+}
+
+void main() {
+  C c1 = .id1();
+  print(c1);
+}
+''');
+
+    // The [DotShorthandInvocation] is rewritten to a
+    // [FunctionExpressionInvocation].
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: id1
+      element: <testLibraryFragment>::@class::C::@getter::id1#element
+      staticType: C
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibraryFragment>::@class::C::@method::call#element
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_call_noCallMethod() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  const C();
+  static C id1 = const C();
+}
+
+void main() {
+  C c1 = .id1();
+  print(c1);
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          77,
+          4,
+        ),
+      ],
+    );
+  }
+
+  test_call_property() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  const C();
+  static C id1 = const C();
+  C call() => const C();
+}
+
+void main() {
+  C c1 = .id1();
+  print(c1);
+}
+''');
+
+    // The [DotShorthandInvocation] is rewritten to a
+    // [FunctionExpressionInvocation].
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: id1
+      element: <testLibraryFragment>::@class::C::@getter::id1#element
+      staticType: C
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibraryFragment>::@class::C::@method::call#element
+  staticInvokeType: C Function()
   staticType: C
 ''');
   }

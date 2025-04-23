@@ -1315,7 +1315,16 @@ class MethodInvocationResolver with ScopeHelpers {
 
     ExpressionImpl functionExpression;
     if (target == null) {
-      functionExpression = methodName;
+      if (node is DotShorthandInvocationImpl) {
+        functionExpression = DotShorthandPropertyAccessImpl(
+          period: node.period,
+          propertyName: node.memberName,
+        );
+        functionExpression.setPseudoExpressionStaticType(targetType);
+      } else {
+        functionExpression = methodName;
+      }
+
       var element = methodName.element;
       if (element is ExecutableElement2 &&
           element.enclosingElement2 is InstanceElement2 &&
