@@ -43,6 +43,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
+    var question = node.question;
+    if (question == null) return;
     if (node.isNullAware &&
         _isExtensionOnNullableType(
           node.inSetterContext()
@@ -52,17 +54,19 @@ class _Visitor extends SimpleAstVisitor<void> {
                   ?.enclosingElement2
               : node.element?.enclosingElement2,
         )) {
-      rule.reportLintForToken(node.question);
+      rule.reportLintForToken(question);
     }
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    var operator = node.operator;
+    if (operator == null) return;
     if (node.isNullAware &&
         _isExtensionOnNullableType(
           node.methodName.element?.enclosingElement2,
         )) {
-      rule.reportLintForToken(node.operator);
+      rule.reportLintForToken(operator);
     }
   }
 

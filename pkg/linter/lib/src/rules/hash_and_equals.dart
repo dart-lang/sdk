@@ -51,8 +51,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (hash is MethodDeclaration) {
           rule.reportLintForToken(hash.name, arguments: ['==', 'hashCode']);
         } else if (hash is FieldDeclaration) {
+          var hashCodeFieldName = getFieldName(hash, 'hashCode');
+          if (hashCodeFieldName == null) return;
           rule.reportLintForToken(
-            getFieldName(hash, 'hashCode'),
+            hashCodeFieldName,
             arguments: ['==', 'hashCode'],
           );
         }

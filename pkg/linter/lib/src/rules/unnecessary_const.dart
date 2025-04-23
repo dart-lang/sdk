@@ -39,10 +39,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.keyword?.type != Keyword.CONST) return;
+    var keyword = node.keyword;
+    if (keyword == null || keyword.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(node.keyword);
+      rule.reportLintForToken(keyword);
     }
   }
 
@@ -54,10 +55,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
-    if (node.constKeyword == null) return;
+    var constKeyword = node.constKeyword;
+    if (constKeyword == null) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(node.constKeyword);
+      rule.reportLintForToken(constKeyword);
     }
   }
 
@@ -68,10 +70,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitTypedLiteral(TypedLiteral node) {
-    if (node.constKeyword?.type != Keyword.CONST) return;
+    var constKeyword = node.constKeyword;
+    if (constKeyword == null || constKeyword.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(node.constKeyword);
+      rule.reportLintForToken(constKeyword);
     }
   }
 }

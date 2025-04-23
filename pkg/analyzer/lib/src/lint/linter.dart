@@ -284,12 +284,12 @@ abstract class LintRule {
   }
 
   void reportLintForToken(
-    Token? token, {
+    Token token, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
     ErrorCode? errorCode,
   }) {
-    if (token != null && !token.isSynthetic) {
+    if (!token.isSynthetic) {
       reporter.atToken(
         token,
         errorCode ?? lintCode,

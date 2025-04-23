@@ -529,13 +529,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var member in unusedMembers) {
       if (member is ConstructorDeclaration) {
-        if (member.name == null) {
+        var name = member.name;
+        if (name == null) {
           rule.reportLint(member.returnType, arguments: [member.nameForError]);
         } else {
-          rule.reportLintForToken(
-            member.name,
-            arguments: [member.nameForError],
-          );
+          rule.reportLintForToken(name, arguments: [member.nameForError]);
         }
       } else if (member is NamedCompilationUnitMember) {
         rule.reportLintForToken(member.name, arguments: [member.nameForError]);

@@ -55,11 +55,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     late Set<Element2> referencedElements = collectReferences(node.parent);
 
     for (var parameter in node.parameters) {
+      var parameterName = parameter.name;
+      if (parameterName == null) continue;
       var element = parameter.declaredFragment?.element;
       var name = element?.name3;
       if (isJustUnderscores(name)) {
         if (!referencedElements.contains(element)) {
-          rule.reportLintForToken(parameter.name);
+          rule.reportLintForToken(parameterName);
         }
       }
     }
