@@ -137,12 +137,12 @@ class NamedMixin = self::Super with self::Mixin {
     ;
   synthetic mixin-super-stub method mixedInConcreteMethod() → void
     return super.{self::Mixin::mixedInConcreteMethod}();
+  abstract synthetic mixin-stub method mixedInAbstractMethod() → void; -> self::Mixin::mixedInAbstractMethod
   synthetic mixin-super-stub method extendedConcreteMixedInConcreteMethod() → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}();
   synthetic mixin-super-stub method extendedAbstractMixedInConcreteMethod() → void
     return super.{self::Mixin::extendedAbstractMixedInConcreteMethod}();
   abstract synthetic mixin-stub method extendedConcreteMixedInAbstractMethod() → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
-  abstract synthetic mixin-stub method mixedInAbstractMethod() → void; -> self::Mixin::mixedInAbstractMethod
   abstract synthetic mixin-stub method extendedAbstractMixedInAbstractMethod() → void; -> self::Mixin::extendedAbstractMixedInAbstractMethod
 }
 abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
@@ -151,12 +151,12 @@ abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonym
     ;
   synthetic mixin-super-stub method mixedInConcreteMethod() → void
     return super.{self::Mixin::mixedInConcreteMethod}();
+  abstract synthetic mixin-stub method mixedInAbstractMethod() → void; -> self::Mixin::mixedInAbstractMethod
   synthetic mixin-super-stub method extendedConcreteMixedInConcreteMethod() → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}();
   synthetic mixin-super-stub method extendedAbstractMixedInConcreteMethod() → void
     return super.{self::Mixin::extendedAbstractMixedInConcreteMethod}();
   abstract synthetic mixin-stub method extendedConcreteMixedInAbstractMethod() → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
-  abstract synthetic mixin-stub method mixedInAbstractMethod() → void; -> self::Mixin::mixedInAbstractMethod
   abstract synthetic mixin-stub method extendedAbstractMixedInAbstractMethod() → void; -> self::Mixin::extendedAbstractMixedInAbstractMethod
 }
 static method main() → dynamic

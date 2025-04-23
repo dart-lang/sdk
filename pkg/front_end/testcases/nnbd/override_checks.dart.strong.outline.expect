@@ -53,12 +53,12 @@ class B1 extends core::Object {
     ;
 }
 class B2 extends self::B1 {
-  field core::num bar;
+  erroneous field core::num bar;
   synthetic constructor •() → self::B2
     ;
-  get baz() → core::num?
+  erroneous get baz() → core::num?
     ;
-  method hest(core::num value) → void
+  erroneous method hest(core::num value) → void
     ;
 }
 class C1 extends core::Object {

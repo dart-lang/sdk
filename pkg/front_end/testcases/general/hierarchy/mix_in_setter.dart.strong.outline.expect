@@ -137,12 +137,12 @@ class NamedMixin = self::Super with self::Mixin {
     ;
   synthetic mixin-super-stub set mixedInConcreteSetter(core::int i) → void
     return super.{self::Mixin::mixedInConcreteSetter} = i;
+  abstract synthetic mixin-stub set mixedInAbstractSetter(core::int i) → void; -> self::Mixin::mixedInAbstractSetter
   synthetic mixin-super-stub set extendedConcreteMixedInConcreteSetter(core::int i) → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteSetter} = i;
   synthetic mixin-super-stub set extendedAbstractMixedInConcreteSetter(core::int i) → void
     return super.{self::Mixin::extendedAbstractMixedInConcreteSetter} = i;
   abstract synthetic mixin-stub set extendedConcreteMixedInAbstractSetter(core::int i) → void; -> self::Mixin::extendedConcreteMixedInAbstractSetter
-  abstract synthetic mixin-stub set mixedInAbstractSetter(core::int i) → void; -> self::Mixin::mixedInAbstractSetter
   abstract synthetic mixin-stub set extendedAbstractMixedInAbstractSetter(core::int i) → void; -> self::Mixin::extendedAbstractMixedInAbstractSetter
 }
 abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
@@ -151,12 +151,12 @@ abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonym
     ;
   synthetic mixin-super-stub set mixedInConcreteSetter(core::int i) → void
     return super.{self::Mixin::mixedInConcreteSetter} = i;
+  abstract synthetic mixin-stub set mixedInAbstractSetter(core::int i) → void; -> self::Mixin::mixedInAbstractSetter
   synthetic mixin-super-stub set extendedConcreteMixedInConcreteSetter(core::int i) → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteSetter} = i;
   synthetic mixin-super-stub set extendedAbstractMixedInConcreteSetter(core::int i) → void
     return super.{self::Mixin::extendedAbstractMixedInConcreteSetter} = i;
   abstract synthetic mixin-stub set extendedConcreteMixedInAbstractSetter(core::int i) → void; -> self::Mixin::extendedConcreteMixedInAbstractSetter
-  abstract synthetic mixin-stub set mixedInAbstractSetter(core::int i) → void; -> self::Mixin::mixedInAbstractSetter
   abstract synthetic mixin-stub set extendedAbstractMixedInAbstractSetter(core::int i) → void; -> self::Mixin::extendedAbstractMixedInAbstractSetter
 }
 static method main() → dynamic

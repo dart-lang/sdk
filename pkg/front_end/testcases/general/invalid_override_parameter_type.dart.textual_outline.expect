@@ -1,0 +1,7 @@
+class Super {
+  foo(num x) {}
+}
+
+class Sub extends Super {
+  foo(int x) {}
+}

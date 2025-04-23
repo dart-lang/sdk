@@ -287,9 +287,9 @@ class C extends core::Object implements self::A<core::int>, self::B<core::int, c
   field dynamic field9;
   covariant-by-class field core::int field10;
   covariant-by-class field invalid-type field11;
-  covariant-by-class field core::int? field12;
+  covariant-by-class erroneous field core::int? field12;
   covariant-by-class field core::int field13;
-  covariant-by-class field core::int? field14;
+  covariant-by-class erroneous field core::int? field14;
   field invalid-type field15;
   field invalid-type field16;
   field invalid-type field17;

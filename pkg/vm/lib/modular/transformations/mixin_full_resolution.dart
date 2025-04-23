@@ -266,6 +266,8 @@ class MixinFullResolution {
         for (int j = 0; j < src.positionalParameters.length; ++j) {
           dst.positionalParameters[j].flags = src.positionalParameters[j].flags;
         }
+        clone.isErroneous =
+            originalProcedure.isErroneous || procedure.isErroneous;
         // TODO(kernel team): The named parameters are not sorted,
         // this might not be correct.
         for (int j = 0; j < src.namedParameters.length; ++j) {

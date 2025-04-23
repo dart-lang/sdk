@@ -118,7 +118,7 @@ class E2 extends core::_Enum /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
-  get hashCode() → core::String
+  erroneous get hashCode() → core::String
     ;
 }
 class E3 extends core::_Enum /*isEnum*/  {
@@ -196,7 +196,7 @@ class E9 extends core::_Enum /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
-  abstract get hashCode() → core::double;
+  abstract erroneous get hashCode() → core::double;
 }
 class E10 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E10 element = const self::E10::•(0, "element");
@@ -256,7 +256,7 @@ class E14 extends core::_Enum implements self::I14 /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "E14.${this.{core::_Enum::_name}{core::String}}";
-  abstract synthetic member-signature get hashCode() → Never; -> self::I14::hashCode
+  abstract synthetic erroneous member-signature get hashCode() → Never; -> self::I14::hashCode
 }
 static method main() → dynamic
   ;

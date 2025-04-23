@@ -1387,7 +1387,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMember,
       bool isSetter,
       callback(Member interfaceMember, bool isSetter),
-      {required bool isInterfaceCheck}) {
+      {required bool isInterfaceCheck,
+      required Member? localMember}) {
     if (declaredMember == interfaceMember) {
       return;
     }
@@ -1402,17 +1403,20 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (declaredMember.kind == ProcedureKind.Method ||
             declaredMember.kind == ProcedureKind.Operator) {
           bool seenCovariant = checkMethodOverride(types, declaredMember,
-              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
+              interfaceMember, interfaceMemberOrigin, isInterfaceCheck,
+              localMember: localMember);
           if (seenCovariant) {
             _handleSeenCovariant(
                 memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else if (declaredMember.kind == ProcedureKind.Getter) {
           checkGetterOverride(types, declaredMember, interfaceMember,
-              interfaceMemberOrigin, isInterfaceCheck);
+              interfaceMemberOrigin, isInterfaceCheck,
+              localMember: localMember);
         } else if (declaredMember.kind == ProcedureKind.Setter) {
           bool seenCovariant = checkSetterOverride(types, declaredMember,
-              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
+              interfaceMember, interfaceMemberOrigin, isInterfaceCheck,
+              localMember: localMember);
           if (seenCovariant) {
             _handleSeenCovariant(
                 memberHierarchy, interfaceMember, isSetter, callback);
@@ -1440,11 +1444,13 @@ class SourceClassBuilder extends ClassBuilderImpl
           interfaceMember is Procedure && interfaceMember.isSetter;
       if (declaredMemberHasGetter && interfaceMemberHasGetter) {
         checkGetterOverride(types, declaredMember, interfaceMember,
-            interfaceMemberOrigin, isInterfaceCheck);
+            interfaceMemberOrigin, isInterfaceCheck,
+            localMember: localMember);
       }
       if (declaredMemberHasSetter && interfaceMemberHasSetter) {
         bool seenCovariant = checkSetterOverride(types, declaredMember,
-            interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
+            interfaceMember, interfaceMemberOrigin, isInterfaceCheck,
+            localMember: localMember);
         if (seenCovariant) {
           _handleSeenCovariant(
               memberHierarchy, interfaceMember, isSetter, callback);
@@ -1469,7 +1475,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMemberOrigin,
       FunctionNode? declaredFunction,
       FunctionNode? interfaceFunction,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      {required Member? localMember}) {
     Substitution? interfaceSubstitution;
     if (interfaceMember.enclosingClass!.typeParameters.isNotEmpty) {
       Class enclosingClass = interfaceMember.enclosingClass!;
@@ -1496,7 +1503,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 .withArguments(interfaceMemberOrigin.name.text)
                 .withLocation(_getMemberUri(interfaceMemberOrigin),
                     interfaceMemberOrigin.fileOffset, noLength)
-          ]);
+          ],
+          localMember: localMember);
     } else if (declaredFunction?.typeParameters != null) {
       // Since the bound of `interfaceFunction!.parameter[i]` may have changed
       // during substitution, it can affect the nullabilities of the types in
@@ -1570,7 +1578,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                       .withArguments(interfaceMemberOrigin.name.text)
                       .withLocation(_getMemberUri(interfaceMemberOrigin),
                           interfaceMemberOrigin.fileOffset, noLength)
-                ]);
+                ],
+                localMember: localMember);
           }
         }
       }
@@ -1609,7 +1618,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       bool isCovariantByDeclaration,
       VariableDeclaration? declaredParameter,
       bool isInterfaceCheck,
-      {bool asIfDeclaredParameter = false}) {
+      {bool asIfDeclaredParameter = false,
+      required Member? localMember}) {
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
     }
@@ -1673,7 +1683,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 .withArguments(interfaceMemberOrigin.name.text)
                 .withLocation(_getMemberUri(interfaceMemberOrigin),
                     interfaceMemberOrigin.fileOffset, noLength)
-          ]);
+          ],
+          localMember: localMember);
     }
   }
 
@@ -1690,7 +1701,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Procedure declaredMember,
       Procedure interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      {required Member? localMember}) {
     assert(declaredMember.kind == interfaceMember.kind);
     assert(declaredMember.kind == ProcedureKind.Method ||
         declaredMember.kind == ProcedureKind.Operator);
@@ -1707,7 +1719,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         declaredFunction,
         interfaceFunction,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        localMember: localMember);
 
     Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
@@ -1723,7 +1736,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceFunction.returnType,
         /* isCovariantByDeclaration = */ false,
         /* declaredParameter = */ null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        localMember: localMember);
     if (declaredFunction.positionalParameters.length <
         interfaceFunction.positionalParameters.length) {
       reportInvalidOverride(
@@ -1741,7 +1755,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 .withArguments(interfaceMemberOrigin.name.text)
                 .withLocation(interfaceMemberOrigin.fileUri,
                     interfaceMemberOrigin.fileOffset, noLength)
-          ]);
+          ],
+          localMember: localMember);
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
@@ -1760,7 +1775,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 .withArguments(interfaceMemberOrigin.name.text)
                 .withLocation(interfaceMemberOrigin.fileUri,
                     interfaceMemberOrigin.fileOffset, noLength)
-          ]);
+          ],
+          localMember: localMember);
     }
     for (int i = 0;
         i < declaredFunction.positionalParameters.length &&
@@ -1801,7 +1817,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredParameter.isCovariantByDeclaration ||
               interfaceParameter.isCovariantByDeclaration,
           declaredParameter,
-          isInterfaceCheck);
+          isInterfaceCheck,
+          localMember: localMember);
       if (declaredParameter.isCovariantByDeclaration) seenCovariant = true;
     }
     if (declaredFunction.namedParameters.isEmpty &&
@@ -1825,7 +1842,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 .withArguments(interfaceMemberOrigin.name.text)
                 .withLocation(interfaceMemberOrigin.fileUri,
                     interfaceMemberOrigin.fileOffset, noLength)
-          ]);
+          ],
+          localMember: localMember);
     }
 
     int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
@@ -1865,7 +1883,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                     .withArguments(interfaceMember.name.text)
                     .withLocation(interfaceMember.fileUri,
                         interfaceMember.fileOffset, noLength)
-              ]);
+              ],
+              localMember: localMember);
           break outer;
         }
       }
@@ -1881,7 +1900,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           interfaceNamedParameters.current.type,
           declaredParameter.isCovariantByDeclaration,
           declaredParameter,
-          isInterfaceCheck);
+          isInterfaceCheck,
+          localMember: localMember);
       if (declaredParameter.isRequired &&
           !interfaceNamedParameters.current.isRequired) {
         // Coverage-ignore-block(suite): Not run.
@@ -1901,7 +1921,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                   .withArguments(interfaceMemberOrigin.name.text)
                   .withLocation(_getMemberUri(interfaceMemberOrigin),
                       interfaceMemberOrigin.fileOffset, noLength)
-            ]);
+            ],
+            localMember: localMember);
       }
       if (declaredParameter.isCovariantByDeclaration) seenCovariant = true;
     }
@@ -1918,7 +1939,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      {required Member? localMember}) {
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
@@ -1928,7 +1950,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         null,
         /* interfaceFunction = */
         null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        localMember: localMember);
     Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.getterType;
@@ -1946,7 +1969,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         false,
         /* declaredParameter = */
         null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        localMember: localMember);
   }
 
   /// Checks whether [declaredMember] correctly overrides [interfaceMember].
@@ -1962,7 +1986,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      {required Member? localMember}) {
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
@@ -1972,7 +1997,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         null,
         /* interfaceFunction = */
         null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        localMember: localMember);
     Substitution? declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.setterType;
@@ -1999,7 +2025,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         isCovariantByDeclaration,
         declaredParameter,
         isInterfaceCheck,
-        asIfDeclaredParameter: true);
+        asIfDeclaredParameter: true,
+        localMember: localMember);
     return isCovariantByDeclaration;
   }
 
@@ -2007,9 +2034,15 @@ class SourceClassBuilder extends ClassBuilderImpl
   // the conflict as the main error.
   void reportInvalidOverride(bool isInterfaceCheck, Member declaredMember,
       Message message, int fileOffset, int length,
-      {List<LocatedMessage>? context}) {
+      {List<LocatedMessage>? context, required Member? localMember}) {
     if (shouldOverrideProblemBeOverlooked(this)) {
       return;
+    }
+
+    if (localMember is Procedure) {
+      localMember.isErroneous = true;
+    } else if (localMember is Field) {
+      localMember.isErroneous = true;
     }
 
     if (declaredMember.enclosingClass == cls) {

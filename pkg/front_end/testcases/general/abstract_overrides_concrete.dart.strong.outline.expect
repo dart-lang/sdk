@@ -58,7 +58,7 @@ class C extends self::B {
 class D extends self::A implements self::I {
   synthetic constructor •() → self::D
     ;
-  abstract synthetic member-signature method foo([dynamic a]) → void; -> self::I::foo
+  abstract synthetic erroneous member-signature method foo([dynamic a]) → void; -> self::I::foo
 }
 abstract class E extends self::A implements self::I {
   synthetic constructor •() → self::E

@@ -65,9 +65,9 @@ class Class extends self::Super implements self::Interface {
     ;
   forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ method1(covariant-by-declaration core::num i) → void
     return super.{self::Super::method1}(i);
-  forwarding-stub forwarding-semi-stub method /* signature-type: (core::String) → void */ method2(covariant-by-declaration core::num i) → void
+  forwarding-stub forwarding-semi-stub erroneous method /* signature-type: (core::String) → void */ method2(covariant-by-declaration core::num i) → void
     return super.{self::Super::method2}(i);
-  abstract method method3(core::int i) → void;
+  abstract erroneous method method3(core::int i) → void;
   abstract method method4(covariant-by-declaration core::int i) → void;
   abstract method method5(covariant-by-declaration core::num n) → void;
 }
