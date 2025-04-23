@@ -51,6 +51,6 @@ abstract class C2 extends core::Object implements self::C1 {
     ;
   abstract get property4() → core::int;
   abstract get property5() → core::int;
-  abstract get property6() → core::int?;
+  abstract erroneous get property6() → core::int?;
 }
 static method main() → dynamic {}

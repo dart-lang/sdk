@@ -979,24 +979,57 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
         /// Declared members must be checked to validly override the
         /// overridden members.
+
+        /// In case error is found, the corresponding local member, either
+        /// synthesized or declared, is marked erroneous.
+        ClassMember? localMember = classMember.forSetter
+            ? (interfaceSetterMap?[classMember.name])
+            : (interfaceMemberMap?[classMember.name]);
+
+        if (localMember?.declarationBuilder != classBuilder) {
+          localMember = null;
+        }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
+            localMember: localMember);
       });
 
       mixinApplicationOverridesMap.forEach(
           (ClassMember classMember, Set<ClassMember> overriddenMembers) {
         /// Declared mixed in members must be checked to validly override the
         /// overridden members.
+
+        /// In case error is found, the corresponding local member, either
+        /// synthesized or declared, is marked erroneous.
+        ClassMember? localMember = classMember.forSetter
+            ? (interfaceSetterMap?[classMember.name])
+            : (interfaceMemberMap?[classMember.name]);
+
+        if (localMember?.declarationBuilder != classBuilder) {
+          localMember = null;
+        }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
+            localMember: localMember);
       });
 
       inheritedImplementsMap.forEach(
           (ClassMember classMember, Set<ClassMember> overriddenMembers) {
         /// Concrete members must be checked to validly override the overridden
         /// members in concrete classes.
+
+        /// In case error is found, the corresponding local member, either
+        /// synthesized or declared, is marked erroneous.
+        ClassMember? localMember = classMember.forSetter
+            ? (interfaceSetterMap?[classMember.name])
+            : (interfaceMemberMap?[classMember.name]);
+
+        if (localMember?.declarationBuilder != classBuilder) {
+          localMember = null;
+        }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
+            localMember: localMember);
       });
     }
 

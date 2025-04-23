@@ -29,8 +29,10 @@ class C extends core::Object {
 class D extends self::C {
   synthetic constructor •() → self::D
     ;
-  method m(invalid-type x) → invalid-type
+  erroneous method m(invalid-type x) → invalid-type
     ;
 }
+static method test() → dynamic
+  ;
 static method main() → dynamic
   ;

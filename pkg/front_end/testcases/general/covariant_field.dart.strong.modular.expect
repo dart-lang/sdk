@@ -34,7 +34,7 @@ abstract class C extends core::Object implements self::A {
     : super core::Object::•()
     ;
   abstract get invariantField() → core::int;
-  set invariantField(core::int value) → void {}
+  erroneous set invariantField(core::int value) → void {}
   abstract get covariantField() → core::int;
   set covariantField(covariant-by-declaration core::int value) → void {}
 }

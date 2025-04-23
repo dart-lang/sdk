@@ -1,0 +1,34 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_override_type_parameters.dart:10:3: Error: Can't infer a return type for 'foo' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   foo<X, Y>() {}
+//   ^^^
+// pkg/front_end/testcases/general/invalid_override_type_parameters.dart:6:3: Context: This is one of the overridden members.
+//   foo<X>() {}
+//   ^^^
+//
+// pkg/front_end/testcases/general/invalid_override_type_parameters.dart:10:3: Error: Declared type variables of 'Sub.foo' doesn't match those on overridden method 'Super.foo'.
+//   foo<X, Y>() {}
+//   ^
+// pkg/front_end/testcases/general/invalid_override_type_parameters.dart:6:3: Context: This is the overridden method ('foo').
+//   foo<X>() {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method foo<X extends core::Object? = dynamic>() → dynamic {}
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    : super self::Super::•()
+    ;
+  erroneous method foo<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → invalid-type {}
+}

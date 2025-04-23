@@ -195,10 +195,10 @@ abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
     : super core::_Enum::•(index, _name)
     ;
-  synthetic mixin-super-stub set element(core::int value) → void
-    return super.{self::A9::element} = value;
   synthetic mixin-super-stub get element() → core::int
     return super.{self::A9::element};
+  synthetic mixin-super-stub set element(core::int value) → void
+    return super.{self::A9::element} = value;
 }
 abstract class _E10&_Enum&A10 = core::_Enum with self::A10 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&A10

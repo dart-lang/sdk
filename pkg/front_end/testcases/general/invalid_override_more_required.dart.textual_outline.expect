@@ -1,0 +1,7 @@
+class Super {
+  foo(String x) {}
+}
+
+class Sub extends Super {
+  foo(String x, Symbol y) {}
+}

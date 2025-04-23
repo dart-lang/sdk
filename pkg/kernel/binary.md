@@ -400,7 +400,8 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
-                isInternalImplementation, isEnumElement, isExtensionTypeMember);
+                isInternalImplementation, isEnumElement, isExtensionTypeMember,
+                isErroneous);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -454,8 +455,9 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
-              isExtensionMember, isSynthetic, isInternalImplementation, 
-              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField);
+              isExtensionMember, isSynthetic, isInternalImplementation,
+              isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField,
+              isErroneous);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.

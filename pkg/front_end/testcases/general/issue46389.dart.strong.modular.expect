@@ -38,10 +38,10 @@ abstract class _C&A&B = self::A with self::B<core::num> /*isAnonymousMixin*/  {
     return super.{self::A::foo}(x as core::int);
   forwarding-stub synthetic method bar({required covariant-by-class core::num x}) → core::num
     return super.{self::A::bar}(x: x as core::int);
-  forwarding-stub synthetic set boz(covariant-by-class core::num x) → void
-    return super.{self::A::boz} = x as core::int;
   forwarding-stub synthetic set baz(covariant-by-class core::num x) → void
     return super.{self::A::baz} = x as core::int;
+  forwarding-stub synthetic set boz(covariant-by-class core::num x) → void
+    return super.{self::A::boz} = x as core::int;
 }
 static method main() → void {
   self::C a = new self::C::•();

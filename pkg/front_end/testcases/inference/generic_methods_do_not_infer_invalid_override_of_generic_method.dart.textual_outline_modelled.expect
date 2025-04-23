@@ -9,3 +9,5 @@ class D extends C {
 }
 
 main() {}
+
+test() {}

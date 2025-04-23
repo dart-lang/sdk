@@ -94,7 +94,7 @@ abstract class C2 extends core::Object implements self::C1 {
   abstract get property3() → core::int?;
   abstract get property4() → core::int;
   abstract get property5() → core::int;
-  abstract get property6() → core::int?;
+  abstract erroneous get property6() → core::int?;
 }
 abstract class D1 extends core::Object {
   synthetic constructor •() → self::D1

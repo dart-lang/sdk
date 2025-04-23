@@ -1,0 +1,7 @@
+class Super {
+  foo({num? x, String? y}) {}
+}
+
+class Sub extends Super {
+  foo({num? x}) {}
+}

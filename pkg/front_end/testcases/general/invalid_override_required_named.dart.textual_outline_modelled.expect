@@ -1,0 +1,7 @@
+class Sub extends Super {
+  foo({required dynamic x}) {}
+}
+
+class Super {
+  foo({num? x}) {}
+}

@@ -83,7 +83,7 @@ abstract class B2 extends core::Object implements self::B1 {
     ;
   abstract set property4(core::int i) → void;
   abstract set property5(core::int? i) → void;
-  abstract set property6(core::int i) → void;
+  abstract erroneous set property6(core::int i) → void;
 }
 abstract class C1 extends core::Object {
   field core::int? _#C1#property4 = null;
@@ -111,6 +111,6 @@ abstract class C2 extends core::Object implements self::C1 {
     ;
   abstract get property4() → core::int;
   abstract get property5() → core::int;
-  abstract get property6() → core::int?;
+  abstract erroneous get property6() → core::int?;
 }
 static method main() → dynamic {}

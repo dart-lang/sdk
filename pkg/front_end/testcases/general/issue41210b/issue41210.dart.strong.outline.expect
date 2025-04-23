@@ -41,7 +41,7 @@ abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,
   const synthetic constructor •() → self::_C&Object&A&B
     : super self::_C&Object&A::•()
     ;
-  abstract synthetic mixin-stub method method(core::num i) → core::String; -> iss::B::method
+  abstract synthetic erroneous mixin-stub method method(core::num i) → core::String; -> iss::B::method
 }
 abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A
