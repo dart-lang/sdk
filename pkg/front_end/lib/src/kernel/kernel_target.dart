@@ -1484,6 +1484,7 @@ class KernelTarget {
             dynamicInterfaceSpecification,
             dynamicInterfaceSpecificationUri,
             component!,
+            loader.coreTypes,
             loader.hierarchy,
             loader.libraries,
             loader);

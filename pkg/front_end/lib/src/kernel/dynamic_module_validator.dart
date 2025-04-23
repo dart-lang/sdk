@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:yaml/yaml.dart';
 import '../source/source_loader.dart' show SourceLoader;
@@ -28,6 +29,7 @@ void validateDynamicModule(
     String dynamicInterfaceSpecification,
     Uri dynamicInterfaceSpecificationUri,
     Component component,
+    CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
     SourceLoader loader) {
@@ -35,8 +37,10 @@ void validateDynamicModule(
       dynamicInterfaceSpecification,
       dynamicInterfaceSpecificationUri,
       component);
+  final DynamicInterfaceLanguageImplPragmas languageImplPragmas =
+      new DynamicInterfaceLanguageImplPragmas(coreTypes);
   final _DynamicModuleValidator validator = new _DynamicModuleValidator(
-      spec, new Set.of(libraries), hierarchy, loader);
+      spec, languageImplPragmas, new Set.of(libraries), hierarchy, loader);
   for (Library library in libraries) {
     library.accept(validator);
   }
@@ -183,8 +187,64 @@ class DynamicInterfaceSpecification {
   }
 }
 
+/// Recognizes dyn-module:language-impl:* pragmas which can be used
+/// to annotate classes and members in core libraries to include
+/// them to the dynamic interface automatically.
+class DynamicInterfaceLanguageImplPragmas {
+  static const String extendablePragmaName =
+      "dyn-module:language-impl:extendable";
+  static const String canBeOverriddenPragmaName =
+      "dyn-module:language-impl:can-be-overridden";
+  static const String callablePragmaName = "dyn-module:language-impl:callable";
+
+  final CoreTypes coreTypes;
+  DynamicInterfaceLanguageImplPragmas(this.coreTypes);
+
+  bool isPlatformLibrary(Library library) => library.importUri.isScheme('dart');
+
+  bool isExtendable(Class node) =>
+      isPlatformLibrary(node.enclosingLibrary) &&
+      // Coverage-ignore(suite): Not run.
+      isAnnotatedWith(node, extendablePragmaName);
+
+  bool canBeOverridden(Member node) =>
+      isPlatformLibrary(node.enclosingLibrary) &&
+      // Coverage-ignore(suite): Not run.
+      isAnnotatedWith(node, canBeOverriddenPragmaName);
+
+  bool isCallable(TreeNode node) => switch (node) {
+        Member() => isPlatformLibrary(node.enclosingLibrary) &&
+            // Coverage-ignore(suite): Not run.
+            (isAnnotatedWith(node, callablePragmaName) ||
+                (!node.name.isPrivate &&
+                    node.enclosingClass != null &&
+                    isAnnotatedWith(node.enclosingClass!, callablePragmaName))),
+        Class() => isPlatformLibrary(node.enclosingLibrary) &&
+            isAnnotatedWith(node, callablePragmaName),
+        _ => // Coverage-ignore(suite): Not run.
+          throw 'Unexpected node ${node.runtimeType} $node'
+      };
+
+  bool isAnnotatedWith(Annotatable node, String pragmaName) {
+    for (Expression annotation in node.annotations) {
+      if (annotation case ConstantExpression(:var constant)) {
+        if (constant case InstanceConstant(:var classNode, :var fieldValues)
+            when classNode == coreTypes.pragmaClass) {
+          // Coverage-ignore-block(suite): Not run.
+          if (fieldValues[coreTypes.pragmaName.fieldReference]
+              case StringConstant(:var value) when value == pragmaName) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+}
+
 class _DynamicModuleValidator extends RecursiveVisitor {
   final DynamicInterfaceSpecification spec;
+  final DynamicInterfaceLanguageImplPragmas languageImplPragmas;
   final Set<Library> moduleLibraries;
   final ClassHierarchy hierarchy;
   final SourceLoader loader;
@@ -192,8 +252,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
 
   TreeNode? _enclosingTreeNode;
 
-  _DynamicModuleValidator(
-      this.spec, this.moduleLibraries, this.hierarchy, this.loader) {
+  _DynamicModuleValidator(this.spec, this.languageImplPragmas,
+      this.moduleLibraries, this.hierarchy, this.loader) {
     _addLibraryExports(spec.callable);
     _addLibraryExports(spec.extendable);
     _addLibraryExports(spec.canBeOverridden);
@@ -493,7 +553,9 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     if (target is Procedure) {
       target = _unwrapMixinStubs(target);
     }
-    if (!_isFromDynamicModule(target) && !_isSpecified(target, spec.callable)) {
+    if (!_isFromDynamicModule(target) &&
+        !_isSpecified(target, spec.callable) &&
+        !languageImplPragmas.isCallable(target)) {
       switch (target) {
         case Constructor():
           String name = target.enclosingClass.name;
@@ -534,7 +596,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   void _verifyExtendable(Supertype base, Class node) {
     final Class baseClass = base.classNode;
     if (!_isFromDynamicModule(baseClass) &&
-        !_isSpecified(baseClass, spec.extendable)) {
+        !_isSpecified(baseClass, spec.extendable) &&
+        !languageImplPragmas.isExtendable(baseClass)) {
       loader.addProblem(
           templateClassShouldBeListedAsExtendableInDynamicInterface
               .withArguments(baseClass.name),
@@ -578,7 +641,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
 
   void _verifyOverride(Member ownMember, Member superMember) {
     if (!_isFromDynamicModule(superMember) &&
-        !_isSpecified(superMember, spec.canBeOverridden)) {
+        !_isSpecified(superMember, spec.canBeOverridden) &&
+        !languageImplPragmas.canBeOverridden(superMember)) {
       loader.addProblem(
           templateMemberShouldBeListedAsCanBeOverriddenInDynamicInterface
               .withArguments(

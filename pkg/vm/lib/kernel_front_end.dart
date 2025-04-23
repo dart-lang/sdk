@@ -750,7 +750,6 @@ Future runGlobalTransformations(
       dynamicInterface,
       component,
       coreTypes,
-      target,
     );
   }
 
