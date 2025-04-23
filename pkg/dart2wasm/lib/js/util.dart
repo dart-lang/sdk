@@ -33,6 +33,8 @@ class CoreTypesUtil {
   final Procedure wrapDartFunctionTarget;
   final Procedure exportWasmFunctionTarget;
   final Member wasmExternRefNullRef;
+  final Class wasmI32Class;
+  final Procedure wasmI32ToIntSigned;
 
   // Dart value to JS converters.
   final Procedure toJSBoolean;
@@ -124,6 +126,9 @@ class CoreTypesUtil {
         wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
         wasmArrayRefClass =
             coreTypes.index.getClass('dart:_wasm', 'WasmArrayRef'),
+        wasmI32Class = coreTypes.index.getClass('dart:_wasm', 'WasmI32'),
+        wasmI32ToIntSigned = coreTypes.index
+            .getProcedure('dart:_wasm', 'WasmI32', 'toIntSigned'),
         wrapDartFunctionTarget = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
         exportWasmFunctionTarget = coreTypes.index
