@@ -108,7 +108,7 @@ class BinaryExpressionResolver {
 
     // When evaluating exactly a dot shorthand in the RHS, we save the LHS type
     // to provide the context type for the shorthand.
-    if (node.rightOperand is DotShorthandMixin) {
+    if (_resolver.isDotShorthand(node.rightOperand)) {
       _resolver.pushDotShorthandContext(
         node.rightOperand,
         SharedTypeSchemaView(left.typeOrThrow),
