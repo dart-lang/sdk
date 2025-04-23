@@ -253,10 +253,16 @@ class ForResolver {
       );
     }
 
+    var deadCodeForPartsState =
+        _resolver.nullSafetyDeadCodeVerifier.for_conditionEnd();
     _resolver.flowAnalysis.for_bodyBegin(node, condition);
     visitBody();
 
     _resolver.flowAnalysis.flow?.for_updaterBegin();
+    _resolver.nullSafetyDeadCodeVerifier.for_updaterBegin(
+      forParts.updaters,
+      deadCodeForPartsState,
+    );
     for (var updater in forParts.updaters) {
       _resolver.analyzeExpression(updater, _resolver.operations.unknownType);
       _resolver.popRewrite();

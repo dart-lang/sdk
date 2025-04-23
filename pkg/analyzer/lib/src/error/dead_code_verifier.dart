@@ -25,6 +25,17 @@ typedef _CatchClausesVerifierReporter =
       List<Object> arguments,
     );
 
+/// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
+/// for later use by [NullSafetyDeadCodeVerifier.for_updaterBegin].
+class DeadCodeForPartsState {
+  /// The value of [NullSafetyDeadCodeVerifier._firstDeadNode] at the time of
+  /// the call to [NullSafetyDeadCodeVerifier.for_conditionEnd]
+  final AstNode? _firstDeadNodeAsOfConditionEnd;
+
+  DeadCodeForPartsState._({required AstNode? firstDeadNodeAsOfConditionEnd})
+    : _firstDeadNodeAsOfConditionEnd = firstDeadNodeAsOfConditionEnd;
+}
+
 /// A visitor that finds dead code, other than unreachable code that is
 /// handled in [NullSafetyDeadCodeVerifier].
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
@@ -302,13 +313,6 @@ class NullSafetyDeadCodeVerifier {
         }
       } else if (parent is ForParts) {
         node = parent.updaters.last;
-      } else if (parent is ForStatement) {
-        _reportForUpdaters(parent);
-      } else if (parent is Block) {
-        var grandParent = parent.parent;
-        if (grandParent is ForStatement) {
-          _reportForUpdaters(grandParent);
-        }
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
         node = parent.rightOperand;
@@ -328,6 +332,46 @@ class NullSafetyDeadCodeVerifier {
     }
 
     _firstDeadNode = null;
+  }
+
+  /// Performs the necessary dead code analysis when reaching the end of the
+  /// `condition` part of [ForParts].
+  ///
+  /// Some state is returned, which should be passed to [for_updaterBegin] after
+  /// visiting the body of the loop.
+  DeadCodeForPartsState for_conditionEnd() {
+    // Capture the state of this class so that `for_updaterBegin` can use it to
+    // decide whether it's necessary to create an extra dead code report for the
+    // updaters.
+    return DeadCodeForPartsState._(
+      firstDeadNodeAsOfConditionEnd: _firstDeadNode,
+    );
+  }
+
+  /// Performs the necessary dead code analysis when reaching the beginning of
+  /// the `updaters` part of [ForParts].
+  ///
+  /// [state] should be the state returned by [for_conditionEnd].
+  void for_updaterBegin(
+    NodeListImpl<ExpressionImpl> updaters,
+    DeadCodeForPartsState state,
+  ) {
+    var isReachable = _flowAnalysis?.flow?.isReachable ?? true;
+    if (!isReachable && state._firstDeadNodeAsOfConditionEnd == null) {
+      // A dead code range started either at the beginning of the loop body or
+      // somewhere inside it, and so the updaters are dead. Since the updaters
+      // appear textually before the loop body, they need their own dead code
+      // warning.
+      var beginToken = updaters.beginToken;
+      var endToken = updaters.endToken;
+      if (beginToken != null && endToken != null) {
+        _errorReporter.atOffset(
+          offset: beginToken.offset,
+          length: endToken.end - beginToken.offset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+      }
+    }
   }
 
   /// Rewites [_firstDeadNode] if it is equal to [oldNode], as [oldNode] is
@@ -426,22 +470,6 @@ class NullSafetyDeadCodeVerifier {
       if (node == parent) return true;
     }
     return false;
-  }
-
-  void _reportForUpdaters(ForStatement node) {
-    var forParts = node.forLoopParts;
-    if (forParts is ForParts) {
-      var updaters = forParts.updaters;
-      var beginToken = updaters.beginToken;
-      var endToken = updaters.endToken;
-      if (beginToken != null && endToken != null) {
-        _errorReporter.atOffset(
-          offset: beginToken.offset,
-          length: endToken.end - beginToken.offset,
-          errorCode: WarningCode.DEAD_CODE,
-        );
-      }
-    }
   }
 
   void _verifyUnassignedSimpleIdentifier(
