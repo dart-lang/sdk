@@ -256,9 +256,8 @@ abstract class LintRule {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
     ErrorCode? errorCode,
-    bool ignoreSyntheticNodes = true,
   }) {
-    if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
+    if (node != null && !node.isSynthetic) {
       reporter.atNode(
         node,
         errorCode ?? lintCode,
@@ -289,9 +288,8 @@ abstract class LintRule {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
     ErrorCode? errorCode,
-    bool ignoreSyntheticTokens = true,
   }) {
-    if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
+    if (token != null && !token.isSynthetic) {
       reporter.atToken(
         token,
         errorCode ?? lintCode,

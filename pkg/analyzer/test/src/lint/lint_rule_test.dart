@@ -27,9 +27,8 @@ main() {
         rule.reporter = reporter;
 
         rule.reportLintForToken(
-          Token.eof(0),
+          SimpleToken(TokenType.SEMICOLON, 0),
           errorCode: customCode,
-          ignoreSyntheticTokens: false,
         );
         expect(reporter.code, customCode);
       });
@@ -41,7 +40,7 @@ main() {
         );
         rule.reporter = reporter;
 
-        rule.reportLintForToken(Token.eof(0), ignoreSyntheticTokens: false);
+        rule.reportLintForToken(SimpleToken(TokenType.SEMICOLON, 0));
         expect(reporter.code, rule.lintCode);
       });
       test('reportLint (custom)', () {

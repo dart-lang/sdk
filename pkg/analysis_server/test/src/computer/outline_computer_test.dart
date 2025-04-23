@@ -29,8 +29,8 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   }
 
   Future<Outline> _computeOutline(String code) async {
-    testCode = code;
-    newFile(testPath, code);
+    testCode = normalizeSource(code);
+    newFile(testPath, testCode);
     var resolveResult = await getResolvedUnit(testFile);
     return DartUnitOutlineComputer(
       resolveResult,
@@ -48,8 +48,6 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   }
 
   Future<void> test_columnWithChildren() async {
-    useLineEndingsForPlatform = false;
-
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 

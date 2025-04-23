@@ -1405,12 +1405,6 @@ class _DataDrivenTest extends BulkFixProcessorTest {
   }
 
   @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
-  }
-
-  @override
   Future<void> tearDown() async {
     TransformSetManager.instance.clearCache();
     await super.tearDown();
