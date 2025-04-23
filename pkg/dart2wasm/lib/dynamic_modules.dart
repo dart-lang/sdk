@@ -512,9 +512,8 @@ class DynamicModuleInfo {
       } else if (member is Constructor &&
           // Skip types that don't extend Object in the wasm type hierarchy.
           // These types do not have directly invokable constructors.
-          (translator.classInfo[member.enclosingClass]!.superInfo !=
-                  translator.topInfo ||
-              member.enclosingClass == translator.coreTypes.objectClass)) {
+          translator.classInfo[member.enclosingClass]!.struct
+              .isSubtypeOf(translator.objectInfo.struct)) {
         collectCallableReference(member.reference);
         collectCallableReference(member.initializerReference);
         collectCallableReference(member.constructorBodyReference);
