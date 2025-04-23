@@ -2936,7 +2936,8 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
-            "utils/dartanalyzer"
+            "utils/dartanalyzer",
+            "analysis_server_aot"
           ]
         },
         {
