@@ -119,6 +119,9 @@ class BaseTextBuffer;
   object##Ptr ptr() const {                                                    \
     return static_cast<object##Ptr>(ptr_);                                     \
   }                                                                            \
+  intptr_t HandleTag() const {                                                 \
+    return k##object##Cid;                                                     \
+  }                                                                            \
   bool Is##object() const {                                                    \
     return true;                                                               \
   }                                                                            \
@@ -356,9 +359,42 @@ class Object {
   inline ClassPtr clazz() const;
   static intptr_t tags_offset() { return OFFSET_OF(UntaggedObject, tags_); }
 
+  virtual intptr_t HandleTag() const { return kObjectCid; }
+
+#define DEFINE_LEAF_CHECK(clazz)                                               \
+  bool Is##clazz() const { return HandleTag() == k##clazz##Cid; }
+  LEAF_HANDLE_LIST(DEFINE_LEAF_CHECK)
+#undef DEFINE_LEAF_CHECK
+  bool IsTypedDataBase() const {
+    switch (HandleTag()) {
+      case kTypedDataBaseCid:
+      case kTypedDataCid:
+      case kExternalTypedDataCid:
+      case kTypedDataViewCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+  bool IsFinalizerBase() const {
+    switch (HandleTag()) {
+      case kFinalizerBaseCid:
+      case kFinalizerCid:
+      case kNativeFinalizerCid:
+        return true;
+      default:
+        return false;
+    }
+  }
+  bool IsCallSiteData() const { return IsCallSiteDataClassId(HandleTag()); }
+  bool IsError() const { return IsErrorClassId(HandleTag()); }
+  bool IsNumber() const { return IsNumberClassId(HandleTag()); }
+  bool IsInteger() const { return IsIntegerClassId(HandleTag()); }
+  bool IsInstance() const { return HandleTag() >= kInstanceCid; }
+  bool IsAbstractType() const { return IsAbstractTypeClassId(HandleTag()); }
+
 // Class testers.
 #define DEFINE_CLASS_TESTER(clazz)                                             \
-  virtual bool Is##clazz() const { return false; }                             \
   static bool Is##clazz##NoHandle(ObjectPtr ptr) {                             \
     /* Use a stack handle to make RawCast safe in contexts where handles   */  \
     /* should not be allocated, such as GC or runtime transitions. Not     */  \
