@@ -5366,7 +5366,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 }
 
-base mixin DotShorthandMixin on AstNodeImpl {
+base mixin DotShorthandMixin on ExpressionImpl {
   /// Whether the AST node is a dot shorthand and has a dot shorthand head
   /// ([DotShorthandInvocation] or [DotShorthandPropertyAccess]) as its
   /// inner-most target.
