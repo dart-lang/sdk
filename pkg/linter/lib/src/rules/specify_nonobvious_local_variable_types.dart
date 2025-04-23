@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (iterable.hasObviousType) {
         return;
       }
-      rule.reportLint(loopParts.loopVariable, ignoreSyntheticNodes: false);
+      rule.reportLint(loopParts.loopVariable);
     }
   }
 
