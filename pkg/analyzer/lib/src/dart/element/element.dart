@@ -1992,6 +1992,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// throws, for dead code purposes.
   static const String _alwaysThrowsVariableName = 'alwaysThrows';
 
+  /// The name of the top-level variable used to mark an element as not needing
+  /// to be awaited.
+  static const String _awaitNotRequiredVariableName = 'awaitNotRequired';
+
   /// The name of the class used to mark an element as being deprecated.
   static const String _deprecatedClassName = 'Deprecated';
 
@@ -2183,6 +2187,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
+
+  @override
+  bool get isAwaitNotRequired =>
+      _isPackageMetaGetter(_awaitNotRequiredVariableName);
 
   @override
   bool get isConstantEvaluated => evaluationResult != null;
@@ -7131,6 +7139,18 @@ final class MetadataImpl implements Metadata {
     for (var i = 0; i < annotations.length; i++) {
       var annotation = annotations[i];
       if (annotation.isAlwaysThrows) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasAwaitNotRequired {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isAwaitNotRequired) {
         return true;
       }
     }

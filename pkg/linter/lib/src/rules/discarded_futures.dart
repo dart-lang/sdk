@@ -70,6 +70,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       _reportOnExpression(expr);
     }
+
+    // TODO(srawlins): Take `@awaitNotRequired` into account.
   }
 
   @override
@@ -114,6 +116,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if ((expr.staticType.isFutureOrFutureOr) &&
         !_isEnclosedInAsyncFunctionBody(expr) &&
         expr is! AssignmentExpression) {
+      // TODO(srawlins): Take `@awaitNotRequired` into account.
       _reportOnExpression(expr);
     }
   }

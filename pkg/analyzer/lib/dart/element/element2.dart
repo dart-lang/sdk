@@ -2139,6 +2139,9 @@ abstract class Metadata {
   /// Whether the receiver has an annotation of the form `@alwaysThrows`.
   bool get hasAlwaysThrows;
 
+  /// Whether the receiver has an annotation of the form `@awaitNotRequired`.
+  bool get hasAwaitNotRequired;
+
   /// Whether the receiver has an annotation of the form `@deprecated`
   /// or `@Deprecated('..')`.
   bool get hasDeprecated;

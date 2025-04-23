@@ -64,6 +64,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    if (_isAwaitNotRequired(expr)) {
+      return;
+    }
+
     if (_isEnclosedInAsyncFunctionBody(node)) {
       // Future expression statement that isn't awaited in an async function:
       // while this is legal, it's a very frequent sign of an error.
@@ -74,6 +78,39 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     _visit(node.expression);
+  }
+
+  bool _isAwaitNotRequired(Expression node) {
+    // TODO(srawlins): Handle inheritence in each of these cases; the
+    // `@awaitNotRequired` annotation should be inherited.
+    switch (node) {
+      case BinaryExpression():
+        if (node.element.hasAwaitNotRequired) {
+          return true;
+        }
+
+      case MethodInvocation():
+        if (node.methodName.element.hasAwaitNotRequired) {
+          return true;
+        }
+
+      case PrefixedIdentifier():
+        if (node.identifier.element.hasAwaitNotRequired) {
+          return true;
+        }
+
+      case PrefixExpression():
+        if (node.element.hasAwaitNotRequired) {
+          return true;
+        }
+
+      case PropertyAccess():
+        if (node.propertyName.element.hasAwaitNotRequired) {
+          return true;
+        }
+    }
+
+    return false;
   }
 
   bool _isEnclosedInAsyncFunctionBody(AstNode node) {
@@ -99,6 +136,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       _isMapClass(expr.methodName.element?.enclosingElement2);
 
   void _visit(Expression expr) {
+    if (_isAwaitNotRequired(expr)) {
+      return;
+    }
+
     // TODO(srawlins): Check whether `expr`'s static type _implements_ `Future`.
     if ((expr.staticType?.isDartAsyncFuture ?? false) &&
         _isEnclosedInAsyncFunctionBody(expr) &&
@@ -106,4 +147,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(expr);
     }
   }
+}
+
+extension on Element2? {
+  bool get hasAwaitNotRequired =>
+      this is Annotatable &&
+      (this! as Annotatable).metadata2.hasAwaitNotRequired;
 }
