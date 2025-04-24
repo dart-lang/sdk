@@ -45,11 +45,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitVariableDeclarations(VariableDeclarationList node) {
-    if (node.lateKeyword == null) return;
+    var lateKeyword = node.lateKeyword;
+    if (lateKeyword == null) return;
     if (node.variables.any((v) => v.initializer == null)) {
       return;
     }
 
-    rule.reportLintForToken(node.lateKeyword);
+    rule.reportLintForToken(lateKeyword);
   }
 }

@@ -144,6 +144,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     node.body.accept(validUseVisitor);
     if (validUseVisitor.hasValidUse) return;
 
-    rule.reportLintForToken(node.catchKeyword);
+    var catchKeyword = node.catchKeyword;
+    if (catchKeyword == null) return;
+
+    rule.reportLintForToken(catchKeyword);
   }
 }

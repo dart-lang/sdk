@@ -39,8 +39,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (node.thisKeyword != null) {
-      rule.reportLintForToken(node.thisKeyword);
+    var thisKeyword = node.thisKeyword;
+    if (thisKeyword != null) {
+      rule.reportLintForToken(thisKeyword);
     }
   }
 

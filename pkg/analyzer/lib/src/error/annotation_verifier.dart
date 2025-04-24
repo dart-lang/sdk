@@ -43,7 +43,10 @@ class AnnotationVerifier {
       return;
     }
     var parent = node.parent;
-    if (element.isFactory) {
+    if (element.isAwaitNotRequired) {
+      // TODO(srawlins): Check that functions return Future and fields and
+      // getters have a static type of Future.
+    } else if (element.isFactory) {
       _checkFactory(node);
     } else if (element.isInternal) {
       _checkInternal(node);

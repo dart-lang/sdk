@@ -174,6 +174,32 @@ void f(int x) {
     );
   }
 
+  test_flowEnd_forElementParts_initializer_pattern_throw() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var (i) = throw 0; true; 1) 0];
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.DEAD_CODE, 32, 7),
+      ],
+    );
+  }
+
+  test_flowEnd_forParts_initializer_pattern_throw() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  for (var (i) = throw 0; true; 1) {}
+}
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+        error(WarningCode.DEAD_CODE, 37, 7),
+      ],
+    );
+  }
+
   test_ifElement_patternAssignment() async {
     await assertErrorsInCode(
       r'''
@@ -1103,6 +1129,159 @@ void f() {
     );
   }
 
+  test_flowEnd_forElementParts_condition_exists() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (; throw 0; 1) 0];
+''',
+      [
+        error(WarningCode.DEAD_CODE, 24, 1),
+        error(WarningCode.DEAD_CODE, 27, 3),
+      ],
+    );
+  }
+
+  test_flowEnd_forElementParts_condition_throw() async {
+    await assertErrorsInCode(
+      r'''
+f(bool Function(Object?, Object?) g) => [for (; g(throw 0, 1); 2) 0];
+''',
+      [error(WarningCode.DEAD_CODE, 59, 10)],
+    );
+  }
+
+  test_flowEnd_forElementParts_initializer_declaration_throw() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = throw 0; true; 1) 0];
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+        error(WarningCode.DEAD_CODE, 30, 7),
+      ],
+    );
+  }
+
+  test_flowEnd_forElementParts_initializer_expression_throw() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (throw 0; true; 1) 0];
+''',
+      [error(WarningCode.DEAD_CODE, 22, 7)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_assignmentExpression() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; i = i + 1) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 9)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_binaryExpression() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; i + 1) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 5)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_cascadeExpression() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; i..sign) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 7)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_conditionalExpression() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; i > 1 ? i : i) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 13)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_indexExpression() async {
+    await assertErrorsInCode(
+      r'''
+f(List<int> values) => [for (;; values[0]) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 32, 9)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_instanceCreationExpression() async {
+    await assertErrorsInCode(
+      r'''
+class C {}
+f() => [for (;; C()) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 27, 3)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_methodInvocation() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; i.toString()) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 12)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_postfixExpression() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; i++) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 3)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_prefixedIdentifier() async {
+    await assertErrorsInCode(
+      r'''
+import 'dart:math' as m;
+
+f() => [for (;; m.Point) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 42, 7)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_prefixExpression() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; ++i) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 3)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_propertyAccess() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (var i = 0;; (i).sign) throw ''];
+''',
+      [error(WarningCode.DEAD_CODE, 25, 8)],
+    );
+  }
+
+  test_flowEnd_forElementParts_updaters_throw() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (;; 0, throw 1, 2) 0];
+''',
+      [error(WarningCode.DEAD_CODE, 28, 1)],
+    );
+  }
+
   test_flowEnd_forParts_condition_exists() async {
     await assertErrorsInCode(
       r'''
@@ -1114,6 +1293,42 @@ void f() {
         error(WarningCode.DEAD_CODE, 29, 1),
         error(WarningCode.DEAD_CODE, 32, 2),
       ],
+    );
+  }
+
+  test_flowEnd_forParts_condition_throw() async {
+    await assertErrorsInCode(
+      r'''
+void f(bool Function(Object?, Object?) g) {
+  for (; g(throw 0, 1); 2) {}
+}
+''',
+      [error(WarningCode.DEAD_CODE, 64, 9)],
+    );
+  }
+
+  test_flowEnd_forParts_initializer_declaration_throw() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  for (var i = throw 0; true; 1) {}
+}
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+        error(WarningCode.DEAD_CODE, 35, 7),
+      ],
+    );
+  }
+
+  test_flowEnd_forParts_initializer_expression_throw() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  for (throw 0; true; 1) {}
+}
+''',
+      [error(WarningCode.DEAD_CODE, 27, 7)],
     );
   }
 
@@ -1302,6 +1517,61 @@ void f(bool a) {
 }
 ''',
       [error(WarningCode.DEAD_CODE, 44, 2)],
+    );
+  }
+
+  test_flowEnd_list_forElement_updaters() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (;; 1) ...[throw '', 2]];
+''',
+      [
+        error(WarningCode.DEAD_CODE, 16, 1),
+        error(WarningCode.DEAD_CODE, 33, 4),
+      ],
+    );
+  }
+
+  test_flowEnd_list_forElement_updaters_multiple() async {
+    await assertErrorsInCode(
+      r'''
+f() => [for (;; 1, 2) ...[throw '']];
+''',
+      [error(WarningCode.DEAD_CODE, 16, 4)],
+    );
+  }
+
+  test_flowEnd_nestedBlock_forStatement_updaters() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  for (;; 1) {
+    {
+      return;
+      2;
+    }
+  }
+}
+''',
+      [
+        error(WarningCode.DEAD_CODE, 21, 1),
+        error(WarningCode.DEAD_CODE, 52, 8),
+      ],
+    );
+  }
+
+  test_flowEnd_nestedBlock_forStatement_updaters_multiple() async {
+    await assertErrorsInCode(
+      r'''
+void f() {
+  for (;; 1, 2) {
+    {
+      return;
+    }
+  }
+}
+''',
+      [error(WarningCode.DEAD_CODE, 21, 4)],
     );
   }
 

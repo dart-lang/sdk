@@ -115,6 +115,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Whether the annotation marks the associated function as always throwing.
   bool get isAlwaysThrows;
 
+  /// Whether the annotation marks the associated element as not needing to be
+  /// awaited.
+  bool get isAwaitNotRequired;
+
   /// Whether the annotation marks the associated element as being deprecated.
   bool get isDeprecated;
 

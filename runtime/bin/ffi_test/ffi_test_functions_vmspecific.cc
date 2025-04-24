@@ -231,10 +231,14 @@ intptr_t ExpectAbort(void (*fn)()) {
   } else {
     // Caught the setjmp.
     sigaction(SIGABRT, &old_action, nullptr);
-    exit(0);
+
+    // _exit not exit. Because we're not doing a clean VM shutdown, we need to
+    // avoid running global destructors while other isolates and background
+    // compilers are still running.
+    _exit(0);
   }
   fprintf(stderr, "Expected abort!!!\n");
-  exit(1);
+  _exit(1);
 }
 
 void* TestCallbackOnThreadOutsideIsolate(void* parameter) {

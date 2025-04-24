@@ -2434,7 +2434,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
     switch (rewrittenExpression) {
       case null:
-        // TODO(kallentu): Report an error here.
+        // In this case, we didn't rewrite anything. The [node] is a static
+        // method invocation.
         break;
       case FunctionExpressionInvocationImpl():
         _resolveRewrittenFunctionExpressionInvocation(

@@ -128,6 +128,9 @@ template("aot_snapshot") {
                   "--snapshot-kind=app-aot-elf",
                   "--elf=$abs_output",
                 ] + gen_snapshot_args
+      if (defined(invoker.vm_args)) {
+        vm_args += invoker.vm_args
+      }
 
       args = [ rebase_path(dill) ]
 

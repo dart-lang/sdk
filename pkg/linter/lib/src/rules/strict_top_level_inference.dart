@@ -133,9 +133,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       var parameterName = parameter.name;
-      if (parameterName != null && isWildcardIdentifier(parameterName.lexeme)) {
-        continue;
-      }
+      if (parameterName == null) continue;
+      if (isWildcardIdentifier(parameterName.lexeme)) continue;
 
       if (parameter is DefaultFormalParameter) {
         parameter = parameter.parameter;
@@ -253,7 +252,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     return overriddenMember != null;
   }
 
-  void _report(Token? errorToken, {Token? keyword}) {
+  void _report(Token errorToken, {Token? keyword}) {
     if (keyword == null || keyword.type == Keyword.FINAL) {
       rule.reportLintForToken(
         errorToken,
