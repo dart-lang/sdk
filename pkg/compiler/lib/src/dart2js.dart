@@ -1052,7 +1052,7 @@ Usage: dart compile js [arguments] <dart entry point>
      -O1          Default (includes whole program analyses and inlining).
      -O2          Safe production-oriented optimizations (like minification).
      -O3          Potentially unsafe optimizations (see -h -v for details).
-     -O4          More agressive unsafe optimizations (see -h -v for details).
+     -O4          More aggressive unsafe optimizations (see -h -v for details).
 '''.trim(),
   );
 }
@@ -1109,7 +1109,7 @@ Usage: dart compile js [arguments] <dart entry point>
 
   --csp
     Disable dynamic generation of code in the generated output. This is
-    necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
+    necessary to satisfy CSP restrictions (see https://www.w3.org/TR/CSP/).
 
   --no-source-maps
     Do not generate a source map file.
@@ -1216,10 +1216,6 @@ be removed in a future version:
   --libraries-spec=<file>
     A .json file containing the SDK libraries specification.
 
-  --allow-mock-compilation
-    Do not generate a call to main if either of the following
-    libraries are used: dart:dom, dart:html dart:io.
-
   --disable-native-live-type-analysis
     Disable the optimization that removes unused native types from dart:html
     and related libraries.
@@ -1247,7 +1243,7 @@ be removed in a future version:
     exit code to determine if compilation failed.
 
   --no-frequency-based-minification
-    Experimental.  Disabled the new frequency based minifying namer and use the
+    Experimental. Disable the new frequency based minifying namer and use the
     old namer instead.
 '''.trim(),
   );
