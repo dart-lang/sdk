@@ -10033,7 +10033,6 @@ class BodyBuilder extends StackListenerImpl
               .withArguments(ExperimentalFlag.dotShorthands.name),
           token.offset,
           token.length);
-      return;
     }
 
     assert(checkState(token, [
@@ -10055,30 +10054,23 @@ class BodyBuilder extends StackListenerImpl
               .withArguments(ExperimentalFlag.dotShorthands.name),
           token.offset,
           token.length);
-
-      // Recovery, avoid crashing with an extra selector.
-      pop();
-      push(new ParserErrorGenerator(this, token, cfe.messageSyntheticToken));
-      return;
     }
 
     assert(checkState(token, [ValueKinds.Selector]));
     Selector selector = pop() as Selector;
-    if (libraryFeatures.dotShorthands.isEnabled) {
-      if (selector is InvocationSelector) {
-        // e.g. `.parse(2)`
-        push(forest.createDotShorthandInvocation(
-            offsetForToken(token), selector.name, selector.arguments,
-            nameOffset: offsetForToken(token.next),
-            isConst: constantContext == ConstantContext.inferred));
-      } else if (selector is PropertySelector) {
-        // e.g. `.zero`
-        push(forest.createDotShorthandPropertyGet(
-          offsetForToken(token),
-          selector.name,
+    if (selector is InvocationSelector) {
+      // e.g. `.parse(2)`
+      push(forest.createDotShorthandInvocation(
+          offsetForToken(token), selector.name, selector.arguments,
           nameOffset: offsetForToken(token.next),
-        ));
-      }
+          isConst: constantContext == ConstantContext.inferred));
+    } else if (selector is PropertySelector) {
+      // e.g. `.zero`
+      push(forest.createDotShorthandPropertyGet(
+        offsetForToken(token),
+        selector.name,
+        nameOffset: offsetForToken(token.next),
+      ));
     }
   }
 
