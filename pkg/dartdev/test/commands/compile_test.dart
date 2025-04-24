@@ -30,12 +30,8 @@ String usingTargetOSMessageForPlatform(String targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
 final String usingTargetOSMessage =
     usingTargetOSMessageForPlatform(Platform.operatingSystem);
-const crossOSExperimentalError =
-    'Native cross-compilation support is experimental';
-
-final Target host = Target.current;
-Target targetForOS(OS targetOS) =>
-    Target.fromArchitectureAndOS(host.architecture, targetOS);
+String unsupportedTargetError(Target target) =>
+    'Unsupported target platform $target';
 
 void defineCompileTests() {
   final isRunningOnIA32 = Platform.version.contains('ia32');
@@ -420,8 +416,11 @@ void defineCompileTests() {
         mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
-    final targetOS = Platform.isLinux ? OS.macOS : OS.linux;
-
+    // Make sure targetOS is always unsupported (not Linux and not matches host
+    // OS) to trigger an error.
+    final targetOS = Platform.isWindows ? OS.macOS : OS.windows;
+    final targetArch = Architecture.arm64;
+    final target = Target.fromArchitectureAndOS(targetArch, targetOS);
     final result = await p.run(
       [
         'compile',
@@ -429,6 +428,8 @@ void defineCompileTests() {
         '-v',
         '--target-os',
         targetOS.name,
+        '--target-arch',
+        targetArch.name,
         '-o',
         outFile,
         inFile,
@@ -436,9 +437,7 @@ void defineCompileTests() {
     );
 
     expect(result.stdout, isNot(contains(usingTargetOSMessage)));
-    expect(result.stderr, contains(crossOSExperimentalError));
-    expect(result.stderr, contains(host.toString()));
-    expect(result.stderr, contains(targetForOS(targetOS).toString()));
+    expect(result.stderr, contains(unsupportedTargetError(target)));
     expect(result.exitCode, 128);
   }, skip: isRunningOnIA32);
 
@@ -513,7 +512,11 @@ void defineCompileTests() {
   }, skip: isRunningOnIA32);
 
   test('Compile aot snapshot cannot compile cross platform', () async {
-    final targetOS = Platform.isLinux ? 'windows' : 'linux';
+    // Make sure targetOS is always unsupported (not Linux and not matches host
+    // OS) to trigger an error.
+    final targetOS = Platform.isWindows ? OS.macOS : OS.windows;
+    final targetArch = Architecture.arm64;
+    final target = Target.fromArchitectureAndOS(targetArch, targetOS);
     final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
 
@@ -523,7 +526,9 @@ void defineCompileTests() {
         'aot-snapshot',
         '-v',
         '--target-os',
-        targetOS,
+        targetOS.name,
+        '--target-arch',
+        targetArch.name,
         '-o',
         'main.aot',
         inFile,
@@ -531,8 +536,8 @@ void defineCompileTests() {
     );
 
     expect(result.stdout,
-        isNot(contains(usingTargetOSMessageForPlatform(targetOS))));
-    expect(result.stderr, contains(crossOSExperimentalError));
+        isNot(contains(usingTargetOSMessageForPlatform(targetOS.name))));
+    expect(result.stderr, contains(unsupportedTargetError(target)));
 
     expect(result.exitCode, isNot(0));
   }, skip: isRunningOnIA32);
