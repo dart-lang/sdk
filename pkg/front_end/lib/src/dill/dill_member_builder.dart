@@ -55,9 +55,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   Name get memberName => member.name;
 
   @override
-  bool get isAbstract => member.isAbstract;
-
-  @override
   bool get isSynthetic {
     final Member member = this.member;
     return member is Constructor && member.isSynthetic;
@@ -105,7 +102,6 @@ class DillFieldBuilder extends DillMemberBuilder
   FieldQuality get fieldQuality => FieldQuality.Concrete;
 
   @override
-  // Coverage-ignore(suite): Not run.
   GetterQuality get getterQuality => GetterQuality.Implicit;
 
   @override
@@ -153,7 +149,6 @@ class DillGetterBuilder extends _DillProcedureBuilder
   FieldQuality get fieldQuality => FieldQuality.Absent;
 
   @override
-  // Coverage-ignore(suite): Not run.
   GetterQuality get getterQuality => _procedure.isExternal
       ? GetterQuality.External
       : _procedure.isAbstract
@@ -203,6 +198,10 @@ class DillMethodBuilder extends _DillProcedureBuilder
       : assert(procedure.kind == ProcedureKind.Method);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAbstract => _procedure.isAbstract;
+
+  @override
   Member get member => _procedure;
 
   @override
@@ -224,6 +223,10 @@ class DillOperatorBuilder extends _DillProcedureBuilder
   DillOperatorBuilder(super.procedure, super.libraryBuilder,
       [super.declarationBuilder])
       : assert(procedure.kind == ProcedureKind.Operator);
+
+  @override
+  bool get isAbstract => _procedure.isAbstract;
+
   @override
   Member get member => _procedure;
 
@@ -347,6 +350,12 @@ class DillClassMember extends BuilderClassMember {
   bool get isSynthesized {
     Member member = memberBuilder.member;
     return member is Procedure && member.isSynthetic;
+  }
+
+  @override
+  bool get isAbstract {
+    Member member = memberBuilder.member;
+    return member is Procedure && member.isAbstract;
   }
 
   @override

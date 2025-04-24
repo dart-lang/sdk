@@ -31,10 +31,12 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
@@ -737,16 +739,20 @@ class SourceClassBuilder extends ClassBuilderImpl
               hierarchyBuilder.getNodeFromClass(interfaceClass);
           for (String restrictedMemberName in restrictedNames) {
             // TODO(johnniwinther): Handle injected members.
-            Builder? member = superclassHierarchyNode.classBuilder.nameSpace
+            Builder? member = superclassHierarchyNode.classBuilder
                 .lookupLocalMember(restrictedMemberName, setter: false);
-            if (member is MemberBuilder && !member.isAbstract) {
+            if (member is PropertyBuilder && !member.hasAbstractGetter ||
+                member is MethodBuilder && !member.isAbstract) {
               restrictedMembersInSuperclasses[restrictedMemberName] ??=
                   superclassHierarchyNode.classBuilder;
             }
           }
-          Builder? member = superclassHierarchyNode.classBuilder.nameSpace
+          Builder? member = superclassHierarchyNode.classBuilder
               .lookupLocalMember("values", setter: false);
-          if (member is MemberBuilder && !member.isAbstract) {
+          if (member is MemberBuilder &&
+              (member is PropertyBuilder && !member.hasAbstractGetter ||
+                  // Coverage-ignore(suite): Not run.
+                  member is MethodBuilder && !member.isAbstract)) {
             superclassDeclaringConcreteValues ??= member.classBuilder;
           }
         }
@@ -810,7 +816,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         for (String restrictedMemberName in restrictedNames) {
           Builder? member =
               nameSpace.lookupLocalMember(restrictedMemberName, setter: false);
-          if (member is MemberBuilder && !member.isAbstract) {
+          if (member is MemberBuilder &&
+              (member is PropertyBuilder && !member.hasAbstractGetter ||
+                  member is MethodBuilder && !member.isAbstract)) {
             libraryBuilder.addProblem(
                 templateEnumImplementerContainsRestrictedInstanceDeclaration
                     .withArguments(this.name, restrictedMemberName),

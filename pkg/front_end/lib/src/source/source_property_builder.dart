@@ -146,9 +146,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isStatic => _modifiers.isStatic;
 
   @override
-  bool get isAbstract => _modifiers.isAbstract;
-
-  @override
   bool get hasConstField => _modifiers.isConst;
 
   @override
@@ -691,11 +688,7 @@ class _GetterClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
-  // TODO(johnniwinther): This should not be determined by the builder. A
-  // property can have a non-abstract getter and an abstract setter or the
-  // reverse. With augmentations, abstract introductory declarations might even
-  // be implemented by augmentations.
-  bool get isAbstract => _builder.isAbstract;
+  bool get isAbstract => _builder.hasAbstractGetter;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;
@@ -832,11 +825,7 @@ class _SetterClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
-  // TODO(johnniwinther): This should not be determined by the builder. A
-  // property can have a non-abstract getter and an abstract setter or the
-  // reverse. With augmentations, abstract introductory declarations might even
-  // be implemented by augmentations.
-  bool get isAbstract => _builder.isAbstract;
+  bool get isAbstract => _builder.hasAbstractSetter;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;

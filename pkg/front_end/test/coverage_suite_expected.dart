@@ -330,7 +330,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/member_builder.dart": (
-    hitCount: 93,
+    hitCount: 90,
     missCount: 0,
   ),
   // 100.0%.
@@ -375,7 +375,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/property_builder.dart": (
-    hitCount: 44,
+    hitCount: 51,
     missCount: 0,
   ),
   // 100.0%.
@@ -465,7 +465,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_member_builder.dart": (
-    hitCount: 190,
+    hitCount: 201,
     missCount: 0,
   ),
   // 100.0%.
@@ -520,7 +520,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/enum_element.dart": (
-    hitCount: 282,
+    hitCount: 283,
     missCount: 0,
   ),
   // 100.0%.
@@ -720,7 +720,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/dynamic_module_validator.dart": (
-    hitCount: 358,
+    hitCount: 416,
     missCount: 0,
   ),
   // 100.0%.
@@ -820,7 +820,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_target.dart": (
-    hitCount: 995,
+    hitCount: 997,
     missCount: 0,
   ),
   // 100.0%.
@@ -935,7 +935,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1424,
+    hitCount: 1428,
     missCount: 0,
   ),
   // 100.0%.
@@ -950,7 +950,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_enum_builder.dart": (
-    hitCount: 426,
+    hitCount: 428,
     missCount: 0,
   ),
   // 100.0%.
@@ -991,12 +991,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_method_builder.dart": (
-    hitCount: 196,
+    hitCount: 195,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_property_builder.dart": (
-    hitCount: 667,
+    hitCount: 664,
     missCount: 0,
   ),
   // 100.0%.

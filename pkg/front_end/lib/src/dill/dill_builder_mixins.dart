@@ -52,10 +52,6 @@ mixin DillConstructorBuilderMixin
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -194,10 +190,6 @@ mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
   bool get isOperator => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
   Builder get getable => this;
 
   @override
@@ -227,10 +219,6 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
 
   @override
   bool get isOperator => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -269,10 +257,6 @@ mixin DillFactoryBuilderMixin implements DillMemberBuilder, FactoryBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.

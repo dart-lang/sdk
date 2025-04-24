@@ -108,10 +108,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isAugmentation => modifiers.isAugment;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstract => modifiers.isAbstract;
-
-  @override
   bool get isConst => modifiers.isConst;
 
   @override
@@ -151,10 +147,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
 
   Procedure get _procedure => _lastDeclaration.procedure;
 

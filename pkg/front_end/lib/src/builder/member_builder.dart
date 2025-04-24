@@ -87,11 +87,6 @@ abstract class MemberBuilder implements Builder, LookupResult {
   /// the getter and setter capabilities.
   Iterable<Reference> get exportedMemberReferences;
 
-  bool get isAbstract;
-
-  /// Returns `true` if this member is declared by an enum element.
-  bool get isEnumElement;
-
   /// Returns `true` if this member is a setter that conflicts with the implicit
   /// setter of a field.
   bool get isConflictingSetter;
@@ -212,9 +207,6 @@ abstract class BuilderClassMember implements ClassMember {
   bool isObjectMember(ClassBuilder objectClass) {
     return declarationBuilder == objectClass;
   }
-
-  @override
-  bool get isAbstract => memberBuilder.isAbstract;
 
   @override
   // Coverage-ignore(suite): Not run.
