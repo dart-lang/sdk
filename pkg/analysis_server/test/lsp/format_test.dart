@@ -859,6 +859,73 @@ void f() {
     await expectFormattedContents(mainFileUri, contents, expected);
   }
 
+  Future<void> test_trailingCommas_automate() async {
+    const optionsContent = '''
+formatter:
+  trailing_commas: automate
+''';
+    const initialContent = '''
+enum A {
+  a,
+  b,
+}
+''';
+    const expectedContent = '''
+enum A { a, b }
+''';
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(mainFilePath, initialContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, initialContent);
+    expect(formatted.trim(), expectedContent.trim());
+  }
+
+  Future<void> test_trailingCommas_preserve() async {
+    const optionsContent = '''
+formatter:
+  trailing_commas: preserve
+''';
+    const initialContent = '''
+enum A { a, b, }
+''';
+    const expectedContent = '''
+enum A {
+  a,
+  b,
+}
+''';
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(mainFilePath, initialContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, initialContent);
+    expect(formatted.trim(), expectedContent.trim());
+  }
+
+  Future<void> test_trailingCommas_unspecified() async {
+    const initialContent = '''
+enum A {
+  a,
+  b,
+}
+''';
+    const expectedContent = '''
+enum A { a, b }
+''';
+
+    newFile(mainFilePath, initialContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, initialContent);
+    expect(formatted.trim(), expectedContent.trim());
+  }
+
   Future<void> test_unopenFile() async {
     const contents = '''
     void f  ()

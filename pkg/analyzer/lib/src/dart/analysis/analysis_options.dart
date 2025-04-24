@@ -110,14 +110,26 @@ final class AnalysisOptionsBuilder {
 
   void _applyFormatterOptions(YamlNode? formatter) {
     int? pageWidth;
+    TrailingCommas? trailingCommas;
     if (formatter is YamlMap) {
-      var formatNode = formatter.valueAt(AnalysisOptionsFile.pageWidth);
-      var formatValue = formatNode?.value;
-      if (formatValue is int && formatValue > 0) {
-        pageWidth = formatValue;
+      var pageWidthNode = formatter.valueAt(AnalysisOptionsFile.pageWidth);
+      var pageWidthValue = pageWidthNode?.value;
+      if (pageWidthValue is int && pageWidthValue > 0) {
+        pageWidth = pageWidthValue;
       }
+
+      var trailingCommasNode = formatter.valueAt(
+        AnalysisOptionsFile.trailingCommas,
+      );
+      var trailingCommasValue = trailingCommasNode?.value;
+      trailingCommas = TrailingCommas.values.firstWhereOrNull(
+        (item) => item.name == trailingCommasValue,
+      );
     }
-    formatterOptions = FormatterOptions(pageWidth: pageWidth);
+    formatterOptions = FormatterOptions(
+      pageWidth: pageWidth,
+      trailingCommas: trailingCommas,
+    );
   }
 
   void _applyLanguageOptions(YamlNode? configs) {
