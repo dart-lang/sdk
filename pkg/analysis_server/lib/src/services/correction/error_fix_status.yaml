@@ -3542,6 +3542,8 @@ WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
   status: noFix
 WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
+WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+  status: needsFix
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-

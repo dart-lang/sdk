@@ -432,6 +432,8 @@ import 'invalid_annotation_from_deferred_library_test.dart'
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
 import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
+import 'invalid_await_not_required_annotation_test.dart'
+    as await_not_required_annotation;
 import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
 import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
@@ -1213,6 +1215,7 @@ main() {
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_target.main();
     invalid_assignment.main();
+    await_not_required_annotation.main();
     invalid_constant.main();
     invalid_constructor_name.main();
     invalid_do_not_submit.main();

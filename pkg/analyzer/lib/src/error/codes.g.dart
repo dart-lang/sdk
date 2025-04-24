@@ -6640,6 +6640,13 @@ class WarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode INVALID_AWAIT_NOT_REQUIRED_ANNOTATION = WarningCode(
+    'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
+    "The annotation 'awaitNotRequired' can only be applied to a "
+        "Future-returning function, or a Future-typed field.",
+  );
+
   ///  Parameters:
   ///  0: the name of the element
   static const WarningCode INVALID_EXPORT_OF_INTERNAL_ELEMENT = WarningCode(
