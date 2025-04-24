@@ -175,8 +175,6 @@ class Transform extends SingleChildRenderObjectWidget {
   });
 }
 
-typedef WidgetBuilder = Widget Function(BuildContext context);
-
 class Builder extends StatelessWidget {
   final WidgetBuilder builder;
 

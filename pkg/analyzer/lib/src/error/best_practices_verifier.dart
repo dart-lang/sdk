@@ -33,6 +33,7 @@ import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
+import 'package:analyzer/src/error/widget_preview_verifier.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -80,6 +81,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   late final DocCommentVerifier _docCommentVerifier = DocCommentVerifier(
     _errorReporter,
   );
+
+  final WidgetPreviewVerifier _widgetPreviewVerifier;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
@@ -129,6 +132,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
        ),
        _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
        _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
+       _widgetPreviewVerifier = WidgetPreviewVerifier(_errorReporter),
        _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.metadata2.hasDoNotStore;
@@ -137,6 +141,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     _annotationVerifier.checkAnnotation(node);
+    _widgetPreviewVerifier.checkAnnotation(node);
     super.visitAnnotation(node);
   }
 
@@ -1689,6 +1694,7 @@ class _InvalidAccessVerifier {
     if (element == null) {
       return;
     }
+
     _checkForInvalidDoNotSubmitAccess(identifier, element);
 
     if (_inCurrentLibrary(element)) {

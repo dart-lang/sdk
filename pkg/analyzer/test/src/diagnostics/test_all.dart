@@ -502,6 +502,10 @@ import 'invalid_visible_for_overriding_annotation_test.dart'
     as invalid_visible_for_overriding_annotation;
 import 'invalid_visible_outside_template_annotation_test.dart'
     as invalid_visible_outside_template_annotation;
+import 'invalid_widget_preview_application_test.dart'
+    as invalid_widget_preview_application;
+import 'invalid_widget_preview_private_argument_test.dart'
+    as invalid_widget_preview_private_argument;
 import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
@@ -1254,6 +1258,8 @@ main() {
     invalid_visibility_annotation.main();
     invalid_visible_for_overriding_annotation.main();
     invalid_visible_outside_template_annotation.main();
+    invalid_widget_preview_application.main();
+    invalid_widget_preview_private_argument.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
     label_in_outer_scope.main();
