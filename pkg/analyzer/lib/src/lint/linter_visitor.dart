@@ -2115,6 +2115,10 @@ class NodeLintRegistry {
     _forWhileStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  void addWildcardPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forWildcardPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
   void addWithClause(AnalysisRule rule, AstVisitor visitor) {
     _forWithClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
