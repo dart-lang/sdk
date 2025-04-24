@@ -110,7 +110,7 @@ class VerifyOriginId : public IsolateVisitor {
  public:
   explicit VerifyOriginId(Dart_Port id) : id_(id) {}
 
-  void VisitIsolate(Isolate* isolate) { ASSERT(isolate->origin_id() != id_); }
+  void VisitIsolate(Isolate* isolate) { ASSERT(isolate->group()->id() != id_); }
 
  private:
   Dart_Port id_;
@@ -733,7 +733,7 @@ void IsolateGroup::ForEach(std::function<void(IsolateGroup*)> action) {
 }
 
 void IsolateGroup::RunWithIsolateGroup(
-    uint64_t id,
+    Dart_Port id,
     std::function<void(IsolateGroup*)> action,
     std::function<void()> not_found) {
   ReadRwLocker wl(Thread::Current(), isolate_groups_rwlock_);
@@ -1944,7 +1944,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   VerifyOriginId id_verifier(result->main_port());
   Isolate::VisitIsolates(&id_verifier);
 #endif
-  result->set_origin_id(result->main_port());
 
   // First we ensure we enter the isolate. This will ensure we're participating
   // in any safepointing requests from this point on. Other threads requesting a
@@ -2060,17 +2059,6 @@ int64_t IsolateGroup::UptimeMicros() const {
 
 int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
-}
-
-Dart_Port Isolate::origin_id() {
-  MutexLocker ml(&origin_id_mutex_);
-  return origin_id_;
-}
-
-void Isolate::set_origin_id(Dart_Port id) {
-  MutexLocker ml(&origin_id_mutex_);
-  ASSERT((id == main_port_ && origin_id_ == 0) || (origin_id_ == main_port_));
-  origin_id_ = id;
 }
 
 void Isolate::set_finalizers(const GrowableObjectArray& value) {
@@ -3217,8 +3205,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   if (ref) {
     return;
   }
-  jsobj.AddPropertyF("_originNumber", "%" Pd64 "",
-                     static_cast<int64_t>(origin_id()));
   int64_t uptime_millis = UptimeMicros() / kMicrosecondsPerMillisecond;
   int64_t start_time = OS::GetCurrentTimeMillis() - uptime_millis;
   jsobj.AddPropertyTimeMillis("startTime", start_time);

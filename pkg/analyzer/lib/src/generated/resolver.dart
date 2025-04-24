@@ -1241,7 +1241,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   bool isDotShorthand(ExpressionImpl node) {
     if (node is DotShorthandMixin) {
-      return (node as DotShorthandMixin).isDotShorthand;
+      return node.isDotShorthand;
     }
     return false;
   }

@@ -64,7 +64,6 @@ Future<Null> testeeBefore() async {
     Expect.equals(result['type'], 'Isolate');
     Expect.isTrue(result['id'].startsWith('isolates/'));
     Expect.type<String>(result['number']);
-    Expect.equals(result['_originNumber'], result['number']);
     Expect.isTrue(result['startTime'] > 0);
     Expect.isTrue(result['livePorts'] > 0);
     Expect.isFalse(result['pauseOnExit']);

@@ -1642,7 +1642,7 @@ static void ActOnIsolateGroup(JSONStream* js,
     PrintInvalidParamError(js, "isolateGroupId");
     return;
   }
-  uint64_t isolate_group_id = UInt64Parameter::Parse(
+  Dart_Port isolate_group_id = Int64Parameter::Parse(
       String::Handle(String::SubString(s, prefix.Length())).ToCString());
   IsolateGroup::RunWithIsolateGroup(
       isolate_group_id,

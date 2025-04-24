@@ -4311,7 +4311,7 @@ class AstBuilder extends StackListener {
 
     var dotShorthand = pop() as ExpressionImpl;
     if (dotShorthand is DotShorthandMixin) {
-      (dotShorthand as DotShorthandMixin).isDotShorthand = true;
+      dotShorthand.isDotShorthand = true;
     }
     // TODO(kallentu): Add this assert once we've applied the DotShorthandMixin
     // on all possible expressions that can be a dot shorthand.

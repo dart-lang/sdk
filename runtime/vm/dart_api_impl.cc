@@ -1403,7 +1403,6 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
   Isolate* isolate;
   isolate = CreateWithinExistingIsolateGroup(member->group(), name, error);
   if (isolate != nullptr) {
-    isolate->set_origin_id(member->origin_id());
     isolate->set_init_callback_data(child_isolate_data);
     isolate->set_on_shutdown_callback(shutdown_callback);
     isolate->set_on_cleanup_callback(cleanup_callback);

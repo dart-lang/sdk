@@ -26408,7 +26408,7 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const SendPort& send_port =
-      SendPort::Handle(zone, SendPort::New(id, thread->isolate()->origin_id()));
+      SendPort::Handle(zone, SendPort::New(id, thread->isolate_group()->id()));
 #if !defined(PRODUCT)
   const StackTrace& allocation_location_ =
       HasStack() ? GetCurrentStackTrace(0) : StackTrace::Handle();

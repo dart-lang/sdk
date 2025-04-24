@@ -102,7 +102,7 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     sink.writeMap(
       declaredMembers,
       writeKey: (name) => name.write(sink),
-      writeValue: (member) => member.write(sink),
+      writeValue: (member) => member.writeWithKind(sink),
     );
   }
 
@@ -158,9 +158,8 @@ class InstanceItemDuplicateItem
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind2.instanceDuplicate);
-    super.write(sink);
+  void writeKind(BufferedSink sink) {
+    sink.writeEnum(_InstanceItemMemberItemKind.duplicate);
   }
 }
 
@@ -212,10 +211,14 @@ class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind2.instanceGetter);
     super.write(sink);
     returnType.write(sink);
     constInitializer.writeOptional(sink);
+  }
+
+  @override
+  void writeKind(BufferedSink sink) {
+    sink.writeEnum(_InstanceItemMemberItemKind.getter);
   }
 }
 
@@ -240,20 +243,27 @@ sealed class InstanceItemMemberItem<E extends ExecutableElementImpl2>
     sink.writeBool(isStatic);
   }
 
+  void writeKind(BufferedSink sink);
+
+  void writeWithKind(BufferedSink sink) {
+    writeKind(sink);
+    write(sink);
+  }
+
   static InstanceItemMemberItem<ExecutableElementImpl2> read(
     SummaryDataReader reader,
   ) {
-    var kind = reader.readEnum(_ManifestItemKind2.values);
+    var kind = reader.readEnum(_InstanceItemMemberItemKind.values);
     switch (kind) {
-      case _ManifestItemKind2.instanceDuplicate:
+      case _InstanceItemMemberItemKind.duplicate:
         return InstanceItemDuplicateItem.read(reader);
-      case _ManifestItemKind2.instanceGetter:
+      case _InstanceItemMemberItemKind.getter:
         return InstanceItemGetterItem.read(reader);
-      case _ManifestItemKind2.instanceMethod:
+      case _InstanceItemMemberItemKind.method:
         return InstanceItemMethodItem.read(reader);
-      case _ManifestItemKind2.instanceSetter:
+      case _InstanceItemMemberItemKind.setter:
         return InstanceItemSetterItem.read(reader);
-      case _ManifestItemKind2.interfaceConstructor:
+      case _InstanceItemMemberItemKind.constructor:
         return InterfaceItemConstructorItem.read(reader);
     }
   }
@@ -300,9 +310,13 @@ class InstanceItemMethodItem
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind2.instanceMethod);
     super.write(sink);
     functionType.writeNoTag(sink);
+  }
+
+  @override
+  void writeKind(BufferedSink sink) {
+    sink.writeEnum(_InstanceItemMemberItemKind.method);
   }
 }
 
@@ -349,9 +363,13 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind2.instanceSetter);
     super.write(sink);
     valueType.write(sink);
+  }
+
+  @override
+  void writeKind(BufferedSink sink) {
+    sink.writeEnum(_InstanceItemMemberItemKind.setter);
   }
 }
 
@@ -482,12 +500,16 @@ class InterfaceItemConstructorItem
 
   @override
   void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestItemKind2.interfaceConstructor);
     super.write(sink);
     sink.writeBool(isConst);
     sink.writeBool(isFactory);
     functionType.writeNoTag(sink);
     constantInitializers.writeList(sink);
+  }
+
+  @override
+  void writeKind(BufferedSink sink) {
+    sink.writeEnum(_InstanceItemMemberItemKind.constructor);
   }
 }
 
@@ -811,20 +833,20 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   }
 }
 
+enum _InstanceItemMemberItemKind {
+  duplicate,
+  constructor,
+  method,
+  getter,
+  setter,
+}
+
 enum _ManifestItemKind {
   class_,
   mixin_,
   topLevelFunction,
   topLevelGetter,
   topLevelSetter,
-}
-
-enum _ManifestItemKind2 {
-  instanceDuplicate,
-  instanceGetter,
-  instanceMethod,
-  instanceSetter,
-  interfaceConstructor,
 }
 
 extension _AnnotatableElementExtension on AnnotatableElementImpl {

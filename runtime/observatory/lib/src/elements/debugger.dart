@@ -1108,7 +1108,6 @@ class IsolateListCommand extends DebuggerCommand {
       String current = (isolate == debugger.isolate ? '*' : '');
       debugger.console
           .print("${isolate.number.toString().padLeft(maxIdLen, ' ')} "
-              "${isolate.originNumber.toString().padLeft(maxIdLen, ' ')} "
               "${isolate.name!.padRight(maxNameLen, ' ')} "
               "${_isolateRunState(isolate).padRight(maxRunStateLen, ' ')} "
               "${current}");
