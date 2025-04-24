@@ -328,6 +328,11 @@ extension ElementExtension on Element2? {
     _ => this,
   };
 
+  /// Whether this is an [Annotatable] which is annotated with `@awaitNotRequired`.
+  bool get hasAwaitNotRequired =>
+      this is Annotatable &&
+      (this! as Annotatable).metadata2.hasAwaitNotRequired;
+
   bool get isDartCorePrint {
     var self = this;
     return self is TopLevelFunctionElement &&
@@ -336,7 +341,23 @@ extension ElementExtension on Element2? {
   }
 }
 
-extension ExpressionExtension on Expression? {
+extension ExpressionExtension on Expression {
+  /// Returns whether `await` is not required for this expression.
+  // TODO(srawlins): Handle inheritence in each of these cases; the
+  // `@awaitNotRequired` annotation should be inherited.
+  bool get isAwaitNotRequired => switch (this) {
+    BinaryExpression(:var element) => element.hasAwaitNotRequired,
+    MethodInvocation(:var methodName) => methodName.element.hasAwaitNotRequired,
+    PrefixedIdentifier(:var identifier) =>
+      identifier.element.hasAwaitNotRequired,
+    PrefixExpression(:var element) => element.hasAwaitNotRequired,
+    PropertyAccess(:var propertyName) =>
+      propertyName.element.hasAwaitNotRequired,
+    _ => false,
+  };
+}
+
+extension ExpressionNullableExtension on Expression? {
   /// A very, very, very rough approximation of the context type of this node.
   ///
   /// This approximation will never be accurate for some expressions.
