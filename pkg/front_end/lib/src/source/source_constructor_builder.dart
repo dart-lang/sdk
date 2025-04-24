@@ -185,10 +185,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   bool get isExternal => modifiers.isExternal;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstract => modifiers.isAbstract;
-
-  @override
   bool get isConst => modifiers.isConst;
 
   @override
@@ -443,10 +439,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   bool get isSynthesized => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
-
-  @override
   void buildOutlineNodes(BuildNodesCallback f) {
     _lastDeclaration.buildOutlineNodes(f,
         constructorBuilder: this,
@@ -674,19 +666,11 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAbstract => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isSynthetic => _constructor.isSynthetic;
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isProperty => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -27,6 +27,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
@@ -225,9 +226,16 @@ class SourceEnumBuilder extends SourceClassBuilder {
     ]) {
       Builder? customIndexDeclaration = nameSpace
           .lookupLocalMember(restrictedInstanceMemberName, setter: false);
-      if (customIndexDeclaration is MemberBuilder &&
-          !customIndexDeclaration.isAbstract &&
+      Builder? invalidDeclaration;
+      if (customIndexDeclaration is PropertyBuilder &&
+          !customIndexDeclaration.hasAbstractGetter &&
           !customIndexDeclaration.isEnumElement) {
+        invalidDeclaration = customIndexDeclaration;
+      } else if (customIndexDeclaration is MethodBuilder &&
+          !customIndexDeclaration.isAbstract) {
+        invalidDeclaration = customIndexDeclaration;
+      }
+      if (invalidDeclaration != null) {
         // Retrieve the earliest declaration for error reporting.
         while (customIndexDeclaration?.next != null) {
           // Coverage-ignore-block(suite): Not run.

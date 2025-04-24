@@ -9,6 +9,9 @@ abstract class PropertyBuilder implements MemberBuilder {
   /// Returns `true` if this property builder has a constant field declaration.
   bool get hasConstField;
 
+  /// Returns `true` if this property is declared by an enum element.
+  bool get isEnumElement;
+
   /// Returns a [FieldQuality] enum value that describes what kind of field this
   /// property has, if any.
   FieldQuality get fieldQuality;
@@ -221,7 +224,9 @@ extension PropertyBuilderExtension on PropertyBuilder {
 
   /// Returns `true` if this property builder has an abstract getter
   /// declaration.
-  bool get hasAbstractGetter => getterQuality == GetterQuality.Abstract;
+  bool get hasAbstractGetter =>
+      getterQuality == GetterQuality.Abstract ||
+      getterQuality == GetterQuality.ImplicitAbstract;
 
   /// Returns `true` if this property builder has an explicit getter, i.e. is
   /// has a getter that is not an implicit getter from a field declaration.
@@ -233,6 +238,12 @@ extension PropertyBuilderExtension on PropertyBuilder {
 
   /// Returns `true` if this property builder has a setter.
   bool get hasSetter => setterQuality != SetterQuality.Absent;
+
+  /// Returns `true` if this property builder has an abstract setter
+  /// declaration.
+  bool get hasAbstractSetter =>
+      setterQuality == SetterQuality.Abstract ||
+      setterQuality == SetterQuality.ImplicitAbstract;
 
   /// Returns `true` if this property builder has an explicit setter, i.e. is
   /// has a setter that is not an implicit setter from a field declaration.

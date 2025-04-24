@@ -104,9 +104,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isSynthesized => false;
 
   @override
-  bool get isEnumElement => false;
-
-  @override
   Builder get getable => this;
 
   @override

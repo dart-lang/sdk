@@ -127,19 +127,19 @@ class DillClassBuilder extends ClassBuilderImpl
     DillFieldBuilder builder =
         new DillFieldBuilder(field, libraryBuilder, this);
     String name = field.name.text;
-    nameSpace.addLocalMember(name, builder, setter: false);
+    _nameSpace.addLocalMember(name, builder, setter: false);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
     DillConstructorBuilder builder = new DillConstructorBuilder(
         constructor, constructorTearOff, libraryBuilder, this);
     String name = constructor.name.text;
-    nameSpace.addConstructor(name, builder);
+    _nameSpace.addConstructor(name, builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
     String name = factory.name.text;
-    nameSpace.addConstructor(name,
+    _nameSpace.addConstructor(name,
         new DillFactoryBuilder(factory, factoryTearOff, libraryBuilder, this));
   }
 
@@ -150,22 +150,22 @@ class DillClassBuilder extends ClassBuilderImpl
         // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        nameSpace.addLocalMember(
+        _nameSpace.addLocalMember(
             name, new DillSetterBuilder(procedure, libraryBuilder, this),
             setter: true);
         break;
       case ProcedureKind.Getter:
-        nameSpace.addLocalMember(
+        _nameSpace.addLocalMember(
             name, new DillGetterBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
       case ProcedureKind.Operator:
-        nameSpace.addLocalMember(
+        _nameSpace.addLocalMember(
             name, new DillOperatorBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
       case ProcedureKind.Method:
-        nameSpace.addLocalMember(
+        _nameSpace.addLocalMember(
             name, new DillMethodBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
