@@ -520,5 +520,6 @@ _nightly_builder(
     category = None,
     channels = ["try"],
     dimensions = [jammy, arm64],
-    properties = slow_shards,
+    properties = [slow_shards, {"clobber": False}, no_reclient],
+    rbe = False,  # b/306641265
 )
