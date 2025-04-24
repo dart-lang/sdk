@@ -234,9 +234,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   bool get isStatic => _modifiers.isStatic;
 
   @override
-  bool get isAugment => _modifiers.isAugment;
-
-  @override
   bool get isMixinDeclaration => _introductory.isMixinDeclaration;
 
   @override

@@ -96,9 +96,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isAbstract => _modifiers.isAbstract;
 
   @override
-  bool get isAugment => _modifiers.isAugment;
-
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isFinal => false;
 

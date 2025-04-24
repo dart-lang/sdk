@@ -49,7 +49,7 @@ library;
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:22:6: Error: Patch member 'missingOriginMethod' doesn't match a member in the origin library.
 // Try changing the name to an existing member or removing the '@patch' annotation.
 // void missingOriginMethod() {} /* Error: missing origin method */
-//      ^
+//      ^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:22:6: Error: Can't inject public 'missingOriginMethod' into 'dart:test'.
 // Make 'missingOriginMethod' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
@@ -59,7 +59,7 @@ library;
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:25:7: Error: Patch class 'MissingOriginClass' doesn't match a class in the origin library.
 // Try changing the name to an existing class or removing the '@patch' annotation.
 // class MissingOriginClass {} /* Error: missing origin class */
-//       ^
+//       ^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:25:7: Error: Can't inject public 'MissingOriginClass' into 'dart:test'.
 // Make 'MissingOriginClass' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
@@ -69,7 +69,7 @@ library;
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:28:11: Error: Patch 'MissingOriginExtension' doesn't match a declaration in the origin library.
 // Try changing the name to an existing declaration or removing the '@patch' annotation.
 // extension MissingOriginExtension on int {} /* Error: missing origin extension */
-//           ^
+//           ^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:28:11: Error: Can't inject public 'MissingOriginExtension' into 'dart:test'.
 // Make 'MissingOriginExtension' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").
@@ -90,15 +90,15 @@ library;
 //   void existingOriginMethod() {}
 //        ^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:11:3: Error: Patch member 'missingOriginConstructor' doesn't match a member in the origin class.
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:11:3: Error: Patch member 'Class.missingOriginConstructor' doesn't match a member in the origin class.
 // Try changing the name to an existing member or removing the '@patch' annotation.
 //   Class.missingOriginConstructor(); /* Error: missing origin class */
-//   ^
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:16:8: Error: Patch member 'missingOriginMethod' doesn't match a member in the origin class.
 // Try changing the name to an existing member or removing the '@patch' annotation.
 //   void missingOriginMethod() {} /* Error: missing origin method */
-//        ^
+//        ^^^^^^^^^^^^^^^^^^^
 //
 import self as self2;
 import "dart:_internal" as _in;

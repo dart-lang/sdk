@@ -118,9 +118,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isStatic => modifiers.isStatic;
 
   @override
-  bool get isAugment => modifiers.isAugment;
-
-  @override
   // Coverage-ignore(suite): Not run.
   Builder get getable => this;
 

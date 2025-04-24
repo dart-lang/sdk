@@ -195,9 +195,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   bool get isStatic => modifiers.isStatic;
 
   @override
-  bool get isAugment => modifiers.isAugment;
-
-  @override
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 

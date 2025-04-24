@@ -111,9 +111,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   bool get isStatic => _modifiers.isStatic;
 
   @override
-  bool get isAugment => _modifiers.isAugment;
-
-  @override
   void buildScopes(LibraryBuilder coreLibrary) {
     _nameSpace = _nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,

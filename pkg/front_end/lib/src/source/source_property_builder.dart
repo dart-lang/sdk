@@ -152,9 +152,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get hasConstField => _modifiers.isConst;
 
   @override
-  bool get isAugment => _modifiers.isAugment;
-
-  @override
   bool get isSynthesized => false;
 
   @override

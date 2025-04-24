@@ -149,9 +149,6 @@ class SourceExtensionTypeDeclarationBuilder
   // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
 
-  @override
-  bool get isAugment => _modifiers.isAugment;
-
   SourcePropertyBuilder? get representationFieldBuilder =>
       _representationFieldFragment?.builder;
 
