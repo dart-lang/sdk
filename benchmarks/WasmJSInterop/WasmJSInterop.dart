@@ -19,12 +19,15 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 @JS()
 external void eval(String code);
 
-// This returns `void` to avoid adding `dartify` overheads to the benchmark
+// These return `void` to avoid adding `dartify` overheads to the benchmark
 // results.
-// V8 can't figure out this doesn't do anything so the loop and JS calls aren't
-// eliminated.
+// V8 can't figure out that these don't do anything so the loops and JS calls
+// aren't eliminated.
 @JS()
-external void intId(int i);
+external void intFun(int i);
+
+@JS()
+external void doubleFun(double d);
 
 // Run benchmarked code for at least 2 seconds.
 const int minimumMeasureDurationMillis = 2000;
@@ -38,15 +41,34 @@ class IntPassingBenchmark {
   double measure() =>
       BenchmarkBase.measureFor(() {
         for (int i = start; i < end; i += 1) {
-          intId(i);
+          intFun(i);
         }
       }, minimumMeasureDurationMillis) /
       (end - start);
 }
 
+class DoublePassingBenchmark {
+  final double start;
+  final double step;
+  final int calls;
+
+  DoublePassingBenchmark(this.start, this.step, this.calls);
+
+  double measure() =>
+      BenchmarkBase.measureFor(() {
+        double d = start;
+        for (int i = 0; i < calls; i += 1) {
+          doubleFun(d);
+          d *= step;
+        }
+      }, minimumMeasureDurationMillis) /
+      calls;
+}
+
 void main() {
   eval('''
-    self.intId = (i) => i;
+    self.intFun = (i) => i;
+    self.doubleFun = (d) => d;
     ''');
 
   final maxI31 = (1 << 30) - 1;
@@ -56,6 +78,12 @@ void main() {
 
   final large = IntPassingBenchmark(maxI31 + 1, maxI31 + 1000001).measure();
   report('WasmJSInterop.call.void.1ArgsInt', large);
+
+  // Have more than one call site to the `double` benchmark to avoid inlining
+  // too much, and for fair comparison with the `int` benchmark above.
+  DoublePassingBenchmark(1.0, 1.0, 10).measure();
+  final double = DoublePassingBenchmark(1.0, 12.34, 1000000).measure();
+  report('WasmJSInterop.call.void.1ArgsDouble', double);
 }
 
 /// Reports in Golem-specific format.
