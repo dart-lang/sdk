@@ -55,20 +55,25 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
   // over the service.
   ASSERT(isolate_ != Dart::vm_isolate());
 
-  // VM internal isolates should never post service events. However, the Isolate
-  // service object uses a service event to represent the current running state
-  // of the isolate, so we need to allow for system isolates to create resume
-  // and none events for this purpose. The resume event represents a running
-  // isolate and the none event is returned for an isolate that has not yet
-  // been marked as runnable (see "pauseEvent" in Isolate::PrintJSON).
+  // VM-internal isolates should never post service events outside of the
+  // following cases:
+  //   - The `Isolate` service object uses a service event to represent the
+  //     current running state of the isolate, so we need to allow for system
+  //     isolates to create `kResume` and `kNone` events for this purpose. The
+  //     `kResume` event represents a running isolate and the `kNone` event is
+  //     returned for an isolate that has not yet been marked as runnable (see
+  //     "pauseEvent" in Isolate::PrintJSON).
+  //   - `kEmbedder` events relaying output printed on stdout/stderr may be
+  //      posted from any isolate.
+  //   - `kCpuSamples` events may be posted from any isolate.
+  //   - `kTimerSignificantlyOverdue` events may be posted from any isolate.
   ASSERT(isolate == nullptr || !Isolate::IsVMInternalIsolate(isolate) ||
          (Isolate::IsVMInternalIsolate(isolate) &&
           (event_kind == ServiceEvent::kResume ||
            event_kind == ServiceEvent::kNone ||
-           // VM service can print Observatory information to Stdout or Stderr
-           // which are embedder streams.
            event_kind == ServiceEvent::kEmbedder ||
-           event_kind == ServiceEvent::kCpuSamples)));
+           event_kind == ServiceEvent::kCpuSamples ||
+           event_kind == ServiceEvent::kTimerSignificantlyOverdue)));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
