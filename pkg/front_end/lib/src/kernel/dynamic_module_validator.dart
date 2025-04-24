@@ -8,6 +8,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:yaml/yaml.dart';
 import '../source/source_loader.dart' show SourceLoader;
+import '../api_prototype/lowering_predicates.dart'
+    show extractQualifiedNameFromExtensionMethodName;
 
 import '../codes/cfe_codes.dart'
     show
@@ -15,6 +17,7 @@ import '../codes/cfe_codes.dart'
         noLength,
         templateConstructorShouldBeListedAsCallableInDynamicInterface,
         templateMemberShouldBeListedAsCallableInDynamicInterface,
+        templateExtensionTypeShouldBeListedAsCallableInDynamicInterface,
         templateClassShouldBeListedAsCallableInDynamicInterface,
         templateClassShouldBeListedAsExtendableInDynamicInterface,
         templateMemberShouldBeListedAsCanBeOverriddenInDynamicInterface;
@@ -214,12 +217,18 @@ class DynamicInterfaceLanguageImplPragmas {
 
   bool isCallable(TreeNode node) => switch (node) {
         Member() => isPlatformLibrary(node.enclosingLibrary) &&
-            // Coverage-ignore(suite): Not run.
             (isAnnotatedWith(node, callablePragmaName) ||
                 (!node.name.isPrivate &&
                     node.enclosingClass != null &&
                     isAnnotatedWith(node.enclosingClass!, callablePragmaName))),
         Class() => isPlatformLibrary(node.enclosingLibrary) &&
+            isAnnotatedWith(node, callablePragmaName),
+        ExtensionTypeDeclaration() =>
+          isPlatformLibrary(node.enclosingLibrary) &&
+              // Coverage-ignore(suite): Not run.
+              isAnnotatedWith(node, callablePragmaName),
+        // Coverage-ignore(suite): Not run.
+        Extension() => isPlatformLibrary(node.enclosingLibrary) &&
             isAnnotatedWith(node, callablePragmaName),
         _ => // Coverage-ignore(suite): Not run.
           throw 'Unexpected node ${node.runtimeType} $node'
@@ -230,7 +239,6 @@ class DynamicInterfaceLanguageImplPragmas {
       if (annotation case ConstantExpression(:var constant)) {
         if (constant case InstanceConstant(:var classNode, :var fieldValues)
             when classNode == coreTypes.pragmaClass) {
-          // Coverage-ignore-block(suite): Not run.
           if (fieldValues[coreTypes.pragmaName.fieldReference]
               case StringConstant(:var value) when value == pragmaName) {
             return true;
@@ -254,19 +262,69 @@ class _DynamicModuleValidator extends RecursiveVisitor {
 
   _DynamicModuleValidator(this.spec, this.languageImplPragmas,
       this.moduleLibraries, this.hierarchy, this.loader) {
-    _addLibraryExports(spec.callable);
-    _addLibraryExports(spec.extendable);
-    _addLibraryExports(spec.canBeOverridden);
+    _expandNodes(spec.callable);
+    _expandNodes(spec.extendable);
+    _expandNodes(spec.canBeOverridden);
   }
 
-  void _addLibraryExports(Set<TreeNode> nodes) {
-    Set<TreeNode> exports = {};
+  // Add nodes which do not have direct relation to its logical "parent" node.
+  void _expandNodes(Set<TreeNode> nodes) {
+    Set<TreeNode> extraNodes = {};
     for (TreeNode node in nodes) {
-      if (node is Library) {
-        exports.addAll(node.additionalExports.map((ref) => ref.node!));
-      }
+      _expandNode(node, extraNodes);
     }
-    nodes.addAll(exports);
+    nodes.addAll(extraNodes);
+  }
+
+  // Add re-exports of Library and members of ExtensionTypeDeclaration and
+  // Extension. These nodes do not have direct relations to their "parents".
+  void _expandNode(TreeNode node, Set<TreeNode> extraNodes) {
+    switch (node) {
+      case Library():
+        for (Reference ref in node.additionalExports) {
+          TreeNode node = ref.node!;
+          extraNodes.add(node);
+          _expandNode(node, extraNodes);
+        }
+        for (ExtensionTypeDeclaration e in node.extensionTypeDeclarations) {
+          // Coverage-ignore-block(suite): Not run.
+          if (e.name[0] != '_') {
+            _expandNode(e, extraNodes);
+          }
+        }
+        for (Extension e in node.extensions) {
+          // Coverage-ignore-block(suite): Not run.
+          if (e.name[0] != '_') {
+            _expandNode(e, extraNodes);
+          }
+        }
+      case ExtensionTypeDeclaration():
+        for (ExtensionTypeMemberDescriptor md in node.memberDescriptors) {
+          TreeNode? member = md.memberReference?.node;
+          if (member != null) {
+            extraNodes.add(member);
+          }
+          TreeNode? tearOff = md.tearOffReference?.node;
+          if (tearOff != null) {
+            extraNodes.add(tearOff);
+          }
+        }
+      case Extension():
+        for (ExtensionMemberDescriptor md in node.memberDescriptors) {
+          TreeNode? member = md.memberReference?.node;
+          if (member != null) {
+            extraNodes.add(member);
+          }
+          TreeNode? tearOff = md
+              .tearOffReference
+              // Coverage-ignore(suite): Not run.
+              ?.node;
+          if (tearOff != null) {
+            // Coverage-ignore-block(suite): Not run.
+            extraNodes.add(tearOff);
+          }
+        }
+    }
   }
 
   @override
@@ -479,9 +537,9 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void visitExtensionType(ExtensionType node) {
-    node.extensionTypeErasure.accept(this);
+    _verifyCallable(node.extensionTypeDeclaration, _enclosingTreeNode!);
+    super.visitExtensionType(node);
   }
 
   @override
@@ -570,9 +628,15 @@ class _DynamicModuleValidator extends RecursiveVisitor {
               node.location!.file);
         case Member():
           final Class? cls = target.enclosingClass;
-          final String name = (cls != null)
-              ? '${cls.name}.${target.name.text}'
-              : target.name.text;
+          String name;
+          if (cls != null) {
+            name = '${cls.name}.${target.name.text}';
+          } else {
+            name = target.name.text;
+            if (target.isExtensionMember || target.isExtensionTypeMember) {
+              name = extractQualifiedNameFromExtensionMethodName(name)!;
+            }
+          }
           loader.addProblem(
               templateMemberShouldBeListedAsCallableInDynamicInterface
                   .withArguments(name),
@@ -582,6 +646,13 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         case Class():
           loader.addProblem(
               templateClassShouldBeListedAsCallableInDynamicInterface
+                  .withArguments(target.name),
+              node.fileOffset,
+              noLength,
+              node.location!.file);
+        case ExtensionTypeDeclaration():
+          loader.addProblem(
+              templateExtensionTypeShouldBeListedAsCallableInDynamicInterface
                   .withArguments(target.name),
               node.fileOffset,
               noLength,
@@ -659,6 +730,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   Library _enclosingLibrary(TreeNode node) => switch (node) {
         Member() => node.enclosingLibrary,
         Class() => node.enclosingLibrary,
+        ExtensionTypeDeclaration() => node.enclosingLibrary,
         // Coverage-ignore(suite): Not run.
         Library() => node,
         _ => // Coverage-ignore(suite): Not run.
@@ -671,6 +743,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         Member() =>
           !node.name.isPrivate && _isSpecified(node.parent!, specified),
         Class() =>
+          node.name[0] != '_' && _isSpecified(node.enclosingLibrary, specified),
+        ExtensionTypeDeclaration() =>
           node.name[0] != '_' && _isSpecified(node.enclosingLibrary, specified),
         Library() => false,
         _ => // Coverage-ignore(suite): Not run.

@@ -5667,6 +5667,43 @@ const MessageCode messageExtensionTypeRepresentationTypeBottom =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateExtensionTypeShouldBeListedAsCallableInDynamicInterface =
+    const Template<Message Function(String name)>(
+  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
+  problemMessageTemplate:
+      r"""Cannot use extension type '#name' in a dynamic module.""",
+  correctionMessageTemplate:
+      r"""Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as callable.""",
+  withArguments:
+      _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeExtensionTypeShouldBeListedAsCallableInDynamicInterface =
+    const Code<Message Function(String name)>(
+  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+    problemMessage:
+        """Cannot use extension type '${name}' in a dynamic module.""",
+    correctionMessage:
+        """Try removing the reference to extension type '${name}' or update the dynamic interface to list extension type '${name}' as callable.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

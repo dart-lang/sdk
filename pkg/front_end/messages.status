@@ -334,6 +334,8 @@ ExtensionTypeImplementsDeferred/part_wrapped_script: Fail # Uses imports
 ExtensionTypeImplementsDeferred/script: Fail # Uses imports
 ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax/analyzerCode: Fail
 ExtensionTypePrimaryConstructorWithInitializingFormal/analyzerCode: Fail
+ExtensionTypeShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+ExtensionTypeShouldBeListedAsCallableInDynamicInterface/example: Fail
 ExternalConstructorWithBody/part_wrapped_script1: Fail
 ExternalConstructorWithBody/script1: Fail
 ExternalConstructorWithFieldInitializers/example: Fail
