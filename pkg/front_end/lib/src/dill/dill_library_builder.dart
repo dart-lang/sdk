@@ -19,6 +19,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
+import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart'
     show LocatedMessage, Message, Severity, noLength, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -321,15 +322,15 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   Builder? _addBuilder(String? name, Builder declaration) {
     if (name == null || name.isEmpty) return null;
 
-    bool isSetter = declaration.isSetter;
+    bool isSetter = isMappedAsSetter(declaration);
     if (isSetter) {
       libraryNameSpace.addLocalMember(name, declaration as MemberBuilder,
           setter: true);
     } else {
       libraryNameSpace.addLocalMember(name, declaration, setter: false);
     }
-    if (declaration.isExtension) {
-      libraryNameSpace.addExtension(declaration as ExtensionBuilder);
+    if (declaration is ExtensionBuilder) {
+      libraryNameSpace.addExtension(declaration);
     }
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
@@ -402,9 +403,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
               "Unexpected: $declaration (${declaration.runtimeType}");
         }
 
-        if (declaration.isSetter) {
-          exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
-              setter: true);
+        if (isMappedAsSetter(declaration)) {
+          exportNameSpace.addLocalMember(name, declaration, setter: true);
         } else {
           exportNameSpace.addLocalMember(name, declaration, setter: false);
         }

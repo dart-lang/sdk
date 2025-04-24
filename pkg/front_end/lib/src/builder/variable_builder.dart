@@ -10,5 +10,7 @@ import '../builder/builder.dart';
 abstract class VariableBuilder implements Builder, LookupResult {
   VariableDeclaration? get variable;
 
+  bool get isConst;
+
   bool get isAssignable;
 }

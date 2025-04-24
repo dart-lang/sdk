@@ -285,10 +285,7 @@ class ExtensionTypeMembersNode {
         ?
         // Coverage-ignore(suite): Not run.
         (extensionTypeSetableMap?[name] ?? nonExtensionTypeSetableMap?[name])
-        : (extensionTypeGetableMap?[name] ??
-            nonExtensionTypeGetableMap
-                // Coverage-ignore(suite): Not run.
-                ?[name]);
+        : (extensionTypeGetableMap?[name] ?? nonExtensionTypeGetableMap?[name]);
     if (result == null) {
       return null;
     } else if (result.isStatic) {

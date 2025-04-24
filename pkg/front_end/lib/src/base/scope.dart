@@ -472,14 +472,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isAbstract => false;
 
   @override

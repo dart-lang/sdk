@@ -13,6 +13,8 @@ import '../../base/messages.dart'
         templateCombinedMemberSignatureFailed,
         templateExtensionTypeCombinedMemberSignatureFailed;
 import '../../builder/declaration_builders.dart';
+import '../../builder/member_builder.dart';
+import '../../builder/property_builder.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -203,9 +205,7 @@ enum ClassMemberKind {
 abstract class ClassMember {
   Name get name;
   bool get isStatic;
-  bool get isField;
   bool get isSetter;
-  bool get isGetter;
   bool get forSetter;
 
   ClassMemberKind get memberKind;
@@ -374,14 +374,6 @@ abstract class SynthesizedMember extends ClassMember {
 
   @override
   bool get isDuplicate => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isField => throw new UnimplementedError();
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => throw new UnimplementedError();
 
   @override
   bool get isInternalImplementation => false;
@@ -1087,4 +1079,23 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   String toString() =>
       'SynthesizedNonExtensionTypeMember($declarationBuilder,$name,'
       '$declarations,forSetter=$forSetter)';
+}
+
+/// Helper method for [MemberResult]s that determines whether [memberBuilder] is
+/// known to be declared as a field. If [forSetter] is `true`, this determined
+/// for the setter aspect of the builder, otherwise for the getter aspect.
+///
+/// This is used for messages related to [MemberResult]s.
+bool isDeclaredAsField(MemberBuilder memberBuilder, {required bool forSetter}) {
+  if (forSetter) {
+    return memberBuilder is PropertyBuilder &&
+        memberBuilder.hasField &&
+        (memberBuilder.setterQuality == SetterQuality.Implicit ||
+            // Coverage-ignore(suite): Not run.
+            memberBuilder.setterQuality == SetterQuality.ImplicitExternal ||
+            // Coverage-ignore(suite): Not run.
+            memberBuilder.setterQuality == SetterQuality.ImplicitAbstract);
+  } else {
+    return memberBuilder is PropertyBuilder && memberBuilder.hasField;
+  }
 }

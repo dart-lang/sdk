@@ -7,6 +7,12 @@ import 'package:kernel/ast.dart';
 import 'member_builder.dart';
 
 abstract class MethodBuilder implements MemberBuilder {
+  bool get isOperator;
+
   @override
   Reference get invokeTargetReference;
+}
+
+extension MethodBuilderExtension on MethodBuilder {
+  bool get isRegularMethod => !isOperator;
 }

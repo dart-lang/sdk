@@ -38,8 +38,8 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
   abstract synthetic mixin-stub operator [](core::Object? key) → self::_MyMap&Object&MapMixin::V?; -> col::MapBase::[]
   abstract synthetic mixin-stub operator []=(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class self::_MyMap&Object&MapMixin::V% value) → void; -> col::MapBase::[]=
   abstract synthetic mixin-stub method clear() → void; -> col::MapBase::clear
-  abstract synthetic mixin-stub method remove(core::Object? key) → self::_MyMap&Object&MapMixin::V?; -> col::MapBase::remove
   abstract synthetic mixin-stub get keys() → core::Iterable<self::_MyMap&Object&MapMixin::K%>; -> col::MapBase::keys
+  abstract synthetic mixin-stub method remove(core::Object? key) → self::_MyMap&Object&MapMixin::V?; -> col::MapBase::remove
   synthetic mixin-super-stub method cast<RK extends core::Object? = dynamic, RV extends core::Object? = dynamic>() → core::Map<self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>
     return super.{col::MapBase::cast}<self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>();
   synthetic mixin-super-stub method forEach((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void action) → void

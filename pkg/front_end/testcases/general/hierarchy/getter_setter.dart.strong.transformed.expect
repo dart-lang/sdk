@@ -210,10 +210,10 @@ abstract class _Class&Super&Mixin extends self::Super implements self::Mixin /*i
   get mixedInGetterImplementedSetter() → core::String
     return "";
   set mixedInSetterDeclaredField(core::int value) → void {}
+  set mixedInSetterDeclaredGetter(core::int value) → void {}
   set extendedGetterMixedInSetter(core::int value) → void {}
   set extendedFieldMixedInSetter(core::int value) → void {}
   set mixedInSetterImplementedField(core::int value) → void {}
-  set mixedInSetterDeclaredGetter(core::int value) → void {}
   set mixedInSetterImplementedGetter(core::int value) → void {}
 }
 static method main() → dynamic {}

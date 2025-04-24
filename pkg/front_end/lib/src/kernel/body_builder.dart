@@ -64,16 +64,20 @@ import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem, unhandled, unsupported;
 import '../base/scope.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
@@ -3311,11 +3315,11 @@ class BodyBuilder extends StackListenerImpl
           if (getable.isExtensionInstanceMember && thisVariable != null) {
             ExtensionBuilder extensionBuilder =
                 getable.parent as ExtensionBuilder;
-            if (getable.isField && !getable.isExternal) {
+            if (getable is PropertyBuilder && getable.hasConcreteField) {
               getable = null;
             }
             if (setable != null &&
-                ((setable.isField && !setable.isExternal) ||
+                ((setable is PropertyBuilder && setable.hasConcreteField) ||
                     setable.isStatic)) {
               setable = null;
             }
@@ -3361,8 +3365,8 @@ class BodyBuilder extends StackListenerImpl
             "Unexpected setable: $setable");
 
         if (mustBeConst &&
-            !getable.isConst &&
-            !getable.isRegularMethod &&
+            !(getable is PropertyBuilder && getable.hasConstField) &&
+            !(getable is MethodBuilder && getable.isRegularMethod) &&
             !libraryFeatures.constFunctions.isEnabled) {
           return new IncompleteErrorGenerator(
               this, nameToken, cfe.messageNotAConstantExpression);
@@ -3401,9 +3405,7 @@ class BodyBuilder extends StackListenerImpl
           if (setable.isExtensionInstanceMember && thisVariable != null) {
             ExtensionBuilder extensionBuilder =
                 setable.parent as ExtensionBuilder;
-            if (setable.isField &&
-                // Coverage-ignore(suite): Not run.
-                !setable.isExternal) {
+            if (setable is PropertyBuilder && setable.hasConcreteField) {
               setable = null;
             }
             if (setable == null) {
@@ -6589,7 +6591,7 @@ class BodyBuilder extends StackListenerImpl
                 message = constructorBuilder.message
                     .withLocation(uri, charOffset, noLength);
                 target = null;
-              } else if (constructorBuilder.isConstructor) {
+              } else if (constructorBuilder is ConstructorBuilder) {
                 if (typeDeclarationBuilder.isAbstract) {
                   return evaluateArgumentsBefore(
                       arguments,
@@ -6630,9 +6632,9 @@ class BodyBuilder extends StackListenerImpl
                 // Coverage-ignore-block(suite): Not run.
                 message = constructorBuilder.message
                     .withLocation(uri, charOffset, noLength);
-              } else if (constructorBuilder.isConstructor ||
+              } else if (constructorBuilder is ConstructorBuilder ||
                   // Coverage-ignore(suite): Not run.
-                  constructorBuilder.isFactory) {
+                  constructorBuilder is FactoryBuilder) {
                 Member target = constructorBuilder.invokeTarget!;
                 return buildStaticInvocation(target, arguments,
                     constness: constness,
@@ -6825,7 +6827,7 @@ class BodyBuilder extends StackListenerImpl
         } else if (constructorBuilder is AmbiguousMemberBuilder) {
           message = constructorBuilder.message
               .withLocation(uri, charOffset, noLength);
-        } else if (constructorBuilder.isConstructor) {
+        } else if (constructorBuilder is ConstructorBuilder) {
           if (typeDeclarationBuilder.isAbstract) {
             return evaluateArgumentsBefore(
                 arguments,
@@ -9141,7 +9143,7 @@ class BodyBuilder extends StackListenerImpl
       while (builder != null) {
         if (builder.next == null &&
             builder is SourcePropertyBuilder &&
-            builder.isField) {
+            builder.hasField) {
           // Assume the first field has been initialized.
           _context.registerInitializedField(builder);
         }
@@ -9159,7 +9161,7 @@ class BodyBuilder extends StackListenerImpl
             fieldNameOffset)
       ];
     } else if (builder is SourcePropertyBuilder &&
-        builder.isField &&
+        builder.hasField &&
         builder.isDeclarationInstanceMember) {
       if (builder.isExtensionTypeDeclaredInstanceField) {
         // Operating on an invalid field. Don't report anything though
@@ -9177,14 +9179,14 @@ class BodyBuilder extends StackListenerImpl
         ];
       }
       initializedFields![name] = assignmentOffset;
-      if (builder.isAbstract) {
+      if (builder.hasAbstractField) {
         return <Initializer>[
           buildInvalidInitializer(
               buildProblem(cfe.messageAbstractFieldConstructorInitializer,
                   fieldNameOffset, name.length),
               fieldNameOffset)
         ];
-      } else if (builder.isExternal) {
+      } else if (builder.hasExternalField) {
         return <Initializer>[
           buildInvalidInitializer(
               buildProblem(cfe.messageExternalFieldConstructorInitializer,

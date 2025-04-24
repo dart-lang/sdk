@@ -326,14 +326,8 @@ class DelayedTypeComputation {
     if (_computed) return;
     declaredMember.inferType(membersBuilder);
     _computed = true;
-    if (declaredMember.isField) {
-      builder.inferFieldSignature(
-          membersBuilder, declaredMember, overriddenMembers);
-    } else if (declaredMember.isGetter) {
-      builder.inferGetterSignature(
-          membersBuilder, declaredMember, overriddenMembers);
-    } else if (declaredMember.isSetter) {
-      builder.inferSetterSignature(
+    if (declaredMember.isProperty) {
+      builder.inferPropertySignature(
           membersBuilder, declaredMember, overriddenMembers);
     } else {
       builder.inferMethodSignature(

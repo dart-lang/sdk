@@ -18,36 +18,6 @@ abstract class Builder {
 
   String get fullNameForErrors;
 
-  bool get isConst;
-
-  bool get isConstructor;
-
-  bool get isFactory;
-
-  bool get isField;
-
-  bool get isGetter;
-
-  /// Returns `true` if this builder is a setable property.
-  ///
-  /// For instance `a` and `b` in:
-  ///
-  ///     int? a;
-  ///     set b(int v) {}
-  ///
-  bool get hasSetter;
-
-  bool get isExternal;
-
-  /// Returns `true` if this builder is an extension declaration.
-  ///
-  /// For instance `B` in:
-  ///
-  ///    class A {}
-  ///    extension B on A {}
-  ///
-  bool get isExtension;
-
   /// Returns `true` if this builder is a member of a class, mixin, or extension
   /// declaration.
   ///
@@ -224,12 +194,6 @@ abstract class Builder {
   /// Returns `true` if the related declaration is marked `augment`
   bool get isAugment;
 
-  bool get isRegularMethod;
-
-  bool get isOperator;
-
-  bool get isSetter;
-
   bool get isStatic;
 
   bool get isSynthetic;
@@ -255,25 +219,6 @@ abstract class BuilderImpl implements Builder {
   Builder? next;
 
   BuilderImpl();
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isConst => false;
-
-  @override
-  bool get isConstructor => false;
-
-  @override
-  bool get isFactory => false;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isExtension => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -310,24 +255,8 @@ abstract class BuilderImpl implements Builder {
   bool get isAugment => false;
 
   @override
-  bool get isRegularMethod => false;
-
-  @override
-  bool get isOperator => false;
-
-  @override
-  bool get isSetter => false;
-
-  @override
-  bool get hasSetter => false;
-
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isStatic => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => false;
 
   @override
   bool get isSynthetic => false;

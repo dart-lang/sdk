@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/combinator.dart';
@@ -74,8 +75,10 @@ class PrefixBuilder extends BuilderImpl implements LookupResult {
           importOffset, noLength, fileUri);
     }
 
+    bool isSetter = isMappedAsSetter(member);
+
     Builder? existing =
-        _prefixNameSpace.lookupLocalMember(name, setter: member.isSetter);
+        _prefixNameSpace.lookupLocalMember(name, setter: isSetter);
     Builder result;
     if (existing != null) {
       result = computeAmbiguousDeclarationForImport(
@@ -84,7 +87,7 @@ class PrefixBuilder extends BuilderImpl implements LookupResult {
     } else {
       result = member;
     }
-    _prefixNameSpace.addLocalMember(name, result, setter: member.isSetter);
+    _prefixNameSpace.addLocalMember(name, result, setter: isSetter);
     if (member is ExtensionBuilder) {
       _prefixNameSpace.addExtension(member);
     }

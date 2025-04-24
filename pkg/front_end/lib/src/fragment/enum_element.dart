@@ -165,14 +165,6 @@ class _EnumElementClassMember implements ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isField => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isInternalImplementation => false;
 
   @override
@@ -518,8 +510,7 @@ class EnumElementDeclaration
 
   @override
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal}) {}
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -617,4 +608,15 @@ class EnumElementDeclaration
 
   @override
   TypeBuilder get type => _fragment.type;
+
+  @override
+  FieldQuality get fieldQuality => FieldQuality.Concrete;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  GetterQuality get getterQuality => GetterQuality.Implicit;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SetterQuality get setterQuality => SetterQuality.Absent;
 }

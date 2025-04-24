@@ -147,10 +147,6 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
 
   @override

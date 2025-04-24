@@ -13,13 +13,16 @@ import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../fragment/factory/declaration.dart';
@@ -1460,10 +1463,13 @@ class LibraryNameSpaceBuilder {
       assert(
           !(declaration is FunctionBuilder &&
               // Coverage-ignore(suite): Not run.
-              (declaration.isConstructor || declaration.isFactory)),
+              (declaration is ConstructorBuilder ||
+                  declaration is FactoryBuilder)),
           "Unexpected constructor in library: $declaration.");
 
-      Map<String, Builder> members = declaration.isSetter ? setables : getables;
+      bool isSetter = isMappedAsSetter(declaration);
+
+      Map<String, Builder> members = isSetter ? setables : getables;
 
       Builder? existing = members[name];
 
@@ -1523,19 +1529,12 @@ class LibraryNameSpaceBuilder {
             declaration.fileUri);
       }
       declaration.next = existing;
-      if (isDuplicatedDeclaration(existing, declaration)) {
-        // Error reporting in [_computeBuildersFromFragments].
-        // TODO(johnniwinther): Avoid the use of [isDuplicatedDeclaration].
-      } else if (declaration.isExtension) {
+      if (declaration is SourceExtensionBuilder && !declaration.isDuplicate) {
         // We add the extension declaration to the extension scope only if its
         // name is unique. Only the first of duplicate extensions is accessible
         // by name or by resolution and the remaining are dropped for the
         // output.
-        extensions.add(declaration as SourceExtensionBuilder);
-      } else if (declaration.isAugment) {
-        if (existing == null) {
-          // TODO(cstefantsova): Report an error.
-        }
+        extensions.add(declaration);
       }
       members[name] = declaration;
     }
@@ -1772,14 +1771,17 @@ class DeclarationNameSpaceBuilder {
       Uri fileUri = addBuilder.fileUri;
       int charOffset = addBuilder.charOffset;
 
-      bool isConstructor = declaration.isConstructor || declaration.isFactory;
+      bool isConstructor =
+          declaration is ConstructorBuilder || declaration is FactoryBuilder;
       if (!isConstructor && name == _name) {
         problemReporting.addProblem(
             messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
       }
-      Map<String, Builder> members = isConstructor
-          ? constructors
-          : (declaration.isSetter ? setables : getables);
+
+      bool isSetter = isMappedAsSetter(declaration);
+
+      Map<String, Builder> members =
+          isConstructor ? constructors : (isSetter ? setables : getables);
 
       Builder? existing = members[name];
 
@@ -1831,21 +1833,6 @@ class DeclarationNameSpaceBuilder {
             declaration.fileUri);
       }
       declaration.next = existing;
-      if (isDuplicatedDeclaration(existing, declaration)) {
-        // Error reporting in [_computeBuildersFromFragments].
-        // TODO(johnniwinther): Avoid the use of [isDuplicatedDeclaration].
-      } else if (declaration.isAugment) {
-        // Coverage-ignore-block(suite): Not run.
-        if (existing != null) {
-          if (declaration.isSetter) {
-            // TODO(johnniwinther): Collection augment setables.
-          } else {
-            // TODO(johnniwinther): Collection augment getables.
-          }
-        } else {
-          // TODO(cstefantsova): Report an error.
-        }
-      }
       members[name] = declaration;
     }
 
@@ -1945,28 +1932,6 @@ class TypeScope {
 
   @override
   String toString() => 'TypeScope($kind,$_unresolvedNamedTypes)';
-}
-
-bool isDuplicatedDeclaration(Builder? existing, Builder other) {
-  if (existing == null) return false;
-  if (other.isAugment) return false;
-  Builder? next = existing.next;
-  if (next == null) {
-    if (existing.isGetter && other.isSetter) return false;
-    if (existing.isSetter && other.isGetter) return false;
-  } else {
-    if (next is ClassBuilder && !next.isMixinApplication) return true;
-  }
-  if (existing is ClassBuilder && other is ClassBuilder) {
-    // We allow multiple mixin applications with the same name. An
-    // alternative is to share these mixin applications. This situation can
-    // happen if you have `class A extends Object with Mixin {}` and `class B
-    // extends Object with Mixin {}` in the same library.
-    return !existing.isMixinApplication ||
-        // Coverage-ignore(suite): Not run.
-        !other.isMixinApplication;
-  }
-  return true;
 }
 
 List<SourceNominalParameterBuilder>? createNominalParameterBuilders(

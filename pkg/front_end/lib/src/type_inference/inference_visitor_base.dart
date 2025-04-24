@@ -31,6 +31,7 @@ import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
+import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -1063,16 +1064,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             receiverType, onType, SubtypeCheckMode.withNullabilities)) {
           ObjectAccessTarget target = const ObjectAccessTarget.missing();
           if (thisBuilder != null && !thisBuilder.isStatic) {
-            if (thisBuilder.isField) {
-              if (thisBuilder.isExternal) {
-                target = new ObjectAccessTarget.extensionMember(
-                    receiverType,
-                    setter ? thisBuilder.writeTarget! : thisBuilder.readTarget!,
-                    thisBuilder.readTarget,
-                    setter ? ClassMemberKind.Setter : ClassMemberKind.Getter,
-                    inferredTypeArguments,
-                    isPotentiallyNullable: isPotentiallyNullableAccess);
-              }
+            if (thisBuilder is PropertyBuilder &&
+                thisBuilder.hasConcreteField) {
+              // Coverage-ignore-block(suite): Not run.
+              target = new ObjectAccessTarget.extensionMember(
+                  receiverType,
+                  setter ? thisBuilder.writeTarget! : thisBuilder.readTarget!,
+                  thisBuilder.readTarget,
+                  setter ? ClassMemberKind.Setter : ClassMemberKind.Getter,
+                  inferredTypeArguments,
+                  isPotentiallyNullable: isPotentiallyNullableAccess);
             } else {
               Member? member;
               ClassMemberKind classMemberKind;

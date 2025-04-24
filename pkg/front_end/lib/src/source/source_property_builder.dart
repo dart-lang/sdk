@@ -146,13 +146,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isStatic => _modifiers.isStatic;
 
   @override
-  bool get isExternal => _modifiers.isExternal;
-
-  @override
   bool get isAbstract => _modifiers.isAbstract;
 
   @override
-  bool get isConst => _modifiers.isConst;
+  bool get hasConstField => _modifiers.isConst;
 
   @override
   bool get isAugment => _modifiers.isAugment;
@@ -299,8 +296,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       setterBuilder = nameSpace.lookupLocalMember(name, setter: true)
           as SourcePropertyBuilder?;
     }
-    _introductoryField?.checkTypes(library, typeEnvironment, setterBuilder,
-        isExternal: isExternal, isAbstract: isAbstract);
+    _introductoryField?.checkTypes(library, typeEnvironment, setterBuilder);
 
     _introductoryGetable?.checkTypes(library, typeEnvironment, setterBuilder);
     List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
@@ -358,10 +354,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Reference? get invokeTargetReference => readTargetReference;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable => _introductoryField?.hasSetter ?? false;
 
   List<ClassMember>? _localMembers;
 
@@ -436,23 +428,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isProperty => true;
-
-  // TODO(johnniwinther): Remove this. Maybe replace with `hasField`,
-  // `hasGetter` and `hasSetter`?
-  @override
-  bool get isField => _introductoryField != null;
-
-  // TODO(johnniwinther): Remove this. Maybe replace with `hasGetter`?
-  @override
-  bool get isGetter => _introductoryGetable != null;
-
-  // TODO(johnniwinther): Remove this. Maybe replace with `hasSetter`?
-  @override
-  bool get isSetter => _introductorySetable != null;
-
-  @override
-  bool get hasSetter =>
-      _introductoryField?.hasSetter ?? _introductorySetable != null;
 
   bool _typeEnsured = false;
   ClassMembersBuilder? _classMembersBuilder;
@@ -625,6 +600,22 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   shared.Expression? get initializerExpression =>
       _introductoryField?.initializerExpression;
+
+  @override
+  FieldQuality get fieldQuality =>
+      _introductoryField?.fieldQuality ?? FieldQuality.Absent;
+
+  @override
+  GetterQuality get getterQuality =>
+      _introductoryField?.getterQuality ??
+      _lastGetable?.getterQuality ??
+      GetterQuality.Absent;
+
+  @override
+  SetterQuality get setterQuality =>
+      _introductoryField?.setterQuality ??
+      _lastSetable?.setterQuality ??
+      SetterQuality.Absent;
 }
 
 class _GetterClassMember implements ClassMember {
@@ -714,12 +705,6 @@ class _GetterClassMember implements ClassMember {
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => true;
 
   @override
   bool get isInternalImplementation => false;
@@ -861,12 +846,6 @@ class _SetterClassMember implements ClassMember {
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => false;
 
   @override
   bool get isInternalImplementation => false;

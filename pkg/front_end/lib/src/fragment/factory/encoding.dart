@@ -11,6 +11,7 @@ import '../../base/identifiers.dart';
 import '../../base/problems.dart' show unexpected, unhandled;
 import '../../base/scope.dart';
 import '../../builder/builder.dart';
+import '../../builder/constructor_builder.dart';
 import '../../builder/constructor_reference_builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -358,6 +359,7 @@ class FactoryEncoding implements InferredTypeListener {
       if (targetBuilder is FunctionBuilder) {
         targetNode = targetBuilder.invokeTarget!;
       } else if (targetBuilder is DillMemberBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         targetNode = targetBuilder.invokeTarget!;
       } else if (targetBuilder is AmbiguousBuilder) {
         _addProblemForRedirectingFactory(
@@ -533,7 +535,7 @@ class FactoryEncoding implements InferredTypeListener {
         ? redirectionTargetParent.isEnum
         : false;
     if (!((factoryBuilder.classBuilder?.cls.isEnum ?? false) &&
-        (_redirectionTarget.target?.isConstructor ?? false) &&
+        (_redirectionTarget.target is ConstructorBuilder) &&
         redirectingTargetParentIsEnum)) {
       // Check whether [redirecteeType] <: [factoryType].
       FunctionType factoryTypeWithoutTypeParameters =
@@ -572,6 +574,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (targetBuilder is FunctionBuilder) {
       targetNode = targetBuilder.function;
     } else if (targetBuilder is DillExtensionTypeFactoryBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       targetNode = targetBuilder.member.function!;
     } else if (targetBuilder is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
