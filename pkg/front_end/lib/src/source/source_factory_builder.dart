@@ -11,7 +11,7 @@ import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/function_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/factory/declaration.dart';
@@ -26,7 +26,7 @@ import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceMemberBuilderImpl
-    implements FunctionBuilder {
+    implements FactoryBuilder {
   final Modifiers modifiers;
 
   @override
@@ -109,10 +109,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isExternal => modifiers.isExternal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isAbstract => modifiers.isAbstract;
 
   @override
@@ -120,16 +116,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isStatic => modifiers.isStatic;
-
-  @override
-  bool get isAugment => modifiers.isAugment;
-
-  @override
-  bool get isConstructor => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -153,23 +139,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRegularMethod => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isSetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isOperator => false;
-
-  @override
-  bool get isFactory => true;
 
   @override
   // Coverage-ignore(suite): Not run.

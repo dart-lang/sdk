@@ -182,7 +182,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isAugmentation => modifiers.isAugment;
 
-  @override
   bool get isExternal => modifiers.isExternal;
 
   @override
@@ -194,13 +193,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool get isStatic => modifiers.isStatic;
-
-  @override
-  bool get isAugment => modifiers.isAugment;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -272,9 +264,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
-
-  @override
-  bool get isConstructor => true;
 
   List<Initializer> get _initializers => _lastDeclaration.initializers;
 
@@ -440,23 +429,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters =>
       throw new UnsupportedError('${runtimeType}.localSetters');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRegularMethod => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isSetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isOperator => false;
-
-  @override
-  bool get isFactory => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -693,9 +665,6 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   Name get memberName => _constructor.name;
 
   @override
-  bool get isConstructor => true;
-
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isFinal => false;
 
@@ -709,35 +678,7 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isExternal => _constructor.isExternal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isSynthetic => _constructor.isSynthetic;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRegularMethod => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isOperator => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFactory => false;
 
   @override
   // Coverage-ignore(suite): Not run.

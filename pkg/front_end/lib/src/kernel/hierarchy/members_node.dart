@@ -288,7 +288,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
   void inferMethodSignature(ClassMembersBuilder membersBuilder,
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    assert(!declaredMember.isGetter && !declaredMember.isSetter);
+    assert(!declaredMember.isProperty);
     // Trigger computation of method type.
     Procedure declaredProcedure =
         declaredMember.getMember(membersBuilder) as Procedure;
@@ -299,24 +299,15 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     }
   }
 
-  void inferGetterSignature(ClassMembersBuilder membersBuilder,
+  void inferPropertySignature(ClassMembersBuilder membersBuilder,
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    assert(declaredMember.isGetter);
-    // Trigger computation of the getter type.
-    declaredMember.getMember(membersBuilder);
-    // Otherwise nothing to do. Getters have no variance.
-  }
-
-  void inferSetterSignature(ClassMembersBuilder membersBuilder,
-      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    assert(declaredMember.isSetter);
-    // Trigger computation of the getter type.
-    Procedure declaredSetter =
-        declaredMember.getMember(membersBuilder) as Procedure;
+    assert(declaredMember.isProperty);
+    // Trigger computation of the property type.
+    Member declaredProperty = declaredMember.getMember(membersBuilder);
     for (ClassMember overriddenMember
         in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(membersBuilder);
-      covariance.applyCovariance(declaredSetter);
+      covariance.applyCovariance(declaredProperty);
     }
   }
 
@@ -543,18 +534,6 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       }
 
       declaredFieldType.registerInferredType(inferredType);
-    }
-  }
-
-  /// Infers the field signature of [declaredMember] based on
-  /// [overriddenMembers].
-  void inferFieldSignature(ClassMembersBuilder membersBuilder,
-      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    Field declaredField = declaredMember.getMember(membersBuilder) as Field;
-    for (ClassMember overriddenMember
-        in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
-      Covariance covariance = overriddenMember.getCovariance(membersBuilder);
-      covariance.applyCovariance(declaredField);
     }
   }
 

@@ -284,7 +284,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       }
     }
     // TODO(johnniwinther): Remove check for `is SourceLibraryBuilder`.
-    if (_declaration!.isExtension && problemReporting is SourceLibraryBuilder) {
+    if (_declaration is ExtensionBuilder &&
+        problemReporting is SourceLibraryBuilder) {
       String nameText = typeName.name;
       int nameOffset = typeName.nameOffset;
       int nameLength = typeName.nameLength;

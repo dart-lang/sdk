@@ -108,14 +108,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {

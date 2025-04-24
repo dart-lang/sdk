@@ -12,6 +12,7 @@ import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
+import '../../builder/property_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/hierarchy/class_member.dart';
@@ -28,6 +29,8 @@ import 'body_builder_context.dart';
 import 'encoding.dart';
 
 abstract class GetterDeclaration {
+  GetterQuality get getterQuality;
+
   AsyncMarker get asyncModifier;
 
   Uri get fileUri;
@@ -262,4 +265,11 @@ class GetterDeclarationImpl implements GetterDeclaration {
   VariableDeclaration getFormalParameter(int index) {
     return _encoding.getFormalParameter(index);
   }
+
+  @override
+  GetterQuality get getterQuality => _fragment.modifiers.isAbstract
+      ? GetterQuality.Abstract
+      : _fragment.modifiers.isExternal
+          ? GetterQuality.External
+          : GetterQuality.Concrete;
 }

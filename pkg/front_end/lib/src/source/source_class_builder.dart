@@ -231,14 +231,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   @override
   bool get isMixinDeclaration => _introductory.isMixinDeclaration;
@@ -1559,7 +1552,6 @@ class SourceClassBuilder extends ClassBuilderImpl
               .performNullabilityAwareMutualSubtypesCheck(
                   declaredBound, computedBound)
               .isSubtypeWhenUsingNullabilities()) {
-            // Coverage-ignore-block(suite): Not run.
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,
@@ -1866,7 +1858,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       while (declaredNamedParameters.current.name !=
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
-          // Coverage-ignore-block(suite): Not run.
           reportInvalidOverride(
               isInterfaceCheck,
               declaredMember,
@@ -1904,7 +1895,6 @@ class SourceClassBuilder extends ClassBuilderImpl
           localMember: localMember);
       if (declaredParameter.isRequired &&
           !interfaceNamedParameters.current.isRequired) {
-        // Coverage-ignore-block(suite): Not run.
         reportInvalidOverride(
             isInterfaceCheck,
             declaredMember,

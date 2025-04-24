@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
 
@@ -35,7 +36,9 @@ import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import '../source/type_parameter_scope_builder.dart';
 import 'builder.dart';
+import 'constructor_builder.dart';
 import 'declaration_builders.dart';
+import 'factory_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'name_iterator.dart';
@@ -555,8 +558,9 @@ abstract class LibraryBuilderImpl extends BuilderImpl
       {required UriOffset uriOffset}) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
+    bool isSetter = isMappedAsSetter(member);
     Builder? existing =
-        exportNameSpace.lookupLocalMember(name, setter: member.isSetter);
+        exportNameSpace.lookupLocalMember(name, setter: isSetter);
     if (existing == member) {
       return false;
     } else {
@@ -564,10 +568,10 @@ abstract class LibraryBuilderImpl extends BuilderImpl
         Builder result = _computeAmbiguousDeclarationForExport(
             name, existing, member,
             uriOffset: uriOffset);
-        exportNameSpace.addLocalMember(name, result, setter: member.isSetter);
+        exportNameSpace.addLocalMember(name, result, setter: isSetter);
         return result != existing;
       } else {
-        exportNameSpace.addLocalMember(name, member, setter: member.isSetter);
+        exportNameSpace.addLocalMember(name, member, setter: isSetter);
         return true;
       }
     }
@@ -601,13 +605,13 @@ abstract class LibraryBuilderImpl extends BuilderImpl
           cls.findConstructorOrFactory(constructorName, -1, fileUri, this);
       if (constructor == null) {
         // Fall-through to internal error below.
-      } else if (constructor.isConstructor) {
+      } else if (constructor is ConstructorBuilder) {
         if (!cls.isAbstract) {
           return constructor;
         }
       }
       // Coverage-ignore(suite): Not run.
-      else if (constructor.isFactory) {
+      else if (constructor is FactoryBuilder) {
         return constructor;
       }
     }

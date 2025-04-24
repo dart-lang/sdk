@@ -358,12 +358,11 @@ class FieldFragmentDeclaration
 
   @override
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal}) {
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {
     libraryBuilder.checkTypesInField(typeEnvironment,
         isInstanceMember: builder.isDeclarationInstanceMember,
         isLate: isLate,
-        isExternal: isExternal,
+        isExternal: _fragment.modifiers.isExternal,
         hasInitializer: hasInitializer,
         fieldType: fieldType,
         name: _fragment.name,
@@ -544,4 +543,27 @@ class FieldFragmentDeclaration
 
   @override
   TypeBuilder get type => _fragment.type;
+
+  @override
+  FieldQuality get fieldQuality => _fragment.modifiers.isAbstract
+      ? FieldQuality.Abstract
+      : _fragment.modifiers.isExternal
+          ? FieldQuality.External
+          : FieldQuality.Concrete;
+
+  @override
+  GetterQuality get getterQuality => _fragment.modifiers.isAbstract
+      ? GetterQuality.ImplicitAbstract
+      : _fragment.modifiers.isExternal
+          ? GetterQuality.ImplicitExternal
+          : GetterQuality.Implicit;
+
+  @override
+  SetterQuality get setterQuality => !hasSetter
+      ? SetterQuality.Absent
+      : _fragment.modifiers.isAbstract
+          ? SetterQuality.ImplicitAbstract
+          : _fragment.modifiers.isExternal
+              ? SetterQuality.ImplicitExternal
+              : SetterQuality.Implicit;
 }

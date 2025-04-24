@@ -28,6 +28,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../kernel/body_builder.dart';

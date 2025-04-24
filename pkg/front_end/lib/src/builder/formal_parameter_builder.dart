@@ -26,6 +26,7 @@ import 'constructor_builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'omitted_type_builder.dart';
+import 'property_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
@@ -232,7 +233,7 @@ class FormalParameterBuilder extends BuilderImpl
       ClassHierarchyBase hierarchy) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
-    if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.isField) {
+    if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.hasField) {
       DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
       fieldType = constructorDeclaration.substituteFieldType(fieldType);
       type.registerInferredType(fieldType);
@@ -255,7 +256,7 @@ class FormalParameterBuilder extends BuilderImpl
     if (memberBuilder is ConstructorBuilder) {
       return true;
     } else if (memberBuilder is SourceFactoryBuilder) {
-      return memberBuilder.isFactory;
+      return true;
     } else {
       // Coverage-ignore-block(suite): Not run.
       return memberBuilder.isClassInstanceMember;

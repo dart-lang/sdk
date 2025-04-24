@@ -14,6 +14,7 @@ import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'nullability_builder.dart';
+import 'property_builder.dart';
 import 'type_builder.dart';
 
 /// Shared implementation between extension and extension type declaration
@@ -82,14 +83,16 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     if (builder == null && setter) {
       // When looking up setters, we include assignable fields.
       builder = lookupLocalMember(name.text, setter: false, required: required);
-      if (builder is! MemberBuilder || !builder.hasSetter) {
+      if (builder is! PropertyBuilder || !builder.hasSetter) {
         builder = null;
       }
     }
     if (builder != null) {
       if (name.isPrivate && libraryBuilder.library != name.library) {
         builder = null;
-      } else if (builder.isField && !builder.isStatic && !builder.isExternal) {
+      } else if (builder is PropertyBuilder &&
+          builder.hasConcreteField &&
+          !builder.isStatic) {
         // Non-external extension instance fields are invalid.
         builder = null;
       } else if (builder.isDuplicate) {

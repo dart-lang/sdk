@@ -72,6 +72,7 @@ import '../builder/library_builder.dart'
     show CompilationUnit, LibraryBuilder, SourceCompilationUnit;
 import '../builder/member_builder.dart' show MemberBuilder;
 import '../builder/name_iterator.dart' show NameIterator;
+import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
@@ -694,7 +695,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (sourceBuilder == null) {
         sourceBuilder = sourceLibraryBuilder.exportNameSpace
             .lookupLocalMember(name, setter: false);
-        if (sourceBuilder is MemberBuilder && sourceBuilder.hasSetter) {
+        if (sourceBuilder is PropertyBuilder && sourceBuilder.hasSetter) {
           // Assignable fields can be lowered into a getter and setter.
           return;
         }
@@ -836,7 +837,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         String name = iterator.name;
         Map<String, Builder> map;
-        if (childBuilder.isSetter) {
+        if (isMappedAsSetter(childBuilder)) {
           map = childReplacementSettersMap;
         } else {
           map = childReplacementMap;

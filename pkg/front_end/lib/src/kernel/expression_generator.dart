@@ -38,10 +38,13 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../source/source_member_builder.dart';
@@ -1654,21 +1657,18 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Procedure? readTarget;
     Procedure? invokeTarget;
     if (getterBuilder != null) {
-      if (getterBuilder.isField) {
-        assert(!getterBuilder.isStatic && getterBuilder.isExternal);
+      assert(!getterBuilder.isStatic);
+      if (getterBuilder is PropertyBuilder) {
+        assert(!getterBuilder.hasConcreteField);
         readTarget = getterBuilder.readTarget as Procedure?;
-      } else if (getterBuilder.isGetter) {
-        assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.readTarget as Procedure?;
-      } else if (getterBuilder.isRegularMethod) {
-        assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.readTarget as Procedure?;
-        invokeTarget = getterBuilder.invokeTarget as Procedure?;
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (getterBuilder.isOperator) {
-        assert(!getterBuilder.isStatic);
-        invokeTarget = getterBuilder.invokeTarget as Procedure?;
+      } else if (getterBuilder is MethodBuilder) {
+        if (getterBuilder.isOperator) {
+          // Coverage-ignore-block(suite): Not run.
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        } else {
+          readTarget = getterBuilder.readTarget as Procedure?;
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        }
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
@@ -1679,11 +1679,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
     }
     Procedure? writeTarget;
     if (setterBuilder != null) {
-      if (setterBuilder.isField) {
-        assert(!setterBuilder.isStatic && setterBuilder.isExternal);
-        writeTarget = setterBuilder.writeTarget as Procedure?;
-      } else if (setterBuilder.isSetter) {
-        assert(!setterBuilder.isStatic);
+      if (setterBuilder is PropertyBuilder) {
+        assert(!setterBuilder.isStatic && !setterBuilder.hasConcreteField);
         writeTarget = setterBuilder.writeTarget as Procedure?;
         // Coverage-ignore-block(suite): Not run.
         targetName ??= setterBuilder.name;
@@ -1966,27 +1963,16 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     Procedure? invokeTarget;
     if (getterBuilder != null) {
       assert(!getterBuilder.isStatic);
-      if (getterBuilder.isGetter) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
-        readTarget = memberBuilder.readTarget as Procedure?;
-      } else if (getterBuilder.isRegularMethod) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder procedureBuilder = getterBuilder as MemberBuilder;
-        readTarget = procedureBuilder.readTarget as Procedure?;
-        invokeTarget = procedureBuilder.invokeTarget as Procedure?;
-      } else if (getterBuilder.isOperator) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
-        invokeTarget = memberBuilder.invokeTarget as Procedure?;
-      } else if (getterBuilder.isField) {
-        assert(!getterBuilder.isStatic);
-        MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
-        assert(
-            memberBuilder.invokeTarget is Procedure?,
-            "Unexpected invoke target ${memberBuilder.invokeTarget} "
-            "(${memberBuilder.invokeTarget.runtimeType}) on ${memberBuilder}.");
-        readTarget = memberBuilder.invokeTarget as Procedure?;
+      if (getterBuilder is PropertyBuilder) {
+        assert(!getterBuilder.hasConcreteField);
+        readTarget = getterBuilder.readTarget as Procedure?;
+      } else if (getterBuilder is MethodBuilder) {
+        if (getterBuilder.isOperator) {
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        } else {
+          readTarget = getterBuilder.readTarget as Procedure?;
+          invokeTarget = getterBuilder.invokeTarget as Procedure?;
+        }
       } else {
         return unhandled(
             "$getterBuilder (${getterBuilder.runtimeType})",
@@ -1998,10 +1984,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     Procedure? writeTarget;
     if (setterBuilder != null) {
       assert(!setterBuilder.isStatic);
-      if (setterBuilder.hasSetter) {
-        assert(!setterBuilder.isStatic);
-        MemberBuilder memberBuilder = setterBuilder as MemberBuilder;
-        writeTarget = memberBuilder.writeTarget as Procedure?;
+      if (setterBuilder is PropertyBuilder) {
+        if (setterBuilder.hasSetter) {
+          writeTarget = setterBuilder.writeTarget as Procedure?;
+        }
       } else {
         return unhandled(
             "$setterBuilder (${setterBuilder.runtimeType})",
@@ -3401,7 +3387,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             return _helper.buildProblem(
                 getable.message, getable.fileOffset, name.text.length);
           } else if (getable.isStatic &&
-              !getable.isFactory &&
+              getable is! FactoryBuilder &&
               typeArguments != null) {
             return _helper.buildProblem(
                 messageStaticTearOffFromInstantiatedClass,
@@ -3450,7 +3436,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   Expression_Generator_Builder doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
-    if (declaration.isExtension) {
+    if (declaration is ExtensionBuilder) {
       ExtensionBuilder extensionBuilder = declaration as ExtensionBuilder;
       if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
         return _helper.buildProblem(messageExplicitExtensionArgumentMismatch,

@@ -104,13 +104,6 @@ class _FieldClassMember implements ClassMember {
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
 
   @override
-  bool get isField => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => false;
-
-  @override
   bool get isInternalImplementation => false;
 
   @override
@@ -207,7 +200,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     return new TypeDeclarationInstanceMemberResult(
         getMember(membersBuilder), memberKind,
-        isDeclaredAsField: _builder.isField);
+        isDeclaredAsField: isDeclaredAsField(_builder, forSetter: forSetter));
   }
 
   @override
@@ -252,18 +245,9 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isStatic => _builder.isStatic;
 
   @override
-  bool get isField => _member is Field;
-
-  @override
   bool get isSetter {
     Member procedure = _member;
     return procedure is Procedure && procedure.kind == ProcedureKind.Setter;
-  }
-
-  @override
-  bool get isGetter {
-    Member procedure = _member;
-    return procedure is Procedure && procedure.kind == ProcedureKind.Getter;
   }
 
   @override

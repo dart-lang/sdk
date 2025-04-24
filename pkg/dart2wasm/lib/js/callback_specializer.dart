@@ -53,7 +53,8 @@ class CallbackSpecializer {
         type: callExpr.getStaticType(_staticTypeContext),
         isSynthesized: true);
 
-    final jsified = jsifyValue(temp, _util, _staticTypeContext.typeEnvironment);
+    final jsified = jsifyValue(temp, _util.nullableWasmExternRefType, _util,
+        _staticTypeContext.typeEnvironment);
 
     return ReturnStatement(Let(temp, jsified));
   }

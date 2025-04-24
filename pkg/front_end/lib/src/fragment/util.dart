@@ -99,6 +99,12 @@ void buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
 
 /// Common interface for fragments that can declare a field.
 abstract class FieldDeclaration {
+  FieldQuality get fieldQuality;
+
+  GetterQuality get getterQuality;
+
+  SetterQuality get setterQuality;
+
   /// The metadata declared on this fragment.
   List<MetadataBuilder>? get metadata;
 
@@ -119,8 +125,7 @@ abstract class FieldDeclaration {
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal});
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// type of this field declaration.

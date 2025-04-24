@@ -509,7 +509,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
     Expression annotation;
-    if (constructor.isConstructor) {
+    if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
           constructor.invokeTarget as Constructor, arguments)
         ..isConst = true;
@@ -962,8 +962,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       {required String name,
       required Builder builder,
       required int charOffset}) {
+    bool isSetter = isMappedAsSetter(builder);
     Builder? existing =
-        _importNameSpace.lookupLocalMember(name, setter: builder.isSetter);
+        _importNameSpace.lookupLocalMember(name, setter: isSetter);
     if (existing != null) {
       if (existing != builder) {
         _importNameSpace.addLocalMember(
@@ -971,13 +972,13 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             computeAmbiguousDeclarationForImport(
                 _problemReporting, name, existing, builder,
                 uriOffset: new UriOffset(fileUri, charOffset)),
-            setter: builder.isSetter);
+            setter: isSetter);
       }
     } else {
-      _importNameSpace.addLocalMember(name, builder, setter: builder.isSetter);
+      _importNameSpace.addLocalMember(name, builder, setter: isSetter);
     }
-    if (builder.isExtension) {
-      _importNameSpace.addExtension(builder as ExtensionBuilder);
+    if (builder is ExtensionBuilder) {
+      _importNameSpace.addExtension(builder);
     }
   }
 

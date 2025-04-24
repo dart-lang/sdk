@@ -14,6 +14,8 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 
   LibraryBuilder get libraryBuilder;
 
+  //bool get isExtension;
+
   @override
   Uri get fileUri;
 

@@ -93,17 +93,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isAugmentation => _modifiers.isAugment;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => _modifiers.isExternal;
-
-  @override
   bool get isAbstract => _modifiers.isAbstract;
-
-  @override
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -202,11 +192,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         _reference,
       ];
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable =>
-      throw new UnsupportedError('$runtimeType.isAssignable');
-
   List<ClassMember>? _localMembers;
 
   @override
@@ -230,7 +215,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Member get invokeTarget => _invokeTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _reference;
 
   @override
@@ -257,9 +241,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isProperty => false;
-
-  @override
-  bool get isRegularMethod => !isOperator;
 
   bool _typeEnsured = false;
   ClassMembersBuilder? _classMembersBuilder;
@@ -379,12 +360,6 @@ class _MethodClassMember implements ClassMember {
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => false;
 
   @override
   bool get isInternalImplementation => false;

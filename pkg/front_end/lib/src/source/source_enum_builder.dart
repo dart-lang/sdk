@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/messages.dart';
+import 'package:front_end/src/builder/property_builder.dart';
 import 'package:front_end/src/fragment/method/encoding.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_method_builder.dart';
@@ -19,7 +20,9 @@ import 'package:kernel/type_environment.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/factory_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -137,7 +140,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       MemberBuilder constructorBuilder = constructorIterator.current;
-      if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
+      if (constructorBuilder is ConstructorBuilder &&
+          !constructorBuilder.isConst) {
         libraryBuilder.addProblem(messageEnumNonConstConstructor,
             constructorBuilder.fileOffset, noLength, fileUri);
       }
@@ -270,7 +274,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     Iterator<MemberBuilder> iterator = nameSpace.unfilteredConstructorIterator;
     while (iterator.moveNext()) {
       MemberBuilder constructorBuilder = iterator.current;
-      if (!constructorBuilder.isFactory || constructorBuilder.name == "") {
+      if (constructorBuilder is! FactoryBuilder ||
+          constructorBuilder.name == "") {
         needsSynthesizedDefaultConstructor = false;
         break;
       }
@@ -402,7 +407,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             _underscoreEnumTypeBuilder.declaration as ClassBuilder;
         MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
             "", fileOffset, fileUri, libraryBuilder);
-        if (superConstructor == null || !superConstructor.isConstructor) {
+        if (superConstructor == null ||
+            superConstructor is! ConstructorBuilder) {
           // Coverage-ignore-block(suite): Not run.
           // TODO(ahe): Ideally, we would also want to check that [Object]'s
           // unnamed constructor requires no arguments. But that information
@@ -723,8 +729,7 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
 
   @override
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal}) {}
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -809,6 +814,17 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   DartType inferType(ClassHierarchyBase hierarchy) {
     return _type;
   }
+
+  @override
+  FieldQuality get fieldQuality => FieldQuality.Concrete;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  GetterQuality get getterQuality => GetterQuality.Implicit;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  SetterQuality get setterQuality => SetterQuality.Absent;
 }
 
 class _EnumValuesClassMember implements ClassMember {
@@ -897,14 +913,6 @@ class _EnumValuesClassMember implements ClassMember {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isField => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => false;
 
   @override
   // Coverage-ignore(suite): Not run.

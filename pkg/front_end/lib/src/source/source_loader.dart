@@ -45,6 +45,7 @@ import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -882,7 +883,7 @@ severity: $severity
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
     Expression annotation;
-    if (constructor.isConstructor) {
+    if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
           constructor.invokeTarget as Constructor, arguments)
         ..isConst = true;
@@ -1720,7 +1721,7 @@ severity: $severity
         builder.nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder constructor = iterator.current;
-      if (constructor.isConstructor && !constructor.isSynthetic) {
+      if (constructor is ConstructorBuilder && !constructor.isSynthetic) {
         cls.addProblem(
             templateIllegalMixinDueToConstructors
                 .withArguments(builder.fullNameForErrors),
@@ -2547,7 +2548,8 @@ severity: $severity
       if (redirectingFactoryBuilders != null) {
         for (SourceFactoryBuilder redirectingFactoryBuilder
             in redirectingFactoryBuilders) {
-          if (redirectingFactoryBuilder.parent.isExtension) {
+          if (redirectingFactoryBuilder.declarationBuilder
+              is ExtensionBuilder) {
             // Extensions don't build their redirecting factories so we can't
             // process them. Once they are added in
             // [DeclarationNameSpaceBuilder.buildNameSpace] this skipping can
