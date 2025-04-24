@@ -1025,9 +1025,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     } else if (state_->isolate_group() != nullptr) {
       ASSERT(IsolateGroup::Current() == nullptr);
       const bool kBypassSafepoint = false;
-      const bool result = Thread::EnterIsolateGroupAsHelper(
-          state_->isolate_group(), Thread::kSpawnTask, kBypassSafepoint);
-      ASSERT(result);
+      Thread::EnterIsolateGroupAsHelper(state_->isolate_group(),
+                                        Thread::kSpawnTask, kBypassSafepoint);
       state_ = nullptr;
       Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
     } else {

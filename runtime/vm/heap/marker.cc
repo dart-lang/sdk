@@ -1044,9 +1044,8 @@ class ConcurrentMarkTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kMarkerTask, /*bypass_safepoint=*/true);
-    ASSERT(result);
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kMarkerTask,
+                                      /*bypass_safepoint=*/true);
     {
       TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ConcurrentMark");
       int64_t start = OS::GetCurrentMonotonicMicros();

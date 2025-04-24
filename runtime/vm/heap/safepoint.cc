@@ -437,9 +437,8 @@ void SafepointTask::Run() {
     return;
   }
 
-  bool result = Thread::EnterIsolateGroupAsHelper(isolate_group_, kind_,
-                                                  /*bypass_safepoint=*/true);
-  ASSERT(result);
+  Thread::EnterIsolateGroupAsHelper(isolate_group_, kind_,
+                                    /*bypass_safepoint=*/true);
 
   RunEnteredIsolateGroup();
 

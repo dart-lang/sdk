@@ -176,9 +176,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateGroupAsNonMutator(isolate_group_,
-                                                        Thread::kSweeperTask);
-    ASSERT(result);
+    Thread::EnterIsolateGroupAsNonMutator(isolate_group_, Thread::kSweeperTask);
     PageSpace* old_space = isolate_group_->heap()->old_space();
     {
       Thread* thread = Thread::Current();
