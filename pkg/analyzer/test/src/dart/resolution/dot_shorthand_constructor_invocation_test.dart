@@ -17,6 +17,74 @@ main() {
 @reflectiveTest
 class DotShorthandConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
+  test_chain_method() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  C method() => C(1);
+}
+
+void main() {
+  C c = .new(1).method();
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        staticType: int
+    rightParenthesis: )
+  staticType: C
+''');
+  }
+
+  test_chain_property() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  C get property => C(1);
+}
+
+void main() {
+  C c = .new(1).property;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        staticType: int
+    rightParenthesis: )
+  staticType: C
+''');
+  }
+
   test_constructor_named() async {
     await assertNoErrorsInCode(r'''
 class C {

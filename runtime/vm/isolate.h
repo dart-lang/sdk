@@ -1804,9 +1804,8 @@ class EnterIsolateGroupScope {
   explicit EnterIsolateGroupScope(IsolateGroup* isolate_group)
       : isolate_group_(isolate_group) {
     ASSERT(IsolateGroup::Current() == nullptr);
-    const bool result = Thread::EnterIsolateGroupAsHelper(
-        isolate_group_, Thread::kUnknownTask, /*bypass_safepoint=*/false);
-    ASSERT(result);
+    Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kUnknownTask,
+                                      /*bypass_safepoint=*/false);
   }
 
   ~EnterIsolateGroupScope() {

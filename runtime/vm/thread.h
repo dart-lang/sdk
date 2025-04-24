@@ -387,12 +387,12 @@ class Thread : public ThreadState {
   // Makes the current thread exit its isolate.
   static void ExitIsolate(bool isolate_shutdown = false);
 
-  static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
+  static void EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                         TaskKind kind,
                                         bool bypass_safepoint);
   static void ExitIsolateGroupAsHelper(bool bypass_safepoint);
 
-  static bool EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
+  static void EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
                                             TaskKind kind);
   static void ExitIsolateGroupAsNonMutator();
 

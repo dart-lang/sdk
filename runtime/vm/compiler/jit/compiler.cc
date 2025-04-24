@@ -1094,9 +1094,8 @@ BackgroundCompiler::~BackgroundCompiler() {
 }
 
 void BackgroundCompiler::Run() {
-  bool result = Thread::EnterIsolateGroupAsHelper(
-      isolate_group_, Thread::kCompilerTask, /*bypass_safepoint=*/false);
-  ASSERT(result);
+  Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kCompilerTask,
+                                    /*bypass_safepoint=*/false);
   {
     Thread* thread = Thread::Current();
     StackZone stack_zone(thread);

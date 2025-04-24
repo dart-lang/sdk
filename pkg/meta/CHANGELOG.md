@@ -1,5 +1,6 @@
 ## 1.16.1-wip
 
+- Mark `Required` and `required` as `@Deprecated`.
 - Update SDK constraints to `^3.5.0`.
 
 ## 1.16.0

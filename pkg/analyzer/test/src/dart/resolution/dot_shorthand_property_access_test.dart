@@ -17,6 +17,60 @@ main() {
 @reflectiveTest
 class DotShorthandPropertyAccessResolutionTest
     extends PubPackageResolutionTest {
+  test_chain_method() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C get member => C(1);
+  int x;
+  C(this.x);
+  C method() => C(1);
+}
+
+void main() {
+  C c = .member.method();
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@getter::member#element
+    staticType: C
+  staticType: C
+''');
+  }
+
+  test_chain_property() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C get member => C(1);
+  int x;
+  C(this.x);
+  C get property => C(1);
+}
+
+void main() {
+  C c = .member.property;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@getter::member#element
+    staticType: C
+  staticType: C
+''');
+  }
+
   test_class_basic() async {
     await assertNoErrorsInCode('''
 class C {

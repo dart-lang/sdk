@@ -12051,7 +12051,7 @@ abstract final class MethodInvocation
 }
 
 final class MethodInvocationImpl extends InvocationExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, DotShorthandMixin
     implements MethodInvocation {
   ExpressionImpl? _target;
 
@@ -14471,7 +14471,7 @@ abstract final class PropertyAccess
 }
 
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, DotShorthandMixin
     implements PropertyAccess {
   ExpressionImpl? _target;
 

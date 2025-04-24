@@ -482,22 +482,19 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   }
 }
 
-bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
+void Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                        TaskKind kind,
                                        bool bypass_safepoint) {
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    /*is_dart_mutator=*/false, bypass_safepoint);
-  if (thread != nullptr) {
-    thread->SetupState(kind);
-    // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
-    // parallel scavenger threads write to the [Thread]s storebuffer)
-    thread->SetupMutatorState(kind);
-    ResumeThreadInternal(thread);
+  RELEASE_ASSERT(thread != nullptr);
+  thread->SetupState(kind);
+  // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
+  // parallel scavenger threads write to the [Thread]s storebuffer)
+  thread->SetupMutatorState(kind);
+  ResumeThreadInternal(thread);
 
-    thread->AssertNonDartMutatorInvariants();
-    return true;
-  }
-  return false;
+  thread->AssertNonDartMutatorInvariants();
 }
 
 void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
@@ -513,19 +510,16 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
                    bypass_safepoint);
 }
 
-bool Thread::EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
+void Thread::EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
                                            TaskKind kind) {
   Thread* thread =
       AddActiveThread(isolate_group, /*isolate=*/nullptr,
                       /*is_dart_mutator=*/false, /*bypass_safepoint=*/true);
-  if (thread != nullptr) {
-    thread->SetupState(kind);
-    ResumeThreadInternal(thread);
+  ASSERT(thread != nullptr);
+  thread->SetupState(kind);
+  ResumeThreadInternal(thread);
 
-    thread->AssertNonMutatorInvariants();
-    return true;
-  }
-  return false;
+  thread->AssertNonMutatorInvariants();
 }
 
 void Thread::ExitIsolateGroupAsNonMutator() {

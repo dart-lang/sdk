@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 
 Element2? declaredParameterElement(SimpleIdentifier node, Element2? element) {
   if (element == null || element.enclosingElement2 != null) {
@@ -157,9 +156,9 @@ class ElementNameComponents {
   }
 
   ElementNameComponents._({
-    @required this.parameterName,
-    @required this.classMemberName,
-    @required this.unitMemberName,
+    required this.parameterName,
+    required this.classMemberName,
+    required this.unitMemberName,
   });
 }
 

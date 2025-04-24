@@ -85,7 +85,8 @@ const _Checked checked = _Checked();
 ///
 /// * the annotation is associated with anything other than a library, class,
 ///   method or getter, top-level getter or function, or
-/// * an invocation of a member that has this annotation is returned by a method,
+/// * an invocation of a member that has this annotation is returned by a
+///   function or getter that is not similarly annotated as method,
 ///   getter or function that is not similarly annotated as `doNotStore`, or
 /// * an invocation of a member that has this annotation is assigned to a field
 ///   or top-level variable.
@@ -450,12 +451,16 @@ const _Reopen reopen = _Reopen();
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
 ///
-/// **Deprecated:** This annotation is set to be deprecated and later
-/// removed in a future release of `package:meta`.
+/// **Deprecated:** This annotation is set to be removed in a future release of
+/// `package:meta`.
+///
 /// In Dart 2.12 and later, use the built-in `required` keyword
 /// to mark a named parameter as required.
 /// To learn more about `required`, check out the documentation on
 /// [named parameters](https://dart.dev/language/functions#named-parameters).
+@Deprecated(
+    'In Dart 2.12 and later, use the built-in `required` keyword to mark a '
+    'named parameter as required.')
 const Required required = Required();
 
 /// Annotation marking a class as not allowed as a super-type
@@ -553,8 +558,7 @@ class RecordUse {
   /// Creates a [RecordUse] instance.
   ///
   /// This annotation can be placed as an annotation on functions whose
-  /// statically resolved calls should be registered together with the optional
-  /// [metadata] information.
+  /// statically resolved calls should be registered
   const RecordUse();
 }
 
@@ -562,12 +566,16 @@ class RecordUse {
 ///
 /// See [required] for more details.
 ///
-/// **Deprecated:** This annotation is set to be deprecated and later
-/// removed in a future release of `package:meta`.
+/// **Deprecated:** This annotation is set to be removed in a future release of
+/// `package:meta`.
+///
 /// In Dart 2.12 and later, use the built-in `required` keyword
 /// to mark a named parameter as required.
 /// To learn more about `required`, check out the documentation on
 /// [named parameters](https://dart.dev/language/functions#named-parameters).
+@Deprecated(
+    'In Dart 2.12 and later, use the built-in `required` keyword to mark a '
+    'named parameter as required.')
 class Required {
   /// A human-readable explanation of the reason why the annotated parameter is
   /// required. For example, the annotation might look like:
