@@ -222,6 +222,68 @@ FunctionExpressionInvocation
 ''');
   }
 
+  test_chain_method() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+  C method() => C(1);
+}
+
+void main() {
+  C c = .member().method();
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@method::member#element
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_chain_property() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  static C member() => C(1);
+  int x;
+  C(this.x);
+  C get property => C(1);
+}
+
+void main() {
+  C c = .member().property;
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibraryFragment>::@class::C::@method::member#element
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
   test_equality() async {
     await assertNoErrorsInCode('''
 class C {

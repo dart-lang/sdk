@@ -3323,6 +3323,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
     checkUnreachableNode(node);
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
@@ -3362,6 +3368,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
     _insertImplicitCallReference(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyMethodInvocation(node);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3627,6 +3638,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
     checkUnreachableNode(node);
 
     var target = node.target;
@@ -3640,6 +3657,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     checkUnreachableNode(node.propertyName);
     _resolvePropertyAccessRhs(node, contextType);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
     inferenceLogWriter?.exitExpression(node);
   }
 
