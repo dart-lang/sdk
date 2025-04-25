@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/fine/base_name_members.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
@@ -22,8 +23,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
     required super.supertype,
     required super.mixins,
     required super.interfaces,
-    required super.declaredMembers,
-    required super.inheritedMembers,
+    required super.members,
   });
 
   factory ClassItem.fromElement({
@@ -41,8 +41,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
-        declaredMembers: {},
-        inheritedMembers: {},
+        members: {},
       );
     });
   }
@@ -52,11 +51,10 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      declaredMembers: InstanceItem._readDeclaredMembers(reader),
+      members: BaseNameMembers.readMap(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
-      inheritedMembers: InterfaceItem._readInheritedMembers(reader),
     );
   }
 
@@ -71,48 +69,38 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
 sealed class InstanceItem<E extends InstanceElementImpl2>
     extends TopLevelItem<E> {
   final List<ManifestTypeParameter> typeParameters;
-  final Map<LookupName, InstanceItemMemberItem> declaredMembers;
+  final Map<BaseName, BaseNameMembers> members;
 
   InstanceItem({
     required super.id,
     required super.metadata,
     required this.typeParameters,
-    required this.declaredMembers,
+    required this.members,
   });
 
   ManifestItemId? getMemberId(LookupName name) {
-    return declaredMembers[name]?.id;
-  }
-
-  /// If there is already a declared member with [name], replace it with a
-  /// fresh instance of [InstanceItemDuplicateItem] and return `true`.
-  /// Otherwise return `false`.
-  bool replaceDuplicate(LookupName name) {
-    if (declaredMembers.containsKey(name)) {
-      declaredMembers[name] = InstanceItemDuplicateItem();
-      return true;
+    var baseNameMembers = members[name.asBaseName];
+    if (baseNameMembers == null) {
+      return null;
     }
-    return false;
+
+    if (name.isSetter) {
+      return baseNameMembers.setterId;
+    }
+
+    if (name.isIndexEq) {
+      return baseNameMembers.indexEqId;
+    }
+
+    // TODO(scheglov): separate constructors
+    return baseNameMembers.getterOrMethodId ?? baseNameMembers.constructorId;
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
     typeParameters.writeList(sink);
-    sink.writeMap(
-      declaredMembers,
-      writeKey: (name) => name.write(sink),
-      writeValue: (member) => member.writeWithKind(sink),
-    );
-  }
-
-  static Map<LookupName, InstanceItemMemberItem> _readDeclaredMembers(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => InstanceItemMemberItem.read(reader),
-    );
+    members.write(sink);
   }
 }
 
@@ -380,30 +368,15 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
   final List<ManifestType> interfaces;
   final List<ManifestType> mixins;
 
-  /// We store only IDs of the inherited members, but not type substitutions,
-  /// because in order to invoke any of these members, you need an instance
-  /// of the class for this [InterfaceItem]. And any code that can give such
-  /// instance will reference the class name, directly as a type annotation, or
-  /// indirectly by invoking a function that references the class as a return
-  /// type. So, any such code depends on the header of the class, so includes
-  /// the type arguments for the class that declares the inherited member.
-  final Map<LookupName, ManifestItemId> inheritedMembers;
-
   InterfaceItem({
     required super.id,
     required super.metadata,
     required super.typeParameters,
-    required super.declaredMembers,
+    required super.members,
     required this.supertype,
     required this.mixins,
     required this.interfaces,
-    required this.inheritedMembers,
   });
-
-  @override
-  ManifestItemId? getMemberId(LookupName name) {
-    return declaredMembers[name]?.id ?? inheritedMembers[name];
-  }
 
   @override
   bool match(MatchContext context, E element) {
@@ -420,20 +393,6 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
     supertype.writeOptional(sink);
     mixins.writeList(sink);
     interfaces.writeList(sink);
-    sink.writeMap(
-      inheritedMembers,
-      writeKey: (name) => name.write(sink),
-      writeValue: (member) => member.write(sink),
-    );
-  }
-
-  static Map<LookupName, ManifestItemId> _readInheritedMembers(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => ManifestItemId.read(reader),
-    );
   }
 }
 
@@ -614,8 +573,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
     required super.supertype,
     required super.interfaces,
     required super.mixins,
-    required super.declaredMembers,
-    required super.inheritedMembers,
+    required super.members,
     required this.superclassConstraints,
   }) : assert(supertype == null),
        assert(mixins.isEmpty),
@@ -636,8 +594,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
-        declaredMembers: {},
-        inheritedMembers: {},
+        members: {},
         superclassConstraints: element.superclassConstraints.encode(context),
       );
     });
@@ -648,11 +605,10 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      declaredMembers: InstanceItem._readDeclaredMembers(reader),
+      members: BaseNameMembers.readMap(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
-      inheritedMembers: InterfaceItem._readInheritedMembers(reader),
       superclassConstraints: ManifestType.readList(reader),
     );
   }

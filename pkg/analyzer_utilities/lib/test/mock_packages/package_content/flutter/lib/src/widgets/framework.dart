@@ -9,6 +9,8 @@ export 'package:flutter/foundation.dart' show Key, LocalKey, ValueKey;
 
 typedef void VoidCallback();
 
+typedef WidgetBuilder = Widget Function(BuildContext context);
+
 abstract class BuildContext {
   bool get mounted;
   Widget get widget;

@@ -6965,6 +6965,23 @@ class WarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const WarningCode INVALID_WIDGET_PREVIEW_APPLICATION = WarningCode(
+    'INVALID_WIDGET_PREVIEW_APPLICATION',
+    "The '@Preview(...)' annotation can only be applied to public, statically "
+        "accessible constructors and functions.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the private symbol
+  ///  1: the name of the proposed public symbol equivalent
+  static const WarningCode
+  INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT = WarningCode(
+    'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
+    "'@Preview(...)' can only accept arguments that consist of literals and "
+        "public symbols.",
+    correctionMessage: "Rename private symbol '{0}' to '{1}'.",
+  );
+
   ///  Parameters:
   ///  0: the name of the member
   static const WarningCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE =

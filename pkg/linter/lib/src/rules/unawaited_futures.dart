@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (_isAwaitNotRequired(expr)) {
+    if (expr.isAwaitNotRequired) {
       return;
     }
 
@@ -78,39 +78,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     _visit(node.expression);
-  }
-
-  bool _isAwaitNotRequired(Expression node) {
-    // TODO(srawlins): Handle inheritence in each of these cases; the
-    // `@awaitNotRequired` annotation should be inherited.
-    switch (node) {
-      case BinaryExpression():
-        if (node.element.hasAwaitNotRequired) {
-          return true;
-        }
-
-      case MethodInvocation():
-        if (node.methodName.element.hasAwaitNotRequired) {
-          return true;
-        }
-
-      case PrefixedIdentifier():
-        if (node.identifier.element.hasAwaitNotRequired) {
-          return true;
-        }
-
-      case PrefixExpression():
-        if (node.element.hasAwaitNotRequired) {
-          return true;
-        }
-
-      case PropertyAccess():
-        if (node.propertyName.element.hasAwaitNotRequired) {
-          return true;
-        }
-    }
-
-    return false;
   }
 
   bool _isEnclosedInAsyncFunctionBody(AstNode node) {
@@ -136,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       _isMapClass(expr.methodName.element?.enclosingElement2);
 
   void _visit(Expression expr) {
-    if (_isAwaitNotRequired(expr)) {
+    if (expr.isAwaitNotRequired) {
       return;
     }
 
@@ -147,10 +114,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(expr);
     }
   }
-}
-
-extension on Element2? {
-  bool get hasAwaitNotRequired =>
-      this is Annotatable &&
-      (this! as Annotatable).metadata2.hasAwaitNotRequired;
 }

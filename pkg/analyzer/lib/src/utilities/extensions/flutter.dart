@@ -4,12 +4,14 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 const String widgetsUri = 'package:flutter/widgets.dart';
 const _nameAlign = 'Align';
+const _nameBuildContext = 'BuildContext';
 const _nameBuilder = 'Builder';
 const _nameCenter = 'Center';
 const _nameContainer = 'Container';
@@ -169,6 +171,14 @@ extension ClassElementExtension2 on ClassElement2 {
 }
 
 extension DartTypeExtension on DartType? {
+  /// Whether this is the Flutter type `BuildContext`.
+  bool get isBuildContext {
+    var self = this;
+    return self is InterfaceType &&
+        self.nullabilitySuffix == NullabilitySuffix.none &&
+        self.element3._isExactly(_nameBuildContext, _uriFramework);
+  }
+
   /// Whether this is the 'dart.ui' class `Color`, or a subtype.
   bool get isColor {
     var self = this;
@@ -296,10 +306,37 @@ extension DartTypeExtension on DartType? {
     );
   }
 
+  /// Whether this is a function type matching the Flutter typedef
+  /// `WidgetBuilder` (i.e., `Widget Function(BuildContext context)`).
+  bool get isWidgetBuilder {
+    var self = this;
+    return self is FunctionType &&
+        self.returnType.isWidgetType &&
+        self.formalParameters.length == 1 &&
+        self.formalParameters[0].type.isBuildContext;
+  }
+
   /// Whether this is the Flutter class `Widget`, or its subtype.
   bool get isWidgetType {
     var self = this;
     return self is InterfaceType && self.element3.isWidget;
+  }
+}
+
+extension ElementAnnotationExtension on ElementAnnotation {
+  static final Uri _flutterWidgetPreviewLibraryUri = Uri.parse(
+    'package:flutter/src/widget_previews/widget_previews.dart',
+  );
+
+  /// Whether the annotation marks the associated member as being a widget
+  /// preview.
+  bool get isWidgetPreview {
+    var element2 = this.element2;
+    if (element2 is! ConstructorElement2) {
+      return false;
+    }
+    return element2.enclosingElement2.name3 == 'Preview' &&
+        element2.library2.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -481,5 +518,18 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
     return self is ClassElement2 &&
         self.name3 == type &&
         self.firstFragment.libraryFragment.source.uri == uri;
+  }
+}
+
+extension NamedTypeExtension on NamedType {
+  /// Whether this type is a valid return type for a function annotated with
+  /// `@Preview(...)`.
+  ///
+  /// Valid widget preview return types are:
+  ///   - `Widget`
+  ///   - `Widget Function(BuildContext)` (aka `WidgetBuilder`)
+  bool get isValidWidgetPreviewReturnType {
+    var self = this;
+    return self.type.isWidgetType || self.type.isWidgetBuilder;
   }
 }

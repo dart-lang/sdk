@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -41,6 +42,9 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
     }),
     AnalysisOptionsFile.formatter: MapProducer({
       AnalysisOptionsFile.pageWidth: EmptyProducer(),
+      AnalysisOptionsFile.trailingCommas: EnumProducer(
+        TrailingCommas.values.map((item) => item.name).toList(),
+      ),
     }),
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
     AnalysisOptionsFile.include: EmptyProducer(),

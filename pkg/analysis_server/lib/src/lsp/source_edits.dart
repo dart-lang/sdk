@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     as server
     show SourceEdit;
+import 'package:analysis_server/src/utilities/extensions/formatter_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -17,7 +18,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:dart_style/dart_style.dart';
+import 'package:dart_style/dart_style.dart' hide TrailingCommas;
 
 /// Checks whether a string contains only characters that are allowed to differ
 /// between unformattedformatted code (such as whitespace, commas, semicolons).
@@ -107,10 +108,11 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
 }) {
   var unformattedSource = result.content;
 
+  var formatterOptions = result.analysisOptions.formatterOptions;
   // The analysis options page width always takes priority over the default from
   // the LSP configuration.
-  var effectivePageWidth =
-      result.analysisOptions.formatterOptions.pageWidth ?? defaultPageWidth;
+  var effectivePageWidth = formatterOptions.pageWidth ?? defaultPageWidth;
+  var effectiveTrailingCommas = formatterOptions.dartStyleTrailingCommas;
   var effectiveLanguageVersion = result.unit.languageVersion.effective;
 
   var code = SourceCode(unformattedSource);
@@ -121,6 +123,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     // https://github.com/dart-lang/dart_style/issues/1337
     var formatter = DartFormatter(
       pageWidth: effectivePageWidth,
+      trailingCommas: effectiveTrailingCommas,
       languageVersion: effectiveLanguageVersion,
     );
     formattedResult = formatter.formatSource(code);

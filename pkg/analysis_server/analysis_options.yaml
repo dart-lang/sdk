@@ -26,7 +26,6 @@ analyzer:
 
 linter:
   rules:
-    - analyzer_use_new_elements
     - avoid_redundant_argument_values
     - flutter_style_todos
     - library_annotations

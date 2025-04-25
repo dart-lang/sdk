@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc =
     'There should be no `Future`-returning calls in synchronous functions unless they '
@@ -57,6 +58,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr = expression;
     }
 
+    if (expr.isAwaitNotRequired) {
+      return;
+    }
+
     var type = expr.staticType;
     if (type == null) {
       return;
@@ -70,8 +75,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       _reportOnExpression(expr);
     }
-
-    // TODO(srawlins): Take `@awaitNotRequired` into account.
   }
 
   @override
@@ -113,6 +116,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visit(Expression expr) {
+    if (expr.isAwaitNotRequired) {
+      return;
+    }
+
     if ((expr.staticType.isFutureOrFutureOr) &&
         !_isEnclosedInAsyncFunctionBody(expr) &&
         expr is! AssignmentExpression) {

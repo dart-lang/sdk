@@ -1652,7 +1652,11 @@ class B {
   Widget foo() => Text('');
 }
 ''',
-      [lint(109, 1), lint(196, 3)],
+      [
+        lint(109, 1),
+        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 177, 7),
+        lint(196, 3),
+      ],
     );
   }
 
@@ -1685,7 +1689,10 @@ class B {
   const B();
 }
 ''',
-      [lint(70, 1)],
+      [
+        lint(70, 1),
+        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 77, 7),
+      ],
     );
   }
 
@@ -1703,7 +1710,11 @@ class B {
   const B();
 }
 ''',
-      [lint(70, 1), lint(122, 1)],
+      [
+        lint(70, 1),
+        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 77, 7),
+        lint(122, 1),
+      ],
     );
   }
 
@@ -1731,22 +1742,29 @@ void _f6() {}
 ''',
       [
         lint(168, 1),
+        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 175, 7),
         error(WarningCode.UNUSED_ELEMENT, 197, 4),
+        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 218, 7),
+        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 241, 7),
         error(WarningCode.UNUSED_ELEMENT, 267, 4),
+        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 291, 7),
         error(WarningCode.UNUSED_ELEMENT, 306, 3),
       ],
     );
   }
 
   test_widgetPreview_topLevelFunction() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 import 'package:flutter/widget_previews.dart';
 
 void main() {}
 
 @Preview()
 void f6() {}
-''');
+''',
+      [error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 65, 7)],
+    );
   }
 
   test_widgetPreview_topLevelFunction_const() async {
