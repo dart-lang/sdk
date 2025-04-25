@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var name = node.name;
     if (name != null && !isCamelCase(name.lexeme)) {
-      rule.reportLintForToken(name, arguments: [name.lexeme]);
+      rule.reportAtToken(name, arguments: [name.lexeme]);
     }
   }
 }

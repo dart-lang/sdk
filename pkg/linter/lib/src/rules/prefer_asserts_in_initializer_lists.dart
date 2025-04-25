@@ -149,7 +149,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
         statement.visitChildren(assertVisitor);
         if (!assertVisitor.needInstance) {
-          rule.reportLintForToken(statement.beginToken);
+          rule.reportAtToken(statement.beginToken);
         }
       }
     }

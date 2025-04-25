@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var targetName = target.name3;
     var otherName = other.name3;
     if (targetName != null && otherName != null) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         member.name,
         arguments: [type, targetName, otherName, reason],
       );

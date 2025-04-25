@@ -52,12 +52,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     var isRedirected =
         element.isFactory && element.redirectedConstructor2 != null;
     if (isRedirected && (element.redirectedConstructor2?.isConst ?? false)) {
-      rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+      rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
     }
     if (!isRedirected &&
         _hasConstConstructorInvocation(node) &&
         node.canBeConst) {
-      rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+      rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
     }
   }
 
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element == null) return;
     if (element.metadata2.hasImmutable) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
   }
 

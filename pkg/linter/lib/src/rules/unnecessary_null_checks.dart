@@ -165,7 +165,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNullAssertPattern(NullAssertPattern node) {
     var expectedType = node.matchedValueType;
     if (expectedType != null && context.typeSystem.isNullable(expectedType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 
@@ -175,7 +175,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var expectedType = getExpectedType(node);
     if (expectedType != null && context.typeSystem.isNullable(expectedType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 }

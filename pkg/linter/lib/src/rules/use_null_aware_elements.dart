@@ -69,20 +69,20 @@ class _Visitor extends SimpleAstVisitor<void> {
           //
           //     [if (x != null) x]
           //     {if (x != null) x}
-          rule.reportLintForToken(node.ifKeyword);
+          rule.reportAtToken(node.ifKeyword);
         } else if (thenElement case MapLiteralEntry(:var key, :var value)) {
           if (key is SimpleIdentifier &&
               nullCheckTarget == key.canonicalElement) {
             // Map keys, such as the following:
             //
             //     {if (x != null) x: value}
-            rule.reportLintForToken(node.ifKeyword);
+            rule.reportAtToken(node.ifKeyword);
           } else if (value is SimpleIdentifier &&
               nullCheckTarget == value.canonicalElement) {
             // Map keys, such as the following:
             //
             //     {if (x != null) key: x}
-            rule.reportLintForToken(node.ifKeyword);
+            rule.reportAtToken(node.ifKeyword);
           }
         }
       }

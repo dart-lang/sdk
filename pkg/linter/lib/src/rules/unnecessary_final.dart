@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null || keyword.type != Keyword.FINAL) return;
 
     var errorCode = getErrorCode(node.matchedValueType);
-    rule.reportLintForToken(keyword, errorCode: errorCode);
+    rule.reportAtToken(keyword, errorCode: errorCode);
   }
 
   @override
@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword == null) continue;
 
         var errorCode = getErrorCode(type);
-        rule.reportLintForToken(keyword, errorCode: errorCode);
+        rule.reportAtToken(keyword, errorCode: errorCode);
       }
     }
   }
@@ -99,12 +99,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (keyword == null) return;
       if (loopVariable.isFinal) {
         var errorCode = getErrorCode(loopVariable.type);
-        rule.reportLintForToken(keyword, errorCode: errorCode);
+        rule.reportAtToken(keyword, errorCode: errorCode);
       }
     } else if (forLoopParts is ForEachPartsWithPattern) {
       var keyword = forLoopParts.keyword;
       if (keyword.isFinal) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           keyword,
           errorCode: LinterLintCode.unnecessary_final_without_type,
         );
@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null) return;
     if (node.variables.isFinal) {
       var errorCode = getErrorCode(node.variables.type);
-      rule.reportLintForToken(keyword, errorCode: errorCode);
+      rule.reportAtToken(keyword, errorCode: errorCode);
     }
   }
 }

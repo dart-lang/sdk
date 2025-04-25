@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (overriddenMember is GetterElement2OrMember &&
             overriddenMember.isSynthetic) {
           var definingInterface = overriddenMember.enclosingElement2;
-          rule.reportLintForToken(
+          rule.reportAtToken(
             variable.name,
             arguments: [definingInterface.displayName],
           );

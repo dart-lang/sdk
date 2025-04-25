@@ -41,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var thisKeyword = node.thisKeyword;
     if (thisKeyword != null) {
-      rule.reportLintForToken(thisKeyword);
+      rule.reportAtToken(thisKeyword);
     }
   }
 
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     element = element?.baseElement;
     if (_canReferenceElementWithoutThisPrefix(element, node)) {
-      rule.reportLintForToken(node.thisKeyword);
+      rule.reportAtToken(node.thisKeyword);
     }
   }
 

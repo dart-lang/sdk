@@ -120,7 +120,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     removeReferences(debugDescribeChildren, properties);
 
     // Flag the rest.
-    properties.forEach(rule.reportLintForToken);
+    properties.forEach(rule.reportAtToken);
   }
 
   bool _isOverridingMember(Element2? member) {

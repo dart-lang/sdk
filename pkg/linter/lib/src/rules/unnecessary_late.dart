@@ -51,6 +51,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLintForToken(lateKeyword);
+    rule.reportAtToken(lateKeyword);
   }
 }

@@ -147,7 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_isOldModelElement(node.element2)) {
-      rule.reportLintForToken(node.name2);
+      rule.reportAtToken(node.name2);
     }
   }
 

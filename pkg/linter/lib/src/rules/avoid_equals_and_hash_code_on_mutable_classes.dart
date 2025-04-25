@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.name.type == TokenType.EQ_EQ || isHashCode(node)) {
       var classElement = node.classElement;
       if (classElement != null && !classElement.hasImmutableAnnotation) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           node.firstTokenAfterCommentAndMetadata,
           arguments: [node.name.lexeme],
         );

@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           declaredElement.hasImplicitType &&
           name != null &&
           _isTypeName(node, name)) {
-        rule.reportLintForToken(name, arguments: [name.lexeme]);
+        rule.reportAtToken(name, arguments: [name.lexeme]);
       }
     }
   }

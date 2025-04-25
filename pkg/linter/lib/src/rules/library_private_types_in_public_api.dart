@@ -136,7 +136,7 @@ class Validator extends SimpleAstVisitor<void> {
     if (element is FieldFormalParameterElement2) {
       var type = element.type;
       if (type is InterfaceType && isPrivateName(type.element3.name3)) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       }
     }
   }
@@ -216,7 +216,7 @@ class Validator extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var element = node.element2;
     if (element != null && isPrivate(element)) {
-      rule.reportLintForToken(node.name2);
+      rule.reportAtToken(node.name2);
     }
     node.typeArguments?.accept(this);
   }
@@ -248,7 +248,7 @@ class Validator extends SimpleAstVisitor<void> {
     if (element is SuperFormalParameterElement2) {
       var type = element.type;
       if (type is InterfaceType && isPrivateName(type.element3.name3)) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       }
     }
   }

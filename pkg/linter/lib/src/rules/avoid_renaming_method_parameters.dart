@@ -107,7 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (isWildcardIdentifier(paramLexeme)) continue;
 
       if (paramLexeme != parentParameterName) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           parameterName,
           arguments: [paramLexeme, parentParameterName],
         );

@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (fragment.isGenerator) return;
     if (!fragment.isAsynchronous) return;
     if (fragment.element.returnType is VoidType) {
-      rule.reportLintForToken(errorNode);
+      rule.reportAtToken(errorNode);
     }
   }
 }

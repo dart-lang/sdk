@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var variables = node.variables;
     if (variables.length > 1) {
       var secondVariable = variables[1];
-      rule.reportLintForToken(secondVariable.name);
+      rule.reportAtToken(secondVariable.name);
     }
   }
 }

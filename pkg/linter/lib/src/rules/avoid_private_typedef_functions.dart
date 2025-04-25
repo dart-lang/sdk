@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       unit.unit.accept(visitor);
     }
     if (visitor.count <= 1) {
-      rule.reportLintForToken(identifier);
+      rule.reportAtToken(identifier);
     }
   }
 }

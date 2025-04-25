@@ -115,7 +115,7 @@ class _AvoidIntVisitor extends SimpleAstVisitor {
   @override
   void visitNamedType(NamedType node) {
     if (node.name2.lexeme == 'int') {
-      rule.reportLintForToken(node.name2);
+      rule.reportAtToken(node.name2);
     }
   }
 }

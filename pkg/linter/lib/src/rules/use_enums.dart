@@ -196,6 +196,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLintForToken(node.name);
+    rule.reportAtToken(node.name);
   }
 }

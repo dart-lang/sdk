@@ -359,7 +359,7 @@ abstract class LintRule {
     errorCode: errorCode,
   );
 
-  // TODO(srawlins): Deprecate this in favor of [reportToken].
+  @Deprecated('Use reportAtToken')
   void reportLintForToken(
     Token token, {
     List<Object> arguments = const [],

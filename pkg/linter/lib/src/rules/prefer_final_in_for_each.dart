@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         loopVariableElement != null &&
         !function.isPotentiallyMutatedInScope2(loopVariableElement)) {
       var name = loopVariable.name;
-      rule.reportLintForToken(
+      rule.reportAtToken(
         name,
         errorCode: LinterLintCode.prefer_final_in_for_each_variable,
         arguments: [name.lexeme],

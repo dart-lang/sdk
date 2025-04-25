@@ -533,17 +533,17 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (name == null) {
           rule.reportLint(member.returnType, arguments: [member.nameForError]);
         } else {
-          rule.reportLintForToken(name, arguments: [member.nameForError]);
+          rule.reportAtToken(name, arguments: [member.nameForError]);
         }
       } else if (member is NamedCompilationUnitMember) {
-        rule.reportLintForToken(member.name, arguments: [member.nameForError]);
+        rule.reportAtToken(member.name, arguments: [member.nameForError]);
       } else if (member is MethodDeclaration) {
-        rule.reportLintForToken(member.name, arguments: [member.name.lexeme]);
+        rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
       } else if (member is VariableDeclaration) {
-        rule.reportLintForToken(member.name, arguments: [member.nameForError]);
+        rule.reportAtToken(member.name, arguments: [member.nameForError]);
       } else if (member is ExtensionDeclaration) {
         var name = member.name;
-        rule.reportLintForToken(
+        rule.reportAtToken(
           name ?? member.extensionKeyword,
           arguments: [name?.lexeme ?? '<unnamed>'],
         );

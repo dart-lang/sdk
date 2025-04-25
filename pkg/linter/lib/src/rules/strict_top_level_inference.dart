@@ -117,7 +117,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           variable.declaredFragment?.element,
         );
         if (overriddenMember == null) {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             variable.name,
             errorCode: LinterLintCode.strict_top_level_inference_split_to_types,
           );
@@ -177,7 +177,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.returnType != null) return;
 
     if (!_isOverride(node, element)) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         node.name,
         errorCode: LinterLintCode.strict_top_level_inference_add_type,
       );
@@ -199,7 +199,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (noOverride) {
       if (node.returnType == null) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           node.name,
           errorCode: LinterLintCode.strict_top_level_inference_add_type,
         );
@@ -234,7 +234,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameter.type != null) return;
 
     if (!_isOverride(node, element)) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         node.name,
         errorCode: LinterLintCode.strict_top_level_inference_add_type,
       );
@@ -254,12 +254,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _report(Token errorToken, {Token? keyword}) {
     if (keyword == null || keyword.type == Keyword.FINAL) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         errorToken,
         errorCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     } else if (keyword.type == Keyword.VAR) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         errorToken,
         arguments: [keyword.lexeme],
         errorCode: LinterLintCode.strict_top_level_inference_replace_keyword,

@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (rightType == null) return;
     if (_comparable(leftType, rightType)) return;
 
-    rule.reportLintForToken(
+    rule.reportAtToken(
       node.operator,
       errorCode: LinterLintCode.unrelated_type_equality_checks_in_expression,
       arguments: [rightType.getDisplayString(), leftType.getDisplayString()],

@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var name = element?.name3;
       if (isJustUnderscores(name)) {
         if (!referencedElements.contains(element)) {
-          rule.reportLintForToken(parameterName);
+          rule.reportAtToken(parameterName);
         }
       }
     }
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (isJustUnderscores(node.name.lexeme)) {
       var parent = node.thisOrAncestorOfType<FunctionBody>();
       if (!collectReferences(parent).contains(node.declaredFragment?.element)) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       }
     }
   }

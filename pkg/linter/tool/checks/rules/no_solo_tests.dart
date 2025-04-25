@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // TODO(pq): we *could* ensure we're in a reflective test too.
     // Handle both 'solo_test_' and 'solo_fail_'.
     if (node.name.lexeme.startsWith('solo_')) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
       return;
     }
 

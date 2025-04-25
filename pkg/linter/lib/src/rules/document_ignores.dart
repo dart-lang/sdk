@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
 
-      rule.reportLintForToken(comment);
+      rule.reportAtToken(comment);
     }
   }
 

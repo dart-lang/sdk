@@ -113,7 +113,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else {
       if (!node.hasPotentiallyMutatedDeclaredVariableInScope(function)) {
         if (node.pattern.containsJustWildcards) return;
-        rule.reportLintForToken(node.keyword);
+        rule.reportAtToken(node.keyword);
       }
     }
   }
@@ -138,7 +138,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var keyword = node.keyword;
     if (keyword != null) {
-      rule.reportLintForToken(keyword);
+      rule.reportAtToken(keyword);
     } else if (node.type != null) {
       rule.reportLint(node.type);
     }

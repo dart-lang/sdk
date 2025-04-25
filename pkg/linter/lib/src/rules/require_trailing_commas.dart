@@ -141,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Check the last parameter to determine if there are any exceptions.
     if (_shouldAllowTrailingCommaException(lastNode)) return;
 
-    rule.reportLintForToken(errorToken);
+    rule.reportAtToken(errorToken);
   }
 
   bool _isSameLine(Token token1, Token token2) =>

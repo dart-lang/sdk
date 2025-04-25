@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         type.extendsClass('Future', 'dart.async') ||
         type.implementsInterface('Future', 'dart.async') ||
         type.isDartAsyncFutureOr)) {
-      rule.reportLintForToken(node.awaitKeyword, arguments: [type]);
+      rule.reportAtToken(node.awaitKeyword, arguments: [type]);
     }
   }
 }

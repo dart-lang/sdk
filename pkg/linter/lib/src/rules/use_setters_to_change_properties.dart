@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var parameterElement =
             node.declaredFragment?.element.formalParameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement2) {
-          rule.reportLintForToken(node.name);
+          rule.reportAtToken(node.name);
         }
       }
     }

@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (extensionType == null) return;
 
     if (_redeclaresMember(element, extensionType)) {
-      rule.reportLintForToken(node.name, arguments: [element.displayName]);
+      rule.reportAtToken(node.name, arguments: [element.displayName]);
     }
   }
 

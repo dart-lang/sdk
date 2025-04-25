@@ -147,6 +147,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var catchKeyword = node.catchKeyword;
     if (catchKeyword == null) return;
 
-    rule.reportLintForToken(catchKeyword);
+    rule.reportAtToken(catchKeyword);
   }
 }

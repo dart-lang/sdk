@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var keyword = node.keyword;
     if (keyword != null && keyword.type == Keyword.NEW) {
-      rule.reportLintForToken(keyword);
+      rule.reportAtToken(keyword);
     }
   }
 }

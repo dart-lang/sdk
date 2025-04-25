@@ -58,7 +58,7 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
 
     // Bail out on 'strings ${x ? "containing" : "other"} strings'
     if (!isNestedString(node)) {
-      rule.reportLintForToken(node.literal);
+      rule.reportAtToken(node.literal);
     }
   }
 

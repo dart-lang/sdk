@@ -105,7 +105,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   @override
   void visitSuperExpression(SuperExpression node) {
     if (node.beginToken.precedingComments != null) return;
-    rule.reportLintForToken(declaration.name);
+    rule.reportAtToken(declaration.name);
   }
 
   /// Returns whether [declaration] is annotated with any metadata (other than
