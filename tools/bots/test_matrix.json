@@ -3584,7 +3584,24 @@
       },
       "steps": [
         {
-          "name": "Build Dart VM - JIT and AOT",
+          "name": "Build Dart VM - JIT and AOT - gen_snapshot",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "Build Dart VM - JIT and AOT - runtime/bin:dart, run_vm_tests",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "runtime/bin:dart",
+            "runtime/bin:run_vm_tests"
+          ]
+        },
+        {
+          "name": "Build Dart VM - JIT and AOT - runtime, dartaotruntime",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
@@ -3593,7 +3610,26 @@
           ]
         },
         {
-          "name": "Build Dart VM - JIT and AOT (Release TSAN)",
+          "name": "Build Dart VM - JIT and AOT (Release TSAN) - gen_snapshot",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--sanitizer=tsan",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "Build Dart VM - JIT and AOT (Release TSAN)- runtime/bin:dart, run_vm_tests",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--sanitizer=tsan",
+            "runtime/bin:dart",
+            "runtime/bin:run_vm_tests"
+          ]
+        },
+        {
+          "name": "Build Dart VM - JIT and AOT (Release TSAN) - runtime, dartaotruntime",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
@@ -3641,6 +3677,7 @@
           "arguments": [
             "${build_root}/dart",
             "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "--arch=${arch}",
             "--copy-coredumps"
           ],
           "shards": 10,

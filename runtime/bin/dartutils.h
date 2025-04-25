@@ -178,7 +178,8 @@ class DartUtils {
   static Dart_Handle ReadStringFromFile(const char* filename);
   static Dart_Handle MakeUint8Array(const void* buffer, intptr_t length);
   static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
-                                             bool trace_loading);
+                                             bool trace_loading,
+                                             bool flag_profile_microtasks);
   static Dart_Handle SetupPackageConfig(const char* packages_file);
 
   static Dart_Handle SetupIOLibrary(const char* namespc_path,
@@ -316,7 +317,8 @@ class DartUtils {
                                         Dart_Handle io_lib,
                                         bool is_service_isolate);
   static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
-                                         Dart_Handle isolate_lib);
+                                         Dart_Handle isolate_lib,
+                                         bool flag_profile_microtasks);
   static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareCLILibrary(Dart_Handle cli_lib);

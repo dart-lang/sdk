@@ -15,7 +15,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -2840,118 +2839,6 @@ abstract class ElementImpl2 implements Element2 {
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     for (var child in children2) {
       child.accept2(visitor);
-    }
-  }
-}
-
-/// A concrete implementation of an [ElementLocation].
-class ElementLocationImpl implements ElementLocation {
-  /// The character used to separate components in the encoded form.
-  static const int _separatorChar = 0x3B;
-
-  /// The path to the element whose location is represented by this object.
-  late final List<String> _components;
-
-  /// Initialize a newly created location to represent the given [element].
-  ElementLocationImpl.con1(ElementImpl element) {
-    List<String> components = <String>[];
-    ElementImpl? ancestor = element;
-    while (ancestor != null) {
-      components.insert(0, ancestor.identifier);
-      if (ancestor is CompilationUnitElementImpl) {
-        components.insert(0, ancestor.library.identifier);
-        break;
-      }
-      ancestor = ancestor.enclosingElement3;
-    }
-    _components = components.toFixedList();
-  }
-
-  /// Initialize a newly created location from the given [encoding].
-  ElementLocationImpl.con2(String encoding) {
-    _components = _decode(encoding);
-  }
-
-  @override
-  List<String> get components => _components;
-
-  @override
-  String get encoding {
-    StringBuffer buffer = StringBuffer();
-    int length = _components.length;
-    for (int i = 0; i < length; i++) {
-      if (i > 0) {
-        buffer.writeCharCode(_separatorChar);
-      }
-      _encode(buffer, _components[i]);
-    }
-    return buffer.toString();
-  }
-
-  @override
-  int get hashCode => Object.hashAll(_components);
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    if (other is ElementLocationImpl) {
-      List<String> otherComponents = other._components;
-      int length = _components.length;
-      if (otherComponents.length != length) {
-        return false;
-      }
-      for (int i = 0; i < length; i++) {
-        if (_components[i] != otherComponents[i]) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  String toString() => encoding;
-
-  /// Decode the [encoding] of a location into a list of components and return
-  /// the components.
-  List<String> _decode(String encoding) {
-    List<String> components = <String>[];
-    StringBuffer buffer = StringBuffer();
-    int index = 0;
-    int length = encoding.length;
-    while (index < length) {
-      int currentChar = encoding.codeUnitAt(index);
-      if (currentChar == _separatorChar) {
-        if (index + 1 < length &&
-            encoding.codeUnitAt(index + 1) == _separatorChar) {
-          buffer.writeCharCode(_separatorChar);
-          index += 2;
-        } else {
-          components.add(buffer.toString());
-          buffer = StringBuffer();
-          index++;
-        }
-      } else {
-        buffer.writeCharCode(currentChar);
-        index++;
-      }
-    }
-    components.add(buffer.toString());
-    return components;
-  }
-
-  /// Append an encoded form of the given [component] to the given [buffer].
-  void _encode(StringBuffer buffer, String component) {
-    int length = component.length;
-    for (int i = 0; i < length; i++) {
-      int currentChar = component.codeUnitAt(i);
-      if (currentChar == _separatorChar) {
-        buffer.writeCharCode(_separatorChar);
-      }
-      buffer.writeCharCode(currentChar);
     }
   }
 }

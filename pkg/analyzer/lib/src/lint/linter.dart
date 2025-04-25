@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -367,19 +367,6 @@ abstract class LintRule {
     ErrorCode? errorCode,
   }) => reportAtToken(
     token,
-    arguments: arguments,
-    contextMessages: contextMessages,
-    errorCode: errorCode,
-  );
-
-  // TODO(srawlins): Deprecate this in favor of [reportPubNode].
-  void reportPubLint(
-    PSNode node, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage> contextMessages = const [],
-    ErrorCode? errorCode,
-  }) => reportAtPubNode(
-    node,
     arguments: arguments,
     contextMessages: contextMessages,
     errorCode: errorCode,

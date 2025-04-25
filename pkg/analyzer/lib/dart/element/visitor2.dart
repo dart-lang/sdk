@@ -22,7 +22,7 @@
 /// descendants of an element.
 library;
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// An element visitor that will recursively visit all of the elements in an
 /// element model (like instances of the class [RecursiveElementVisitor2]). In

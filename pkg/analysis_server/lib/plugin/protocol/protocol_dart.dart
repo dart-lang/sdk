@@ -7,7 +7,7 @@
 library;
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';

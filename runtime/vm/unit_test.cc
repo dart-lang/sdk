@@ -154,7 +154,7 @@ void SetupCoreLibrariesForUnitTest() {
   RELEASE_ASSERT(ok);
   Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
       /*is_service_isolate=*/false,
-      /*trace_loading=*/false);
+      /*trace_loading=*/false, /*flag_profile_microtasks=*/false);
   Dart_ExitScope();
 
   RELEASE_ASSERT(!Dart_IsError(result));

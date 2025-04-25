@@ -161,7 +161,13 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
   // Set up package configuration for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
+#if defined(PRODUCT)
+  bool flag_profile_microtasks = false;
+#else
+  bool flag_profile_microtasks = Options::profile_microtasks();
+#endif  // defined(PRODUCT)
+  result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading(),
+                                              flag_profile_microtasks);
   if (Dart_IsError(result)) return result;
 
   // Setup packages config if specified.

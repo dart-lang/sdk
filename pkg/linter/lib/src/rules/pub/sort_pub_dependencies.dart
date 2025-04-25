@@ -58,7 +58,7 @@ class Visitor extends PubspecVisitor<void> {
         var text = name.text;
         if (text != null) {
           if (text.compareTo(previousName) < 0) {
-            rule.reportPubLint(name);
+            rule.reportAtPubNode(name);
             return;
           }
           previousName = text;

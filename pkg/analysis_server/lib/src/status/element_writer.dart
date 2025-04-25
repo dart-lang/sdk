@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/status/tree_writer.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// A visitor that will produce an HTML representation of an element structure.

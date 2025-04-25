@@ -181,8 +181,6 @@ class C {
     );
   }
 
-  // TODO(srawlins): Test that `@awaitNotRequired` is inherited.
-
   test_functionCallInCascade_assignment() async {
     await assertNoDiagnostics(r'''
 void f() async {
@@ -199,11 +197,27 @@ class C {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';
 void f() async {
-  C()..doAsync();
+  C()..m();
 }
 class C {
   @awaitNotRequired
-  Future<void> doAsync() async {}
+  Future<void> m() async {}
+}
+''');
+  }
+
+  test_functionCallInCascade_awaitNotRequiredInherited() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f() async {
+  C()..m();
+}
+class C {
+  @awaitNotRequired
+  Future<void> m() async {}
+}
+class D {
+  Future<void> m() => Future.value();
 }
 ''');
   }
@@ -233,6 +247,20 @@ class C {
   }
 
   test_instanceProperty_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(C c) async {
+  c.p;
+}
+abstract class C {
+  Future<int> get p;
+}
+''',
+      [lint(22, 4)],
+    );
+  }
+
+  test_instanceProperty_unawaited_awaitNotRequired() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';
 void f(C c) async {
@@ -245,18 +273,20 @@ abstract class C {
 ''');
   }
 
-  test_instanceProperty_unawaited_awaitNotRequired() async {
-    await assertDiagnostics(
-      r'''
-void f(C c) async {
-  c.p;
+  test_instanceProperty_unawaited_awaitNotRequiredInherited() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(D d) async {
+  d.p;
 }
 abstract class C {
+  @awaitNotRequired
   Future<int> get p;
 }
-''',
-      [lint(22, 4)],
-    );
+class D extends C {
+  Future<int> p = Future.value(7);
+}
+''');
   }
 
   test_parameter_unawaited() async {

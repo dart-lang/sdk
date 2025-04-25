@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart'
+import 'package:analyzer/dart/element/element.dart'
     show
         ExtensionElement2,
         InterfaceElement2,

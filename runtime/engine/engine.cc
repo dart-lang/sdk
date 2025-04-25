@@ -194,8 +194,8 @@ Dart_Isolate Engine::StartIsolate(DartEngine_SnapshotData snapshot,
 
   // In fact, this call initializes core libraries, (e.g. `print` doesn't work
   // without it).
-  Dart_Handle core_libs_result =
-      bin::DartUtils::PrepareForScriptLoading(false, false);
+  Dart_Handle core_libs_result = bin::DartUtils::PrepareForScriptLoading(
+      false, false, /*flag_profile_microtasks=*/false);
   if (Dart_IsError(core_libs_result)) {
     *error = Utils::StrDup(Dart_GetError(core_libs_result));
     Dart_ShutdownIsolate();

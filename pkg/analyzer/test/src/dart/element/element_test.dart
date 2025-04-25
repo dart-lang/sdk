@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
@@ -18,7 +17,6 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementAnnotationImplTest);
-    defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(FieldElementImplTest);
     defineReflectiveTests(FunctionTypeImplTest);
     defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
@@ -49,70 +47,6 @@ main() {
 
     DartObject value = annotation.computeConstantValue()!;
     expect(value.getField('f')!.toStringValue(), 'x');
-  }
-}
-
-@reflectiveTest
-class ElementLocationImplTest {
-  void test_create_encoding() {
-    String encoding = "a;b;c";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    expect(location.encoding, encoding);
-  }
-
-  /// For example unnamed constructor.
-  void test_create_encoding_emptyLast() {
-    String encoding = "a;b;c;";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    expect(location.encoding, encoding);
-  }
-
-  void test_equals_equal() {
-    String encoding = "a;b;c";
-    ElementLocationImpl first = ElementLocationImpl.con2(encoding);
-    ElementLocationImpl second = ElementLocationImpl.con2(encoding);
-    expect(first == second, isTrue);
-  }
-
-  void test_equals_notEqual_differentLengths() {
-    ElementLocationImpl first = ElementLocationImpl.con2("a;b;c");
-    ElementLocationImpl second = ElementLocationImpl.con2("a;b;c;d");
-    expect(first == second, isFalse);
-  }
-
-  void test_equals_notEqual_notLocation() {
-    ElementLocationImpl first = ElementLocationImpl.con2("a;b;c");
-    // ignore: unrelated_type_equality_checks
-    expect(first == "a;b;d", isFalse);
-  }
-
-  void test_equals_notEqual_sameLengths() {
-    ElementLocationImpl first = ElementLocationImpl.con2("a;b;c");
-    ElementLocationImpl second = ElementLocationImpl.con2("a;b;d");
-    expect(first == second, isFalse);
-  }
-
-  void test_getComponents() {
-    String encoding = "a;b;c";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    List<String> components = location.components;
-    expect(components, hasLength(3));
-    expect(components[0], "a");
-    expect(components[1], "b");
-    expect(components[2], "c");
-  }
-
-  void test_getEncoding() {
-    String encoding = "a;b;c;;d";
-    ElementLocationImpl location = ElementLocationImpl.con2(encoding);
-    expect(location.encoding, encoding);
-  }
-
-  void test_hashCode_equal() {
-    String encoding = "a;b;c";
-    ElementLocationImpl first = ElementLocationImpl.con2(encoding);
-    ElementLocationImpl second = ElementLocationImpl.con2(encoding);
-    expect(first.hashCode == second.hashCode, isTrue);
   }
 }
 

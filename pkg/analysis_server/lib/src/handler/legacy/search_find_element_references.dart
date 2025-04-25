@@ -9,7 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/search/element_references.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// The handler for the `search.findElementReferences` request.
 class SearchFindElementReferencesHandler extends LegacyHandler {
