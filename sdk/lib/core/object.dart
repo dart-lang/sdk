@@ -15,6 +15,7 @@ part of dart.core;
 /// [Implementing map keys](https://dart.dev/guides/libraries/library-tour#implementing-map-keys)
 /// section of the [library tour](https://dart.dev/guides/libraries/library-tour).
 @pragma("vm:entry-point")
+@pragma('dyn-module:language-impl:extendable')
 class Object {
   /// Creates a new [Object] instance.
   ///
