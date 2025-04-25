@@ -3158,10 +3158,6 @@ package:analyzer/dart/element/element.dart:
     ordinal (getter: int)
     compareTo (method: int Function(ElementKind))
     toString (method: String Function())
-  ElementLocation (class extends Object):
-    new (constructor: ElementLocation Function())
-    components (getter: List<String>)
-    encoding (getter: String)
   ElementVisitor2 (class<R> extends Object):
     new (constructor: ElementVisitor2<R> Function())
     visitClassElement (method: R? Function(ClassElement2))
@@ -3840,7 +3836,6 @@ package:analyzer/dart/element/element2.dart:
   ElementAnnotation (see above)
   ElementDirective (see above)
   ElementKind (see above)
-  ElementLocation (see above)
   ElementVisitor2 (see above)
   EnumElement2 (see above)
   EnumFragment (see above)

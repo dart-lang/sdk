@@ -937,20 +937,6 @@ class ElementKind implements Comparable<ElementKind> {
   String toString() => name;
 }
 
-/// The location of an element within the element model.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ElementLocation {
-  /// The path to the element whose location is represented by this object.
-  ///
-  /// Clients must not modify the returned array.
-  List<String> get components;
-
-  /// The encoded representation of this location that can be used to create a
-  /// location that is equal to this location.
-  String get encoding;
-}
-
 /// An object that can be used to visit an element structure.
 ///
 /// Clients may not extend, implement or mix-in this class. There are classes

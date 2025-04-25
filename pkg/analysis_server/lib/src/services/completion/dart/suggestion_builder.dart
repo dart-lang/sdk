@@ -1443,12 +1443,6 @@ class SuggestionBuilder {
         namedParameters,
       );
     }
-    // If element is a local variable or is a parameter of a local function,
-    // then the element location can be null.
-    ElementLocation? elementLocation;
-    if (element is! LocalVariableElement2 ||
-        (element is FormalParameterElement &&
-            element.enclosingElement2 != null)) {}
 
     return _ElementCompletionData(
       isDeprecated: element.hasOrInheritsDeprecated,
@@ -1461,7 +1455,6 @@ class SuggestionBuilder {
       documentation: documentation,
       defaultArgumentList: defaultArgumentList,
       element: suggestedElement,
-      elementLocation: elementLocation,
       colorHex: colorHex,
     );
   }
@@ -1735,7 +1728,6 @@ class _ElementCompletionData {
   CompletionDefaultArgumentList? defaultArgumentList;
   final _ElementDocumentation? documentation;
   final protocol.Element element;
-  final ElementLocation? elementLocation;
   final String? colorHex;
 
   _ElementCompletionData({
@@ -1749,7 +1741,6 @@ class _ElementCompletionData {
     required this.defaultArgumentList,
     required this.documentation,
     required this.element,
-    required this.elementLocation,
     required this.colorHex,
   });
 }
