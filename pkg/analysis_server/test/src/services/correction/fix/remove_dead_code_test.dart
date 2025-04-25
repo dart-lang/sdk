@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -10,14 +11,32 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveDeadCodeTest);
+    defineReflectiveTests(RemoveDeadCodeClassicTest);
+    defineReflectiveTests(RemoveDeadCodeSoundFlowAnalysisTest);
   });
 }
 
 @reflectiveTest
-class RemoveDeadCodeTest extends FixProcessorTest {
+class RemoveDeadCodeClassicTest extends FixProcessorTest
+    with RemoveDeadCodeClassicTestCases {
+  @override
+  String get testPackageLanguageVersion => '3.8.0';
+}
+
+/// Test cases for dead code removal that don't rely on the
+/// `sound-flow-analysis` feature
+mixin RemoveDeadCodeClassicTestCases on FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
+
+  Future<void> test_and() async {
+    await resolveTestCode('''
+void f(bool b) => false && b;
+''');
+    await assertHasFix('''
+void f(bool b) => false;
+''');
+  }
 
   Future<void> test_catch_afterCatchAll_catch() async {
     await resolveTestCode('''
@@ -86,7 +105,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_condition() async {
+  Future<void> test_condition_or() async {
     await resolveTestCode('''
 void f(int p) {
   if (true || p > 5) {
@@ -292,6 +311,79 @@ void f() {
 ''');
   }
 
+  Future<void> test_forElement_throwInBody() async {
+    await resolveTestCode('''
+f() => [
+  for (var i = 0; i < 2; i++) ...[
+    i,
+    throw ''
+  ]
+];
+''');
+    await assertHasFix('''
+f() => [
+  for (var i = 0; i < 2; ) ...[
+    i,
+    throw ''
+  ]
+];
+''');
+  }
+
+  Future<void> test_forElementParts_updaters_multiple() async {
+    await resolveTestCode('''
+f() => [for (; false; 1, 2) 0];
+''');
+    await assertHasFix('''
+f() => [for (; false; ) 0];
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_forElementParts_updaters_multiple_comma() async {
+    await resolveTestCode('''
+f() => [for (; false; 1, 2,) 0];
+''');
+    await assertHasFix('''
+f() => [for (; false; ) 0];
+''', errorFilter: (error) => error.length == 4);
+  }
+
+  Future<void> test_forElementParts_updaters_throw() async {
+    await resolveTestCode('''
+f() => [for (;; 0, throw 1, 2) 0];
+''');
+    await assertHasFix('''
+f() => [for (;; 0, throw 1) 0];
+''');
+  }
+
+  Future<void> test_forElementParts_updaters_throw_comma() async {
+    await resolveTestCode('''
+f() => [for (;; 0, throw 1, 2,) 0];
+''');
+    await assertHasFix('''
+f() => [for (;; 0, throw 1,) 0];
+''');
+  }
+
+  Future<void> test_forElementParts_updaters_throw_multiple() async {
+    await resolveTestCode('''
+f() => [for (;; 0, throw 1, 2, 3) 0];
+''');
+    await assertHasFix('''
+f() => [for (;; 0, throw 1) 0];
+''');
+  }
+
+  Future<void> test_forElementParts_updaters_throw_multiple_comma() async {
+    await resolveTestCode('''
+f() => [for (;; 0, throw 1, 2, 3,) 0];
+''');
+    await assertHasFix('''
+f() => [for (;; 0, throw 1,) 0];
+''');
+  }
+
   Future<void> test_forParts_updaters_multiple() async {
     await resolveTestCode('''
 void f() {
@@ -368,6 +460,20 @@ void f() {
   for (;; 0, throw 1,) {}
 }
 ''');
+  }
+
+  Future<void> test_if_false_return() async {
+    await resolveTestCode('''
+void f() {
+  if (false) return;
+  print('');
+}
+''');
+    // No fix. It's not safe to remove the `return;` statement, because then the
+    // `if (false)` would cover the `print('');` statement.
+    // TODO(paulberry): add the ability to recognize that `false` has no effect,
+    // and thus it is safe to remove the entire `if` statement.
+    await assertNoFix();
   }
 
   Future<void> test_statements_one() async {
@@ -542,4 +648,25 @@ void f() {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class RemoveDeadCodeSoundFlowAnalysisTest extends FixProcessorTest
+    with RemoveDeadCodeClassicTestCases {
+  @override
+  List<String> get experiments => [...super.experiments, 'sound-flow-analysis'];
+
+  Future<void> test_ifNull() async {
+    await resolveTestCode('''
+void f(int i, int j) => i ?? j;
+''');
+    await assertHasFix('''
+void f(int i, int j) => i;
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  /// Error filter ignoring warnings that frequently occur in conjunction with
+  /// code that is dead due to sound flow analysis.
+  bool _ignoreNullSafetyWarnings(AnalysisError error) =>
+      error.errorCode.name != 'DEAD_NULL_AWARE_EXPRESSION';
 }
