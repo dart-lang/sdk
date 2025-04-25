@@ -33,7 +33,7 @@ class CreateField extends CreateFieldOrGetter {
   @override
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,
-    required InterfaceElement2? targetElement,
+    required InterfaceElement? targetElement,
     required String fieldName,
     required DartType? fieldType,
   }) async {
@@ -64,7 +64,7 @@ class CreateField extends CreateFieldOrGetter {
   Future<void> _addDeclaration({
     required ChangeBuilder builder,
     required bool staticModifier,
-    required InterfaceElement2? targetElement,
+    required InterfaceElement? targetElement,
     required DartType? fieldType,
   }) async {
     if (targetElement == null) {
@@ -153,7 +153,7 @@ class CreateField extends CreateFieldOrGetter {
     };
     // Prepare target `ClassElement`.
     var staticModifier = false;
-    InterfaceElement2? targetClassElement;
+    InterfaceElement? targetClassElement;
     if (target != null) {
       targetClassElement = getTargetInterfaceElement(target);
       // Maybe static.
@@ -172,7 +172,7 @@ class CreateField extends CreateFieldOrGetter {
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldTypeParent = fieldTypeNode.parent;
-    if (targetClassElement is EnumElement2 &&
+    if (targetClassElement is EnumElement &&
         fieldTypeParent is AssignmentExpression &&
         fieldTypeNode == fieldTypeParent.leftHandSide) {
       // Any field on an enum must be final; creating a final field does not

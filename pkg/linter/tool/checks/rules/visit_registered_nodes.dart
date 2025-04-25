@@ -40,7 +40,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   final InheritanceManager3 inheritanceManager;
   _BodyVisitor(this.rule, this.inheritanceManager);
 
-  bool implements(ClassElement2 visitor, String methodName) {
+  bool implements(ClassElement visitor, String methodName) {
     var member = inheritanceManager.getMember4(
       visitor,
       Name(null, methodName),
@@ -67,7 +67,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
     var argType = args[1].staticType;
     if (argType is! InterfaceType) return;
     var visitor = argType.element3;
-    if (visitor is! ClassElement2) return;
+    if (visitor is! ClassElement) return;
     if (implements(visitor, 'visit$nodeType')) return;
 
     rule.reportLint(node.methodName);

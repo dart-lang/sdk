@@ -12,13 +12,13 @@ import 'package:analyzer/src/error/codes.dart';
 /// Verifier for initializing fields in constructors.
 class ConstructorFieldsVerifier {
   final TypeSystemImpl typeSystem;
-  final Map<InstanceElement2, _Interface> _interfaces = Map.identity();
+  final Map<InstanceElement, _Interface> _interfaces = Map.identity();
 
   ConstructorFieldsVerifier({required this.typeSystem});
 
   void addConstructors(
     ErrorReporter errorReporter,
-    InterfaceElement2 element,
+    InterfaceElement element,
     List<ClassMember> members,
   ) {
     var interfaceFields = _forInterface(element);
@@ -65,18 +65,18 @@ class ConstructorFieldsVerifier {
     constructorState.updateWithInitializers(errorReporter, node);
   }
 
-  _Interface _forInterface(InterfaceElement2 element) {
+  _Interface _forInterface(InterfaceElement element) {
     if (_interfaces[element] case var result?) {
       return result;
     }
 
-    var fieldMap = <FieldElement2, _InitState>{};
+    var fieldMap = <FieldElement, _InitState>{};
 
     for (var field in element.fields2) {
       if (field.isSynthetic) {
         continue;
       }
-      if (element is EnumElement2 && field.name3 == 'index') {
+      if (element is EnumElement && field.name3 == 'index') {
         continue;
       }
       fieldMap[field] =
@@ -97,8 +97,8 @@ class _Constructor {
   final TypeSystemImpl typeSystem;
   final ErrorReporter errorReporter;
   final ConstructorDeclaration node;
-  final ConstructorElement2 element;
-  final Map<FieldElement2, _InitState> fields;
+  final ConstructorElement element;
+  final Map<FieldElement, _InitState> fields;
 
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;
@@ -197,7 +197,7 @@ class _Constructor {
       if (initializer is ConstructorFieldInitializer) {
         var fieldName = initializer.fieldName;
         var fieldElement = fieldName.element;
-        if (fieldElement is FieldElement2) {
+        if (fieldElement is FieldElement) {
           var state = fields[fieldElement];
           if (state == _InitState.notInit) {
             fields[fieldElement] = _InitState.initInInitializer;
@@ -259,7 +259,7 @@ class _Constructor {
 
 /// The field with a non `null` name.
 class _Field {
-  final FieldElement2 element;
+  final FieldElement element;
   final String name;
 
   _Field(this.element, this.name);
@@ -287,14 +287,14 @@ enum _InitState {
 
 class _Interface {
   final TypeSystemImpl typeSystem;
-  final InterfaceElement2 element;
+  final InterfaceElement element;
 
   /// [_InitState.notInit] or [_InitState.initInDeclaration] for each field
   /// in [element]. This map works as the initial state for
   /// [_Constructor].
-  final Map<FieldElement2, _InitState> fields;
+  final Map<FieldElement, _InitState> fields;
 
-  final Map<ConstructorElement2, _Constructor> constructors = Map.identity();
+  final Map<ConstructorElement, _Constructor> constructors = Map.identity();
 
   _Interface({
     required this.typeSystem,

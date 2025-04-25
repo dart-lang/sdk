@@ -1986,7 +1986,7 @@ class _CallDispatcher implements CallDispatcher {
     CallHandler? handler;
     switch (callDescriptor) {
       case ElementCallDescriptor(:var name, :var element):
-        if (element.enclosingElement2 case InstanceElement2(
+        if (element.enclosingElement2 case InstanceElement(
           name3: var typeName,
         )) {
           name = '${typeName ?? '<unnamed>'}.$name';

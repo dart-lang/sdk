@@ -67,7 +67,7 @@ class SourceReference {
 
   SourceReference(this._match);
 
-  Element2 get element => _match.element;
+  Element get element => _match.element;
 
   /// The full path of the file containing the match.
   String get file => _match.file;
@@ -87,8 +87,8 @@ class SourceReference {
 
   bool get isResolved => _match.isResolved;
 
-  /// Return the [LibraryElement2] for the [file].
-  LibraryElement2 get libraryElement => _match.libraryElement;
+  /// Return the [LibraryElement] for the [file].
+  LibraryElement get libraryElement => _match.libraryElement;
 
   SourceRange get range => _match.sourceRange;
 

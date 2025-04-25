@@ -11,17 +11,17 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-/// A computer for a type hierarchy of an [Element2].
+/// A computer for a type hierarchy of an [Element].
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
   final TypeHierarchyComputerHelper helper;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
-  final List<InterfaceElement2> _itemClassElements = [];
-  final Map<Element2, TypeHierarchyItem> _elementItemMap =
-      HashMap<Element2, TypeHierarchyItem>();
+  final List<InterfaceElement> _itemClassElements = [];
+  final Map<Element, TypeHierarchyItem> _elementItemMap =
+      HashMap<Element, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine, Element2 pivotElement)
+  TypeHierarchyComputer(this._searchEngine, Element pivotElement)
     : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
 
   /// Returns the computed type hierarchy, maybe `null`.
@@ -49,7 +49,7 @@ class TypeHierarchyComputer {
   Future<void> _createSubclasses(
     TypeHierarchyItem item,
     int itemId,
-    InterfaceElement2 classElement,
+    InterfaceElement classElement,
     SearchEngineCache searchEngineCache,
   ) async {
     var subElements = await getDirectSubClasses(
@@ -100,7 +100,7 @@ class TypeHierarchyComputer {
   }
 
   int _createSuperItem(
-    InterfaceElement2 classElement,
+    InterfaceElement classElement,
     List<DartType>? typeArguments,
   ) {
     // check for recursion
@@ -160,12 +160,12 @@ class TypeHierarchyComputer {
 }
 
 class TypeHierarchyComputerHelper {
-  final Element2 pivotElement;
-  final LibraryElement2 pivotLibrary;
+  final Element pivotElement;
+  final LibraryElement pivotLibrary;
   final ElementKind pivotKind;
   final String? pivotName;
   final bool pivotFieldFinal;
-  final InterfaceElement2? pivotClass;
+  final InterfaceElement? pivotClass;
 
   TypeHierarchyComputerHelper(
     this.pivotElement,
@@ -176,19 +176,19 @@ class TypeHierarchyComputerHelper {
     this.pivotClass,
   );
 
-  factory TypeHierarchyComputerHelper.fromElement(Element2 pivotElement) {
+  factory TypeHierarchyComputerHelper.fromElement(Element pivotElement) {
     // try to find enclosing ClassElement
-    Element2? element = pivotElement;
+    Element? element = pivotElement;
     bool pivotFieldFinal = false;
-    if (pivotElement is FieldElement2) {
+    if (pivotElement is FieldElement) {
       pivotFieldFinal = pivotElement.isFinal;
       element = pivotElement.enclosingElement2;
     }
-    if (pivotElement is ExecutableElement2) {
+    if (pivotElement is ExecutableElement) {
       element = pivotElement.enclosingElement2;
     }
-    InterfaceElement2? pivotClass;
-    if (element is InterfaceElement2) {
+    InterfaceElement? pivotClass;
+    if (element is InterfaceElement) {
       pivotClass = element;
     }
 
@@ -202,10 +202,10 @@ class TypeHierarchyComputerHelper {
     );
   }
 
-  ExecutableElement2? findMemberElement(InterfaceElement2 clazz) {
+  ExecutableElement? findMemberElement(InterfaceElement clazz) {
     // Members of extension types don't override anything.
     // They redeclare, and resolved statically.
-    if (pivotClass is ExtensionTypeElement2 || clazz is ExtensionTypeElement2) {
+    if (pivotClass is ExtensionTypeElement || clazz is ExtensionTypeElement) {
       return null;
     }
 
@@ -213,7 +213,7 @@ class TypeHierarchyComputerHelper {
     if (pivotName == null) {
       return null;
     }
-    ExecutableElement2? result;
+    ExecutableElement? result;
     // try to find in the class itself
     if (pivotKind == ElementKind.METHOD) {
       result = clazz.getMethod2(pivotName);

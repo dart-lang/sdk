@@ -435,7 +435,7 @@ class BinaryExpressionResolver {
       nameErrorEntity: node,
     );
 
-    node.element = result.getter2 as MethodElement2?;
+    node.element = result.getter2 as MethodElement?;
     node.staticInvokeType = result.getter2?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {

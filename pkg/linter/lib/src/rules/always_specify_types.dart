@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
       var element = node.declaredElement2;
-      if (element is VariableElement2) {
+      if (element is VariableElement) {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportAtToken(
             keyword,
@@ -119,7 +119,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = namedType.type;
     if (type is InterfaceType) {
       var element = namedType.element2;
-      if (element is TypeParameterizedElement2 &&
+      if (element is TypeParameterizedElement &&
           element.typeParameters2.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
@@ -229,7 +229,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         DartType? type;
         if (initializer is Identifier) {
           var element = initializer.element;
-          if (element is LocalVariableElement2) {
+          if (element is LocalVariableElement) {
             type = element.type;
           }
         }

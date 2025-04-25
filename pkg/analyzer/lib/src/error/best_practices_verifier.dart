@@ -45,7 +45,7 @@ import 'package:meta/meta.dart';
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  InterfaceElement2? _enclosingClass;
+  InterfaceElement? _enclosingClass;
 
   /// A flag indicating whether a surrounding member is annotated as
   /// `@doNotStore`.
@@ -391,9 +391,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
-        ExecutableElement2? getOverriddenPropertyAccessor() {
+        ExecutableElement? getOverriddenPropertyAccessor() {
           var element = field.declaredFragment!.element;
-          if (element is PropertyAccessorElement2 || element is FieldElement2) {
+          if (element is PropertyAccessorElement || element is FieldElement) {
             var name = element.name3;
             if (name == null) {
               return null;
@@ -401,7 +401,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             var nameObj = Name(_currentLibrary.source.uri, name);
             var enclosingElement = element.enclosingElement2!;
             var enclosingDeclaration = enclosingElement;
-            if (enclosingDeclaration is InterfaceElement2) {
+            if (enclosingDeclaration is InterfaceElement) {
               var overridden = _inheritanceManager.getMember4(
                 enclosingDeclaration,
                 nameObj,
@@ -615,8 +615,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
 
       var elementIsOverride = false;
-      if (enclosingElement is InterfaceElement2) {
-        if (element is MethodElement2 || element is PropertyAccessorElement2) {
+      if (enclosingElement is InterfaceElement) {
+        if (element is MethodElement || element is PropertyAccessorElement) {
           elementIsOverride =
               _inheritanceManager.getOverridden4(enclosingElement, name) !=
               null;
@@ -635,7 +635,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
 
       var overriddenElement =
-          enclosingElement is InterfaceElement2
+          enclosingElement is InterfaceElement
               ? _inheritanceManager.getMember4(
                 enclosingElement,
                 name,
@@ -921,8 +921,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     /// Return `true` if the given class [element] or any superclass of it is
     /// annotated with the `@immutable` annotation.
     bool isOrInheritsImmutable(
-      InterfaceElement2 element,
-      Set<InterfaceElement2> visited,
+      InterfaceElement element,
+      Set<InterfaceElement> visited,
     ) {
       if (visited.add(element)) {
         if (element.metadata2.hasImmutable) {
@@ -945,18 +945,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    Iterable<String> nonFinalInstanceFields(InterfaceElement2 element) {
+    Iterable<String> nonFinalInstanceFields(InterfaceElement element) {
       return element.fields2
           .where(
-            (FieldElement2 field) =>
+            (FieldElement field) =>
                 !field.isSynthetic && !field.isFinal && !field.isStatic,
           )
-          .map((FieldElement2 field) => '${element.name3}.${field.name3}');
+          .map((FieldElement field) => '${element.name3}.${field.name3}');
     }
 
     Iterable<String> definedOrInheritedNonFinalInstanceFields(
-      InterfaceElement2 element,
-      Set<InterfaceElement2> visited,
+      InterfaceElement element,
+      Set<InterfaceElement> visited,
     ) {
       Iterable<String> nonFinalFields = [];
       if (visited.add(element)) {
@@ -978,12 +978,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return nonFinalFields;
     }
 
-    var element = node.declaredFragment!.element as InterfaceElement2;
-    if (isOrInheritsImmutable(element, HashSet<InterfaceElement2>())) {
+    var element = node.declaredFragment!.element as InterfaceElement;
+    if (isOrInheritsImmutable(element, HashSet<InterfaceElement>())) {
       Iterable<String> nonFinalFields =
           definedOrInheritedNonFinalInstanceFields(
             element,
-            HashSet<InterfaceElement2>(),
+            HashSet<InterfaceElement>(),
           );
       if (nonFinalFields.isNotEmpty) {
         _errorReporter.atToken(
@@ -1016,7 +1016,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var exportNamespace = NamespaceBuilder().createExportNamespaceForDirective2(
       libraryExport,
     );
-    exportNamespace.definedNames2.forEach((String name, Element2 element) {
+    exportNamespace.definedNames2.forEach((String name, Element element) {
       if (element case Annotatable annotatable) {
         if (annotatable.metadata2.hasInternal) {
           _errorReporter.atNode(
@@ -1027,7 +1027,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           return;
         }
       }
-      if (element is ExecutableElement2) {
+      if (element is ExecutableElement) {
         var signatureTypes = [
           ...element.formalParameters.map((p) => p.type),
           element.returnType,
@@ -1048,7 +1048,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
-    bool currentPackageContains(Element2 element) {
+    bool currentPackageContains(Element element) {
       return _isLibraryInWorkspacePackage(element.library2);
     }
 
@@ -1056,14 +1056,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
     // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
     // `declaredElement` of these specific classes is a [ClassElement].
-    var element = node.declaredFragment!.element as InterfaceElement2;
+    var element = node.declaredFragment!.element as InterfaceElement;
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
       var superclass = supertype.element3;
       if (superclass.metadata2.hasSealed) {
         if (!currentPackageContains(superclass)) {
-          if (element is MixinElement2 &&
+          if (element is MixinElement &&
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
@@ -1296,7 +1296,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   ///
   /// Returns `true` if a warning code is generated for [node].
   bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
-    if (node.name.lexeme != MethodElement2.NO_SUCH_METHOD_METHOD_NAME) {
+    if (node.name.lexeme != MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
       return false;
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
@@ -1304,11 +1304,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           invocation.target is SuperExpression &&
           invocation.argumentList.arguments.length == 1) {
         SimpleIdentifier name = invocation.methodName;
-        if (name.name == MethodElement2.NO_SUCH_METHOD_METHOD_NAME) {
+        if (name.name == MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
           var methodElement = name.element;
           var classElement = methodElement?.enclosingElement2;
-          return methodElement is MethodElement2 &&
-              classElement is ClassElement2 &&
+          return methodElement is MethodElement &&
+              classElement is ClassElement &&
               !classElement.isDartCoreObject;
         }
       }
@@ -1513,19 +1513,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// Return subexpressions that are marked `@doNotStore`, as a map so that
   /// corresponding elements can be used in the diagnostic message.
-  Map<Expression, Element2> _getSubExpressionsMarkedDoNotStore(
+  Map<Expression, Element> _getSubExpressionsMarkedDoNotStore(
     Expression? expression, {
-    Map<Expression, Element2>? addTo,
+    Map<Expression, Element>? addTo,
   }) {
-    var expressions = addTo ?? <Expression, Element2>{};
+    var expressions = addTo ?? <Expression, Element>{};
 
-    Element2? element;
+    Element? element;
     if (expression is PropertyAccess) {
       element = expression.propertyName.element;
       // Tear-off.
       if (element is LocalFunctionElement ||
           element is TopLevelFunctionElement ||
-          element is MethodElement2) {
+          element is MethodElement) {
         element = null;
       }
     } else if (expression is MethodInvocation) {
@@ -1535,7 +1535,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // Tear-off.
       if (element is LocalFunctionElement ||
           element is TopLevelFunctionElement ||
-          element is MethodElement2) {
+          element is MethodElement) {
         element = null;
       }
     } else if (expression is ConditionalExpression) {
@@ -1562,7 +1562,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _getSubExpressionsMarkedDoNotStore(body.expression, addTo: expressions);
       }
     }
-    if (element is PropertyAccessorElement2 && element.isSynthetic) {
+    if (element is PropertyAccessorElement && element.isSynthetic) {
       element = element.variable3;
     }
 
@@ -1573,7 +1573,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return expressions;
   }
 
-  bool _isLibraryInWorkspacePackage(LibraryElement2? library) {
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     if (_workspacePackage == null || library == null) {
       // Better to not make a big claim that they _are_ in the same package,
       // if we were unable to determine what package [_currentLibrary] is in.
@@ -1586,8 +1586,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return node.name?.lexeme ?? '';
   }
 
-  static bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
-    if (element is PropertyAccessorElement2 && element.isSynthetic) {
+  static bool _hasNonVirtualAnnotation(ExecutableElement element) {
+    if (element is PropertyAccessorElement && element.isSynthetic) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasNonVirtual) {
         return true;
@@ -1642,13 +1642,13 @@ class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
 
   final ErrorReporter _errorReporter;
-  final LibraryElement2 _library;
+  final LibraryElement _library;
   final WorkspacePackage? _workspacePackage;
 
   final bool _inTemplateSource;
   final bool _inTestDirectory;
 
-  InterfaceElement2? _enclosingClass;
+  InterfaceElement? _enclosingClass;
 
   _InvalidAccessVerifier(
     this._errorReporter,
@@ -1823,7 +1823,7 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForInvalidDoNotSubmitAccess(AstNode node, Element2 element) {
+  void _checkForInvalidDoNotSubmitAccess(AstNode node, Element element) {
     if (element is FormalParameterElement || !_hasDoNotSubmit(element)) {
       return;
     }
@@ -1915,7 +1915,7 @@ class _InvalidAccessVerifier {
   void _checkForInvalidInternalAccess({
     required AstNode? parent,
     required Token nameToken,
-    required Element2 element,
+    required Element element,
   }) {
     if (element.isInternal && !_isLibraryInWorkspacePackage(element.library2)) {
       String name;
@@ -1939,10 +1939,10 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForOtherInvalidAccess(AstNode node, Element2 element) {
+  void _checkForOtherInvalidAccess(AstNode node, Element element) {
     var hasProtected = element.isProtected;
     if (hasProtected) {
-      var definingClass = element.enclosingElement2 as InterfaceElement2;
+      var definingClass = element.enclosingElement2 as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
         return;
       }
@@ -2023,13 +2023,13 @@ class _InvalidAccessVerifier {
     }
   }
 
-  bool _hasDoNotSubmit(Element2 element) {
+  bool _hasDoNotSubmit(Element element) {
     if (element case Annotatable annotatable) {
       if (annotatable.metadata2.hasDoNotSubmit) {
         return true;
       }
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       return variable != null && variable.metadata2.hasDoNotSubmit;
     }
@@ -2037,8 +2037,8 @@ class _InvalidAccessVerifier {
   }
 
   bool _hasTypeOrSuperType(
-    InterfaceElement2? element,
-    InterfaceElement2 superElement,
+    InterfaceElement? element,
+    InterfaceElement superElement,
   ) {
     if (element == null) {
       return false;
@@ -2046,14 +2046,14 @@ class _InvalidAccessVerifier {
     return element.thisType.asInstanceOf2(superElement) != null;
   }
 
-  bool _hasVisibleForOverriding(Element2 element) {
+  bool _hasVisibleForOverriding(Element element) {
     if (element case Annotatable annotatable) {
       if (annotatable.metadata2.hasVisibleForOverriding) {
         return true;
       }
     }
 
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       return variable != null && variable.metadata2.hasVisibleForOverriding;
     }
@@ -2061,7 +2061,7 @@ class _InvalidAccessVerifier {
     return false;
   }
 
-  bool _hasVisibleForTemplate(Element2? element) {
+  bool _hasVisibleForTemplate(Element? element) {
     if (element == null) {
       return false;
     }
@@ -2070,7 +2070,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasVisibleForTemplate) {
         return true;
@@ -2083,13 +2083,13 @@ class _InvalidAccessVerifier {
     return false;
   }
 
-  bool _hasVisibleOutsideTemplate(Element2 element) {
+  bool _hasVisibleOutsideTemplate(Element element) {
     if (element case Annotatable annotatable) {
       if (annotatable.metadata2.hasVisibleOutsideTemplate) {
         return true;
       }
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasVisibleOutsideTemplate) {
         return true;
@@ -2108,12 +2108,12 @@ class _InvalidAccessVerifier {
     return parent is CommentReference || parent?.parent is CommentReference;
   }
 
-  bool _inCurrentLibrary(Element2 element) => element.library2 == _library;
+  bool _inCurrentLibrary(Element element) => element.library2 == _library;
 
   bool _inExportDirective(AstNode node) =>
       node.parent is Combinator && node.parent!.parent is ExportDirective;
 
-  bool _isLibraryInWorkspacePackage(LibraryElement2? library) {
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     if (_workspacePackage == null || library == null) {
       // Better to not make a big claim that they _are_ in the same package,
       // if we were unable to determine what package [_currentLibrary] is in.
@@ -2122,18 +2122,18 @@ class _InvalidAccessVerifier {
     return _workspacePackage.contains(library.firstFragment.source);
   }
 
-  /// Check if @visibleForTemplate is applied to the given [Element2].
+  /// Check if @visibleForTemplate is applied to the given [Element].
   ///
-  /// [ClassElement2], [EnumElement2] and [MixinElement2] are excluded from the
+  /// [ClassElement], [EnumElement] and [MixinElement] are excluded from the
   /// @visibleForTemplate access checks. Instead, the access restriction is
   /// cascaded to all the corresponding members not annotated by
   /// @visibleOutsideTemplate.
   /// For other types of elements, check if they are annotated based on
   /// `hasVisibleForTemplate` value.
-  bool _isVisibleForTemplateApplied(Element2 element) {
-    if (element is ClassElement2 ||
-        element is EnumElement2 ||
-        element is MixinElement2) {
+  bool _isVisibleForTemplateApplied(Element element) {
+    if (element is ClassElement ||
+        element is EnumElement ||
+        element is MixinElement) {
       return false;
     } else {
       return _hasVisibleForTemplate(element) &&
@@ -2143,7 +2143,7 @@ class _InvalidAccessVerifier {
 
   static (String, SyntacticEntity) _getIdentifierNameAndErrorEntity(
     AstNode node,
-    Element2 element,
+    Element element,
   ) {
     String name;
     SyntacticEntity errorEntity = node;

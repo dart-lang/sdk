@@ -87,7 +87,7 @@ class LibraryManifestBuilder {
   ///
   /// Then we iterate over the elements in [libraryElements], and build new
   /// items for declared elements that don't have items in this map.
-  final Map<Element2, ManifestItem> declaredItems = Map.identity();
+  final Map<Element, ManifestItem> declaredItems = Map.identity();
 
   /// The new manifests for libraries.
   final Map<Uri, LibraryManifest> newManifests = {};
@@ -622,9 +622,9 @@ class LibraryManifestBuilder {
     // Compare structures of the elements against the existing manifests.
     // At the end `affectedElements` is filled with mismatched by structure.
     // And for matched by structure we have reference maps.
-    var refElementsMap = Map<Element2, List<Element2>>.identity();
-    var refExternalIds = Map<Element2, ManifestItemId>.identity();
-    var affectedElements = Set<Element2>.identity();
+    var refElementsMap = Map<Element, List<Element>>.identity();
+    var refExternalIds = Map<Element, ManifestItemId>.identity();
+    var affectedElements = Set<Element>.identity();
     for (var libraryElement in libraryElements) {
       var libraryUri = libraryElement.uri;
       var manifest = _getInputManifest(libraryUri);
@@ -694,7 +694,7 @@ class LibraryManifestBuilder {
 
   /// Returns either the existing item from [declaredItems], or builds a new one.
   Item _getOrBuildElementItem<
-    Element extends Element2,
+    Element extends ElementImpl2,
     Item extends ManifestItem
   >(Element element, Item Function() build) {
     // We assume that when matching elements against the structure of
@@ -723,11 +723,11 @@ class _LibraryMatch {
 
   /// Elements that have structure matching the corresponding items from
   /// [manifest].
-  final Map<Element2, ManifestItem> itemMap;
+  final Map<Element, ManifestItem> itemMap;
 
   /// Elements with mismatched structure.
   /// These elements will get new identifiers.
-  final Set<Element2> structureMismatched;
+  final Set<Element> structureMismatched;
 
   /// Key: an element of [library].
   /// Value: the elements that the key references.
@@ -736,7 +736,7 @@ class _LibraryMatch {
   /// bundles. This information allows propagating invalidation from affected
   /// elements to their dependents.
   // TODO(scheglov): hm... maybe store it? And reverse it.
-  final Map<Element2, List<Element2>> refElementsMap;
+  final Map<Element, List<Element>> refElementsMap;
 
   /// Key: an element from an external bundle.
   /// Value: the identifier at the time when [manifest] was built.
@@ -744,7 +744,7 @@ class _LibraryMatch {
   /// If [LibraryManifestBuilder] later finds that some of these elements now
   /// have different identifiers, it propagates invalidation using
   /// [refElementsMap].
-  final Map<Element2, ManifestItemId> refExternalIds;
+  final Map<Element, ManifestItemId> refExternalIds;
 
   _LibraryMatch({
     required this.manifest,

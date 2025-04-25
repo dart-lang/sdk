@@ -58,7 +58,7 @@ class ElementPrinter {
     }
   }
 
-  void writeElement2(Element2? element) {
+  void writeElement2(Element? element) {
     switch (element) {
       case null:
         _sink.writeln('<null>');
@@ -70,7 +70,7 @@ class ElementPrinter {
         writelnReference(element.reference);
       case TypeParameterElementImpl2():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case ConstructorElement2 element:
+      case ConstructorElement element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
@@ -122,7 +122,7 @@ class ElementPrinter {
         writelnReference(element.reference);
       case MixinElementImpl2 element:
         writelnReference(element.reference);
-      case MethodElement2 element:
+      case MethodElement element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
@@ -149,7 +149,7 @@ class ElementPrinter {
     }
   }
 
-  void writeElementList2(String name, List<Element2> elements) {
+  void writeElementList2(String name, List<Element> elements) {
     _sink.writeElements(name, elements, (element) {
       _sink.writeIndent();
       writeElement2(element);
@@ -191,7 +191,7 @@ class ElementPrinter {
     _sink.writeln();
   }
 
-  void writeNamedElement2(String name, Element2? element) {
+  void writeNamedElement2(String name, Element? element) {
     _sink.writeIndent();
     _sink.write('$name: ');
     writeElement2(element);
@@ -358,7 +358,7 @@ class ElementPrinter {
     return '${source.uri}';
   }
 
-  String _substitutionMapStr(Map<TypeParameterElement2, DartType> map) {
+  String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
     var entriesStr = map.entries
         .map((entry) {
           return '${entry.key.name3}: ${_typeStr(entry.value)}';

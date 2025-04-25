@@ -48,7 +48,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  DeadCodeVerifier(this._errorReporter, LibraryElement2 library)
+  DeadCodeVerifier(this._errorReporter, LibraryElement library)
     : _wildCardVariablesEnabled = library.featureSet.isEnabled(
         Feature.wildcard_variables,
       );
@@ -131,7 +131,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
       if (_wildCardVariablesEnabled &&
-          element is LocalVariableElement2 &&
+          element is LocalVariableElement &&
           element.name3 == '_') {
         _errorReporter.atNode(
           initializer,
@@ -160,7 +160,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
-      Element2? element = namespace.get2(nameStr);
+      Element? element = namespace.get2(nameStr);
       element ??= namespace.get2("$nameStr=");
       if (element == null) {
         _errorReporter.atNode(

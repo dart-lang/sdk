@@ -70,7 +70,7 @@ class GetterSetterTypesVerifier {
           var getterType = getter.returnType;
           var setterType = setter.formalParameters[0].type;
           if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
-            Element2 errorElement;
+            Element errorElement;
             if (getter.enclosingElement2 == element) {
               if (element is ExtensionTypeElementImpl2 &&
                   element.representation2.getter2 == getter) {

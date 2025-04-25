@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parameter.declaredFragment?.element;
       var name = parameter.name;
       if (declaredElement != null &&
-          declaredElement is! FieldFormalParameterElement2 &&
+          declaredElement is! FieldFormalParameterElement &&
           declaredElement.hasImplicitType &&
           name != null &&
           _isTypeName(node, name)) {
@@ -69,10 +69,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     );
     if (result.isRequestedName) {
       var element = result.element;
-      return element is ClassElement2 ||
-          element is ExtensionTypeElement2 ||
-          element is TypeAliasElement2 ||
-          (element is TypeParameterElement2 && !element.isWildcardVariable);
+      return element is ClassElement ||
+          element is ExtensionTypeElement ||
+          element is TypeAliasElement ||
+          (element is TypeParameterElement && !element.isWildcardVariable);
     }
     return false;
   }

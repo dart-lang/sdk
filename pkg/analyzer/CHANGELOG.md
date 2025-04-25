@@ -5,6 +5,7 @@
 * Remove deprecated `RecordType.sortedNamedTypes`.
 * Remove `ElementLocation` class, its values are not returned anymore.
 * Deprecated `element2.dart` library, import `element.dart`.
+* Deprecated `XyzElement2` classes, use `XyzElement` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

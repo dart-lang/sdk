@@ -87,7 +87,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   _InheritanceDataExtractor(super.uri, super.actualMap);
 
   @override
-  String? computeElementValue(Id id, Element2 element) {
+  String? computeElementValue(Id id, Element element) {
     return null;
   }
 
@@ -110,9 +110,8 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
       for (var name in interface.map2.keys) {
         var executable = interface.map2[name]!;
 
-        var enclosingClass = executable.enclosingElement2 as InterfaceElement2;
-        if (enclosingClass is ClassElement2 &&
-            enclosingClass.isDartCoreObject) {
+        var enclosingClass = executable.enclosingElement2 as InterfaceElement;
+        if (enclosingClass is ClassElement && enclosingClass.isDartCoreObject) {
           continue;
         }
 
@@ -125,7 +124,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
         offset ??= -1;
 
         DartType type;
-        if (executable is MethodElement2) {
+        if (executable is MethodElement) {
           type = executable.type;
         } else if (executable is GetterElement) {
           type = executable.returnType;

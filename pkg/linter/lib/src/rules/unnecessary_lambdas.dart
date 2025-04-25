@@ -13,7 +13,7 @@ import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";
 
-Set<Element2?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
+Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends LintRule {
@@ -71,11 +71,11 @@ class _FinalExpressionChecker {
 }
 
 class _IdentifierVisitor extends RecursiveAstVisitor<void> {
-  final _elements = <Element2?>{};
+  final _elements = <Element?>{};
 
   _IdentifierVisitor();
 
-  Set<Element2?> extractElements(AstNode node) {
+  Set<Element?> extractElements(AstNode node) {
     node.accept(this);
     return _elements;
   }
@@ -234,17 +234,17 @@ extension on Expression? {
       SimpleIdentifier(:var element) => element,
       _ => null,
     };
-    return element is PrefixElement2 &&
+    return element is PrefixElement &&
         element.imports.any((e) => e.prefix2?.isDeferred ?? false);
   }
 }
 
-extension on Element2? {
+extension on Element? {
   /// Returns whether this is a `final` variable or property and not `late`.
   bool get isFinal => switch (this) {
-    PropertyAccessorElement2(:var isSynthetic, :var variable3?) =>
+    PropertyAccessorElement(:var isSynthetic, :var variable3?) =>
       isSynthetic && variable3.isFinal && !variable3.isLate,
-    VariableElement2(:var isLate, :var isFinal) => isFinal && !isLate,
+    VariableElement(:var isLate, :var isFinal) => isFinal && !isLate,
     // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
     _ => true,
   };

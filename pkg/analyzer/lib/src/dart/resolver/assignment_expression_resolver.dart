@@ -80,7 +80,7 @@ class AssignmentExpressionResolver {
     TypeImpl rhsContext;
     {
       var leftType = node.writeType;
-      if (writeElement is VariableElement2) {
+      if (writeElement is VariableElement) {
         leftType = _resolver.localVariableTypeProvider.getType(
           left as SimpleIdentifierImpl,
           isRead: false,

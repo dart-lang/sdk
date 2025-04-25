@@ -49,7 +49,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
 
   Future<void> _compute(
     ClassDeclaration? classDeclaration,
-    Element2? fieldElement,
+    Element? fieldElement,
     ChangeBuilder builder,
   ) async {
     if (classDeclaration == null) return;

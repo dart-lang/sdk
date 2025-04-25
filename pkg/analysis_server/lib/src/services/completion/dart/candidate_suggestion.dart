@@ -50,7 +50,7 @@ sealed class CandidateSuggestion {
 final class ClassSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final ClassElement2 element;
+  final ClassElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   ClassSuggestion({
@@ -146,7 +146,7 @@ final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
 final class ConstructorSuggestion extends ExecutableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final ConstructorElement2 element;
+  final ConstructorElement element;
 
   /// Whether the class name is already, implicitly or explicitly, at the call
   /// site. That is, whether we are completing after a period.
@@ -213,7 +213,7 @@ final class ConstructorSuggestion extends ExecutableSuggestion
 
 abstract interface class ElementBasedSuggestion {
   /// The element on which the suggestion is based.
-  Element2 get element;
+  Element get element;
 }
 
 /// The information about a candidate suggestion based on a static field in a
@@ -222,7 +222,7 @@ abstract interface class ElementBasedSuggestion {
 final class EnumConstantSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final FieldElement2 element;
+  final FieldElement element;
 
   /// Whether the name of the enum should be included in the completion.
   final bool includeEnumName;
@@ -250,7 +250,7 @@ final class EnumConstantSuggestion extends ImportableSuggestion
 final class EnumSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final EnumElement2 element;
+  final EnumElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   EnumSuggestion({
@@ -287,7 +287,7 @@ sealed class ExecutableSuggestion extends ImportableSuggestion {
 final class ExtensionSuggestion extends ExecutableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final ExtensionElement2 element;
+  final ExtensionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   ExtensionSuggestion({
@@ -305,7 +305,7 @@ final class ExtensionSuggestion extends ExecutableSuggestion
 final class ExtensionTypeSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final ExtensionTypeElement2 element;
+  final ExtensionTypeElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   ExtensionTypeSuggestion({
@@ -321,12 +321,12 @@ final class ExtensionTypeSuggestion extends ImportableSuggestion
 /// The information about a candidate suggestion based on a field.
 final class FieldSuggestion extends CandidateSuggestion with MemberSuggestion {
   @override
-  final FieldElement2 element;
+  final FieldElement element;
 
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
   @override
-  final InterfaceElement2? referencingInterface;
+  final InterfaceElement? referencingInterface;
 
   /// Indicates the context, whether the completion is in the body of the
   /// declaration.
@@ -395,7 +395,7 @@ final class GetterSuggestion extends ImportableSuggestion
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
   @override
-  final InterfaceElement2? referencingInterface;
+  final InterfaceElement? referencingInterface;
 
   /// Whether the accessor is being invoked with a target.
   final bool withEnclosingName;
@@ -424,9 +424,9 @@ final class GetterSuggestion extends ImportableSuggestion
   /// we either fail with assertion, or return `null`.
   String? get _enclosingClassOrExtensionName {
     var enclosing = element.enclosingElement2;
-    if (enclosing is InterfaceElement2) {
+    if (enclosing is InterfaceElement) {
       return enclosing.displayName;
-    } else if (enclosing is ExtensionElement2) {
+    } else if (enclosing is ExtensionElement) {
       return enclosing.displayName;
     } else {
       assert(false, 'Expected ClassElement or ExtensionElement');
@@ -523,9 +523,9 @@ final class ImportData {
 /// A suggestion based on an import prefix.
 final class ImportPrefixSuggestion extends CandidateSuggestion
     implements ElementBasedSuggestion {
-  final LibraryElement2 libraryElement;
+  final LibraryElement libraryElement;
 
-  final PrefixElement2 prefixElement;
+  final PrefixElement prefixElement;
 
   ImportPrefixSuggestion({
     required this.libraryElement,
@@ -537,7 +537,7 @@ final class ImportPrefixSuggestion extends CandidateSuggestion
   String get completion => prefixElement.displayName;
 
   @override
-  Element2 get element => prefixElement;
+  Element get element => prefixElement;
 }
 
 /// The information about a candidate suggestion based on a keyword.
@@ -656,7 +656,7 @@ final class LocalFunctionSuggestion extends ExecutableSuggestion
 final class LocalVariableSuggestion extends CandidateSuggestion
     implements ElementBasedSuggestion {
   @override
-  final LocalVariableElement2 element;
+  final LocalVariableElement element;
 
   /// The number of local variables between the completion location and the
   /// declaration of this variable.
@@ -678,7 +678,7 @@ final class LocalVariableSuggestion extends CandidateSuggestion
 mixin MemberSuggestion implements ElementBasedSuggestion {
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
-  InterfaceElement2? get referencingInterface;
+  InterfaceElement? get referencingInterface;
 
   /// Returns the value of the inheritance distance feature.
   ///
@@ -686,10 +686,10 @@ mixin MemberSuggestion implements ElementBasedSuggestion {
   double inheritanceDistance(FeatureComputer featureComputer) {
     var inheritanceDistance = 0.0;
     var element = this.element;
-    if (!(element is FieldElement2 && element.isEnumConstant)) {
+    if (!(element is FieldElement && element.isEnumConstant)) {
       var declaringClass = element.enclosingElement2;
       var referencingInterface = this.referencingInterface;
-      if (referencingInterface != null && declaringClass is InterfaceElement2) {
+      if (referencingInterface != null && declaringClass is InterfaceElement) {
         inheritanceDistance = featureComputer.inheritanceDistanceFeature(
           referencingInterface,
           declaringClass,
@@ -704,12 +704,12 @@ mixin MemberSuggestion implements ElementBasedSuggestion {
 final class MethodSuggestion extends ExecutableSuggestion
     with MemberSuggestion {
   @override
-  final MethodElement2 element;
+  final MethodElement element;
 
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
   @override
-  final InterfaceElement2? referencingInterface;
+  final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   MethodSuggestion({
@@ -728,7 +728,7 @@ final class MethodSuggestion extends ExecutableSuggestion
 final class MixinSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final MixinElement2 element;
+  final MixinElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   MixinSuggestion({
@@ -852,7 +852,7 @@ class OverrideData {
 final class OverrideSuggestion extends CandidateSuggestion
     implements ElementBasedSuggestion {
   @override
-  final ExecutableElement2 element;
+  final ExecutableElement element;
 
   /// Whether `super` should be invoked in the body of the override.
   final bool shouldInvokeSuper;
@@ -957,12 +957,12 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion
 final class SetStateMethodSuggestion extends ExecutableSuggestion
     with MemberSuggestion, SuggestionData {
   @override
-  final MethodElement2 element;
+  final MethodElement element;
 
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
   @override
-  final InterfaceElement2? referencingInterface;
+  final InterfaceElement? referencingInterface;
 
   /// The identation to be used for a multi-line completion.
   final String indent;
@@ -1009,7 +1009,7 @@ final class SetterSuggestion extends ImportableSuggestion
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
   @override
-  final InterfaceElement2? referencingInterface;
+  final InterfaceElement? referencingInterface;
 
   /// Whether the accessor is being invoked with a target.
   final bool withEnclosingName;
@@ -1038,9 +1038,9 @@ final class SetterSuggestion extends ImportableSuggestion
   /// we either fail with assertion, or return `null`.
   String? get _enclosingClassOrExtensionName {
     var enclosing = element.enclosingElement2;
-    if (enclosing is InterfaceElement2) {
+    if (enclosing is InterfaceElement) {
       return enclosing.displayName;
-    } else if (enclosing is ExtensionElement2) {
+    } else if (enclosing is ExtensionElement) {
       return enclosing.displayName;
     } else {
       assert(false, 'Expected ClassElement or ExtensionElement');
@@ -1063,7 +1063,7 @@ final class SetterSuggestion extends ImportableSuggestion
 final class StaticFieldSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final FieldElement2 element;
+  final FieldElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   StaticFieldSuggestion({
@@ -1174,7 +1174,7 @@ final class TopLevelSetterSuggestion extends ImportableSuggestion
 final class TopLevelVariableSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final TopLevelVariableElement2 element;
+  final TopLevelVariableElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelVariableSuggestion({
@@ -1191,7 +1191,7 @@ final class TopLevelVariableSuggestion extends ImportableSuggestion
 final class TypeAliasSuggestion extends ImportableSuggestion
     implements ElementBasedSuggestion {
   @override
-  final TypeAliasElement2 element;
+  final TypeAliasElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TypeAliasSuggestion({
@@ -1208,7 +1208,7 @@ final class TypeAliasSuggestion extends ImportableSuggestion
 final class TypeParameterSuggestion extends CandidateSuggestion
     implements ElementBasedSuggestion {
   @override
-  final TypeParameterElement2 element;
+  final TypeParameterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TypeParameterSuggestion({required this.element, required super.matcherScore});

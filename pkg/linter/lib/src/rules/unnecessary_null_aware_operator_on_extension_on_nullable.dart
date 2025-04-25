@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isExtensionOnNullableType(Element2? enclosingElement) =>
-      enclosingElement is ExtensionElement2 &&
+  bool _isExtensionOnNullableType(Element? enclosingElement) =>
+      enclosingElement is ExtensionElement &&
       context.typeSystem.isNullable(enclosingElement.extendedType);
 }

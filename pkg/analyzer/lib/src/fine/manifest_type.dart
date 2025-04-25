@@ -600,7 +600,7 @@ class ManifestTypeParameter {
 
   factory ManifestTypeParameter.encode(
     EncodeContext context,
-    TypeParameterElement2 element,
+    TypeParameterElement element,
   ) {
     return ManifestTypeParameter._(bound: element.bound?.encode(context));
   }
@@ -617,7 +617,7 @@ class ManifestTypeParameter {
     return other is ManifestTypeParameter && other.bound == bound;
   }
 
-  bool match(MatchContext context, TypeParameterElement2 element) {
+  bool match(MatchContext context, TypeParameterElement element) {
     return bound.match(context, element.bound);
   }
 
@@ -628,7 +628,7 @@ class ManifestTypeParameter {
   static bool matchList(
     MatchContext context,
     List<ManifestTypeParameter> manifests,
-    List<TypeParameterElement2> elements,
+    List<TypeParameterElement> elements,
   ) {
     if (manifests.length != elements.length) {
       return false;

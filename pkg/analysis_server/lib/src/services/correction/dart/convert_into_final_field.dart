@@ -57,7 +57,7 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
     // static.
     if (!getterElement.isStatic) {
       switch (getterElement.enclosingElement2) {
-        case ExtensionElement2() || ExtensionTypeElement2():
+        case ExtensionElement() || ExtensionTypeElement():
           return;
       }
     }

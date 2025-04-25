@@ -19,7 +19,7 @@ import 'package:analyzer/src/error/codes.g.dart';
 class RecordTypeAnnotationResolver {
   final TypeProviderImpl typeProvider;
   final ErrorReporter errorReporter;
-  final LibraryElement2 libraryElement;
+  final LibraryElement libraryElement;
 
   RecordTypeAnnotationResolver({
     required this.typeProvider,

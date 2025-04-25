@@ -48,8 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element.metadata2.hasLiteral) return;
 
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is ClassElement2 &&
-        enclosingElement.isDartCoreObject) {
+    if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
       // Skip lint for `new Object()`, because it can be used for ID creation.
       return;
     }

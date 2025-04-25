@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var type = node.expression.staticType;
     if (!(type == null ||
-        type.element3 is ExtensionTypeElement2 ||
+        type.element3 is ExtensionTypeElement ||
         type.isDartAsyncFuture ||
         type is DynamicType ||
         type is InvalidType ||

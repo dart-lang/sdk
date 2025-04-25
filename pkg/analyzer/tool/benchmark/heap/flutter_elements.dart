@@ -313,7 +313,7 @@ void _writeResultFile(BenchmarkResultCompound result) {
 
 class _AllElementVisitor extends GeneralizingElementVisitor2<void> {
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     // This triggers lazy reading.
     if (element case Annotatable element) {
       element.metadata2;

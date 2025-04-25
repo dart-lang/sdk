@@ -180,7 +180,7 @@ class ManifestNode {
 class _ElementCollector extends ThrowingAstVisitor<void> {
   final int Function(TypeParameterElementImpl2) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
-  final Map<Element2, int> map = Map.identity();
+  final Map<Element, int> map = Map.identity();
   final List<int> elementIndexList = [];
 
   _ElementCollector({
@@ -369,7 +369,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
     node.visitChildren(this);
   }
 
-  void _addElement(Element2? element) {
+  void _addElement(Element? element) {
     ManifestAstElementKind kind;
     int rawIndex;
     switch (element) {
@@ -385,7 +385,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
       case TypeParameterElementImpl2():
         kind = ManifestAstElementKind.typeParameter;
         rawIndex = indexOfTypeParameter(element);
-      case PrefixElement2():
+      case PrefixElement():
         kind = ManifestAstElementKind.importPrefix;
         rawIndex = 0;
       default:

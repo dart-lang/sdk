@@ -47,7 +47,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     InstanceCreationExpression? creation;
-    Element2? targetElement;
+    Element? targetElement;
     ArgumentList? argumentList;
 
     if (node is SimpleIdentifier ||
@@ -91,7 +91,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
     _missingParameters = errors.length;
 
     for (var (index, diagnostic) in errors.indexed) {
-      if (targetElement is ExecutableElement2 && argumentList != null) {
+      if (targetElement is ExecutableElement && argumentList != null) {
         // Format: "Missing required argument 'foo'."
         var messageParts = diagnostic.problemMessage
             .messageText(includeUrl: false)

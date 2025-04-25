@@ -71,7 +71,7 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
 /// A superclass for the [_EnumVisitor] and [_NonEnumVisitor].
 class _BaseVisitor extends RecursiveAstVisitor<void> {
   /// The element representing the enum declaration that's being visited.
-  final ClassElement2 classElement;
+  final ClassElement classElement;
 
   _BaseVisitor(this.classElement);
 
@@ -97,7 +97,7 @@ class _CannotConvertException implements Exception {
 /// replaced by an enum constant.
 class _ConstantField extends _Field {
   /// The element representing the constructor used to initialize the field.
-  ConstructorElement2 constructorElement;
+  ConstructorElement constructorElement;
 
   /// The invocation of the constructor.
   final InstanceCreationExpression instanceCreation;
@@ -122,7 +122,7 @@ class _Constructor {
   final ConstructorDeclaration declaration;
 
   /// The element representing the constructor.
-  final ConstructorElement2 element;
+  final ConstructorElement element;
 
   _Constructor(this.declaration, this.element);
 }
@@ -130,7 +130,7 @@ class _Constructor {
 /// Information about the constructors in the class being converted.
 class _Constructors {
   /// A map from elements to constructors.
-  final Map<ConstructorElement2, _Constructor> byElement = {};
+  final Map<ConstructorElement, _Constructor> byElement = {};
 
   _Constructors();
 
@@ -143,7 +143,7 @@ class _Constructors {
   }
 
   /// Return the constructor with the given [element].
-  _Constructor? forElement(ConstructorElement2 element) {
+  _Constructor? forElement(ConstructorElement element) {
     return byElement[element];
   }
 }
@@ -449,7 +449,7 @@ class _EnumDescription {
     _Constructors constructors,
     _Fields fields,
   ) {
-    var usedElements = <ConstructorElement2>{};
+    var usedElements = <ConstructorElement>{};
     for (var field in fields.fieldsToConvert) {
       usedElements.add(field.constructorElement);
     }
@@ -533,7 +533,7 @@ class _EnumDescription {
     var indexFieldElement = indexField.element;
     for (var i = 0; i < parameters.length; i++) {
       var element = parameters[i].declaredFragment!.element;
-      if (element is FieldFormalParameterElement2) {
+      if (element is FieldFormalParameterElement) {
         if (element.field2 == indexFieldElement) {
           if (element.isPositional) {
             return _Parameter(i, element);
@@ -552,13 +552,13 @@ class _EnumDescription {
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Constructors? _validateConstructors(
     ClassDeclaration classDeclaration,
-    ClassElement2 classElement,
+    ClassElement classElement,
   ) {
     var constructors = _Constructors();
     for (var member in classDeclaration.members) {
       if (member is ConstructorDeclaration) {
         var constructor = member.declaredFragment?.element;
-        if (constructor is ConstructorElement2) {
+        if (constructor is ConstructorElement) {
           if (!classElement.isPrivate && !constructor.isPrivate) {
             // Public constructor in public enum.
             return null;
@@ -582,7 +582,7 @@ class _EnumDescription {
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Fields? _validateFields(
     ClassDeclaration classDeclaration,
-    ClassElement2 classElement, {
+    ClassElement classElement, {
     required bool strictCasts,
   }) {
     var potentialFieldsToConvert = <DartObject, List<_ConstantField>>{};
@@ -595,7 +595,7 @@ class _EnumDescription {
         if (member.isStatic) {
           for (var field in fields) {
             var fieldElement = field.declaredFragment?.element;
-            if (fieldElement is FieldElement2) {
+            if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
               // The field can be converted to be an enum constant if it
               // - is a const field,
@@ -643,7 +643,7 @@ class _EnumDescription {
               return null;
             }
             var fieldElement = field.declaredFragment?.element;
-            if (fieldElement is FieldElement2) {
+            if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
               if (fieldElement.name3 == 'index' && fieldType.isDartCoreInt) {
                 indexField = _Field(fieldElement, field, fieldList, member);
@@ -728,7 +728,7 @@ class _EnumVisitor extends _BaseVisitor {
 /// A representation of a field of interest in the class being converted.
 class _Field {
   /// The element representing the field.
-  final FieldElement2 element;
+  final FieldElement element;
 
   /// The declaration of the field.
   final VariableDeclaration declaration;

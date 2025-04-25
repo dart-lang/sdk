@@ -125,7 +125,7 @@ class InterfaceLeastUpperBoundHelper {
       return;
     }
 
-    if (type.element3 is ExtensionTypeElement2) {
+    if (type.element3 is ExtensionTypeElement) {
       set.add(typeSystem.objectQuestion);
     }
 
@@ -181,7 +181,7 @@ class InterfaceLeastUpperBoundHelper {
   /// Object.
   @visibleForTesting
   static int computeLongestInheritancePathToObject(InterfaceType type) {
-    return _computeLongestInheritancePathToObject(type, <InterfaceElement2>{});
+    return _computeLongestInheritancePathToObject(type, <InterfaceElement>{});
   }
 
   static NullabilitySuffix _chooseNullability(
@@ -204,7 +204,7 @@ class InterfaceLeastUpperBoundHelper {
   /// case of a cyclic type structure.
   static int _computeLongestInheritancePathToObject(
     InterfaceType type,
-    Set<InterfaceElement2> visitedElements,
+    Set<InterfaceElement> visitedElements,
   ) {
     var element = type.element3;
     // recursion
@@ -216,14 +216,14 @@ class InterfaceLeastUpperBoundHelper {
       return 1;
     }
     // Object case
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       if (element.isDartCoreObject) {
         return type.nullabilitySuffix == NullabilitySuffix.none ? 1 : 0;
       }
     }
 
     // Extension type without interfaces, implicit `Object?`
-    if (element is ExtensionTypeElement2) {
+    if (element is ExtensionTypeElement) {
       if (element.interfaces.isEmpty) {
         return 1;
       }
@@ -235,7 +235,7 @@ class InterfaceLeastUpperBoundHelper {
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
-      if (element is MixinElement2) {
+      if (element is MixinElement) {
         for (InterfaceType interface in element.superclassConstraints) {
           var pathLength = _computeLongestInheritancePathToObject(
             interface,
@@ -255,7 +255,7 @@ class InterfaceLeastUpperBoundHelper {
         longestPath = max(longestPath, 1 + pathLength);
       }
 
-      if (element is! ClassElement2) {
+      if (element is! ClassElement) {
         return longestPath;
       }
 

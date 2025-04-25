@@ -40,7 +40,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (accessor.enclosingElement2 is! InterfaceElement2) {
+    if (accessor.enclosingElement2 is! InterfaceElement) {
       // TODO(brianwilkerson): Should we also require that the getter be synthetic?
       return;
     }

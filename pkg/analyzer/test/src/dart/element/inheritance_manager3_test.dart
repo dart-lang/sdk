@@ -969,7 +969,7 @@ abstract class B<E> {
   }
 
   test_getMember_fromGenericSuper_method_bound() async {
-    void checkTextendsFooT(TypeParameterElement2 t) {
+    void checkTextendsFooT(TypeParameterElement t) {
       var otherT = (t.bound as InterfaceType).typeArguments.single.element3;
       expect(otherT, same(t));
     }
@@ -998,7 +998,7 @@ abstract class B<XB> extends A<XB> {}
   }
 
   test_getMember_fromGenericSuper_method_bound2() async {
-    void checkTextendsFooT(TypeParameterElement2 t) {
+    void checkTextendsFooT(TypeParameterElement t) {
       var otherT = (t.bound as InterfaceType).typeArguments.single.element3;
       expect(otherT, same(t));
     }
@@ -2922,7 +2922,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     manager = InheritanceManager3();
   }
 
-  void _assertExecutable(ExecutableElement2? element, String? expected) {
+  void _assertExecutable(ExecutableElement? element, String? expected) {
     if (expected != null && element != null) {
       var enclosingElement = element.enclosingElement2;
 
@@ -2949,7 +2949,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertExecutableList(
-    List<ExecutableElement2>? elements,
+    List<ExecutableElement>? elements,
     String? expected,
   ) {
     var elementsString =
@@ -3034,7 +3034,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertNameToExecutableMap(
-    Map<Name, ExecutableElement2> map,
+    Map<Name, ExecutableElement> map,
     String expected,
   ) {
     var lines = <String>[];
@@ -3142,7 +3142,7 @@ class _InterfacePrinter {
     return nameObj.name;
   }
 
-  bool _shouldWrite(ExecutableElement2 element) {
+  bool _shouldWrite(ExecutableElement element) {
     return _configuration.withObjectMembers || !element.isObjectMember;
   }
 
@@ -3152,7 +3152,7 @@ class _InterfacePrinter {
     return entries.sortedBy((e) => '${e.key.name} ${e.key.libraryUri}');
   }
 
-  List<ExecutableElement2> _withoutObject(List<ExecutableElement2> elements) {
+  List<ExecutableElement> _withoutObject(List<ExecutableElement> elements) {
     return elements.where(_shouldWrite).toList();
   }
 
@@ -3202,7 +3202,7 @@ class _InterfacePrinter {
 
   void _writeListOfMaps(
     String name,
-    List<Map<Name, ExecutableElement2>> listOfMaps,
+    List<Map<Name, ExecutableElement>> listOfMaps,
   ) {
     if (listOfMaps.isEmpty) return;
 
@@ -3216,7 +3216,7 @@ class _InterfacePrinter {
 
   void _writeNameToListMap(
     String name,
-    Map<Name, List<ExecutableElement2>> map,
+    Map<Name, List<ExecutableElement>> map,
   ) {
     var isEmpty =
         map.values.flattenedToList.where((element) {
@@ -3235,7 +3235,7 @@ class _InterfacePrinter {
     });
   }
 
-  void _writeNameToMap(String name, Map<Name, ExecutableElement2> map) {
+  void _writeNameToMap(String name, Map<Name, ExecutableElement> map) {
     var isEmpty = map.values.none(_shouldWrite);
     if (isEmpty) return;
 

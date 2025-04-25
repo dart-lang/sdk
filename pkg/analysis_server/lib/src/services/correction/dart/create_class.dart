@@ -30,7 +30,7 @@ class CreateClass extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var targetNode = node;
-    Element2? prefixElement;
+    Element? prefixElement;
     ArgumentList? arguments;
 
     String? className;
@@ -94,7 +94,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       prefix = '$eol$eol';
     } else {
       for (var import in libraryElement2.firstFragment.libraryImports2) {
-        if (prefixElement is PrefixElement2 &&
+        if (prefixElement is PrefixElement &&
             import.prefix2?.element == prefixElement) {
           var library = import.importedLibrary2;
           if (library != null) {

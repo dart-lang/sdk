@@ -965,7 +965,7 @@ extension on AnalysisSession {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
   }
 
-  ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement2 element) {
+  ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement element) {
     return getParsedLibraryByElement2(element) as ParsedLibraryResult;
   }
 
@@ -978,7 +978,7 @@ extension on AnalysisSession {
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
-    LibraryElement2 element,
+    LibraryElement element,
   ) async {
     return await getResolvedLibraryByElement2(element) as ResolvedLibraryResult;
   }

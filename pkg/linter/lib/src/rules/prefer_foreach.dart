@@ -29,7 +29,7 @@ class PreferForeach extends LintRule {
 
 class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  LocalVariableElement2? element;
+  LocalVariableElement? element;
   ForStatement? forEachStatement;
 
   _PreferForEachVisitor(this.rule);
@@ -86,7 +86,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
 
 class _ReferenceFinder extends UnifyingAstVisitor<void> {
   bool found = false;
-  final LocalVariableElement2? element;
+  final LocalVariableElement? element;
   _ReferenceFinder(this.element);
 
   bool references(Expression target) {

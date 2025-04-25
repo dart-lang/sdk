@@ -32,10 +32,10 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
-    if (element is FieldFormalParameterElement2) {
+    if (element is FieldFormalParameterElement) {
       element = element.field2;
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       element = element.variable3;
     }
     // respond

@@ -46,7 +46,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
       ...InheritanceOverrideVerifier.missingMustBeOverridden(targetDeclaration),
     ];
     // Sort by name, getters before setters.
-    signatures.sort((ExecutableElement2 a, ExecutableElement2 b) {
+    signatures.sort((ExecutableElement a, ExecutableElement b) {
       var names = compareStrings(a.displayName, b.displayName);
       if (names != 0) {
         return names;

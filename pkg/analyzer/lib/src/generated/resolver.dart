@@ -652,7 +652,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void checkReadOfNotAssignedLocalVariable(
     SimpleIdentifier node,
-    Element2? element,
+    Element? element,
   ) {
     if (flowAnalysis.flow == null) {
       return;
@@ -788,10 +788,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         shouldHaveType = false;
       } else if (replacementExpression is IdentifierImpl) {
         var element = replacementExpression.element;
-        if (element is ExtensionElement2 ||
-            element is InterfaceElement2 ||
-            element is PrefixElement2 ||
-            element is TypeAliasElement2) {
+        if (element is ExtensionElement ||
+            element is InterfaceElement ||
+            element is PrefixElement ||
+            element is TypeAliasElement) {
           shouldHaveType = false;
         }
       }
@@ -1070,7 +1070,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleCase_afterCaseHeads(
     AstNode node,
     int caseIndex,
-    Iterable<PromotableElement2> variables,
+    Iterable<PromotableElement> variables,
   ) {}
 
   @override
@@ -1596,7 +1596,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  (ExecutableElement2?, SharedTypeView) resolveObjectPatternPropertyGet({
+  (ExecutableElement?, SharedTypeView) resolveObjectPatternPropertyGet({
     required covariant ObjectPatternImpl objectPattern,
     required SharedTypeView receiverType,
     required covariant SharedPatternField field,
@@ -1698,7 +1698,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void setReadElement(
     Expression node,
-    Element2? element, {
+    Element? element, {
     required bool atDynamicTarget,
   }) {
     var readType =
@@ -1712,7 +1712,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node is SimpleIdentifier) {
       if (element is GetterElement2OrMember) {
         readType = element.returnType;
-      } else if (element is VariableElement2) {
+      } else if (element is VariableElement) {
         readType = localVariableTypeProvider.getType(
           node as SimpleIdentifierImpl,
           isRead: true,
@@ -1736,7 +1736,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void setVariableType(PromotableElement2 variable, SharedTypeView type) {
+  void setVariableType(PromotableElement variable, SharedTypeView type) {
     if (variable is LocalVariableElementImpl2) {
       variable.type = type.unwrapTypeView();
     } else {
@@ -1746,7 +1746,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void setWriteElement(
     Expression node,
-    Element2? element, {
+    Element? element, {
     required bool atDynamicTarget,
   }) {
     var writeType =
@@ -3098,7 +3098,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     var element = result.readElement2;
-    node.element = element as MethodElement2?;
+    node.element = element as MethodElement?;
 
     analyzeExpression(
       node.index,
@@ -3116,7 +3116,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType type;
     if (identical(targetType, NeverTypeImpl.instance)) {
       type = NeverTypeImpl.instance;
-    } else if (element is MethodElement2) {
+    } else if (element is MethodElement) {
       type = element.returnType;
     } else if (targetType is DynamicType) {
       type = DynamicTypeImpl.instance;
@@ -4381,7 +4381,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     propertyName.element = element;
 
     DartType type;
-    if (element is MethodElement2) {
+    if (element is MethodElement) {
       type = element.type;
     } else if (element is ConstructorElementImpl2) {
       type = element.type;
@@ -4506,7 +4506,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           // null aware, but that has already been taken care of in
           // `visitCascadeExpression`. So there is nothing further to do.
           break;
-        case SimpleIdentifier(element: InterfaceElement2()):
+        case SimpleIdentifier(element: InterfaceElement()):
           // `?.` to access static methods is equivalent to `.`, so do nothing.
           break;
         case ExtensionOverride(
@@ -4795,7 +4795,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ScopeResolverVisitor(
     this.errorReporter, {
     required this.nameScope,
-    List<LibraryElement2> docImportLibraries = const [],
+    List<LibraryElement> docImportLibraries = const [],
   }) : _docImportScope = DocumentationCommentScope(
          nameScope,
          docImportLibraries,
@@ -4808,7 +4808,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var element = node.element2;
-    if (element is PromotableElement2) {
+    if (element is PromotableElement) {
       _localVariableInfo.potentiallyMutatedInScope.add(element);
     }
   }
@@ -5093,7 +5093,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       nameScope = FormalParameterScope(nameScope, element.formalParameters);
     } else if (parent is FunctionTypeAlias) {
       var aliasedElement = parent.declaredFragment!.element.aliasedElement2;
-      var functionElement = aliasedElement as GenericFunctionTypeElement2;
+      var functionElement = aliasedElement as GenericFunctionTypeElement;
       nameScope = FormalParameterScope(
         nameScope,
         functionElement.formalParameters,
@@ -5237,7 +5237,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.type.accept(this);
 
       var aliasedElement = element.aliasedElement2;
-      if (aliasedElement is GenericFunctionTypeElement2) {
+      if (aliasedElement is GenericFunctionTypeElement) {
         nameScope = FormalParameterScope(
           TypeParameterScope(nameScope, aliasedElement.typeParameters2),
           aliasedElement.formalParameters,
@@ -5439,7 +5439,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
     // Prepare VariableElement.
     var element = scopeLookupResult.getter2;
-    if (element is! VariableElement2) {
+    if (element is! VariableElement) {
       return;
     }
     // Must be local or parameter.
@@ -5488,7 +5488,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       for (var member in node.members) {
         for (var label in member.labels) {
           var labelName = label.label;
-          var labelElement = labelName.element as LabelElement2;
+          var labelElement = labelName.element as LabelElement;
           _labelScope = LabelScope(
             _labelScope,
             labelName.name,
@@ -5563,13 +5563,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     for (var label in labels) {
       var labelNameNode = label.label;
       var labelName = labelNameNode.name;
-      var labelElement = labelNameNode.element as LabelElement2;
+      var labelElement = labelNameNode.element as LabelElement;
       _labelScope = LabelScope(_labelScope, labelName, node, labelElement);
     }
     return outerScope;
   }
 
-  void _define(Element2 element) {
+  void _define(Element element) {
     (nameScope as LocalScope).add(element);
   }
 
@@ -5745,7 +5745,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 class SwitchExhaustiveness {
   /// If the switch is on an enumeration, the set of enum constants to cover.
   /// Otherwise `null`.
-  final Set<FieldElement2>? _enumConstants;
+  final Set<FieldElement>? _enumConstants;
 
   /// If the switch is on an enumeration, is `true` if the null value is
   /// covered, because the switch expression type is non-nullable, or `null`
@@ -5808,7 +5808,7 @@ class SwitchExhaustiveness {
   void _handleCaseConstant(ExpressionImpl? caseConstant) {
     if (caseConstant != null) {
       var element = _referencedElement(caseConstant);
-      if (element is PropertyAccessorElement2) {
+      if (element is PropertyAccessorElement) {
         _enumConstants!.remove(element.variable3);
       }
       if (caseConstant is NullLiteral) {
@@ -5820,7 +5820,7 @@ class SwitchExhaustiveness {
     }
   }
 
-  static Element2? _referencedElement(Expression expression) {
+  static Element? _referencedElement(Expression expression) {
     if (expression is ParenthesizedExpression) {
       return _referencedElement(expression.expression);
     } else if (expression is PrefixedIdentifier) {
@@ -5839,7 +5839,7 @@ class _WhyNotPromotedVisitor
         NonPromotionReasonVisitor<
           List<DiagnosticMessage>,
           AstNode,
-          PromotableElement2
+          PromotableElement
         > {
   final Source source;
 
@@ -5847,13 +5847,13 @@ class _WhyNotPromotedVisitor
 
   final FlowAnalysisDataForTesting? _dataForTesting;
 
-  PropertyAccessorElement2? propertyReference;
+  PropertyAccessorElement? propertyReference;
 
   _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 
   @override
   List<DiagnosticMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<PromotableElement2> reason,
+    DemoteViaExplicitWrite<PromotableElement> reason,
   ) {
     var node = reason.node as AstNode;
     if (node is ForEachPartsWithIdentifier) {
@@ -5871,7 +5871,7 @@ class _WhyNotPromotedVisitor
     PropertyNotPromotedForInherentReason reason,
   ) {
     var receiverElement = reason.propertyMember;
-    if (receiverElement is PropertyAccessorElement2) {
+    if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
       String message = switch (reason.whyNotPromotable) {
@@ -5912,7 +5912,7 @@ class _WhyNotPromotedVisitor
     PropertyNotPromotedForNonInherentReason reason,
   ) {
     var receiverElement = reason.propertyMember;
-    if (receiverElement is PropertyAccessorElement2) {
+    if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
       var library = receiverElement.library2 as LibraryElementImpl;
@@ -5920,9 +5920,9 @@ class _WhyNotPromotedVisitor
       var fieldNameInfo = fieldNonPromotabilityInfo[reason.propertyName];
       var messages = <DiagnosticMessage>[];
       void addConflictMessage({
-        required Element2 conflictingElement,
+        required Element conflictingElement,
         required String kind,
-        required Element2 enclosingElement,
+        required Element enclosingElement,
         required NonPromotionDocumentationLink link,
       }) {
         var enclosingKindName = enclosingElement.kind.displayName;
@@ -6006,7 +6006,7 @@ class _WhyNotPromotedVisitor
   DiagnosticMessageImpl _contextMessageForWrite(
     String? variableName,
     AstNode node,
-    DemoteViaExplicitWrite<PromotableElement2> reason,
+    DemoteViaExplicitWrite<PromotableElement> reason,
   ) {
     return DiagnosticMessageImpl(
       filePath: source.fullName,
@@ -6020,7 +6020,7 @@ class _WhyNotPromotedVisitor
   }
 
   DiagnosticMessageImpl _fieldPromotionUnavailableMessage(
-    PropertyAccessorElement2 property,
+    PropertyAccessorElement property,
     String propertyName,
   ) {
     return DiagnosticMessageImpl(
@@ -6036,7 +6036,7 @@ class _WhyNotPromotedVisitor
   }
 }
 
-extension on Element2 {
+extension on Element {
   bool get isWildcardFunction =>
       this is LocalFunctionElement &&
       name3 == '_' &&

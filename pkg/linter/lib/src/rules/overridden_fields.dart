@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var variable in node.fields.variables) {
       var parent = variable.declaredFragment?.element.enclosingElement2;
-      if (parent is InterfaceElement2) {
+      if (parent is InterfaceElement) {
         var overriddenMember = inheritanceManager.getMember4(
           parent,
           Name(parent.library2.uri, variable.name.lexeme),

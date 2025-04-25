@@ -128,7 +128,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkFormalParameters(
     List<FormalParameter> parameters, {
-    ExecutableElement2? overriddenMember,
+    ExecutableElement? overriddenMember,
   }) {
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
@@ -173,7 +173,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkGetter(MethodDeclaration node, PropertyAccessorElement2 element) {
+  void _checkGetter(MethodDeclaration node, PropertyAccessorElement element) {
     if (node.returnType != null) return;
 
     if (!_isOverride(node, element)) {
@@ -194,8 +194,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var container = element.enclosingFragment!.element;
     var noOverride =
         node.isStatic ||
-        container is ExtensionElement2 ||
-        container is ExtensionTypeElement2;
+        container is ExtensionElement ||
+        container is ExtensionTypeElement;
 
     if (noOverride) {
       if (node.returnType == null) {
@@ -227,7 +227,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkSetter(MethodDeclaration node, PropertyAccessorElement2 element) {
+  void _checkSetter(MethodDeclaration node, PropertyAccessorElement element) {
     var parameter = node.parameters?.parameters.firstOrNull;
     if (parameter == null) return;
     if (parameter is! SimpleFormalParameter) return;
@@ -241,11 +241,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isOverride(MethodDeclaration node, PropertyAccessorElement2 element) {
+  bool _isOverride(MethodDeclaration node, PropertyAccessorElement element) {
     var container = element.enclosingElement2;
     if (node.isStatic) return false;
-    if (container is ExtensionElement2) return false;
-    if (container is ExtensionTypeElement2) return false;
+    if (container is ExtensionElement) return false;
+    if (container is ExtensionTypeElement) return false;
     var overriddenMember = context.inheritanceManager.overriddenMember(
       node.declaredFragment?.element,
     );

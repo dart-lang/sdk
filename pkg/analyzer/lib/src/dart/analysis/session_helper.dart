@@ -18,14 +18,14 @@ class AnalysisSessionHelper {
 
   AnalysisSessionHelper(this.session);
 
-  /// Returns the [ClassElement2] with the given [className] that is exported
+  /// Returns the [ClassElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
-  Future<ClassElement2?> getClass(String libraryUri, String className) async {
+  Future<ClassElement?> getClass(String libraryUri, String className) async {
     var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element2.exportNamespace.get2(className);
-      if (element is ClassElement2) {
+      if (element is ClassElement) {
         return element;
       }
     }
@@ -33,28 +33,28 @@ class AnalysisSessionHelper {
   }
 
   @Deprecated('Use [getClass] instead.')
-  Future<ClassElement2?> getClass2(String libraryUri, String className) async {
+  Future<ClassElement?> getClass2(String libraryUri, String className) async {
     return await getClass(libraryUri, className);
   }
 
-  /// Return the [EnumElement2] with the given [className] that is exported
+  /// Return the [EnumElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
-  Future<EnumElement2?> getEnum(String libraryUri, String className) async {
+  Future<EnumElement?> getEnum(String libraryUri, String className) async {
     var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element2.exportNamespace.get2(className);
-      if (element is EnumElement2) {
+      if (element is EnumElement) {
         return element;
       }
     }
     return null;
   }
 
-  /// Returns the [ClassElement2] with the given [className] that is exported
+  /// Returns the [ClassElement] with the given [className] that is exported
   /// from the Flutter widgets library, or `null` if the library does not export
   /// a class with such name.
-  Future<ClassElement2?> getFlutterClass(String className) =>
+  Future<ClassElement?> getFlutterClass(String className) =>
       getClass('package:flutter/widgets.dart', className);
 
   /// Returns the declaration of the [fragment].
@@ -69,14 +69,14 @@ class AnalysisSessionHelper {
     return resolvedLibrary?.getFragmentDeclaration(fragment);
   }
 
-  /// Return the [MixinElement2] with the given [name] that is exported
+  /// Return the [MixinElement] with the given [name] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
-  Future<MixinElement2?> getMixin(String libraryUri, String name) async {
+  Future<MixinElement?> getMixin(String libraryUri, String name) async {
     var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element2.exportNamespace.get2(name);
-      if (element is MixinElement2) {
+      if (element is MixinElement) {
         return element;
       }
     }
@@ -84,7 +84,7 @@ class AnalysisSessionHelper {
   }
 
   /// Returns the resolved unit that declares the given [element].
-  Future<ResolvedUnitResult?> getResolvedUnitByElement(Element2 element) async {
+  Future<ResolvedUnitResult?> getResolvedUnitByElement(Element element) async {
     var libraryPath = element.library2!.firstFragment.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
     if (resolvedLibrary == null) {
@@ -97,19 +97,19 @@ class AnalysisSessionHelper {
     );
   }
 
-  /// Returns the [PropertyAccessorElement2] with the given [name] that is
+  /// Returns the [PropertyAccessorElement] with the given [name] that is
   /// exported from the library with the given [uri].
   ///
   /// Returns `null` if the library does not export a top-level accessor with
   /// that name.
-  Future<PropertyAccessorElement2?> getTopLevelPropertyAccessor(
+  Future<PropertyAccessorElement?> getTopLevelPropertyAccessor(
     String uri,
     String name,
   ) async {
     var libraryResult = await session.getLibraryByUri(uri);
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element2.exportNamespace.get2(name);
-      if (element is PropertyAccessorElement2) {
+      if (element is PropertyAccessorElement) {
         return element;
       }
     }

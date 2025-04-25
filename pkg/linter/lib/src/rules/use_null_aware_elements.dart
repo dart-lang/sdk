@@ -41,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     if (node case IfElement(:var thenElement, elseKeyword: null)) {
-      Element2? nullCheckTarget;
+      Element? nullCheckTarget;
       if (node.expression case BinaryExpression(
         :var operator,
         :var leftOperand,

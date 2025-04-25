@@ -179,7 +179,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     return [returnCode];
   }
 
-  ExecutableElement2? _getFunctionElement(AstNode? node) {
+  ExecutableElement? _getFunctionElement(AstNode? node) {
     if (node is MethodDeclaration) {
       return node.declaredFragment?.element;
     } else if (node is ConstructorDeclaration) {

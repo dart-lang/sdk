@@ -144,7 +144,7 @@ sealed class Constant {}
 /// Information about a const constructor invocation.
 class ConstructorInvocation {
   /// The constructor that was called.
-  final ConstructorElement2 constructor2;
+  final ConstructorElement constructor2;
 
   /// Values of specified arguments, actual values for positional, and `null`
   /// for named (which are provided as [namedArguments]).
@@ -291,7 +291,7 @@ class DartObjectImpl implements DartObject, Constant {
   List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
 
   @override
-  VariableElement2? get variable2 => variable.asElement2 as VariableElement2?;
+  VariableElement? get variable2 => variable.asElement2 as VariableElement?;
 
   @override
   bool operator ==(Object other) {
@@ -1415,14 +1415,14 @@ class FunctionState extends InstanceState {
   /// aliased class.
   ///
   /// Otherwise null.
-  final TypeDefiningElement2? _viaTypeAlias;
+  final TypeDefiningElement? _viaTypeAlias;
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
   FunctionState(
     this.element, {
     this.typeArguments,
-    TypeDefiningElement2? viaTypeAlias,
+    TypeDefiningElement? viaTypeAlias,
   }) : _viaTypeAlias = viaTypeAlias;
 
   @override
@@ -1575,9 +1575,9 @@ class GenericState extends InstanceState {
   bool hasPrimitiveEquality(FeatureSet featureSet) {
     var type = _object.type;
     if (type is InterfaceTypeImpl) {
-      bool isFromDartCoreObject(ExecutableElement2? element) {
+      bool isFromDartCoreObject(ExecutableElement? element) {
         var enclosing = element?.enclosingElement2;
-        return enclosing is ClassElement2 && enclosing.isDartCoreObject;
+        return enclosing is ClassElement && enclosing.isDartCoreObject;
       }
 
       var element = type.element3;
@@ -2518,7 +2518,7 @@ class InvalidConstant implements Constant {
 
   /// Creates a constant evaluation error associated with an [element].
   InvalidConstant.forElement({
-    required Element2 element,
+    required Element element,
     required ErrorCode errorCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,

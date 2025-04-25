@@ -325,7 +325,7 @@ typedef F<T extends A> = B Function<U extends B>(T a, U b);
     expect(t.name3, 'T');
     assertType(t.bound, 'A');
 
-    var ff = f.aliasedElement2 as GenericFunctionTypeElement2;
+    var ff = f.aliasedElement2 as GenericFunctionTypeElement;
     expect(ff.typeParameters2, hasLength(1));
 
     var u = ff.typeParameters2[0];

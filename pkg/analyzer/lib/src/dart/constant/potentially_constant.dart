@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
-/// Some [ConstructorElement2]s can be temporary marked as "const" to check
+/// Some [ConstructorElement]s can be temporary marked as "const" to check
 /// if doing this is valid.
 final temporaryConstConstructorElements = Expando<bool>();
 
@@ -38,7 +38,7 @@ bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
 
 bool _isConstantTypeName(Identifier name) {
   var element = name.element;
-  if (element is InterfaceElement2 || element is TypeAliasElement2) {
+  if (element is InterfaceElement || element is TypeAliasElement) {
     if (name is PrefixedIdentifier) {
       if (name.isDeferred) {
         return false;
@@ -221,7 +221,7 @@ class _Collector {
         collect(node.prefix);
         return;
       }
-      if (element is MethodElement2 && element.isStatic) {
+      if (element is MethodElement && element.isStatic) {
         if (!_isConstantTypeName(node.prefix)) {
           nodes.add(node);
         }
@@ -231,7 +231,7 @@ class _Collector {
 
     if (element is FormalParameterElement) {
       var enclosing = element.enclosingElement2;
-      if (enclosing is ConstructorElement2 &&
+      if (enclosing is ConstructorElement &&
           isConstConstructorElement(enclosing)) {
         if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
           return;
@@ -241,7 +241,7 @@ class _Collector {
       return;
     }
 
-    if (element is VariableElement2) {
+    if (element is VariableElement) {
       if (!element.isConst) {
         nodes.add(node);
       }
@@ -263,10 +263,10 @@ class _Collector {
     if (element is TopLevelFunctionElement) {
       return;
     }
-    if (element is MethodElement2 && element.isStatic) {
+    if (element is MethodElement && element.isStatic) {
       return;
     }
-    if (element is TypeParameterElement2 &&
+    if (element is TypeParameterElement &&
         featureSet.isEnabled(Feature.constructor_tearoffs)) {
       return;
     }
@@ -382,7 +382,7 @@ class _Collector {
     }
   }
 
-  static bool isConstConstructorElement(ConstructorElement2 element) {
+  static bool isConstConstructorElement(ConstructorElement element) {
     if (element.isConst) return true;
     return temporaryConstConstructorElements[element] ?? false;
   }
@@ -400,7 +400,7 @@ class _ConstantTypeChecker {
     }
     if (potentially &&
         node is NamedType &&
-        node.element2 is TypeParameterElement2) {
+        node.element2 is TypeParameterElement) {
       return true;
     }
 
@@ -466,7 +466,7 @@ class _ConstantTypeChecker {
 extension on NamedType {
   bool get isConstantNamedType {
     var element2 = this.element2;
-    if (element2 is InterfaceElement2 || element2 is TypeAliasElement2) {
+    if (element2 is InterfaceElement || element2 is TypeAliasElement) {
       return !isDeferred;
     }
     return false;

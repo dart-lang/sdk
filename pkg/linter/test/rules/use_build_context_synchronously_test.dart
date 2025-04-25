@@ -23,7 +23,7 @@ class AsyncStateTest extends PubPackageResolutionTest {
   @override
   bool get addFlutterPackageDep => true;
 
-  Element2 get contextElement => findNode.simple('context /* ref */').element!;
+  Element get contextElement => findNode.simple('context /* ref */').element!;
 
   FindNode get findNode => FindNode(result.content, result.unit);
 
@@ -2953,7 +2953,7 @@ void foo(BuildContext context, StreamSubscription<void> s) async {
 }
 
 extension on AstNode {
-  AsyncState? asyncStateFor(AstNode reference, Element2 expressionElement) {
+  AsyncState? asyncStateFor(AstNode reference, Element expressionElement) {
     assert(
       () {
         if (reference.parent == this) return true;

@@ -252,7 +252,7 @@ class FileResolver {
   /// Looks for references to the given Element. All the files currently
   ///  cached by the resolver are searched, generated files are ignored.
   Future<List<CiderSearchMatch>> findReferences(
-    Element2 element, {
+    Element element, {
     OperationPerformanceImpl? performance,
   }) {
     return logger.runAsync('findReferences for ${element.name3}', () async {
@@ -289,7 +289,7 @@ class FileResolver {
 
       performance ??= OperationPerformanceImpl('<default>');
       // TODO(keertip): check if element is named constructor.
-      if (element is LocalVariableElement2 ||
+      if (element is LocalVariableElement ||
           (element is FormalParameterElement && !element.isNamed)) {
         await collectReferences2(
           element.firstFragment.libraryFragment!.source.fullName,

@@ -13,7 +13,7 @@ import 'package:meta/meta.dart';
 abstract class TypeProvider {
   /// Return the element representing the built-in class `bool`.
   @experimental
-  ClassElement2 get boolElement2;
+  ClassElement get boolElement2;
 
   /// Return the type representing the built-in type `bool`.
   InterfaceType get boolType;
@@ -26,7 +26,7 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class `double`.
   @experimental
-  ClassElement2 get doubleElement2;
+  ClassElement get doubleElement2;
 
   /// Return the type representing the built-in type `double`.
   InterfaceType get doubleType;
@@ -37,7 +37,7 @@ abstract class TypeProvider {
   /// Return the element representing the built-in type `Enum`, or `null` if
   /// the SDK does not have definition of `Enum`.
   @experimental
-  ClassElement2? get enumElement2;
+  ClassElement? get enumElement2;
 
   /// Return the type representing the built-in type `Enum`, or `null` if
   /// the SDK does not have definition of `Enum`.
@@ -51,21 +51,21 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class `Future`.
   @experimental
-  ClassElement2 get futureElement2;
+  ClassElement get futureElement2;
 
   /// Return the type representing `Future<Null>`.
   InterfaceType get futureNullType;
 
   /// Return the element representing the built-in class `FutureOr`.
   @experimental
-  ClassElement2 get futureOrElement2;
+  ClassElement get futureOrElement2;
 
   /// Return the type representing `FutureOr<Null>`.
   InterfaceType get futureOrNullType;
 
   /// Return the element representing the built-in class `int`.
   @experimental
-  ClassElement2 get intElement2;
+  ClassElement get intElement2;
 
   /// Return the type representing the built-in type `int`.
   InterfaceType get intType;
@@ -75,18 +75,18 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class `Iterable`.
   @experimental
-  ClassElement2 get iterableElement2;
+  ClassElement get iterableElement2;
 
   /// Return the type representing the type `Iterable<Object>`.
   InterfaceType get iterableObjectType;
 
   /// Return the element representing the built-in class `List`.
   @experimental
-  ClassElement2 get listElement2;
+  ClassElement get listElement2;
 
   /// Return the element representing the built-in class `Map`.
   @experimental
-  ClassElement2 get mapElement2;
+  ClassElement get mapElement2;
 
   /// Return the type representing `Map<Object, Object>`.
   InterfaceType get mapObjectObjectType;
@@ -96,21 +96,21 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class `Null`.
   @experimental
-  ClassElement2 get nullElement2;
+  ClassElement get nullElement2;
 
   /// Return the type representing the built-in type `Null`.
   InterfaceType get nullType;
 
   /// Return the element representing the built-in class `num`.
   @experimental
-  ClassElement2 get numElement2;
+  ClassElement get numElement2;
 
   /// Return the type representing the built-in type `num`.
   InterfaceType get numType;
 
   /// Return the element representing the built-in class `Object`.
   @experimental
-  ClassElement2 get objectElement2;
+  ClassElement get objectElement2;
 
   /// Return the type representing the built-in type `Object?`.
   InterfaceType get objectQuestionType;
@@ -120,14 +120,14 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class `Record`.
   @experimental
-  ClassElement2 get recordElement2;
+  ClassElement get recordElement2;
 
   /// Return the type representing the built-in type `Record`.
   InterfaceType get recordType;
 
   /// Return the element representing the built-in class `Set`.
   @experimental
-  ClassElement2 get setElement2;
+  ClassElement get setElement2;
 
   /// Return the type representing the built-in type `StackTrace`.
   InterfaceType get stackTraceType;
@@ -137,18 +137,18 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class `Stream`.
   @experimental
-  ClassElement2 get streamElement2;
+  ClassElement get streamElement2;
 
   /// Return the element representing the built-in class `String`.
   @experimental
-  ClassElement2 get stringElement2;
+  ClassElement get stringElement2;
 
   /// Return the type representing the built-in type `String`.
   InterfaceType get stringType;
 
   /// Return the element representing the built-in class `Symbol`.
   @experimental
-  ClassElement2 get symbolElement2;
+  ClassElement get symbolElement2;
 
   /// Return the type representing the built-in type `Symbol`.
   InterfaceType get symbolType;
@@ -168,7 +168,7 @@ abstract class TypeProvider {
   InterfaceType futureType(DartType valueType);
 
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.
-  bool isNonSubtypableClass2(InterfaceElement2 element);
+  bool isNonSubtypableClass2(InterfaceElement element);
 
   /// Return 'true' if [id] is the name of a getter on the `Object` type.
   bool isObjectGetter(String id);

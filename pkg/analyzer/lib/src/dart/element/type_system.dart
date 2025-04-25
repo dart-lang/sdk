@@ -539,7 +539,7 @@ class TypeSystemImpl implements TypeSystem {
   FunctionTypeImpl? getCallMethodType(DartType t) {
     if (t is InterfaceTypeImpl) {
       return t
-          .lookUpMethod3(MethodElement2.CALL_METHOD_NAME, t.element3.library2)
+          .lookUpMethod3(MethodElement.CALL_METHOD_NAME, t.element3.library2)
           ?.type;
     }
     return null;
@@ -550,14 +550,14 @@ class TypeSystemImpl implements TypeSystem {
   /// If a non-null [candidates] set is given, then only type parameters
   /// appearing in it are considered; otherwise all type parameters are
   /// considered.
-  List<TypeParameterElement2>? getFreeParameters2(
+  List<TypeParameterElement>? getFreeParameters2(
     DartType rootType, {
-    Set<TypeParameterElement2>? candidates,
+    Set<TypeParameterElement>? candidates,
   }) {
-    List<TypeParameterElement2>? parameters;
+    List<TypeParameterElement>? parameters;
     Set<DartType> visitedTypes = HashSet<DartType>();
-    Set<TypeParameterElement2> boundTypeParameters =
-        HashSet<TypeParameterElement2>();
+    Set<TypeParameterElement> boundTypeParameters =
+        HashSet<TypeParameterElement>();
 
     void appendParameters(DartType? type) {
       if (type == null) {
@@ -571,7 +571,7 @@ class TypeSystemImpl implements TypeSystem {
         var element = type.element3;
         if ((candidates == null || candidates.contains(element)) &&
             !boundTypeParameters.contains(element)) {
-          parameters ??= <TypeParameterElement2>[];
+          parameters ??= <TypeParameterElement>[];
           parameters!.add(element);
         }
       } else if (type is FunctionType) {
@@ -745,18 +745,18 @@ class TypeSystemImpl implements TypeSystem {
   List<TypeImpl> instantiateTypeFormalsToBounds2(
     List<TypeParameterElementImpl2> typeParameters, {
     List<bool>? hasError,
-    Map<TypeParameterElement2, TypeImpl>? knownTypes,
+    Map<TypeParameterElement, TypeImpl>? knownTypes,
   }) {
     int count = typeParameters.length;
     if (count == 0) {
       return const <TypeImpl>[];
     }
 
-    Set<TypeParameterElement2> all = <TypeParameterElement2>{};
+    Set<TypeParameterElement> all = <TypeParameterElement>{};
     // all ground
-    Map<TypeParameterElement2, TypeImpl> defaults = knownTypes ?? {};
+    Map<TypeParameterElement, TypeImpl> defaults = knownTypes ?? {};
     // not ground
-    Map<TypeParameterElement2, TypeImpl> partials = {};
+    Map<TypeParameterElement, TypeImpl> partials = {};
 
     for (var typeParameter in typeParameters) {
       all.add(typeParameter);
@@ -769,7 +769,7 @@ class TypeSystemImpl implements TypeSystem {
     bool hasProgress = true;
     while (hasProgress) {
       hasProgress = false;
-      for (TypeParameterElement2 parameter in partials.keys) {
+      for (TypeParameterElement parameter in partials.keys) {
         var value = partials[parameter]!;
         var freeParameters = getFreeParameters2(value, candidates: all);
         if (freeParameters == null) {
@@ -800,13 +800,13 @@ class TypeSystemImpl implements TypeSystem {
       var range = defaults.values.toList();
       // Build a substitution Phi mapping each uncompleted type variable to
       // dynamic, and each completed type variable to its default.
-      for (TypeParameterElement2 parameter in partials.keys) {
+      for (TypeParameterElement parameter in partials.keys) {
         domain.add(parameter);
         range.add(DynamicTypeImpl.instance);
       }
       // Set the default for an uncompleted type variable (T extends B)
       // to be Phi(B)
-      for (TypeParameterElement2 parameter in partials.keys) {
+      for (TypeParameterElement parameter in partials.keys) {
         defaults[parameter] = Substitution.fromPairs2(
           domain,
           range,
@@ -830,13 +830,13 @@ class TypeSystemImpl implements TypeSystem {
         return true;
       }
       var element = type.element3;
-      if (element is EnumElement2) {
+      if (element is EnumElement) {
         return true;
       }
-      if (element is ClassElement2 && element.isSealed) {
+      if (element is ClassElement && element.isSealed) {
         return true;
       }
-      if (element is ExtensionTypeElement2) {
+      if (element is ExtensionTypeElement) {
         return isAlwaysExhaustive(type.extensionTypeErasure);
       }
       if (type.isDartAsyncFutureOr) {
@@ -971,7 +971,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // `T` is an extension type that does not implement `Future`.
-    if (T.element3 is ExtensionTypeElement2) {
+    if (T.element3 is ExtensionTypeElement) {
       var anyFuture = typeProvider.futureType(objectQuestion);
       if (!isSubtypeOf(T, anyFuture)) {
         return true;
@@ -1184,7 +1184,7 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isNonNullable(type.typeArguments[0]);
       }
-      if (type.element3 is ExtensionTypeElement2) {
+      if (type.element3 is ExtensionTypeElement) {
         return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
@@ -1276,7 +1276,7 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isStrictlyNonNullable(type.typeArguments[0]);
       }
-      if (type.element3 is ExtensionTypeElement2) {
+      if (type.element3 is ExtensionTypeElement) {
         return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
@@ -1522,7 +1522,7 @@ class TypeSystemImpl implements TypeSystem {
     TokenType operator,
     TypeImpl rightType,
     TypeImpl currentType,
-    MethodElement2? operatorElement,
+    MethodElement? operatorElement,
   ) {
     if (operatorElement == null) return currentType;
     return _refineNumericInvocationTypeNullSafe(leftType, operatorElement, [
@@ -1537,11 +1537,11 @@ class TypeSystemImpl implements TypeSystem {
   /// [currentType].
   TypeImpl refineNumericInvocationContext2(
     TypeImpl? targetType,
-    Element2? methodElement,
+    Element? methodElement,
     TypeImpl invocationContext,
     TypeImpl currentType,
   ) {
-    if (targetType != null && methodElement is MethodElement2) {
+    if (targetType != null && methodElement is MethodElement) {
       return _refineNumericInvocationContextNullSafe(
         targetType,
         methodElement,
@@ -1562,11 +1562,11 @@ class TypeSystemImpl implements TypeSystem {
   // TODO(scheglov): I expected that [methodElement] is [MethodElement].
   TypeImpl refineNumericInvocationType(
     TypeImpl targetType,
-    Element2? methodElement,
+    Element? methodElement,
     List<TypeImpl> argumentTypes,
     TypeImpl currentType,
   ) {
-    if (methodElement is MethodElement2) {
+    if (methodElement is MethodElement) {
       return _refineNumericInvocationTypeNullSafe(
         targetType,
         methodElement,
@@ -1690,7 +1690,7 @@ class TypeSystemImpl implements TypeSystem {
   /// context type.
   GenericInferrer setupGenericTypeInference({
     // TODO(paulberry): change this to a list of `TypeParameterElementImpl`.
-    required List<TypeParameterElement2> typeParameters,
+    required List<TypeParameterElement> typeParameters,
     required TypeImpl declaredReturnType,
     required TypeImpl contextReturnType,
     ErrorReporter? errorReporter,
@@ -1806,7 +1806,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   List<TypeImpl> _defaultTypeArguments(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
   ) {
     return typeParameters.map((typeParameter) {
       var typeParameterImpl = typeParameter as TypeParameterElementImpl2;
@@ -1860,15 +1860,15 @@ class TypeSystemImpl implements TypeSystem {
 
   TypeImpl _refineNumericInvocationContextNullSafe(
     TypeImpl targetType,
-    MethodElement2 methodElement,
+    MethodElement methodElement,
     TypeImpl invocationContext,
     TypeImpl currentType,
   ) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement2 is ExtensionElement2 ||
-        methodElement.enclosingElement2 is ExtensionTypeElement2) {
+    if (methodElement.enclosingElement2 is ExtensionElement ||
+        methodElement.enclosingElement2 is ExtensionTypeElement) {
       return currentType;
     }
 
@@ -1963,15 +1963,15 @@ class TypeSystemImpl implements TypeSystem {
 
   TypeImpl _refineNumericInvocationTypeNullSafe(
     TypeImpl targetType,
-    MethodElement2 methodElement,
+    MethodElement methodElement,
     List<TypeImpl> argumentTypes,
     TypeImpl currentType,
   ) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement2 is ExtensionElement2 ||
-        methodElement.enclosingElement2 is ExtensionTypeElement2) {
+    if (methodElement.enclosingElement2 is ExtensionElement ||
+        methodElement.enclosingElement2 is ExtensionTypeElement) {
       return currentType;
     }
 
@@ -2129,7 +2129,7 @@ class _TypeVariableEliminator extends Substitution {
   _TypeVariableEliminator(this._topType, this._bottomType);
 
   @override
-  DartType getSubstitute(TypeParameterElement2 parameter, bool upperBound) {
+  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return upperBound ? _bottomType : _topType;
   }
 }

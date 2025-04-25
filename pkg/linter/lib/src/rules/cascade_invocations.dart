@@ -12,7 +12,7 @@ import '../extensions.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
 
-Element2? _getElementFromVariableDeclarationStatement(
+Element? _getElementFromVariableDeclarationStatement(
   VariableDeclarationStatement statement,
 ) {
   var variables = statement.variables.variables;
@@ -31,19 +31,19 @@ Element2? _getElementFromVariableDeclarationStatement(
   return null;
 }
 
-ExecutableElement2? _getExecutableElementFromMethodInvocation(
+ExecutableElement? _getExecutableElementFromMethodInvocation(
   MethodInvocation node,
 ) {
   if (_isInvokedWithoutNullAwareOperator(node.operator)) {
     var executableElement = node.methodName.canonicalElement;
-    if (executableElement is ExecutableElement2) {
+    if (executableElement is ExecutableElement) {
       return executableElement;
     }
   }
   return null;
 }
 
-Element2? _getPrefixElementFromExpression(Expression rawExpression) {
+Element? _getPrefixElementFromExpression(Expression rawExpression) {
   var expression = rawExpression.unParenthesized;
   if (expression is PrefixedIdentifier) {
     return expression.prefix.canonicalElement;
@@ -55,10 +55,10 @@ Element2? _getPrefixElementFromExpression(Expression rawExpression) {
   return null;
 }
 
-Element2? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
+Element? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
     node.target.canonicalElement;
 
-Element2? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
+Element? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
     node.target.canonicalElement;
 
 bool _isInvokedWithoutNullAwareOperator(Token? token) =>
@@ -129,7 +129,7 @@ class _CascadableExpression {
   /// in the right part of an assignment in a following expression that we would
   /// like to join to this.
   final bool isCritical;
-  final Element2? element;
+  final Element? element;
   final List<AstNode> criticalNodes;
 
   factory _CascadableExpression.fromExpressionStatement(
@@ -183,7 +183,7 @@ class _CascadableExpression {
     var variable = _getPrefixElementFromExpression(leftExpression);
     var canReceive =
         node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
-        variable is VariableElement2 &&
+        variable is VariableElement &&
         !variable.isStatic;
     return _CascadableExpression._internal(
       variable,

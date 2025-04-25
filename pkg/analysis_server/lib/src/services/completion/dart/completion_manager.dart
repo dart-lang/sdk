@@ -250,7 +250,7 @@ class DartCompletionRequest {
   final FeatureComputer featureComputer;
 
   /// The library element of the file in which completion is requested.
-  final LibraryElement2 libraryElement;
+  final LibraryElement libraryElement;
 
   /// The library fragment of the file in which completion is requested.
   final LibraryFragment libraryFragment;

@@ -29,7 +29,7 @@ typedef EditableInvocationInfo =
 mixin EditableArgumentsMixin {
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result);
 
-  String? getDocumentation(ResolvedUnitResult result, Element2 element) {
+  String? getDocumentation(ResolvedUnitResult result, Element element) {
     var dartDocInfo = getDartdocDirectiveInfoFor(result);
     var dartDocComputer = DartDocumentationComputer(dartDocInfo);
     var dartDoc = dartDocComputer.compute(element);
@@ -76,7 +76,7 @@ mixin EditableArgumentsMixin {
         invocation.argumentList,
       ),
       MethodInvocation(
-        methodName: Identifier(element: ExecutableElement2 element),
+        methodName: Identifier(element: ExecutableElement element),
       ) =>
         (element.formalParameters, invocation.argumentList),
       _ => (null, null),
@@ -160,11 +160,11 @@ mixin EditableArgumentsMixin {
 
   /// Returns a list of the constants of an enum constant prefixed with the enum
   /// name.
-  List<String> getQualifiedEnumConstantNames(EnumElement2 element3) =>
+  List<String> getQualifiedEnumConstantNames(EnumElement element3) =>
       element3.constants2.map(getQualifiedEnumConstantName).nonNulls.toList();
 
   /// Returns the name of an enum constant prefixed with the enum name.
-  static String? getQualifiedEnumConstantName(FieldElement2 enumConstant) {
+  static String? getQualifiedEnumConstantName(FieldElement enumConstant) {
     var enumName = enumConstant.enclosingElement2.name3;
     var name = enumConstant.name3;
     return enumName != null && name != null ? '$enumName.$name' : null;
@@ -183,7 +183,7 @@ extension on InvocationExpressionImpl {
     // We only support @widgetFactory on extension methods.
     var element = switch (function) {
       Identifier(:var element)
-          when element?.enclosingElement2 is ExtensionElement2 =>
+          when element?.enclosingElement2 is ExtensionElement =>
         element,
       _ => null,
     };

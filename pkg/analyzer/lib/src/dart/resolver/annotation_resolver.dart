@@ -68,11 +68,11 @@ class AnnotationResolver {
 
   void _classGetter(
     AnnotationImpl node,
-    InterfaceElement2 classElement,
+    InterfaceElement classElement,
     SimpleIdentifierImpl? getterName,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    ExecutableElement2? getter;
+    ExecutableElement? getter;
     if (getterName != null) {
       getter = classElement.getGetter2(getterName.name);
       // Recovery, try to find a constructor.
@@ -84,7 +84,7 @@ class AnnotationResolver {
     getterName?.element = getter;
     node.element2 = getter;
 
-    if (getterName != null && getter is PropertyAccessorElement2) {
+    if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
         node,
         getterName,
@@ -92,7 +92,7 @@ class AnnotationResolver {
         whyNotPromotedArguments,
       );
       _resolveAnnotationElementGetter(node, getter);
-    } else if (getter is! ConstructorElement2) {
+    } else if (getter is! ConstructorElement) {
       _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
@@ -151,11 +151,11 @@ class AnnotationResolver {
 
   void _extensionGetter(
     AnnotationImpl node,
-    ExtensionElement2 extensionElement,
+    ExtensionElement extensionElement,
     SimpleIdentifierImpl? getterName,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    ExecutableElement2? getter;
+    ExecutableElement? getter;
     if (getterName != null) {
       getter = extensionElement.getGetter2(getterName.name);
     }
@@ -163,7 +163,7 @@ class AnnotationResolver {
     getterName?.element = getter;
     node.element2 = getter;
 
-    if (getterName != null && getter is PropertyAccessorElement2) {
+    if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
         node,
         getterName,
@@ -184,7 +184,7 @@ class AnnotationResolver {
 
   void _localVariable(
     AnnotationImpl node,
-    VariableElement2 element,
+    VariableElement element,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     if (!element.isConst || node.arguments != null) {
@@ -201,7 +201,7 @@ class AnnotationResolver {
   void _propertyAccessorElement(
     AnnotationImpl node,
     SimpleIdentifierImpl name,
-    PropertyAccessorElement2 element,
+    PropertyAccessorElement element,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     name.element = element;
@@ -267,19 +267,19 @@ class AnnotationResolver {
     }
 
     // Extension.CONST
-    if (element1 is ExtensionElement2) {
+    if (element1 is ExtensionElement) {
       _extensionGetter(node, element1, name2, whyNotPromotedArguments);
       return;
     }
 
     // prefix.*
-    if (element1 is PrefixElement2) {
+    if (element1 is PrefixElement) {
       if (name2 != null) {
         var element = element1.scope.lookup(name2.name).getter2;
         name2.element = element;
         // prefix.Class(args) or prefix.Class.CONST
         if (element is InterfaceElementImpl2) {
-          if (element is ClassElement2 && argumentList != null) {
+          if (element is ClassElement && argumentList != null) {
             _classConstructorInvocation(
               node,
               element,
@@ -293,12 +293,12 @@ class AnnotationResolver {
           return;
         }
         // prefix.Extension.CONST
-        if (element is ExtensionElement2) {
+        if (element is ExtensionElement) {
           _extensionGetter(node, element, name3, whyNotPromotedArguments);
           return;
         }
         // prefix.CONST
-        if (element is PropertyAccessorElement2) {
+        if (element is PropertyAccessorElement) {
           _propertyAccessorElement(
             node,
             name2,
@@ -345,7 +345,7 @@ class AnnotationResolver {
     }
 
     // CONST
-    if (element1 is PropertyAccessorElement2) {
+    if (element1 is PropertyAccessorElement) {
       _propertyAccessorElement(node, name1, element1, whyNotPromotedArguments);
       return;
     }
@@ -370,7 +370,7 @@ class AnnotationResolver {
       return;
     }
 
-    if (element1 is VariableElement2) {
+    if (element1 is VariableElement) {
       _localVariable(node, element1, whyNotPromotedArguments);
       return;
     }
@@ -386,7 +386,7 @@ class AnnotationResolver {
 
   void _resolveAnnotationElementGetter(
     Annotation annotation,
-    PropertyAccessorElement2 accessorElement,
+    PropertyAccessorElement accessorElement,
   ) {
     // The accessor should be synthetic, the variable should be constant, and
     // there should be no arguments.
@@ -439,11 +439,11 @@ class AnnotationResolver {
 
   void _typeAliasGetter(
     AnnotationImpl node,
-    TypeAliasElement2 typeAliasElement,
+    TypeAliasElement typeAliasElement,
     SimpleIdentifierImpl? getterName,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    ExecutableElement2? getter;
+    ExecutableElement? getter;
     var aliasedType = typeAliasElement.aliasedType;
     if (aliasedType is InterfaceType) {
       var classElement = aliasedType.element3;
@@ -455,7 +455,7 @@ class AnnotationResolver {
     getterName?.element = getter;
     node.element2 = getter;
 
-    if (getterName != null && getter is PropertyAccessorElement2) {
+    if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
         node,
         getterName,
@@ -463,7 +463,7 @@ class AnnotationResolver {
         whyNotPromotedArguments,
       );
       _resolveAnnotationElementGetter(node, getter);
-    } else if (getter is! ConstructorElement2) {
+    } else if (getter is! ConstructorElement) {
       _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 

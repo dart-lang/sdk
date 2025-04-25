@@ -24,7 +24,7 @@ mixin ElementSuggestionBuilder {
       <String, CompletionSuggestion>{};
 
   /// Return the library in which the completion is requested.
-  LibraryElement2? get containingLibrary;
+  LibraryElement? get containingLibrary;
 
   /// Return the kind of suggestions that should be built.
   CompletionSuggestionKind? get kind;
@@ -33,7 +33,7 @@ mixin ElementSuggestionBuilder {
   ResourceProvider? get resourceProvider;
 
   /// Add a suggestion based upon the given element.
-  void addSuggestion(Element2 element,
+  void addSuggestion(Element element,
       {String? prefix, int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       if (element.library2 != containingLibrary) {
@@ -55,7 +55,7 @@ mixin ElementSuggestionBuilder {
     var suggestion = builder.forElement(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
-      if (element.isSynthetic && element is PropertyAccessorElement2) {
+      if (element.isSynthetic && element is PropertyAccessorElement) {
         var cacheKey = element.name3;
         if (cacheKey != null) {
           var existingSuggestion = _syntheticMap[cacheKey];
@@ -64,7 +64,7 @@ mixin ElementSuggestionBuilder {
           if (existingSuggestion != null) {
             var getter =
                 element is GetterElement ? suggestion : existingSuggestion;
-            var elemKind = element.enclosingElement2 is ClassElement2
+            var elemKind = element.enclosingElement2 is ClassElement
                 ? protocol.ElementKind.FIELD
                 : protocol.ElementKind.TOP_LEVEL_VARIABLE;
             existingSuggestion.element = protocol.Element(

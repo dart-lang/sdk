@@ -41,7 +41,7 @@ class LexicalLookup {
     var scopeGetter = scopeResult.getter2;
     var scopeSetter = scopeResult.setter2;
     if (scopeGetter != null || scopeSetter != null) {
-      if (scopeGetter is VariableElement2) {
+      if (scopeGetter is VariableElement) {
         return LexicalLookupResult(requested: scopeGetter);
       }
       if (scopeSetter != null) {
@@ -57,8 +57,8 @@ class LexicalLookup {
 }
 
 class LexicalLookupResult {
-  final Element2? requested;
-  final Element2? recovery;
+  final Element? requested;
+  final Element? recovery;
 
   /// The type, usually [FunctionType] referenced with `call`.
   final DartType? callFunctionType;

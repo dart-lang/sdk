@@ -134,7 +134,7 @@ embedded_libs:
 }
 
 extension on AnalysisSession {
-  Future<LibraryElement2> getLibrary(String uriStr) async {
+  Future<LibraryElement> getLibrary(String uriStr) async {
     var libraryResult = await getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element2;

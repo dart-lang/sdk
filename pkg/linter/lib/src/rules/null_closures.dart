@@ -229,7 +229,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     var methodName = node.methodName.name;
     var element = target is Identifier ? target.element : null;
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
         if (methodName == function.name) {

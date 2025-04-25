@@ -95,8 +95,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr.constructorName.name?.name == 'delayed' &&
       expr.argumentList.arguments.length == 2;
 
-  bool _isMapClass(Element2? e) =>
-      e is ClassElement2 && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
+  bool _isMapClass(Element? e) =>
+      e is ClassElement && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
 
   /// Detects Map.putIfAbsent invocations.
   bool _isMapPutIfAbsentInvocation(Expression expr) =>

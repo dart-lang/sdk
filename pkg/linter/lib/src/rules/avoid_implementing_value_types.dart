@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _overridesEquals(InterfaceElement2 element) {
+  bool _overridesEquals(InterfaceElement element) {
     var member = inheritanceManager.getMember4(
       element,
       equalsName,

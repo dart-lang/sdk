@@ -53,7 +53,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void duplicateAssignmentPatternVariable({
-    required covariant PromotableElement2 variable,
+    required covariant PromotableElement variable,
     required covariant AssignedVariablePatternImpl original,
     required covariant AssignedVariablePatternImpl duplicate,
   }) {
@@ -109,8 +109,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void inconsistentJoinedPatternVariable({
-    required PromotableElement2 variable,
-    required PromotableElement2 component,
+    required PromotableElement variable,
+    required PromotableElement component,
   }) {
     _errorReporter.atElement2(
       component,

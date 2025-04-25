@@ -26,7 +26,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late CompilationUnit testUnit;
   late FindNode findNode;
   late FindElement2 findElement2;
-  late LibraryElement2 testLibraryElement;
+  late LibraryElement testLibraryElement;
   TestCode get parsedTestCode => _parsedTestCode!;
   set parsedTestCode(TestCode value) {
     if (_parsedTestCode != null) {

@@ -203,7 +203,7 @@ class DartInlayHintComputer {
     }
   }
 
-  Location? _locationForElement(Element2? element) {
+  Location? _locationForElement(Element? element) {
     if (element == null) {
       return null;
     }
@@ -272,7 +272,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     var declaration = node.declaredElement2;
-    if (declaration is LocalVariableElement2) {
+    if (declaration is LocalVariableElement) {
       _computer._addTypePrefix(node.name, declaration.type);
     }
   }

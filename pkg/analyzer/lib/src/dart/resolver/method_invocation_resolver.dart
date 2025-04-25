@@ -158,7 +158,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiver is IdentifierImpl) {
       var element = receiver.element;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         return _resolveReceiverTypeLiteral(
           node,
           element,
@@ -167,7 +167,7 @@ class MethodInvocationResolver with ScopeHelpers {
           whyNotPromotedArguments,
           contextType: contextType,
         );
-      } else if (element is TypeAliasElement2) {
+      } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
           return _resolveReceiverTypeLiteral(
@@ -285,7 +285,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   bool _hasMatchingObjectMethod(
-    MethodElement2 target,
+    MethodElement target,
     NodeListImpl<ExpressionImpl> arguments,
   ) {
     return arguments.length == target.formalParameters.length &&
@@ -299,7 +299,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
   void _reportInstanceAccessToStaticMember(
     SimpleIdentifier nameNode,
-    ExecutableElement2 element,
+    ExecutableElement element,
     bool nullReceiver,
   ) {
     var enclosingElement = element.enclosingElement2!;
@@ -318,7 +318,7 @@ class MethodInvocationResolver with ScopeHelpers {
           arguments: [enclosingElement.displayString2()],
         );
       }
-    } else if (enclosingElement is ExtensionElement2 &&
+    } else if (enclosingElement is ExtensionElement &&
         enclosingElement.name3 == null) {
       _resolver.errorReporter.atNode(
         nameNode,
@@ -336,7 +336,7 @@ class MethodInvocationResolver with ScopeHelpers {
           nameNode.name,
           element.kind.displayName,
           enclosingElement.name3!,
-          enclosingElement is MixinElement2
+          enclosingElement is MixinElement
               ? 'mixin'
               : enclosingElement.kind.displayName,
         ],
@@ -361,7 +361,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportStaticAccessToInstanceMember(
-    ExecutableElement2 element,
+    ExecutableElement element,
     SimpleIdentifier nameNode,
   ) {
     if (!element.isStatic) {
@@ -398,7 +398,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportUndefinedMethodOrNew(
-    InterfaceElement2 receiver,
+    InterfaceElement receiver,
     SimpleIdentifierImpl methodName,
   ) {
     if (methodName.name == 'new') {
@@ -463,13 +463,13 @@ class MethodInvocationResolver with ScopeHelpers {
 
   /// Given that we are accessing a property of the given [classElement] with the
   /// given [propertyName], return the element that represents the property.
-  Element2? _resolveElement(
-    InterfaceElement2 classElement,
+  Element? _resolveElement(
+    InterfaceElement classElement,
     SimpleIdentifier propertyName,
   ) {
     // TODO(scheglov): Replace with class hierarchy.
     String name = propertyName.name;
-    Element2? element;
+    Element? element;
     if (propertyName.inSetterContext()) {
       element = classElement.getSetter2(name);
     }
@@ -741,7 +741,7 @@ class MethodInvocationResolver with ScopeHelpers {
     var element = scopeLookupResult.getter2;
     if (element != null) {
       nameNode.element = element;
-      if (element is MultiplyDefinedElement2) {
+      if (element is MultiplyDefinedElement) {
         element = element.conflictingElements2[0];
       }
       if (element is PropertyAccessorElement2OrMember) {
@@ -765,7 +765,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
         return null;
       }
-      if (element is VariableElement2) {
+      if (element is VariableElement) {
         _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
         var targetType = _localVariableTypeProvider.getType(
           nameNode,
@@ -783,7 +783,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       }
       // TODO(scheglov): This is a questionable distinction.
-      if (element is PrefixElement2) {
+      if (element is PrefixElement) {
         _setInvalidTypeResolution(
           node,
           whyNotPromotedArguments: whyNotPromotedArguments,
@@ -823,9 +823,9 @@ class MethodInvocationResolver with ScopeHelpers {
       // or is static, then we do not keep searching for the getter; this
       // setter represents the property being accessed (erroneously).
       var noGetterIsPossible =
-          element.enclosingElement2 is LibraryElement2 ||
-          element.enclosingElement2 is ExtensionElement2 ||
-          (element is ExecutableElement2 && element.isStatic);
+          element.enclosingElement2 is LibraryElement ||
+          element.enclosingElement2 is ExtensionElement ||
+          (element is ExecutableElement && element.isStatic);
       if (noGetterIsPossible) {
         nameNode.element = element;
 
@@ -906,7 +906,7 @@ class MethodInvocationResolver with ScopeHelpers {
     var element = scopeLookupResult.getter2;
     nameNode.element = element;
 
-    if (element is MultiplyDefinedElement2) {
+    if (element is MultiplyDefinedElement) {
       element = element.conflictingElements2[0];
     }
 
@@ -1060,7 +1060,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var callFunctionType = result.callFunctionType;
     if (callFunctionType != null) {
-      assert(name == MethodElement2.CALL_METHOD_NAME);
+      assert(name == MethodElement.CALL_METHOD_NAME);
       _setResolution(
         node,
         callFunctionType,
@@ -1075,7 +1075,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (receiverType.isDartCoreFunction &&
-        name == MethodElement2.CALL_METHOD_NAME) {
+        name == MethodElement.CALL_METHOD_NAME) {
       _setResolution(
         node,
         DynamicTypeImpl.instance,
@@ -1111,7 +1111,7 @@ class MethodInvocationResolver with ScopeHelpers {
         _reportInstanceAccessToStaticMember(nameNode, target, receiver == null);
       }
 
-      if (target is PropertyAccessorElement2) {
+      if (target is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(
           node,
           node.target,
@@ -1166,7 +1166,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? _resolveReceiverTypeLiteral(
     MethodInvocationImpl node,
-    InterfaceElement2 receiver,
+    InterfaceElement receiver,
     SimpleIdentifierImpl nameNode,
     String name,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
@@ -1227,7 +1227,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// node. Otherwise, returns `null`.
   RewrittenMethodInvocationImpl? _resolveReceiverTypeLiteralForDotShorthand(
     DotShorthandInvocationImpl node,
-    InterfaceElement2 receiver,
+    InterfaceElement receiver,
     SimpleIdentifierImpl nameNode,
     String name,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
@@ -1326,8 +1326,8 @@ class MethodInvocationResolver with ScopeHelpers {
       }
 
       var element = methodName.element;
-      if (element is ExecutableElement2 &&
-          element.enclosingElement2 is InstanceElement2 &&
+      if (element is ExecutableElement &&
+          element.enclosingElement2 is InstanceElement &&
           !element.isStatic) {
         targetType =
             _resolver.flowAnalysis.flow
@@ -1344,7 +1344,7 @@ class MethodInvocationResolver with ScopeHelpers {
             targetType;
       }
     } else {
-      if (target is SimpleIdentifierImpl && target.element is PrefixElement2) {
+      if (target is SimpleIdentifierImpl && target.element is PrefixElement) {
         functionExpression = PrefixedIdentifierImpl(
           prefix: target,
           period: operator!,
@@ -1601,10 +1601,10 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static InterfaceElement2? getTypeReference(Expression expression) {
+  static InterfaceElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var staticElement = expression.element;
-      if (staticElement is InterfaceElement2) {
+      if (staticElement is InterfaceElement) {
         return staticElement;
       }
     }

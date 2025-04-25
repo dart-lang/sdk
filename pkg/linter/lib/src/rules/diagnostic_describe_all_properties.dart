@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     method?.body.accept(_IdentifierVisitor(properties));
   }
 
-  bool skipForDiagnostic({Element2? element, DartType? type, Token? name}) =>
+  bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
       name.isPrivate || _isOverridingMember(element) || isWidgetProperty(type);
 
   @override
@@ -123,10 +123,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     properties.forEach(rule.reportAtToken);
   }
 
-  bool _isOverridingMember(Element2? member) {
+  bool _isOverridingMember(Element? member) {
     if (member == null) return false;
 
-    var classElement = member.thisOrAncestorOfType2<InterfaceElement2>();
+    var classElement = member.thisOrAncestorOfType2<InterfaceElement>();
     if (classElement == null) return false;
 
     var name = member.name3;

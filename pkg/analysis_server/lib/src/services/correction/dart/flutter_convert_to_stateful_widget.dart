@@ -71,7 +71,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
     // Prepare nodes to move.
     var nodesToMove = <ClassMember>{};
-    var elementsToMove = <Element2>{};
+    var elementsToMove = <Element>{};
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var fieldNode in member.fields.variables) {
@@ -273,12 +273,12 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 }
 
 class _FieldFinder extends RecursiveAstVisitor<void> {
-  Set<FieldElement2> fieldsAssignedInConstructors = {};
+  Set<FieldElement> fieldsAssignedInConstructors = {};
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredFragment?.element;
-    if (element is FieldFormalParameterElement2) {
+    if (element is FieldFormalParameterElement) {
       var field = element.field2;
       if (field != null) {
         fieldsAssignedInConstructors.add(field);
@@ -292,7 +292,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorFieldInitializer) {
       var element = node.element;
-      if (element is FieldElement2) {
+      if (element is FieldElement) {
         fieldsAssignedInConstructors.add(element);
       }
     }
@@ -300,7 +300,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
       var element = node.writeOrReadElement2;
       if (element is SetterElement) {
         var field = element.variable3;
-        if (field is FieldElement2) {
+        if (field is FieldElement) {
           fieldsAssignedInConstructors.add(field);
         }
       }
@@ -309,9 +309,9 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
 }
 
 class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
-  final ClassElement2 widgetClassElement;
+  final ClassElement widgetClassElement;
 
-  final Set<Element2> elementsToMove;
+  final Set<Element> elementsToMove;
 
   final SourceRange linesRange;
 
@@ -329,7 +329,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
       return;
     }
     var element = node.element;
-    if (element is ExecutableElement2 &&
+    if (element is ExecutableElement &&
         element.enclosingElement2 == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var offset = node.offset - linesRange.offset;

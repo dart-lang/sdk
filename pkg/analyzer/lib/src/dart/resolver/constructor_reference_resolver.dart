@@ -53,7 +53,7 @@ class ConstructorReferenceResolver {
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
       var enclosingElement = node.constructorName.type.element2;
-      if (enclosingElement is TypeAliasElement2) {
+      if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
         enclosingElement =
             aliasedType is InterfaceType ? aliasedType.element3 : null;
@@ -61,7 +61,7 @@ class ConstructorReferenceResolver {
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
       // This is illegal.
-      if (enclosingElement is InterfaceElement2) {
+      if (enclosingElement is InterfaceElement) {
         var method =
             enclosingElement.getMethod2(name.name) ??
             enclosingElement.getGetter2(name.name) ??

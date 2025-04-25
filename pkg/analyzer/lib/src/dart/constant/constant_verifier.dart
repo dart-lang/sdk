@@ -107,7 +107,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitAnnotation(node);
     // check annotation creation
     var element = node.element2;
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       // should be 'const' constructor
       if (!element.isConst) {
         _errorReporter.atNode(
@@ -581,12 +581,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void _checkForConstWithTypeParameters(
     TypeAnnotation type,
     ErrorCode errorCode, {
-    Set<TypeParameterElement2>? allowedTypeParameters,
+    Set<TypeParameterElement>? allowedTypeParameters,
   }) {
     allowedTypeParameters = {...?allowedTypeParameters};
     if (type is NamedType) {
       // Should not be a type parameter.
-      if (type.element2 is TypeParameterElement2 &&
+      if (type.element2 is TypeParameterElement &&
           !allowedTypeParameters.contains(type.element2)) {
         _errorReporter.atNode(type, errorCode);
         return;

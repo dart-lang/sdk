@@ -37,7 +37,7 @@ Expression climbPropertyAccess(Expression node) {
 /// Return references to the [element] inside the [root] node.
 List<AstNode> findImportPrefixElementReferences(
   AstNode root,
-  PrefixElement2 element,
+  PrefixElement element,
 ) {
   var collector = _ElementReferenceCollector(element);
   root.accept(collector);
@@ -45,7 +45,7 @@ List<AstNode> findImportPrefixElementReferences(
 }
 
 /// Return references to the [element] inside the [root] node.
-List<AstNode> findLocalElementReferences(AstNode root, LocalElement2 element) {
+List<AstNode> findLocalElementReferences(AstNode root, LocalElement element) {
   var collector = _ElementReferenceCollector(element);
   root.accept(collector);
   return collector.references;
@@ -68,20 +68,20 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
 
 // TODO(scheglov): replace with nodes once there will be
 // [CompilationUnit.getComments].
-/// Return all [LocalElement2]s defined in the given [node].
-List<LocalElement2> getDefinedLocalElements(AstNode node) {
+/// Return all [LocalElement]s defined in the given [node].
+List<LocalElement> getDefinedLocalElements(AstNode node) {
   var collector = _LocalElementsCollector();
   node.accept(collector);
   return collector.elements;
 }
 
 /// Return the name of the kind of the [element].
-String getElementKindName(Element2 element) {
+String getElementKindName(Element element) {
   return element.kind.displayName;
 }
 
 /// Returns the name to display in the UI for the given [element].
-String getElementQualifiedName(Element2 element) {
+String getElementQualifiedName(Element element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
     return '${element.enclosingElement2!.displayName}.${element.displayName}';
@@ -90,7 +90,7 @@ String getElementQualifiedName(Element2 element) {
     var session = element.session!;
     var pathContext = session.resourceProvider.pathContext;
     var rootPath = session.analysisContext.contextRoot.root.path;
-    var library = element as LibraryElement2;
+    var library = element as LibraryElement;
 
     return pathContext.relative(
       library.firstFragment.source.fullName,
@@ -179,14 +179,14 @@ FormalParameterElement? getFormalParameterElement(SimpleIdentifier node) {
 }
 
 /// Returns the namespace of the given [LibraryImport].
-Map<String, Element2> getImportNamespace(LibraryImport imp) {
+Map<String, Element> getImportNamespace(LibraryImport imp) {
   return imp.namespace.definedNames2;
 }
 
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
   path.Context pathContext,
-  LibraryElement2 from,
+  LibraryElement from,
   Uri what,
 ) {
   if (what.isScheme('file')) {
@@ -200,9 +200,9 @@ String getLibrarySourceUri(
 /// Return the variable's element if [node] is a reference to a local variable.
 ///
 /// Returns `null` if it isn't a reference to a local variable.
-LocalVariableElement2? getLocalVariableElement(SimpleIdentifier node) {
+LocalVariableElement? getLocalVariableElement(SimpleIdentifier node) {
   var element = node.element;
-  if (element is LocalVariableElement2) {
+  if (element is LocalVariableElement) {
     return element;
   }
   return null;
@@ -298,7 +298,7 @@ List<Statement> getStatements(Statement statement) {
 }
 
 /// Checks if the given [element]'s display name equals to the given [name].
-bool hasDisplayName(Element2? element, String name) {
+bool hasDisplayName(Element? element, String name) {
   return element?.displayName == name;
 }
 
@@ -440,7 +440,7 @@ class _DeclarationCollector extends RecursiveAstVisitor<void> {
 }
 
 class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
-  final Element2 element;
+  final Element element;
   final List<AstNode> references = [];
 
   _ElementReferenceCollector(this.element);
@@ -483,14 +483,14 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-/// Visitor that collects defined [LocalElement2]s.
+/// Visitor that collects defined [LocalElement]s.
 class _LocalElementsCollector extends RecursiveAstVisitor<void> {
-  final elements = <LocalElement2>[];
+  final elements = <LocalElement>[];
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var element = node.declaredFragment?.element;
-    if (element is LocalVariableElement2) {
+    if (element is LocalVariableElement) {
       elements.add(element);
     }
 

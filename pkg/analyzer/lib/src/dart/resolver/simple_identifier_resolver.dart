@@ -50,7 +50,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// @return the type that should be recorded for a node that resolved to the given accessor
   ///
   // TODO(scheglov): this is duplicate
-  DartType _getTypeOfProperty(PropertyAccessorElement2 accessor) {
+  DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
     if (accessor is SetterElement) {
       var parameterTypes = functionType.normalParameterTypes;
@@ -135,7 +135,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (node.inDeclarationContext()) {
       return null;
     }
-    if (node.element is LocalVariableElement2 ||
+    if (node.element is LocalVariableElement ||
         node.element is FormalParameterElement) {
       return null;
     }
@@ -204,7 +204,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
-    } else if (element is PrefixElement2 && !_isValidAsPrefix(node)) {
+    } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
       if (element.name3 case var name?) {
         errorReporter.atNode(
           node,
@@ -244,21 +244,21 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var element = node.element;
 
-    if (element is ExtensionElement2) {
+    if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
       inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }
 
     DartType staticType = InvalidTypeImpl.instance;
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         node.recordStaticType(_typeProvider.typeType, resolver: _resolver);
       } else {
         inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return;
-    } else if (element is TypeAliasElement2) {
+    } else if (element is TypeAliasElement) {
       if (_isExpressionIdentifier(node) ||
           element.aliasedType is! InterfaceType) {
         node.recordStaticType(_typeProvider.typeType, resolver: _resolver);
@@ -266,20 +266,20 @@ class SimpleIdentifierResolver with ScopeHelpers {
         inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return;
-    } else if (element is MethodElement2) {
+    } else if (element is MethodElement) {
       staticType = element.type;
-    } else if (element is PropertyAccessorElement2) {
+    } else if (element is PropertyAccessorElement) {
       staticType = propertyResult?.getType ?? _getTypeOfProperty(element);
-    } else if (element is ExecutableElement2) {
+    } else if (element is ExecutableElement) {
       staticType = element.type;
-    } else if (element is TypeParameterElement2) {
+    } else if (element is TypeParameterElement) {
       staticType = _typeProvider.typeType;
-    } else if (element is VariableElement2) {
+    } else if (element is VariableElement) {
       staticType = _resolver.localVariableTypeProvider.getType(
         node,
         isRead: node.inGetterContext(),
       );
-    } else if (element is PrefixElement2) {
+    } else if (element is PrefixElement) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
           parent is MethodInvocation && parent.target == node) {

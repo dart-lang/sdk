@@ -93,7 +93,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element) {
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
     checkConsistency();
 
     if (element.session != this) {
@@ -117,7 +117,7 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
-    LibraryElement2 element,
+    LibraryElement element,
   ) async {
     checkConsistency();
 

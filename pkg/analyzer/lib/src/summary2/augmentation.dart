@@ -100,7 +100,7 @@ class ExtensionTypeElementBuilder
 }
 
 /// A builder for top-level fragmented elements, e.g. classes.
-class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
+class FragmentedElementBuilder<E extends Element, F extends Fragment> {
   final E element;
   final F firstFragment;
   F lastFragment;

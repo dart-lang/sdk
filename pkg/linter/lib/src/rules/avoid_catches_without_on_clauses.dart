@@ -33,7 +33,7 @@ class AvoidCatchesWithoutOnClauses extends LintRule {
 }
 
 class _CaughtExceptionUseVisitor extends RecursiveAstVisitor<void> {
-  final Element2 caughtException;
+  final Element caughtException;
 
   var exceptionWasUsed = false;
 
@@ -48,7 +48,7 @@ class _CaughtExceptionUseVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _ValidUseVisitor extends RecursiveAstVisitor<void> {
-  final Element2 caughtException;
+  final Element caughtException;
 
   bool hasValidUse = false;
 
@@ -88,7 +88,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     } else if (node.methodName.name == 'reportError') {
       var target = node.realTarget;
       var targetElement = target is Identifier ? target.element : null;
-      if (targetElement is ClassElement2 &&
+      if (targetElement is ClassElement &&
           targetElement.name3 == 'FlutterError') {
         _checkUseInArgument(node.argumentList);
       }

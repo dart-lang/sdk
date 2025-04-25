@@ -73,6 +73,6 @@ extension on ClassDeclaration {
       declaredFragment?.element.methods2.namedOrNull(name) != null;
 }
 
-extension<E extends Element2> on List<E> {
+extension<E extends Element> on List<E> {
   E? namedOrNull(String name) => firstWhereOrNull((e) => e.name3 == name);
 }

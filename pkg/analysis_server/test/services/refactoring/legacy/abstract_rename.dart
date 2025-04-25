@@ -43,7 +43,7 @@ class RenameRefactoringTest extends RefactoringTest {
   void createRenameRefactoringAtString(String search) {
     var node = findNode.any(search);
 
-    Element2? element;
+    Element? element;
     switch (node) {
       case ImportDirective():
         element = MockLibraryImportElement(node.libraryImport!);
@@ -51,7 +51,7 @@ class RenameRefactoringTest extends RefactoringTest {
         element = ElementLocator.locate2(node);
     }
 
-    if (node is SimpleIdentifier && element is PrefixElement2) {
+    if (node is SimpleIdentifier && element is PrefixElement) {
       element = MockLibraryImportElement(getImportElement(node)!);
     }
 
@@ -60,7 +60,7 @@ class RenameRefactoringTest extends RefactoringTest {
 
   /// Creates a new [RenameRefactoring] in [refactoring] for [element].
   /// Fails if no [RenameRefactoring] can be created.
-  void createRenameRefactoringForElement2(Element2? element) {
+  void createRenameRefactoringForElement2(Element? element) {
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
     var refactoring = RenameRefactoring.create(
       workspace,

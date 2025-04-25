@@ -105,7 +105,7 @@ class ForResolver {
       return DynamicTypeImpl.instance;
     }
 
-    ClassElement2 iteratedElement =
+    ClassElement iteratedElement =
         isAsync
             ? _resolver.typeProvider.streamElement2
             : _resolver.typeProvider.iterableElement2;
@@ -127,7 +127,7 @@ class ForResolver {
     ExpressionImpl iterable = forEachParts.iterable;
     DeclaredIdentifierImpl? loopVariable;
     SimpleIdentifierImpl? identifier;
-    Element2? identifierElement;
+    Element? identifierElement;
     if (forEachParts is ForEachPartsWithDeclarationImpl) {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
@@ -150,7 +150,7 @@ class ForResolver {
     }
     if (identifier != null) {
       identifierElement = identifier.element;
-      if (identifierElement is VariableElement2) {
+      if (identifierElement is VariableElement) {
         valueType = _resolver.localVariableTypeProvider.getType(
           identifier,
           isRead: false,

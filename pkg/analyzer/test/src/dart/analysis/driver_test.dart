@@ -1072,7 +1072,7 @@ import 'c.dart';
 
     var driver = driverFor(testFile);
 
-    Future<LibraryElement2> getLibrary(String shortName) async {
+    Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
       return result.element2;
@@ -1148,7 +1148,7 @@ import 'b.dart';
 
     var driver = driverFor(testFile);
 
-    Future<LibraryElement2> getLibrary(String shortName) async {
+    Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
       return result.element2;

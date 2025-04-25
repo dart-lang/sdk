@@ -1268,34 +1268,34 @@ class A {}
     assertElementNull(A._lookUpInheritedMethod('foo'));
   }
 
-  static void _assertIsEnumLike(ClassElement2 element, bool expected) {
+  static void _assertIsEnumLike(ClassElement element, bool expected) {
     expect((element as ClassElementImpl2).isEnumLike, expected);
   }
 }
 
-extension on ClassElement2 {
-  PropertyAccessorElement2? _lookUpInheritedConcreteGetter(String name) {
+extension on ClassElement {
+  PropertyAccessorElement? _lookUpInheritedConcreteGetter(String name) {
     return (this as InterfaceElementImpl2).lookUpInheritedConcreteGetter(
       name,
       library2,
     );
   }
 
-  MethodElement2? _lookUpInheritedConcreteMethod(String name) {
+  MethodElement? _lookUpInheritedConcreteMethod(String name) {
     return (this as InterfaceElementImpl2).lookUpInheritedConcreteMethod(
       name,
       library2,
     );
   }
 
-  PropertyAccessorElement2? _lookUpInheritedConcreteSetter(String name) {
+  PropertyAccessorElement? _lookUpInheritedConcreteSetter(String name) {
     return (this as InterfaceElementImpl2).lookUpInheritedConcreteSetter(
       name,
       library2,
     );
   }
 
-  MethodElement2? _lookUpInheritedMethod(String name) {
+  MethodElement? _lookUpInheritedMethod(String name) {
     return (this as InterfaceElementImpl2).lookUpInheritedMethod(
       name,
       library2,

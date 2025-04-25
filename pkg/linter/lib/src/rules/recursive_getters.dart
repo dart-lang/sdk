@@ -30,7 +30,7 @@ class RecursiveGetters extends LintRule {
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final LintRule rule;
-  final ExecutableElement2 element;
+  final ExecutableElement element;
   _BodyVisitor(this.element, this.rule);
 
   bool isSelfReference(SimpleIdentifier node) {
@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     _verifyElement(node.body, node.declaredFragment?.element);
   }
 
-  void _verifyElement(AstNode node, ExecutableElement2? element) {
+  void _verifyElement(AstNode node, ExecutableElement? element) {
     if (element == null) return;
     node.accept(_BodyVisitor(element, rule));
   }

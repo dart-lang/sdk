@@ -105,7 +105,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   Future<(_ImportLibraryCombinator?, _ImportLibraryCombinatorMultiple?)>
   _importEditCombinators(
     LibraryImport import,
-    LibraryElement2 libraryElement,
+    LibraryElement libraryElement,
     String uri,
     String name, {
     String? prefix,
@@ -234,7 +234,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var producers = <ResolvedCorrectionProducer>[];
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
-    var alreadyImportedWithPrefix = <LibraryElement2>{};
+    var alreadyImportedWithPrefix = <LibraryElement>{};
     for (var import in unitResult.libraryFragment.libraryImports2) {
       // Prepare the element.
       var libraryElement = import.importedLibrary2;
@@ -245,7 +245,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (element == null) {
         continue;
       }
-      if (element is PropertyAccessorElement2) {
+      if (element is PropertyAccessorElement) {
         element = element.variable3;
         if (element == null) {
           continue;
@@ -390,7 +390,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   List<_PrefixedName> _namesForExtensionInLibrary(
-    LibraryElement2 libraryToImport,
+    LibraryElement libraryToImport,
     DartType targetType,
     Name memberName,
   ) {
@@ -946,7 +946,7 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
 /// extension, but which does so only if the extension applies to a given type.
 class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   /// The library defining the extension.
-  LibraryElement2 library;
+  LibraryElement library;
 
   /// The type of the target that the extension must apply to.
   DartType targetType;
@@ -994,8 +994,8 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
 /// A correction processor that can add a prefix to an identifier defined in a
 /// library that is already imported but that is imported with a prefix.
 class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
-  final LibraryElement2 _importedLibrary;
-  final PrefixElement2 _importPrefix;
+  final LibraryElement _importedLibrary;
+  final PrefixElement _importPrefix;
   final String? _nodePrefix;
   final _ImportLibraryCombinator? _editCombinator;
 

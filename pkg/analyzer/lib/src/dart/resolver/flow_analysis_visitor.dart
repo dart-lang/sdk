@@ -390,7 +390,7 @@ class FlowAnalysisHelper {
   /// [isBreak] is `true` for `break`, and `false` for `continue`.
   static StatementImpl? getLabelTarget(
     AstNode? node,
-    Element2? element, {
+    Element? element, {
     required bool isBreak,
   }) {
     for (; node != null; node = node.parent) {
@@ -434,7 +434,7 @@ class FlowAnalysisHelper {
     return null;
   }
 
-  static bool _hasLabel(List<Label> labels, Element2 element) {
+  static bool _hasLabel(List<Label> labels, Element element) {
     for (var nodeLabel in labels) {
       if (identical(nodeLabel.label.element, element)) {
         return true;
@@ -651,11 +651,11 @@ class TypeSystemOperations
 
   @override
   bool isExtensionTypeInternal(TypeImpl type) {
-    return type is InterfaceType && type.element3 is ExtensionTypeElement2;
+    return type is InterfaceType && type.element3 is ExtensionTypeElement;
   }
 
   @override
-  bool isFinal(PromotableElement2 variable) {
+  bool isFinal(PromotableElement variable) {
     return variable.isFinal;
   }
 
@@ -664,7 +664,7 @@ class TypeSystemOperations
     return type is InterfaceType &&
         !type.isDartCoreNull &&
         !type.isDartAsyncFutureOr &&
-        type.element3 is! ExtensionTypeElement2;
+        type.element3 is! ExtensionTypeElement;
   }
 
   @override
@@ -685,9 +685,9 @@ class TypeSystemOperations
 
   @override
   bool isPropertyPromotable(Object property) {
-    if (property is! PropertyAccessorElement2) return false;
+    if (property is! PropertyAccessorElement) return false;
     var field = property.variable3;
-    if (field is! FieldElement2) return false;
+    if (field is! FieldElement) return false;
     return field.isPromotable;
   }
 
@@ -713,7 +713,7 @@ class TypeSystemOperations
   }
 
   @override
-  bool isVariableFinal(PromotableElement2 element) {
+  bool isVariableFinal(PromotableElement element) {
     return element.isFinal;
   }
 
@@ -915,14 +915,14 @@ class TypeSystemOperations
 
   @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
-    covariant ExecutableElement2 property,
+    covariant ExecutableElement property,
   ) {
     if (property.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
-    if (property is! PropertyAccessorElement2) {
+    if (property is! PropertyAccessorElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }
     var field = property.variable3;
-    if (field is! FieldElement2) {
+    if (field is! FieldElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }
     if (field.isSynthetic && !property.isSynthetic) {
@@ -942,14 +942,14 @@ class TypeSystemOperations
 /// The visitor that gathers local variables that are potentially assigned
 /// in corresponding statements, such as loops, `switch` and `try`.
 class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
-  final AssignedVariables<AstNode, PromotableElement2> assignedVariables;
+  final AssignedVariables<AstNode, PromotableElement> assignedVariables;
 
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var element = node.element2;
-    if (element is PromotableElement2) {
+    if (element is PromotableElement) {
       assignedVariables.write(element);
     }
   }
@@ -962,7 +962,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
     if (left is SimpleIdentifier) {
       var element = left.element;
-      if (element is PromotableElement2) {
+      if (element is PromotableElement) {
         assignedVariables.write(element);
       }
     }
@@ -1081,7 +1081,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
         var element = operand.element;
-        if (element is PromotableElement2) {
+        if (element is PromotableElement) {
           assignedVariables.write(element);
         }
       }
@@ -1095,7 +1095,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
         var element = operand.element;
-        if (element is PromotableElement2) {
+        if (element is PromotableElement) {
           assignedVariables.write(element);
         }
       }
@@ -1105,7 +1105,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (element is PromotableElement2 &&
+    if (element is PromotableElement &&
         node.inGetterContext() &&
         node.parent is! FormalParameter &&
         node.parent is! CatchClause &&
@@ -1178,7 +1178,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement2 as PromotableElement2;
+    var declaredElement = node.declaredElement2 as PromotableElement;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -1227,7 +1227,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
       if (forLoopParts is ForEachPartsWithIdentifier) {
         var element = forLoopParts.identifier.element;
-        if (element is PromotableElement2) {
+        if (element is PromotableElement) {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclaration) {

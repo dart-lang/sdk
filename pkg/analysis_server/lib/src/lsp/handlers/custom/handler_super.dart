@@ -77,26 +77,26 @@ class SuperHandler
 }
 
 class _SuperComputer {
-  Fragment? computeSuper(Element2 element) {
+  Fragment? computeSuper(Element element) {
     return switch (element) {
-      ConstructorElement2 element => _findSuperConstructor(element),
-      InterfaceElement2 element => _findSuperClass(element),
+      ConstructorElement element => _findSuperConstructor(element),
+      InterfaceElement element => _findSuperClass(element),
       _ => _findSuperMember(element),
     };
   }
 
-  Fragment? _findSuperClass(InterfaceElement2 element) {
+  Fragment? _findSuperClass(InterfaceElement element) {
     // For super classes, we use the first fragment (the original declaration).
     // This differs from methods/getters because we jump to the end of the
     // augmentation chain for those.
     return element.supertype?.element3.firstFragment;
   }
 
-  Fragment? _findSuperConstructor(ConstructorElement2 element) {
+  Fragment? _findSuperConstructor(ConstructorElement element) {
     return _lastFragment(element.superConstructor2);
   }
 
-  Fragment? _findSuperMember(Element2 element) {
+  Fragment? _findSuperMember(Element element) {
     var session = element.session;
     if (session is! AnalysisSessionImpl) {
       return null;
@@ -104,7 +104,7 @@ class _SuperComputer {
 
     var inheritanceManager = session.inheritanceManager;
 
-    if (element is! ExecutableElement2 && element is! FieldElement2) {
+    if (element is! ExecutableElement && element is! FieldElement) {
       return null;
     }
 
@@ -113,7 +113,7 @@ class _SuperComputer {
       return null;
     }
 
-    var interfaceElement = element.thisOrAncestorOfType2<InterfaceElement2>();
+    var interfaceElement = element.thisOrAncestorOfType2<InterfaceElement>();
     if (interfaceElement == null) {
       return null;
     }
@@ -122,7 +122,7 @@ class _SuperComputer {
     return _lastFragment(member);
   }
 
-  Fragment? _lastFragment(Element2? element) {
+  Fragment? _lastFragment(Element? element) {
     Fragment? fragment = element?.firstFragment;
     while (fragment?.nextFragment != null) {
       fragment = fragment?.nextFragment;

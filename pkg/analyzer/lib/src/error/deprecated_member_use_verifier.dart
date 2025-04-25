@@ -46,8 +46,8 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
     var callElement = node.element;
-    if (callElement is MethodElement2 &&
-        callElement.name3 == MethodElement2.CALL_METHOD_NAME) {
+    if (callElement is MethodElement &&
+        callElement.name3 == MethodElement.CALL_METHOD_NAME) {
       _checkForDeprecated(callElement, node);
     }
   }
@@ -109,7 +109,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
   void reportError(
     SyntacticEntity errorEntity,
-    Element2 element,
+    Element element,
     String displayName,
     String? message,
   ) {
@@ -118,7 +118,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
   void reportError2(
     SyntacticEntity errorEntity,
-    Element2 element,
+    Element element,
     String displayName,
     String? message,
   ) {
@@ -159,7 +159,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// Given some [element], look at the associated metadata and report the use
   /// of the member if it is declared as deprecated. If a diagnostic is reported
   /// it should be reported at the given [node].
-  void _checkForDeprecated(Element2? element, AstNode node) {
+  void _checkForDeprecated(Element? element, AstNode node) {
     if (!_isDeprecated(element)) {
       return;
     }
@@ -208,7 +208,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     }
 
     String displayName = element!.displayName;
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       // TODO(jwren): We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
@@ -216,10 +216,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
           element.name3 == null
               ? '${element.displayName}.new'
               : element.displayName;
-    } else if (element is LibraryElement2) {
+    } else if (element is LibraryElement) {
       displayName = element.firstFragment.source.uri.toString();
     } else if (node is MethodInvocation &&
-        displayName == MethodElement2.CALL_METHOD_NAME) {
+        displayName == MethodElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
       var invokeClass = invokeType.element3;
       displayName = "${invokeClass.name3}.${element.displayName}";
@@ -228,9 +228,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
     reportError(errorEntity, element, displayName, message);
   }
 
-  void _invocationArguments(Element2? element, ArgumentList arguments) {
+  void _invocationArguments(Element? element, ArgumentList arguments) {
     element = element?.baseElement;
-    if (element is ExecutableElement2) {
+    if (element is ExecutableElement) {
       _visitParametersAndArguments(
         element.formalParameters,
         arguments.arguments,
@@ -247,11 +247,11 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// `null` if the element doesn't have a deprecated annotation or if the
   /// annotation does not have a message.
   static String? _deprecatedMessage(
-    Element2 element, {
+    Element element, {
     required bool strictCasts,
   }) {
     // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement2) {
+    if (element.isSynthetic && element is PropertyAccessorElement) {
       var variable = element.variable3;
       if (variable == null) {
         return null;
@@ -259,7 +259,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
       element = variable;
     }
     var annotation = element.metadata.firstWhereOrNull((e) => e.isDeprecated);
-    if (annotation == null || annotation.element2 is PropertyAccessorElement2) {
+    if (annotation == null || annotation.element2 is PropertyAccessorElement) {
       return null;
     }
     var constantValue = annotation.computeConstantValue();
@@ -276,12 +276,12 @@ abstract class BaseDeprecatedMemberUseVerifier {
     return false;
   }
 
-  static bool _isDeprecated(Element2? element) {
+  static bool _isDeprecated(Element? element) {
     if (element == null) {
       return false;
     }
 
-    if (element is PropertyAccessorElement2 && element.isSynthetic) {
+    if (element is PropertyAccessorElement && element.isSynthetic) {
       // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
       var variable = element.variable3;
       return variable != null && variable.metadata2.hasDeprecated;
@@ -294,11 +294,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
   /// Returns whether [element] is a [FormalParameterElement] declared in
   /// [node].
-  static bool _isLocalParameter(Element2? element, AstNode? node) {
+  static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is FormalParameterElement) {
       var definingFunction =
-          element.firstFragment.enclosingFragment?.element
-              as ExecutableElement2;
+          element.firstFragment.enclosingFragment?.element as ExecutableElement;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {
@@ -367,11 +366,11 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   @override
   void reportError(
     SyntacticEntity errorEntity,
-    Element2 element,
+    Element element,
     String displayName,
     String? message,
   ) {
-    var library = element is LibraryElement2 ? element : element.library2;
+    var library = element is LibraryElement ? element : element.library2;
 
     message = message?.trim();
     if (message == null || message.isEmpty || message == '.') {
@@ -398,7 +397,7 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     }
   }
 
-  bool _isLibraryInWorkspacePackage(LibraryElement2? library) {
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     // Better to not make a big claim that they _are_ in the same package,
     // if we were unable to determine what package [_currentLibrary] is in.
     if (_workspacePackage == null || library == null) {

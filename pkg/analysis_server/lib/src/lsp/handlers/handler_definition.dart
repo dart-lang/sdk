@@ -226,7 +226,7 @@ class DefinitionHandler
     // for the code range because otherwise previews will just show `(int a)`
     // which is not what the user expects.
     if (codeFragment.element.enclosingElement2
-        case ExtensionTypeElement2 enclosingElement
+        case ExtensionTypeElement enclosingElement
         when enclosingElement.primaryConstructor2 == codeFragment.element) {
       codeFragment = codeFragment.enclosingFragment;
     }

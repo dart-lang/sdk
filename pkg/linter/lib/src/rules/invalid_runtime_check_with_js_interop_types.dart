@@ -45,7 +45,7 @@ bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
     var userJsInteropTypeKind =
         kind == _InteropTypeKind.userJsInteropType ||
         kind == _InteropTypeKind.any;
-    if (element is ExtensionTypeElement2) {
+    if (element is ExtensionTypeElement) {
       if (dartJsInteropTypeKind && element.isFromLibrary(_dartJsInteropUri)) {
         return true;
       } else if (userJsInteropTypeKind) {
@@ -100,14 +100,14 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
 /// Returns null if `type` is not a `dart:js_interop` `@staticInterop` class.
 DartType? _jsTypeForStaticInterop(InterfaceType type) {
   var element = type.element3;
-  if (element is! ClassElement2) return null;
+  if (element is! ClassElement) return null;
   var metadata = element.metadata2;
   var hasJS = false;
   var hasStaticInterop = false;
-  LibraryElement2? dartJsInterop;
+  LibraryElement? dartJsInterop;
   for (var annotation in metadata.annotations) {
     var annotationElement = annotation.element2;
-    if (annotationElement is ConstructorElement2 &&
+    if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
         annotationElement.enclosingElement2.name3 == 'JS') {
       hasJS = true;
@@ -436,7 +436,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on Element2 {
+extension on Element {
   /// Returns whether this is from the Dart library at [uri].
   bool isFromLibrary(String uri) => library2?.uri.toString() == uri;
 }

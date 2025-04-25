@@ -32,7 +32,7 @@ class PrefixedIdentifierResolver {
     _resolver.checkUnreachableNode(node.identifier);
 
     var prefixElement = node.prefix.element;
-    if (prefixElement is! PrefixElement2) {
+    if (prefixElement is! PrefixElement) {
       var prefixType = node.prefix.staticType;
       // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefixType != null) {
@@ -63,7 +63,7 @@ class PrefixedIdentifierResolver {
     var identifier = node.identifier;
     identifier.element = element;
 
-    if (element is ExtensionElement2) {
+    if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
       return null;
     }
@@ -79,7 +79,7 @@ class PrefixedIdentifierResolver {
         result.readElementRecovery2 != null) {
       // Since the element came from error recovery logic, its type isn't
       // trustworthy; leave it as `dynamic`.
-    } else if (element is InterfaceElement2) {
+    } else if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
         node.recordStaticType(type, resolver: _resolver);
@@ -93,7 +93,7 @@ class PrefixedIdentifierResolver {
       node.recordStaticType(type, resolver: _resolver);
       identifier.setPseudoExpressionStaticType(type);
       return null;
-    } else if (element is TypeAliasElement2) {
+    } else if (element is TypeAliasElement) {
       if (node.parent is NamedType) {
         // no type
       } else {
@@ -102,13 +102,13 @@ class PrefixedIdentifierResolver {
         identifier.setPseudoExpressionStaticType(type);
       }
       return null;
-    } else if (element is MethodElement2) {
+    } else if (element is MethodElement) {
       type = element.type;
-    } else if (element is PropertyAccessorElement2) {
+    } else if (element is PropertyAccessorElement) {
       type = result.getType!;
-    } else if (element is ExecutableElement2) {
+    } else if (element is ExecutableElement) {
       type = element.type;
-    } else if (element is VariableElement2) {
+    } else if (element is VariableElement) {
       type = element.type;
     } else if (result.functionTypeCallType != null) {
       type = result.functionTypeCallType!;

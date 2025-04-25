@@ -13,13 +13,13 @@ class FlutterStatelessWidget extends FlutterSnippetProducer
   static const prefix = 'stless';
   static const label = 'Flutter Stateless Widget';
 
-  late ClassElement2? classStatelessWidget;
+  late ClassElement? classStatelessWidget;
 
   @override
-  late ClassElement2? classBuildContext;
+  late ClassElement? classBuildContext;
 
   @override
-  late ClassElement2? classKey;
+  late ClassElement? classKey;
 
   FlutterStatelessWidget(super.request, {required super.elementImportCache});
 

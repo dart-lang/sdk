@@ -68,7 +68,7 @@ abstract class DartObject {
   DartType? get type;
 
   /// If this object is the value of a constant variable, the variable.
-  VariableElement2? get variable2;
+  VariableElement? get variable2;
 
   /// Return a representation of the value of the field with the given [name].
   ///
@@ -102,7 +102,7 @@ abstract class DartObject {
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
   @experimental
-  ExecutableElement2? toFunctionValue2();
+  ExecutableElement? toFunctionValue2();
 
   /// Return an integer corresponding to the value of the object being
   /// represented, or `null` if

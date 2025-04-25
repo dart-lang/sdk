@@ -165,7 +165,7 @@ class ConstantEvaluationEngine {
     } else if (constant is ElementAnnotationImpl) {
       var constNode = constant.annotationAst;
       var element = constant.element2;
-      if (element is PropertyAccessorElement2) {
+      if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
         var variableElement = element.variable3?.baseElement;
@@ -202,7 +202,7 @@ class ConstantEvaluationEngine {
         // is detected elsewhere, so just silently ignore it here.
         constant.evaluationResult = null;
       }
-    } else if (constant is VariableElement2) {
+    } else if (constant is VariableElement) {
       // `constant` is a VariableElement but not a VariableElementImpl.  This
       // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
@@ -303,14 +303,14 @@ class ConstantEvaluationEngine {
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
       var element = constant.element2;
-      if (element is PropertyAccessorElement2) {
+      if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
         if (element.variable3 case var variable?) {
           var baseElement = variable.baseElement as VariableElementImpl2;
           callback(baseElement.firstFragment as VariableElementImpl);
         }
-      } else if (element is ConstructorElement2) {
+      } else if (element is ConstructorElement) {
         // The annotation is a constructor invocation, so it depends on the
         // constructor.
         var baseElement = element.baseElement;
@@ -534,7 +534,7 @@ abstract class ConstantEvaluationTarget {
   bool get isConstantEvaluated;
 
   /// The library with this constant.
-  LibraryElement2? get library2;
+  LibraryElement? get library2;
 
   /// The library containing this constant.
   Source? get librarySource;
@@ -557,7 +557,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   final Map<String, DartObjectImpl>? _lexicalEnvironment;
 
   /// A mapping of type parameter names to runtime values (types).
-  final Map<TypeParameterElement2, TypeImpl>? _lexicalTypeEnvironment;
+  final Map<TypeParameterElement, TypeImpl>? _lexicalTypeEnvironment;
 
   final Substitution? _substitution;
 
@@ -580,7 +580,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     this._library,
     this._errorReporter, {
     Map<String, DartObjectImpl>? lexicalEnvironment,
-    Map<TypeParameterElement2, TypeImpl>? lexicalTypeEnvironment,
+    Map<TypeParameterElement, TypeImpl>? lexicalTypeEnvironment,
     Substitution? substitution,
   }) : _lexicalEnvironment = lexicalEnvironment,
        _lexicalTypeEnvironment = lexicalTypeEnvironment,
@@ -655,12 +655,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var operatorElement = node.element;
     var operatorContainer = operatorElement?.enclosingElement2;
     switch (operatorContainer) {
-      case ExtensionElement2():
+      case ExtensionElement():
         return InvalidConstant.forEntity(
           entity: node,
           errorCode: CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
         );
-      case ExtensionTypeElement2():
+      case ExtensionTypeElement():
         return InvalidConstant.forEntity(
           entity: node,
           errorCode: CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
@@ -843,7 +843,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
     var typeElement = node.constructorName.type.element2;
 
-    TypeAliasElement2? viaTypeAlias;
+    TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl2) {
       if (constructorFunctionType.typeFormals.isNotEmpty &&
           !typeElement.isProperRename) {
@@ -1174,18 +1174,18 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var prefixElement = prefixNode.element;
 
     // A top-level constant, imported with a prefix.
-    if (prefixElement is PrefixElement2) {
+    if (prefixElement is PrefixElement) {
       if (node.isDeferred) {
         return _getDeferredLibraryError(node, node.identifier);
       }
-    } else if (prefixElement is! ExtensionElement2) {
+    } else if (prefixElement is! ExtensionElement) {
       var prefixResult = evaluateConstant(prefixNode);
       if (prefixResult is! DartObjectImpl) {
         return prefixResult;
       }
 
       // For example, `String.length`.
-      if (prefixElement is! InterfaceElement2) {
+      if (prefixElement is! InterfaceElement) {
         var propertyAccessResult = _evaluatePropertyAccess(
           prefixResult,
           node.identifier,
@@ -1211,12 +1211,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var operatorElement = node.element;
     var operatorContainer = operatorElement?.enclosingElement2;
     switch (operatorContainer) {
-      case ExtensionElement2():
+      case ExtensionElement():
         return InvalidConstant.forEntity(
           entity: node,
           errorCode: CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
         );
-      case ExtensionTypeElement2():
+      case ExtensionTypeElement():
         return InvalidConstant.forEntity(
           entity: node,
           errorCode: CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
@@ -1245,10 +1245,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var target = node.target;
     if (target != null) {
       if (target is PrefixedIdentifierImpl &&
-          (target.element is ExtensionElement2 ||
-              target.element is ExtensionTypeElement2)) {
+          (target.element is ExtensionElement ||
+              target.element is ExtensionTypeElement)) {
         var prefix = target.prefix;
-        if (prefix.element is PrefixElement2 && target.isDeferred) {
+        if (prefix.element is PrefixElement && target.isDeferred) {
           return _getDeferredLibraryError(node, target.identifier);
         }
 
@@ -1838,12 +1838,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     var propertyContainer = propertyElement?.enclosingElement2;
     switch (propertyContainer) {
-      case ExtensionElement2():
+      case ExtensionElement():
         return InvalidConstant.forEntity(
           entity: errorNode,
           errorCode: CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
         );
-      case ExtensionTypeElement2():
+      case ExtensionTypeElement():
         return InvalidConstant.forEntity(
           entity: errorNode,
           errorCode: CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
@@ -1860,7 +1860,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
 
     var element = identifier.element;
-    if (element != null && element is ExecutableElement2 && element.isStatic) {
+    if (element != null && element is ExecutableElement && element.isStatic) {
       return null;
     }
 
@@ -1876,21 +1876,21 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   ///
   /// The [errorNode] is the node to be used if an error needs to be reported,
   /// the [expression] is used to identify type parameter errors, and
-  /// [identifier] to determine the constant of any [ExecutableElement2]s.
+  /// [identifier] to determine the constant of any [ExecutableElement]s.
   ///
   // TODO(kallentu): Revisit this method and clean it up a bit.
   Constant _getConstantValue({
     required AstNode errorNode,
     required Expression? expression,
     required SimpleIdentifierImpl? identifier,
-    required Element2? element,
+    required Element? element,
     TypeImpl? givenType,
   }) {
     var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.baseElement;
 
     var variableElement =
-        element is PropertyAccessorElement2 ? element.variable3 : element;
+        element is PropertyAccessorElement ? element.variable3 : element;
 
     // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
     // for generic function instantiation for pre-constructor-references code.
@@ -2007,7 +2007,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         _typeProvider.typeType,
         TypeState(_typeProvider.neverType),
       );
-    } else if (variableElement is TypeParameterElement2) {
+    } else if (variableElement is TypeParameterElement) {
       // Constants may refer to type parameters only if the constructor-tearoffs
       // feature is enabled.
       if (_library.featureSet.isEnabled(Feature.constructor_tearoffs)) {
@@ -2806,7 +2806,7 @@ class _InstanceCreationEvaluator {
 
   final List<DartObjectImpl> _argumentValues;
 
-  final Map<TypeParameterElement2, TypeImpl> _typeParameterMap = HashMap();
+  final Map<TypeParameterElement, TypeImpl> _typeParameterMap = HashMap();
 
   final Map<String, DartObjectImpl> _parameterMap = HashMap();
 
@@ -2941,7 +2941,7 @@ class _InstanceCreationEvaluator {
     }
 
     var definingType = this.definingType;
-    if (definingType.element3 case ExtensionTypeElement2 element) {
+    if (definingType.element3 case ExtensionTypeElement element) {
       var representation = _fieldMap[element.representation2.name3];
       if (representation != null) {
         return representation;

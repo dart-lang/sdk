@@ -123,7 +123,7 @@ class AnalyzerConverter {
             endLine: endLine, endColumn: endColumn));
   }
 
-  Element convertElement(analyzer.Element2 element) {
+  Element convertElement(analyzer.Element element) {
     var kind = convertElementToElementKind(element);
     var name = getElementDisplayName(element);
     var elementTypeParameters = _getTypeParametersString(element);
@@ -160,14 +160,14 @@ class AnalyzerConverter {
   plugin.ElementKind convertElementKind(analyzer.ElementKind kind) =>
       kind.toPluginElementKind;
 
-  /// Return an [ElementKind] corresponding to the given [analyzer.Element2].
-  ElementKind convertElementToElementKind(analyzer.Element2 element) {
-    if (element is analyzer.EnumElement2) {
+  /// Return an [ElementKind] corresponding to the given [analyzer.Element].
+  ElementKind convertElementToElementKind(analyzer.Element element) {
+    if (element is analyzer.EnumElement) {
       return ElementKind.ENUM;
-    } else if (element is analyzer.MixinElement2) {
+    } else if (element is analyzer.MixinElement) {
       return ElementKind.MIXIN;
     }
-    if (element is analyzer.FieldElement2 && element.isEnumConstant) {
+    if (element is analyzer.FieldElement && element.isEnumConstant) {
       return ElementKind.ENUM_CONSTANT;
     }
     return convertElementKind(element.kind);
@@ -184,7 +184,7 @@ class AnalyzerConverter {
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
       plugin.AnalysisErrorType.values.byName(type.name);
 
-  String getElementDisplayName(analyzer.Element2 element) {
+  String getElementDisplayName(analyzer.Element element) {
     if (element is analyzer.LibraryFragment) {
       return path
           .basename((element as analyzer.LibraryFragment).source.fullName);
@@ -193,8 +193,8 @@ class AnalyzerConverter {
     }
   }
 
-  /// Create a Location based on an [analyzer.Element2].
-  Location? newLocation_fromElement(analyzer.Element2? element) {
+  /// Create a Location based on an [analyzer.Element].
+  Location? newLocation_fromElement(analyzer.Element? element) {
     if (element == null) {
       return null;
     }
@@ -209,25 +209,25 @@ class AnalyzerConverter {
     return _locationForArgs(fragment, range);
   }
 
-  String? _getAliasedTypeString(analyzer.Element2 element) {
-    if (element is analyzer.TypeAliasElement2) {
+  String? _getAliasedTypeString(analyzer.Element element) {
+    if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       return aliasedType.getDisplayString();
     }
     return null;
   }
 
-  String? _getParametersString(analyzer.Element2 element) {
+  String? _getParametersString(analyzer.Element element) {
     // TODO(scheglov): expose the corresponding feature from ExecutableElement
     List<analyzer.FormalParameterElement> parameters;
-    if (element is analyzer.ExecutableElement2) {
+    if (element is analyzer.ExecutableElement) {
       // valid getters don't have parameters
       if (element.kind == analyzer.ElementKind.GETTER &&
           element.formalParameters.isEmpty) {
         return null;
       }
       parameters = element.formalParameters.toList();
-    } else if (element is analyzer.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
         parameters = aliasedType.formalParameters.toList();
@@ -266,17 +266,17 @@ class AnalyzerConverter {
     return '($sb)';
   }
 
-  String? _getReturnTypeString(analyzer.Element2 element) {
-    if (element is analyzer.ExecutableElement2) {
+  String? _getReturnTypeString(analyzer.Element element) {
+    if (element is analyzer.ExecutableElement) {
       if (element.kind == analyzer.ElementKind.SETTER) {
         return null;
       } else {
         return element.returnType.getDisplayString();
       }
-    } else if (element is analyzer.VariableElement2) {
+    } else if (element is analyzer.VariableElement) {
       var type = element.type;
       return type.getDisplayString();
-    } else if (element is analyzer.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
         var returnType = aliasedType.returnType;
@@ -286,11 +286,11 @@ class AnalyzerConverter {
     return null;
   }
 
-  String? _getTypeParametersString(analyzer.Element2 element) {
-    List<analyzer.TypeParameterElement2>? typeParameters;
-    if (element is analyzer.InterfaceElement2) {
+  String? _getTypeParametersString(analyzer.Element element) {
+    List<analyzer.TypeParameterElement>? typeParameters;
+    if (element is analyzer.InterfaceElement) {
       typeParameters = element.typeParameters2;
-    } else if (element is analyzer.TypeAliasElement2) {
+    } else if (element is analyzer.TypeAliasElement) {
       typeParameters = element.typeParameters2;
     }
     if (typeParameters == null || typeParameters.isEmpty) {
@@ -299,41 +299,41 @@ class AnalyzerConverter {
     return '<${typeParameters.join(', ')}>';
   }
 
-  bool _isAbstract(analyzer.Element2 element) {
-    if (element is analyzer.ClassElement2) {
+  bool _isAbstract(analyzer.Element element) {
+    if (element is analyzer.ClassElement) {
       return element.isAbstract;
     }
-    if (element is analyzer.MethodElement2) {
+    if (element is analyzer.MethodElement) {
       return element.isAbstract;
     }
-    if (element is analyzer.MixinElement2) {
+    if (element is analyzer.MixinElement) {
       return true;
     }
     return false;
   }
 
-  bool _isConst(analyzer.Element2 element) {
-    if (element is analyzer.ConstructorElement2) {
+  bool _isConst(analyzer.Element element) {
+    if (element is analyzer.ConstructorElement) {
       return element.isConst;
     }
-    if (element is analyzer.VariableElement2) {
+    if (element is analyzer.VariableElement) {
       return element.isConst;
     }
     return false;
   }
 
-  bool _isFinal(analyzer.Element2 element) {
-    if (element is analyzer.VariableElement2) {
+  bool _isFinal(analyzer.Element element) {
+    if (element is analyzer.VariableElement) {
       return element.isFinal;
     }
     return false;
   }
 
-  bool _isStatic(analyzer.Element2 element) {
-    if (element is analyzer.ExecutableElement2) {
+  bool _isStatic(analyzer.Element element) {
+    if (element is analyzer.ExecutableElement) {
       return element.isStatic;
     }
-    if (element is analyzer.PropertyInducingElement2) {
+    if (element is analyzer.PropertyInducingElement) {
       return element.isStatic;
     }
     return false;

@@ -19,7 +19,7 @@ class AnnotationVerifier {
   final ErrorReporter _errorReporter;
 
   /// The current library.
-  final LibraryElement2 _currentLibrary;
+  final LibraryElement _currentLibrary;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
@@ -78,7 +78,7 @@ class AnnotationVerifier {
       }
 
       var element = type.element3;
-      if (element is InterfaceElement2 &&
+      if (element is InterfaceElement &&
           element.allSupertypes.any((t) => t.isDartAsyncFuture)) {
         return;
       }
@@ -209,7 +209,7 @@ class AnnotationVerifier {
       if (!_isValidTarget(parent, kinds)) {
         var invokedElement = element.element2!;
         var name = invokedElement.name3;
-        if (invokedElement is ConstructorElement2) {
+        if (invokedElement is ConstructorElement) {
           var className = invokedElement.enclosingElement2.name3;
           if (name!.isEmpty) {
             name = className;
@@ -285,8 +285,8 @@ class AnnotationVerifier {
   /// Reports a warning at [node] if its parent is not a valid target for a
   /// `@reopen` annotation.
   void _checkReopen(Annotation node) {
-    ClassElement2? classElement;
-    InterfaceElement2? superElement;
+    ClassElement? classElement;
+    InterfaceElement? superElement;
 
     var parent = node.parent;
     if (parent is ClassDeclaration) {
@@ -304,7 +304,7 @@ class AnnotationVerifier {
     if (classElement == null) {
       return;
     }
-    if (superElement is! ClassElement2) {
+    if (superElement is! ClassElement) {
       return;
     }
     if (classElement.isFinal ||
@@ -415,7 +415,7 @@ class AnnotationVerifier {
       } else if (parent.declaredFragment?.element case var declaredElement?) {
         if (element.isVisibleForOverriding &&
             (!declaredElement.isInstanceMember ||
-                declaredElement.enclosingElement2 is ExtensionTypeElement2)) {
+                declaredElement.enclosingElement2 is ExtensionTypeElement)) {
           reportInvalidVisibleForOverriding();
         }
 
@@ -457,7 +457,7 @@ class AnnotationVerifier {
         return;
     }
 
-    InterfaceElement2? declaredElement;
+    InterfaceElement? declaredElement;
     switch (containedDeclaration.parent) {
       case ClassDeclaration classDeclaration:
         declaredElement = classDeclaration.declaredFragment?.element;

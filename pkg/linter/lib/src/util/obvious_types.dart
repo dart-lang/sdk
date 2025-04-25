@@ -164,7 +164,7 @@ extension ExpressionExtensions on Expression {
       case SimpleIdentifier():
         if (self.isQualified) return false;
         var declaration = self.element;
-        if (declaration is! LocalVariableElement2) return false;
+        if (declaration is! LocalVariableElement) return false;
         return self.staticType == declaration.type;
       case InstanceCreationExpression():
         var createdType = self.constructorName.type;

@@ -15,19 +15,19 @@ class FieldNameNonPromotabilityInfo {
   /// The set of fields in the library with the given private name that are
   /// inherently non-promotable. These fields conflict with promotability of the
   /// given private name.
-  final List<FieldElement2> conflictingFields;
+  final List<FieldElement> conflictingFields;
 
   /// The set of getters in the library with the given private name that are
   /// concrete. These getters conflict with promotability of the given private
   /// name.
-  final List<PropertyAccessorElement2> conflictingGetters;
+  final List<PropertyAccessorElement> conflictingGetters;
 
   /// The set of concrete classes in the library that contain a getter with the
   /// given private name in their interface but not explicitly in their
   /// implementation (and hence implicitly contain a `noSuchMethod` forwarder
   /// for the getter). These implicit `noSuchMethod` forwarders conflict with
   /// promotability of the given private name.
-  final List<InterfaceElement2> conflictingNsmClasses;
+  final List<InterfaceElement> conflictingNsmClasses;
 
   FieldNameNonPromotabilityInfo({
     required this.conflictingFields,

@@ -22,7 +22,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var element = node.element2;
     var argumentList = node.arguments;
-    if (element is ConstructorElement2 && argumentList != null) {
+    if (element is ConstructorElement && argumentList != null) {
       var errorNode = node.constructorIdentifier ?? node.classIdentifier;
       if (errorNode != null) {
         _check(
@@ -66,7 +66,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.name == MethodElement2.CALL_METHOD_NAME) {
+    if (node.methodName.name == MethodElement.CALL_METHOD_NAME) {
       var targetType = node.realTarget?.staticType;
       if (targetType is FunctionType) {
         _check(
@@ -99,7 +99,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(
     SuperConstructorInvocation node, {
-    ConstructorElement2? enclosingConstructor,
+    ConstructorElement? enclosingConstructor,
   }) {
     _check(
       parameters: _executableElement(node.element)?.formalParameters,
@@ -111,7 +111,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   void _check({
     required List<FormalParameterElement>? parameters,
-    ConstructorElement2? enclosingConstructor,
+    ConstructorElement? enclosingConstructor,
     required List<Expression> arguments,
     required SyntacticEntity errorEntity,
   }) {
@@ -169,7 +169,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   }
 
   static bool _containsNamedExpression(
-    ConstructorElement2? enclosingConstructor,
+    ConstructorElement? enclosingConstructor,
     List<Expression> arguments,
     String name,
   ) {
@@ -184,16 +184,15 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     if (enclosingConstructor != null) {
       return enclosingConstructor.formalParameters.any(
-        (e) =>
-            e is SuperFormalParameterElement2 && e.isNamed && e.name3 == name,
+        (e) => e is SuperFormalParameterElement && e.isNamed && e.name3 == name,
       );
     }
 
     return false;
   }
 
-  static ExecutableElement2? _executableElement(Element2? element) {
-    if (element is ExecutableElement2) {
+  static ExecutableElement? _executableElement(Element? element) {
+    if (element is ExecutableElement) {
       return element;
     } else {
       return null;
@@ -273,10 +272,10 @@ extension _InstantiatedAnnotation on Annotation {
   }
 
   static SimpleIdentifier? _ifClassElement(SimpleIdentifier? node) {
-    return node?.element is InterfaceElement2 ? node : null;
+    return node?.element is InterfaceElement ? node : null;
   }
 
   static SimpleIdentifier? _ifConstructorElement(SimpleIdentifier? node) {
-    return node?.element is ConstructorElement2 ? node : null;
+    return node?.element is ConstructorElement ? node : null;
   }
 }

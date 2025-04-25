@@ -533,7 +533,7 @@ class ElementDisplayStringBuilder {
     _write('>');
   }
 
-  void _writeTypeParameters2(List<TypeParameterElement2> elements) {
+  void _writeTypeParameters2(List<TypeParameterElement> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -591,7 +591,7 @@ class ElementDisplayStringBuilder {
       return type;
     }
 
-    var referencedTypeParameters = <TypeParameterElement2>{};
+    var referencedTypeParameters = <TypeParameterElement>{};
 
     void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {

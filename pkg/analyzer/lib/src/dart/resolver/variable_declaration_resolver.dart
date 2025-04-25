@@ -40,7 +40,7 @@ class VariableDeclarationResolver {
 
     var element = node.declaredFragment!.element;
     var isTopLevel =
-        element is FieldElement2 || element is TopLevelVariableElement2;
+        element is FieldElement || element is TopLevelVariableElement;
 
     if (isTopLevel) {
       _resolver.flowAnalysis.bodyOrInitializer_enter(node, null);

@@ -442,7 +442,7 @@ class SubstituteTest extends _Base {
 
   void _assertIdenticalType(
     DartType type,
-    Map<TypeParameterElement2, DartType> substitution,
+    Map<TypeParameterElement, DartType> substitution,
   ) {
     var result = substitute2(type, substitution);
     expect(result, same(type));
@@ -488,7 +488,7 @@ class _Base extends AbstractTypeSystemTest {
 
   void _assertSubstitution(
     DartType type,
-    Map<TypeParameterElement2, DartType> substitution,
+    Map<TypeParameterElement, DartType> substitution,
     String expected,
   ) {
     var result = substitute2(type, substitution);

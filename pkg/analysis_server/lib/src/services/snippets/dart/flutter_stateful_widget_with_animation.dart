@@ -16,14 +16,14 @@ class FlutterStatefulWidgetWithAnimationController
   static const prefix = 'stanim';
   static const label = 'Flutter Widget with AnimationController';
 
-  late ClassElement2? classStatefulWidget;
-  late ClassElement2? classState;
+  late ClassElement? classStatefulWidget;
+  late ClassElement? classState;
   @override
-  late ClassElement2? classBuildContext;
+  late ClassElement? classBuildContext;
   @override
-  late ClassElement2? classKey;
-  late ClassElement2? classAnimationController;
-  late MixinElement2? classSingleTickerProviderStateMixin;
+  late ClassElement? classKey;
+  late ClassElement? classAnimationController;
+  late MixinElement? classSingleTickerProviderStateMixin;
 
   FlutterStatefulWidgetWithAnimationController(
     super.request, {

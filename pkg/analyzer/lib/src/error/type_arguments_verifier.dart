@@ -23,7 +23,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
-  final LibraryElement2 _libraryElement;
+  final LibraryElement _libraryElement;
   final ErrorReporter _errorReporter;
 
   TypeArgumentsVerifier(
@@ -633,7 +633,7 @@ class TypeArgumentsVerifier {
   ///
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  bool _isMissingTypeArguments(AstNode node, DartType type, Element2? element) {
+  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
     var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata2;
     if (elementMetadata == null) {
       return false;
@@ -674,7 +674,7 @@ class TypeArgumentsVerifier {
         return false;
     }
 
-    if (namedType.type?.element3 is ExtensionTypeElement2) {
+    if (namedType.type?.element3 is ExtensionTypeElement) {
       return false;
     }
 
@@ -696,7 +696,7 @@ class _TypeArgumentIssue {
   final int index;
 
   /// The type parameter with the bound that was violated.
-  final TypeParameterElement2 parameter;
+  final TypeParameterElement parameter;
 
   /// The non-null name of the [parameter].
   final String parameterName;

@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var map = interface.map2;
     for (var member in map.values) {
       var enclosingElement = member.enclosingElement2;
-      if (enclosingElement is ClassElement2 &&
+      if (enclosingElement is ClassElement &&
           !enclosingElement.isDartCoreObject) {
         return;
       }

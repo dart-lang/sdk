@@ -45,7 +45,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   /// Return `true` if the [classDeclaration] can be instantiated as a `const`.
   bool _canBeConst(
     ClassDeclaration classDeclaration,
-    List<ConstructorElement2> constructors,
+    List<ConstructorElement> constructors,
   ) {
     for (var constructor in constructors) {
       if (constructor.isDefaultConstructor && !constructor.isConst) {

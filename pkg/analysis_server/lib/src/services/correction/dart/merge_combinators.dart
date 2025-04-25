@@ -91,8 +91,8 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    LibraryElement2? element;
-    Map<String, Element2> namespace;
+    LibraryElement? element;
+    Map<String, Element> namespace;
     Namespace? originalNamespace;
     switch (directive) {
       case ExportDirective(:LibraryExportElementImpl libraryExport):

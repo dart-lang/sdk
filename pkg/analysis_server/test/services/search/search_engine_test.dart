@@ -214,7 +214,7 @@ class C implements B {}
 
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -243,7 +243,7 @@ class C extends B {}
     await resolveFile2(a);
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -264,7 +264,7 @@ extension type C(int it) implements A {}
 
     var element = findElement2.class_('A');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -290,7 +290,7 @@ mixin E implements C {}
 
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -768,12 +768,12 @@ class B extends A {}
   }
 
   static void _assertContainsClass(
-    Set<InterfaceElement2> subtypes,
+    Set<InterfaceElement> subtypes,
     String name,
   ) {
     expect(
       subtypes,
-      contains(predicate((InterfaceElement2 e) => e.name3 == name)),
+      contains(predicate((InterfaceElement e) => e.name3 == name)),
     );
   }
 }
@@ -797,7 +797,7 @@ void f(A<int> a, A<double> b) {}
     var element = findElement2.typeAlias('A');
     var matches = await searchEngine.searchReferences(element);
 
-    Matcher hasOne(Element2 element, String search) {
+    Matcher hasOne(Element element, String search) {
       return predicate((SearchMatch match) {
         return match.element == element &&
             match.sourceRange.offset == findNode.offset(search);

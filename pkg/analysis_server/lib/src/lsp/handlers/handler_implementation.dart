@@ -76,7 +76,7 @@ class ImplementationHandler
     }
     var needsMember = helper.findMemberElement(interfaceElement) != null;
 
-    var allSubtypes = <InterfaceElement2>{};
+    var allSubtypes = <InterfaceElement>{};
     await performance.runAsync(
       'appendAllSubtypes',
       (performance) => server.searchEngine.appendAllSubtypes(

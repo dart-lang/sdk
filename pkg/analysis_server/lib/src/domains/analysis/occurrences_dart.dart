@@ -35,7 +35,7 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
 }
 
 class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
-  final Map<Element2, List<(int, int)>> elementsOffsetLengths = {};
+  final Map<Element, List<(int, int)>> elementsOffsetLengths = {};
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
@@ -100,7 +100,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement2 case BindPatternVariableElement2(:var join2?)) {
+    if (node.declaredElement2 case BindPatternVariableElement(:var join2?)) {
       _addOccurrence(join2.baseElement, node.name);
     } else {
       _addOccurrence(node.declaredElement2!, node.name);
@@ -149,7 +149,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment?.element;
-    if (declaredElement is FieldFormalParameterElement2) {
+    if (declaredElement is FieldFormalParameterElement) {
       var field = declaredElement.field2;
       if (field != null) {
         _addOccurrence(field, node.name);
@@ -285,11 +285,11 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     super.visitVariableDeclaration(node);
   }
 
-  void _addOccurrence(Element2 element, Token token) {
+  void _addOccurrence(Element element, Token token) {
     _addOccurrenceAt(element, token.offset, token.length);
   }
 
-  void _addOccurrenceAt(Element2 element, int offset, int length) {
+  void _addOccurrenceAt(Element element, int offset, int length) {
     var canonicalElement = _canonicalizeElement(element);
     if (canonicalElement == null) {
       return;
@@ -302,11 +302,11 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     offsetLengths.add((offset, length));
   }
 
-  Element2? _canonicalizeElement(Element2 element) {
-    Element2? canonicalElement = element;
-    if (canonicalElement is FieldFormalParameterElement2) {
+  Element? _canonicalizeElement(Element element) {
+    Element? canonicalElement = element;
+    if (canonicalElement is FieldFormalParameterElement) {
       canonicalElement = canonicalElement.field2;
-    } else if (canonicalElement is PropertyAccessorElement2) {
+    } else if (canonicalElement is PropertyAccessorElement) {
       canonicalElement = canonicalElement.variable3;
     }
     return canonicalElement?.baseElement;

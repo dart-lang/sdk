@@ -36,7 +36,7 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
     }
 
     var variable = node.element;
-    if (variable is! LocalVariableElement2) {
+    if (variable is! LocalVariableElement) {
       return;
     }
 

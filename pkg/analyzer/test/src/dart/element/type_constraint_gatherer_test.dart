@@ -1058,7 +1058,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   }
 
   void _checkMatch(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     TypeImpl P,
     TypeImpl Q,
     bool leftSchema,
@@ -1094,7 +1094,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   }
 
   void _checkNotMatch(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     TypeImpl P,
     TypeImpl Q,
     bool leftSchema,

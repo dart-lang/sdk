@@ -82,11 +82,11 @@ class _DeclarationGatherer {
   }
 
   void _addMembers({
-    required Element2? containerElement,
+    required Element? containerElement,
     required List<ClassMember> members,
   }) {
-    bool isOverride(ExecutableElement2? element) {
-      if (containerElement is! InterfaceElement2) {
+    bool isOverride(ExecutableElement? element) {
+      if (containerElement is! InterfaceElement) {
         return false;
       }
 
@@ -113,7 +113,7 @@ class _DeclarationGatherer {
         case FieldDeclaration():
           for (var field in member.fields.variables) {
             var element = field.declaredFragment?.element;
-            if (element is FieldElement2 && element.isPublic) {
+            if (element is FieldElement && element.isPublic) {
               if (!isOverride(element.getter2)) {
                 declarations.add(field);
               }
@@ -142,7 +142,7 @@ class _DeclarationGatherer {
 /// "References" are most often [SimpleIdentifier]s, but can also be other
 /// nodes which refer to a declaration.
 class _ReferenceVisitor extends RecursiveAstVisitor<void> {
-  Map<Element2, Declaration> declarationMap;
+  Map<Element, Declaration> declarationMap;
 
   Set<Declaration> declarations = {};
 
@@ -280,7 +280,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     node.type?.alias != null ||
         // Any reference to an extension type marks it as reachable, since
         // casting can be used to instantiate the type.
-        node.type?.element3 is ExtensionTypeElement2 ||
+        node.type?.element3 is ExtensionTypeElement ||
         nodeIsInTypeArgument ||
         // A reference to any type in an external variable declaration marks
         // that type as reachable, since the external implementation can
@@ -372,11 +372,11 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   ///
   /// Also adds the declaration of [element] if it is a public static accessor
   /// or static method on a public top-level element.
-  void _addDeclaration(Element2 element) {
+  void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
     var enclosingTopLevelElement = element.thisOrAncestorMatching2(
       (a) =>
-          a.enclosingElement2 == null || a.enclosingElement2 is LibraryElement2,
+          a.enclosingElement2 == null || a.enclosingElement2 is LibraryElement,
     );
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
     if (enclosingTopLevelDeclaration != null) {
@@ -392,9 +392,9 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     if (enclosingElement == null || enclosingElement.isPrivate) {
       return;
     }
-    if (enclosingElement is InterfaceElement2 ||
-        enclosingElement is ExtensionElement2 ||
-        enclosingElement is ExtensionTypeElement2) {
+    if (enclosingElement is InterfaceElement ||
+        enclosingElement is ExtensionElement ||
+        enclosingElement is ExtensionTypeElement) {
       var declarationElement = element.baseElement;
       var declaration = declarationMap[declarationElement];
       if (declaration != null) {
@@ -467,17 +467,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (entryPoints.isEmpty) return;
 
     // Map each top-level and static element to its declaration.
-    var declarationByElement = <Element2, Declaration>{};
+    var declarationByElement = <Element, Declaration>{};
     for (var declaration in declarations) {
       var element = declaration.declaredFragment?.element;
       if (element != null) {
         declarationByElement[element] = declaration;
-        if (element is TopLevelVariableElement2) {
+        if (element is TopLevelVariableElement) {
           var getter = element.getter2;
           if (getter != null) declarationByElement[getter] = declaration;
           var setter = element.setter2;
           if (setter != null) declarationByElement[setter] = declaration;
-        } else if (element is FieldElement2) {
+        } else if (element is FieldElement) {
           var getter = element.getter2;
           if (getter != null) declarationByElement[getter] = declaration;
           var setter = element.setter2;
@@ -597,19 +597,19 @@ extension on ElementAnnotation {
 
   bool get isWidgetPreview {
     var element2 = this.element2;
-    return element2 is ConstructorElement2 &&
+    return element2 is ConstructorElement &&
         element2.enclosingElement2.name3 == 'Preview' &&
         element2.library2.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
-extension on LibraryElement2 {
+extension on LibraryElement {
   bool get isWidgetPreviews =>
       uri ==
       Uri.parse('package:flutter/src/widget_previews/widget_previews.dart');
 }
 
-extension on Element2 {
+extension on Element {
   bool get hasVisibleForTesting => switch (this) {
     Annotatable(:var metadata2) => metadata2.hasVisibleForTesting,
     _ => false,
@@ -620,10 +620,10 @@ extension on Element2 {
       //   - Constructors (generative and factory)
       //   - Top-level functions
       //   - Static member functions
-      (this is ConstructorElement2 ||
+      (this is ConstructorElement ||
               this is TopLevelFunctionElement ||
-              (this is ExecutableElement2 &&
-                  (this as ExecutableElement2).isStatic)) &&
+              (this is ExecutableElement &&
+                  (this as ExecutableElement).isStatic)) &&
           !isPrivate &&
           metadata2.hasWidgetPreview,
     _ => false,
@@ -655,7 +655,7 @@ extension on Annotation {
   DartType? get _elementType {
     var element = elementAnnotation?.element2;
     DartType? type;
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       type = element.returnType;
     } else if (element is GetterElement) {
       type = element.returnType;

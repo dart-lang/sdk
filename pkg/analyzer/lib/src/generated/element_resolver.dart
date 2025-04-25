@@ -27,38 +27,38 @@ import 'package:analyzer/src/generated/super_context.dart';
 ///    * An identifier denoting a prefix should resolve to the element
 ///      representing the import that defines the prefix (an [LibraryImport]).
 ///    * An identifier denoting a variable should resolve to the element
-///      representing the variable (a [VariableElement2]).
+///      representing the variable (a [VariableElement]).
 ///    * An identifier denoting a parameter should resolve to the element
 ///      representing the parameter (a [FormalParameterElement]).
 ///    * An identifier denoting a field should resolve to the element
 ///      representing the getter or setter being invoked (a
-///      [PropertyAccessorElement2]).
+///      [PropertyAccessorElement]).
 ///    * An identifier denoting the name of a method or function being invoked
 ///      should resolve to the element representing the method or function (an
-///      [ExecutableElement2]).
+///      [ExecutableElement]).
 ///    * An identifier denoting a label should resolve to the element
-///      representing the label (a [LabelElement2]).
+///      representing the label (a [LabelElement]).
 ///    The identifiers within directives are exceptions to this rule and are
 ///    covered below.
 /// 2. Every node containing a token representing an operator that can be
 ///    overridden ( [BinaryExpression], [PrefixExpression], [PostfixExpression])
 ///    should resolve to the element representing the method invoked by that
-///    operator (a [MethodElement2]).
+///    operator (a [MethodElement]).
 /// 3. Every [FunctionExpressionInvocation] should resolve to the element
-///    representing the function being invoked (a [ExecutableElement2]). This
+///    representing the function being invoked (a [ExecutableElement]). This
 ///    will be the same element as that to which the name is resolved if the
 ///    function has a name, but is provided for those cases where an unnamed
 ///    function is being invoked.
 /// 4. Every [LibraryDirective] and [PartOfDirective] should resolve to the
 ///    element representing the library being specified by the directive (a
-///    [LibraryElement2]) unless, in the case of a part-of directive, the
+///    [LibraryElement]) unless, in the case of a part-of directive, the
 ///    specified library does not exist.
 /// 5. Every [ImportDirective] and [ExportDirective] should resolve to the
 ///    element representing the library being specified by the directive unless
 ///    the specified library does not exist (an [LibraryImport] or
 ///    [LibraryExport]).
 /// 6. The identifier representing the prefix in an [ImportDirective] should
-///    resolve to the element representing the prefix (a [PrefixElement2]).
+///    resolve to the element representing the prefix (a [PrefixElement]).
 /// 7. The identifiers in the hide and show combinators in [ImportDirective]s
 ///    and [ExportDirective]s should resolve to the elements that are being
 ///    hidden or shown, respectively, unless those names are not defined in the
@@ -481,7 +481,7 @@ class ElementResolver {
   /// the arguments, or `null` if no correspondence could be computed.
   List<FormalParameterElementMixin?>? _resolveArgumentsToFunction(
     ArgumentList argumentList,
-    ExecutableElement2? executableElement, {
+    ExecutableElement? executableElement, {
     ConstructorDeclaration? enclosingConstructor,
   }) {
     if (executableElement == null) {
@@ -525,7 +525,7 @@ class ElementResolver {
         if (element != null) {
           // Ensure that the name always resolves to a top-level variable
           // rather than a getter or setter
-          if (element is PropertyAccessorElement2) {
+          if (element is PropertyAccessorElement) {
             name.element = element.variable3;
           } else {
             name.element = element;

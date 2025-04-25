@@ -102,7 +102,7 @@ class DartUnitHighlightsComputer {
   void _addIdentifierRegion({
     required AstNode parent,
     required Token nameToken,
-    required Element2? element,
+    required Element? element,
   }) {
     if (_addIdentifierRegion_keyword(nameToken)) {
       return;
@@ -177,9 +177,9 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_class(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
-    if (element is! InterfaceElement2) {
+    if (element is! InterfaceElement) {
       return false;
     }
     // prepare type
@@ -194,9 +194,9 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.CONSTRUCTOR;
       semanticType = SemanticTokenTypes.class_;
       semanticModifiers = {CustomSemanticTokenModifiers.constructor};
-    } else if (element is EnumElement2) {
+    } else if (element is EnumElement) {
       type = HighlightRegionType.ENUM;
-    } else if (element is ExtensionTypeElement2) {
+    } else if (element is ExtensionTypeElement) {
       type = HighlightRegionType.EXTENSION_TYPE;
     } else {
       type = HighlightRegionType.CLASS;
@@ -224,9 +224,9 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_constructor(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
-    if (element is! ConstructorElement2) {
+    if (element is! ConstructorElement) {
       return false;
     }
     return _addRegion_token(
@@ -243,8 +243,8 @@ class DartUnitHighlightsComputer {
     );
   }
 
-  bool _addIdentifierRegion_extension(Token nameToken, Element2? element) {
-    if (element is! ExtensionElement2) {
+  bool _addIdentifierRegion_extension(Token nameToken, Element? element) {
+    if (element is! ExtensionElement) {
       return false;
     }
 
@@ -254,11 +254,11 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_field(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     // Compute the type of the identifier.
     HighlightRegionType? type;
-    if (element is FieldElement2) {
+    if (element is FieldElement) {
       if (element.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (element.isStatic) {
@@ -266,14 +266,14 @@ class DartUnitHighlightsComputer {
       } else {
         type = HighlightRegionType.INSTANCE_FIELD_REFERENCE;
       }
-    } else if (element is TopLevelVariableElement2) {
+    } else if (element is TopLevelVariableElement) {
       type = HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION;
     } else if (element is GetterElement) {
       var accessor = element;
       var variable = accessor.variable3;
-      if (variable is TopLevelVariableElement2) {
+      if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE;
-      } else if (variable is FieldElement2 && variable.isEnumConstant) {
+      } else if (variable is FieldElement && variable.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (accessor.isStatic) {
         type = HighlightRegionType.STATIC_GETTER_REFERENCE;
@@ -283,9 +283,9 @@ class DartUnitHighlightsComputer {
     } else if (element is SetterElement) {
       var accessor = element;
       var variable = accessor.variable3;
-      if (variable is TopLevelVariableElement2) {
+      if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE;
-      } else if (variable is FieldElement2 && variable.isEnumConstant) {
+      } else if (variable is FieldElement && variable.isEnumConstant) {
         type = HighlightRegionType.ENUM_CONSTANT;
       } else if (accessor.isStatic) {
         type = HighlightRegionType.STATIC_SETTER_REFERENCE;
@@ -321,7 +321,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_function(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     if (element is! TopLevelFunctionElement &&
         element is! LocalFunctionElement) {
@@ -345,7 +345,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_getterSetterDeclaration(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     // should be declaration
     if (!(parent is MethodDeclaration || parent is FunctionDeclaration)) {
@@ -376,8 +376,8 @@ class DartUnitHighlightsComputer {
     return _addRegion_token(nameToken, type);
   }
 
-  bool _addIdentifierRegion_importPrefix(Token nameToken, Element2? element) {
-    if (element is! PrefixElement2) {
+  bool _addIdentifierRegion_importPrefix(Token nameToken, Element? element) {
+    if (element is! PrefixElement) {
       return false;
     }
     return _addRegion_token(nameToken, HighlightRegionType.IMPORT_PREFIX);
@@ -395,15 +395,15 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
-  bool _addIdentifierRegion_label(Token nameToken, Element2? element) {
-    if (element is! LabelElement2) {
+  bool _addIdentifierRegion_label(Token nameToken, Element? element) {
+    if (element is! LabelElement) {
       return false;
     }
     return _addRegion_token(nameToken, HighlightRegionType.LABEL);
   }
 
-  bool _addIdentifierRegion_localVariable(Token nameToken, Element2? element) {
-    if (element is! LocalVariableElement2) {
+  bool _addIdentifierRegion_localVariable(Token nameToken, Element? element) {
+    if (element is! LocalVariableElement) {
       return false;
     }
     // OK
@@ -417,9 +417,9 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_method(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
-    if (element is! MethodElement2) {
+    if (element is! MethodElement) {
       return false;
     }
     var isStatic = element.isStatic;
@@ -444,7 +444,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_parameter(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     if (element is! FormalParameterElement) {
       return false;
@@ -458,8 +458,8 @@ class DartUnitHighlightsComputer {
     return _addRegion_token(nameToken, type, semanticTokenModifiers: modifiers);
   }
 
-  bool _addIdentifierRegion_typeAlias(Token nameToken, Element2? element) {
-    if (element is TypeAliasElement2) {
+  bool _addIdentifierRegion_typeAlias(Token nameToken, Element? element) {
+    if (element is TypeAliasElement) {
       var type =
           element.aliasedType is FunctionType
               ? HighlightRegionType.FUNCTION_TYPE_ALIAS
@@ -469,8 +469,8 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
-  bool _addIdentifierRegion_typeParameter(Token nameToken, Element2? element) {
-    if (element is! TypeParameterElement2) {
+  bool _addIdentifierRegion_typeParameter(Token nameToken, Element? element) {
+    if (element is! TypeParameterElement) {
       return false;
     }
     return _addRegion_token(
@@ -483,7 +483,7 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
     AstNode parent,
     Token nameToken,
-    Element2? element,
+    Element? element,
   ) {
     // unresolved
     if (element != null) {
@@ -518,7 +518,7 @@ class DartUnitHighlightsComputer {
   /// Returns a set of additional semantic token modifiers that apply to
   /// [element].
   Set<SemanticTokenModifiers>? _additionalModifiersForElement(
-    Element2? element,
+    Element? element,
   ) {
     return (element?.isWildcardVariable ?? false)
         ? {CustomSemanticTokenModifiers.wildcard}
@@ -1507,7 +1507,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       // Patterns can be method tear-offs as well as getters:
       // https://github.com/dart-lang/sdk/issues/59976#issuecomment-2613558317
       var type = switch (node.element2) {
-        MethodElement2() => HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
+        MethodElement() => HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
         _ => HighlightRegionType.INSTANCE_GETTER_REFERENCE,
       };
 
@@ -1794,14 +1794,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var element = node.declaredFragment?.element ?? node.declaredElement2;
-    if (element is FieldElement2) {
+    if (element is FieldElement) {
       computer._addRegion_token(
         node.name,
         element.isStatic
             ? HighlightRegionType.STATIC_FIELD_DECLARATION
             : HighlightRegionType.INSTANCE_FIELD_DECLARATION,
       );
-    } else if (element is LocalVariableElement2) {
+    } else if (element is LocalVariableElement) {
       computer._addRegion_token(
         node.name,
         element.type is DynamicType
@@ -1811,7 +1811,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
           element,
         ),
       );
-    } else if (element is TopLevelVariableElement2) {
+    } else if (element is TopLevelVariableElement) {
       computer._addRegion_token(
         node.name,
         HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
@@ -1888,7 +1888,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   /// Returns a set of additional semantic token modifiers that apply to
   /// [element].
   Set<SemanticTokenModifiers>? _additionalModifiersForElement(
-    Element2? element,
+    Element? element,
   ) {
     return computer._additionalModifiersForElement(element);
   }

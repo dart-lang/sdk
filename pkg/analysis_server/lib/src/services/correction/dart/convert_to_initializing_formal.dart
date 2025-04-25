@@ -82,7 +82,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       }
 
       var fieldElement = node.fieldName.element;
-      if (fieldElement is! VariableElement2) {
+      if (fieldElement is! VariableElement) {
         return;
       }
 

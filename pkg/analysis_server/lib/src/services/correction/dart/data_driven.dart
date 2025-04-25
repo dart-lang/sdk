@@ -59,9 +59,7 @@ class DataDriven extends MultiCorrectionProducer {
 
   /// Return the transform sets that are available for fixing issues in the
   /// given [library].
-  List<TransformSet> _availableTransformSetsForLibrary(
-    LibraryElement2 library,
-  ) {
+  List<TransformSet> _availableTransformSetsForLibrary(LibraryElement library) {
     var setsForTests = transformSetsForTests;
     if (setsForTests != null) {
       return setsForTests;

@@ -161,7 +161,7 @@ class DeclarationHelper {
   }
 
   /// Add suggestions for all constructors of [element].
-  void addConstructorNamesForElement({required InterfaceElement2 element}) {
+  void addConstructorNamesForElement({required InterfaceElement element}) {
     var constructors = element.constructors2;
     for (var constructor in constructors) {
       _suggestConstructor(
@@ -197,7 +197,7 @@ class DeclarationHelper {
   }
 
   /// Add suggestions for declarations through [prefixElement].
-  void addDeclarationsThroughImportPrefix(PrefixElement2 prefixElement) {
+  void addDeclarationsThroughImportPrefix(PrefixElement prefixElement) {
     for (var importElement in prefixElement.imports) {
       var importedLibrary = importElement.importedLibrary2;
       if (importedLibrary == null) {
@@ -232,7 +232,7 @@ class DeclarationHelper {
   /// be skipped because the cursor is inside that field's name.
   void addFieldsForInitializers(
     ConstructorDeclaration constructor,
-    FieldElement2? fieldToInclude,
+    FieldElement? fieldToInclude,
   ) {
     var constructorElement = constructor.declaredFragment?.element;
     var containingElement = constructorElement?.enclosingElement2;
@@ -240,12 +240,12 @@ class DeclarationHelper {
       return;
     }
 
-    var fieldsToSkip = <FieldElement2>{};
+    var fieldsToSkip = <FieldElement>{};
     // Skip fields that are already initialized in the initializer list.
     for (var initializer in constructor.initializers) {
       if (initializer is ConstructorFieldInitializer) {
         var fieldElement = initializer.fieldName.element;
-        if (fieldElement is FieldElement2) {
+        if (fieldElement is FieldElement) {
           fieldsToSkip.add(fieldElement);
         }
       }
@@ -255,7 +255,7 @@ class DeclarationHelper {
       parameter = parameter.notDefault;
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredFragment?.element;
-        if (parameterElement is FieldFormalParameterElement2) {
+        if (parameterElement is FieldFormalParameterElement) {
           var field = parameterElement.field2;
           if (field != null) {
             fieldsToSkip.add(field);
@@ -279,7 +279,7 @@ class DeclarationHelper {
   /// Add suggestions for all of the top-level declarations that are exported
   /// from the [library] except for those whose name is in the set of
   /// [excludedNames].
-  void addFromLibrary(LibraryElement2 library, Set<String> excludedNames) {
+  void addFromLibrary(LibraryElement library, Set<String> excludedNames) {
     for (var entry in library.exportNamespace.definedNames2.entries) {
       if (!excludedNames.contains(entry.key)) {
         _addImportedElement(entry.value);
@@ -430,9 +430,9 @@ class DeclarationHelper {
     }
   }
 
-  /// Add members from the given [ExtensionElement2].
+  /// Add members from the given [ExtensionElement].
   void addMembersFromExtensionElement(
-    ExtensionElement2 extension, {
+    ExtensionElement extension, {
     ImportData? importData,
     required Set<String> excludedGetters,
     required bool includeMethods,
@@ -482,7 +482,7 @@ class DeclarationHelper {
 
   /// Adds suggestions for any constructors that are visible within the not yet
   /// imported [library].
-  void addNotImportedConstructors(LibraryElement2 library) {
+  void addNotImportedConstructors(LibraryElement library) {
     var importData = ImportData(
       libraryUri: library.uri,
       prefix: null,
@@ -494,7 +494,7 @@ class DeclarationHelper {
   /// Add members from all the applicable extensions that are visible in the
   /// not yet imported [library] that are applicable for the given [type].
   void addNotImportedExtensionMethods({
-    required LibraryElement2 library,
+    required LibraryElement library,
     required DartType type,
     required Set<String> excludedGetters,
     required bool includeMethods,
@@ -502,7 +502,7 @@ class DeclarationHelper {
   }) {
     var libraryElement = library;
     var applicableExtensions = library.exportNamespace.definedNames2.values
-        .whereType<ExtensionElement2>()
+        .whereType<ExtensionElement>()
         .applicableTo(
           targetLibrary: libraryElement,
           // Ignore nullability, consistent with non-extension members.
@@ -534,7 +534,7 @@ class DeclarationHelper {
 
   /// Adds suggestions for any top-level declarations that are visible within
   /// the not yet imported [library].
-  void addNotImportedTopLevelDeclarations(LibraryElement2 library) {
+  void addNotImportedTopLevelDeclarations(LibraryElement library) {
     var importData = ImportData(
       libraryUri: library.uri,
       prefix: null,
@@ -603,8 +603,8 @@ class DeclarationHelper {
   /// Add suggestions for all of the constructor in the [library] that could be
   /// a redirection target for the [redirectingConstructor].
   void addPossibleRedirectionsInLibrary(
-    ConstructorElement2 redirectingConstructor,
-    LibraryElement2 library,
+    ConstructorElement redirectingConstructor,
+    LibraryElement library,
   ) {
     var classElement = redirectingConstructor.enclosingElement2;
     var classType = classElement.thisType;
@@ -627,15 +627,15 @@ class DeclarationHelper {
   }
 
   /// Add any static members defined by the given [element].
-  void addStaticMembersOfElement(Element2 element) {
-    if (element is TypeAliasElement2) {
+  void addStaticMembersOfElement(Element element) {
+    if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
         element = aliasedType.element3;
       }
     }
     switch (element) {
-      case EnumElement2():
+      case EnumElement():
         _addStaticMembers(
           getters: element.getters2,
           setters: element.setters2,
@@ -644,7 +644,7 @@ class DeclarationHelper {
           fields: element.fields2,
           methods: element.methods2,
         );
-      case ExtensionElement2():
+      case ExtensionElement():
         _addStaticMembers(
           getters: element.getters2,
           setters: element.setters2,
@@ -653,7 +653,7 @@ class DeclarationHelper {
           fields: element.fields2,
           methods: element.methods2,
         );
-      case InterfaceElement2():
+      case InterfaceElement():
         _addStaticMembers(
           getters: element.getters2,
           setters: element.setters2,
@@ -667,7 +667,7 @@ class DeclarationHelper {
 
   /// Adds suggestions for any constructors that are declared within the
   /// [library].
-  void _addConstructors(LibraryElement2 library, ImportData importData) {
+  void _addConstructors(LibraryElement library, ImportData importData) {
     for (var element in library.classes) {
       _suggestConstructors(
         element.constructors2,
@@ -689,19 +689,19 @@ class DeclarationHelper {
   /// Adds suggestions for any constructors that are visible through type
   /// aliases declared within the `importData.libraryUri`.
   void _addConstructorsForAliasedElement(
-    TypeAliasElement2 alias,
+    TypeAliasElement alias,
     ImportData? importData,
   ) {
     var aliasedElement = alias.aliasedElement2;
-    if (aliasedElement is ClassElement2) {
+    if (aliasedElement is ClassElement) {
       _suggestConstructors(
         aliasedElement.constructors2,
         importData,
         allowNonFactory: !aliasedElement.isAbstract,
       );
-    } else if (aliasedElement is ExtensionTypeElement2) {
+    } else if (aliasedElement is ExtensionTypeElement) {
       _suggestConstructors(aliasedElement.constructors2, importData);
-    } else if (aliasedElement is MixinElement2) {
+    } else if (aliasedElement is MixinElement) {
       _suggestConstructors(aliasedElement.constructors2, importData);
     }
   }
@@ -709,7 +709,7 @@ class DeclarationHelper {
   /// Adds suggestions for any constructors that are visible within the
   /// [library].
   void _addConstructorsImportedFrom({
-    required LibraryElement2 library,
+    required LibraryElement library,
     required Namespace namespace,
     required String? prefix,
   }) {
@@ -720,15 +720,15 @@ class DeclarationHelper {
     );
     for (var element in namespace.definedNames2.values) {
       switch (element) {
-        case ClassElement2():
+        case ClassElement():
           _suggestConstructors(
             element.constructors2,
             importData,
             allowNonFactory: !element.isAbstract,
           );
-        case ExtensionTypeElement2():
+        case ExtensionTypeElement():
           _suggestConstructors(element.constructors2, importData);
-        case TypeAliasElement2():
+        case TypeAliasElement():
           _addConstructorsForAliasedElement(element, importData);
       }
     }
@@ -737,7 +737,7 @@ class DeclarationHelper {
   /// Adds suggestions for any top-level declarations that are visible within
   /// the [library].
   void _addDeclarationsImportedFrom({
-    required LibraryElement2 library,
+    required LibraryElement library,
     required Namespace namespace,
     required String? prefix,
   }) {
@@ -799,7 +799,7 @@ class DeclarationHelper {
         } else {
           // All fields induce a getter.
           var variable = getter.variable3;
-          if (variable is FieldElement2) {
+          if (variable is FieldElement) {
             _suggestField(field: variable);
           }
         }
@@ -828,27 +828,27 @@ class DeclarationHelper {
   ///
   /// The [importData] indicates how the library is, or should be, imported.
   void _addExternalTopLevelDeclarations({
-    required LibraryElement2 library,
+    required LibraryElement library,
     required Namespace namespace,
     required ImportData importData,
   }) {
     for (var element in namespace.definedNames2.values) {
       switch (element) {
-        case ClassElement2():
+        case ClassElement():
           _suggestClass(element, importData);
-        case EnumElement2():
+        case EnumElement():
           _suggestEnum(element, importData);
-        case ExtensionElement2():
+        case ExtensionElement():
           if (!mustBeType) {
             _suggestExtension(element, importData);
           }
-        case ExtensionTypeElement2():
+        case ExtensionTypeElement():
           _suggestExtensionType(element, importData);
         case TopLevelFunctionElement():
           if (!mustBeType) {
             _suggestTopLevelFunction(element, importData);
           }
-        case MixinElement2():
+        case MixinElement():
           _suggestMixin(element, importData);
         case GetterElement():
           if (!mustBeType) {
@@ -864,11 +864,11 @@ class DeclarationHelper {
             }
             _suggestTopLevelProperty(element, importData);
           }
-        case TopLevelVariableElement2():
+        case TopLevelVariableElement():
           if (!mustBeType) {
             _suggestTopLevelVariable(element, importData);
           }
-        case TypeAliasElement2():
+        case TypeAliasElement():
           _suggestTypeAlias(element, importData);
       }
     }
@@ -893,7 +893,7 @@ class DeclarationHelper {
 
   /// Adds suggestions for any constructors that are imported into the
   /// [library].
-  void _addImportedConstructors(LibraryElement2 library) {
+  void _addImportedConstructors(LibraryElement library) {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
@@ -911,7 +911,7 @@ class DeclarationHelper {
 
   /// Adds suggestions for any top-level declarations that are imported into the
   /// [library].
-  void _addImportedDeclarations(LibraryElement2 library) {
+  void _addImportedDeclarations(LibraryElement library) {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
@@ -937,26 +937,26 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the top-level [element].
-  void _addImportedElement(Element2 element) {
+  void _addImportedElement(Element element) {
     var matcherScore = state.matcher.score(element.displayName);
     if (matcherScore != -1) {
       var suggestion = switch (element) {
-        ClassElement2() => ClassSuggestion(
+        ClassElement() => ClassSuggestion(
           importData: null,
           element: element,
           matcherScore: matcherScore,
         ),
-        EnumElement2() => EnumSuggestion(
+        EnumElement() => EnumSuggestion(
           importData: null,
           element: element,
           matcherScore: matcherScore,
         ),
-        ExtensionElement2() => ExtensionSuggestion(
+        ExtensionElement() => ExtensionSuggestion(
           importData: null,
           element: element,
           matcherScore: matcherScore,
         ),
-        ExtensionTypeElement2() => ExtensionTypeSuggestion(
+        ExtensionTypeElement() => ExtensionTypeSuggestion(
           importData: null,
           element: element,
           matcherScore: matcherScore,
@@ -967,21 +967,21 @@ class DeclarationHelper {
           kind: _executableSuggestionKind,
           matcherScore: matcherScore,
         ),
-        MixinElement2() => MixinSuggestion(
+        MixinElement() => MixinSuggestion(
           importData: null,
           element: element,
           matcherScore: matcherScore,
         ),
-        PropertyAccessorElement2() => _createSuggestionFromTopLevelProperty(
+        PropertyAccessorElement() => _createSuggestionFromTopLevelProperty(
           element,
           matcherScore,
         ),
-        TopLevelVariableElement2() => TopLevelVariableSuggestion(
+        TopLevelVariableElement() => TopLevelVariableSuggestion(
           importData: null,
           element: element,
           matcherScore: matcherScore,
         ),
-        TypeAliasElement2() => TypeAliasSuggestion(
+        TypeAliasElement() => TypeAliasSuggestion(
           importData: null,
           element: element,
           matcherScore: matcherScore,
@@ -1008,7 +1008,7 @@ class DeclarationHelper {
       _ => null,
     };
     var element = fragment?.element;
-    if (!mustBeStatic && element is ExtensionElement2) {
+    if (!mustBeStatic && element is ExtensionElement) {
       var thisType = element.thisType;
       if (thisType is InterfaceType) {
         _addInstanceMembers(
@@ -1020,19 +1020,19 @@ class DeclarationHelper {
       }
       return;
     }
-    if (element is! InterfaceElement2) {
+    if (element is! InterfaceElement) {
       return;
     }
     var referencingInterface = _referencingInterfaceFor(element);
     var members = request.inheritanceManager.getInheritedMap(element);
     for (var member in members.values) {
       switch (member) {
-        case MethodElement2():
+        case MethodElement():
           _suggestMethod(
             method: member,
             referencingInterface: referencingInterface,
           );
-        case PropertyAccessorElement2():
+        case PropertyAccessorElement():
           _suggestProperty(
             accessor: member,
             referencingInterface: referencingInterface,
@@ -1064,12 +1064,12 @@ class DeclarationHelper {
             ? request.inheritanceManager.getInheritedConcreteMap(type.element3)
             : request.inheritanceManager.getInterface2(type.element3).map2;
 
-    var membersByName = <String, List<ExecutableElement2>>{};
+    var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {
       if (_canAccessInstanceMember(rawMember)) {
         var name = rawMember.displayName;
         membersByName
-            .putIfAbsent(name, () => <ExecutableElement2>[])
+            .putIfAbsent(name, () => <ExecutableElement>[])
             .add(rawMember);
       }
     }
@@ -1077,7 +1077,7 @@ class DeclarationHelper {
     for (var entry in membersByName.entries) {
       var members = entry.value;
       var rawMember = members.bestMember;
-      if (rawMember is MethodElement2) {
+      if (rawMember is MethodElement) {
         if (includeMethods) {
           if (rawMember.isOperator) {
             continue;
@@ -1085,7 +1085,7 @@ class DeclarationHelper {
           // Exclude static methods when completion on an instance.
           var member = ExecutableMember.from(rawMember, substitution);
           _suggestMethod(
-            method: member as MethodElement2,
+            method: member as MethodElement,
             referencingInterface: referencingInterface,
           );
         }
@@ -1093,7 +1093,7 @@ class DeclarationHelper {
         if (!excludedGetters.contains(entry.key)) {
           var member = ExecutableMember.from(rawMember, substitution);
           _suggestProperty(
-            accessor: member as PropertyAccessorElement2,
+            accessor: member as PropertyAccessorElement,
             referencingInterface: referencingInterface,
           );
         }
@@ -1101,7 +1101,7 @@ class DeclarationHelper {
         if (includeSetters) {
           var member = ExecutableMember.from(rawMember, substitution);
           _suggestProperty(
-            accessor: member as PropertyAccessorElement2,
+            accessor: member as PropertyAccessorElement,
             referencingInterface: referencingInterface,
           );
         }
@@ -1269,7 +1269,7 @@ class DeclarationHelper {
   }
 
   /// Completion is inside the declaration of the [element].
-  void _addMembersOfEnclosingInstance(InstanceElement2 element) {
+  void _addMembersOfEnclosingInstance(InstanceElement element) {
     var referencingInterface = _referencingInterfaceFor(element);
 
     for (var accessor in element.getters2) {
@@ -1370,7 +1370,7 @@ class DeclarationHelper {
         }
       case GenericTypeAlias():
         var element = declaration.declaredFragment?.element;
-        if (element is TypeAliasElement2) {
+        if (element is TypeAliasElement) {
           _suggestTypeParameters(element.typeParameters2);
         }
       case MixinDeclaration():
@@ -1389,10 +1389,10 @@ class DeclarationHelper {
   void _addStaticMembers({
     required List<GetterElement> getters,
     required List<SetterElement> setters,
-    required List<ConstructorElement2> constructors,
-    required Element2 containingElement,
-    required List<FieldElement2> fields,
-    required List<MethodElement2> methods,
+    required List<ConstructorElement> constructors,
+    required Element containingElement,
+    required List<FieldElement> fields,
+    required List<MethodElement> methods,
   }) {
     for (var getter in getters) {
       if (getter.isStatic &&
@@ -1411,7 +1411,7 @@ class DeclarationHelper {
     for (var field in fields) {
       if (field.isStatic &&
           (!field.isSynthetic ||
-              (containingElement is EnumElement2 && field.name3 == 'values')) &&
+              (containingElement is EnumElement && field.name3 == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
           var enumElement = field.enclosingElement2;
@@ -1434,7 +1434,7 @@ class DeclarationHelper {
     }
     if (!mustBeAssignable) {
       var allowNonFactory =
-          containingElement is ClassElement2 && !containingElement.isAbstract;
+          containingElement is ClassElement && !containingElement.isAbstract;
       for (var constructor in constructors) {
         if (constructor.isVisibleIn(request.libraryElement) &&
             (allowNonFactory || constructor.isFactory)) {
@@ -1458,7 +1458,7 @@ class DeclarationHelper {
   /// the [library].
   ///
   /// The [library] is the library in which completion is being requested.
-  void _addTopLevelDeclarations(LibraryElement2 library) {
+  void _addTopLevelDeclarations(LibraryElement library) {
     for (var element in library.classes) {
       _suggestClass(element, null);
     }
@@ -1505,7 +1505,7 @@ class DeclarationHelper {
     }
   }
 
-  bool _canAccessInstanceMember(ExecutableElement2 element) {
+  bool _canAccessInstanceMember(ExecutableElement element) {
     if (element.isStatic) {
       return false;
     }
@@ -1527,7 +1527,7 @@ class DeclarationHelper {
 
     if (element.isProtected) {
       var elementInterface = element.enclosingElement2;
-      if (elementInterface is! InterfaceElement2) {
+      if (elementInterface is! InterfaceElement) {
         return false;
       }
 
@@ -1566,14 +1566,14 @@ class DeclarationHelper {
   }
 
   ImportableSuggestion? _createSuggestionFromTopLevelProperty(
-    PropertyAccessorElement2 element,
+    PropertyAccessorElement element,
     double matcherScore, {
     ImportData? importData,
   }) {
     if (element.isSynthetic) {
       if (element is GetterElement) {
         var variable = element.variable3;
-        if (variable is TopLevelVariableElement2) {
+        if (variable is TopLevelVariableElement) {
           return TopLevelVariableSuggestion(
             importData: importData,
             element: variable,
@@ -1609,12 +1609,12 @@ class DeclarationHelper {
 
   /// Returns the interface element for the type of `this` within the
   /// declaration of the given class-like [element].
-  InterfaceElement2? _referencingInterfaceFor(Element2 element) {
-    if (element is InterfaceElement2) {
+  InterfaceElement? _referencingInterfaceFor(Element element) {
+    if (element is InterfaceElement) {
       return element;
-    } else if (element is InstanceElement2) {
+    } else if (element is InstanceElement) {
       var thisElement = element.thisType.element3;
-      if (thisElement is InterfaceElement2) {
+      if (thisElement is InterfaceElement) {
         return thisElement;
       }
     }
@@ -1622,7 +1622,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the class represented by the [element].
-  void _suggestClass(ClassElement2 element, ImportData? importData) {
+  void _suggestClass(ClassElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeExtendable &&
               !element.isExtendableIn2(request.libraryElement)) ||
@@ -1655,7 +1655,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the constructor represented by the [element].
   void _suggestConstructor(
-    ConstructorElement2 element, {
+    ConstructorElement element, {
     required ImportData? importData,
     required bool hasClassName,
     required bool isConstructorRedirect,
@@ -1711,7 +1711,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for each of the [constructors].
   void _suggestConstructors(
-    List<ConstructorElement2> constructors,
+    List<ConstructorElement> constructors,
     ImportData? importData, {
     bool allowNonFactory = true,
   }) {
@@ -1732,7 +1732,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the enum represented by the [element].
-  void _suggestEnum(EnumElement2 element, ImportData? importData) {
+  void _suggestEnum(EnumElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
@@ -1759,7 +1759,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the extension represented by the [element].
-  void _suggestExtension(ExtensionElement2 element, ImportData? importData) {
+  void _suggestExtension(ExtensionElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
@@ -1785,7 +1785,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the extension type represented by the [element].
   void _suggestExtensionType(
-    ExtensionTypeElement2 element,
+    ExtensionTypeElement element,
     ImportData? importData,
   ) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
@@ -1815,8 +1815,8 @@ class DeclarationHelper {
   /// [referencingInterface] is provided, it should be the class in which
   /// completion was requested.
   void _suggestField({
-    required FieldElement2 field,
-    InterfaceElement2? referencingInterface,
+    required FieldElement field,
+    InterfaceElement? referencingInterface,
     bool isInDeclaration = false,
   }) {
     if (visibilityTracker.isVisible(element: field, importData: null)) {
@@ -1846,7 +1846,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the local function represented by the [element].
-  void _suggestLocalFunction(ExecutableElement2 element) {
+  void _suggestLocalFunction(ExecutableElement element) {
     if (element is LocalFunctionElement &&
         visibilityTracker.isVisible(element: element, importData: null)) {
       if (mustBeAssignable ||
@@ -1879,10 +1879,10 @@ class DeclarationHelper {
   /// [referencingInterface] is provided, it should be the class in which
   /// completion was requested.
   void _suggestMethod({
-    required MethodElement2 method,
+    required MethodElement method,
     bool ignoreVisibility = false,
     ImportData? importData,
-    InterfaceElement2? referencingInterface,
+    InterfaceElement? referencingInterface,
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(element: method, importData: importData)) {
@@ -1895,7 +1895,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var enclosingElement = method.enclosingElement2;
         if (method.name3 == 'setState' &&
-            enclosingElement is ClassElement2 &&
+            enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
           var suggestion = SetStateMethodSuggestion(
             element: method,
@@ -1920,7 +1920,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the mixin represented by the [element].
-  void _suggestMixin(MixinElement2 element, ImportData? importData) {
+  void _suggestMixin(MixinElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable ||
           (mustBeImplementable &&
@@ -1971,10 +1971,10 @@ class DeclarationHelper {
   /// [referencingInterface] is provided, it should be the class in which
   /// completion was requested.
   void _suggestProperty({
-    required PropertyAccessorElement2 accessor,
+    required PropertyAccessorElement accessor,
     bool ignoreVisibility = false,
     ImportData? importData,
-    InterfaceElement2? referencingInterface,
+    InterfaceElement? referencingInterface,
     bool isInDeclaration = false,
   }) {
     if (ignoreVisibility ||
@@ -1997,7 +1997,7 @@ class DeclarationHelper {
           // synthetic setter.
           if (accessor is GetterElement) {
             var variable = accessor.variable3;
-            if (variable is FieldElement2) {
+            if (variable is FieldElement) {
               var suggestion = FieldSuggestion(
                 element: variable,
                 matcherScore: matcherScore,
@@ -2049,7 +2049,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the enum constant represented by the [element].
   /// The [importData] should be provided if the enum is imported.
-  void _suggestStaticField(FieldElement2 element, ImportData? importData) {
+  void _suggestStaticField(FieldElement element, ImportData? importData) {
     if (!element.isStatic ||
         (mustBeAssignable && !(element.isFinal || element.isConst)) ||
         (mustBeConstant && !element.isConst)) {
@@ -2082,7 +2082,7 @@ class DeclarationHelper {
             if (getter != null) {
               if (getter.isSynthetic) {
                 var variable = getter.variable3;
-                if (variable is FieldElement2) {
+                if (variable is FieldElement) {
                   var suggestion = FieldSuggestion(
                     element: variable,
                     matcherScore: matcherScore,
@@ -2116,10 +2116,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for each of the static fields in the list of [fields].
-  void _suggestStaticFields(
-    List<FieldElement2> fields,
-    ImportData? importData,
-  ) {
+  void _suggestStaticFields(List<FieldElement> fields, ImportData? importData) {
     for (var field in fields) {
       if (field.isVisibleIn(request.libraryElement)) {
         _suggestStaticField(field, importData);
@@ -2164,7 +2161,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the getter or setter represented by the [element].
   void _suggestTopLevelProperty(
-    PropertyAccessorElement2 element,
+    PropertyAccessorElement element,
     ImportData? importData,
   ) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
@@ -2192,7 +2189,7 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the getter or setter represented by the [element].
   void _suggestTopLevelVariable(
-    TopLevelVariableElement2 element,
+    TopLevelVariableElement element,
     ImportData? importData,
   ) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
@@ -2214,7 +2211,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the type alias represented by the [element].
-  void _suggestTypeAlias(TypeAliasElement2 element, ImportData? importData) {
+  void _suggestTypeAlias(TypeAliasElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
@@ -2232,7 +2229,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the type parameter represented by the [element].
-  void _suggestTypeParameter(TypeParameterElement2 element) {
+  void _suggestTypeParameter(TypeParameterElement element) {
     if (visibilityTracker.isVisible(element: element, importData: null)) {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
@@ -2246,7 +2243,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for each of the [typeParameters].
-  void _suggestTypeParameters(List<TypeParameterElement2> typeParameters) {
+  void _suggestTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var parameter in typeParameters) {
       if (!_isWildcard(parameter.name3)) {
         _suggestTypeParameter(parameter);
@@ -2255,7 +2252,7 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the local variable represented by the [element].
-  void _suggestVariable(LocalVariableElement2 element) {
+  void _suggestVariable(LocalVariableElement element) {
     if (element.isWildcardVariable) return;
     if (visibilityTracker.isVisible(element: element, importData: null)) {
       if (mustBeConstant && !element.isConst) {
@@ -2324,7 +2321,7 @@ class DeclarationHelper {
       var variables = node.variables;
       for (var variable in variables.variables) {
         var declaredElement = variable.declaredElement2;
-        if (declaredElement is LocalVariableElement2) {
+        if (declaredElement is LocalVariableElement) {
           _suggestVariable(declaredElement);
         }
       }
@@ -2524,12 +2521,12 @@ class DeclarationHelper {
   }
 }
 
-extension on Element2 {
+extension on Element {
   /// Whether this element is visible within the [referencingLibrary].
   ///
   /// An element is visible if it's declared in the [referencingLibrary] or if
   /// the name is not private.
-  bool isVisibleIn(LibraryElement2 referencingLibrary) {
+  bool isVisibleIn(LibraryElement referencingLibrary) {
     if (library2 == referencingLibrary) {
       return true;
     }
@@ -2538,13 +2535,13 @@ extension on Element2 {
   }
 }
 
-extension on List<ExecutableElement2> {
+extension on List<ExecutableElement> {
   /// Returns the element in this list that is the best element to suggest.
   ///
   /// Getters are preferred over setters, otherwise the first element in the
   /// list is returned under the assumption that it's lower in the hierarchy.
-  ExecutableElement2 get bestMember {
-    ExecutableElement2 bestMember = this[0];
+  ExecutableElement get bestMember {
+    ExecutableElement bestMember = this[0];
     if (bestMember is SetterElement) {
       for (var i = 1; i < length; i++) {
         var member = this[i];
@@ -2557,7 +2554,7 @@ extension on List<ExecutableElement2> {
   }
 }
 
-extension on PropertyAccessorElement2 {
+extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
   bool get isConst {
     if (isSynthetic) {

@@ -87,7 +87,7 @@ class LinkedElementFactory {
     Uri uri,
     List<ExportedReference> exportedReferences,
   ) {
-    var exportedNames = <String, Element2>{};
+    var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference.reference);
@@ -201,7 +201,7 @@ class LinkedElementFactory {
   }
 
   // TODO(scheglov): Why would this method return `null`?
-  Element2? elementOfReference2(Reference reference) {
+  Element? elementOfReference2(Reference reference) {
     return elementOfReference(reference)?.asElement2;
   }
 

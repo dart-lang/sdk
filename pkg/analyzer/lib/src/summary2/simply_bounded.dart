@@ -74,7 +74,7 @@ void computeSimplyBounded(Linker linker) {
 class SimplyBoundedDependencyWalker
     extends graph.DependencyWalker<SimplyBoundedNode> {
   final Linker linker;
-  final Map<Element2, SimplyBoundedNode> nodeMap = Map.identity();
+  final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
 
   SimplyBoundedDependencyWalker(this.linker);
 
@@ -90,7 +90,7 @@ class SimplyBoundedDependencyWalker
     }
   }
 
-  SimplyBoundedNode getNode(Element2 element) {
+  SimplyBoundedNode getNode(Element element) {
     var graphNode = nodeMap[element];
     if (graphNode == null) {
       var node = linker.getLinkingNode2(element.firstFragment);
@@ -289,7 +289,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
     if (type is NamedType) {
       var element = type.element2;
 
-      if (element is TypeParameterElement2) {
+      if (element is TypeParameterElement) {
         return allowTypeParameters;
       }
 
@@ -299,7 +299,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
 
         // If not a node being linked, then the flag is already set.
         if (graphNode == null) {
-          if (element is TypeParameterizedElement2) {
+          if (element is TypeParameterizedElement) {
             return element.isSimplyBounded;
           }
           return true;

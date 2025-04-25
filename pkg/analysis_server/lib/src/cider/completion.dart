@@ -190,7 +190,7 @@ class CiderCompletionComputer {
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
   List<CompletionSuggestionBuilder> _importedLibrarySuggestions({
-    required LibraryElement2 element,
+    required LibraryElement element,
     required OperationPerformanceImpl performance,
   }) {
     performance.getDataInt('libraryCount').increment();
@@ -212,7 +212,7 @@ class CiderCompletionComputer {
   /// Compute all unprefixed suggestions for all elements exported from
   /// the library.
   List<CompletionSuggestionBuilder> _librarySuggestions(
-    LibraryElement2 element,
+    LibraryElement element,
   ) {
     var suggestionBuilder = SuggestionBuilder(
       _dartCompletionRequest,

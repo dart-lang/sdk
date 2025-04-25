@@ -38,18 +38,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   void checkElement(
-    InterfaceElement2? element,
+    InterfaceElement? element,
     NamedCompilationUnitMember node, {
     required String type,
   }) {
-    if (element is! ClassElement2) return;
+    if (element is! ClassElement) return;
     if (element.metadata2.hasReopen) return;
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 
     var library = element.library2;
     var supertype = element.supertype?.element3;
-    if (supertype is! ClassElement2) return;
+    if (supertype is! ClassElement) return;
     if (supertype.library2 != library) return;
 
     if (element.isBase) {
@@ -89,8 +89,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void reportLint(
     NamedCompilationUnitMember member, {
     required String type,
-    required InterfaceElement2 target,
-    required InterfaceElement2 other,
+    required InterfaceElement target,
+    required InterfaceElement other,
     required String reason,
   }) {
     var targetName = target.name3;
@@ -114,6 +114,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on ClassElement2 {
+extension on ClassElement {
   bool get hasNoModifiers => !isInterface && !isBase && !isSealed && !isFinal;
 }

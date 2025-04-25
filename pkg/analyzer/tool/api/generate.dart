@@ -74,7 +74,7 @@ class ApiDescription {
   ///
   /// If an element is seen again in a different library, it will be followed
   /// with `(see above)` (rather than having its child elements dumped twice).
-  final _dumpedTopLevelElements = <Element2>{};
+  final _dumpedTopLevelElements = <Element>{};
 
   /// Top level elements that have been referenced so far and haven't yet been
   /// processed by [build].
@@ -82,14 +82,14 @@ class ApiDescription {
   /// This is used to ensure that all elements referred to by the public API
   /// (e.g., by being mentioned in the type of an API element) also show up in
   /// the output.
-  final _potentiallyDanglingReferences = Queue<Element2>();
+  final _potentiallyDanglingReferences = Queue<Element>();
 
   final _uniqueNamer = UniqueNamer();
 
   /// Cache of values returned by [_getOrComputeImmediateSubinterfaceMap], to
   /// avoid unnecessary recomputation.
   final _immediateSubinterfaceCache =
-      <LibraryElement2, Map<ClassElement2, Set<InterfaceElement2>>>{};
+      <LibraryElement, Map<ClassElement, Set<InterfaceElement>>>{};
 
   /// Builds a list of [Node] objects representing all the libraries that are
   /// relevant to the analyzer public API.
@@ -234,7 +234,7 @@ class ApiDescription {
 
   /// Creates a list of objects which, when their string representations are
   /// concatenated, describes [typeParameter].
-  List<Object?> _describeTypeParameter(TypeParameterElement2 typeParameter) {
+  List<Object?> _describeTypeParameter(TypeParameterElement typeParameter) {
     return [
       typeParameter.name3!,
       if (typeParameter.bound case var bound?) ...[
@@ -245,9 +245,9 @@ class ApiDescription {
   }
 
   /// Appends information to [node] describing [element].
-  void _dumpElement(Element2 element, Node<MemberSortKey> node) {
+  void _dumpElement(Element element, Node<MemberSortKey> node) {
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is LibraryElement2 && !element.isInAnalyzerPublicApi) {
+    if (enclosingElement is LibraryElement && !element.isInAnalyzerPublicApi) {
       if (!enclosingElement.uri.isInAnalyzer) {
         node.text.add(' (referenced)');
       } else {
@@ -257,7 +257,7 @@ class ApiDescription {
     }
     var parentheticals = <List<Object?>>[];
     switch (element) {
-      case TypeAliasElement2(:var aliasedType, :var typeParameters2):
+      case TypeAliasElement(:var aliasedType, :var typeParameters2):
         List<Object?> description = ['type alias'];
         if (typeParameters2.isNotEmpty) {
           description.addAll(
@@ -268,18 +268,18 @@ class ApiDescription {
         }
         description.addAll([' for ', ..._describeType(aliasedType)]);
         parentheticals.add(description);
-      case InstanceElement2():
+      case InstanceElement():
         switch (element) {
-          case InterfaceElement2(
+          case InterfaceElement(
             :var typeParameters2,
             :var supertype,
             :var interfaces,
           ):
             List<Object?> instanceDescription = [
               switch (element) {
-                ClassElement2() => 'class',
-                EnumElement2() => 'enum',
-                MixinElement2() => 'mixin',
+                ClassElement() => 'class',
+                EnumElement() => 'enum',
+                MixinElement() => 'mixin',
                 dynamic(:var runtimeType) => 'TODO: $runtimeType',
               },
             ];
@@ -290,13 +290,13 @@ class ApiDescription {
                     .separate(prefix: '<', suffix: '>'),
               );
             }
-            if (element is! EnumElement2 && supertype != null) {
+            if (element is! EnumElement && supertype != null) {
               instanceDescription.addAll([
                 ' extends ',
                 ..._describeType(supertype),
               ]);
             }
-            if (element is MixinElement2 &&
+            if (element is MixinElement &&
                 element.superclassConstraints.isNotEmpty) {
               instanceDescription.addAll(
                 element.superclassConstraints
@@ -310,7 +310,7 @@ class ApiDescription {
               );
             }
             parentheticals.add(instanceDescription);
-            if (element is ClassElement2 && element.isSealed) {
+            if (element is ClassElement && element.isSealed) {
               var parenthetical = <Object>['sealed'];
               parentheticals.add(parenthetical);
               if (_getOrComputeImmediateSubinterfaceMap(
@@ -339,7 +339,7 @@ class ApiDescription {
                 parenthetical.add(')');
               }
             }
-          case ExtensionElement2(:var extendedType):
+          case ExtensionElement(:var extendedType):
             parentheticals.add([
               'extension on ',
               ..._describeType(extendedType),
@@ -352,19 +352,19 @@ class ApiDescription {
             // Ignore private members
             continue;
           }
-          if (member is FieldElement2) {
+          if (member is FieldElement) {
             // Ignore fields; we care about the getters and setters they induce.
             continue;
           }
-          if (member is ConstructorElement2 &&
-              element is ClassElement2 &&
+          if (member is ConstructorElement &&
+              element is ClassElement &&
               element.isAbstract &&
               (element.isFinal || element.isInterface || element.isSealed)) {
             // The class can't be constructed from outside of the library that
             // declares it, so its constructors aren't part of the public API.
             continue;
           }
-          if (member is ConstructorElement2 && element is EnumElement2) {
+          if (member is ConstructorElement && element is EnumElement) {
             // Enum constructors can't be called from outside the enum itself,
             // so they aren't part of the public API.
             continue;
@@ -376,7 +376,7 @@ class ApiDescription {
         }
       case TopLevelFunctionElement(:var type):
         parentheticals.add(['function: ', ..._describeType(type)]);
-      case ExecutableElement2(:var isStatic):
+      case ExecutableElement(:var isStatic):
         String maybeStatic = isStatic ? 'static ' : '';
         switch (element) {
           case GetterElement(:var type):
@@ -389,12 +389,12 @@ class ApiDescription {
               '${maybeStatic}setter: ',
               ..._describeType(type.formalParameters.single.type),
             ]);
-          case MethodElement2(:var type):
+          case MethodElement(:var type):
             parentheticals.add([
               '${maybeStatic}method: ',
               ..._describeType(type),
             ]);
-          case ConstructorElement2(:var type):
+          case ConstructorElement(:var type):
             parentheticals.add(['constructor: ', ..._describeType(type)]);
           case dynamic(:var runtimeType):
             throw UnimplementedError('Unexpected element: $runtimeType');
@@ -419,7 +419,7 @@ class ApiDescription {
   }
 
   /// Appends information to [node] describing [element].
-  void _dumpLibrary(LibraryElement2 library, Node<MemberSortKey> node) {
+  void _dumpLibrary(LibraryElement library, Node<MemberSortKey> node) {
     var uri = library.uri;
     node.text.addAll([uri, ':']);
     var definedNames = library.exportNamespace.definedNames2;
@@ -442,10 +442,10 @@ class ApiDescription {
   /// If this method has been called before with the same [library], a cached
   /// map is returned from [_immediateSubinterfaceCache]. Otherwise a fresh map
   /// is computed.
-  Map<ClassElement2, Set<InterfaceElement2>>
-  _getOrComputeImmediateSubinterfaceMap(LibraryElement2 library) {
+  Map<ClassElement, Set<InterfaceElement>>
+  _getOrComputeImmediateSubinterfaceMap(LibraryElement library) {
     if (_immediateSubinterfaceCache[library] case var m?) return m;
-    var result = <ClassElement2, Set<InterfaceElement2>>{};
+    var result = <ClassElement, Set<InterfaceElement>>{};
     for (var interface in [
       ...library.classes,
       ...library.mixins,
@@ -456,11 +456,11 @@ class ApiDescription {
         interface.supertype,
         ...interface.interfaces,
         ...interface.mixins,
-        if (interface is MixinElement2) ...interface.superclassConstraints,
+        if (interface is MixinElement) ...interface.superclassConstraints,
       ]) {
         if (superinterface == null) continue;
         var superinterfaceElement = superinterface.element3;
-        if (superinterfaceElement is ClassElement2 &&
+        if (superinterfaceElement is ClassElement &&
             superinterfaceElement.isSealed) {
           (result[superinterfaceElement] ??= {}).add(interface);
         }
@@ -507,7 +507,7 @@ class MemberSortKey implements Comparable<MemberSortKey> {
   final MemberCategory _category;
   final String _name;
 
-  MemberSortKey(Element2 element)
+  MemberSortKey(Element element)
     : _isInstanceMember = _computeIsInstanceMember(element),
       _category = _computeCategory(element),
       _name = element.name3!;
@@ -525,22 +525,22 @@ class MemberSortKey implements Comparable<MemberSortKey> {
     return _name.compareTo(other._name);
   }
 
-  static MemberCategory _computeCategory(Element2 element) => switch (element) {
-    ConstructorElement2() => MemberCategory.constructor,
-    PropertyAccessorElement2() => MemberCategory.propertyAccessor,
+  static MemberCategory _computeCategory(Element element) => switch (element) {
+    ConstructorElement() => MemberCategory.constructor,
+    PropertyAccessorElement() => MemberCategory.propertyAccessor,
     TopLevelFunctionElement() => MemberCategory.topLevelFunctionOrMethod,
-    MethodElement2() => MemberCategory.topLevelFunctionOrMethod,
-    InterfaceElement2() => MemberCategory.interface,
-    ExtensionElement2() => MemberCategory.extension,
-    TypeAliasElement2() => MemberCategory.typeAlias,
+    MethodElement() => MemberCategory.topLevelFunctionOrMethod,
+    InterfaceElement() => MemberCategory.interface,
+    ExtensionElement() => MemberCategory.extension,
+    TypeAliasElement() => MemberCategory.typeAlias,
     dynamic(:var runtimeType) =>
       throw UnimplementedError('Unexpected element: $runtimeType'),
   };
 
-  static bool _computeIsInstanceMember(Element2 element) =>
-      element.enclosingElement2 is InstanceElement2 &&
+  static bool _computeIsInstanceMember(Element element) =>
+      element.enclosingElement2 is InstanceElement &&
       switch (element) {
-        ExecutableElement2(:var isStatic) => !isStatic,
+        ExecutableElement(:var isStatic) => !isStatic,
         dynamic(:var runtimeType) =>
           throw UnimplementedError('Unexpected element: $runtimeType'),
       };
@@ -606,12 +606,12 @@ class UniqueName {
 
 /// Manager of unique names for elements.
 class UniqueNamer {
-  final _names = <Element2, UniqueName>{};
+  final _names = <Element, UniqueName>{};
   final _conflicts = <String, List<UniqueName>>{};
 
   /// Returns a [UniqueName] object whose [toString] method will produce a
   /// unique name for [element].
-  UniqueName name(Element2 element) =>
+  UniqueName name(Element element) =>
       _names[element] ??= UniqueName(this, element.apiName);
 }
 
@@ -664,7 +664,7 @@ extension on Iterable<Iterable<Object?>> {
   }
 }
 
-extension on Element2 {
+extension on Element {
   /// Returns the appropriate name for describing the element in `api.txt`.
   ///
   /// The name is the same as [name3], but with `=` appended for setters.
@@ -677,7 +677,7 @@ extension on Element2 {
   }
 
   bool get isInAnalyzerPublicApi {
-    if (this case PropertyAccessorElement2(
+    if (this case PropertyAccessorElement(
       isSynthetic: true,
       :var variable3?,
     ) when variable3.isInAnalyzerPublicApi) {
@@ -696,7 +696,7 @@ extension on Element2 {
   bool _isPublicApiAnnotation(ElementAnnotation annotation) {
     if (annotation.computeConstantValue() case DartObject(
       type: InterfaceType(
-        element3: InterfaceElement2(name3: 'AnalyzerPublicApi'),
+        element3: InterfaceElement(name3: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

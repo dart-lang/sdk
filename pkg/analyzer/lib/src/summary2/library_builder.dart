@@ -362,7 +362,7 @@ class LibraryBuilder {
   void storeExportScope() {
     element.exportedReferences = exportScope.toReferences();
 
-    var definedNames = <String, Element2>{};
+    var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
       var reference = entry.value.reference;
       var element = linker.elementFactory.elementOfReference(reference);

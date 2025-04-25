@@ -29,7 +29,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     Token? nameToken;
-    Element2? element;
+    Element? element;
     if (node is SimpleIdentifier) {
       nameToken = node.token;
       element = node.element;
@@ -77,7 +77,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
           references = findLocalElementReferences(root, element);
         }
       }
-    } else if (element is LocalElement2) {
+    } else if (element is LocalElement) {
       var block = node.thisOrAncestorOfType<Block>();
       if (block != null) {
         references = findLocalElementReferences(block, element);
@@ -96,7 +96,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
           }
         }
       }
-    } else if (element is PrefixElement2) {
+    } else if (element is PrefixElement) {
       var root = node.thisOrAncestorOfType<CompilationUnit>();
       if (root != null) {
         references = findImportPrefixElementReferences(root, element);

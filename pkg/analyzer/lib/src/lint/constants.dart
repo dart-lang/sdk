@@ -116,7 +116,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
     var element = declaredFragment!.element;
 
     var classElement = element.enclosingElement2;
-    if (classElement is ClassElement2 && classElement.hasNonFinalField) {
+    if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }
 

@@ -243,7 +243,7 @@ class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
   /// The type system used to compute the best type.
   final TypeSystem typeSystem;
 
-  final LocalVariableElement2 variable;
+  final LocalVariableElement variable;
 
   /// The types that are assigned to the variable.
   final Set<DartType> assignedTypes = {};

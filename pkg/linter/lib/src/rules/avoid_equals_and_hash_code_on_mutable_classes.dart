@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on MethodDeclaration {
-  ClassElement2? get classElement =>
+  ClassElement? get classElement =>
       // TODO(pq): should this be ClassOrMixinDeclaration ?
       thisOrAncestorOfType<ClassDeclaration>()?.declaredFragment?.element;
 }

@@ -267,7 +267,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(covariant IndexExpressionImpl node) {
     var element = node.element;
-    if (element is MethodElement2) {
+    if (element is MethodElement) {
       var enclosingElement = element.enclosingElement2;
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeStructArrayExtension ||
@@ -305,7 +305,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Ensure there is at most one @DefaultAsset annotation per library
     var hasDefaultAsset = false;
 
-    if (node.element2 case LibraryElement2 library) {
+    if (node.element2 case LibraryElement library) {
       for (var metadata in library.metadata) {
         var annotationValue = metadata.computeConstantValue();
         if (annotationValue != null && annotationValue.isDefaultAsset) {
@@ -445,7 +445,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFfiNative({
     required Token errorNode,
-    required Element2 declarationElement,
+    required Element declarationElement,
     required NodeList<Annotation> metadata,
     required FormalParameterList? formalParameterList,
     required bool isExternal,
@@ -500,7 +500,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       } else {
         if (declarationElement
-            case TopLevelFunctionElement() || MethodElement2()) {
+            case TopLevelFunctionElement() || MethodElement()) {
           declarationElement = declarationElement as ExecutableElement2OrMember;
           var dartSignature = declarationElement.type;
 
@@ -553,7 +553,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFfiNativeField(
     Token errorToken,
-    Element2 declarationElement,
+    Element declarationElement,
     NodeList<Annotation> metadata,
     TypeImpl ffiSignature,
     DartObject annotationValue,
@@ -639,8 +639,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var ffiParameterTypes = ffiSignature.normalParameterTypes.flattenVarArgs();
     var ffiParameters = ffiSignature.formalParameters;
 
-    if ((declarationElement is MethodElement2 ||
-            declarationElement is PropertyAccessorElement2) &&
+    if ((declarationElement is MethodElement ||
+            declarationElement is PropertyAccessorElement) &&
         !declarationElement.isStatic) {
       // Instance methods must have the receiver as an extra parameter in the
       // Native annotation.
@@ -656,7 +656,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Receiver can only be Pointer if the class extends
       // NativeFieldWrapperClass1.
       if (ffiSignature.normalParameterTypes[0].isPointer) {
-        var cls = declarationElement.enclosingElement2 as InterfaceElement2;
+        var cls = declarationElement.enclosingElement2 as InterfaceElement;
         if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
           _errorReporter.atToken(
             errorToken,
@@ -757,10 +757,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     if (expr is Identifier) {
       var element = expr.element;
-      if (element is VariableElement2 && element.isConst) {
+      if (element is VariableElement && element.isConst) {
         return true;
       }
-      if (element is PropertyAccessorElement2) {
+      if (element is PropertyAccessorElement) {
         var variable = element.variable3;
         if (variable != null && variable.isConst) {
           return true;
@@ -938,10 +938,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     if (expr is Identifier) {
       var element = expr.element;
-      if (element is VariableElement2 && element.isConst) {
+      if (element is VariableElement && element.isConst) {
         return element.computeConstantValue()?.toBoolValue();
       }
-      if (element is PropertyAccessorElement2) {
+      if (element is PropertyAccessorElement) {
         var variable = element.variable3;
         if (variable == null) {
           return null;
@@ -982,7 +982,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Return an indication of the Dart type associated with the [annotation].
   _PrimitiveDartType _typeForAnnotation(Annotation annotation) {
     var element = annotation.element2;
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       var name = element.enclosingElement2.name3;
       if (_primitiveIntegerNativeTypes.contains(name)) {
         return _PrimitiveDartType.int;
@@ -1090,9 +1090,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Since we are allowing .address.cast(), we need to traverse up one level
     // to get the ffi Invocation (.cast() nested down one level the expression)
     if (parent is MethodInvocation &&
-        parent.methodName.element is MethodElement2 &&
+        parent.methodName.element is MethodElement &&
         parent.methodName.name == "cast" &&
-        parent.methodName.element?.enclosingElement2 is ClassElement2 &&
+        parent.methodName.element?.enclosingElement2 is ClassElement &&
         parent.methodName.element!.enclosingElement2.isPointer) {
       parent = parent.parent;
     }
@@ -1557,9 +1557,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var fieldElement =
             node.fields.variables.first.declaredFragment?.element;
         var lastElement =
-            (fieldElement?.enclosingElement2 as ClassElement2?)
-                ?.fields2
-                .reversed
+            (fieldElement?.enclosingElement2 as ClassElement?)?.fields2.reversed
                 .where((field) {
                   if (field.isStatic) return false;
                   if (!field.isExternal) {
@@ -1599,10 +1597,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Validate the invocation of the static method
   /// `Pointer<T>.fromFunction(f, e)`.
-  void _validateFromFunction(
-    MethodInvocationImpl node,
-    MethodElement2 element,
-  ) {
+  void _validateFromFunction(MethodInvocationImpl node, MethodElement element) {
     int argCount = node.argumentList.arguments.length;
     if (argCount < 1 || argCount > 2) {
       // There are other diagnostics reported against the invocation and the
@@ -2202,7 +2197,7 @@ enum _PrimitiveDartType { double, int, bool, void_, handle, none }
 extension on Annotation {
   bool get isAbiSpecificIntegerMapping {
     var element = element2;
-    return element is ConstructorElement2 &&
+    return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement2.name3 ==
             FfiVerifier._abiSpecificIntegerMappingClassName;
@@ -2210,14 +2205,14 @@ extension on Annotation {
 
   bool get isArray {
     var element = element2;
-    return element is ConstructorElement2 &&
+    return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement2.name3 == 'Array';
   }
 
   bool get isPacked {
     var element = element2;
-    return element is ConstructorElement2 &&
+    return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement2.name3 == 'Packed';
   }
@@ -2268,7 +2263,7 @@ extension on ElementAnnotation {
 
   bool get isArray {
     var element = element2;
-    return element is ConstructorElement2 &&
+    return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement2.name3 == 'Array';
     // Note: this is 'Array' instead of '_ArraySize' because it finds the
@@ -2293,7 +2288,7 @@ extension on ElementAnnotation {
 
   bool get isPacked {
     var element = element2;
-    return element is ConstructorElement2 &&
+    return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement2.name3 == 'Packed';
   }
@@ -2317,7 +2312,7 @@ extension on TopLevelFunctionElement {
   }
 }
 
-extension on MethodElement2 {
+extension on MethodElement {
   /// @Native(isLeaf: true) external function.
   bool get isNativeLeaf {
     for (var annotation in metadata2.annotations) {
@@ -2336,7 +2331,7 @@ extension on MethodInvocation {
     if (element is TopLevelFunctionElement) {
       return element.isNativeLeaf;
     }
-    if (element is MethodElement2) {
+    if (element is MethodElement) {
       return element.isNativeLeaf;
     }
     return false;
@@ -2359,14 +2354,14 @@ extension on DartObject {
   }
 }
 
-extension on Element2? {
+extension on Element? {
   /// If this is a class element from `dart:ffi`, return it.
-  ClassElement2? get ffiClass {
+  ClassElement? get ffiClass {
     var element = this;
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       element = element.enclosingElement2;
     }
-    if (element is ClassElement2 && element.isFfiClass) {
+    if (element is ClassElement && element.isFfiClass) {
       return element;
     }
     return null;
@@ -2375,7 +2370,7 @@ extension on Element2? {
   /// Return `true` if this represents the class `AbiSpecificInteger`.
   bool get isAbiSpecificInteger {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == FfiVerifier._abiSpecificIntegerClassName &&
         element.isFfiClass;
   }
@@ -2384,12 +2379,12 @@ extension on Element2? {
   /// `AbiSpecificInteger`.
   bool get isAbiSpecificIntegerSubclass {
     var element = this;
-    return element is ClassElement2 && element.supertype.isAbiSpecificInteger;
+    return element is ClassElement && element.supertype.isAbiSpecificInteger;
   }
 
   bool get isAddressOfExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.isFfiExtension &&
         FfiVerifier._addressOfExtensionNames.contains(element.name3);
   }
@@ -2397,7 +2392,7 @@ extension on Element2? {
   /// Return `true` if this represents the extension `AllocatorAlloc`.
   bool get isAllocatorExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.name3 == FfiVerifier._allocatorExtensionName &&
         element.isFfiExtension;
   }
@@ -2405,7 +2400,7 @@ extension on Element2? {
   /// Return `true` if this represents the class `DefaultAsset`.
   bool get isDefaultAsset {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == 'DefaultAsset' &&
         element.isFfiClass;
   }
@@ -2413,7 +2408,7 @@ extension on Element2? {
   /// Return `true` if this represents the extension `DynamicLibraryExtension`.
   bool get isDynamicLibraryExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.name3 == 'DynamicLibraryExtension' &&
         element.isFfiExtension;
   }
@@ -2421,7 +2416,7 @@ extension on Element2? {
   /// Return `true` if this represents the class `Native`.
   bool get isNative {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == 'Native' &&
         element.isFfiClass;
   }
@@ -2429,42 +2424,42 @@ extension on Element2? {
   /// Return `true` if this represents the class `NativeCallable`.
   bool get isNativeCallable {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == FfiVerifier._nativeCallable &&
         element.isFfiClass;
   }
 
   bool get isNativeFunctionPointerExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.name3 == 'NativeFunctionPointer' &&
         element.isFfiExtension;
   }
 
   bool get isNativeStructArrayExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.name3 == 'StructArray' &&
         element.isFfiExtension;
   }
 
   bool get isNativeStructPointerExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.name3 == 'StructPointer' &&
         element.isFfiExtension;
   }
 
   bool get isNativeUnionArrayExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.name3 == 'UnionArray' &&
         element.isFfiExtension;
   }
 
   bool get isNativeUnionPointerExtension {
     var element = this;
-    return element is ExtensionElement2 &&
+    return element is ExtensionElement &&
         element.name3 == 'UnionPointer' &&
         element.isFfiExtension;
   }
@@ -2472,7 +2467,7 @@ extension on Element2? {
   /// Return `true` if this represents the class `Opaque`.
   bool get isOpaque {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == FfiVerifier._opaqueClassName &&
         element.isFfiClass;
   }
@@ -2480,7 +2475,7 @@ extension on Element2? {
   /// Return `true` if this represents the class `Pointer`.
   bool get isPointer {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == 'Pointer' &&
         element.isFfiClass;
   }
@@ -2488,7 +2483,7 @@ extension on Element2? {
   /// Return `true` if this represents the class `Struct`.
   bool get isStruct {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == 'Struct' &&
         element.isFfiClass;
   }
@@ -2496,13 +2491,13 @@ extension on Element2? {
   /// Return `true` if this represents a subclass of the class `Struct`.
   bool get isStructSubclass {
     var element = this;
-    return element is ClassElement2 && element.supertype.isStruct;
+    return element is ClassElement && element.supertype.isStruct;
   }
 
   /// Return `true` if this represents the class `Union`.
   bool get isUnion {
     var element = this;
-    return element is ClassElement2 &&
+    return element is ClassElement &&
         element.name3 == 'Union' &&
         element.isFfiClass;
   }
@@ -2510,11 +2505,11 @@ extension on Element2? {
   /// Return `true` if this represents a subclass of the class `Union`.
   bool get isUnionSubclass {
     var element = this;
-    return element is ClassElement2 && element.supertype.isUnion;
+    return element is ClassElement && element.supertype.isUnion;
   }
 }
 
-extension on InterfaceElement2 {
+extension on InterfaceElement {
   bool get isEmptyStruct {
     for (var field in fields2) {
       var declaredType = field.type;
@@ -2544,7 +2539,7 @@ extension on InterfaceElement2 {
   }
 }
 
-extension on ExtensionElement2 {
+extension on ExtensionElement {
   bool get isFfiExtension {
     return library2.name3 == FfiVerifier._dartFfiLibraryName;
   }
@@ -2727,14 +2722,14 @@ extension on DartType {
 
 extension on NamedType {
   /// If this is a name of class from `dart:ffi`, return it.
-  ClassElement2? get ffiClass {
+  ClassElement? get ffiClass {
     return element2.ffiClass;
   }
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isAbiSpecificIntegerSubtype {
     var element = element2;
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isAbiSpecificInteger);
     }
     return false;
@@ -2743,7 +2738,7 @@ extension on NamedType {
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isCompoundSubtype {
     var element = element2;
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isCompound);
     }
     return false;

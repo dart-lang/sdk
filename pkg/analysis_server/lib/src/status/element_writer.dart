@@ -17,7 +17,7 @@ class ElementWriter with TreeWriter {
   /// of visited elements on the given [buffer].
   ElementWriter(this.buffer);
 
-  void write(Element2 element) {
+  void write(Element element) {
     _writeElement(element);
     writeProperties(_computeProperties(element));
     _writeFragments(element);
@@ -33,19 +33,19 @@ class ElementWriter with TreeWriter {
 
   /// Writes a representation of the properties of the given [element] to the
   /// buffer.
-  Map<String, Object?> _computeProperties(Element2 element) {
+  Map<String, Object?> _computeProperties(Element element) {
     var properties = <String, Object?>{};
 
     var firstFragment = element.firstFragment;
     if (element case Annotatable element) {
       properties['annotations'] = element.metadata2.annotations;
     }
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       properties['interfaces'] = element.interfaces;
-      properties['isEnum'] = element is EnumElement2;
+      properties['isEnum'] = element is EnumElement;
       properties['mixins'] = element.mixins;
       properties['supertype'] = element.supertype;
-      if (element is ClassElement2) {
+      if (element is ClassElement) {
         properties['hasNonFinalField'] = element.hasNonFinalField;
         properties['isAbstract'] = element.isAbstract;
         properties['isMixinApplication'] = element.isMixinApplication;
@@ -61,37 +61,37 @@ class ElementWriter with TreeWriter {
     if (firstFragment is ConstTopLevelVariableElementImpl) {
       properties['evaluationResult'] = firstFragment.evaluationResult;
     }
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       properties['isConst'] = element.isConst;
       properties['isDefaultConstructor'] = element.isDefaultConstructor;
       properties['isFactory'] = element.isFactory;
       properties['redirectedConstructor'] = element.redirectedConstructor2;
     }
-    if (element is ExecutableElement2) {
+    if (element is ExecutableElement) {
       properties['hasImplicitReturnType'] = element.hasImplicitReturnType;
       properties['isAbstract'] = element.isAbstract;
       properties['isExternal'] = element.isExternal;
-      if (element is MethodElement2) {
+      if (element is MethodElement) {
         properties['isOperator'] = element.isOperator;
       }
       properties['isStatic'] = element.isStatic;
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is FieldElement2) {
+    if (element is FieldElement) {
       properties['isEnumConstant'] = element.isEnumConstant;
     }
-    if (element is FieldFormalParameterElement2) {
+    if (element is FieldFormalParameterElement) {
       properties['field'] = element.field2;
     }
     if (element is TopLevelFunctionElement) {
       properties['isEntryPoint'] = element.isEntryPoint;
     }
-    if (element is FunctionTypedElement2) {
+    if (element is FunctionTypedElement) {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is LibraryElement2) {
+    if (element is LibraryElement) {
       properties['entryPoint'] = element.entryPoint2;
       properties['isDartAsync'] = element.isDartAsync;
       properties['isDartCore'] = element.isDartCore;
@@ -112,16 +112,16 @@ class ElementWriter with TreeWriter {
         properties['parameterKind'] = 'unknown kind';
       }
     }
-    if (element is PropertyInducingElement2) {
+    if (element is PropertyInducingElement) {
       properties['isStatic'] = element.isStatic;
     }
-    if (element is TypeParameterElement2) {
+    if (element is TypeParameterElement) {
       properties['bound'] = element.bound;
     }
-    if (element is TypeParameterizedElement2) {
+    if (element is TypeParameterizedElement) {
       properties['typeParameters'] = element.typeParameters2;
     }
-    if (element is VariableElement2) {
+    if (element is VariableElement) {
       properties['hasImplicitType'] = element.hasImplicitType;
       properties['isConst'] = element.isConst;
       properties['isFinal'] = element.isFinal;
@@ -133,7 +133,7 @@ class ElementWriter with TreeWriter {
   }
 
   /// Write a representation of the given [element] to the buffer.
-  void _writeElement(Element2 element) {
+  void _writeElement(Element element) {
     indent();
     if (element.isSynthetic) {
       buffer.write('<i>');
@@ -186,7 +186,7 @@ class ElementWriter with TreeWriter {
     writeProperties(properties);
   }
 
-  void _writeFragments(Element2 element) {
+  void _writeFragments(Element element) {
     indentLevel++;
     try {
       var index = 0;

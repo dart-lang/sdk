@@ -15,11 +15,11 @@ import 'package:analyzer/src/error/codes.dart';
 /// Helper for verifying that subelements of a base or final element must be
 /// base, final, or sealed.
 class BaseOrFinalTypeVerifier {
-  final LibraryElement2 _definingLibrary;
+  final LibraryElement _definingLibrary;
   final ErrorReporter _errorReporter;
 
   BaseOrFinalTypeVerifier({
-    required LibraryElement2 definingLibrary,
+    required LibraryElement definingLibrary,
     required ErrorReporter errorReporter,
   }) : _definingLibrary = definingLibrary,
        _errorReporter = errorReporter;
@@ -161,7 +161,7 @@ class BaseOrFinalTypeVerifier {
   /// either the current library is also a platform library,
   /// or the current library has a language version which predates
   /// class modifiers.
-  bool _mayIgnoreClassModifiers(LibraryElement2 superLibrary) {
+  bool _mayIgnoreClassModifiers(LibraryElement superLibrary) {
     // Only modifiers in platform libraries can be ignored.
     if (!superLibrary.isInSdk) return false;
 
@@ -238,7 +238,7 @@ class BaseOrFinalTypeVerifier {
         baseOrFinalSuperElement.library2 != element.library2) {
       if (baseOrFinalSuperElement.isBase) {
         var errorCode =
-            baseOrFinalSuperElement is MixinElement2
+            baseOrFinalSuperElement is MixinElement
                 ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
                 : CompileTimeErrorCode
                     .BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
@@ -275,7 +275,7 @@ class BaseOrFinalTypeVerifier {
           }
         }
         var errorCode =
-            element is MixinElement2
+            element is MixinElement
                 ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
                 : CompileTimeErrorCode
                     .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
@@ -288,7 +288,7 @@ class BaseOrFinalTypeVerifier {
         return true;
       } else if (baseOrFinalSuperElement.isBase) {
         var errorCode =
-            element is MixinElement2
+            element is MixinElement
                 ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
                 : CompileTimeErrorCode
                     .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;

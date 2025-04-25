@@ -32,13 +32,13 @@ final Uri _uriFramework = Uri.parse(
 
 _Flutter get _flutter => _flutterInstance;
 
-bool hasWidgetAsAscendant(ClassElement2 element) =>
+bool hasWidgetAsAscendant(ClassElement element) =>
     _flutter.hasWidgetAsAscendant(element);
 
 bool isBuildContext(DartType? type, {bool skipNullable = false}) =>
     _flutter.isBuildContext(type, skipNullable: skipNullable);
 
-bool isExactWidget(ClassElement2 element) => _flutter.isExactWidget(element);
+bool isExactWidget(ClassElement element) => _flutter.isExactWidget(element);
 
 bool isExactWidgetTypeContainer(DartType? type) =>
     _flutter.isExactWidgetTypeContainer(type);
@@ -46,11 +46,11 @@ bool isExactWidgetTypeContainer(DartType? type) =>
 bool isExactWidgetTypeSizedBox(DartType? type) =>
     _flutter.isExactWidgetTypeSizedBox(type);
 
-bool isKDebugMode(Element2? element) => _flutter.isKDebugMode(element);
+bool isKDebugMode(Element? element) => _flutter.isKDebugMode(element);
 
-bool isState(InterfaceElement2 element) => _flutter.isState(element);
+bool isState(InterfaceElement element) => _flutter.isState(element);
 
-bool isStatefulWidget(ClassElement2? element) =>
+bool isStatefulWidget(ClassElement? element) =>
     element != null && _flutter.isStatefulWidget(element);
 
 bool isWidgetProperty(DartType? type) {
@@ -88,8 +88,8 @@ class _Flutter {
       _uriFoundation = Uri.parse('$uriPrefix/src/foundation/constants.dart');
 
   bool hasWidgetAsAscendant(
-    InterfaceElement2? element, [
-    Set<InterfaceElement2>? alreadySeen,
+    InterfaceElement? element, [
+    Set<InterfaceElement>? alreadySeen,
   ]) {
     if (element == null) return false;
 
@@ -116,10 +116,10 @@ class _Flutter {
   }
 
   /// Whether [element] is exactly the element named [type], from Flutter.
-  bool isExactly(InterfaceElement2 element, String type, Uri uri) =>
+  bool isExactly(InterfaceElement element, String type, Uri uri) =>
       element.name3 == type && element.library2.firstFragment.source.uri == uri;
 
-  bool isExactWidget(ClassElement2 element) =>
+  bool isExactWidget(ClassElement element) =>
       isExactly(element, _nameWidget, _uriFramework);
 
   bool isExactWidgetTypeContainer(DartType? type) =>
@@ -130,24 +130,24 @@ class _Flutter {
       type is InterfaceType &&
       isExactly(type.element3, _nameSizedBox, _uriBasic);
 
-  bool isKDebugMode(Element2? element) =>
+  bool isKDebugMode(Element? element) =>
       element != null &&
       element.name3 == 'kDebugMode' &&
       element.library2?.uri == _uriFoundation;
 
-  bool isState(InterfaceElement2 element) =>
+  bool isState(InterfaceElement element) =>
       isExactly(element, _nameState, _uriFramework) ||
       element.allSupertypes.any(
         (type) => isExactly(type.element3, _nameState, _uriFramework),
       );
 
-  bool isStatefulWidget(ClassElement2 element) =>
+  bool isStatefulWidget(ClassElement element) =>
       isExactly(element, _nameStatefulWidget, _uriFramework) ||
       element.allSupertypes.any(
         (type) => isExactly(type.element3, _nameStatefulWidget, _uriFramework),
       );
 
-  bool isWidget(InterfaceElement2 element) {
+  bool isWidget(InterfaceElement element) {
     if (isExactly(element, _nameWidget, _uriFramework)) {
       return true;
     }
@@ -164,7 +164,7 @@ class _Flutter {
 }
 
 // TODO(pq): based on similar extension in server. (Move and reuse.)
-extension InterfaceElementExtension2 on InterfaceElement2? {
+extension InterfaceElementExtension2 on InterfaceElement? {
   bool get extendsWidget => _hasWidgetAsAscendant(this, {});
 
   bool get isExactlyWidget => _isExactly(_nameWidget, _uriFramework);
@@ -172,7 +172,7 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   /// Whether this is the Flutter class `Widget`, or a subtype.
   bool get isWidget {
     var self = this;
-    if (self is! ClassElement2) return false;
+    if (self is! ClassElement) return false;
 
     if (isExactlyWidget) return true;
 
@@ -184,14 +184,14 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   /// Whether this is the exact [type] defined in the file with the given [uri].
   bool _isExactly(String type, Uri uri) {
     var self = this;
-    return self is ClassElement2 &&
+    return self is ClassElement &&
         self.name3 == type &&
         self.firstFragment.libraryFragment.source.uri == uri;
   }
 
   static bool _hasWidgetAsAscendant(
-    InterfaceElement2? element,
-    Set<InterfaceElement2> alreadySeen,
+    InterfaceElement? element,
+    Set<InterfaceElement> alreadySeen,
   ) {
     if (element == null) return false;
     if (element.isExactlyWidget) return true;

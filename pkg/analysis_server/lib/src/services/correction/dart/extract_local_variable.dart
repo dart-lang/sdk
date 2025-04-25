@@ -79,7 +79,7 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
   Future<void> _rewriteProperty({
     required ChangeBuilder builder,
     required Expression target,
-    required Element2? targetProperty,
+    required Element? targetProperty,
   }) async {
     if (targetProperty is! GetterElement) {
       return;
@@ -140,12 +140,12 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
 }
 
 class _ExpressionEncoder {
-  final Map<Element2, int> _elementIds = {};
+  final Map<Element, int> _elementIds = {};
 
   String encode(Expression node) {
     var tokens = node.tokens;
 
-    var tokenToElementMap = Map<Token, Element2>.identity();
+    var tokenToElementMap = Map<Token, Element>.identity();
     node.accept(
       _FunctionAstVisitor(
         simpleIdentifier: (node) {

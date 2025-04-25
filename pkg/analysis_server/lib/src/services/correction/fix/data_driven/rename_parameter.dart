@@ -134,13 +134,11 @@ extension on MethodDeclaration {
   /// Returns the element that this method overrides.
   ///
   /// Returns `null` if this method doesn't override any inherited member.
-  ExecutableElement2? overriddenElement(
-    InheritanceManager3 inheritanceManager,
-  ) {
+  ExecutableElement? overriddenElement(InheritanceManager3 inheritanceManager) {
     var element = declaredFragment?.element;
     if (element != null) {
       var enclosingElement = element.enclosingElement2;
-      if (enclosingElement is InterfaceElement2) {
+      if (enclosingElement is InterfaceElement) {
         var name = Name(enclosingElement.library2.uri, element.name3!);
         return inheritanceManager.getInherited4(enclosingElement, name);
       }
@@ -164,7 +162,7 @@ extension on MethodDeclaration {
   }
 }
 
-extension on ExecutableElement2 {
+extension on ExecutableElement {
   /// Returns the parameter of this executable element whose name matches the
   /// given [name]
   ///

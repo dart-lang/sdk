@@ -116,8 +116,8 @@ class PrefixExpressionResolver {
   /// @return the static return type that was computed
   ///
   // TODO(scheglov): this is duplicate
-  TypeImpl _computeStaticReturnType(Element2? element) {
-    if (element is PropertyAccessorElement2) {
+  TypeImpl _computeStaticReturnType(Element? element) {
+    if (element is PropertyAccessorElement) {
       //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
@@ -126,7 +126,7 @@ class PrefixExpressionResolver {
       return InvocationInferrer.computeInvokeReturnType(
         propertyType.returnType,
       );
-    } else if (element is ExecutableElement2) {
+    } else if (element is ExecutableElement) {
       return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return InvalidTypeImpl.instance;
@@ -189,7 +189,7 @@ class PrefixExpressionResolver {
         propertyErrorEntity: node.operator,
         nameErrorEntity: operand,
       );
-      node.element = result.getter2 as MethodElement2?;
+      node.element = result.getter2 as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
           _errorReporter.atToken(

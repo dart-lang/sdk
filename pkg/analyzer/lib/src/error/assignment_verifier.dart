@@ -29,12 +29,12 @@ class AssignmentVerifier {
   /// [CompileTimeErrorCode.UNDEFINED_IDENTIFIER].
   void verify({
     required SimpleIdentifier node,
-    required Element2? requested,
-    required Element2? recovery,
+    required Element? requested,
+    required Element? recovery,
     required DartType? receiverType,
   }) {
     if (requested != null) {
-      if (requested is VariableElement2) {
+      if (requested is VariableElement) {
         if (requested.isConst) {
           _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_CONST);
         }
@@ -43,16 +43,16 @@ class AssignmentVerifier {
     }
 
     if (recovery is DynamicElementImpl2 ||
-        recovery is InterfaceElement2 ||
-        recovery is TypeAliasElement2 ||
-        recovery is TypeParameterElement2) {
+        recovery is InterfaceElement ||
+        recovery is TypeAliasElement ||
+        recovery is TypeParameterElement) {
       _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_TYPE);
     } else if (recovery is LocalFunctionElement ||
         recovery is TopLevelFunctionElement) {
       _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION);
-    } else if (recovery is MethodElement2) {
+    } else if (recovery is MethodElement) {
       _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_METHOD);
-    } else if (recovery is PrefixElement2) {
+    } else if (recovery is PrefixElement) {
       if (recovery.name3 case var prefixName?) {
         _errorReporter.atNode(
           node,
@@ -73,7 +73,7 @@ class AssignmentVerifier {
 
       if (variable.isConst) {
         _errorReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_CONST);
-      } else if (variable is FieldElement2 && variable.isSynthetic) {
+      } else if (variable is FieldElement && variable.isSynthetic) {
         _errorReporter.atNode(
           node,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,

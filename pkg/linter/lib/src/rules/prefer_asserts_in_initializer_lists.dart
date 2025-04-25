@@ -33,7 +33,7 @@ class PreferAssertsInInitializerLists extends LintRule {
 }
 
 class _AssertVisitor extends RecursiveAstVisitor<void> {
-  final ConstructorElement2 constructorElement;
+  final ConstructorElement constructorElement;
   final _ClassAndSuperClasses? classAndSuperClasses;
 
   bool needInstance = false;
@@ -47,12 +47,12 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
     // use method
     needInstance =
         needInstance ||
-        element is MethodElement2 && !element.isStatic && _hasMethod(element);
+        element is MethodElement && !element.isStatic && _hasMethod(element);
 
     // use property accessor not used as field formal parameter
     needInstance =
         needInstance ||
-        (element is PropertyAccessorElement2) &&
+        (element is PropertyAccessorElement) &&
             !element.isStatic &&
             _hasAccessor(element) &&
             !_paramMatchesField(element, constructorElement.formalParameters);
@@ -63,27 +63,27 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
     needInstance = true;
   }
 
-  bool _hasAccessor(PropertyAccessorElement2 element) {
+  bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
     return classes != null && classes.contains(element.enclosingElement2);
   }
 
-  bool _hasMethod(MethodElement2 element) {
+  bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
     return classes != null && classes.contains(element.enclosingElement2);
   }
 
   bool _paramMatchesField(
-    PropertyAccessorElement2 element,
+    PropertyAccessorElement element,
     List<FormalParameterElement> parameters,
   ) {
     for (var p in parameters) {
       FormalParameterElement? parameterElement = p;
-      if (parameterElement is SuperFormalParameterElement2) {
+      if (parameterElement is SuperFormalParameterElement) {
         parameterElement = parameterElement.superConstructorParameter2;
       }
 
-      if (parameterElement is FieldFormalParameterElement2) {
+      if (parameterElement is FieldFormalParameterElement) {
         if (parameterElement.field2?.getter2 == element) {
           return true;
         }
@@ -95,15 +95,15 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
 
 /// Lazy cache of elements.
 class _ClassAndSuperClasses {
-  final ClassElement2? element;
-  final Set<InterfaceElement2> _classes = {};
+  final ClassElement? element;
+  final Set<InterfaceElement> _classes = {};
 
   _ClassAndSuperClasses(this.element);
 
   /// The [element] and its super classes, including mixins.
-  Set<InterfaceElement2> get classes {
+  Set<InterfaceElement> get classes {
     if (_classes.isEmpty) {
-      void addRecursively(InterfaceElement2? element) {
+      void addRecursively(InterfaceElement? element) {
         if (element != null && _classes.add(element)) {
           for (var t in element.mixins) {
             addRecursively(t.element3);

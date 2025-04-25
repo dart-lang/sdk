@@ -418,7 +418,7 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
     return CorrectionApplicability.singleLocation;
   }
 
-  ExecutableElement2? get methodBeingCopied =>
+  ExecutableElement? get methodBeingCopied =>
       _enclosingFunction?.declaredFragment?.element;
 
   FunctionDeclaration? get _enclosingFunction => node.thisOrAncestorOfType();
@@ -517,7 +517,7 @@ extension on List<DartType?> {
   /// it uses and get any type parameters they use by using this same getter.
   ///
   /// These types are added internally to a set so that we don't add duplicates.
-  List<TypeParameterElement2> get typeParameters =>
+  List<TypeParameterElement> get typeParameters =>
       {
         for (var type in whereType<TypeParameterType>()) ...[
           type.element3,
@@ -528,10 +528,10 @@ extension on List<DartType?> {
       }.toList();
 }
 
-extension on Element2? {
+extension on Element? {
   bool get declaresIndex {
     var element = this;
-    if (element is! InterfaceElement2) {
+    if (element is! InterfaceElement) {
       return false;
     }
     var inheritanceManager3 = InheritanceManager3();

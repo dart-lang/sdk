@@ -90,24 +90,24 @@ class ElementNameUnion {
     return true;
   }
 
-  static ElementNameUnion forLibrary(LibraryElement2 libraryElement) {
+  static ElementNameUnion forLibrary(LibraryElement libraryElement) {
     var result = ElementNameUnion.empty();
     libraryElement.accept2(_ElementVisitor2(result));
     return result;
   }
 
-  static bool _hasInterestingElements(Element2 element) {
-    if (element is ExecutableElement2) {
+  static bool _hasInterestingElements(Element element) {
+    if (element is ExecutableElement) {
       return false;
     }
     return true;
   }
 
-  static bool _isInterestingElement(Element2 element) {
-    return element.enclosingElement2 is LibraryElement2 ||
-        element is FieldElement2 ||
-        element is MethodElement2 ||
-        element is PropertyAccessorElement2;
+  static bool _isInterestingElement(Element element) {
+    return element.enclosingElement2 is LibraryElement ||
+        element is FieldElement ||
+        element is MethodElement ||
+        element is PropertyAccessorElement;
   }
 }
 
@@ -117,7 +117,7 @@ class _ElementVisitor2 extends GeneralizingElementVisitor2<void> {
   _ElementVisitor2(this.union);
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     if (ElementNameUnion._isInterestingElement(element)) {
       var name = element.name3;
       if (name != null) {

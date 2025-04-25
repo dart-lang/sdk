@@ -29,7 +29,7 @@ class LibraryElementSuggestionBuilder
   final String? prefix;
 
   /// The set of libraries that have been, or are currently being, visited.
-  final Set<LibraryElement2> visitedLibraries = <LibraryElement2>{};
+  final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
   factory LibraryElementSuggestionBuilder(
     DartCompletionRequest request,
@@ -59,7 +59,7 @@ class LibraryElementSuggestionBuilder
   );
 
   @override
-  void visitClassElement(ClassElement2 element) {
+  void visitClassElement(ClassElement element) {
     AstNode node = request.target.containingNode;
     var libraryElement = request.libraryElement;
     if (node is ExtendsClause && !element.isExtendableIn2(libraryElement)) {
@@ -74,17 +74,17 @@ class LibraryElementSuggestionBuilder
   }
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     // ignored
   }
 
   @override
-  visitEnumElement(EnumElement2 element) {
+  visitEnumElement(EnumElement element) {
     _visitInterfaceElement(element);
   }
 
   @override
-  void visitExtensionElement(ExtensionElement2 element) {
+  void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
       if (element.name3 != null) {
         builder.suggestExtension(element, kind: kind, prefix: prefix);
@@ -93,7 +93,7 @@ class LibraryElementSuggestionBuilder
   }
 
   @override
-  void visitExtensionTypeElement(ExtensionTypeElement2 element) {
+  void visitExtensionTypeElement(ExtensionTypeElement element) {
     _visitInterfaceElement(element);
   }
 
@@ -105,9 +105,9 @@ class LibraryElementSuggestionBuilder
             variable != null &&
             variable.isConst)) {
       var parent = element.enclosingElement2;
-      if (parent is InterfaceElement2 || parent is ExtensionElement2) {
+      if (parent is InterfaceElement || parent is ExtensionElement) {
         if (element.isSynthetic) {
-          if (variable is FieldElement2) {
+          if (variable is FieldElement) {
             builder.suggestField(variable, inheritanceDistance: 0.0);
           }
         } else {
@@ -120,14 +120,14 @@ class LibraryElementSuggestionBuilder
   }
 
   @override
-  void visitLibraryElement(LibraryElement2 element) {
+  void visitLibraryElement(LibraryElement element) {
     if (visitedLibraries.add(element)) {
       element.visitChildren2(this);
     }
   }
 
   @override
-  visitMixinElement(MixinElement2 element) {
+  visitMixinElement(MixinElement element) {
     AstNode node = request.target.containingNode;
     if (node is ImplementsClause &&
         !element.isImplementableIn2(request.libraryElement)) {
@@ -144,7 +144,7 @@ class LibraryElementSuggestionBuilder
             variable != null &&
             variable.isConst)) {
       var parent = element.enclosingElement2;
-      if (parent is InterfaceElement2 || parent is ExtensionElement2) {
+      if (parent is InterfaceElement || parent is ExtensionElement) {
         if (!element.isSynthetic) {
           builder.suggestSetter(element, inheritanceDistance: 0.0);
         }
@@ -169,14 +169,14 @@ class LibraryElementSuggestionBuilder
   }
 
   @override
-  void visitTopLevelVariableElement(TopLevelVariableElement2 element) {
+  void visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
       builder.suggestTopLevelVariable(element, prefix: prefix);
     }
   }
 
   @override
-  void visitTypeAliasElement(TypeAliasElement2 element) {
+  void visitTypeAliasElement(TypeAliasElement element) {
     if (opType.includeTypeNameSuggestions) {
       builder.suggestTypeAlias(element, prefix: prefix);
     }
@@ -186,10 +186,10 @@ class LibraryElementSuggestionBuilder
   ///
   /// If [onlyConst] is `true`, only `const` constructors will be suggested.
   void _addConstructorSuggestions(
-    ClassElement2 element, {
+    ClassElement element, {
     bool onlyConst = false,
   }) {
-    if (element is EnumElement2) {
+    if (element is EnumElement) {
       return;
     }
 
@@ -207,11 +207,11 @@ class LibraryElementSuggestionBuilder
     }
   }
 
-  void _visitInterfaceElement(InterfaceElement2 element) {
+  void _visitInterfaceElement(InterfaceElement element) {
     if (opType.includeTypeNameSuggestions) {
       builder.suggestInterface(element, prefix: prefix);
     }
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       if (opType.includeConstructorSuggestions) {
         _addConstructorSuggestions(element);
       } else if (opType.includeAnnotationSuggestions) {

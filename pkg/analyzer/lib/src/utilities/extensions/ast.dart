@@ -43,8 +43,8 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
-  /// The [ExecutableElement2] of the enclosing executable [AstNode].
-  ExecutableElement2? get enclosingExecutableElement2 {
+  /// The [ExecutableElement] of the enclosing executable [AstNode].
+  ExecutableElement? get enclosingExecutableElement2 {
     for (var node in withParents) {
       if (node is FunctionDeclaration) {
         return node.declaredFragment?.element;
@@ -59,8 +59,8 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
-  /// The [InstanceElement2] of the enclosing executable [AstNode].
-  InstanceElement2? get enclosingInstanceElement2 {
+  /// The [InstanceElement] of the enclosing executable [AstNode].
+  InstanceElement? get enclosingInstanceElement2 {
     for (var node in withParents) {
       var element = switch (node) {
         ClassDeclaration(:var declaredFragment?) => declaredFragment.element,

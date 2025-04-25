@@ -21,9 +21,9 @@ class TopLevelDeclarations {
 
   /// Return the first public library that exports (but does not necessary
   /// declare) [element].
-  Future<LibraryElement2?> publiclyExporting(
-    Element2 element, {
-    Map<Element2, LibraryElement2?>? resultCache,
+  Future<LibraryElement?> publiclyExporting(
+    Element element, {
+    Map<Element, LibraryElement?>? resultCache,
   }) async {
     if (resultCache?.containsKey(element) ?? false) {
       return resultCache![element];
@@ -69,14 +69,14 @@ class TopLevelDeclarations {
   /// a top-level declaration that is exported (not necessary declared) by this
   /// library, and has the requested base name. For getters and setters the
   /// corresponding top-level variable is returned.
-  Future<Map<LibraryElement2, Element2>> withName(String baseName) async {
+  Future<Map<LibraryElement, Element>> withName(String baseName) async {
     var analysisDriver = _analysisContext.driver;
     await analysisDriver.discoverAvailableFiles();
 
     var fsState = analysisDriver.fsState;
     var filter = FileStateFilter(fsState.getFileForPath(resolvedUnit.path));
 
-    var result = <LibraryElement2, Element2>{};
+    var result = <LibraryElement, Element>{};
 
     for (var file in fsState.knownFiles.toList()) {
       if (!filter.shouldInclude(file)) {
@@ -95,8 +95,8 @@ class TopLevelDeclarations {
   }
 
   static void addElement(
-    Map<LibraryElement2, Element2> result,
-    LibraryElement2 libraryElement,
+    Map<LibraryElement, Element> result,
+    LibraryElement libraryElement,
     String baseName,
   ) {
     var element = _findElement(libraryElement, baseName);
@@ -105,14 +105,11 @@ class TopLevelDeclarations {
     }
   }
 
-  static Element2? _findElement(
-    LibraryElement2 libraryElement,
-    String baseName,
-  ) {
+  static Element? _findElement(LibraryElement libraryElement, String baseName) {
     var element =
         libraryElement.exportNamespace.get2(baseName) ??
         libraryElement.exportNamespace.get2('$baseName=');
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       if (variable != null) {
         return variable;

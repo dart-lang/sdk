@@ -54,7 +54,7 @@ class VarianceBuilder {
     }
   }
 
-  Variance _compute(TypeParameterElement2 variable, DartType? type) {
+  Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
       if (type.element3 == variable) {
         return Variance.covariant;
@@ -119,9 +119,9 @@ class VarianceBuilder {
   }
 
   Variance _computeFunctionType(
-    TypeParameterElement2 variable, {
+    TypeParameterElement variable, {
     required DartType? returnType,
-    required List<TypeParameterElement2>? typeParameters,
+    required List<TypeParameterElement>? typeParameters,
     required List<FormalParameterElement> formalParameters,
   }) {
     var result = Variance.unrelated;

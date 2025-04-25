@@ -407,7 +407,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   void _reportWrongNumberOfTypeArguments(
     TypeArgumentList typeArgumentList,
     FunctionType rawType,
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
   ) {
     resolver.errorReporter.atNode(
       typeArgumentList,
@@ -476,7 +476,7 @@ class InstanceCreationInferrer
   void _reportWrongNumberOfTypeArguments(
     TypeArgumentList typeArgumentList,
     FunctionType rawType,
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
   ) {
     // Error reporting for instance creations is done elsewhere.
   }
@@ -804,13 +804,13 @@ class _DeferredParamInfo extends _ParamInfo {
 class _FunctionLiteralDependencies
     extends
         FunctionLiteralDependencies<
-          TypeParameterElement2,
+          TypeParameterElement,
           _ParamInfo,
           _DeferredParamInfo
         > {
   final TypeSystemImpl _typeSystem;
 
-  final Set<TypeParameterElement2> _typeVariables;
+  final Set<TypeParameterElement> _typeVariables;
 
   _FunctionLiteralDependencies(
     this._typeSystem,
@@ -820,7 +820,7 @@ class _FunctionLiteralDependencies
   ) : super(deferredParamInfo, _typeVariables, undeferredParamInfo);
 
   @override
-  Iterable<TypeParameterElement2> typeVarsFreeInParamParams(
+  Iterable<TypeParameterElement> typeVarsFreeInParamParams(
     _DeferredParamInfo paramInfo,
   ) {
     var type = paramInfo.parameter?.type;
@@ -829,7 +829,7 @@ class _FunctionLiteralDependencies
       var explicitlyTypedParameters = _computeExplicitlyTypedParameterSet(
         paramInfo.value,
       );
-      Set<TypeParameterElement2> result = {};
+      Set<TypeParameterElement> result = {};
       for (var entry in parameterMap.entries) {
         if (explicitlyTypedParameters.contains(entry.key)) continue;
         result.addAll(
@@ -847,7 +847,7 @@ class _FunctionLiteralDependencies
   }
 
   @override
-  Iterable<TypeParameterElement2> typeVarsFreeInParamReturns(
+  Iterable<TypeParameterElement> typeVarsFreeInParamReturns(
     _ParamInfo paramInfo,
   ) {
     var type = paramInfo.parameter?.type;

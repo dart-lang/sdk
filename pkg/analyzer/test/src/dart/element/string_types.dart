@@ -410,7 +410,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
   /// be promoted.
-  final Set<TypeParameterElement2> functionTypeParameters = {};
+  final Set<TypeParameterElement> functionTypeParameters = {};
 
   @override
   void visitDynamicType(DynamicType type) {}

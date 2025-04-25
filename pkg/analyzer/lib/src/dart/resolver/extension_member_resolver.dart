@@ -407,7 +407,7 @@ class ExtensionMemberResolver {
 
   /// Instantiate the extended type of the [extension] to the bounds of the
   /// type formals of the extension.
-  TypeImpl _instantiateToBounds(ExtensionElement2 extension) {
+  TypeImpl _instantiateToBounds(ExtensionElement extension) {
     extension as ExtensionElementImpl2;
     var typeParameters = extension.typeParameters2;
     return Substitution.fromPairs2(

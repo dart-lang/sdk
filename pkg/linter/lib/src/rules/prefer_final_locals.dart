@@ -36,7 +36,7 @@ class PreferFinalLocals extends LintRule {
 }
 
 class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
-  final List<BindPatternVariableElement2> declaredElements = [];
+  final List<BindPatternVariableElement> declaredElements = [];
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {

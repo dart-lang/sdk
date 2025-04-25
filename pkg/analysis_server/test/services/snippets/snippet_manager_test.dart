@@ -70,7 +70,7 @@ class SnippetManagerTest extends AbstractSingleUnitTest {
       SnippetContext.inClass: [
         (
           context, {
-          required Map<Element2, LibraryElement2?> elementImportCache,
+          required Map<Element, LibraryElement?> elementImportCache,
         }) => throw 'Tried to create producer for wrong context',
       ],
     });
@@ -114,7 +114,7 @@ class _NotValidSnippetProducer extends SnippetProducer {
 
   static _NotValidSnippetProducer newInstance(
     DartSnippetRequest request, {
-    required Map<Element2, LibraryElement2?> elementImportCache,
+    required Map<Element, LibraryElement?> elementImportCache,
   }) => _NotValidSnippetProducer._(request);
 }
 
@@ -148,6 +148,6 @@ class _ValidSnippetProducer extends SnippetProducer {
 
   static _ValidSnippetProducer newInstance(
     DartSnippetRequest request, {
-    required Map<Element2, LibraryElement2?> elementImportCache,
+    required Map<Element, LibraryElement?> elementImportCache,
   }) => _ValidSnippetProducer._(request);
 }

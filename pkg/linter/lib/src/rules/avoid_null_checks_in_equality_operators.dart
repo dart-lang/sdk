@@ -16,22 +16,19 @@ const _desc = r"Don't check for `null` in custom `==` operators.";
 bool _isComparingEquality(TokenType tokenType) =>
     tokenType == TokenType.BANG_EQ || tokenType == TokenType.EQ_EQ;
 
-bool _isComparingParameterWithNull(
-  BinaryExpression node,
-  Element2? parameter,
-) =>
+bool _isComparingParameterWithNull(BinaryExpression node, Element? parameter) =>
     _isComparingEquality(node.operator.type) &&
     ((node.leftOperand.isNullLiteral &&
             _isParameter(node.rightOperand, parameter)) ||
         (node.rightOperand.isNullLiteral &&
             _isParameter(node.leftOperand, parameter)));
 
-bool _isParameter(Expression expression, Element2? parameter) =>
+bool _isParameter(Expression expression, Element? parameter) =>
     expression.canonicalElement == parameter;
 
 bool _isParameterWithQuestionQuestion(
   BinaryExpression node,
-  Element2? parameter,
+  Element? parameter,
 ) =>
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
@@ -58,7 +55,7 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
 }
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
-  final Element2? parameter;
+  final Element? parameter;
   final LintRule rule;
 
   _BodyVisitor(this.parameter, this.rule);

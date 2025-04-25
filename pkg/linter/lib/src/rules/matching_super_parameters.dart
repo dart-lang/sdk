@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 .unnamedConstructor2;
       }
     }
-    if (superConstructor is! ConstructorElement2) return;
+    if (superConstructor is! ConstructorElement) return;
 
     var positionalParametersOfSuper =
         superConstructor.formalParameters.where((p) => p.isPositional).toList();

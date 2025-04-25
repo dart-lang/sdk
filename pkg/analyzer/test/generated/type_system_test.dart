@@ -67,7 +67,7 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
 
     void check(
       TypeParameterTypeImpl type,
-      TypeParameterElement2 element,
+      TypeParameterElement element,
       NullabilitySuffix nullability,
       DartType promotedBound,
     ) {

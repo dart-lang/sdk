@@ -13,13 +13,13 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 class EncodeContext {
   final LinkedElementFactory elementFactory;
-  final Map<TypeParameterElement2, int> _typeParameters = Map.identity();
+  final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
   EncodeContext({required this.elementFactory});
 
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element) {
+  ManifestItemId? getElementId(Element element) {
     return elementFactory.getElementId(element);
   }
 
@@ -31,7 +31,7 @@ class EncodeContext {
     throw StateError('No formal parameter $element');
   }
 
-  int indexOfTypeParameter(TypeParameterElement2 element) {
+  int indexOfTypeParameter(TypeParameterElement element) {
     if (_typeParameters[element] case var bottomIndex?) {
       return _typeParameters.length - 1 - bottomIndex;
     }
@@ -56,7 +56,7 @@ class EncodeContext {
   }
 
   T withTypeParameters<T>(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     T Function(List<ManifestTypeParameter> typeParameters) operation,
   ) {
     for (var typeParameter in typeParameters) {
@@ -131,11 +131,11 @@ final class ManifestElement {
 
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
-  bool match(MatchContext context, Element2 element) {
+  bool match(MatchContext context, Element element) {
     var enclosingElement = element.enclosingElement2!;
-    Element2 givenTopLevelElement;
-    Element2? givenMemberElement;
-    if (enclosingElement is LibraryElement2) {
+    Element givenTopLevelElement;
+    Element? givenMemberElement;
+    if (enclosingElement is LibraryElement) {
       givenTopLevelElement = element;
     } else {
       givenTopLevelElement = enclosingElement;
@@ -167,15 +167,15 @@ final class ManifestElement {
     id.writeOptional(sink);
   }
 
-  static ManifestElement encode(EncodeContext context, Element2 element) {
-    Element2 topLevelElement;
-    Element2? memberElement;
+  static ManifestElement encode(EncodeContext context, Element element) {
+    Element topLevelElement;
+    Element? memberElement;
     var enclosingElement = element.enclosingElement2!;
-    if (enclosingElement is LibraryElement2) {
+    if (enclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
       topLevelElement = enclosingElement;
-      assert(topLevelElement.enclosingElement2 is LibraryElement2);
+      assert(topLevelElement.enclosingElement2 is LibraryElement);
       memberElement = element;
     }
 
@@ -196,21 +196,21 @@ class MatchContext {
   final MatchContext? parent;
 
   /// Any referenced elements, from this bundle or not.
-  final Set<Element2> elements = {};
+  final Set<Element> elements = {};
 
   /// The required identifiers of referenced elements that are not from this
   /// bundle.
-  final Map<Element2, ManifestItemId> externalIds = {};
+  final Map<Element, ManifestItemId> externalIds = {};
 
-  final Map<TypeParameterElement2, int> _typeParameters = Map.identity();
+  final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
   MatchContext({required this.parent});
 
   /// Any referenced elements, from this bundle or not.
-  List<Element2> get elementList => elements.toList(growable: false);
+  List<Element> get elementList => elements.toList(growable: false);
 
-  void addTypeParameters(List<TypeParameterElement2> typeParameters) {
+  void addTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var typeParameter in typeParameters) {
       _typeParameters[typeParameter] = _typeParameters.length;
     }
@@ -224,7 +224,7 @@ class MatchContext {
     throw StateError('No formal parameter $element');
   }
 
-  int indexOfTypeParameter(TypeParameterElement2 element) {
+  int indexOfTypeParameter(TypeParameterElement element) {
     if (_typeParameters[element] case var result?) {
       return _typeParameters.length - 1 - result;
     }
@@ -254,7 +254,7 @@ class MatchContext {
   }
 
   T withTypeParameters<T>(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     T Function() operation,
   ) {
     addTypeParameters(typeParameters);
@@ -270,10 +270,10 @@ class MatchContext {
 
 extension LinkedElementFactoryExtension on LinkedElementFactory {
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element) {
-    Element2 topLevelElement;
-    Element2? memberElement;
-    if (element.enclosingElement2 is LibraryElement2) {
+  ManifestItemId? getElementId(Element element) {
+    Element topLevelElement;
+    Element? memberElement;
+    if (element.enclosingElement2 is LibraryElement) {
       topLevelElement = element;
     } else {
       topLevelElement = element.enclosingElement2!;

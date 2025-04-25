@@ -21,7 +21,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var node = this.node;
-    Element2? element;
+    Element? element;
     String? prefix;
     if (node is NamedType) {
       element = node.element2;
@@ -34,7 +34,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
         prefix = currentPrefix.name;
       }
     }
-    if (element is! MultiplyDefinedElement2) {
+    if (element is! MultiplyDefinedElement) {
       return const [];
     }
     var conflictingElements = element.conflictingElements2;
@@ -99,7 +99,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   _getImportDirectives(
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
-    List<Element2> conflictingElements,
+    List<Element> conflictingElements,
     String name,
     String? prefix,
   ) {

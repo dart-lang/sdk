@@ -22,7 +22,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element3 is! ClassElement2) {
+  if (type.element3 is! ClassElement) {
     return false;
   }
   return _isInterfaceTypeInterface(type);
@@ -30,10 +30,10 @@ bool _isInterfaceTypeClass(InterfaceType type) {
 
 /// Return `true` if [type] can be used as an interface or a mixin.
 bool _isInterfaceTypeInterface(InterfaceType type) {
-  if (type.element3 is EnumElement2) {
+  if (type.element3 is EnumElement) {
     return false;
   }
-  if (type.element3 is ExtensionTypeElement2) {
+  if (type.element3 is ExtensionTypeElement) {
     return false;
   }
   if (type.isDartCoreFunction || type.isDartCoreNull) {
@@ -431,7 +431,7 @@ class _MixinInference {
   }
 
   InterfaceTypeImpl? _findInterfaceTypeForElement(
-    InterfaceElement2 element,
+    InterfaceElement element,
     List<InterfaceTypeImpl> interfaceTypes,
   ) {
     for (var interfaceType in interfaceTypes) {

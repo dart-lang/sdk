@@ -60,7 +60,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     if (element case Annotatable annotatable) {
       for (var annotation in annotatable.metadata2.annotations) {
         var ast = (annotation as ElementAnnotationImpl).annotationAst;
@@ -94,7 +94,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitPropertyInducingElement(PropertyInducingElement2 element) {
+  void visitPropertyInducingElement(PropertyInducingElement element) {
     for (var fragment in element.fragments) {
       if (fragment is PropertyInducingElementImpl) {
         fragment.typeInference = null;

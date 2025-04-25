@@ -40,7 +40,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     var nameNode = node;
     if (nameNode is SimpleIdentifier) {
       // prepare argument expression (to get parameter)
-      InterfaceElement2? targetElement;
+      InterfaceElement? targetElement;
       Expression argument;
       var target = getQualifiedPropertyTarget(node);
       if (target != null) {
@@ -49,7 +49,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           targetElement = targetType.element3;
           argument = target.parent as Expression;
         } else if (target case SimpleIdentifier(
-          :InterfaceElement2? element,
+          :InterfaceElement? element,
           :Expression parent,
         )) {
           isStatic = true;
@@ -207,7 +207,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   /// [FunctionType] inside the target element.
   Future<void> _createMethod(
     ChangeBuilder builder,
-    InterfaceElement2 targetClassElement,
+    InterfaceElement targetClassElement,
     FunctionType functionType, {
     required bool isStatic,
   }) async {
@@ -217,19 +217,19 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     // prepare insert offset
     CompilationUnitMember? targetNode;
     List<ClassMember>? classMembers;
-    if (targetClassElement is MixinElement2) {
+    if (targetClassElement is MixinElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getMixinDeclaration(fragment);
       classMembers = node?.members;
-    } else if (targetClassElement is ClassElement2) {
+    } else if (targetClassElement is ClassElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getClassDeclaration(fragment);
       classMembers = node?.members;
-    } else if (targetClassElement is ExtensionTypeElement2) {
+    } else if (targetClassElement is ExtensionTypeElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getExtensionTypeDeclaration(fragment);
       classMembers = node?.members;
-    } else if (targetClassElement is EnumElement2) {
+    } else if (targetClassElement is EnumElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getEnumDeclaration(fragment);
       classMembers = node?.members;

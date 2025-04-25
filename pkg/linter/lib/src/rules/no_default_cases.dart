@@ -45,8 +45,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (var member in statement.members) {
         if (member is SwitchDefault) {
           var interfaceElement = expressionType.element3;
-          if (interfaceElement is EnumElement2 ||
-              interfaceElement is ClassElement2 &&
+          if (interfaceElement is EnumElement ||
+              interfaceElement is ClassElement &&
                   interfaceElement.isEnumLikeClass()) {
             rule.reportLint(member);
           }

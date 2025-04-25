@@ -59,7 +59,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findNodeAtOffset(offset, predicate);
   }
 
-  Element2? findNodeElementAtString(
+  Element? findNodeElementAtString(
     String search, [
     bool Function(AstNode)? predicate,
   ]) {

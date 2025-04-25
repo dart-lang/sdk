@@ -71,7 +71,7 @@ abstract class _MethodDefinition {
 
 class _MethodDefinitionForElement extends _MethodDefinition {
   /// The element on which this method is declared.
-  final ClassElement2 element;
+  final ClassElement element;
 
   _MethodDefinitionForElement(
     this.element,

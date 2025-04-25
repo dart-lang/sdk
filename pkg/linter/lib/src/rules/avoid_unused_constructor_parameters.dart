@@ -41,8 +41,8 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
           element.parameters.parameters.where((p) {
             var element = p.declaredFragment?.element;
             return element != null &&
-                element is! FieldFormalParameterElement2 &&
-                element is! SuperFormalParameterElement2 &&
+                element is! FieldFormalParameterElement &&
+                element is! SuperFormalParameterElement &&
                 !element.metadata2.hasDeprecated &&
                 !(element.name3 ?? '').isJustUnderscores;
           }).toSet();

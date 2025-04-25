@@ -164,7 +164,7 @@ abstract class InvalidResult {}
 abstract class LibraryElementResult implements SomeLibraryElementResult {
   /// The element representing the library.
   @experimental
-  LibraryElement2 get element2;
+  LibraryElement get element2;
 }
 
 /// The type of [InvalidResult] returned when the given element was not
@@ -269,7 +269,7 @@ abstract class ResolvedLibraryResult
     implements ParsedLibraryResult, SomeResolvedLibraryResult {
   /// The element representing this library.
   @experimental
-  LibraryElement2 get element2;
+  LibraryElement get element2;
 
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
@@ -294,7 +294,7 @@ abstract class ResolvedUnitResult
 
   /// The element representing the library containing the compilation [unit].
   @experimental
-  LibraryElement2 get libraryElement2;
+  LibraryElement get libraryElement2;
 
   /// The fragment corresponding to the [unit].
   @experimental

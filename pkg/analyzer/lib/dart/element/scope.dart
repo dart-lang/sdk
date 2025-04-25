@@ -20,7 +20,7 @@ abstract class Scope {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ScopeLookupResult {
-  Element2? get getter2;
+  Element? get getter2;
 
-  Element2? get setter2;
+  Element? get setter2;
 }

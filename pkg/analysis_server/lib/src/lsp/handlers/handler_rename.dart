@@ -321,7 +321,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
   bool _isClassRename(RenameRefactoring refactoring) =>
       refactoring is RenameUnitMemberRefactoringImpl &&
-      refactoring.element is InterfaceElement2;
+      refactoring.element is InterfaceElement;
 
   /// Asks the user whether they would like to rename the file along with the
   /// class.

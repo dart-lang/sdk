@@ -43,12 +43,12 @@ class RemoveDeprecatedNewInCommentReference extends ResolvedCorrectionProducer {
     var identifier = comment.expression;
     if (identifier is Identifier) {
       var element = identifier.element;
-      if (identifier is SimpleIdentifier && element is ConstructorElement2) {
+      if (identifier is SimpleIdentifier && element is ConstructorElement) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(identifier.end, '.new');
         });
       } else {
-        if (element is ClassElement2) {
+        if (element is ClassElement) {
           if (element.unnamedConstructor2 != null) {
             await builder.addDartFileEdit(file, (builder) {
               builder.addSimpleInsertion(identifier.end, '.new');

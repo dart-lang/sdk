@@ -417,7 +417,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         }
       case VariableDeclaration():
         var element = node.declaredFragment?.element;
-        if (element is FieldElement2) {
+        if (element is FieldElement) {
           return element.type;
         }
     }
@@ -425,7 +425,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   bool _isEnum(DartType type) {
-    return type is InterfaceType && type.element3 is EnumElement2;
+    return type is InterfaceType && type.element3 is EnumElement;
   }
 
   bool _isIterable(DartType type) {

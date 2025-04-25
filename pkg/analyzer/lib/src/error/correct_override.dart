@@ -208,14 +208,14 @@ class CovariantParametersVerifier {
 
   /// Return a member from [classElement] that corresponds to the [proto],
   /// or `null` if no such member exist.
-  static ExecutableElement2? _correspondingMember(
-    InterfaceElement2 classElement,
-    ExecutableElement2 proto,
+  static ExecutableElement? _correspondingMember(
+    InterfaceElement classElement,
+    ExecutableElement proto,
   ) {
-    if (proto is MethodElement2) {
+    if (proto is MethodElement) {
       return classElement.getMethod2(proto.displayName);
     }
-    if (proto is PropertyAccessorElement2) {
+    if (proto is PropertyAccessorElement) {
       if (proto is GetterElement) {
         return classElement.getGetter2(proto.displayName);
       }
@@ -252,7 +252,7 @@ class CovariantParametersVerifier {
 
 class _SuperMember {
   final InterfaceType interface;
-  final ExecutableElement2 rawElement;
+  final ExecutableElement rawElement;
 
   _SuperMember(this.interface, this.rawElement);
 }
@@ -263,6 +263,6 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement2 get member =>
-      element.enclosingElement2 as ExecutableElement2;
+  ExecutableElement get member =>
+      element.enclosingElement2 as ExecutableElement;
 }

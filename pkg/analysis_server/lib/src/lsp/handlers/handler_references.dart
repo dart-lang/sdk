@@ -51,7 +51,7 @@ class ReferencesHandler
     );
   }
 
-  List<Location> _getDeclarations(Element2 element) {
+  List<Location> _getDeclarations(Element element) {
     return element.nonSynthetic2.fragments
         .map((fragment) => fragmentToLocation(uriConverter, fragment))
         .nonNulls
@@ -68,8 +68,8 @@ class ReferencesHandler
     node = _getReferenceTargetNode(node);
 
     var element = switch (node?.getElement()) {
-      FieldFormalParameterElement2(:var field2?) => field2,
-      PropertyAccessorElement2(:var variable3?) => variable3,
+      FieldFormalParameterElement(:var field2?) => field2,
+      PropertyAccessorElement(:var variable3?) => variable3,
       var element => element,
     };
 

@@ -88,7 +88,7 @@ class CollectingReporter extends ErrorReporter {
 
   @override
   void atElement2(
-    Element2 element,
+    Element element,
     ErrorCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,

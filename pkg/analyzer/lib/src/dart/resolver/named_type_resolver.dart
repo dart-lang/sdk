@@ -99,8 +99,8 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      if (prefixElement is InterfaceElement2 ||
-          prefixElement is TypeAliasElement2) {
+      if (prefixElement is InterfaceElement ||
+          prefixElement is TypeAliasElement) {
         _rewriteToConstructorName(
           node: node,
           importPrefix: importPrefix,
@@ -110,7 +110,7 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         var nameToken = node.name2;
         var element = _lookupGetter(prefixElement.scope, nameToken);
         _resolveToElement(node, element, dataForTesting: dataForTesting);
@@ -208,7 +208,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   TypeImpl _instantiateElement(
     NamedTypeImpl node,
-    Element2 element, {
+    Element element, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
     var nullability = _getNullability(node);
@@ -300,7 +300,7 @@ class NamedTypeResolver with ScopeHelpers {
     return NeverTypeImpl.instance.withNullability(nullability);
   }
 
-  Element2? _lookupGetter(Scope scope, Token nameToken) {
+  Element? _lookupGetter(Scope scope, Token nameToken) {
     var scopeLookupResult = scope.lookup(nameToken.lexeme);
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
@@ -311,7 +311,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   void _resolveToElement(
     NamedTypeImpl node,
-    Element2? element, {
+    Element? element, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
     node.element2 = element;
@@ -324,7 +324,7 @@ class NamedTypeResolver with ScopeHelpers {
       return;
     }
 
-    if (element is MultiplyDefinedElement2) {
+    if (element is MultiplyDefinedElement) {
       node.type = InvalidTypeImpl.instance;
       return;
     }
@@ -339,12 +339,12 @@ class NamedTypeResolver with ScopeHelpers {
   }
 
   /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
-  /// will be a [PrefixElement2]. But when we resolved the `prefix` it turned
-  /// out to be a [ClassElement2], so it is probably a `Class.constructor`.
+  /// will be a [PrefixElement]. But when we resolved the `prefix` it turned
+  /// out to be a [ClassElement], so it is probably a `Class.constructor`.
   void _rewriteToConstructorName({
     required NamedTypeImpl node,
     required ImportPrefixReferenceImpl importPrefix,
-    required Element2 importPrefixElement,
+    required Element importPrefixElement,
     required Token nameToken,
   }) {
     var constructorName = node.parent;
@@ -433,7 +433,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   TypeImpl _verifyTypeAliasForContext(
     NamedType node,
-    TypeAliasElement2 element,
+    TypeAliasElement element,
     TypeImpl type,
   ) {
     // If a type alias that expands to a type parameter.
@@ -533,7 +533,7 @@ class _ErrorHelper {
     return false;
   }
 
-  void reportNullOrNonTypeElement(NamedType node, Element2? element) {
+  void reportNullOrNonTypeElement(NamedType node, Element? element) {
     if (node.name2.isSynthetic) {
       return;
     }
@@ -626,7 +626,7 @@ class _ErrorHelper {
       return;
     }
 
-    if (element is LocalVariableElement2 || element is LocalFunctionElement) {
+    if (element is LocalVariableElement || element is LocalFunctionElement) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
@@ -673,7 +673,7 @@ class _ErrorHelper {
     var firstToken = node.name2;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
-      if (!skipImportPrefix || importPrefix.element2 is! PrefixElement2) {
+      if (!skipImportPrefix || importPrefix.element2 is! PrefixElement) {
         firstToken = importPrefix.name;
       }
     }

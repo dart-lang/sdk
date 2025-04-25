@@ -29,7 +29,7 @@ class TypeArgumentIssue {
   final int index;
 
   /// The type parameter with the bound that was violated.
-  final TypeParameterElement2 parameter;
+  final TypeParameterElement parameter;
 
   /// The substituted bound of the [parameter].
   final DartType parameterBound;
