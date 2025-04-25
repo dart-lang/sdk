@@ -531,10 +531,9 @@ class Primitives {
   }
 
   static int getWeekday(DateTime receiver) {
-    int weekday =
-        (receiver.isUtc)
-            ? JS<int>('!', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
-            : JS<int>('!', r'#.getDay() + 0', lazyAsJsDate(receiver));
+    int weekday = (receiver.isUtc)
+        ? JS<int>('!', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+        : JS<int>('!', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
@@ -800,8 +799,9 @@ class AssertionErrorImpl extends AssertionError {
         _conditionSource != null) {
       failureMessage += "$_fileUri:${_line}:${_column}\n$_conditionSource\n";
     }
-    failureMessage +=
-        message != null ? Error.safeToString(message) : "is not true";
+    failureMessage += message != null
+        ? Error.safeToString(message)
+        : "is not true";
 
     return "Assertion failed: $failureMessage";
   }

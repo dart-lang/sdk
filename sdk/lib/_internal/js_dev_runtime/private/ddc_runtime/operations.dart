@@ -26,8 +26,9 @@ class InvocationImpl extends Invocation {
     this.isGetter = false,
     this.isSetter = false,
     this.failureMessage = 'method not found',
-  }) : memberName =
-           isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
+  }) : memberName = isSetter
+           ? _setterSymbol(memberName)
+           : _dartSymbol(memberName),
        positionalArguments = List.unmodifiable(positionalArguments),
        namedArguments = _namedArgsToSymbols(namedArguments),
        typeArguments = List.unmodifiable(
@@ -348,10 +349,9 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
   var optionalPositionalCount = JS<int>('!', '#.length', optionalPositional);
   if (extras > optionalPositionalCount) {
     var maxPositionalCount = requiredCount + optionalPositionalCount;
-    var expected =
-        requiredCount == maxPositionalCount
-            ? '$maxPositionalCount'
-            : '$requiredCount - $maxPositionalCount';
+    var expected = requiredCount == maxPositionalCount
+        ? '$maxPositionalCount'
+        : '$requiredCount - $maxPositionalCount';
     return 'Dynamic call with too many positional arguments. '
         'Expected: $expected '
         'Actual: $actualsCount';
@@ -378,13 +378,11 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
   // Verify that all required named parameters are provided an argument.
   Iterable requiredNames = getOwnPropertyNames(requiredNamed);
   if (JS<int>('!', '#.length', requiredNames) > 0) {
-    var missingRequired =
-        namedActuals == null
-            ? requiredNames
-            : requiredNames.where(
-              (name) =>
-                  !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name),
-            );
+    var missingRequired = namedActuals == null
+        ? requiredNames
+        : requiredNames.where(
+            (name) => !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name),
+          );
     if (missingRequired.isNotEmpty) {
       var argNames = JS<String>('!', '#.join(", ")', missingRequired);
       var error =
@@ -468,39 +466,39 @@ _toDisplayName(name) => JS('', '''(() => {
 Symbol _dartSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
       ? JS(
-        'Symbol',
-        '#(new #.new(#, #))',
-        const_,
-        JS_CLASS_REF(PrivateSymbol),
-        _toSymbolName(name),
-        name,
-      )
+          'Symbol',
+          '#(new #.new(#, #))',
+          const_,
+          JS_CLASS_REF(PrivateSymbol),
+          _toSymbolName(name),
+          name,
+        )
       : JS(
-        'Symbol',
-        '#(new #.new(#))',
-        const_,
-        JS_CLASS_REF(internal.Symbol),
-        _toDisplayName(name),
-      );
+          'Symbol',
+          '#(new #.new(#))',
+          const_,
+          JS_CLASS_REF(internal.Symbol),
+          _toDisplayName(name),
+        );
 }
 
 Symbol _setterSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
       ? JS(
-        'Symbol',
-        '#(new #.new(# + "=", #))',
-        const_,
-        JS_CLASS_REF(PrivateSymbol),
-        _toSymbolName(name),
-        name,
-      )
+          'Symbol',
+          '#(new #.new(# + "=", #))',
+          const_,
+          JS_CLASS_REF(PrivateSymbol),
+          _toSymbolName(name),
+          name,
+        )
       : JS(
-        'Symbol',
-        '#(new #.new(# + "="))',
-        const_,
-        JS_CLASS_REF(internal.Symbol),
-        _toDisplayName(name),
-      );
+          'Symbol',
+          '#(new #.new(# + "="))',
+          const_,
+          JS_CLASS_REF(internal.Symbol),
+          _toDisplayName(name),
+        );
 }
 
 /// Checks for a valid function, receiver and arguments before calling [f].
@@ -1434,21 +1432,19 @@ declareClass(library, classIdentifier, classDeclaration) {
   } else {
     var newClassProto = JS<Object>('!', '#.prototype', classDeclaration);
     var originalClassProto = JS<Object>('!', '#.prototype', originalClass);
-    var copyWhenProto =
-        (property) => JS<bool>(
-          '!',
-          '# || # === void 0',
-          !isStateBearingSymbol(property),
-          originalClassProto,
-        );
+    var copyWhenProto = (property) => JS<bool>(
+      '!',
+      '# || # === void 0',
+      !isStateBearingSymbol(property),
+      originalClassProto,
+    );
     copyProperties(originalClassProto, newClassProto, copyWhen: copyWhenProto);
-    var copyWhen =
-        (property) => JS<bool>(
-          '!',
-          '# || # === void 0',
-          !isStateBearingSymbol(property),
-          originalClass,
-        );
+    var copyWhen = (property) => JS<bool>(
+      '!',
+      '# || # === void 0',
+      !isStateBearingSymbol(property),
+      originalClass,
+    );
     copyProperties(originalClass, classDeclaration, copyWhen: copyWhen);
   }
   return JS<Object>('!', '#.#', library, classIdentifier);
@@ -1463,14 +1459,13 @@ declareTopLevelProperties(topLevelContainer, propertiesObject) {
   if (JS<bool>('!', '# === void 0', topLevelContainer)) {
     throw Exception('$topLevelContainer does not exist.');
   }
-  var copyWhen =
-      (property) => JS<bool>(
-        '!',
-        '# || #.# === void 0',
-        !isStateBearingSymbol(property),
-        topLevelContainer,
-        property,
-      );
+  var copyWhen = (property) => JS<bool>(
+    '!',
+    '# || #.# === void 0',
+    !isStateBearingSymbol(property),
+    topLevelContainer,
+    property,
+  );
   copyProperties(topLevelContainer, propertiesObject, copyWhen: copyWhen);
   return topLevelContainer;
 }
