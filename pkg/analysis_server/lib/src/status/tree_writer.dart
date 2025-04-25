@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/value.dart';

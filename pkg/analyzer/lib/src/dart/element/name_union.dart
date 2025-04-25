@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 
 /// Union of a set of names.

@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 MemberId computeMemberId(Element2 element) {
   var enclosingElement = element.enclosingElement2;

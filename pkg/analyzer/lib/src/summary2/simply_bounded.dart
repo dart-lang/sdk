@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
     as graph
     show DependencyWalker, Node;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/summary2/link.dart';

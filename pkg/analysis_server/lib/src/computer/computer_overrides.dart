@@ -6,7 +6,7 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 
 /// Return the elements that the given [element] overrides.

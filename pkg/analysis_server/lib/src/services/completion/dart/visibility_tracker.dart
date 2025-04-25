@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// This class tracks the set of names already added in the completion list in
 /// order to prevent suggesting elements that have been shadowed by more local

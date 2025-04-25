@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/declaration_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';

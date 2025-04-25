@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/handlers/code_lens/abstract_code_lens_pr
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class AugmentationCodeLensProvider extends AbstractCodeLensProvider {

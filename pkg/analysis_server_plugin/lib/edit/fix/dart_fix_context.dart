@@ -5,7 +5,7 @@
 import 'package:analysis_server_plugin/edit/fix/fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';

@@ -42,7 +42,6 @@
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
 ///
-/// @docImport 'package:analyzer/dart/element/element.dart';
 /// @docImport 'package:analyzer/src/dart/element/member.dart';
 library;
 
@@ -50,7 +49,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -60,6 +58,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';

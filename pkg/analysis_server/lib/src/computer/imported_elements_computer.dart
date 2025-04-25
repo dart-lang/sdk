@@ -5,7 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// An object used to compute the list of elements referenced within a given
