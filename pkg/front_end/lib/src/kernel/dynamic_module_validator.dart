@@ -59,11 +59,18 @@ class DynamicInterfaceSpecification {
   DynamicInterfaceSpecification(
       String dynamicInterfaceSpecification, Uri baseUri, Component component) {
     final YamlNode spec = loadYamlNode(dynamicInterfaceSpecification);
+    final LibraryIndex libraryIndex = new LibraryIndex.all(component);
+
+    // Included by default to the dynamic interface:
+    //
+    // callable:
+    //   - library: 'dart:core'
+    //
+    callable.add(libraryIndex.getLibrary('dart:core'));
+
     // If the spec is empty, the result is a scalar and not a map.
     if (spec is! YamlMap) return;
     _verifyKeys(spec, const {'extendable', 'can-be-overridden', 'callable'});
-
-    final LibraryIndex libraryIndex = new LibraryIndex.all(component);
 
     _parseList(spec['extendable'], extendable, baseUri, component, libraryIndex,
         allowStaticMembers: false, allowInstanceMembers: false);
@@ -217,11 +224,13 @@ class DynamicInterfaceLanguageImplPragmas {
 
   bool isCallable(TreeNode node) => switch (node) {
         Member() => isPlatformLibrary(node.enclosingLibrary) &&
+            // Coverage-ignore(suite): Not run.
             (isAnnotatedWith(node, callablePragmaName) ||
                 (!node.name.isPrivate &&
                     node.enclosingClass != null &&
                     isAnnotatedWith(node.enclosingClass!, callablePragmaName))),
         Class() => isPlatformLibrary(node.enclosingLibrary) &&
+            // Coverage-ignore(suite): Not run.
             isAnnotatedWith(node, callablePragmaName),
         ExtensionTypeDeclaration() =>
           isPlatformLibrary(node.enclosingLibrary) &&
@@ -234,6 +243,7 @@ class DynamicInterfaceLanguageImplPragmas {
           throw 'Unexpected node ${node.runtimeType} $node'
       };
 
+  // Coverage-ignore(suite): Not run.
   bool isAnnotatedWith(Annotatable node, String pragmaName) {
     for (Expression annotation in node.annotations) {
       if (annotation case ConstantExpression(:var constant)) {
@@ -293,7 +303,6 @@ class _DynamicModuleValidator extends RecursiveVisitor {
           }
         }
         for (Extension e in node.extensions) {
-          // Coverage-ignore-block(suite): Not run.
           if (e.name[0] != '_') {
             _expandNode(e, extraNodes);
           }
@@ -315,12 +324,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
           if (member != null) {
             extraNodes.add(member);
           }
-          TreeNode? tearOff = md
-              .tearOffReference
-              // Coverage-ignore(suite): Not run.
-              ?.node;
+          TreeNode? tearOff = md.tearOffReference?.node;
           if (tearOff != null) {
-            // Coverage-ignore-block(suite): Not run.
             extraNodes.add(tearOff);
           }
         }

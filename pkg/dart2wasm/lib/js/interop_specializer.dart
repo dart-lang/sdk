@@ -100,7 +100,9 @@ abstract class _Specializer {
         'dart2wasm.$jsMethodName',
         FunctionNode(null,
             positionalParameters: dartPositionalParameters,
-            returnType: _util.nullableWasmExternRefType),
+            returnType: function.returnType is VoidType
+                ? VoidType()
+                : _util.nullableWasmExternRefType),
         fileUri,
         AnnotationType.import,
         isExternal: true);
