@@ -343,18 +343,31 @@ extension ElementExtension on Element2? {
 
 extension ExpressionExtension on Expression {
   /// Returns whether `await` is not required for this expression.
-  // TODO(srawlins): Handle inheritence in each of these cases; the
-  // `@awaitNotRequired` annotation should be inherited.
-  bool get isAwaitNotRequired => switch (this) {
-    BinaryExpression(:var element) => element.hasAwaitNotRequired,
-    MethodInvocation(:var methodName) => methodName.element.hasAwaitNotRequired,
-    PrefixedIdentifier(:var identifier) =>
-      identifier.element.hasAwaitNotRequired,
-    PrefixExpression(:var element) => element.hasAwaitNotRequired,
-    PropertyAccess(:var propertyName) =>
-      propertyName.element.hasAwaitNotRequired,
-    _ => false,
-  };
+  bool get isAwaitNotRequired {
+    var element = switch (this) {
+      BinaryExpression(:var element) => element,
+      MethodInvocation(:var methodName) => methodName.element,
+      PrefixedIdentifier(:var identifier) => identifier.element,
+      PrefixExpression(:var element) => element,
+      PropertyAccess(:var propertyName) => propertyName.element,
+      _ => null,
+    };
+    if (element == null) return false;
+    if (element.hasAwaitNotRequired) return true;
+
+    var elementName = element.name3;
+    if (elementName == null) return false;
+
+    var enclosingElement = element.enclosingElement2;
+    if (enclosingElement is! InterfaceElement2) return false;
+
+    var superTypes = enclosingElement.allSupertypes;
+    var superMembers =
+        element is MethodElement2
+            ? superTypes.map((t) => t.getMethod2(elementName))
+            : superTypes.map((t) => t.getGetter2(elementName));
+    return superMembers.any((e) => e.hasAwaitNotRequired);
+  }
 }
 
 extension ExpressionNullableExtension on Expression? {
