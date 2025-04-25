@@ -16580,6 +16580,52 @@ class A {
     );
   }
 
+  test_manifest_baseName_declaredIndexEq_declaredIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+        members
+          [].method.declared: #M2
+          [].indexEq.declared: #M3
+''',
+      updatedCode: r'''
+class A {
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+        members
+          [].method.declared: #M2
+          [].indexEq.declared: #M3
+          zzz.method.declared: #M4
+''',
+    );
+  }
+
   test_manifest_baseName_declaredIndexEq_declaredIndexEq() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -19442,6 +19488,724 @@ class B extends A {
         members
           foo.conflict: #M4
           zzz.method.declared: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+      B: #M2
+        members
+          foo.constructor.inherited: #M1
+      M: #M3
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+      B: #M2
+        members
+          foo.constructor.inherited: #M1
+      M: #M3
+      Z: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  A.foo();
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.conflict: #M1
+      B: #M2
+        members
+          foo.conflict: #M3
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  A.foo();
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.conflict: #M5
+      B: #M2
+        members
+          foo.conflict: #M6
+      M: #M4
+      Z: #M7
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.getter.declared: #M2
+      B: #M3
+        members
+          foo.constructor.inherited: #M1
+          foo.getter.inherited: #M2
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.getter.declared: #M2
+      B: #M3
+        members
+          foo.constructor.inherited: #M1
+          foo.getter.inherited: #M2
+      M: #M4
+      Z: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.getter.declared: #M2
+          foo.setter.declared: #M3
+      B: #M4
+        members
+          foo.constructor.inherited: #M1
+          foo.getter.inherited: #M2
+          foo.setter.inherited: #M3
+      M: #M5
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.getter.declared: #M2
+          foo.setter.declared: #M3
+      B: #M4
+        members
+          foo.constructor.inherited: #M1
+          foo.getter.inherited: #M2
+          foo.setter.inherited: #M3
+      M: #M5
+      Z: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  void foo() {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.method.declared: #M2
+      B: #M3
+        members
+          foo.constructor.inherited: #M1
+          foo.method.inherited: #M2
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  void foo() {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.method.declared: #M2
+      B: #M3
+        members
+          foo.constructor.inherited: #M1
+          foo.method.inherited: #M2
+      M: #M4
+      Z: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  set foo(int _) {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.setter.declared: #M2
+      B: #M3
+        members
+          foo.constructor.inherited: #M1
+          foo.setter.inherited: #M2
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  set foo(int _) {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.constructor.declared: #M1
+          foo.setter.declared: #M2
+      B: #M3
+        members
+          foo.constructor.inherited: #M1
+          foo.setter.inherited: #M2
+      M: #M4
+      Z: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].method.declared: #M1
+      B: #M2
+        members
+          [].method.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].method.declared: #M1
+      B: #M2
+        members
+          [].method.inherited: #M1
+          zzz.method.declared: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndex_inheritedIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].method.declared: #M1
+          [].indexEq.declared: #M2
+      B: #M3
+        members
+          [].method.inherited: #M1
+          [].indexEq.inherited: #M2
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].method.declared: #M1
+          [].indexEq.declared: #M2
+      B: #M3
+        members
+          [].method.inherited: #M1
+          [].indexEq.inherited: #M2
+          zzz.method.declared: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].indexEq.declared: #M1
+      B: #M2
+        members
+          [].indexEq.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].indexEq.declared: #M1
+      B: #M2
+        members
+          [].indexEq.inherited: #M1
+          zzz.method.declared: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndexEq_inheritedIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].method.declared: #M1
+          [].indexEq.declared: #M2
+      B: #M3
+        members
+          [].method.inherited: #M1
+          [].indexEq.inherited: #M2
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          [].method.declared: #M1
+          [].indexEq.declared: #M2
+      B: #M3
+        members
+          [].method.inherited: #M1
+          [].indexEq.inherited: #M2
+          zzz.method.declared: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.getter.declared: #M1
+      B: #M2
+        members
+          foo.getter.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.getter.declared: #M1
+      B: #M2
+        members
+          foo.getter.inherited: #M1
+          zzz.method.declared: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.getter.declared: #M1
+          foo.setter.declared: #M2
+      B: #M3
+        members
+          foo.getter.inherited: #M1
+          foo.setter.inherited: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.getter.declared: #M1
+          foo.setter.declared: #M2
+      B: #M3
+        members
+          foo.getter.inherited: #M1
+          foo.setter.inherited: #M2
+          zzz.method.declared: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.method.declared: #M1
+      B: #M2
+        members
+          foo.method.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.method.declared: #M1
+      B: #M2
+        members
+          foo.method.inherited: #M1
+          zzz.method.declared: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.setter.declared: #M1
+      B: #M2
+        members
+          foo.setter.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          foo.setter.declared: #M1
+      B: #M2
+        members
+          foo.setter.inherited: #M1
+          zzz.method.declared: #M3
 ''',
     );
   }
