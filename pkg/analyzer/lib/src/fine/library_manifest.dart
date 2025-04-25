@@ -233,7 +233,11 @@ class LibraryManifestBuilder {
       var baseName = lookupName.asBaseName;
       switch (executable) {
         case MethodElementImpl2():
-          item.members.addInheritedMethod(baseName, id);
+          if (lookupName.isIndexEq) {
+            item.members.addInheritedIndexEq(baseName, id);
+          } else {
+            item.members.addInheritedMethod(baseName, id);
+          }
         case GetterElementImpl():
           item.members.addInheritedGetter(baseName, id);
         case SetterElementImpl():
@@ -257,19 +261,19 @@ class LibraryManifestBuilder {
     required InstanceElementImpl2 instanceElement,
     required InstanceItem instanceItem,
   }) {
-    for (var getter in instanceElement.getters2) {
-      _addInstanceElementGetter(
-        encodingContext: encodingContext,
-        instanceItem: instanceItem,
-        element: getter,
-      );
-    }
-
     for (var method in instanceElement.methods2) {
       _addInstanceElementMethod(
         encodingContext: encodingContext,
         instanceItem: instanceItem,
         element: method,
+      );
+    }
+
+    for (var getter in instanceElement.getters2) {
+      _addInstanceElementGetter(
+        encodingContext: encodingContext,
+        instanceItem: instanceItem,
+        element: getter,
       );
     }
 
@@ -855,7 +859,10 @@ class _LibraryMatch {
         _addMatchingElementItem(executable, item, matchContext);
         return true;
       case MethodElementImpl2():
-        var item = members[baseName]?.declaredMethod;
+        var item =
+            lookupName.isIndexEq
+                ? members[baseName]?.declaredIndexEq
+                : members[baseName]?.declaredMethod;
         if (item is! InstanceItemMethodItem) {
           return false;
         }

@@ -857,6 +857,7 @@ class LibraryManifestPrinter {
         writeMethod(items.method);
       case BaseNameConstructorSetter():
         writeConstructor(items.constructor);
+        writeSetter(items.setter);
       case BaseNameGetter():
         writeGetter(items.getter);
       case BaseNameGetterSetter():
