@@ -42,7 +42,7 @@ declare_args() {
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
-# ........dart2bytecode.snapshot (if dart_dynamic_modules)
+# ........dart2bytecode.snapshot (AOT snapshot, for selected targets)
 # ........dart2js_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dart2js.dart.snapshot (JIT snapshot only on ia32)
 # ........dart2wasm_product.snapshot (if not on ia32)
@@ -172,7 +172,11 @@ if (dart_snapshot_kind == "app-jit") {
         "kernel-service",
       ] ]
 }
-if (dart_dynamic_modules) {
+
+# dart2bytecode is an AOT snapshot, which is not supported on the ia32
+# architecture. It is only included as needed on a subset of OS targets.
+if ((dart_target_arch == "x64" || dart_target_arch == "arm64") &&
+    (dart_dynamic_modules || target_os == "linux" || target_os == "mac")) {
   _platform_sdk_snapshots += [ [
         "dart2bytecode",
         "../utils/dart2bytecode:dart2bytecode",
