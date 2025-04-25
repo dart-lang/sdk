@@ -213,6 +213,9 @@ void Options::PrintUsage() {
 "      --timeline-streams=\"Compiler, Dart, GC, Microtask\"\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
+"--profile-microtasks\n"
+"  Record information about each microtask. Information about completed\n"
+"  microtasks will be written to the \"Microtask\" timeline stream.\n"
 #endif  // !defined(PRODUCT)
 "--version\n"
 "  Print the VM version.\n"

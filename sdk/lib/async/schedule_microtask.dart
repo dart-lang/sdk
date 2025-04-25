@@ -37,7 +37,18 @@ void _microtaskLoop() {
     var next = entry.next;
     _nextCallback = next;
     if (next == null) _lastCallback = null;
-    (entry.callback)();
+    if (const bool.fromEnvironment("dart.vm.product") ||
+        !_MicrotaskMirrorQueue._shouldProfileMicrotasks) {
+      (entry.callback)();
+    } else {
+      final callbackStartTime = Timeline.now;
+      (entry.callback)();
+      final callbackEndTime = Timeline.now;
+      _MicrotaskMirrorQueue._onAsyncCallbackComplete(
+        callbackStartTime,
+        callbackEndTime,
+      );
+    }
   }
 }
 
@@ -62,6 +73,10 @@ void _startMicrotaskLoop() {
 /// microtasks, but as part of the current system event.
 void _scheduleAsyncCallback(_AsyncCallback callback) {
   _AsyncCallbackEntry newEntry = _AsyncCallbackEntry(callback);
+  if (!const bool.fromEnvironment("dart.vm.product") &&
+      _MicrotaskMirrorQueue._shouldProfileMicrotasks) {
+    _MicrotaskMirrorQueue._onScheduleAsyncCallback();
+  }
   _AsyncCallbackEntry? lastCallback = _lastCallback;
   if (lastCallback == null) {
     _nextCallback = _lastCallback = newEntry;
@@ -87,6 +102,10 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
     return;
   }
   _AsyncCallbackEntry entry = _AsyncCallbackEntry(callback);
+  if (!const bool.fromEnvironment("dart.vm.product") &&
+      _MicrotaskMirrorQueue._shouldProfileMicrotasks) {
+    _MicrotaskMirrorQueue._onSchedulePriorityAsyncCallback();
+  }
   _AsyncCallbackEntry? lastPriorityCallback = _lastPriorityCallback;
   if (lastPriorityCallback == null) {
     entry.next = _nextCallback;
@@ -146,6 +165,22 @@ void scheduleMicrotask(void Function() callback) {
     return;
   }
   Zone.current.scheduleMicrotask(Zone.current.bindCallbackGuarded(callback));
+}
+
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+abstract final class _MicrotaskMirrorQueue {
+  // This will be set to true by the native runtime's
+  // `DartUtils::PrepareAsyncLibrary` when the CLI flag `--profile-microtasks`
+  // is set.
+  @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
+  static bool _shouldProfileMicrotasks = false;
+
+  // The following methods are only implemented for the native runtime. Those
+  // implementations are in
+  // `sdk/lib/_internal/vm/lib/schedule_microtask_patch.dart`.
+  static void _onScheduleAsyncCallback() {}
+  static void _onSchedulePriorityAsyncCallback() {}
+  static void _onAsyncCallbackComplete(int startTime, int endTime) {}
 }
 
 class _AsyncRun {

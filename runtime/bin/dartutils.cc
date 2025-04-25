@@ -529,7 +529,31 @@ Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
 }
 
 Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
-                                           Dart_Handle isolate_lib) {
+                                           Dart_Handle isolate_lib,
+                                           bool flag_profile_microtasks) {
+#if !defined(PRODUCT)
+  if (flag_profile_microtasks) {
+    Dart_Handle microtask_mirror_queue_type_name =
+        Dart_NewStringFromCString("_MicrotaskMirrorQueue");
+    RETURN_IF_ERROR(microtask_mirror_queue_type_name);
+
+    Dart_Handle microtask_mirror_queue_type =
+        Dart_GetNonNullableType(async_lib, microtask_mirror_queue_type_name,
+                                /*number_of_type_arguments=*/0,
+                                /*type_arguments=*/nullptr);
+    RETURN_IF_ERROR(microtask_mirror_queue_type);
+
+    Dart_Handle should_profile_microtasks_field_name =
+        Dart_NewStringFromCString("_shouldProfileMicrotasks");
+    RETURN_IF_ERROR(should_profile_microtasks_field_name);
+
+    Dart_Handle set_field_result =
+        Dart_SetField(microtask_mirror_queue_type,
+                      should_profile_microtasks_field_name, Dart_True());
+    RETURN_IF_ERROR(set_field_result);
+  }
+#endif  // !defined(PRODUCT)
+
   Dart_Handle schedule_immediate_closure =
       Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
                   0, nullptr);
@@ -568,7 +592,8 @@ Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
 }
 
 Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
-                                               bool trace_loading) {
+                                               bool trace_loading,
+                                               bool flag_profile_microtasks) {
   // First ensure all required libraries are available.
   Dart_Handle url = NewString(kCoreLibURL);
   RETURN_IF_ERROR(url);
@@ -610,7 +635,8 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
                                  trace_loading);
   RETURN_IF_ERROR(result);
 
-  RETURN_IF_ERROR(PrepareAsyncLibrary(async_lib, isolate_lib));
+  RETURN_IF_ERROR(
+      PrepareAsyncLibrary(async_lib, isolate_lib, flag_profile_microtasks));
   RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib, is_service_isolate));
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
   RETURN_IF_ERROR(PrepareIOLibrary(io_lib));
