@@ -131,6 +131,11 @@ _platform_sdk_snapshots = [
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   _platform_sdk_snapshots += [
     [
+      "analysis_server_aot_product",
+      "../utils/analysis_server:analysis_server_aot_product",
+      "analysis_server_aot",
+    ],
+    [
       "frontend_server_aot_product",
       "../utils/kernel-service:frontend_server_aot_product",
       "frontend_server_aot",

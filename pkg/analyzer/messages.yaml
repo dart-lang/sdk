@@ -24156,6 +24156,36 @@ WarningCode:
       #### Common fixes
 
       Remove the annotation from the declaration.
+  INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+    problemMessage: "The annotation 'awaitNotRequired' can only be applied to a Future-returning function, or a Future-typed field."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than a
+      `Future`-returning function or a `Future`-typed field or top-level
+      variable is annotated with [`awaitNotRequired`][meta-awaitNotRequired].
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      `void`-returning function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @[!awaitNotRequired!]
+      void f() {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      void f() {}
+      ```
   INVALID_EXPORT_OF_INTERNAL_ELEMENT:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
     correctionMessage: "Try using a hide clause to hide '{0}'."

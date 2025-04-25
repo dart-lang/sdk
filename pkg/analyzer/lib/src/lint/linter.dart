@@ -245,7 +245,12 @@ abstract class LintRule {
     LinterContext context,
   ) {}
 
-  void reportLint(
+  /// Reports a diagnostic at [node] with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
@@ -261,7 +266,12 @@ abstract class LintRule {
     }
   }
 
-  void reportLintForOffset(
+  /// Reports a diagnostic at [offset], with [length], with message [arguments]
+  /// and [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtOffset(
     int offset,
     int length, {
     List<Object> arguments = const [],
@@ -277,23 +287,12 @@ abstract class LintRule {
     );
   }
 
-  void reportLintForToken(
-    Token token, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
-  }) {
-    if (!token.isSynthetic) {
-      reporter.atToken(
-        token,
-        errorCode ?? lintCode,
-        arguments: arguments,
-        contextMessages: contextMessages,
-      );
-    }
-  }
-
-  void reportPubLint(
+  /// Reports a diagnostic at Pubspec [node], with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtPubNode(
     PSNode node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
@@ -310,6 +309,81 @@ abstract class LintRule {
     );
     reporter.reportError(error);
   }
+
+  /// Reports a diagnostic at [token], with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtToken(
+    Token token, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    ErrorCode? errorCode,
+  }) {
+    if (!token.isSynthetic) {
+      reporter.atToken(
+        token,
+        errorCode ?? lintCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
+    }
+  }
+
+  // TODO(srawlins): Deprecate this in favor of [reportNode].
+  void reportLint(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    ErrorCode? errorCode,
+  }) => reportAtNode(
+    node,
+    arguments: arguments,
+    contextMessages: contextMessages,
+    errorCode: errorCode,
+  );
+
+  // TODO(srawlins): Deprecate this in favor of [reportOffset].
+  void reportLintForOffset(
+    int offset,
+    int length, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    ErrorCode? errorCode,
+  }) => reportAtOffset(
+    offset,
+    length,
+    arguments: arguments,
+    contextMessages: contextMessages,
+    errorCode: errorCode,
+  );
+
+  // TODO(srawlins): Deprecate this in favor of [reportToken].
+  void reportLintForToken(
+    Token token, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    ErrorCode? errorCode,
+  }) => reportAtToken(
+    token,
+    arguments: arguments,
+    contextMessages: contextMessages,
+    errorCode: errorCode,
+  );
+
+  // TODO(srawlins): Deprecate this in favor of [reportPubNode].
+  void reportPubLint(
+    PSNode node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+    ErrorCode? errorCode,
+  }) => reportAtPubNode(
+    node,
+    arguments: arguments,
+    contextMessages: contextMessages,
+    errorCode: errorCode,
+  );
 }
 
 /// Provides access to information needed by lint rules that is not available

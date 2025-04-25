@@ -35,7 +35,8 @@ For more information about the server's capabilities and configuration, see:
       usageLineLength: dartdevUsageLineLength,
       includeHelpFlag: false,
       defaultToLsp: true,
-    );
+    )..addFlag(_useAotSnapshotFlag,
+        help: 'Use the AOT analysis server snapshot', hide: true);
   }
 
   @override
@@ -48,12 +49,20 @@ For more information about the server's capabilities and configuration, see:
       args = [...args, '--$protocol=$lsp'];
     }
     try {
-      VmInteropHandler.run(
-        sdk.analysisServerSnapshot,
-        args,
-        packageConfigOverride: null,
-        useExecProcess: false,
-      );
+      if (argResults!.flag(_useAotSnapshotFlag)) {
+        args.remove('--$_useAotSnapshotFlag');
+        VmInteropHandler.run(
+          sdk.dartAotRuntime,
+          [sdk.analysisServerAotSnapshot, ...args],
+          useExecProcess: true,
+        );
+      } else {
+        VmInteropHandler.run(
+          sdk.analysisServerSnapshot,
+          args,
+          useExecProcess: false,
+        );
+      }
       return 0;
     } catch (e, st) {
       log.stderr('Error: launching language analysis server failed');
@@ -64,4 +73,6 @@ For more information about the server's capabilities and configuration, see:
       return 255;
     }
   }
+
+  static const _useAotSnapshotFlag = 'use-aot-snapshot';
 }

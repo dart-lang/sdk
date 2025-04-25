@@ -5717,7 +5717,17 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFunctionInvocation(FunctionInvocation node) {
-    return _emitMethodCall(node.receiver, null, node.arguments, node);
+    assert(node.name.text == 'call');
+    var function = _visitExpression(node.receiver);
+    var arguments = _emitArgumentList(node.arguments);
+    if (node.functionType == null) {
+      // A `null` here implies the receiver is typed as `Function`. There isn't
+      // any more type information available at compile time to know this
+      // invocation is sound so a dynamic call will handle the checks at
+      // runtime.
+      return _emitDynamicInvoke(function, null, arguments, node.arguments);
+    }
+    return js_ast.Call(function, arguments);
   }
 
   @override
@@ -5741,11 +5751,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitLocalFunctionInvocation(LocalFunctionInvocation node) {
-    return _emitMethodCall(
-        VariableGet(node.variable)..fileOffset = node.fileOffset,
-        null,
-        node.arguments,
-        node);
+    assert(node.name.text == 'call');
+    final localName = VariableGet(node.variable)..fileOffset = node.fileOffset;
+    return js_ast.Call(
+        _visitExpression(localName), _emitArgumentList(node.arguments));
   }
 
   @override

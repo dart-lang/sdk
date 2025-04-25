@@ -44,8 +44,7 @@ class AnnotationVerifier {
     }
     var parent = node.parent;
     if (element.isAwaitNotRequired) {
-      // TODO(srawlins): Check that functions return Future and fields and
-      // getters have a static type of Future.
+      _checkAwaitNotRequired(node);
     } else if (element.isFactory) {
       _checkFactory(node);
     } else if (element.isInternal) {
@@ -70,6 +69,48 @@ class AnnotationVerifier {
     }
 
     _checkKinds(node, parent, element);
+  }
+
+  void _checkAwaitNotRequired(Annotation node) {
+    void checkType(DartType? type, {AstNode? errorNode}) {
+      if (type == null || type.isDartAsyncFuture || type.isDartAsyncFutureOr) {
+        return;
+      }
+
+      var element = type.element3;
+      if (element is InterfaceElement2 &&
+          element.allSupertypes.any((t) => t.isDartAsyncFuture)) {
+        return;
+      }
+
+      _errorReporter.atNode(
+        errorNode ?? node.name,
+        WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION,
+      );
+    }
+
+    var parent = node.parent;
+    if (parent
+        case MethodDeclaration(:var declaredFragment) ||
+            FunctionDeclaration(:var declaredFragment)) {
+      var type = declaredFragment?.element.type;
+      if (type is FunctionType) {
+        checkType(type.returnType);
+      }
+    } else if (parent case FieldDeclaration(:var fields)) {
+      for (var field in fields.variables) {
+        checkType(field.declaredFieldElement.type, errorNode: field);
+      }
+    } else if (parent case TopLevelVariableDeclaration(:var variables)) {
+      for (var variable in variables.variables) {
+        checkType(
+          variable.declaredTopLevelVariableElement.type,
+          errorNode: variable,
+        );
+      }
+    } else {
+      // Warning reported by `_checkKinds`.
+    }
   }
 
   /// Reports a warning at [node] if its parent is not a valid target for a
