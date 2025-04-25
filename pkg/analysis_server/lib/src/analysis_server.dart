@@ -287,7 +287,7 @@ abstract class AnalysisServer {
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       messageScheduler = MessageScheduler(testView: messageSchedulerListener) {
+       messageScheduler = MessageScheduler(listener: messageSchedulerListener) {
     messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.

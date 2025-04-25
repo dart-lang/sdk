@@ -17,7 +17,6 @@ import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:language_server_protocol/json_parsing.dart';
-import 'package:meta/meta.dart';
 
 /// The [MessageScheduler] schedules messages received from the clients of the
 /// [AnalysisServer].
@@ -29,13 +28,11 @@ final class MessageScheduler {
   /// A flag to allow disabling overlapping message handlers.
   static bool allowOverlappingHandlers = true;
 
-  /// A view into the [MessageScheduler] used for testing.
-  @visibleForTesting
-  MessageSchedulerListener? testView;
+  /// A listener that can be used to watch the scheduler as it manages messages.
+  final MessageSchedulerListener? _listener;
 
   /// The [AnalysisServer] associated with the scheduler.
-  // TODO(brianwilkerson): Make this field private.
-  late final AnalysisServer server;
+  late final AnalysisServer _server;
 
   /// The messages that have been received and are waiting to be handled.
   final ListQueue<ScheduledMessage> _pendingMessages =
@@ -49,18 +46,17 @@ final class MessageScheduler {
   bool _isProcessing = false;
 
   /// The completer used to indicate that message handling has been completed.
-  // TODO(brianwilkerson): Make this field private.
-  Completer<void> completer = Completer();
+  Completer<void> _completer = Completer();
 
   /// Initialize a newly created message scheduler.
   ///
-  /// The caller is expected to set the [server] immediately after creating the
+  /// The caller is expected to set the [_server] immediately after creating the
   /// instance. The only reason the server isn't initialized by the constructor
   /// is because the analysis server and the message scheduler can't be created
   /// atomically and it was decided that it was cleaner for the scheduler to
   /// have the nullable reference to the server rather than the other way
   /// around.
-  MessageScheduler({this.testView});
+  MessageScheduler({MessageSchedulerListener? listener}) : _listener = listener;
 
   /// Add the [message] to the end of the pending messages queue.
   ///
@@ -85,7 +81,7 @@ final class MessageScheduler {
   /// - The incoming [legacy.ANALYSIS_REQUEST_UPDATE_CONTENT] message cancels
   ///   any rename files request that is in progress.
   void add(ScheduledMessage message) {
-    testView?.addPendingMessage(message);
+    _listener?.addPendingMessage(message);
     if (message is LegacyMessage) {
       var request = message.request;
       var method = request.method;
@@ -93,9 +89,13 @@ final class MessageScheduler {
         var id =
             legacy.ServerCancelRequestParams.fromRequest(
               request,
-              clientUriConverter: server.uriConverter,
+              clientUriConverter: _server.uriConverter,
             ).id;
-        (server as LegacyAnalysisServer).cancelRequest(id);
+        _listener?.addActiveMessage(message);
+        (_server as LegacyAnalysisServer).cancelRequest(id);
+        // The message needs to be added to the queue of pending messages, but
+        // it seems like it shouldn't be necessary and that we ought to return
+        // at this point. However, doing so causes some tests to timeout.
       } else if (method == legacy.ANALYSIS_REQUEST_UPDATE_CONTENT) {
         for (var activeMessage in _activeMessages) {
           if (activeMessage is LegacyMessage) {
@@ -107,7 +107,7 @@ final class MessageScheduler {
                   code: lsp.ErrorCodes.ContentModified.toJson(),
                   reason: 'File content was modified',
                 );
-                testView?.cancelActiveMessage(activeMessage);
+                _listener?.cancelActiveMessage(activeMessage);
               }
             }
           }
@@ -121,7 +121,8 @@ final class MessageScheduler {
         // Responses don't go on the queue because there might be an active
         // message that can't complete until the response is received. If the
         // response was added to the queue then this process could deadlock.
-        (server as LspAnalysisServer).handleMessage(msg, null);
+        _listener?.addActiveMessage(message);
+        (_server as LspAnalysisServer).handleMessage(msg, null);
         return;
       } else if (msg is lsp.NotificationMessage) {
         var method = msg.method;
@@ -132,6 +133,7 @@ final class MessageScheduler {
           // by removing the request from the queue. It's done this way to allow
           // a response to be sent back to the client saying that the results
           // aren't provided because the request was cancelled.
+          _listener?.addActiveMessage(message);
           _processCancellation(msg);
           return;
         } else if (method == lsp.Method.textDocument_didChange) {
@@ -153,7 +155,7 @@ final class MessageScheduler {
               var message = activeMessage.message as lsp.RequestMessage;
               if (message.method == incomingMsgMethod) {
                 activeMessage.cancellationToken?.cancel(reason: reason);
-                testView?.cancelActiveMessage(activeMessage);
+                _listener?.cancelActiveMessage(activeMessage);
               }
             }
           }
@@ -162,7 +164,7 @@ final class MessageScheduler {
               var message = pendingMessage.message as lsp.RequestMessage;
               if (message.method == msg.method) {
                 pendingMessage.cancellationToken?.cancel(reason: reason);
-                testView?.cancelPendingMessage(pendingMessage);
+                _listener?.cancelPendingMessage(pendingMessage);
               }
             }
           }
@@ -178,45 +180,45 @@ final class MessageScheduler {
   /// Dispatch the first message in the queue to be executed.
   void processMessages() async {
     _isProcessing = true;
-    testView?.startProcessingMessages();
+    _listener?.startProcessingMessages();
     try {
       while (_pendingMessages.isNotEmpty) {
         var currentMessage = _pendingMessages.removeFirst();
         _activeMessages.addLast(currentMessage);
-        testView?.addActiveMessage(currentMessage);
-        completer = Completer<void>();
+        _listener?.addActiveMessage(currentMessage);
+        _completer = Completer<void>();
         unawaited(
-          completer.future.then((_) {
+          _completer.future.then((_) {
             _activeMessages.remove(currentMessage);
           }),
         );
         switch (currentMessage) {
           case LspMessage():
             var lspMessage = currentMessage.message;
-            (server as LspAnalysisServer).handleMessage(
+            (_server as LspAnalysisServer).handleMessage(
               lspMessage,
               cancellationToken: currentMessage.cancellationToken,
-              completer,
+              _completer,
             );
           case LegacyMessage():
             var request = currentMessage.request;
-            (server as LegacyAnalysisServer).handleRequest(
+            (_server as LegacyAnalysisServer).handleRequest(
               request,
-              completer,
+              _completer,
               currentMessage.cancellationToken,
             );
           case DtdMessage():
-            server.dtd!.processMessage(
+            _server.dtd!.processMessage(
               currentMessage.message,
               currentMessage.performance,
               currentMessage.responseCompleter,
-              completer,
+              _completer,
             );
           case WatcherMessage():
-            server.contextManager.handleWatchEvent(currentMessage.event);
+            _server.contextManager.handleWatchEvent(currentMessage.event);
             // Handling a watch event is a synchronous process, so there's
             // nothing to wait for.
-            completer.complete();
+            _completer.complete();
         }
 
         // Blocking here with an await on the future was intended to prevent
@@ -225,7 +227,7 @@ final class MessageScheduler {
         // https://github.com/dart-lang/sdk/issues/60440. To re-disable
         // interleaving, set [allowOverlappingHandlers] to `false`.
         if (!allowOverlappingHandlers) {
-          await completer.future;
+          await _completer.future;
         }
 
         // This message is not accurate if [allowOverlappingHandlers] is `true`
@@ -234,22 +236,24 @@ final class MessageScheduler {
         // TODO(pq): if not awaited, consider adding a `then` so we can track
         // when the future completes. But note that we may see some flakiness in
         // tests as message handling gets non-deterministically interleaved.
-        testView?.messageCompleted(currentMessage);
+        _listener?.messageCompleted(currentMessage);
       }
     } catch (error, stackTrace) {
-      server.instrumentationService.logException(
+      _server.instrumentationService.logException(
         FatalException('Failed to process message', error, stackTrace),
         null,
-        server.crashReportingAttachmentsBuilder.forException(error),
+        _server.crashReportingAttachmentsBuilder.forException(error),
       );
     }
     _isProcessing = false;
-    testView?.endProcessingMessages();
+    _listener?.endProcessingMessages();
   }
 
   /// Set the [AnalysisServer].
+  ///
+  /// Throws an exception if the server has already been set.
   void setServer(AnalysisServer analysisServer) {
-    server = analysisServer;
+    _server = analysisServer;
   }
 
   /// Returns the parameters of a cancellation [message].
@@ -265,7 +269,7 @@ final class MessageScheduler {
           ? cancelJsonHandler.convertParams(paramsJson)
           : null;
     } catch (error, stackTrace) {
-      (server as LspAnalysisServer).logException(
+      (_server as LspAnalysisServer).logException(
         'An error occured while parsing cancel parameters',
         error,
         stackTrace,
@@ -305,7 +309,7 @@ final class MessageScheduler {
   Map<String, Object?>? _getLspOverLegacyParams(legacy.Request request) {
     var params = legacy.LspHandleParams.fromRequest(
       request,
-      clientUriConverter: server.uriConverter,
+      clientUriConverter: _server.uriConverter,
     );
     return params.lspMessage as Map<String, Object?>;
   }
@@ -348,7 +352,7 @@ final class MessageScheduler {
         var request = activeMessage.message as lsp.RequestMessage;
         if (request.id == params.id) {
           activeMessage.cancellationToken?.cancel();
-          testView?.cancelActiveMessage(activeMessage);
+          _listener?.cancelActiveMessage(activeMessage);
           return;
         }
       }
@@ -358,7 +362,7 @@ final class MessageScheduler {
         var request = pendingMessage.message as lsp.RequestMessage;
         if (request.id == params.id) {
           pendingMessage.cancellationToken?.cancel();
-          testView?.cancelPendingMessage(pendingMessage);
+          _listener?.cancelPendingMessage(pendingMessage);
           return;
         }
       }
@@ -406,9 +410,9 @@ final class MessageScheduler {
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
           if (isActive) {
-            testView?.cancelActiveMessage(lspMessage);
+            _listener?.cancelActiveMessage(lspMessage);
           } else {
-            testView?.cancelPendingMessage(lspMessage);
+            _listener?.cancelPendingMessage(lspMessage);
           }
         }
       }
@@ -424,9 +428,9 @@ final class MessageScheduler {
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
           if (isActive) {
-            testView?.cancelActiveMessage(lspMessage);
+            _listener?.cancelActiveMessage(lspMessage);
           } else {
-            testView?.cancelPendingMessage(lspMessage);
+            _listener?.cancelPendingMessage(lspMessage);
           }
         }
       }
