@@ -65,7 +65,7 @@ class Visitor extends PubspecVisitor<void> {
     if (text != null) {
       var uri = Uri.tryParse(text);
       if (uri != null && (uri.isScheme('http') || uri.isScheme('git'))) {
-        rule.reportPubLint(node, arguments: [uri.scheme]);
+        rule.reportAtPubNode(node, arguments: [uri.scheme]);
       }
     }
   }

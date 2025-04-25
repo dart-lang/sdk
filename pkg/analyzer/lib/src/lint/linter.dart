@@ -371,19 +371,6 @@ abstract class LintRule {
     contextMessages: contextMessages,
     errorCode: errorCode,
   );
-
-  // TODO(srawlins): Deprecate this in favor of [reportPubNode].
-  void reportPubLint(
-    PSNode node, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage> contextMessages = const [],
-    ErrorCode? errorCode,
-  }) => reportAtPubNode(
-    node,
-    arguments: arguments,
-    contextMessages: contextMessages,
-    errorCode: errorCode,
-  );
 }
 
 /// Provides access to information needed by lint rules that is not available
