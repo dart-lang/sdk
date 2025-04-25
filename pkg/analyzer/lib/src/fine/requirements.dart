@@ -318,7 +318,7 @@ class RequirementsManifest {
         var constructors = interfaceEntry.value.constructors;
         for (var constructorEntry in constructors.entries) {
           var constructorName = constructorEntry.key;
-          var constructorId = interfaceItem.getMemberId(constructorName);
+          var constructorId = interfaceItem.getConstructorId(constructorName);
           var expectedId = constructorEntry.value;
           if (expectedId != constructorId) {
             return InterfaceConstructorIdMismatch(
@@ -372,7 +372,7 @@ class RequirementsManifest {
 
     var (interfaceItem, interface) = interfacePair;
     var constructorName = name.asLookupName;
-    var constructorId = interfaceItem.getMemberId(constructorName);
+    var constructorId = interfaceItem.getConstructorId(constructorName);
     interface.constructors[constructorName] = constructorId;
   }
 

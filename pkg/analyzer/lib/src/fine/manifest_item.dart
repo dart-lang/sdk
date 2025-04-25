@@ -78,6 +78,15 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     required this.members,
   });
 
+  ManifestItemId? getConstructorId(LookupName name) {
+    var baseNameMembers = members[name.asBaseName];
+    if (baseNameMembers == null) {
+      return null;
+    }
+
+    return baseNameMembers.constructorId;
+  }
+
   ManifestItemId? getMemberId(LookupName name) {
     var baseNameMembers = members[name.asBaseName];
     if (baseNameMembers == null) {
@@ -92,8 +101,7 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
       return baseNameMembers.indexEqId;
     }
 
-    // TODO(scheglov): separate constructors
-    return baseNameMembers.getterOrMethodId ?? baseNameMembers.constructorId;
+    return baseNameMembers.getterOrMethodId;
   }
 
   @override
