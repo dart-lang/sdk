@@ -86,8 +86,8 @@ const _Checked checked = _Checked();
 /// * the annotation is associated with anything other than a library, class,
 ///   method or getter, top-level getter or function, or
 /// * an invocation of a member that has this annotation is returned by a
-///   function or getter that is not similarly annotated as method,
-///   getter or function that is not similarly annotated as `doNotStore`, or
+///   method, function or getter that is not similarly annotated as
+///   `doNotStore`, or
 /// * an invocation of a member that has this annotation is assigned to a field
 ///   or top-level variable.
 const _DoNotStore doNotStore = _DoNotStore();
