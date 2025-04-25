@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool check(Declaration node) {
     if (node.documentationComment == null && !isOverridingMember(node)) {
       var errorNode = getNodeToAnnotate(node);
-      rule.reportLintForOffset(errorNode.offset, errorNode.length);
+      rule.reportAtOffset(errorNode.offset, errorNode.length);
       return true;
     }
     return false;

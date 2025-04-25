@@ -32222,7 +32222,7 @@ class _AlwaysReportedLintVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    rule.reportLintForOffset(0, 0);
+    rule.reportAtOffset(0, 0);
   }
 }
 

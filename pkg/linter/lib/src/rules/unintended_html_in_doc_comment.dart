@@ -213,7 +213,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var tags = _findUnintendedHtmlTags(token.lexeme);
       for (var tag in tags) {
-        rule.reportLintForOffset(token.offset + tag.offset, tag.length);
+        rule.reportAtOffset(token.offset + tag.offset, tag.length);
       }
     }
   }

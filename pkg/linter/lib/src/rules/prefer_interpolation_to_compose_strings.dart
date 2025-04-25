@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
 
       if (leftOperand.staticType?.isDartCoreString ?? false) {
-        rule.reportLintForOffset(
+        rule.reportAtOffset(
           leftOperand.offset,
           rightOperand.end - leftOperand.offset,
         );

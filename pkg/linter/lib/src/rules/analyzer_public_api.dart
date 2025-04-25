@@ -204,7 +204,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = fragment.name2;
     if (name != null && name.endsWith('Impl')) {
       // Nothing in the analyzer public API may have a name ending in `Impl`.
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         fragment.nameOffset2!,
         name.length,
         errorCode: AnalyzerPublicApi.implInPublicApi,
@@ -290,7 +290,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         break;
       }
     }
-    rule.reportLintForOffset(
+    rule.reportAtOffset(
       offset,
       length,
       errorCode: AnalyzerPublicApi.badType,

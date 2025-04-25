@@ -344,7 +344,7 @@ abstract class LintRule {
     errorCode: errorCode,
   );
 
-  // TODO(srawlins): Deprecate this in favor of [reportOffset].
+  @Deprecated('Use reportAtOffset instead')
   void reportLintForOffset(
     int offset,
     int length, {

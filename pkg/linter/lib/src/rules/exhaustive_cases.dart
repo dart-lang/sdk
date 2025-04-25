@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           orElse: () => elements.first,
         );
         if (preferredElement.name3 case var name?) {
-          rule.reportLintForOffset(offset, end - offset, arguments: [name]);
+          rule.reportAtOffset(offset, end - offset, arguments: [name]);
         }
       }
     }

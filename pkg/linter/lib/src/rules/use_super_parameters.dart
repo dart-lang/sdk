@@ -254,14 +254,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.name ?? node.returnType;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         target.offset,
         target.length,
         errorCode: LinterLintCode.use_super_parameters_multiple,
         arguments: [msg],
       );
     } else {
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         target.offset,
         target.length,
         errorCode: LinterLintCode.use_super_parameters_single,
