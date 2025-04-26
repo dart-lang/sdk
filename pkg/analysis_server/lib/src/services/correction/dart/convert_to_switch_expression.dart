@@ -19,7 +19,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   /// Local variable reference used in assignment switch expression generation.
-  LocalVariableElement2? writeElement;
+  LocalVariableElement? writeElement;
 
   /// Assignment operator used in assignment switch expression generation.
   TokenType? assignmentOperator;
@@ -488,7 +488,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           if (leftHandSide is! SimpleIdentifierImpl) return null;
           if (writeElement == null) {
             var element = leftHandSide.element;
-            if (element is! LocalVariableElement2) return null;
+            if (element is! LocalVariableElement) return null;
             writeElement = element;
             assignmentOperator = expression.operator.type;
           } else if (writeElement != leftHandSide.element ||

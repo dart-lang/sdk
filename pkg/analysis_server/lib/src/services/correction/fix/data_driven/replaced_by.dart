@@ -101,7 +101,7 @@ class ReplacedBy extends Change<_Data> {
     }
     if (node is SimpleIdentifier) {
       var element = node.element;
-      if (element is ExecutableElement2 && !element.isStatic) {
+      if (element is ExecutableElement && !element.isStatic) {
         return _instance(node, element);
       }
 
@@ -131,7 +131,7 @@ class ReplacedBy extends Change<_Data> {
           // We have a '<container>.<member>()' pattern, so we replace both parts.
           return _Data(range.startEnd(target, node));
         } else if (target is PrefixedIdentifier) {
-          if (target.prefix.element is PrefixElement2 &&
+          if (target.prefix.element is PrefixElement &&
               target.identifier.name == containerName) {
             // We have a '<prefix>.<container>.<member>()' pattern so we leave
             // the prefix while replacing the rest.
@@ -150,7 +150,7 @@ class ReplacedBy extends Change<_Data> {
           return _Data(range.node(grandparent));
         }
       } else if (parent is PrefixedIdentifier) {
-        if (parent.prefix.element is PrefixElement2) {
+        if (parent.prefix.element is PrefixElement) {
           // We have a '<prefix>.<topLevel>' pattern so we leave the prefix
           // while replacing the rest.
           return _Data(range.node(node));
@@ -225,7 +225,7 @@ class ReplacedBy extends Change<_Data> {
   }
 
   /// Returns a replacement of an instance member.
-  _Data? _instance(AstNode node, ExecutableElement2 element) {
+  _Data? _instance(AstNode node, ExecutableElement element) {
     var newComponents = newElement.components;
     var newKind = newElement.kind;
     var suffix = '';

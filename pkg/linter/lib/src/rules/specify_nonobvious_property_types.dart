@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         bool ignoreThisVariable = false;
         AstNode? owningDeclaration = node;
         while (owningDeclaration != null) {
-          InterfaceElement2? owningElement = switch (owningDeclaration) {
+          InterfaceElement? owningElement = switch (owningDeclaration) {
             ClassDeclaration(:var declaredFragment?) =>
               declaredFragment.element,
             MixinDeclaration(:var declaredFragment?) =>

@@ -1473,7 +1473,7 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.namedType('C c').element2 as ClassElement2;
+    var classC = findNode.namedType('C c').element2 as ClassElement;
     var annotation = classC.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 B
@@ -1503,7 +1503,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element2! as ClassElement2;
+    var classB = findNode.namedType('B b').element2! as ClassElement;
     var annotation = classB.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1532,7 +1532,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element2 as ClassElement2;
+    var classB = findNode.namedType('B b').element2 as ClassElement;
     var annotation = classB.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A

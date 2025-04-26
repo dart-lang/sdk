@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkIdentifier(Token id) {
     var name = id.lexeme;
     if (!isLowerCamelCase(name)) {
-      rule.reportLintForToken(id, arguments: [name]);
+      rule.reportAtToken(id, arguments: [name]);
     }
   }
 

@@ -449,8 +449,8 @@ class FunctionTypeImpl extends TypeImpl
     FunctionType f2,
     bool Function(DartType bound2, DartType bound1) relation,
   ) {
-    List<TypeParameterElement2> params1 = f1.typeParameters;
-    List<TypeParameterElement2> params2 = f2.typeParameters;
+    List<TypeParameterElement> params1 = f1.typeParameters;
+    List<TypeParameterElement> params2 = f2.typeParameters;
 
     int count = params1.length;
     if (params2.length != count) {
@@ -459,12 +459,12 @@ class FunctionTypeImpl extends TypeImpl
     // We build up a substitution matching up the type parameters
     // from the two types, {variablesFresh/variables1} and
     // {variablesFresh/variables2}
-    List<TypeParameterElement2> variables1 = <TypeParameterElement2>[];
-    List<TypeParameterElement2> variables2 = <TypeParameterElement2>[];
+    List<TypeParameterElement> variables1 = <TypeParameterElement>[];
+    List<TypeParameterElement> variables2 = <TypeParameterElement>[];
     List<TypeParameterType> variablesFresh = <TypeParameterType>[];
     for (int i = 0; i < count; i++) {
-      TypeParameterElement2 p1 = params1[i];
-      TypeParameterElement2 p2 = params2[i];
+      TypeParameterElement p1 = params1[i];
+      TypeParameterElement p2 = params2[i];
       TypeParameterElementImpl pFresh = TypeParameterElementImpl.synthetic(
         p2.name3!,
       );
@@ -787,7 +787,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   /// The instantiated representation type, if [element3] is an extension type.
   TypeImpl? get representationType {
-    if (element3 case ExtensionTypeElement2 element) {
+    if (element3 case ExtensionTypeElement element) {
       var substitution = Substitution.fromInterfaceType(this);
       var representationType = element.representation2.type;
       return substitution.substituteType(representationType);
@@ -865,7 +865,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) {
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) {
     if (element3 == targetElement) {
       return this;
     }
@@ -901,7 +901,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   ConstructorElementMixin2? lookUpConstructor2(
     String? constructorName,
-    LibraryElement2 library,
+    LibraryElement library,
   ) {
     // prepare base ConstructorElement
     ConstructorElementImpl2? constructorElement;
@@ -922,7 +922,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   GetterElement2OrMember? lookUpGetter3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -960,7 +960,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   MethodElement2OrMember? lookUpMethod3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -998,7 +998,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   SetterElement2OrMember? lookUpSetter3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -1478,7 +1478,7 @@ abstract class TypeImpl implements DartType, SharedType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) => null;
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) => null;
 
   @override
   TypeImpl asQuestionType(bool isQuestionType) => withNullability(
@@ -1582,7 +1582,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     // In principle we ought to be able to do `return bound.isBottom;`, but that
     // goes into an infinite loop with illegal code in which type parameter
     // bounds form a loop.  So we have to be more careful.
-    Set<TypeParameterElement2> seenTypes = {};
+    Set<TypeParameterElement> seenTypes = {};
     TypeParameterType type = this;
     while (seenTypes.add(type.element3)) {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
@@ -1645,7 +1645,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) {
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) {
     return bound.asInstanceOf2(targetElement);
   }
 

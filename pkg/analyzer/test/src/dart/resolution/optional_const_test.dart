@@ -276,7 +276,7 @@ import 'b.dart';
 var v = a;
 ''');
 
-    var vg = findNode.simple('a;').element as PropertyAccessorElement2;
+    var vg = findNode.simple('a;').element as PropertyAccessorElement;
     var v = vg.variable3!.firstFragment as ConstVariableElement;
 
     var creation = v.constantInitializer as InstanceCreationExpression;

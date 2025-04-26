@@ -35,7 +35,7 @@ class UnnecessaryUnderscores extends LintRule {
 }
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
-  final Set<Element2> referencedElements = <Element2>{};
+  final Set<Element> referencedElements = <Element>{};
 
   _BodyVisitor();
 
@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    late Set<Element2> referencedElements = collectReferences(node.parent);
+    late Set<Element> referencedElements = collectReferences(node.parent);
 
     for (var parameter in node.parameters) {
       var parameterName = parameter.name;
@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var name = element?.name3;
       if (isJustUnderscores(name)) {
         if (!referencedElements.contains(element)) {
-          rule.reportLintForToken(parameterName);
+          rule.reportAtToken(parameterName);
         }
       }
     }
@@ -70,17 +70,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var element = node.declaredFragment?.element;
-    if (element is FieldElement2 || element is TopLevelVariableElement2) return;
+    if (element is FieldElement || element is TopLevelVariableElement) return;
 
     if (isJustUnderscores(node.name.lexeme)) {
       var parent = node.thisOrAncestorOfType<FunctionBody>();
       if (!collectReferences(parent).contains(node.declaredFragment?.element)) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       }
     }
   }
 
-  static Set<Element2> collectReferences(AstNode? node) {
+  static Set<Element> collectReferences(AstNode? node) {
     if (node == null) return {};
     var visitor = _BodyVisitor();
     node.accept(visitor);

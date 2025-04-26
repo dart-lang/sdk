@@ -538,7 +538,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
 
   void _assert_asInstanceOf(
     TypeImpl type,
-    ClassElement2 element,
+    ClassElement element,
     String? expected,
   ) {
     var result = type.asInstanceOf2(element);

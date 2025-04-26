@@ -51,7 +51,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         var prefixElement = scope.lookup(prefixNode.name).getter2;
         prefixNode.element = prefixElement;
 
-        if (prefixElement is PrefixElement2) {
+        if (prefixElement is PrefixElement) {
           var name = identifier.identifier.name;
           var element = prefixElement.scope.lookup(name).getter2;
           identifier.identifier.element = element;
@@ -435,7 +435,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    Element2? element;
+    Element? element;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
@@ -443,7 +443,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       var prefixElement = scope.lookup(prefixName).getter2;
       importPrefix.element2 = prefixElement;
 
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         var name = node.name2.lexeme;
         element = prefixElement.scope.lookup(name).getter2;
       }

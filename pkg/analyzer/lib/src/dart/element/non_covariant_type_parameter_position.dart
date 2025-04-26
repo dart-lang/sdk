@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 
 class NonCovariantTypeParameterPositionVisitor implements TypeVisitor<bool> {
-  final List<TypeParameterElement2> _typeParameters;
+  final List<TypeParameterElement> _typeParameters;
   Variance _variance;
 
   NonCovariantTypeParameterPositionVisitor(

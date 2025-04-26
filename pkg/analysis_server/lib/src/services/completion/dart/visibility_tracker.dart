@@ -21,10 +21,7 @@ class VisibilityTracker {
   /// by being `null` or by returning `false` from `isNotImported`) and the name
   /// is visible, it will be added to the list of [_declaredNames] so that it
   /// will shadow any elements of the same name further up the scope chain.
-  bool isVisible({
-    required Element2? element,
-    required ImportData? importData,
-  }) {
+  bool isVisible({required Element? element, required ImportData? importData}) {
     var name = element?.displayName;
     if (name == null) {
       return false;

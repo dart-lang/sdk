@@ -287,7 +287,7 @@ abstract class AnalysisServer {
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       messageScheduler = MessageScheduler(testView: messageSchedulerListener) {
+       messageScheduler = MessageScheduler(listener: messageSchedulerListener) {
     messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
@@ -639,10 +639,10 @@ abstract class AnalysisServer {
   /// Gets the current version number of a document (if known).
   int? getDocumentVersion(String path);
 
-  /// Return a [Future] that completes with the [Element2] at the given
+  /// Return a [Future] that completes with the [Element] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element2?> getElementAtOffset(String file, int offset) async {
+  Future<Element?> getElementAtOffset(String file, int offset) async {
     var unitResult = await getResolvedUnit(file);
     if (unitResult == null) {
       return null;

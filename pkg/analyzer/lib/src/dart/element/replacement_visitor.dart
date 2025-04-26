@@ -187,7 +187,7 @@ class ReplacementVisitor
 
     Substitution? substitution;
     if (newTypeParameters != null) {
-      var map = <TypeParameterElement2, DartType>{};
+      var map = <TypeParameterElement, DartType>{};
       for (var i = 0; i < newTypeParameters.length; ++i) {
         var typeParameter = node.typeParameters[i];
         var newTypeParameter = newTypeParameters[i];
@@ -293,7 +293,7 @@ class ReplacementVisitor
 
     Substitution? substitution;
     if (newTypeParameters != null) {
-      var map = <TypeParameterElement2, DartType>{};
+      var map = <TypeParameterElement, DartType>{};
       for (var i = 0; i < newTypeParameters.length; ++i) {
         var typeParameter = node.typeParameters[i];
         var newTypeParameter = newTypeParameters[i];

@@ -12,7 +12,7 @@
 /// interface defined by a class (an instance of [InterfaceType]) or the type of
 /// a function (an instance of [FunctionType]).
 ///
-/// We make a distinction between the declaration of a class (a [ClassElement2])
+/// We make a distinction between the declaration of a class (a [ClassElement])
 /// and the type defined by that class (an [InterfaceType]). The biggest reason
 /// for the distinction is to allow us to more cleanly represent the distinction
 /// between type parameters and type arguments. For example, if we define a
@@ -39,7 +39,7 @@ abstract class DartType {
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
   @experimental
-  Element2? get element3;
+  Element? get element3;
 
   /// The extension type erasure of this type.
   ///
@@ -162,7 +162,7 @@ abstract class DartType {
   /// For a [TypeParameterType] with a bound (declared or promoted), returns
   /// the interface implemented by the bound.
   @experimental
-  InterfaceType? asInstanceOf2(InterfaceElement2 element);
+  InterfaceType? asInstanceOf2(InterfaceElement element);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -237,7 +237,7 @@ abstract class FunctionType implements DartType {
 
   /// The type parameters.
   @experimental
-  List<TypeParameterElement2> get typeParameters;
+  List<TypeParameterElement> get typeParameters;
 
   /// Produces a new function type by substituting type parameters of this
   /// function type with the given [argumentTypes].
@@ -246,12 +246,12 @@ abstract class FunctionType implements DartType {
   FunctionType instantiate(List<DartType> argumentTypes);
 }
 
-/// Information about an instantiated [TypeAliasElement2] and the type
+/// Information about an instantiated [TypeAliasElement] and the type
 /// arguments with which it is instantiated.
 abstract class InstantiatedTypeAliasElement {
   /// The alias element that is instantiated to produce a [DartType].
   @experimental
-  TypeAliasElement2 get element2;
+  TypeAliasElement get element2;
 
   /// The type arguments with which the [element2] was instantiated.
   /// This list will be empty if the [element2] is not generic.
@@ -269,11 +269,11 @@ abstract class InterfaceType implements ParameterizedType {
 
   /// Return a list containing all of the constructors declared in this type.
   @experimental
-  List<ConstructorElement2> get constructors2;
+  List<ConstructorElement> get constructors2;
 
   @experimental
   @override
-  InterfaceElement2 get element3;
+  InterfaceElement get element3;
 
   /// Return a list containing all of the getters declared in this type.
   @experimental
@@ -287,7 +287,7 @@ abstract class InterfaceType implements ParameterizedType {
 
   /// Return a list containing all of the methods declared in this type.
   @experimental
-  List<MethodElement2> get methods2;
+  List<MethodElement> get methods2;
 
   /// Return a list containing all of the mixins that are applied to the class
   /// being extended in order to derive the superclass of this class. Note that
@@ -320,7 +320,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return the element representing the method with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a method
   /// with the given name.
-  MethodElement2? getMethod2(String name);
+  MethodElement? getMethod2(String name);
 
   /// Return the element representing the setter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a setter
@@ -337,10 +337,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// <i>T<i>. Otherwise, if <i>q</i> is not defined or not accessible, a
   /// NoSuchMethodException is thrown.
   /// </blockquote>
-  ConstructorElement2? lookUpConstructor2(
-    String? name,
-    LibraryElement2 library,
-  );
+  ConstructorElement? lookUpConstructor2(String? name, LibraryElement library);
 
   /// Return the getter with the given [name].
   ///
@@ -354,7 +351,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// and its superclasses are considered. Clients should not use it.
   GetterElement? lookUpGetter3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -370,9 +367,9 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// If [recoveryStatic] is `true`, then static methods of the class,
   /// and its superclasses are considered. Clients should not use it.
-  MethodElement2? lookUpMethod3(
+  MethodElement? lookUpMethod3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -390,7 +387,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// and its superclasses are considered. Clients should not use it.
   SetterElement? lookUpSetter3(
     String name,
-    LibraryElement2 library, {
+    LibraryElement library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,
@@ -415,7 +412,7 @@ abstract class NeverType implements DartType {}
 ///
 /// This substitution will be propagated to its members. For example, say our
 /// `Foo<T>` class has a field `T bar;`. When we look up this field, we will get
-/// back a [FieldElement2] that tracks the substituted type as `{S/T}T`, so when
+/// back a [FieldElement] that tracks the substituted type as `{S/T}T`, so when
 /// we ask for the field type we will get `S`.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -481,7 +478,7 @@ abstract class TypeParameterType implements DartType {
 
   @experimental
   @override
-  TypeParameterElement2 get element3;
+  TypeParameterElement get element3;
 }
 
 /// The special type `void` is used to indicate that the value of an

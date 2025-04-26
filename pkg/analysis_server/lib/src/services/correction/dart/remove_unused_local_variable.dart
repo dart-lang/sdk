@@ -228,7 +228,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
 
   bool _deleteReferences() {
     var element = _localVariableElement();
-    if (element is! LocalVariableElement2) {
+    if (element is! LocalVariableElement) {
       return false;
     }
 
@@ -280,7 +280,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
     }
   }
 
-  LocalVariableElement2? _localVariableElement() {
+  LocalVariableElement? _localVariableElement() {
     var node = this.node;
     if (node is DeclaredVariablePattern) {
       return node.declaredElement2;

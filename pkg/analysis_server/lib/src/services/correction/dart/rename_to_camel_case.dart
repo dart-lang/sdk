@@ -35,7 +35,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     Token? nameToken;
-    Element2? element;
+    Element? element;
     var node = this.node;
     if (node is SimpleFormalParameter) {
       nameToken = node.name;
@@ -73,7 +73,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
 
     // Find references to the identifier.
     List<AstNode>? references;
-    if (element is LocalVariableElement2) {
+    if (element is LocalVariableElement) {
       var root = node.thisOrAncestorOfType<Block>();
       if (root != null) {
         references = findLocalElementReferences(root, element);

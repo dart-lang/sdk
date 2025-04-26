@@ -96,7 +96,7 @@ class ErrorReporter {
   /// The [element] is used to compute the location of the error.
   @experimental
   void atElement2(
-    Element2 element2,
+    Element element2,
     ErrorCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
@@ -170,7 +170,7 @@ class ErrorReporter {
           arguments
               .whereNotType<String>()
               .whereNotType<DartType>()
-              .whereNotType<Element2>()
+              .whereNotType<Element>()
               .whereNotType<int>()
               .whereNotType<Uri>();
       if (invalid.isNotEmpty) {
@@ -256,7 +256,7 @@ class ErrorReporter {
         var displayName = argument.getDisplayString(preferTypeAlias: true);
         var types = typeGroups.putIfAbsent(displayName, () => []);
         types.add(_TypeToConvert(i, argument, displayName));
-      } else if (argument is Element2) {
+      } else if (argument is Element) {
         var displayName = argument.displayString2();
         var types = typeGroups.putIfAbsent(displayName, () => []);
         types.add(_ElementToConvert(i, argument, displayName));
@@ -275,11 +275,11 @@ class ErrorReporter {
 
       const unnamedExtension = '<unnamed extension>';
       const unnamed = '<unnamed>';
-      var nameToElementMap = <String, Set<Element2>>{};
+      var nameToElementMap = <String, Set<Element>>{};
       for (var typeToConvert in typeGroup) {
         for (var element in typeToConvert.allElements) {
           var name = element.name3;
-          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
+          name ??= element is ExtensionElement ? unnamedExtension : unnamed;
 
           var elements = nameToElementMap.putIfAbsent(name, () => {});
           elements.add(element);
@@ -292,7 +292,7 @@ class ErrorReporter {
         StringBuffer? buffer;
         for (var element in typeToConvert.allElements) {
           var name = element.name3;
-          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
+          name ??= element is ExtensionElement ? unnamedExtension : unnamed;
           var sourcePath =
               element.firstFragment.libraryFragment!.source.fullName;
           if (nameToElementMap[name]!.length > 1) {
@@ -353,7 +353,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 }
 
 /// Used by [ErrorReporter._convertTypeNames] to keep track of an error argument
-/// that is an [Element2], that is being converted to a display string.
+/// that is an [Element], that is being converted to a display string.
 class _ElementToConvert implements _ToConvert {
   @override
   final int index;
@@ -362,9 +362,9 @@ class _ElementToConvert implements _ToConvert {
   final String displayName;
 
   @override
-  final Iterable<Element2> allElements;
+  final Iterable<Element> allElements;
 
-  _ElementToConvert(this.index, Element2 element, this.displayName)
+  _ElementToConvert(this.index, Element element, this.displayName)
     : allElements = [element];
 }
 
@@ -379,9 +379,9 @@ class _NullErrorListener implements AnalysisErrorListener {
 /// Used by [ErrorReporter._convertTypeNames] to keep track of an argument that
 /// is being converted to a display string.
 abstract class _ToConvert {
-  /// A list of all elements involved in the [DartType] or [Element2]'s display
+  /// A list of all elements involved in the [DartType] or [Element]'s display
   /// string.
-  Iterable<Element2> get allElements;
+  Iterable<Element> get allElements;
 
   /// The argument's display string, to replace the argument in the argument
   /// list.
@@ -403,8 +403,8 @@ class _TypeToConvert implements _ToConvert {
   final String displayName;
 
   @override
-  late final Iterable<Element2> allElements = () {
-    var elements = <Element2>{};
+  late final Iterable<Element> allElements = () {
+    var elements = <Element>{};
 
     void addElementsFrom(DartType type) {
       if (type is FunctionType) {

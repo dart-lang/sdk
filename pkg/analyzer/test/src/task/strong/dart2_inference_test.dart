@@ -246,7 +246,7 @@ void test(List<A> listA, List<B> listB) {
     ) {
       var node = findNode.declaredIdentifier(vSearch);
 
-      var element = node.declaredElement2 as LocalVariableElement2;
+      var element = node.declaredElement2 as LocalVariableElement;
       assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);
@@ -268,12 +268,12 @@ class C {
 }
 ''';
     await resolveTestCode(code);
-    ClassElement2 c = findElement2.class_('C');
+    ClassElement c = findElement2.class_('C');
 
     SetterElement x = c.setters2[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement2 operator = c.methods2[0];
+    MethodElement operator = c.methods2[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }
@@ -289,12 +289,12 @@ class Derived extends Base {
   operator[]=(int x, int y) {}
 }''';
     await resolveTestCode(code);
-    ClassElement2 c = findElement2.class_('Derived');
+    ClassElement c = findElement2.class_('Derived');
 
     SetterElement x = c.setters2[0];
     expect(x.returnType, VoidTypeImpl.instance);
 
-    MethodElement2 operator = c.methods2[0];
+    MethodElement operator = c.methods2[0];
     expect(operator.displayName, '[]=');
     expect(operator.returnType, VoidTypeImpl.instance);
   }
@@ -524,7 +524,7 @@ main() {
           if (comment != null) {
             var expectedType = types[comment.offset];
             if (expectedType != null) {
-              var element = node.element as VariableElement2;
+              var element = node.element as VariableElement;
               String actualType = typeString(element.type);
               expect(actualType, expectedType, reason: '@${comment.offset}');
             }

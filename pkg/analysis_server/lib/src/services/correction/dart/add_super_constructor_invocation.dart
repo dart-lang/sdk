@@ -60,7 +60,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
 /// the [AddSuperConstructorInvocation] producer.
 class _AddInvocation extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement2 _constructor;
+  final ConstructorElement _constructor;
 
   /// The offset at which the initializer is to be inserted.
   final int _insertOffset;

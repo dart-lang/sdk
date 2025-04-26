@@ -19,13 +19,13 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a constructor element to instantiate.
 ///
-/// If the target is a [ClassElement2], the [element] is a raw
-/// [ConstructorElement2] from the class, and [typeParameters] are the
+/// If the target is a [ClassElement], the [element] is a raw
+/// [ConstructorElement] from the class, and [typeParameters] are the
 /// type parameters of the class.
 ///
-/// If the target is a [TypeAliasElement2] with an [InterfaceType] as the
+/// If the target is a [TypeAliasElement] with an [InterfaceType] as the
 /// aliased type, the [element] is a [ConstructorMember] created from the
-/// [ConstructorElement2] of the corresponding class, and substituting
+/// [ConstructorElement] of the corresponding class, and substituting
 /// the class type parameters with the type arguments specified in the alias,
 /// explicit types or the type parameters of the alias. The [typeParameters]
 /// are the type parameters of the alias.
@@ -84,7 +84,7 @@ class InvocationInferenceHelper {
   /// and the [constructorName] does not have explicit type arguments,
   /// return the element and type parameters to infer. Otherwise return `null`.
   ConstructorElementToInfer? constructorElementToInfer({
-    required Element2? typeElement,
+    required Element? typeElement,
     required SimpleIdentifierImpl? constructorName,
     required LibraryElementImpl definingLibrary,
   }) {
@@ -157,7 +157,7 @@ class InvocationInferenceHelper {
 
   /// Finish resolution of the [DotShorthandInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement2], and the [rawType]
+  /// We have already found the invoked [ExecutableElement], and the [rawType]
   /// is its not yet instantiated type. Here we perform downwards inference,
   /// resolution of arguments, and upwards inference.
   void resolveDotShorthandInvocation({
@@ -178,7 +178,7 @@ class InvocationInferenceHelper {
 
   /// Finish resolution of the [MethodInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement2], and the [rawType]
+  /// We have already found the invoked [ExecutableElement], and the [rawType]
   /// is its not yet instantiated type. Here we perform downwards inference,
   /// resolution of arguments, and upwards inference.
   void resolveMethodInvocation({

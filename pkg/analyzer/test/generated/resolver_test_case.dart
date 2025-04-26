@@ -27,7 +27,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   }) {
     identifierType ??= type;
 
-    String typeParametersStr(List<TypeParameterElement2> elements) {
+    String typeParametersStr(List<TypeParameterElement> elements) {
       var elementsStr = elements
           .map((e) {
             return e.displayString2();
@@ -68,9 +68,9 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
 
   FunctionType _getFunctionTypedElementType(SimpleIdentifier identifier) {
     var element = identifier.element;
-    if (element is ExecutableElement2) {
+    if (element is ExecutableElement) {
       return element.type;
-    } else if (element is VariableElement2) {
+    } else if (element is VariableElement) {
       return element.type as FunctionType;
     } else {
       fail('Unexpected element: (${element.runtimeType}) $element');

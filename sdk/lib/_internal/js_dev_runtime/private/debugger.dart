@@ -407,23 +407,23 @@ class JsonMLFormatter {
     // Indicate this is a Dart Object by using a Dart background color.
     // This is stylistically a bit ugly but it eases distinguishing Dart and
     // JS objects.
-    var element =
-        JsonMLElement('span')
-          ..setStyle('background-color: #d9edf7;color: black')
-          ..createTextChild(c);
+    var element = JsonMLElement('span')
+      ..setStyle('background-color: #d9edf7;color: black')
+      ..createTextChild(c);
     return element.toJsonML();
   }
 
   bool hasBody(object, config) => _simpleFormatter.hasChildren(object, config);
 
   body(object, config) {
-    var body = JsonMLElement('ol')..setStyle(
-      'list-style-type: none;'
-      'padding-left: 0px;'
-      'margin-top: 0px;'
-      'margin-bottom: 0px;'
-      'margin-left: 12px;',
-    );
+    var body = JsonMLElement('ol')
+      ..setStyle(
+        'list-style-type: none;'
+        'padding-left: 0px;'
+        'margin-top: 0px;'
+        'margin-bottom: 0px;'
+        'margin-left: 12px;',
+      );
     if (object is StackTrace) {
       body.addStyle('background-color: thistle;color: rgb(196, 26, 22);');
     }
@@ -439,14 +439,13 @@ class JsonMLFormatter {
       JsonMLElement? nameSpan;
       var valueStyle = '';
       if (!child.hideName) {
-        nameSpan =
-            JsonMLElement('span')
-              ..createTextChild(
-                child.displayName.isNotEmpty ? '${child.displayName}: ' : '',
-              )
-              ..setStyle(
-                'background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px',
-              );
+        nameSpan = JsonMLElement('span')
+          ..createTextChild(
+            child.displayName.isNotEmpty ? '${child.displayName}: ' : '',
+          )
+          ..setStyle(
+            'background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px',
+          );
         valueStyle = 'margin-left: 13px';
       }
 
@@ -960,17 +959,16 @@ class StackTraceFormatter implements Formatter {
   // Using the stack_trace formatting would be ideal, but adding the
   // dependency or re-writing the code is too messy, so each line of the
   // StackTrace will be added as its own child.
-  List<NameValuePair> children(object) =>
-      object
-          .toString()
-          .split('\n')
-          .map(
-            (line) => NameValuePair(
-              value: line.replaceFirst(RegExp(r'^\s+at\s'), ''),
-              hideName: true,
-            ),
-          )
-          .toList();
+  List<NameValuePair> children(object) => object
+      .toString()
+      .split('\n')
+      .map(
+        (line) => NameValuePair(
+          value: line.replaceFirst(RegExp(r'^\s+at\s'), ''),
+          hideName: true,
+        ),
+      )
+      .toList();
 }
 
 class ClassFormatter implements Formatter {

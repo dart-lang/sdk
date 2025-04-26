@@ -51,7 +51,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     // iterable should be VariableElement
     String listName;
     var iterable = forEachParts.iterable;
-    if (iterable is SimpleIdentifier && iterable.element is VariableElement2) {
+    if (iterable is SimpleIdentifier && iterable.element is VariableElement) {
       listName = iterable.name;
     } else {
       return;

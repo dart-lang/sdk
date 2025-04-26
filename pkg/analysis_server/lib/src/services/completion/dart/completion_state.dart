@@ -58,7 +58,7 @@ class CompletionState {
   }
 
   /// The element of the library containing the completion location.
-  LibraryElement2 get libraryElement => request.libraryElement;
+  LibraryElement get libraryElement => request.libraryElement;
 
   /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
   String get preferredQuoteForStrings =>

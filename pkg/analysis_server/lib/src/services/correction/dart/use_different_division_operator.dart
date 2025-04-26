@@ -132,7 +132,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 extension on DartType {
   Set<_DivisionOperator> get divisionOperators {
     switch (element3) {
-      case InterfaceElement2 element:
+      case InterfaceElement element:
         return {
           for (var method in element.methods2)
             // No need to test for eq operators, as they are not explicitly defined.
@@ -142,7 +142,7 @@ extension on DartType {
               _DivisionOperator.effectiveIntegerDivision,
           ...element.allSupertypes.expand((type) => type.divisionOperators),
         };
-      case TypeParameterElement2 element:
+      case TypeParameterElement element:
         return element.bound?.divisionOperators ?? const {};
     }
     return const {};

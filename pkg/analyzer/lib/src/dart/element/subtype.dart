@@ -109,7 +109,7 @@ class SubtypeHelper {
         return false;
       }
       // Extension types require explicit `Object` implementation.
-      if (T0 is InterfaceTypeImpl && T0.element3 is ExtensionTypeElement2) {
+      if (T0 is InterfaceTypeImpl && T0.element3 is ExtensionTypeElement) {
         for (var interface in T0.interfaces) {
           if (isSubtypeOf(interface, T1)) {
             return true;

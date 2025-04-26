@@ -1122,7 +1122,7 @@ class ResolvedLibraryResultPrinter {
   final ElementPrinter elementPrinter;
   final IdProvider idProvider;
 
-  late final LibraryElement2 _libraryElement;
+  late final LibraryElement _libraryElement;
 
   ResolvedLibraryResultPrinter({
     required this.configuration,
@@ -1176,7 +1176,7 @@ class ResolvedUnitResultPrinter {
   final ResolvedUnitResultPrinterConfiguration configuration;
   final TreeStringSink sink;
   final ElementPrinter elementPrinter;
-  final LibraryElement2? libraryElement;
+  final LibraryElement? libraryElement;
   final IdProvider idProvider;
 
   ResolvedUnitResultPrinter({
@@ -1262,9 +1262,9 @@ class ResolvedUnitResultPrinter {
       ) {
         sink.writeIndent();
         sink.write('${variable.name3}: ');
-        if (variable is LocalVariableElement2) {
+        if (variable is LocalVariableElement) {
           elementPrinter.writeType(variable.type);
-        } else if (variable is TopLevelVariableElement2) {
+        } else if (variable is TopLevelVariableElement) {
           elementPrinter.writeType(variable.type);
         }
       });
@@ -1276,7 +1276,7 @@ class ResolvedUnitResultPrinterConfiguration {
   var nodeConfiguration = ResolvedNodeTextConfiguration();
   AstNode? Function(ResolvedUnitResult) nodeSelector = (_) => null;
   Map<String, DartType> Function(ResolvedUnitResult) typesSelector = (_) => {};
-  List<Element2> Function(ResolvedUnitResult) variableTypesSelector = (_) => [];
+  List<Element> Function(ResolvedUnitResult) variableTypesSelector = (_) => [];
   bool Function(FileResult) withContentPredicate = (_) => false;
 }
 
@@ -1294,7 +1294,7 @@ final class SchedulerStatusEvent extends DriverEvent {
 }
 
 class UnitElementPrinterConfiguration {
-  List<Element2> Function(LibraryFragment) elementSelector = (_) => [];
+  List<Element> Function(LibraryFragment) elementSelector = (_) => [];
 }
 
 extension on LibraryCycle {

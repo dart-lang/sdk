@@ -70,7 +70,7 @@ const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 /// ```dart
 /// @awaitNotRequired Future<LogMessage> log(String message) { ... }
 ///
-/// int fn() {
+/// void fn() {
 ///   log('Message'); // Not important to wait for logging to complete.
 /// }
 /// ```

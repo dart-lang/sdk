@@ -246,7 +246,7 @@ class FindNode {
     return _node(search, (n) => n is BinaryExpression);
   }
 
-  BindPatternVariableElement2 bindPatternVariableElement(String search) {
+  BindPatternVariableElement bindPatternVariableElement(String search) {
     var node = declaredVariablePattern(search);
     return node.declaredElement2!;
   }

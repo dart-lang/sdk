@@ -959,23 +959,23 @@ class _Base extends AbstractContextTest {
     target = CompletionTarget.forOffset(result.unit, offset!);
   }
 
-  static String _executableNameStr(ExecutableElement2 executable) {
+  static String _executableNameStr(ExecutableElement executable) {
     var executableEnclosing = executable.enclosingElement2;
-    if (executableEnclosing is LibraryElement2) {
+    if (executableEnclosing is LibraryElement) {
       return executable.name3!;
-    } else if (executable is ConstructorElement2) {
+    } else if (executable is ConstructorElement) {
       if (executable.name3 == 'new') {
         return '${executableEnclosing!.name3}.<init>';
       } else {
         return '${executableEnclosing!.name3}.${executable.name3}';
       }
-    } else if (executable is MethodElement2) {
+    } else if (executable is MethodElement) {
       return '${executableEnclosing!.name3}.${executable.name3}';
     }
     fail('Unexpected element: $executable');
   }
 
-  static String _executableStr(ExecutableElement2 element) {
+  static String _executableStr(ExecutableElement element) {
     var executableStr = _executableNameStr(element);
     var typeStr = element.type.getDisplayString();
     return '$executableStr: $typeStr';

@@ -66,8 +66,8 @@ class AnalyzerImpl {
   }
 
   void addLibrarySources(
-    LibraryElement2 library,
-    Set<LibraryElement2> libraries,
+    LibraryElement library,
+    Set<LibraryElement> libraries,
     Set<LibraryFragment> units,
   ) {
     if (!libraries.add(library)) {
@@ -137,9 +137,9 @@ class AnalyzerImpl {
   }
 
   /// Fills [files].
-  void prepareSources(LibraryElement2 library) {
+  void prepareSources(LibraryElement library) {
     var units = <LibraryFragment>{};
-    var libraries = <LibraryElement2>{};
+    var libraries = <LibraryElement>{};
     addLibrarySources(library, libraries, units);
   }
 
@@ -184,7 +184,7 @@ class AnalyzerImpl {
       determineProcessedSeverity(error, options, analysisOptions);
 
   /// Returns true if we want to report diagnostics for this library.
-  bool _isAnalyzedLibrary(LibraryElement2 library) {
+  bool _isAnalyzedLibrary(LibraryElement library) {
     var source = library.firstFragment.source;
     if (source.uri.isScheme('dart')) {
       return false;
@@ -218,7 +218,7 @@ class AnalyzerImpl {
     outSink.writeln('total-cold:$totalTime');
   }
 
-  Future<LibraryElement2> _resolveLibrary() async {
+  Future<LibraryElement> _resolveLibrary() async {
     var libraryPath = libraryFile.path;
     analysisDriver.priorityFiles = [libraryPath];
     var elementResult =

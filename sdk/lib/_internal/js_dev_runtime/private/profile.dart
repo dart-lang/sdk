@@ -73,11 +73,12 @@ List<List<Object>> getDynamicStats() {
 
       var actualTypeName = dart.typeName(record.type);
       callMethodStats
-          .putIfAbsent(
-            "$actualTypeName <$src>",
-            () => _MethodStats(actualTypeName, src),
-          )
-          .count += recordRatio;
+              .putIfAbsent(
+                "$actualTypeName <$src>",
+                () => _MethodStats(actualTypeName, src),
+              )
+              .count +=
+          recordRatio;
     }
 
     // filter out all calls that did not occur at least _minCount times in the

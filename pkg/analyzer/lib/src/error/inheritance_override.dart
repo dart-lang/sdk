@@ -22,7 +22,7 @@ import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
-final _missingMustBeOverridden = Expando<List<ExecutableElement2>>();
+final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<ExecutableElement2OrMember>>();
 
 class InheritanceOverrideVerifier {
@@ -130,17 +130,17 @@ class InheritanceOverrideVerifier {
     }
   }
 
-  /// Returns [ExecutableElement2] members that are in the interface of the
+  /// Returns [ExecutableElement] members that are in the interface of the
   /// given class with `@mustBeOverridden`, but don't have implementations.
-  static List<ExecutableElement2> missingMustBeOverridden(
+  static List<ExecutableElement> missingMustBeOverridden(
     NamedCompilationUnitMember node,
   ) {
     return _missingMustBeOverridden[node.name] ?? const [];
   }
 
-  /// Returns [ExecutableElement2] members that are in the interface of the
+  /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
-  static List<ExecutableElement2> missingOverrides(
+  static List<ExecutableElement> missingOverrides(
     NamedCompilationUnitMember node,
   ) {
     return _missingOverrides[node.name] ?? const [];
@@ -459,7 +459,7 @@ class _ClassVerifier {
     var typeElement = type.element3;
 
     var classElement = this.classElement;
-    if (typeElement is ClassElement2 &&
+    if (typeElement is ClassElement &&
         typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
       if (classElement is ClassElementImpl && classElement.isAbstract ||
@@ -561,9 +561,9 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
   bool _checkForRecursiveInterfaceInheritance(
     InterfaceElementImpl2 element, [
-    List<InterfaceElement2>? path,
+    List<InterfaceElement>? path,
   ]) {
-    path ??= <InterfaceElement2>[];
+    path ??= <InterfaceElement>[];
 
     // Detect error condition.
     int size = path.length;
@@ -668,13 +668,13 @@ class _ClassVerifier {
 
       void checkSingle(
         String memberName,
-        bool Function(ClassElement2 enclosingClass) filter,
+        bool Function(ClassElement enclosingClass) filter,
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
           var enclosingClass = member.asElement2.enclosingElement2;
           if (enclosingClass != null) {
-            if (enclosingClass is! ClassElement2 || filter(enclosingClass)) {
+            if (enclosingClass is! ClassElement || filter(enclosingClass)) {
               reporter.atToken(
                 classNameToken,
                 CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
@@ -728,8 +728,8 @@ class _ClassVerifier {
     }
 
     var interfaceElement = type.element3;
-    if (interfaceElement is EnumElement2 ||
-        interfaceElement is ExtensionTypeElement2) {
+    if (interfaceElement is EnumElement ||
+        interfaceElement is ExtensionTypeElement) {
       return false;
     }
 
@@ -746,12 +746,12 @@ class _ClassVerifier {
 
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
-  ErrorCode _getRecursiveErrorCode(InterfaceElement2 element) {
+  ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
     if (element.supertype?.element3 == classElement.asElement2) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
-    if (element is MixinElement2) {
+    if (element is MixinElement) {
       for (var type in element.superclassConstraints) {
         if (type.element3 == classElement.asElement2) {
           return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
@@ -792,7 +792,7 @@ class _ClassVerifier {
       if (memberName == name) {
         reporter.atNode(
           member,
-          classElement.asElement2 is EnumElement2
+          classElement.asElement2 is EnumElement
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
           arguments: [displayName, classElement.name],
@@ -960,13 +960,13 @@ class _ClassVerifier {
     }
 
     var noSuchMethodDeclaration = classElement.getMethod2(
-      MethodElement2.NO_SUCH_METHOD_METHOD_NAME,
+      MethodElement.NO_SUCH_METHOD_METHOD_NAME,
     );
     if (noSuchMethodDeclaration != null &&
         !noSuchMethodDeclaration.isAbstract) {
       return;
     }
-    var notOverridden = <ExecutableElement2>[];
+    var notOverridden = <ExecutableElement>[];
     for (var supertype in classElement.allSupertypes) {
       // TODO(srawlins): This looping may be expensive. Since the vast majority
       // of classes will have zero elements annotated with `@mustBeOverridden`,

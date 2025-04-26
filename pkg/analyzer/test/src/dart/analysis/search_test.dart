@@ -88,7 +88,7 @@ class SearchTest extends PubPackageResolutionTest {
   }
 
   Future<void> assertElementReferencesText(
-    Element2 element,
+    Element element,
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
@@ -3307,7 +3307,7 @@ class NoMatchABCDEF {}
     );
   }
 
-  Future<List<Element2>> _findClassMembers(String name) {
+  Future<List<Element>> _findClassMembers(String name) {
     var searchedFiles = SearchedFiles();
     return driver.search.classMembers(name, searchedFiles);
   }

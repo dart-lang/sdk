@@ -55,7 +55,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
     required this.paramDefaultsToNull,
   });
 
-  Element2? get parameterElement => parameter.declaredFragment?.element;
+  Element? get parameterElement => parameter.declaredFragment?.element;
 
   void checkPatternElements(DartPattern node) {
     NodeList<PatternField>? fields;
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on AstNode {
-  Element2? get element => switch (this) {
+  Element? get element => switch (this) {
     AssignedVariablePattern(:var element2) => element2,
     _ => null,
   };

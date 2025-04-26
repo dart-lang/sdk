@@ -25,7 +25,7 @@ class FromEnvironmentEvaluator {
   DartObjectImpl getBool2(
     String? name,
     Map<String, DartObjectImpl> namedValues,
-    ConstructorElement2 constructor,
+    ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str == 'true') {
@@ -55,7 +55,7 @@ class FromEnvironmentEvaluator {
   DartObjectImpl getInt2(
     String? name,
     Map<String, DartObjectImpl> namedValues,
-    ConstructorElement2 constructor,
+    ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
@@ -98,7 +98,7 @@ class FromEnvironmentEvaluator {
   DartObjectImpl getString2(
     String? name,
     Map<String, DartObjectImpl> namedValues,
-    ConstructorElement2 constructor,
+    ConstructorElement constructor,
   ) {
     var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
@@ -138,7 +138,7 @@ class FromEnvironmentEvaluator {
   }
 
   static DartObjectImpl _defaultValueDefaultValue(
-    ConstructorElement2 constructor,
+    ConstructorElement constructor,
   ) {
     return constructor.formalParameters
             .singleWhere((parameter) => parameter.name3 == _defaultValue)

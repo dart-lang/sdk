@@ -266,7 +266,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
   }
 
   /// Ensure that all members of the [element] are available. This includes
-  /// being able to ask them for example using [ClassElement2.methods2], and
+  /// being able to ask them for example using [ClassElement.methods2], and
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
@@ -1987,7 +1987,7 @@ class ResolutionReader {
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
-  Element2? readElement2() {
+  Element? readElement2() {
     var element = readElement();
     switch (element) {
       case null:
@@ -2003,7 +2003,7 @@ class ResolutionReader {
     }
   }
 
-  List<T> readElementList2<T extends Element2>() {
+  List<T> readElementList2<T extends Element>() {
     return _reader.readTypedListCast<T>(readElement2);
   }
 

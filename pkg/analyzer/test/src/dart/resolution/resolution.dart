@@ -50,37 +50,37 @@ mixin ResolutionTest implements ResourceProviderMixin {
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
 
-  ClassElement2 get boolElement => typeProvider.boolElement2;
+  ClassElement get boolElement => typeProvider.boolElement2;
 
-  ClassElement2 get doubleElement => typeProvider.doubleElement2;
+  ClassElement get doubleElement => typeProvider.doubleElement2;
 
   InterfaceType get doubleType => typeProvider.doubleType;
 
-  Element2 get dynamicElement =>
+  Element get dynamicElement =>
       (typeProvider.dynamicType as DynamicTypeImpl).element3;
 
   FeatureSet get featureSet => result.libraryElement2.featureSet;
 
-  ClassElement2 get futureElement => typeProvider.futureElement2;
+  ClassElement get futureElement => typeProvider.futureElement2;
 
   InheritanceManager3 get inheritanceManager {
     var library = result.libraryElement2;
     return library.session.inheritanceManager;
   }
 
-  ClassElement2 get intElement => typeProvider.intElement2;
+  ClassElement get intElement => typeProvider.intElement2;
 
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement2 get listElement => typeProvider.listElement2;
+  ClassElement get listElement => typeProvider.listElement2;
 
-  ClassElement2 get mapElement => typeProvider.mapElement2;
+  ClassElement get mapElement => typeProvider.mapElement2;
 
   NeverElementImpl2 get neverElement => NeverElementImpl2.instance;
 
-  ClassElement2 get numElement => typeProvider.numElement2;
+  ClassElement get numElement => typeProvider.numElement2;
 
-  ClassElement2 get objectElement => typeProvider.objectElement2;
+  ClassElement get objectElement => typeProvider.objectElement2;
 
   bool get strictCasts {
     var analysisOptions = result.session.analysisContext
@@ -88,7 +88,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return analysisOptions.strictCasts;
   }
 
-  ClassElement2 get stringElement => typeProvider.stringElement2;
+  ClassElement get stringElement => typeProvider.stringElement2;
 
   InterfaceType get stringType => typeProvider.stringType;
 
@@ -124,14 +124,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertElement(
     Object? nodeOrElement, {
-    required Element2 declaration,
+    required Element declaration,
     Map<String, String> substitution = const {},
   }) {
-    Element2? element;
+    Element? element;
     if (nodeOrElement is AstNode) {
       element = getNodeElement2(nodeOrElement);
     } else {
-      element = nodeOrElement as Element2?;
+      element = nodeOrElement as Element?;
     }
 
     var actualDeclaration = element?.baseElement;
@@ -144,7 +144,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementNull(Element2? element) {
+  void assertElementNull(Element? element) {
     expect(element, isNull);
   }
 
@@ -310,7 +310,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actualMapString = Map.fromEntries(
       substitution.map.entries
           .where((entry) {
-            return entry.key.enclosingElement2 is! ExecutableElement2;
+            return entry.key.enclosingElement2 is! ExecutableElement;
           })
           .map((entry) {
             return MapEntry(entry.key.name3, typeString(entry.value));
@@ -377,7 +377,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expectedContextMessages: contextMessages,
   );
 
-  Element2? getNodeElement2(AstNode node) {
+  Element? getNodeElement2(AstNode node) {
     if (node is Annotation) {
       return node.element2;
     } else if (node is AssignmentExpression) {

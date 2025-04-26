@@ -38,8 +38,8 @@ class Reference {
   /// The corresponding [ElementImpl], or `null` if a named container.
   ElementImpl? element;
 
-  /// The corresponding [Element2], or `null` if a named container.
-  Element2? element2;
+  /// The corresponding [Element], or `null` if a named container.
+  Element? element2;
 
   /// Temporary index used during serialization and linking.
   int? index;

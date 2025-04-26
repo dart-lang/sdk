@@ -12,7 +12,7 @@ class SinceSdkVersionComputer {
 
   /// The [element] is a `dart:xyz` library, so it can have `@Since` annotations.
   /// Evaluates its annotations and returns the version.
-  Version? compute(Element2 element) {
+  Version? compute(Element element) {
     // Must be in a `dart:` library.
     var libraryUri = element.library2?.uri;
     if (libraryUri == null || !libraryUri.isScheme('dart')) {
@@ -29,7 +29,7 @@ class SinceSdkVersionComputer {
       specified = _specifiedVersion(element as Annotatable);
     }
 
-    if (element is LibraryElement2) {
+    if (element is LibraryElement) {
       return specified;
     } else if (element.enclosingElement2 case HasSinceSdkVersion hasSince?) {
       var enclosing = hasSince.sinceSdkVersion;

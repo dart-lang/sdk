@@ -68,12 +68,11 @@ final class JSNumber extends Interceptor
   JSNumber abs() => JS<JSNumber>('!', r'Math.abs(#)', this);
 
   @notNull
-  JSNumber get sign =>
-      this > 0
-          ? JS<JSNumber>('!', '1')
-          : this < 0
-          ? JS<JSNumber>('!', '-1')
-          : this;
+  JSNumber get sign => this > 0
+      ? JS<JSNumber>('!', '1')
+      : this < 0
+      ? JS<JSNumber>('!', '-1')
+      : this;
 
   @notNull
   static const int _MIN_INT32 = -0x80000000;

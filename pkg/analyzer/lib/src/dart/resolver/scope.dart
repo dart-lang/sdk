@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/engine.dart';
 class BlockScope {
   /// Return the elements that are declared directly in the given [statements].
   /// This does not include elements declared in nested blocks.
-  static Iterable<Element2> elementsInStatements(
+  static Iterable<Element> elementsInStatements(
     List<Statement> statements,
   ) sync* {
     int statementCount = statements.length;
@@ -86,7 +86,7 @@ class LabelScope {
   final String _label;
 
   /// The element to which the label resolves.
-  final LabelElement2 element;
+  final LabelElement element;
 
   /// The AST node to which the label resolves.
   final AstNode node;
@@ -115,23 +115,23 @@ class Namespace {
 
   /// A table mapping names that are defined in this namespace to the element
   /// representing the thing declared with that name.
-  final Map<String, Element2> _definedNames;
+  final Map<String, Element> _definedNames;
 
   /// Initialize a newly created namespace to have the [_definedNames].
   Namespace(this._definedNames);
 
   /// Return a table containing the same mappings as those defined by this
   /// namespace.
-  Map<String, Element2> get definedNames2 => _definedNames;
+  Map<String, Element> get definedNames2 => _definedNames;
 
   /// Return the element in this namespace that is available to the containing
   /// scope using the given name, or `null` if there is no such element.
-  Element2? get2(String name) => _definedNames[name];
+  Element? get2(String name) => _definedNames[name];
 
   /// Return the element in this namespace whose name is the result of combining
   /// the [prefix] and the [name], separated by a period, or `null` if there is
   /// no such element.
-  Element2? getPrefixed2(String prefix, String name) => null;
+  Element? getPrefixed2(String prefix, String name) => null;
 }
 
 /// The builder used to build a namespace. Namespace builders are thread-safe
@@ -180,7 +180,7 @@ class NamespaceBuilder {
   /// Create a namespace representing the public namespace of the given
   /// [library].
   Namespace createPublicNamespaceForLibrary(LibraryElementImpl library) {
-    var definedNames = <String, Element2>{};
+    var definedNames = <String, Element>{};
     for (var element in library.classes) {
       _addIfPublic(definedNames, element);
     }
@@ -223,7 +223,7 @@ class NamespaceBuilder {
 
   /// Add the given [element] to the table of [definedNames] if it has a
   /// publicly visible name.
-  void _addIfPublic(Map<String, Element2> definedNames, Element2 element) {
+  void _addIfPublic(Map<String, Element> definedNames, Element element) {
     var name = element.name3;
     if (name != null && name.isNotEmpty && !Identifier.isPrivateName(name)) {
       definedNames[name] = element;
@@ -232,8 +232,8 @@ class NamespaceBuilder {
 
   /// Apply the given [combinators] to all of the names in the given table of
   /// [definedNames].
-  Map<String, Element2> _applyCombinators(
-    Map<String, Element2> definedNames,
+  Map<String, Element> _applyCombinators(
+    Map<String, Element> definedNames,
     List<NamespaceCombinator> combinators,
   ) {
     for (NamespaceCombinator combinator in combinators) {
@@ -251,14 +251,14 @@ class NamespaceBuilder {
     return definedNames;
   }
 
-  Map<String, Element2> _getExportMapping(LibraryElementImpl library) {
+  Map<String, Element> _getExportMapping(LibraryElementImpl library) {
     return library.exportNamespace.definedNames2;
   }
 
   /// Return a new map of names which has all the names from [definedNames]
   /// with exception of [hiddenNames].
-  Map<String, Element2> _hide(
-    Map<String, Element2> definedNames,
+  Map<String, Element> _hide(
+    Map<String, Element> definedNames,
     List<String> hiddenNames,
   ) {
     var newNames = {...definedNames};
@@ -270,11 +270,11 @@ class NamespaceBuilder {
   }
 
   /// Return a new map of names which has only [shownNames] from [definedNames].
-  Map<String, Element2> _show(
-    Map<String, Element2> definedNames,
+  Map<String, Element> _show(
+    Map<String, Element> definedNames,
     List<String> shownNames,
   ) {
-    var newNames = <String, Element2>{};
+    var newNames = <String, Element>{};
     for (String name in shownNames) {
       var element = definedNames[name];
       if (element != null) {
@@ -302,7 +302,7 @@ class PrefixedNamespace implements Namespace {
   /// A table mapping names that are defined in this namespace to the element
   /// representing the thing declared with that name.
   @override
-  final Map<String, Element2> _definedNames;
+  final Map<String, Element> _definedNames;
 
   /// Initialize a newly created namespace to have the names resulting from
   /// prefixing each of the [_definedNames] with the given [_prefix] (and a
@@ -312,12 +312,12 @@ class PrefixedNamespace implements Namespace {
       _length = prefix.length;
 
   @override
-  Map<String, Element2> get definedNames2 {
+  Map<String, Element> get definedNames2 {
     return _definedNames;
   }
 
   @override
-  Element2? get2(String name) {
+  Element? get2(String name) {
     if (name.length > _length && name.startsWith(_prefix)) {
       if (name.codeUnitAt(_length) == '.'.codeUnitAt(0)) {
         return _definedNames[name.substring(_length + 1)];
@@ -327,7 +327,7 @@ class PrefixedNamespace implements Namespace {
   }
 
   @override
-  Element2? getPrefixed2(String prefix, String name) {
+  Element? getPrefixed2(String prefix, String name) {
     if (prefix == _prefix) {
       return _definedNames[name];
     }

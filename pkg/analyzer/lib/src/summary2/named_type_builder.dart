@@ -27,7 +27,7 @@ class NamedTypeBuilder extends TypeBuilder {
   final TypeSystemImpl typeSystem;
 
   @override
-  final Element2 element3;
+  final Element element3;
 
   final List<TypeImpl> arguments;
 
@@ -58,7 +58,7 @@ class NamedTypeBuilder extends TypeBuilder {
     Linker linker,
     TypeSystemImpl typeSystem,
     NamedTypeImpl node,
-    Element2 element,
+    Element element,
     NullabilitySuffix nullabilitySuffix,
   ) {
     List<TypeImpl> arguments;
@@ -82,7 +82,7 @@ class NamedTypeBuilder extends TypeBuilder {
   factory NamedTypeBuilder.v2({
     required Linker linker,
     required TypeSystemImpl typeSystem,
-    required Element2 element,
+    required Element element,
     required List<TypeImpl> arguments,
     required NullabilitySuffix nullabilitySuffix,
     NamedTypeImpl? node,
@@ -202,7 +202,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   /// Build arguments that correspond to the type [parameters].
-  List<TypeImpl> _buildArguments(List<TypeParameterElement2> parameters) {
+  List<TypeImpl> _buildArguments(List<TypeParameterElement> parameters) {
     if (parameters.isEmpty) {
       return const <TypeImpl>[];
     } else if (arguments.isNotEmpty) {

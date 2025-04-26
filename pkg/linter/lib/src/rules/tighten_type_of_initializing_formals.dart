@@ -69,9 +69,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _check(Element2? element, ConstructorDeclaration node) {
-    if (element is FieldFormalParameterElement2 ||
-        element is SuperFormalParameterElement2) {
+  void _check(Element? element, ConstructorDeclaration node) {
+    if (element is FieldFormalParameterElement ||
+        element is SuperFormalParameterElement) {
       rule.reportLint(
         node.parameters.parameters.firstWhere(
           (p) => p.declaredFragment?.element == element,

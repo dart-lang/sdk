@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkComment(Token node) {
     var content = node.lexeme;
     if (FlutterStyleTodos.invalidTodo(content)) {
-      rule.reportLintForToken(node);
+      rule.reportAtToken(node);
     }
   }
 }

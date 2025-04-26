@@ -90,7 +90,7 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
   String? computeNodeValue(Id id, AstNode node) {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = node.element;
-      if (element is LocalVariableElement2 ||
+      if (element is LocalVariableElement ||
           element is FormalParameterElement) {
         if (_flowResult.definitelyUnassigned.contains(node)) {
           return 'unassigned';

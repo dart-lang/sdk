@@ -144,7 +144,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
       case RefactoringKind.CONVERT_METHOD_TO_GETTER:
         var node = result.unit.nodeCovering(offset: offset);
         var element = node?.getElement();
-        if (element is ExecutableElement2) {
+        if (element is ExecutableElement) {
           var refactor = ConvertMethodToGetterRefactoring(
             server.refactoringWorkspace,
             result.session,

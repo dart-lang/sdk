@@ -201,7 +201,7 @@ abstract final class Annotation implements AstNode {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The element annotation representing this annotation in the element model,
   /// or `null` if the AST hasn't been resolved.
@@ -245,7 +245,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   ArgumentListImpl? _arguments;
 
-  Element2? _element2;
+  Element? _element2;
 
   @override
   ElementAnnotationImpl? elementAnnotation;
@@ -295,7 +295,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @override
-  Element2? get element2 {
+  Element? get element2 {
     if (_element2 case var element?) {
       return element;
     } else if (_constructorName == null) {
@@ -304,7 +304,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     return null;
   }
 
-  set element2(Element2? value) {
+  set element2(Element? value) {
     _element2 = value;
   }
 
@@ -760,16 +760,16 @@ abstract final class AssignedVariablePattern implements VariablePattern {
   /// Returns `null` if either [name] doesn't resolve to an element or the AST
   /// structure hasn't been resolved.
   ///
-  /// In valid code this is either a [LocalVariableElement2] or a
+  /// In valid code this is either a [LocalVariableElement] or a
   /// [FormalParameterElement].
   @experimental
-  Element2? get element2;
+  Element? get element2;
 }
 
 final class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
-  Element2? element2;
+  Element? element2;
 
   AssignedVariablePatternImpl({required super.name});
 
@@ -897,14 +897,14 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
   FormalParameterElementMixin? get _staticParameterElementForRightHandSide {
-    Element2? executableElement;
+    Element? executableElement;
     if (operator.type != TokenType.EQ) {
       executableElement = element;
     } else {
       executableElement = writeElement2;
     }
 
-    if (executableElement is ExecutableElement2) {
+    if (executableElement is ExecutableElement) {
       var formalParameters = executableElement.formalParameters;
       if (formalParameters.isEmpty) {
         return null;
@@ -1779,7 +1779,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightOperand;
 
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   @override
   FunctionTypeImpl? staticInvokeType;
@@ -2537,7 +2537,7 @@ abstract final class CatchClauseParameter extends AstNode {
   ///
   /// Returns `null` if the AST hasn't been resolved.
   @experimental
-  LocalVariableElement2? get declaredElement2;
+  LocalVariableElement? get declaredElement2;
 
   /// The declared fragment.
   ///
@@ -3558,14 +3558,14 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// Returns `null` if this node isn't a compound assignment, if the AST
   /// structure hasn't been resolved, or if the target couldn't be resolved.
   ///
-  /// In valid code this element can be a [LocalVariableElement2], a
+  /// In valid code this element can be a [LocalVariableElement], a
   /// [FormalParameterElement], or a [GetterElement].
   ///
   /// In invalid code this element is `null`. For example, in `int += 2`. In
   /// such cases, for recovery purposes, [writeElement2] is filled, and can be
   /// used for navigation.
   @experimental
-  Element2? get readElement2;
+  Element? get readElement2;
 
   /// The type of the value read with the [readElement2], or `null` if this node
   /// isn't a compound assignment.
@@ -3579,7 +3579,7 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// Returns `null` if the AST structure hasn't been resolved, or if the target
   /// couldn't be resolved.
   ///
-  /// In valid code this is a [LocalVariableElement2], [FormalParameterElement],
+  /// In valid code this is a [LocalVariableElement], [FormalParameterElement],
   /// or a [SetterElement].
   ///
   /// In invalid code, for recovery, we might use other elements, for example a
@@ -3590,7 +3590,7 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// If this node is a compound assignment, such as `x += y`, both
   /// [readElement2] and [writeElement2] could be non-`null`.
   @experimental
-  Element2? get writeElement2;
+  Element? get writeElement2;
 
   /// The type of the target of the assignment.
   ///
@@ -3603,10 +3603,10 @@ abstract final class CompoundAssignmentExpression implements Expression {
 base mixin CompoundAssignmentExpressionImpl
     implements CompoundAssignmentExpression {
   @override
-  Element2? readElement2;
+  Element? readElement2;
 
   @override
-  Element2? writeElement2;
+  Element? writeElement2;
 
   @override
   TypeImpl? readType;
@@ -4479,7 +4479,7 @@ abstract final class ConstructorReferenceNode implements AstNode {
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// constructor couldn't be resolved.
   @experimental
-  ConstructorElement2? get element;
+  ConstructorElement? get element;
 }
 
 /// The name of a constructor being invoked.
@@ -4733,7 +4733,7 @@ abstract final class DeclaredIdentifier implements Declaration {
   /// Returns `null` if either this node corresponds to a list of declarations
   /// or if the AST structure hasn't been resolved.
   @experimental
-  LocalVariableElement2? get declaredElement2;
+  LocalVariableElement? get declaredElement2;
 
   @override
   LocalVariableFragment? get declaredFragment;
@@ -4844,7 +4844,7 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
   @experimental
-  BindPatternVariableElement2? get declaredElement2;
+  BindPatternVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
   ///
@@ -5702,7 +5702,7 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// Returns `null` if the AST structure hasn't been resolved, or if the
   /// constructor couldn't be resolved.
   @experimental
-  ConstructorElement2? get constructorElement2;
+  ConstructorElement? get constructorElement2;
 
   @experimental
   @override
@@ -6667,7 +6667,7 @@ abstract final class ExtensionOverride implements Expression {
 
   /// The extension that resolution will use to resolve member references.
   @experimental
-  ExtensionElement2 get element2;
+  ExtensionElement get element2;
 
   /// The actual type extended by this override, produced by applying
   /// [typeArgumentTypes] to the generic type extended by the extension, or
@@ -8223,7 +8223,7 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   @experimental
-  bool isPotentiallyMutatedInScope2(VariableElement2 variable);
+  bool isPotentiallyMutatedInScope2(VariableElement variable);
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -8252,7 +8252,7 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   Token? get star => null;
 
   @override
-  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
+  bool isPotentiallyMutatedInScope2(VariableElement variable) {
     if (localVariableInfo == null) {
       throw StateError('Resolution has not been performed');
     }
@@ -8596,7 +8596,7 @@ abstract final class FunctionExpressionInvocation
   /// Returns `null` if the AST structure hasn't been resolved or the function
   /// couldn't be resolved.
   @experimental
-  ExecutableElement2? get element;
+  ExecutableElement? get element;
 
   /// The expression producing the function being invoked.
   @override
@@ -8609,7 +8609,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   ExpressionImpl _function;
 
   @override
-  ExecutableElement2? element;
+  ExecutableElement? element;
 
   /// Initializes a newly created function expression invocation.
   FunctionExpressionInvocationImpl({
@@ -9342,7 +9342,7 @@ sealed class Identifier implements Expression, CommentReferableExpression {
   /// identifier couldn't be resolved. One example of the latter case is an
   /// identifier that isn't defined within the scope in which it appears.
   @experimental
-  Element2? get element;
+  Element? get element;
 
   /// The lexical representation of the identifier.
   String get name;
@@ -9744,7 +9744,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   List<DartType> typeArgumentTypes;
 
   @override
-  MethodElement2 element;
+  MethodElement element;
 
   ImplicitCallReferenceImpl({
     required ExpressionImpl expression,
@@ -9975,9 +9975,9 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 abstract final class ImportPrefixReference implements AstNode {
   /// The element to which [name] is resolved.
   ///
-  /// Usually a [PrefixElement2], but can be anything in invalid code.
+  /// Usually a [PrefixElement], but can be anything in invalid code.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The name of the referenced import prefix.
   Token get name;
@@ -9995,7 +9995,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   final Token period;
 
   @override
-  Element2? element2;
+  Element? element2;
 
   ImportPrefixReferenceImpl({required this.name, required this.period});
 
@@ -10112,7 +10112,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// target, or `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   /// Initializes a newly created index expression that is a child of a cascade
   /// expression.
@@ -10222,7 +10222,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// or the function being invoked is not known based on static type
   /// information.
   FormalParameterElementMixin? get _staticParameterElementForIndex {
-    Element2? element = this.element;
+    Element? element = this.element;
 
     var parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
@@ -10998,7 +10998,7 @@ abstract final class LibraryDirective implements Directive {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// directive couldn't be resolved.
   @experimental
-  LibraryElement2? get element2;
+  LibraryElement? get element2;
 
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
@@ -11094,7 +11094,7 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   NodeListImpl<SimpleIdentifierImpl> get components => _components;
 
   @override
-  Element2? get element => null;
+  Element? get element => null;
 
   @override
   Token get endToken => _components.endToken!;
@@ -11361,7 +11361,7 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
-  final Set<VariableElement2> potentiallyMutatedInScope = {};
+  final Set<VariableElement> potentiallyMutatedInScope = {};
 }
 
 /// A logical-and pattern.
@@ -12119,11 +12119,11 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   /// The invoke type of the [methodName].
   ///
-  /// If the target element is a [MethodElement2], this is the same as the
+  /// If the target element is a [MethodElement], this is the same as the
   /// [staticInvokeType].
   ///
   /// If the target element is a getter, presumably returning an
-  /// [ExecutableElement2] so that it can be invoked in this [MethodInvocation],
+  /// [ExecutableElement] so that it can be invoked in this [MethodInvocation],
   /// then this type is the type of the getter, and the [staticInvokeType] is
   /// the invoked type of the returned element.
   DartType? get methodNameType => _methodNameType ?? staticInvokeType;
@@ -12205,7 +12205,7 @@ abstract final class MethodReferenceExpression implements Expression {
   /// this is a non-compound assignment expression, or when the method referred
   /// to couldn't be resolved.
   @experimental
-  MethodElement2? get element;
+  MethodElement? get element;
 }
 
 /// The declaration of a mixin.
@@ -12510,13 +12510,13 @@ final class NamedExpressionImpl extends ExpressionImpl
 abstract final class NamedType implements TypeAnnotation {
   /// The element of [name2] considering [importPrefix].
   ///
-  /// This could be a [ClassElement2], [TypeAliasElement2], or other type defining
+  /// This could be a [ClassElement], [TypeAliasElement], or other type defining
   /// element.
   ///
   /// Returns `null` if [name2] can't be resolved, or there's no element for the
   /// type name, such as for `void`.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The optional import prefix before [name2].
   ImportPrefixReference? get importPrefix;
@@ -12550,7 +12550,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @experimental
   @override
-  Element2? element2;
+  Element? element2;
 
   @override
   TypeArgumentListImpl? typeArguments;
@@ -12593,7 +12593,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   bool get isDeferred {
     var importPrefixElement = importPrefix?.element2;
-    if (importPrefixElement is PrefixElement2) {
+    if (importPrefixElement is PrefixElement) {
       return importPrefixElement.fragments.any(
         (fragment) => fragment.isDeferred,
       );
@@ -13875,7 +13875,7 @@ abstract final class PatternField implements AstNode {
   /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
   /// inside [RecordPattern]s.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The name of the field, or `null` if the field is a positional field.
   PatternFieldName? get name;
@@ -13886,7 +13886,7 @@ abstract final class PatternField implements AstNode {
 
 final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @override
-  Element2? element2;
+  Element? element2;
 
   @override
   final PatternFieldNameImpl? name;
@@ -14132,7 +14132,7 @@ abstract final class PostfixExpression
   /// operand, or `null` if the AST structure hasn't been resolved, if the
   /// operator isn't user definable, or if the operator couldn't be resolved.
   @override
-  MethodElement2? get element;
+  MethodElement? get element;
 
   /// The expression computing the operand for the operator.
   Expression get operand;
@@ -14150,7 +14150,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   final Token operator;
 
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   /// Initializes a newly created postfix expression.
   PostfixExpressionImpl({
@@ -14268,7 +14268,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   Token get beginToken => _prefix.beginToken;
 
   @override
-  Element2? get element {
+  Element? get element {
     return _identifier.element;
   }
 
@@ -14285,7 +14285,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   bool get isDeferred {
     var element = _prefix.element;
-    if (element is PrefixElement2) {
+    if (element is PrefixElement) {
       return element.fragments.any((fragment) => fragment.isDeferred);
     }
     return false;
@@ -14341,7 +14341,7 @@ abstract final class PrefixExpression
   /// operand, or `null` if the AST structure hasn't been resolved, if the
   /// operator isn't user definable, or if the operator couldn't be resolved.
   @override
-  MethodElement2? get element;
+  MethodElement? get element;
 
   /// The expression computing the operand for the operator.
   Expression get operand;
@@ -14359,7 +14359,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   ExpressionImpl _operand;
 
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   /// Initializes a newly created prefix expression.
   PrefixExpressionImpl({
@@ -15122,7 +15122,7 @@ abstract final class RelationalPattern implements DartPattern {
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @experimental
-  MethodElement2? get element2;
+  MethodElement? get element2;
 
   /// The expression used to compute the operand.
   Expression get operand;
@@ -15139,7 +15139,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   final Token operator;
 
   @override
-  MethodElement2? element2;
+  MethodElement? element2;
 
   RelationalPatternImpl({
     required this.operator,
@@ -15906,7 +15906,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   /// information, or `null` if the AST structure hasn't been resolved or if
   /// this identifier couldn't be resolved.
   @override
-  Element2? element;
+  Element? element;
 
   @override
   List<TypeImpl>? tearOffTypeArgumentTypes;
@@ -18274,7 +18274,7 @@ abstract final class VariableDeclaration implements Declaration {
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
   @experimental
-  LocalVariableElement2? get declaredElement2;
+  LocalVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
   ///

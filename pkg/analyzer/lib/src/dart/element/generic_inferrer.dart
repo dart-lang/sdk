@@ -107,7 +107,7 @@ class GenericInferrer {
 
   GenericInferrer(
     this._typeSystem,
-    List<TypeParameterElement2> typeFormals, {
+    List<TypeParameterElement> typeFormals, {
     this.errorReporter,
     this.errorEntity,
     required this.genericMetadataIsEnabled,
@@ -284,7 +284,7 @@ class GenericInferrer {
   List<TypeImpl>? tryChooseFinalTypes({bool failAtError = true}) {
     var inferredTypes = _chooseTypes(preliminary: false);
     // Check the inferred types against all of the constraints.
-    var knownTypes = <TypeParameterElement2, TypeImpl>{};
+    var knownTypes = <TypeParameterElement, TypeImpl>{};
     var hasErrorReported = false;
     for (int i = 0; i < _typeFormals.length; i++) {
       TypeParameterElementImpl2 parameter = _typeFormals[i];
@@ -824,7 +824,7 @@ class GenericInferrer {
     } else if (errorEntity is SimpleIdentifier) {
       var element = errorEntity.element;
       if (element != null) {
-        if (element is VariableElement2) {
+        if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
           var typeElement = type is InterfaceType ? type.element3 : null;
@@ -972,7 +972,7 @@ class GenericInferrer {
   }
 }
 
-extension on Element2 {
+extension on Element {
   bool get hasOptionalTypeArgs {
     if (this case Annotatable annotatable) {
       return annotatable.metadata2.hasOptionalTypeArgs;

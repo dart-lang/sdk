@@ -14,7 +14,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
-Element2? declaredParameterElement(SimpleIdentifier node, Element2? element) {
+Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
   if (element == null || element.enclosingElement2 != null) {
     return element;
   }
@@ -23,9 +23,7 @@ Element2? declaredParameterElement(SimpleIdentifier node, Element2? element) {
   /// synthetic [ParameterElement]s, disconnected from the rest of the
   /// element model. But we want to index these parameter references
   /// as references to declared parameters.
-  FormalParameterElement? namedParameterElement(
-    ExecutableElement2? executable,
-  ) {
+  FormalParameterElement? namedParameterElement(ExecutableElement? executable) {
     if (executable == null) {
       return null;
     }
@@ -48,7 +46,7 @@ Element2? declaredParameterElement(SimpleIdentifier node, Element2? element) {
           return namedParameterElement(executable);
         } else if (invocation is MethodInvocation) {
           var executable = invocation.methodName.element;
-          if (executable is ExecutableElement2) {
+          if (executable is ExecutableElement) {
             return namedParameterElement(executable);
           }
         }
@@ -59,7 +57,7 @@ Element2? declaredParameterElement(SimpleIdentifier node, Element2? element) {
   return element;
 }
 
-Element2? declaredParameterElement2(SimpleIdentifier node, Element2? element) {
+Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
   if (element == null || element.enclosingElement2 != null) {
     return element;
   }
@@ -68,9 +66,7 @@ Element2? declaredParameterElement2(SimpleIdentifier node, Element2? element) {
   /// synthetic [ParameterElement]s, disconnected from the rest of the
   /// element model. But we want to index these parameter references
   /// as references to declared parameters.
-  FormalParameterElement? namedParameterElement(
-    ExecutableElement2? executable,
-  ) {
+  FormalParameterElement? namedParameterElement(ExecutableElement? executable) {
     if (executable == null) {
       return null;
     }
@@ -93,7 +89,7 @@ Element2? declaredParameterElement2(SimpleIdentifier node, Element2? element) {
           return namedParameterElement(executable);
         } else if (invocation is MethodInvocation) {
           var executable = invocation.methodName.element;
-          if (executable is ExecutableElement2) {
+          if (executable is ExecutableElement) {
             return namedParameterElement(executable);
           }
         }
@@ -106,7 +102,7 @@ Element2? declaredParameterElement2(SimpleIdentifier node, Element2? element) {
 
 /// Return the [CompilationUnitElementImpl] that should be used for [element].
 /// Throw [StateError] if the [element] is not linked into a unit.
-CompilationUnitElementImpl getUnitElement(Element2 element) {
+CompilationUnitElementImpl getUnitElement(Element element) {
   var result = element.firstFragment.libraryFragment;
   if (result case CompilationUnitElementImpl result) {
     return result;
@@ -124,7 +120,7 @@ class ElementNameComponents {
   final String? classMemberName;
   final String? unitMemberName;
 
-  factory ElementNameComponents(Element2 element) {
+  factory ElementNameComponents(Element element) {
     String? parameterName;
     if (element.firstFragment case FormalParameterFragment fragment) {
       parameterName = fragment.name2;
@@ -132,8 +128,8 @@ class ElementNameComponents {
     }
 
     String? classMemberName;
-    if (element.enclosingElement2 is InterfaceElement2 ||
-        element.enclosingElement2 is ExtensionElement2) {
+    if (element.enclosingElement2 is InterfaceElement ||
+        element.enclosingElement2 is ExtensionElement) {
       classMemberName = element.lookupName;
       element = element.enclosingElement2!;
     }
@@ -141,7 +137,7 @@ class ElementNameComponents {
     String? unitMemberName;
     if (element.firstFragment.enclosingFragment is CompilationUnitElementImpl) {
       unitMemberName = element.lookupName;
-      if (element is ExtensionElement2 && unitMemberName == null) {
+      if (element is ExtensionElement && unitMemberName == null) {
         var enclosingUnit = element.enclosingElement2;
         var indexOf = enclosingUnit.extensions.indexOf(element);
         unitMemberName = 'extension-$indexOf';
@@ -167,10 +163,10 @@ class ElementNameComponents {
 /// corresponding non-synthetic field and [IndexSyntheticElementKind.getter] as
 /// the [kind].
 class IndexElementInfo {
-  final Element2 element;
+  final Element element;
   final IndexSyntheticElementKind kind;
 
-  factory IndexElementInfo(Element2 element) {
+  factory IndexElementInfo(Element element) {
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
     ElementKind elementKind = element.kind;
     if (elementKind == ElementKind.LIBRARY ||
@@ -185,14 +181,14 @@ class IndexElementInfo {
         kind = IndexSyntheticElementKind.loadLibrary;
         element = element.library2;
       } else if (elementKind == ElementKind.FIELD) {
-        var field = element as FieldElement2;
+        var field = element as FieldElement;
         kind = IndexSyntheticElementKind.field;
         element = (field.getter2 ?? field.setter2)!;
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
-        var accessor = element as PropertyAccessorElement2;
+        var accessor = element as PropertyAccessorElement;
         var enclosing = element.enclosingElement2;
-        bool isEnumGetter = enclosing is EnumElement2;
+        bool isEnumGetter = enclosing is EnumElement;
         if (isEnumGetter && accessor.name3 == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
           element = enclosing;
@@ -208,14 +204,14 @@ class IndexElementInfo {
             element = variable;
           }
         }
-      } else if (element is MethodElement2) {
+      } else if (element is MethodElement) {
         var enclosing = element.enclosingElement2;
-        bool isEnumMethod = enclosing is EnumElement2;
+        bool isEnumMethod = enclosing is EnumElement;
         if (isEnumMethod && element.name3 == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
           element = enclosing;
         }
-      } else if (element is TopLevelVariableElement2) {
+      } else if (element is TopLevelVariableElement) {
         kind = IndexSyntheticElementKind.topLevelVariable;
         element = (element.getter2 ?? element.setter2)!;
       } else {
@@ -297,7 +293,7 @@ class _IndexAssembler {
   static const _nullString = '--nullString--';
 
   /// Map associating referenced elements with their [_ElementInfo]s.
-  final Map<Element2, _ElementInfo> elementMap = {};
+  final Map<Element, _ElementInfo> elementMap = {};
 
   /// Map associating [CompilationUnitElementImpl]s with their identifiers,
   /// which are indices into [unitLibraryUris] and [unitUnitUris].
@@ -339,7 +335,7 @@ class _IndexAssembler {
   }
 
   void addElementRelation(
-    Element2 element,
+    Element element,
     IndexRelationKind kind,
     int offset,
     int length,
@@ -377,7 +373,7 @@ class _IndexAssembler {
   }
 
   /// Adds a prefix (or empty string for unprefixed) for an element.
-  void addPrefixForElement(Element2 element, {PrefixElement2? prefix}) {
+  void addPrefixForElement(Element element, {PrefixElement? prefix}) {
     if (element is MultiplyDefinedElementImpl2 ||
         // TODO(brianwilkerson): The last two conditions are here because the
         //  elements for `dynamic` and `Never` are singletons and hence don't have
@@ -528,7 +524,7 @@ class _IndexAssembler {
 
   /// Return the unique [_ElementInfo] corresponding the [element].  The field
   /// [_ElementInfo.id] is filled by [assemble] during final sorting.
-  _ElementInfo _getElementInfo(Element2 element) {
+  _ElementInfo _getElementInfo(Element element) {
     element = element.baseElement;
     return elementMap.putIfAbsent(element, () {
       var unitElement = getUnitElement(element);
@@ -571,7 +567,7 @@ class _IndexAssembler {
 
   /// Return a new [_ElementInfo] for the given [element] in the given [unitId].
   /// This method is static, so it cannot add any information to the index.
-  _ElementInfo _newElementInfo(int unitId, Element2 element) {
+  _ElementInfo _newElementInfo(int unitId, Element element) {
     IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
 
@@ -592,8 +588,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   _IndexContributor(this.assembler);
 
-  void recordIsAncestorOf(InterfaceElement2 descendant) {
-    _recordIsAncestorOf(descendant, descendant, false, <InterfaceElement2>[]);
+  void recordIsAncestorOf(InterfaceElement descendant) {
+    _recordIsAncestorOf(descendant, descendant, false, <InterfaceElement>[]);
   }
 
   /// Record that the name [node] has a relation of the given [kind].
@@ -605,8 +601,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     assembler.addNameRelation(node.name, kind, node.offset, isQualified);
   }
 
-  /// Record reference to the given operator [Element2].
-  void recordOperatorReference(Token operator, Element2? element) {
+  /// Record reference to the given operator [Element].
+  void recordOperatorReference(Token operator, Element? element) {
     recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
   }
 
@@ -615,7 +611,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// explicit or implicit qualifier, so cannot be shadowed by a local
   /// declaration.
   void recordRelation(
-    Element2? element,
+    Element? element,
     IndexRelationKind kind,
     SyntacticEntity node,
     bool isQualified,
@@ -636,7 +632,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// has an explicit or implicit qualifier, so [element] cannot be shadowed by
   /// a local declaration.
   void recordRelationOffset(
-    Element2? element,
+    Element? element,
     IndexRelationKind kind,
     int offset,
     int length,
@@ -671,7 +667,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // named parameters. Ignore them.
     if (elementKind == ElementKind.PARAMETER &&
         element is FormalParameterElement &&
-        element.enclosingElement2 is GenericFunctionTypeElement2) {
+        element.enclosingElement2 is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -681,7 +677,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record that [element] has a relation of the given [kind] at the location
   /// of the given [token].
   void recordRelationToken(
-    Element2? element,
+    Element? element,
     IndexRelationKind kind,
     Token token, {
     bool isQualified = true,
@@ -695,14 +691,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
     );
   }
 
-  /// Record a relation between a super [namedType] and its [Element2].
+  /// Record a relation between a super [namedType] and its [Element].
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
     var isQualified = namedType.importPrefix != null;
     var element = namedType.element2;
     recordRelation(element, kind, namedType.name2, isQualified);
   }
 
-  void recordUriReference(Element2? element, StringLiteral uri) {
+  void recordUriReference(Element? element, StringLiteral uri) {
     recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, uri, true);
   }
 
@@ -768,7 +764,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var expression = node.expression;
     if (expression is Identifier) {
       var element = expression.element;
-      if (element is ConstructorElement2) {
+      if (element is ConstructorElement) {
         if (expression is PrefixedIdentifier) {
           var offset = expression.prefix.end;
           var length = expression.end - offset;
@@ -1005,7 +1001,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
-    if (element is MethodElement2) {
+    if (element is MethodElement) {
       Token operator = node.leftBracket;
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
     }
@@ -1026,7 +1022,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     // element invocation
     IndexRelationKind kind =
-        element is InterfaceElement2
+        element is InterfaceElement
             ? IndexRelationKind.IS_REFERENCED_BY
             : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
@@ -1111,7 +1107,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.element;
     var prefixElement = node.prefix.element;
-    if (element != null && prefixElement is PrefixElement2) {
+    if (element != null && prefixElement is PrefixElement) {
       assembler.addPrefixForElement(element, prefix: prefixElement);
     }
     super.visitPrefixedIdentifier(node);
@@ -1264,7 +1260,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> supertypes = [];
     List<String> members = [];
 
-    String getInterfaceElementId(InterfaceElement2 element) {
+    String getInterfaceElementId(InterfaceElement element) {
       var libraryUri = element.library2.uri;
       var libraryFragment = element.firstFragment.libraryFragment;
       var libraryFragmentUri = libraryFragment.source.uri;
@@ -1273,7 +1269,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     void addSupertype(NamedType? type) {
       var element = type?.element2;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         String id = getInterfaceElementId(element);
         supertypes.add(id);
       }
@@ -1342,10 +1338,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// If the given [constructor] is a synthetic constructor created for a
   /// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
   /// which is invoked.  Return `null` if a redirection cycle is detected.
-  ConstructorElement2? _getActualConstructorElement(
-    ConstructorElement2? constructor,
+  ConstructorElement? _getActualConstructorElement(
+    ConstructorElement? constructor,
   ) {
-    var seenConstructors = <ConstructorElement2?>{};
+    var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement2;
       if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
@@ -1380,7 +1376,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void _recordImportPrefixedElement({
     required ImportPrefixReference? importPrefix,
     required Token name,
-    required Element2? element,
+    required Element? element,
   }) {
     if (element == null) {
       return;
@@ -1388,7 +1384,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     if (importPrefix != null) {
       var prefixElement = importPrefix.element2;
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         recordRelationToken(
           importPrefix.element2,
           IndexRelationKind.IS_REFERENCED_BY,
@@ -1410,10 +1406,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   void _recordIsAncestorOf(
-    Element2 descendant,
-    InterfaceElement2 ancestor,
+    Element descendant,
+    InterfaceElement ancestor,
     bool includeThis,
-    List<InterfaceElement2> visitedElements,
+    List<InterfaceElement> visitedElements,
   ) {
     if (visitedElements.contains(ancestor)) {
       return;
@@ -1451,7 +1447,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         visitedElements,
       );
     }
-    if (ancestor is MixinElement2) {
+    if (ancestor is MixinElement) {
       for (InterfaceType type in ancestor.superclassConstraints) {
         _recordIsAncestorOf(descendant, type.element3, true, visitedElements);
       }

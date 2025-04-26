@@ -337,7 +337,7 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
     // If the wrapper class is specified, find its element.
     var parentLibraryUri = _parentLibraryUri;
     var parentClassName = _parentClassName;
-    ClassElement2? parentClassElement;
+    ClassElement? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
       parentClassElement = await sessionHelper.getClass(
         parentLibraryUri,

@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var lineInfo = unit.lineInfo;
     if (lineInfo.getLocation(controlEnd).lineNumber ==
         lineInfo.getLocation(offsetFirstStatement).lineNumber) {
-      rule.reportLintForToken(node.beginToken);
+      rule.reportAtToken(node.beginToken);
     }
   }
 }

@@ -309,7 +309,7 @@ class ImportsVerifier {
               var importElements = importsTracking.elementsOf(importElement);
 
               var isUsed = importElements.contains(element);
-              if (element is PropertyInducingElement2) {
+              if (element is PropertyInducingElement) {
                 isUsed =
                     importElements.contains(element.getter2) ||
                     importElements.contains(element.setter2);
@@ -334,7 +334,7 @@ class ImportsVerifier {
   void _addDuplicateShownHiddenNames(NamespaceDirective directive) {
     for (var combinator in directive.combinators) {
       // Use a Set to find duplicates in faster than O(n^2) time.
-      var identifiers = <Element2>{};
+      var identifiers = <Element>{};
       if (combinator is HideCombinator) {
         for (var name in combinator.hiddenNames) {
           var element = name.element;
@@ -396,10 +396,10 @@ class ImportsVerifier {
   }
 }
 
-/// [NamespaceDirective] with non-null imported or exported [LibraryElement2].
+/// [NamespaceDirective] with non-null imported or exported [LibraryElement].
 class _NamespaceDirective {
   final NamespaceDirective node;
-  final LibraryElement2 library;
+  final LibraryElement library;
 
   _NamespaceDirective({required this.node, required this.library});
 

@@ -45,7 +45,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
 /// the [CreateConstructorSuper] producer.
 class _CreateConstructor extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement2 _constructor;
+  final ConstructorElement _constructor;
 
   /// The class in which the constructor will be added.
   final ClassDeclaration _targetClass;

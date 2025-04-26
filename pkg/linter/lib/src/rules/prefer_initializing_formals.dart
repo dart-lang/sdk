@@ -32,13 +32,13 @@ Iterable<ConstructorFieldInitializer>
 _getConstructorFieldInitializersInInitializers(ConstructorDeclaration node) =>
     node.initializers.whereType<ConstructorFieldInitializer>();
 
-Element2? _getLeftElement(AssignmentExpression assignment) =>
+Element? _getLeftElement(AssignmentExpression assignment) =>
     assignment.writeElement2?.canonicalElement2;
 
 Iterable<FormalParameterElement?> _getParameters(ConstructorDeclaration node) =>
     node.parameters.parameters.map((e) => e.declaredFragment?.element);
 
-Element2? _getRightElement(AssignmentExpression assignment) =>
+Element? _getRightElement(AssignmentExpression assignment) =>
     assignment.rightHandSide.canonicalElement;
 
 class PreferInitializingFormals extends LintRule {
@@ -72,8 +72,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var parameters = _getParameters(node);
-    var parametersUsedOnce = <Element2?>{};
-    var parametersUsedMoreThanOnce = <Element2?>{};
+    var parametersUsedOnce = <Element?>{};
+    var parametersUsedMoreThanOnce = <Element?>{};
 
     bool isAssignmentExpressionToLint(AssignmentExpression assignment) {
       var leftElement = _getLeftElement(assignment);
@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           rightElement != null &&
           leftElement.name3 == rightElement.name3 &&
           !leftElement.isPrivate &&
-          leftElement is FieldElement2 &&
+          leftElement is FieldElement &&
           !leftElement.isSynthetic &&
           leftElement.enclosingElement2 ==
               node.declaredFragment?.element.enclosingElement2 &&
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
 
-    void processElement(Element2? element) {
+    void processElement(Element? element) {
       if (!parametersUsedOnce.add(element)) {
         parametersUsedMoreThanOnce.add(element);
       }

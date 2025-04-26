@@ -20,11 +20,11 @@ import 'analyzer.dart';
 import 'util/dart_type_utilities.dart';
 
 class EnumLikeClassDescription {
-  final Map<DartObject, Set<FieldElement2>> _enumConstants;
+  final Map<DartObject, Set<FieldElement>> _enumConstants;
   EnumLikeClassDescription(this._enumConstants);
 
   /// Returns a fresh map of the class's enum-like constant values.
-  Map<DartObject, Set<FieldElement2>> get enumConstants => {..._enumConstants};
+  Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
 }
 
 extension AstNodeExtension on AstNode {
@@ -88,7 +88,7 @@ extension AstNodeExtension on AstNode {
 }
 
 extension AstNodeNullableExtension on AstNode? {
-  Element2? get canonicalElement {
+  Element? get canonicalElement {
     var self = this;
     if (self is Expression) {
       var node = self.unParenthesized;
@@ -143,9 +143,9 @@ extension BlockExtension on Block {
   }
 }
 
-extension ClassElementExtension on ClassElement2 {
+extension ClassElementExtension on ClassElement {
   bool get hasImmutableAnnotation {
-    var inheritedAndSelfElements = <InterfaceElement2>[
+    var inheritedAndSelfElements = <InterfaceElement>[
       ...allSupertypes.map((t) => t.element3),
       this,
     ];
@@ -206,7 +206,7 @@ extension ClassElementExtension on ClassElement2 {
 
     // And 2 or more static const fields whose type is the enclosing class.
     var enumConstantCount = 0;
-    var enumConstants = <DartObject, Set<FieldElement2>>{};
+    var enumConstants = <DartObject, Set<FieldElement>>{};
     for (var field in fields2) {
       // Ensure static const.
       if (field.isSynthetic || !field.isConst || !field.isStatic) {
@@ -241,7 +241,7 @@ extension ClassMemberListExtension on List<ClassMember> {
       .firstWhereOrNull((node) => node.name.lexeme == name);
 }
 
-extension ConstructorElementExtension on ConstructorElement2 {
+extension ConstructorElementExtension on ConstructorElement {
   /// Returns whether `this` is the same element as the [className] constructor
   /// named [constructorName] declared in [uri].
   bool isSameAs({
@@ -258,7 +258,7 @@ extension DartTypeExtension on DartType? {
   bool extendsClass(String? className, String library) {
     var self = this;
     if (self is InterfaceType) {
-      return _extendsClass(self, <InterfaceElement2>{}, className, library);
+      return _extendsClass(self, <InterfaceElement>{}, className, library);
     }
     return false;
   }
@@ -302,7 +302,7 @@ extension DartTypeExtension on DartType? {
 
   static bool _extendsClass(
     InterfaceType? type,
-    Set<InterfaceElement2> seenElements,
+    Set<InterfaceElement> seenElements,
     String? className,
     String? library,
   ) =>
@@ -322,9 +322,9 @@ extension ElementAnnotationExtension on ElementAnnotation {
   };
 }
 
-extension ElementExtension on Element2? {
-  Element2? get canonicalElement2 => switch (this) {
-    PropertyAccessorElement2(:var variable3?) => variable3,
+extension ElementExtension on Element? {
+  Element? get canonicalElement2 => switch (this) {
+    PropertyAccessorElement(:var variable3?) => variable3,
     _ => this,
   };
 
@@ -359,11 +359,11 @@ extension ExpressionExtension on Expression {
     if (elementName == null) return false;
 
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return false;
+    if (enclosingElement is! InterfaceElement) return false;
 
     var superTypes = enclosingElement.allSupertypes;
     var superMembers =
-        element is MethodElement2
+        element is MethodElement
             ? superTypes.map((t) => t.getMethod2(elementName))
             : superTypes.map((t) => t.getGetter2(elementName));
     return superMembers.any((e) => e.hasAwaitNotRequired);
@@ -407,7 +407,7 @@ extension ExpressionNullableExtension on Expression? {
         return ancestor.staticType;
       case ConstructorFieldInitializer():
         var fieldElement = ancestor.fieldName.element;
-        return (fieldElement is VariableElement2) ? fieldElement.type : null;
+        return (fieldElement is VariableElement) ? fieldElement.type : null;
       case ExpressionFunctionBody(parent: var function)
           when function is FunctionExpression:
         // Allow `<int, LinkedHashSet>{}.putIfAbsent(3, () => LinkedHashSet())`
@@ -504,18 +504,18 @@ extension FunctionBodyExtension on FunctionBody? {
 extension InhertanceManager3Extension on InheritanceManager3 {
   /// Returns the class member that is overridden by [member], if there is one,
   /// as defined by [getInherited].
-  ExecutableElement2? overriddenMember(Element2? member) {
+  ExecutableElement? overriddenMember(Element? member) {
     var executable = switch (member) {
-      FieldElement2() => member.getter2,
-      MethodElement2() => member,
-      PropertyAccessorElement2() => member,
+      FieldElement() => member.getter2,
+      MethodElement() => member,
+      PropertyAccessorElement() => member,
       _ => null,
     };
 
     if (executable == null) return null;
 
     var interfaceElement = executable.enclosingElement2;
-    if (interfaceElement is! InterfaceElement2) return null;
+    if (interfaceElement is! InterfaceElement) return null;
 
     var nameObj = Name.forElement(executable);
     if (nameObj == null) return null;
@@ -524,13 +524,13 @@ extension InhertanceManager3Extension on InheritanceManager3 {
   }
 }
 
-extension InstanceElementExtension on InstanceElement2 {
+extension InstanceElementExtension on InstanceElement {
   bool get isReflectiveTest =>
-      this is ClassElement2 &&
+      this is ClassElement &&
       metadata2.annotations.any((a) => a.isReflectiveTest);
 }
 
-extension InterfaceElementExtension on InterfaceElement2 {
+extension InterfaceElementExtension on InterfaceElement {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
   bool isExactly(String name, Uri uri) =>
@@ -543,7 +543,7 @@ extension InterfaceTypeExtension on InterfaceType {
   Iterable<InterfaceType> get implementedInterfaces {
     void searchSupertypes(
       InterfaceType? type,
-      Set<InterfaceElement2> alreadyVisited,
+      Set<InterfaceElement> alreadyVisited,
       List<InterfaceType> interfaceTypes,
     ) {
       if (type == null || !alreadyVisited.add(type.element3)) {
@@ -564,7 +564,7 @@ extension InterfaceTypeExtension on InterfaceType {
     return interfaceTypes;
   }
 
-  GetterElement? getGetter2(String name, {LibraryElement2? library}) =>
+  GetterElement? getGetter2(String name, {LibraryElement? library}) =>
       getters.firstWhereOrNull(
         (s) => s.name3 == name && (library == null || (s.library2 == library)),
       );
@@ -588,7 +588,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     if (name == null) return false;
 
     var parentElement = element?.enclosingElement2;
-    if (parentElement is! InterfaceElement2) return false;
+    if (parentElement is! InterfaceElement) return false;
 
     var parentLibrary = parentElement.library2;
 
@@ -613,13 +613,11 @@ extension MethodDeclarationExtension on MethodDeclaration {
   bool hasInheritedMethod(InheritanceManager3 inheritanceManager) =>
       lookUpInheritedMethod(inheritanceManager) != null;
 
-  MethodElement2? lookUpInheritedMethod(
-    InheritanceManager3 inheritanceManager,
-  ) {
+  MethodElement? lookUpInheritedMethod(InheritanceManager3 inheritanceManager) {
     var declaredElement = declaredFragment?.element;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement2;
-      if (parent is InterfaceElement2) {
+      if (parent is InterfaceElement) {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;
         var inherited = inheritanceManager.getInherited4(parent, methodName);

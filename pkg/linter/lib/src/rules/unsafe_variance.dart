@@ -61,20 +61,20 @@ class _UnsafeVarianceChecker extends VarianceChecker {
     }
   }
 
-  bool owningDeclarationSupportsVariance(Element2 element) {
+  bool owningDeclarationSupportsVariance(Element element) {
     var parent = element.enclosingElement2;
     while (parent != null) {
       switch (parent) {
-        case InstanceElement2():
-          if (parent is ClassElement2 ||
-              parent is MixinElement2 ||
-              parent is EnumElement2) {
+        case InstanceElement():
+          if (parent is ClassElement ||
+              parent is MixinElement ||
+              parent is EnumElement) {
             return true;
           }
-          if (parent is ExtensionTypeElement2 || parent is ExtensionElement2) {
+          if (parent is ExtensionTypeElement || parent is ExtensionElement) {
             return false;
           }
-        case ExecutableElement2():
+        case ExecutableElement():
           return false;
       }
       parent = parent.enclosingElement2;

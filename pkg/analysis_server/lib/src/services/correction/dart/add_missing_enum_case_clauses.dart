@@ -45,7 +45,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
       var enumElement = expressionType.element3;
-      if (enumElement is EnumElement2) {
+      if (enumElement is EnumElement) {
         enumName = enumElement.name3;
         for (var field in enumElement.fields2) {
           if (field.isEnumConstant) {
@@ -122,7 +122,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
   /// Return the shortest prefix for the [element], or an empty String if not
   /// found.
-  String _importPrefix(Element2 element) {
+  String _importPrefix(Element element) {
     var shortestPrefix = '';
     for (var directive in unit.directives) {
       if (directive is ImportDirective) {

@@ -57,7 +57,7 @@ class DuplicateDefinitionVerifier {
   /// Check that the given list of variable declarations does not define
   /// multiple variables of the same name.
   void checkForVariables(VariableDeclarationListImpl node) {
-    var definedNames = <String, Element2>{};
+    var definedNames = <String, Element>{};
     for (var variable in node.variables) {
       _checkDuplicateIdentifier(
         definedNames,
@@ -69,7 +69,7 @@ class DuplicateDefinitionVerifier {
 
   /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterListImpl node) {
-    var definedNames = <String, Element2>{};
+    var definedNames = <String, Element>{};
     for (var parameter in node.parameters) {
       var identifier = parameter.name;
       if (identifier != null) {
@@ -90,7 +90,7 @@ class DuplicateDefinitionVerifier {
 
   /// Check that all of the variables have unique names.
   void checkStatements(List<StatementImpl> statements) {
-    var definedNames = <String, Element2>{};
+    var definedNames = <String, Element>{};
     for (var statement in statements) {
       if (statement is VariableDeclarationStatementImpl) {
         for (var variable in statement.variables.variables) {
@@ -122,7 +122,7 @@ class DuplicateDefinitionVerifier {
 
   /// Check that all of the parameters have unique names.
   void checkTypeParameters(TypeParameterListImpl node) {
-    var definedNames = <String, Element2>{};
+    var definedNames = <String, Element>{};
     for (var parameter in node.typeParameters) {
       _checkDuplicateIdentifier(
         definedNames,
@@ -135,8 +135,8 @@ class DuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void checkUnit(CompilationUnitImpl node) {
     var fragment = node.declaredFragment!;
-    var definedGetters = <String, Element2>{};
-    var definedSetters = <String, Element2>{};
+    var definedGetters = <String, Element>{};
+    var definedSetters = <String, Element>{};
 
     void addWithoutChecking(LibraryFragment libraryFragment) {
       for (var fragment in libraryFragment.getters) {
@@ -275,10 +275,10 @@ class DuplicateDefinitionVerifier {
   /// in one of the scopes - [getterScope] or [setterScope], and produce an
   /// error if it is.
   void _checkDuplicateIdentifier(
-    Map<String, Element2> getterScope,
+    Map<String, Element> getterScope,
     Token identifier, {
-    required Element2? element,
-    Map<String, Element2>? setterScope,
+    required Element? element,
+    Map<String, Element>? setterScope,
   }) {
     if (identifier.isSynthetic) {
       return;
@@ -301,9 +301,9 @@ class DuplicateDefinitionVerifier {
       return;
     }
 
-    ErrorCode getError(Element2 previous, Element2 current) {
-      if (previous is FieldFormalParameterElement2 &&
-          current is FieldFormalParameterElement2) {
+    ErrorCode getError(Element previous, Element current) {
+      if (previous is FieldFormalParameterElement &&
+          current is FieldFormalParameterElement) {
         return CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER;
       }
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;

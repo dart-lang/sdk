@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment?.element;
-    if (declaredElement is! FieldFormalParameterElement2) return;
+    if (declaredElement is! FieldFormalParameterElement) return;
 
     var field = declaredElement.field2;
     if (field == null) return;

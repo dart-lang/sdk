@@ -25,7 +25,7 @@ class InferredTypeTest extends PubPackageResolutionTest {
     return getFile('${sdkRoot.posixPath}/lib/async/async.dart');
   }
 
-  LibraryElement2 get _resultLibraryElement {
+  LibraryElement get _resultLibraryElement {
     return result.libraryElement2;
   }
 

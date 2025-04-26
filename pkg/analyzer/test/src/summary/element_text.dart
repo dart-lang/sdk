@@ -78,10 +78,10 @@ class ElementTextConfiguration {
           return true;
         case ClassElementImpl():
           return classNames.contains(o.name);
-        case ClassElement2():
+        case ClassElement():
           return classNames.contains(o.name3);
         case ConstructorFragment():
-        case ConstructorElement2():
+        case ConstructorElement():
           return true;
       }
       return false;
@@ -99,19 +99,19 @@ class ElementTextConfiguration {
       switch (o) {
         case LibraryFragment():
           return false;
-        case ClassElement2():
+        case ClassElement():
           return classNames.contains(o.name3);
-        case ConstructorElement2():
+        case ConstructorElement():
           return false;
-        case EnumElement2():
+        case EnumElement():
           return enumNames.contains(o.name3);
-        case ExtensionTypeElement2():
+        case ExtensionTypeElement():
           return extensionTypeNames.contains(o.name3);
-        case FieldElement2():
+        case FieldElement():
           return fieldNames.isEmpty || fieldNames.contains(o.name3);
-        case MixinElement2():
+        case MixinElement():
           return mixinNames.contains(o.name3);
-        case PropertyAccessorElement2():
+        case PropertyAccessorElement():
           return false;
       }
       return true;
@@ -339,7 +339,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _assertNonSyntheticElementSelf(Element2 element) {
+  void _assertNonSyntheticElementSelf(Element element) {
     expect(element.isSynthetic, isFalse);
     expect(element.nonSynthetic2, same(element));
   }
@@ -356,7 +356,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeConstructorElement(ConstructorElement2 e) {
+  void _writeConstructorElement(ConstructorElement e) {
     e as ConstructorElementImpl2;
 
     // Check that the reference exists, and filled with the element.
@@ -474,9 +474,9 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeElementList<E extends Element2>(
+  void _writeElementList<E extends Element>(
     String name,
-    Element2 expectedEnclosingElement,
+    Element expectedEnclosingElement,
     List<E> elements,
     void Function(E) write,
   ) {
@@ -488,7 +488,7 @@ class _Element2Writer extends _AbstractElementWriter {
           if (element is LibraryImport || element is LibraryExport) {
             // These are only accidentally subtypes of `Element2` and don't have
             // an enclosing element.
-          } else if (element is PrefixElement2) {
+          } else if (element is PrefixElement) {
             // Asking a `PrefixElement2` for it's enclosing element currently
             // throws an exception (because it doesn't have an enclosing
             // element, only an enclosing fragment).
@@ -504,12 +504,12 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeElementName(Element2 e) {
+  void _writeElementName(Element e) {
     var name = e.name3 ?? '<null-name>';
     _sink.write(name);
 
     switch (e) {
-      case MethodElement2():
+      case MethodElement():
         if (e.name3 == '-' && e.formalParameters.isEmpty) {
           expect(e.lookupName, 'unary-');
         } else {
@@ -526,7 +526,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeElementReference(String name, Element2? e) {
+  void _writeElementReference(String name, Element? e) {
     if (!configuration.withReferences) {
       return;
     }
@@ -538,7 +538,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _elementPrinter.writeNamedElement2(name, e);
   }
 
-  void _writeExportNamespace(LibraryElement2 e) {
+  void _writeExportNamespace(LibraryElement e) {
     var map = e.exportNamespace.definedNames2;
     var sortedEntries = map.entries.sortedBy((entry) => entry.key);
     for (var entry in sortedEntries) {
@@ -940,9 +940,9 @@ class _Element2Writer extends _AbstractElementWriter {
     var variable = e.variable3;
     if (variable != null) {
       var variableEnclosing = variable.enclosingElement2;
-      if (variableEnclosing is LibraryElement2) {
+      if (variableEnclosing is LibraryElement) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
-      } else if (variableEnclosing is InterfaceElement2) {
+      } else if (variableEnclosing is InterfaceElement) {
         // TODO(augmentations): Remove the invocations of `field.baseElement`.
         //  There shouldn't be any members in the list of fields.
         expect(
@@ -1074,7 +1074,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeInstanceElement(InstanceElementImpl2 e) {
-    expect(e.thisOrAncestorOfType2<InstanceElement2>(), same(e));
+    expect(e.thisOrAncestorOfType2<InstanceElement>(), same(e));
     expect(e.thisOrAncestorOfType2<GetterElement>(), isNull);
     expect(e.thisOrAncestorMatching2((_) => true), same(e));
     expect(e.thisOrAncestorMatching2((_) => false), isNull);
@@ -1129,7 +1129,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeTypeParameterElement,
       );
 
-      void writeSupertype(InterfaceElement2 e) {
+      void writeSupertype(InterfaceElement e) {
         if (e.supertype case var supertype?) {
           if (supertype.element3.name3 != 'Object' || e.mixins.isNotEmpty) {
             _writeType('supertype', supertype);
@@ -1252,7 +1252,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentList('fields', f, f.fields2, _writeFieldFragment);
       if (f is InterfaceFragment) {
         var constructors = f.constructors2;
-        if (f is MixinElement2) {
+        if (f is MixinElement) {
           expect(constructors, isEmpty);
         } else if (configuration.withConstructors) {
           _writeFragmentList(
@@ -1500,9 +1500,9 @@ class _Element2Writer extends _AbstractElementWriter {
     var variable = e.variable3;
     if (variable != null) {
       var variableEnclosing = variable.enclosingElement2;
-      if (variableEnclosing is LibraryElement2) {
+      if (variableEnclosing is LibraryElement) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
-      } else if (variableEnclosing is InterfaceElement2) {
+      } else if (variableEnclosing is InterfaceElement) {
         // TODO(augmentations): Remove the invocations of `field.baseElement`.
         //  There shouldn't be any members in the list of fields.
         expect(
@@ -1625,7 +1625,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeSinceSdkVersion(Element2 element) {
+  void _writeSinceSdkVersion(Element element) {
     if (element case HasSinceSdkVersion hasSince) {
       var version = hasSince.sinceSdkVersion;
       if (version != null) {
@@ -1831,7 +1831,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
   }
 
-  void _writeTypeAliasElement(TypeAliasElement2 e) {
+  void _writeTypeAliasElement(TypeAliasElement e) {
     _sink.writeIndentedLine(() {
       // _sink.writeIf(e.isAugmentation, 'augment ');
       // _sink.writeIf(e.isFunctionTypeAliasBased, 'functionTypeAliasBased ');
@@ -1913,7 +1913,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeTypeParameterElement(TypeParameterElement2 e) {
+  void _writeTypeParameterElement(TypeParameterElement e) {
     _sink.writeIndentedLine(() {
       // _sink.write('${e.variance.name} ');
       _writeElementName(e);

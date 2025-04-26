@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Elements in this set are part of the public APIs of their respective
   /// packages, so it is safe for a part of the analyzer public API to refer to
   /// them.
-  late Set<Element2> importedPublicElements;
+  late Set<Element> importedPublicElements;
 
   _Visitor(this.rule);
 
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkMember(Fragment fragment) {
     if (fragment is ConstructorFragment &&
-        fragment.element.enclosingElement2 is EnumElement2) {
+        fragment.element.enclosingElement2 is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
       // aren't public API.
       return;
@@ -345,10 +345,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Called during [visitCompilationUnit] to compute the value of
   /// [importedPublicElements].
-  static Set<Element2> _computeImportedPublicElements(
+  static Set<Element> _computeImportedPublicElements(
     CompilationUnit compilationUnit,
   ) {
-    var elements = <Element2>{};
+    var elements = <Element>{};
     for (var directive in compilationUnit.directives) {
       if (directive is! ImportDirective) continue;
       var libraryImport = directive.libraryImport!;
@@ -369,9 +369,9 @@ extension on String {
   bool get isPublic => !startsWith('_');
 }
 
-extension on Element2 {
+extension on Element {
   bool get isInAnalyzerPublicApi {
-    if (this case PropertyAccessorElement2(
+    if (this case PropertyAccessorElement(
       isSynthetic: true,
       :var variable3?,
     ) when variable3.isInAnalyzerPublicApi) {
@@ -404,7 +404,7 @@ extension on Element2 {
         // in practice it doesn't matter (we don't expect to have multiple
         // declarations of this annotation that we need to distinguish), and the
         // advantage of not checking the URI is that unit testing is easier.
-        element3: InterfaceElement2(name3: 'AnalyzerPublicApi'),
+        element3: InterfaceElement(name3: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

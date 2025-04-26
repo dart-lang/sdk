@@ -37,11 +37,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   late CorrectionUtils utils;
 
-  ClassElement2? classBuildContext;
-  ClassElement2? classKey;
-  ClassElement2? classStatelessWidget;
-  ClassElement2? classWidget;
-  PropertyAccessorElement2? accessorRequired;
+  ClassElement? classBuildContext;
+  ClassElement? classKey;
+  ClassElement? classStatelessWidget;
+  ClassElement? classWidget;
+  PropertyAccessorElement? accessorRequired;
 
   @override
   late String name;
@@ -50,7 +50,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   ClassDeclaration? _enclosingClassNode;
 
   /// If [offset] is in a class, the element of this class, `null` otherwise.
-  ClassElement2? _enclosingClassElement;
+  ClassElement? _enclosingClassElement;
 
   /// The [CompilationUnitMember] that encloses the [offset].
   CompilationUnitMember? _enclosingUnitMember;
@@ -244,7 +244,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> _initializeClasses() async {
     var result = RefactoringStatus();
 
-    Future<ClassElement2?> getClass(String name) async {
+    Future<ClassElement?> getClass(String name) async {
       var element = await sessionHelper.getFlutterClass(name);
       if (element == null) {
         result.addFatalError("Unable to find '$name' in $widgetsUri");
@@ -252,7 +252,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       return element;
     }
 
-    Future<PropertyAccessorElement2?> getAccessor(
+    Future<PropertyAccessorElement?> getAccessor(
       String uri,
       String name,
     ) async {
@@ -577,7 +577,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 }
 
 class _MethodInvocationsCollector extends RecursiveAstVisitor<void> {
-  final ExecutableElement2 methodElement;
+  final ExecutableElement methodElement;
   final List<MethodInvocation> invocations = [];
 
   _MethodInvocationsCollector(this.methodElement);
@@ -610,14 +610,14 @@ class _Parameter {
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {
-  final InterfaceElement2? enclosingClass;
+  final InterfaceElement? enclosingClass;
   final SourceRange expressionRange;
 
   final RefactoringStatus status = RefactoringStatus();
-  final Set<Element2> uniqueElements = <Element2>{};
+  final Set<Element> uniqueElements = <Element>{};
   final List<_Parameter> parameters = [];
 
-  List<InterfaceElement2>? enclosingClasses;
+  List<InterfaceElement>? enclosingClasses;
 
   _ParametersCollector(this.enclosingClass, this.expressionRange);
 
@@ -630,13 +630,13 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
     var elementName = element.displayName;
 
     DartType? type;
-    if (element is MethodElement2) {
+    if (element is MethodElement) {
       if (_isMemberOfEnclosingClass(element)) {
         status.addError(
           'Reference to an enclosing class method cannot be extracted.',
         );
       }
-    } else if (element is LocalVariableElement2) {
+    } else if (element is LocalVariableElement) {
       if (!expressionRange.contains(element.firstFragment.nameOffset)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");
@@ -644,7 +644,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
           type = element.type;
         }
       }
-    } else if (element is PropertyAccessorElement2) {
+    } else if (element is PropertyAccessorElement) {
       var field = element.variable3;
       if (field == null) {
         return;
@@ -667,11 +667,11 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is a member of the [enclosingClass]
   /// or one of its supertypes, interfaces, or mixins.
-  bool _isMemberOfEnclosingClass(Element2 element) {
+  bool _isMemberOfEnclosingClass(Element element) {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
       var enclosingClasses =
-          this.enclosingClasses ??= <InterfaceElement2>[
+          this.enclosingClasses ??= <InterfaceElement>[
             enclosingClass,
             ...enclosingClass.allSupertypes.map((t) => t.element3),
           ];

@@ -48,7 +48,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
     }
 
     var classElement = declaredFragment?.element;
-    if (classElement is! InterfaceElement2) return;
+    if (classElement is! InterfaceElement) return;
 
     var parentMethod = inheritanceManager.getInherited4(
       classElement,
@@ -108,7 +108,7 @@ class _Collector extends RecursiveAstVisitor<void> {
     super.visitVariableDeclaration(node);
   }
 
-  void _addNameToken(Token? nameToken, Element2? element) {
+  void _addNameToken(Token? nameToken, Element? element) {
     if (error) return;
 
     if (nameToken != null) {

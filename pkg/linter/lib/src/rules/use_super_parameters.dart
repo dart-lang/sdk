@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var parameter in parameters.parameters) {
       var parameterElement = parameter.declaredFragment?.element;
       if (parameterElement == null) continue;
-      if (parameterElement is FieldFormalParameterElement2) continue;
+      if (parameterElement is FieldFormalParameterElement) continue;
       if (parameterElement.isNamed &&
           !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
@@ -128,7 +128,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// there are parameters that can't be converted since this will short-circuit
   /// the lint.
   List<String>? _checkForConvertiblePositionalParams(
-    ConstructorElement2 constructorElement,
+    ConstructorElement constructorElement,
     SuperConstructorInvocation superInvocation,
     FormalParameterList parameters,
     Set<FormalParameterElement> referencedParameters,
@@ -148,7 +148,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var convertibleConstructorParams = <String>[];
     var matchedConstructorParamIndex = 0;
 
-    var seenSuperParams = <Element2>{};
+    var seenSuperParams = <Element>{};
 
     // For each super arg, ensure there is a constructor param (in the right
     // order).
@@ -196,7 +196,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _checkNamedParameter(
     FormalParameter parameter,
     FormalParameterElement parameterElement,
-    ConstructorElement2 superConstructor,
+    ConstructorElement superConstructor,
     SuperConstructorInvocation superInvocation,
   ) {
     var superParameter = _correspondingNamedParameter(
@@ -237,7 +237,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   FormalParameterElement? _correspondingNamedParameter(
-    ConstructorElement2 superConstructor,
+    ConstructorElement superConstructor,
     FormalParameterElement thisParameter,
   ) {
     for (var superParameter in superConstructor.formalParameters) {

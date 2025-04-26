@@ -918,7 +918,7 @@ class B implements A {
   }
 
   void _assertFieldType(
-    FieldElement2 field,
+    FieldElement field,
     String type, {
     bool isCovariant = false,
   }) {
@@ -932,7 +932,7 @@ class B implements A {
     }
   }
 
-  void _assertFieldTypeDynamic(FieldElement2 field) {
+  void _assertFieldTypeDynamic(FieldElement field) {
     expect(field.isSynthetic, isFalse);
 
     _assertGetterTypeDynamic(field.getter2);

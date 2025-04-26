@@ -14,7 +14,7 @@ sealed class CallDescriptor {
 /// Call descriptor for a call that resolves to a specific element (i.e., a
 /// non-dynamic call).
 class ElementCallDescriptor extends CallDescriptor {
-  final ExecutableElement2 element;
+  final ExecutableElement element;
 
   @override
   final List<DartType> typeArguments;
@@ -26,7 +26,7 @@ class ElementCallDescriptor extends CallDescriptor {
 
   @override
   String toString() => switch (element.enclosingElement2) {
-    InstanceElement2(name3: var typeName) =>
+    InstanceElement(name3: var typeName) =>
       '${typeName ?? '<unnamed>'}.${element.name3!}',
     _ => element.name3!,
   };

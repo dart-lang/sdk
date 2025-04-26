@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null || keyword.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(keyword);
+      rule.reportAtToken(keyword);
     }
   }
 
@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constKeyword == null) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(constKeyword);
+      rule.reportAtToken(constKeyword);
     }
   }
 
@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constKeyword == null || constKeyword.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLintForToken(constKeyword);
+      rule.reportAtToken(constKeyword);
     }
   }
 }

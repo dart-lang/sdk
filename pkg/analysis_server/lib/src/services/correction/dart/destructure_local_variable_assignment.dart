@@ -253,7 +253,7 @@ abstract class RecordField {
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
-  final LocalVariableElement2? element;
+  final LocalVariableElement? element;
   final objectReferences = <AstNode>[];
   final propertyReferences = <String, List<AstNode>>{};
 
@@ -288,7 +288,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 }
 
-extension on LocalVariableElement2 {
+extension on LocalVariableElement {
   ({
     List<AstNode> objectReferences,
     Map<String, List<AstNode>> propertyReferences,

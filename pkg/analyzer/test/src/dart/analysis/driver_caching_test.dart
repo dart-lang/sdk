@@ -371,7 +371,7 @@ void f() {
 }
 
 extension on AnalysisDriver {
-  bool isValidLibraryElement(LibraryElement2 element) {
+  bool isValidLibraryElement(LibraryElement element) {
     return identical(element.session, currentSession);
   }
 }

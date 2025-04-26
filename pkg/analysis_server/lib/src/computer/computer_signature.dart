@@ -38,14 +38,14 @@ class DartUnitSignatureComputer {
     }
     var (argumentList, argument) = argumentAndList;
     String? name;
-    Element2? element;
+    Element? element;
     List<FormalParameterElement>? parameters;
     var parent = argumentList.parent;
     if (parent is MethodInvocation) {
       name = parent.methodName.name;
       element = ElementLocator.locate2(parent);
       parameters =
-          element is FunctionTypedElement2 ? element.formalParameters : null;
+          element is FunctionTypedElement ? element.formalParameters : null;
     } else if (parent is InstanceCreationExpression) {
       name = parent.constructorName.type.qualifiedName;
       var constructorName = parent.constructorName.name;
@@ -54,7 +54,7 @@ class DartUnitSignatureComputer {
       }
       element = ElementLocator.locate2(parent);
       parameters =
-          element is FunctionTypedElement2 ? element.formalParameters : null;
+          element is FunctionTypedElement ? element.formalParameters : null;
     } else if (parent case FunctionExpressionInvocation(
       function: Identifier function,
     )) {
@@ -64,7 +64,7 @@ class DartUnitSignatureComputer {
         // Standard function expression.
         element = function.element;
         parameters = functionType.formalParameters;
-      } else if (parent.element case ExecutableElement2 executableElement) {
+      } else if (parent.element case ExecutableElement executableElement) {
         // Callable class instance (where we'll look at the `call` method).
         element = executableElement;
         parameters = executableElement.formalParameters;

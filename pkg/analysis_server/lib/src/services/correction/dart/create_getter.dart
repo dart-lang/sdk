@@ -23,7 +23,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
   /// Adds the declaration that makes a [fieldName] available.
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,
-    required InterfaceElement2? targetElement,
+    required InterfaceElement? targetElement,
     required String fieldName,
     required DartType? fieldType,
   });
@@ -103,7 +103,7 @@ class CreateGetter extends CreateFieldOrGetter {
   @override
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,
-    required InterfaceElement2? targetElement,
+    required InterfaceElement? targetElement,
     required String fieldName,
     required DartType? fieldType,
   }) async {
@@ -142,11 +142,11 @@ class CreateGetter extends CreateFieldOrGetter {
     }
     // prepare target element
     var staticModifier = false;
-    InstanceElement2? targetElement;
+    InstanceElement? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.element2;
-    } else if (target is Identifier && target.element is ExtensionElement2) {
-      targetElement = target.element as InstanceElement2?;
+    } else if (target is Identifier && target.element is ExtensionElement) {
+      targetElement = target.element as InstanceElement?;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type
@@ -185,7 +185,7 @@ class CreateGetter extends CreateFieldOrGetter {
   Future<void> _addDeclaration({
     required ChangeBuilder builder,
     required bool staticModifier,
-    required InstanceElement2? targetElement,
+    required InstanceElement? targetElement,
     required DartType? fieldType,
   }) async {
     if (targetElement == null) {

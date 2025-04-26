@@ -22,7 +22,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   final RefactoringWorkspace workspace;
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
-  final ExecutableElement2 element;
+  final ExecutableElement element;
 
   late SourceChange change;
 
@@ -57,10 +57,10 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       await _updateElementReferences(element);
     }
     // MethodElement
-    if (element is MethodElement2) {
+    if (element is MethodElement) {
       var elements = await getHierarchyMembers(searchEngine, element);
-      await Future.forEach(elements, (Element2 element) async {
-        await _updateElementDeclaration(element as ExecutableElement2);
+      await Future.forEach(elements, (Element element) async {
+        await _updateElementDeclaration(element as ExecutableElement);
         return _updateElementReferences(element);
       });
     }
@@ -82,7 +82,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
 
     // check Element type
-    if (element is! MethodElement2 && element is! TopLevelFunctionElement) {
+    if (element is! MethodElement && element is! TopLevelFunctionElement) {
       return RefactoringStatus.fatal(
         'Only methods or top-level functions can be converted to getters.',
       );
@@ -103,7 +103,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     return RefactoringStatus();
   }
 
-  Future<void> _updateElementDeclaration(ExecutableElement2 element) async {
+  Future<void> _updateElementDeclaration(ExecutableElement element) async {
     // prepare parameters
     FormalParameterList? parameters;
     for (
@@ -136,7 +136,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
   }
 
-  Future<void> _updateElementReferences(Element2 element) async {
+  Future<void> _updateElementReferences(Element element) async {
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {

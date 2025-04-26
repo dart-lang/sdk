@@ -75,8 +75,8 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 }
 
 extension AstNodeExtension on AstNode {
-  /// Returns [ExtensionElement2] declared by an enclosing node.
-  ExtensionElement2? get enclosingExtensionElement {
+  /// Returns [ExtensionElement] declared by an enclosing node.
+  ExtensionElement? get enclosingExtensionElement {
     for (var node in withParents) {
       if (node is ExtensionDeclaration) {
         return node.declaredFragment?.element;
@@ -97,8 +97,8 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
-  /// Returns [InterfaceElement2] declared by an enclosing node.
-  InterfaceElement2? get enclosingInterfaceElement {
+  /// Returns [InterfaceElement] declared by an enclosing node.
+  InterfaceElement? get enclosingInterfaceElement {
     for (var node in withParents) {
       if (node is ClassDeclaration) {
         return node.declaredFragment?.element;
@@ -200,7 +200,7 @@ extension AstNodeExtension on AstNode {
   /// this work-around.
   ///
   /// Returns `null` if `this` is `null` or doesn't have an element.
-  Element2? getElement({bool useMockForImport = false}) {
+  Element? getElement({bool useMockForImport = false}) {
     AstNode? node = this;
     if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
       node = node.parent;
@@ -212,7 +212,7 @@ extension AstNodeExtension on AstNode {
       return null;
     }
 
-    Element2? element;
+    Element? element;
     if (useMockForImport && node is ImportDirective) {
       element = MockLibraryImportElement(node.libraryImport!);
     } else {
@@ -220,7 +220,7 @@ extension AstNodeExtension on AstNode {
     }
     if (useMockForImport &&
         node is SimpleIdentifier &&
-        element is PrefixElement2) {
+        element is PrefixElement) {
       element = MockLibraryImportElement(getImportElement(node)!);
     }
     return element;
@@ -305,8 +305,8 @@ extension DeclaredVariablePatternExtension on DeclaredVariablePattern {
 }
 
 extension DirectiveExtension on Directive {
-  /// If the target imports or exports a [LibraryElement2], returns it.
-  LibraryElement2? get referencedLibrary {
+  /// If the target imports or exports a [LibraryElement], returns it.
+  LibraryElement? get referencedLibrary {
     switch (this) {
       case ExportDirective directive:
         return directive.libraryExport?.exportedLibrary2;
@@ -375,21 +375,21 @@ extension MethodInvocationExtension on MethodInvocation {
   /// from either Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethodInvocation {
     var element = methodName.element;
-    return element is MethodElement2 && element.isCastMethod;
+    return element is MethodElement && element.isCastMethod;
   }
 
   /// Returns whether this expression is an invocation of the method `toList`
   /// from `Iterable`.
   bool get isToListMethodInvocation {
     var element = methodName.element;
-    return element is MethodElement2 && element.isToListMethod;
+    return element is MethodElement && element.isToListMethod;
   }
 
   /// Returns whether this expression is an invocation of the method `toSet`
   /// from `Iterable`.
   bool get isToSetMethodInvocation {
     var element = methodName.element;
-    return element is MethodElement2 && element.isToSetMethod;
+    return element is MethodElement && element.isToSetMethod;
   }
 }
 

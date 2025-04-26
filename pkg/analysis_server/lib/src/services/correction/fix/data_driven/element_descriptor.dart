@@ -142,7 +142,7 @@ class ElementDescriptor {
           if (type == null && target is SimpleIdentifier) {
             var element = target.element;
             // TODO(brianwilkerson): Handle more than `InterfaceElement`.
-            if (element is InterfaceElement2) {
+            if (element is InterfaceElement) {
               type = element.thisType;
             }
           }

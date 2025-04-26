@@ -60,7 +60,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
     // Should be in a class or mixin.
     List<ClassMember> classMembers;
-    InterfaceElement2 parentElement;
+    InterfaceElement parentElement;
     var parent = fieldDeclaration.parent;
     switch (parent) {
       case ClassDeclaration():
@@ -170,7 +170,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
   void _updateReferencesInConstructor(
     DartFileEditBuilder builder,
     ConstructorDeclaration constructor,
-    FieldElement2 fieldElement,
+    FieldElement fieldElement,
     String name,
     String fieldTypeCode,
   ) {
@@ -178,7 +178,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       var identifier = parameter.name;
       var parameterElement = parameter.declaredFragment?.element;
       if (identifier != null &&
-          parameterElement is FieldFormalParameterElement2 &&
+          parameterElement is FieldFormalParameterElement &&
           parameterElement.field2 == fieldElement) {
         if (parameter.isNamed && parameter is DefaultFormalParameter) {
           var normalParam = parameter.parameter;
@@ -215,7 +215,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
   void _updateReferencesInConstructors(
     DartFileEditBuilder builder,
     List<ClassMember> classMembers,
-    FieldElement2 fieldElement,
+    FieldElement fieldElement,
     String name,
     String fieldTypeCode,
   ) {

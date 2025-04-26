@@ -79,7 +79,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final RecordTypeAnnotationResolver _recordTypeResolver;
 
   /// This index is incremented every time we visit a [LibraryDirective].
-  /// There is just one [LibraryElement2], so we can support only one node.
+  /// There is just one [LibraryElement], so we can support only one node.
   int _libraryDirectiveIndex = 0;
 
   /// The provider of pre-built children elements from the element being
@@ -201,7 +201,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
         arguments: [name],
       );
-    } else if (!(element is LocalVariableElement2 ||
+    } else if (!(element is LocalVariableElement ||
         element is FormalParameterElement)) {
       _errorReporter.atToken(
         node.name,
@@ -999,7 +999,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           _labelScope,
           labelNameNode.name,
           unlabeled,
-          labelNameNode.element as LabelElement2,
+          labelNameNode.element as LabelElement,
         );
       }
       unlabeled.accept(this);
@@ -1570,14 +1570,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.elementAnnotation = element;
   }
 
-  void _define(Element2 element) {
+  void _define(Element element) {
     if (_nameScope case LocalScope nameScope) {
       nameScope.add(element);
     }
   }
 
   /// Define given [elements] in the [_nameScope].
-  void _defineElements(List<Element2> elements) {
+  void _defineElements(List<Element> elements) {
     int length = elements.length;
     for (int i = 0; i < length; i++) {
       var element = elements[i];
@@ -1698,9 +1698,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var element = type.element3;
     switch (element) {
-      case ClassElement2():
+      case ClassElement():
         return;
-      case MixinElement2():
+      case MixinElement():
         if (clause is ImplementsClause ||
             clause is MixinOnClause ||
             clause is WithClause) {
@@ -2024,7 +2024,7 @@ class _VariableBinderErrors
     required covariant LogicalOrPatternImpl node,
     required bool hasInLeft,
     required String name,
-    required PromotableElement2 variable,
+    required PromotableElement variable,
   }) {
     visitor._errorReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,

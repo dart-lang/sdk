@@ -66,7 +66,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (fileBuilder) {
       fileBuilder.insertIntoUnitMember(classDecl, (builder) {
-        ExecutableElement2? element;
+        ExecutableElement? element;
         if (missingEquals) {
           _memberName = '==';
           element = inheritanceManager.getInherited4(
@@ -109,8 +109,8 @@ class CreateMethod extends ResolvedCorrectionProducer {
           return;
         }
       }
-    } else if (target is Identifier && target.element is ExtensionElement2) {
-      targetFragment = (target.element as ExtensionElement2).firstFragment;
+    } else if (target is Identifier && target.element is ExtensionElement) {
+      targetFragment = (target.element as ExtensionElement).firstFragment;
       if (targetFragment is ExtensionFragment) {
         targetNode = await getExtensionDeclaration(targetFragment);
         if (targetNode == null) {
@@ -141,16 +141,16 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
       // Prepare target ClassDeclaration.
-      if (targetClassElement is MixinElement2) {
+      if (targetClassElement is MixinElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getMixinDeclaration(fragment);
-      } else if (targetClassElement is ClassElement2) {
+      } else if (targetClassElement is ClassElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getClassDeclaration(fragment);
-      } else if (targetClassElement is ExtensionTypeElement2) {
+      } else if (targetClassElement is ExtensionTypeElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getExtensionTypeDeclaration(fragment);
-      } else if (targetClassElement is EnumElement2) {
+      } else if (targetClassElement is EnumElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getEnumDeclaration(fragment);
       }

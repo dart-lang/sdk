@@ -21,7 +21,7 @@ class DiagnosticFactory {
   /// as a previous [original] node in a pattern assignment.
   AnalysisError duplicateAssignmentPatternVariable({
     required Source source,
-    required PromotableElement2 variable,
+    required PromotableElement variable,
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
@@ -47,8 +47,8 @@ class DiagnosticFactory {
   /// already used by [originalElement].
   AnalysisError duplicateDefinition(
     ErrorCode code,
-    Element2 duplicateElement,
-    Element2 originalElement,
+    Element duplicateElement,
+    Element originalElement,
     List<Object> arguments,
   ) {
     var duplicate = duplicateElement.nonSynthetic2;
@@ -316,8 +316,8 @@ class DiagnosticFactory {
     Source source,
     ErrorCode errorCode,
     SyntacticEntity errorNode,
-    ExecutableElement2 member,
-    ExecutableElement2 superMember,
+    ExecutableElement member,
+    ExecutableElement superMember,
     String memberName,
   ) {
     // Elements enclosing members that can participate in overrides are always
@@ -367,7 +367,7 @@ class DiagnosticFactory {
   AnalysisError referencedBeforeDeclaration(
     Source source, {
     required Token nameToken,
-    required Element2 element2,
+    required Element element2,
   }) {
     String name = nameToken.lexeme;
     List<DiagnosticMessage>? contextMessages;

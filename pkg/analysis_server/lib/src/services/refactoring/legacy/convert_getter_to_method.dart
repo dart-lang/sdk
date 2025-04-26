@@ -50,18 +50,18 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     change = SourceChange(refactoringName);
     // function
-    if (element.enclosingElement2 is LibraryElement2) {
+    if (element.enclosingElement2 is LibraryElement) {
       await _updateElementDeclaration(element);
       await _updateElementReferences(element);
     }
     // method
     var field = element.variable3;
-    if (field is FieldElement2 &&
-        (field.enclosingElement2 is InterfaceElement2 ||
-            field.enclosingElement2 is ExtensionElement2)) {
+    if (field is FieldElement &&
+        (field.enclosingElement2 is InterfaceElement ||
+            field.enclosingElement2 is ExtensionElement)) {
       var elements = await getHierarchyMembers(searchEngine, field);
-      await Future.forEach(elements, (Element2 member) async {
-        if (member is FieldElement2) {
+      await Future.forEach(elements, (Element member) async {
+        if (member is FieldElement) {
           var getter = member.getter2;
           if (getter != null && !getter.isSynthetic) {
             await _updateElementDeclaration(getter);
@@ -136,7 +136,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     }
   }
 
-  Future<void> _updateElementReferences(Element2 element) async {
+  Future<void> _updateElementReferences(Element element) async {
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {

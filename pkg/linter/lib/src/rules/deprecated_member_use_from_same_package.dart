@@ -52,11 +52,11 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   @override
   void reportError2(
     SyntacticEntity errorEntity,
-    Element2 element,
+    Element element,
     String displayName,
     String? message,
   ) {
-    var library = element is LibraryElement2 ? element : element.library2;
+    var library = element is LibraryElement ? element : element.library2;
     if (library == null ||
         !_workspacePackage.contains(library.firstFragment.source)) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.

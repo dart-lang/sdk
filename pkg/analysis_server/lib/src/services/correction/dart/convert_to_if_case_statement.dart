@@ -180,7 +180,7 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
 class _DeclaredVariable {
   final VariableDeclarationStatement statement;
   final VariableDeclaration declaration;
-  final LocalVariableElement2 element;
+  final LocalVariableElement element;
   final Expression initializer;
 
   _DeclaredVariable({
@@ -196,7 +196,7 @@ class _DeclaredVariable {
 }
 
 class _ReferenceVisitor extends RecursiveAstVisitor<void> {
-  final LocalVariableElement2 element;
+  final LocalVariableElement element;
   bool hasReference = false;
 
   _ReferenceVisitor(this.element);
@@ -240,7 +240,7 @@ extension on Statement {
     }
 
     var declaredElement = declaration.declaredElement2;
-    if (declaredElement is! LocalVariableElement2) {
+    if (declaredElement is! LocalVariableElement) {
       return null;
     }
 

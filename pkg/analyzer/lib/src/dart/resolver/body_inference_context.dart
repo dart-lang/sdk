@@ -170,7 +170,7 @@ class BodyInferenceContext {
     );
   }
 
-  static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement2 element) {
+  static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement element) {
     var elementType = type.asInstanceOf2(element);
     return elementType?.typeArguments[0];
   }

@@ -83,10 +83,10 @@ class _CiderDartFixContextImpl extends DartFixContext {
   }) : super(instrumentationService: InstrumentationService.NULL_SERVICE);
 
   @override
-  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
     String name,
   ) async {
-    var result = <LibraryElement2, Element2>{};
+    var result = <LibraryElement, Element>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {
       var kind = file.kind;
@@ -101,5 +101,5 @@ class _CiderDartFixContextImpl extends DartFixContext {
   }
 
   @override
-  Stream<LibraryElement2> librariesWithExtensions(Name memberName) async* {}
+  Stream<LibraryElement> librariesWithExtensions(Name memberName) async* {}
 }

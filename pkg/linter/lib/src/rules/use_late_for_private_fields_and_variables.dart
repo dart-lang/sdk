@@ -48,7 +48,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   final Map<LibraryFragment, List<VariableDeclaration>> lateables =
       <LibraryFragment, List<VariableDeclaration>>{};
 
-  final Set<Element2> nullableAccess = <Element2>{};
+  final Set<Element> nullableAccess = <Element>{};
 
   final LintRule rule;
   final LinterContext context;
@@ -190,7 +190,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   /// [PropertyAccess], and its [canonicalElement], represent a nullable access.
   void _visitIdentifierOrPropertyAccess(
     Expression expression,
-    Element2? canonicalElement,
+    Element? canonicalElement,
   ) {
     assert(expression is Identifier || expression is PropertyAccess);
     if (canonicalElement == null) return;

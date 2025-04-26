@@ -61,7 +61,7 @@ class AddLate extends ResolvedCorrectionProducer {
       var getter = node.writeOrReadElement2;
       if (getter is GetterElement &&
           getter.isSynthetic &&
-          getter.enclosingElement2 is InterfaceElement2) {
+          getter.enclosingElement2 is InterfaceElement) {
         var variableElement = getter.variable3;
         if (variableElement != null &&
             !variableElement.isSynthetic &&

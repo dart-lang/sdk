@@ -7,12 +7,12 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
-        ExtensionElement2,
-        InterfaceElement2,
-        LibraryElement2,
+        ExtensionElement,
+        InterfaceElement,
+        LibraryElement,
         LibraryFragment,
-        PrefixElement2,
-        PropertyAccessorElement2;
+        PrefixElement,
+        PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -93,7 +93,7 @@ class ElementMatcher {
           }
           var element =
               (parent as CompilationUnitMember).declaredFragment?.element;
-          if (element is! InterfaceElement2) {
+          if (element is! InterfaceElement) {
             return false;
           }
           var types = element.allSupertypes.map((e) => e.element3.name3);
@@ -412,7 +412,7 @@ class _MatcherBuilder {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var prefix = node.prefix;
-    if (prefix.element is PrefixElement2) {
+    if (prefix.element is PrefixElement) {
       var parent = node.parent;
       if ((parent is NamedType && parent.parent is! ConstructorName) ||
           (parent is PropertyAccess && parent.target == node)) {
@@ -459,7 +459,7 @@ class _MatcherBuilder {
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.
     var container = node.prefix.element;
-    if (container is InterfaceElement2) {
+    if (container is InterfaceElement) {
       _addMatcher(
         components: [node.identifier.name, container.name3!],
         kinds: const [
@@ -471,7 +471,7 @@ class _MatcherBuilder {
           ElementKind.setterKind,
         ],
       );
-    } else if (container is ExtensionElement2) {
+    } else if (container is ExtensionElement) {
       _addMatcher(
         components: [node.identifier.name, container.displayName],
         kinds: const [
@@ -545,9 +545,9 @@ class _MatcherBuilder {
         var element = node.element;
         // Add enclosing element to the matcher for non top level property
         // accessors when possible.
-        if (element is PropertyAccessorElement2) {
+        if (element is PropertyAccessorElement) {
           var enclosingElement = element.enclosingElement2;
-          if (enclosingElement is! LibraryElement2) {
+          if (enclosingElement is! LibraryElement) {
             _addMatcher(
               components: [node.name, enclosingElement.displayName],
               kinds: [],
@@ -587,9 +587,9 @@ class _MatcherBuilder {
     }
     if (element != null) {
       var enclosingElement = element.enclosingElement2;
-      if (enclosingElement is InterfaceElement2) {
+      if (enclosingElement is InterfaceElement) {
         return [identifier.name, enclosingElement.name3!];
-      } else if (enclosingElement is ExtensionElement2) {
+      } else if (enclosingElement is ExtensionElement) {
         var name = enclosingElement.name3;
         if (name != null) {
           return [identifier.name, name];
@@ -601,7 +601,7 @@ class _MatcherBuilder {
 
   /// Returns `true` if the [node] is a prefix.
   static bool _isPrefix(AstNode? node) {
-    return node is SimpleIdentifier && node.element is PrefixElement2;
+    return node is SimpleIdentifier && node.element is PrefixElement;
   }
 
   /// Returns the name of the class associated with the given [target].

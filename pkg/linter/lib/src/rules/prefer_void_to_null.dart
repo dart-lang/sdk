@@ -122,6 +122,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (declaration?.isAugmentation ?? false) return;
     }
 
-    rule.reportLintForToken(node.name2);
+    rule.reportAtToken(node.name2);
   }
 }

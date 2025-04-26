@@ -360,7 +360,7 @@ mixin ErrorDetectionHelpers {
             type,
             Name.forLibrary(
               type.element3.library2,
-              MethodElement2.CALL_METHOD_NAME,
+              MethodElement.CALL_METHOD_NAME,
             ),
           )
           .ifTypeOrNull();
@@ -371,10 +371,10 @@ mixin ErrorDetectionHelpers {
 
   /// Return the variable element represented by the given [expression], or
   /// `null` if there is no such element.
-  VariableElement2? getVariableElement(Expression? expression) {
+  VariableElement? getVariableElement(Expression? expression) {
     if (expression is Identifier) {
       var element = expression.element;
-      if (element is VariableElement2) {
+      if (element is VariableElement) {
         return element;
       }
     }

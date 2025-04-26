@@ -71,7 +71,7 @@ class DocumentColorPresentationHandler
   Future<ColorPresentation> _createColorPresentation({
     required ResolvedUnitResult unit,
     required SourceRange editRange,
-    required InterfaceElement2 colorType,
+    required InterfaceElement colorType,
     required String typeName,
     required String invocationString,
     required bool includeConstKeyword,
@@ -250,8 +250,8 @@ class DocumentColorPresentationHandler
           parent is PrefixedIdentifier ? parent.element : node.element;
 
       return switch (element) {
-        PropertyAccessorElement2(:var variable3) => variable3?.isConst ?? false,
-        VariableElement2() => element.isConst,
+        PropertyAccessorElement(:var variable3) => variable3?.isConst ?? false,
+        VariableElement() => element.isConst,
         _ => false,
       };
     } else {

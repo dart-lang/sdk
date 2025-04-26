@@ -24,7 +24,7 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
   const UnknownInferredType._();
 
   @override
-  Element2? get element3 => null;
+  Element? get element3 => null;
 
   @override
   int get hashCode => 1;

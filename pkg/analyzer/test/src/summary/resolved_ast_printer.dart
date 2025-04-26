@@ -1820,7 +1820,7 @@ Expected parent: (${parent.runtimeType}) $parent
     });
   }
 
-  void _writeElement2(String name, Element2? element) {
+  void _writeElement2(String name, Element? element) {
     if (_withResolution) {
       _elementPrinter.writeNamedElement2(name, element);
     }
@@ -2116,11 +2116,11 @@ class ResolvedNodeTextConfiguration {
   /// If `true`, [Expression.correspondingParameter] should be printed.
   bool withParameterElements = true;
 
-  /// If `true`, `redirectedConstructor` properties of [ConstructorElement2]s
+  /// If `true`, `redirectedConstructor` properties of [ConstructorElement]s
   /// should be printer.
   bool withRedirectedConstructors = false;
 
-  /// If `true`, `superConstructor` properties of [ConstructorElement2]s
+  /// If `true`, `superConstructor` properties of [ConstructorElement]s
   /// should be printer.
   bool withSuperConstructors = false;
 

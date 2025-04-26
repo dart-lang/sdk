@@ -11,14 +11,14 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
-class MockLibraryImportElement implements Element2, PrefixFragment {
+class MockLibraryImportElement implements Element, PrefixFragment {
   final LibraryImportElementImpl import;
 
   MockLibraryImportElement(LibraryImport import)
     : import = import as LibraryImportElementImpl;
 
   @override
-  LibraryElement2 get enclosingElement2 => library2;
+  LibraryElement get enclosingElement2 => library2;
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
@@ -110,7 +110,7 @@ extension ConstructorElementMixinExtension on ConstructorElementMixin {
   }
 }
 
-extension Element2Extension on Element2 {
+extension Element2Extension on Element {
   /// Whether the element is effectively [internal].
   bool get isInternal {
     if (this case Annotatable annotatable) {
@@ -118,7 +118,7 @@ extension Element2Extension on Element2 {
         return true;
       }
     }
-    if (this case PropertyAccessorElement2 accessor) {
+    if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable3;
       if (variable != null && variable.metadata2.hasInternal) {
         return true;
@@ -130,8 +130,8 @@ extension Element2Extension on Element2 {
   /// Whether the element is effectively [protected].
   bool get isProtected {
     var self = this;
-    if (self is PropertyAccessorElement2 &&
-        self.enclosingElement2 is InterfaceElement2) {
+    if (self is PropertyAccessorElement &&
+        self.enclosingElement2 is InterfaceElement) {
       if (self.metadata2.hasProtected) {
         return true;
       }
@@ -140,8 +140,8 @@ extension Element2Extension on Element2 {
         return true;
       }
     }
-    if (self is MethodElement2 &&
-        self.enclosingElement2 is InterfaceElement2 &&
+    if (self is MethodElement &&
+        self.enclosingElement2 is InterfaceElement &&
         self.metadata2.hasProtected) {
       return true;
     }
@@ -155,7 +155,7 @@ extension Element2Extension on Element2 {
         return true;
       }
     }
-    if (this case PropertyAccessorElement2 accessor) {
+    if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable3;
       if (variable != null && variable.metadata2.hasVisibleForTesting) {
         return true;
@@ -181,7 +181,7 @@ extension ElementImplExtension on ElementImpl {
 }
 
 extension ElementOrNullExtension on ElementImpl? {
-  Element2? get asElement2 {
+  Element? get asElement2 {
     var self = this;
     if (self == null) {
       return null;
@@ -190,9 +190,9 @@ extension ElementOrNullExtension on ElementImpl? {
     } else if (self is ExtensionElementImpl) {
       return (self as ExtensionFragment).element;
     } else if (self is ExecutableMember) {
-      return self as ExecutableElement2;
+      return self as ExecutableElement;
     } else if (self is FieldMember) {
-      return self as FieldElement2;
+      return self as FieldElement;
     } else if (self is FieldElementImpl) {
       return (self as FieldFragment).element;
     } else if (self is FunctionElementImpl) {
@@ -226,7 +226,7 @@ extension EnumElementImplExtension on EnumElementImpl {
   }
 }
 
-extension ExecutableElement2Extension on ExecutableElement2 {
+extension ExecutableElement2Extension on ExecutableElement {
   ExecutableElementOrMember get asElement {
     if (this case ExecutableMember member) {
       return member;
@@ -399,7 +399,7 @@ extension LibraryFragmentExtension on LibraryFragment {
   }
 }
 
-extension ListOfTypeParameterElement2Extension on List<TypeParameterElement2> {
+extension ListOfTypeParameterElement2Extension on List<TypeParameterElement> {
   List<TypeParameterType> instantiateNone() {
     return map((e) {
       return e.instantiate(nullabilitySuffix: NullabilitySuffix.none);
@@ -505,7 +505,7 @@ extension PropertyAccessorElementOrMemberExtension
   }
 }
 
-extension PropertyInducingElementExtension on PropertyInducingElement2 {
+extension PropertyInducingElementExtension on PropertyInducingElement {
   bool get definesSetter {
     if (isConst) {
       return false;
@@ -560,7 +560,7 @@ extension TypeAliasElementImplExtension on TypeAliasElementImpl {
   }
 }
 
-extension TypeParameterElement2Extension on TypeParameterElement2 {
+extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl2 freshCopy() {
     var fragment = TypeParameterElementImpl(name3 ?? '', -1);
     fragment.bound = bound;

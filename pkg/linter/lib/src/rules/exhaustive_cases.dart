@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expressionType is InterfaceType) {
       var interfaceElement = expressionType.element3;
       // Handled in analyzer.
-      if (interfaceElement is! ClassElement2) {
+      if (interfaceElement is! ClassElement) {
         return;
       }
       var enumDescription = interfaceElement.asEnumLikeClass();
@@ -61,12 +61,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
         if (expression is Identifier) {
           var variable = expression.element.variableElement;
-          if (variable is VariableElement2) {
+          if (variable is VariableElement) {
             enumConstants.remove(variable.computeConstantValue());
           }
         } else if (expression is PropertyAccess) {
           var variable = expression.propertyName.element.variableElement;
-          if (variable is VariableElement2) {
+          if (variable is VariableElement) {
             enumConstants.remove(variable.computeConstantValue());
           }
         }
@@ -92,8 +92,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on Element2? {
-  Element2? get variableElement {
+extension on Element? {
+  Element? get variableElement {
     var self = this;
     if (self is GetterElement) {
       var variable = self.variable3;

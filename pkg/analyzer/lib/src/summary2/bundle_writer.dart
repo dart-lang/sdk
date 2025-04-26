@@ -723,7 +723,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
   // TODO(scheglov): Triage places where we write elements.
   // Some of then cannot be members, e.g. type names.
-  void writeElement2(Element2? element) {
+  void writeElement2(Element? element) {
     if (element case Member element) {
       var baseElement = element.baseElement;
 
@@ -851,7 +851,7 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void _writeElement2(Element2? element) {
+  void _writeElement2(Element? element) {
     switch (element) {
       case null:
       case MultiplyDefinedElementImpl2():
@@ -886,7 +886,7 @@ class ResolutionSink extends _SummaryDataWriter {
     writeUInt30(elementIndex);
   }
 
-  void _writeElementList2(List<Element2> elements) {
+  void _writeElementList2(List<Element> elements) {
     writeUInt30(elements.length);
     for (var element in elements) {
       writeElement2(element);
@@ -1005,8 +1005,8 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   static List<DartType> _enclosingClassTypeArguments(
-    Element2 declaration,
-    Map<TypeParameterElement2, DartType> substitution,
+    Element declaration,
+    Map<TypeParameterElement, DartType> substitution,
   ) {
     // TODO(scheglov): Just keep it null in class Member?
     if (substitution.isEmpty) {
@@ -1014,7 +1014,7 @@ class ResolutionSink extends _SummaryDataWriter {
     }
 
     var enclosing = declaration.enclosingElement2;
-    if (enclosing is InstanceElement2) {
+    if (enclosing is InstanceElement) {
       var typeParameters = enclosing.typeParameters2;
       if (typeParameters.isEmpty) {
         return const <DartType>[];

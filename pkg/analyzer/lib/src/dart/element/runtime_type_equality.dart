@@ -193,8 +193,8 @@ class RuntimeTypeEqualityVisitor
   /// returns a [_TypeParametersResult] indicating the substitutions necessary
   /// to demonstrate their equality.  If they aren't, returns `null`.
   _TypeParametersResult? _typeParameters(
-    List<TypeParameterElement2> T1_parameters,
-    List<TypeParameterElement2> T2_parameters,
+    List<TypeParameterElement> T1_parameters,
+    List<TypeParameterElement> T2_parameters,
   ) {
     if (T1_parameters.length != T2_parameters.length) {
       return null;

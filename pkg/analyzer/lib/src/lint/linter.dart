@@ -57,7 +57,7 @@ abstract class LinterContext {
   /// The library element representing the library that contains the compilation
   /// unit being linted.
   @experimental
-  LibraryElement2? get libraryElement2;
+  LibraryElement? get libraryElement2;
 
   /// The package in which the library being analyzed lives, or `null` if it
   /// does not live in a package.
@@ -102,7 +102,7 @@ final class LinterContextWithParsedResults implements LinterContext {
 
   @experimental
   @override
-  LibraryElement2 get libraryElement2 =>
+  LibraryElement get libraryElement2 =>
       throw UnsupportedError(
         'LinterContext with parsed results does not include a LibraryElement',
       );
@@ -172,7 +172,7 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @experimental
   @override
-  LibraryElement2 get libraryElement2 => definingUnit.libraryFragment.element;
+  LibraryElement get libraryElement2 => definingUnit.libraryFragment.element;
 }
 
 /// Describes a lint rule.
@@ -359,7 +359,7 @@ abstract class LintRule {
     errorCode: errorCode,
   );
 
-  // TODO(srawlins): Deprecate this in favor of [reportToken].
+  @Deprecated('Use reportAtToken')
   void reportLintForToken(
     Token token, {
     List<Object> arguments = const [],

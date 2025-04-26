@@ -38,8 +38,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       var type = mixinNode.type;
       if (type is InterfaceType) {
         var element = type.element3;
-        if (element is MixinElement2) continue;
-        if (element is ClassElement2 && !element.isMixinClass) {
+        if (element is MixinElement) continue;
+        if (element is ClassElement && !element.isMixinClass) {
           rule.reportLint(mixinNode, arguments: [mixinNode.name2.lexeme]);
         }
       }

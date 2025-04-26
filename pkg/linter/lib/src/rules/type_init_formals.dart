@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (nodeType == null) return;
 
     var paramElement = node.declaredFragment?.element;
-    if (paramElement is! FieldFormalParameterElement2) return;
+    if (paramElement is! FieldFormalParameterElement) return;
 
     var field = paramElement.field2;
     // If no such field exists, the code is invalid; do not report lint.
@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (nodeType == null) return;
 
     var paramElement = node.declaredFragment?.element;
-    if (paramElement is! SuperFormalParameterElement2) return;
+    if (paramElement is! SuperFormalParameterElement) return;
 
     var superConstructorParameter = paramElement.superConstructorParameter2;
     if (superConstructorParameter == null) return;

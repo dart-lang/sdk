@@ -44,13 +44,13 @@ abstract class VarianceChecker {
         var arguments = typeAnnotation.typeArguments?.arguments;
         if (arguments != null) {
           var element = typeAnnotation.element2?.baseElement;
-          List<TypeParameterElement2>? typeParameterList;
+          List<TypeParameterElement>? typeParameterList;
           if (element != null) {
             switch (element) {
-              case ClassElement2(:var typeParameters2):
-              case MixinElement2(:var typeParameters2):
-              case EnumElement2(:var typeParameters2):
-              case TypeAliasElement2(:var typeParameters2):
+              case ClassElement(:var typeParameters2):
+              case MixinElement(:var typeParameters2):
+              case EnumElement(:var typeParameters2):
+              case TypeAliasElement(:var typeParameters2):
                 typeParameterList = typeParameters2;
               default:
                 typeParameterList = null;

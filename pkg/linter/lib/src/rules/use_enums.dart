@@ -34,7 +34,7 @@ class UseEnums extends LintRule {
 /// A superclass for the [_EnumVisitor] and [_NonEnumVisitor].
 class _BaseVisitor extends RecursiveAstVisitor<void> {
   /// The element representing the enum declaration that's being visited.
-  final ClassElement2 classElement;
+  final ClassElement classElement;
 
   _BaseVisitor(this.classElement);
 
@@ -161,7 +161,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (!member.isStatic) continue;
         for (var field in member.fields.variables) {
           var fieldElement = field.declaredFragment?.element;
-          if (fieldElement is! FieldElement2) continue;
+          if (fieldElement is! FieldElement) continue;
           if (field.isSynthetic || !field.isConst) continue;
           var initializer = field.initializer;
           if (initializer is! InstanceCreationExpression) continue;
@@ -196,6 +196,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLintForToken(node.name);
+    rule.reportAtToken(node.name);
   }
 }

@@ -37,7 +37,7 @@ class ExpectedLocation {
 
 @reflectiveTest
 class IndexTest extends PubPackageResolutionTest with _IndexMixin {
-  void assertElementIndexText(Element2 element, String expected) {
+  void assertElementIndexText(Element element, String expected) {
     var actual = _getRelationsText(element);
     if (actual != expected) {
       print(actual);
@@ -2777,7 +2777,7 @@ void f() {
     return buffer.toString();
   }
 
-  String _getRelationsText(Element2 element) {
+  String _getRelationsText(Element element) {
     var lineInfo = result.lineInfo;
     var elementId = _findElementId(element);
 
@@ -2939,7 +2939,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   /// Return the [element] identifier in [index] or fail.
-  int _findElementId(Element2 element) {
+  int _findElementId(Element element) {
     var unitId = _getUnitId(element);
 
     // Prepare the element that was put into the index.
@@ -2970,7 +2970,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return 0;
   }
 
-  int _getUnitId(Element2 element) {
+  int _getUnitId(Element element) {
     var unitElement = getUnitElement(element);
     return index.getLibraryFragmentId(unitElement);
   }

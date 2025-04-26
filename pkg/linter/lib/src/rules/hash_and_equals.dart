@@ -49,21 +49,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (eq == null) {
       if (!node.hasMethod('==')) {
         if (hash is MethodDeclaration) {
-          rule.reportLintForToken(hash.name, arguments: ['==', 'hashCode']);
+          rule.reportAtToken(hash.name, arguments: ['==', 'hashCode']);
         } else if (hash is FieldDeclaration) {
           var hashCodeFieldName = getFieldName(hash, 'hashCode');
           if (hashCodeFieldName == null) return;
-          rule.reportLintForToken(
-            hashCodeFieldName,
-            arguments: ['==', 'hashCode'],
-          );
+          rule.reportAtToken(hashCodeFieldName, arguments: ['==', 'hashCode']);
         }
       }
     }
 
     if (hash == null) {
       if (!node.hasField('hashCode') && !node.hasMethod('hashCode')) {
-        rule.reportLintForToken(eq!.name, arguments: ['hashCode', '==']);
+        rule.reportAtToken(eq!.name, arguments: ['hashCode', '==']);
       }
     }
   }
@@ -76,6 +73,6 @@ extension on ClassDeclaration {
       declaredFragment?.element.methods2.namedOrNull(name) != null;
 }
 
-extension<E extends Element2> on List<E> {
+extension<E extends Element> on List<E> {
   E? namedOrNull(String name) => firstWhereOrNull((e) => e.name3 == name);
 }

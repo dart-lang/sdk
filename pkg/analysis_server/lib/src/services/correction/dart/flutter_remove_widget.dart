@@ -161,7 +161,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
 }
 
 class _UsageFinder extends RecursiveAstVisitor<void> {
-  final Element2 element;
+  final Element element;
   bool used = false;
 
   _UsageFinder(this.element);

@@ -58,8 +58,8 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String? getAliasedTypeString(engine.Element2 element) {
-  if (element is engine.TypeAliasElement2) {
+String? getAliasedTypeString(engine.Element element) {
+  if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     return aliasedType.getDisplayString();
   }
@@ -68,8 +68,8 @@ String? getAliasedTypeString(engine.Element2 element) {
 
 /// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
 /// a color.
-String? getColorHexString(engine.Element2? element) {
-  if (element is engine.VariableElement2) {
+String? getColorHexString(engine.Element? element) {
+  if (element is engine.VariableElement) {
     var dartValue = element.computeConstantValue();
     if (dartValue != null) {
       var color = ColorComputer.getColorForObject(dartValue);
@@ -85,17 +85,17 @@ String? getColorHexString(engine.Element2? element) {
   return null;
 }
 
-String? getReturnTypeString(engine.Element2 element) {
-  if (element is engine.ExecutableElement2) {
+String? getReturnTypeString(engine.Element element) {
+  if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
       return element.returnType.getDisplayString();
     }
-  } else if (element is engine.VariableElement2) {
+  } else if (element is engine.VariableElement) {
     var type = element.type;
     return type.getDisplayString();
-  } else if (element is engine.TypeAliasElement2) {
+  } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       var returnType = aliasedType.returnType;
@@ -236,8 +236,8 @@ DiagnosticMessage newDiagnosticMessage(
   );
 }
 
-/// Create a Location based on an [engine.Element2].
-Location? newLocation_fromElement(engine.Element2? element) {
+/// Create a Location based on an [engine.Element].
+Location? newLocation_fromElement(engine.Element? element) {
   if (element == null) {
     return null;
   }
@@ -297,7 +297,7 @@ Location newLocation_fromUnit(
 }
 
 /// Construct based on an element from the analyzer engine.
-OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
+OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   var element = convertElement(member);
   var className = member.enclosingElement2!.displayName;
   return OverriddenMember(element, className);
@@ -344,7 +344,7 @@ SourceEdit newSourceEdit_range(
   return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
-List<Element> _computePath(engine.Element2 element) {
+List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
   for (var fragment in element.firstFragment.withAncestors) {
     if (fragment is engine.LibraryFragment) {
@@ -355,8 +355,8 @@ List<Element> _computePath(engine.Element2 element) {
   return path;
 }
 
-engine.LibraryFragment _getUnitElement(engine.Element2 element) {
-  if (element is engine.LibraryElement2) {
+engine.LibraryFragment _getUnitElement(engine.Element element) {
+  if (element is engine.LibraryElement) {
     return element.firstFragment;
   }
   var fragment = element.firstFragment.libraryFragment;

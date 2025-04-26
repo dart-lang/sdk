@@ -80,7 +80,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
       if (element != null) {
         var refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER
-        if (element is ExecutableElement2) {
+        if (element is ExecutableElement) {
           if (ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
             resolvedUnit.session,

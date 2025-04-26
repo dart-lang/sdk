@@ -36,7 +36,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       return;
     }
 
-    Element2? element;
+    Element? element;
     if (node is Declaration) {
       element = node.declaredFragment?.element;
     }
@@ -112,7 +112,7 @@ class RemoveUnusedField extends _RemoveUnused {
     }
 
     var element = declaration.declaredFragment!.element;
-    if (element is! FieldElement2) {
+    if (element is! FieldElement) {
       return;
     }
 
@@ -243,7 +243,7 @@ class RemoveUnusedField extends _RemoveUnused {
 }
 
 class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
-  final Element2 element;
+  final Element element;
   final List<AstNode> references = [];
 
   _ElementReferenceCollector(this.element);
@@ -272,11 +272,11 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
     var staticElement = node.writeOrReadElement2;
     if (staticElement == element) {
       references.add(node);
-    } else if (staticElement is PropertyAccessorElement2) {
+    } else if (staticElement is PropertyAccessorElement) {
       if (staticElement.variable3 == element) {
         references.add(node);
       }
-    } else if (staticElement is FieldFormalParameterElement2) {
+    } else if (staticElement is FieldFormalParameterElement) {
       if (staticElement.field2 == element) {
         references.add(node);
       }
@@ -287,7 +287,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 abstract class _RemoveUnused extends ResolvedCorrectionProducer {
   _RemoveUnused({required super.context});
 
-  List<AstNode> _findAllReferences(AstNode root, Element2 element) {
+  List<AstNode> _findAllReferences(AstNode root, Element element) {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);
     return collector.references;

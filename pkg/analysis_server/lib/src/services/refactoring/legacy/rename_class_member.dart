@@ -27,7 +27,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 Future<RefactoringStatus> validateCreateMethod(
   SearchEngine searchEngine,
   AnalysisSessionHelper sessionHelper,
-  InterfaceElement2 interfaceElement,
+  InterfaceElement interfaceElement,
   String name,
 ) {
   return _CreateClassMemberValidator(
@@ -40,7 +40,7 @@ Future<RefactoringStatus> validateCreateMethod(
 
 /// A [Refactoring] for renaming class members.
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
-  final InterfaceElement2 interfaceElement;
+  final InterfaceElement interfaceElement;
 
   late _RenameClassMemberValidator _validator;
 
@@ -48,14 +48,14 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     RefactoringWorkspace workspace,
     AnalysisSessionHelper sessionHelper,
     this.interfaceElement,
-    Element2 element,
+    Element element,
   ) : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
-    if (element is TypeParameterElement2) {
+    if (element is TypeParameterElement) {
       return 'Rename Type Parameter';
-    } else if (element is FieldElement2) {
+    } else if (element is FieldElement) {
       return 'Rename Field';
     }
     return 'Rename Method';
@@ -76,7 +76,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     var result = await super.checkInitialConditions();
-    if (element is MethodElement2 && (element as MethodElement2).isOperator) {
+    if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
     return result;
@@ -85,9 +85,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element is FieldElement2) {
+    if (element is FieldElement) {
       result.addStatus(validateFieldName(newName));
-    } else if (element is MethodElement2) {
+    } else if (element is MethodElement) {
       result.addStatus(validateMethodName(newName));
     }
     return result;
@@ -98,17 +98,17 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     // update declarations
     for (var renameElement in _validator.elements) {
-      if (renameElement.isSynthetic && renameElement is FieldElement2) {
+      if (renameElement.isSynthetic && renameElement is FieldElement) {
         processor.addDeclarationEdit(renameElement.getter2);
         processor.addDeclarationEdit(renameElement.setter2);
       } else {
         processor.addDeclarationEdit(renameElement);
         if (!newName.startsWith('_')) {
           var interfaceElement = renameElement.enclosingElement2;
-          if (interfaceElement is InterfaceElement2) {
+          if (interfaceElement is InterfaceElement) {
             for (var constructor in interfaceElement.constructors2) {
               for (var parameter in constructor.formalParameters) {
-                if (parameter is FieldFormalParameterElement2 &&
+                if (parameter is FieldFormalParameterElement &&
                     parameter.field2 == renameElement) {
                   await searchEngine
                       .searchReferences(parameter)
@@ -142,7 +142,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   Future<void> _addPrivateNamedFormalParameterEdit(
     SourceReference reference,
-    FieldFormalParameterElement2 element,
+    FieldFormalParameterElement element,
   ) async {
     FieldFormalParameterFragment? fragment = element.firstFragment;
     while (fragment != null) {
@@ -195,14 +195,14 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       }
 
       if (newName.startsWith('_') &&
-          element is FieldFormalParameterElement2 &&
+          element is FieldFormalParameterElement &&
           element.isNamed) {
         await _addPrivateNamedFormalParameterEdit(reference, element);
         continue;
       }
 
       if (unshadowed.contains(reference.element) &&
-          reference.element is ExecutableElement2) {
+          reference.element is ExecutableElement) {
         await _addThisEdit(reference, newName);
         continue;
       }
@@ -216,7 +216,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 class _BaseClassMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
-  final InterfaceElement2 interfaceElement;
+  final InterfaceElement interfaceElement;
   final ElementKind elementKind;
   final String name;
 
@@ -230,7 +230,7 @@ class _BaseClassMemberValidator {
     this.name,
   );
 
-  LibraryElement2 get library => interfaceElement.library2;
+  LibraryElement get library => interfaceElement.library2;
 
   void _checkClassAlreadyDeclares() {
     // check if there is a member with "newName" in the same ClassElement
@@ -250,7 +250,7 @@ class _BaseClassMemberValidator {
 
   Future<void> _checkHierarchy({
     required bool isRename,
-    required Set<InterfaceElement2> subClasses,
+    required Set<InterfaceElement> subClasses,
   }) async {
     var superClasses =
         interfaceElement.allSupertypes.map((e) => e.element3).toSet();
@@ -294,7 +294,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   _CreateClassMemberValidator(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
-    InterfaceElement2 interfaceElement,
+    InterfaceElement interfaceElement,
     String name,
   ) : super(
         searchEngine,
@@ -307,7 +307,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
-    var subClasses = <InterfaceElement2>{};
+    var subClasses = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       interfaceElement,
       subClasses,
@@ -330,7 +330,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
 
 class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
-  final List<Element2> elements = [];
+  final List<Element> elements = [];
 
   _LocalElementsCollector(this.name);
 
@@ -367,7 +367,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
     ) when node == leftHandSide) {
       element = writeElement2;
     }
-    if (element is! PropertyAccessorElement2) {
+    if (element is! PropertyAccessorElement) {
       return;
     }
     if (element.name3 != name) {
@@ -376,7 +376,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
     if (element is! GetterElement && element is! SetterElement) {
       return;
     }
-    if (element.variable3 case TopLevelVariableElement2 variable) {
+    if (element.variable3 case TopLevelVariableElement variable) {
       elements.add(variable);
     }
     super.visitSimpleIdentifier(node);
@@ -386,7 +386,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name.lexeme == name) {
       var element = node.declaredFragment?.element;
-      if (element is LocalVariableElement2) {
+      if (element is LocalVariableElement) {
         elements.add(element);
       }
     }
@@ -397,14 +397,14 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
 class _MatchShadowedBy {
   final SearchMatch match;
-  final Element2 element;
+  final Element element;
 
   _MatchShadowedBy(this.match, this.element);
 }
 
 class _MatchShadowedByLocal extends _MatchShadowedBy {
   @override
-  final LocalElement2 element;
+  final LocalElement element;
 
   _MatchShadowedByLocal(SearchMatch match, this.element)
     : super(match, element);
@@ -412,16 +412,16 @@ class _MatchShadowedByLocal extends _MatchShadowedBy {
 
 /// Helper to check if the renamed [element] will cause any conflicts.
 class _RenameClassMemberValidator extends _BaseClassMemberValidator {
-  final Element2 element;
+  final Element element;
 
-  Set<Element2> elements = {};
+  Set<Element> elements = {};
   List<SearchMatch> references = [];
   List<SearchMatch> unshadowed = [];
 
   _RenameClassMemberValidator(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
-    InterfaceElement2 elementInterface,
+    InterfaceElement elementInterface,
     this.element,
     String name,
   ) : super(searchEngine, sessionHelper, elementInterface, element.kind, name);
@@ -430,7 +430,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     _checkClassAlreadyDeclares();
     // do chained computations
     await _prepareReferences();
-    var subClasses = <InterfaceElement2>{};
+    var subClasses = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       interfaceElement,
       subClasses,
@@ -439,7 +439,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     // check shadowing of class names
     for (var element in elements) {
       var enclosingElement = element.enclosingElement2;
-      if (enclosingElement is InterfaceElement2 &&
+      if (enclosingElement is InterfaceElement &&
           enclosingElement.name3 == name) {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '
@@ -473,10 +473,10 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   }
 
   Future<_MatchShadowedBy?> _getLocalShadowingElement() async {
-    var localElementMap = <LibraryFragment, List<Element2>>{};
-    var visibleRangeMap = <Element2, SourceRange>{};
+    var localElementMap = <LibraryFragment, List<Element>>{};
+    var visibleRangeMap = <Element, SourceRange>{};
 
-    Future<List<Element2>> getLocalElements(Element2 element) async {
+    Future<List<Element>> getLocalElements(Element element) async {
       var unitFragment = element.firstFragment.libraryFragment;
       if (unitFragment == null) {
         return const [];
@@ -520,7 +520,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
-          if (localElement is LocalElement2) {
+          if (localElement is LocalElement) {
             return _MatchShadowedByLocal(match, localElement);
           }
           return _MatchShadowedBy(match, localElement);
@@ -530,10 +530,10 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     return null;
   }
 
-  /// Fills [elements] with [Element2]s to rename.
+  /// Fills [elements] with [Element]s to rename.
   Future<void> _prepareElements() async {
     var element = this.element;
-    if (element is FieldElement2 || element is MethodElement2) {
+    if (element is FieldElement || element is MethodElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
       elements = {element};
@@ -543,7 +543,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   /// Fills [references] with all references to [elements].
   Future<void> _prepareReferences() async {
     await _prepareElements();
-    await Future.forEach(elements, (Element2 element) async {
+    await Future.forEach(elements, (Element element) async {
       var elementReferences = await searchEngine.searchReferences(element);
       references.addAll(elementReferences);
     });
@@ -569,7 +569,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   }
 }
 
-extension on Element2 {
+extension on Element {
   bool get canAvoidShadowForField {
     return switch (kind) {
       ElementKind.LOCAL_VARIABLE ||
@@ -580,8 +580,8 @@ extension on Element2 {
   }
 }
 
-extension on List<Element2> {
-  List<Element2> get avoidableShadowsForField {
+extension on List<Element> {
+  List<Element> get avoidableShadowsForField {
     return where((e) => e.canAvoidShadowForField).toList();
   }
 }

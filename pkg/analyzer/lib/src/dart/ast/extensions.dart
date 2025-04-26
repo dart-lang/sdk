@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element2? _readElement2(AstNode node) {
+Element? _readElement2(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -34,7 +34,7 @@ Element2? _readElement2(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element2? _writeElement2(AstNode node) {
+Element? _writeElement2(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -199,7 +199,7 @@ extension FormalParameterExtension on FormalParameter {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
-  Element2? get readElement2 {
+  Element? get readElement2 {
     return _readElement2(this);
   }
 
@@ -212,11 +212,11 @@ extension IdentifierExtension on Identifier {
     }
   }
 
-  Element2? get writeElement2 {
+  Element? get writeElement2 {
     return _writeElement2(this);
   }
 
-  Element2? get writeOrReadElement2 {
+  Element? get writeOrReadElement2 {
     return _writeElement2(this) ?? element;
   }
 
@@ -256,7 +256,7 @@ extension IdentifierImplExtension on IdentifierImpl {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IndexExpressionExtension on IndexExpression {
-  Element2? get writeOrReadElement2 {
+  Element? get writeOrReadElement2 {
     return _writeElement2(this) ?? element;
   }
 }

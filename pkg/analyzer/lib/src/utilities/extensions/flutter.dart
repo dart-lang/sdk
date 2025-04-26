@@ -158,14 +158,14 @@ extension AstNodeExtension on AstNode? {
   }
 }
 
-extension ClassElementExtension2 on ClassElement2 {
+extension ClassElementExtension2 on ClassElement {
   /// Whether this is the Flutter class `State`.
   bool get isExactState => _isExactly(_nameState, _uriFramework);
 
   /// Whether this has the Flutter class `State` as a superclass.
   bool get isState => _hasSupertype(_uriFramework, _nameState);
 
-  /// Whether this is a [ClassElement2] that extends the Flutter class
+  /// Whether this is a [ClassElement] that extends the Flutter class
   /// `StatefulWidget`.
   bool get isStatefulWidgetDeclaration => supertype.isExactlyStatefulWidgetType;
 }
@@ -332,7 +332,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
   /// preview.
   bool get isWidgetPreview {
     var element2 = this.element2;
-    if (element2 is! ConstructorElement2) {
+    if (element2 is! ConstructorElement) {
       return false;
     }
     return element2.enclosingElement2.name3 == 'Preview' &&
@@ -445,11 +445,11 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   }
 }
 
-extension InterfaceElement2Extension on InterfaceElement2? {
+extension InterfaceElement2Extension on InterfaceElement? {
   /// Whether this is the Flutter class `Flex`, or a subtype.
   bool get isFlexWidget {
     var self = this;
-    if (self is! ClassElement2) {
+    if (self is! ClassElement) {
       return false;
     }
     if (!self.isWidget) {
@@ -464,7 +464,7 @@ extension InterfaceElement2Extension on InterfaceElement2? {
   }
 }
 
-extension InterfaceElementExtension2 on InterfaceElement2? {
+extension InterfaceElementExtension2 on InterfaceElement? {
   /// Whether this is the Flutter class `Alignment`.
   bool get isExactAlignment {
     return _isExactly('Alignment', _uriAlignment);
@@ -483,7 +483,7 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   /// Whether this is the Flutter class `Widget`, or a subtype.
   bool get isWidget {
     var self = this;
-    if (self is! ClassElement2) {
+    if (self is! ClassElement) {
       return false;
     }
     if (_isExactly(_nameWidget, _uriFramework)) {
@@ -515,7 +515,7 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   /// Whether this is the exact [type] defined in the file with the given [uri].
   bool _isExactly(String type, Uri uri) {
     var self = this;
-    return self is ClassElement2 &&
+    return self is ClassElement &&
         self.name3 == type &&
         self.firstFragment.libraryFragment.source.uri == uri;
   }

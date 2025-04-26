@@ -35,20 +35,20 @@ class DartLazyTypeHierarchyComputer {
 
   DartLazyTypeHierarchyComputer(this._result);
 
-  /// Finds subtypes for the [Element2] at [location].
+  /// Finds subtypes for the [Element] at [location].
   Future<List<TypeHierarchyRelatedItem>?> findSubtypes(
     ElementLocation location,
     SearchEngine searchEngine,
   ) async {
     var targetElement = await _findTargetElement(location);
-    if (targetElement is! InterfaceElement2) {
+    if (targetElement is! InterfaceElement) {
       return null;
     }
 
     return _getSubtypes(targetElement, searchEngine);
   }
 
-  /// Finds supertypes for the [Element2] at [location].
+  /// Finds supertypes for the [Element] at [location].
   Future<List<TypeHierarchyRelatedItem>?> findSupertypes(
     ElementLocation location,
   ) async {
@@ -76,7 +76,7 @@ class DartLazyTypeHierarchyComputer {
         (node) => _isValidTargetDeclaration(node),
       );
       var element = declaration?.declaredFragment?.element;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         type = element.thisType;
       }
     }
@@ -86,22 +86,20 @@ class DartLazyTypeHierarchyComputer {
         : null;
   }
 
-  /// Locate the [Element2] referenced by [location].
-  Future<InterfaceElement2?> _findTargetElement(
-    ElementLocation location,
-  ) async {
+  /// Locate the [Element] referenced by [location].
+  Future<InterfaceElement?> _findTargetElement(ElementLocation location) async {
     var element = await location.locateIn(_result.session);
-    return element is InterfaceElement2 ? element : null;
+    return element is InterfaceElement ? element : null;
   }
 
   /// Gets immediate subtypes for the class/mixin [target].
   Future<List<TypeHierarchyRelatedItem>> _getSubtypes(
-    InterfaceElement2 target,
+    InterfaceElement target,
     SearchEngine searchEngine,
   ) async {
     /// Helper to convert a [SearchMatch] to a [TypeHierarchyRelatedItem].
     TypeHierarchyRelatedItem? toHierarchyItem(SearchMatch match) {
-      var element = match.element as InterfaceElement2;
+      var element = match.element as InterfaceElement;
       var type = element.thisType;
       switch (match.kind) {
         case MatchKind.REFERENCE_IN_EXTENDS_CLAUSE:
@@ -122,7 +120,7 @@ class DartLazyTypeHierarchyComputer {
       target,
       SearchEngineCache(),
     );
-    var seenElements = <Element2>{};
+    var seenElements = <Element>{};
     return matches
         .where((match) => seenElements.add(match.element))
         .map(toHierarchyItem)
@@ -202,14 +200,14 @@ class TypeHierarchyItem {
   });
 
   TypeHierarchyItem._forElement({
-    required InterfaceElement2 element,
+    required InterfaceElement element,
     required this.location,
   }) : displayName = _displayNameForElement(element),
        nameRange = _nameRangeForElement(element),
        codeRange = _codeRangeForElement(element),
        file = element.firstFragment.libraryFragment.source.fullName;
 
-  static TypeHierarchyItem? forElement(InterfaceElement2 element) {
+  static TypeHierarchyItem? forElement(InterfaceElement element) {
     var location = ElementLocation.forElement(element);
     if (location == null) return null;
 
@@ -217,19 +215,19 @@ class TypeHierarchyItem {
   }
 
   /// Returns the [SourceRange] of the code for [element].
-  static SourceRange _codeRangeForElement(Element2 element) {
+  static SourceRange _codeRangeForElement(Element element) {
     // Non-synthetic elements should always have code locations.
     var firstFragment = element.nonSynthetic2.firstFragment as ElementImpl;
     return SourceRange(firstFragment.codeOffset!, firstFragment.codeLength!);
   }
 
   /// Returns a name to display in the hierarchy for [element].
-  static String _displayNameForElement(InterfaceElement2 element) {
+  static String _displayNameForElement(InterfaceElement element) {
     return element.baseElement.thisType.getDisplayString();
   }
 
   /// Returns the [SourceRange] of the name for [element].
-  static SourceRange _nameRangeForElement(Element2 element) {
+  static SourceRange _nameRangeForElement(Element element) {
     var fragment = element.nonSynthetic2.firstFragment;
 
     // Some non-synthetic items can still have invalid nameOffsets (for example
@@ -288,7 +286,7 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
   );
 
   static TypeHierarchyRelatedItem? _forElement(
-    InterfaceElement2 element, {
+    InterfaceElement element, {
     required TypeHierarchyItemRelationship relationship,
   }) {
     var location = ElementLocation.forElement(element);

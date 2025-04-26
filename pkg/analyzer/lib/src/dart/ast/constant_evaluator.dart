@@ -391,7 +391,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   /// Return the constant value of the static constant represented by the given
   /// [element].
-  Object _getConstantValue(Element2? element) {
+  Object _getConstantValue(Element? element) {
     // TODO(brianwilkerson): Implement this
     //    if (element is FieldElement) {
     //      FieldElement field = element;

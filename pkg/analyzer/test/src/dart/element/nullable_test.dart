@@ -583,7 +583,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
 
   void _checkTypeParameter(
     TypeParameterTypeImpl type, {
-    required TypeParameterElement2 element,
+    required TypeParameterElement element,
     required TypeImpl? promotedBound,
   }) {
     var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;

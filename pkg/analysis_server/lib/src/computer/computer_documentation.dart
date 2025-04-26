@@ -7,18 +7,18 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
-/// Computes documentation for an [Element2].
+/// Computes documentation for an [Element].
 class DartDocumentationComputer {
   final DartdocDirectiveInfo dartdocInfo;
 
   DartDocumentationComputer(this.dartdocInfo);
 
   Documentation? compute(
-    Element2 elementBeingDocumented, {
+    Element elementBeingDocumented, {
     bool includeSummary = false,
   }) {
     var element = switch (elementBeingDocumented) {
-      FieldFormalParameterElement2() => elementBeingDocumented.field2,
+      FieldFormalParameterElement() => elementBeingDocumented.field2,
       FormalParameterElement() => elementBeingDocumented.enclosingElement2,
       _ => elementBeingDocumented,
     };
@@ -28,8 +28,8 @@ class DartDocumentationComputer {
       return null;
     }
 
-    Element2? documentedElement;
-    Element2? documentedGetter;
+    Element? documentedElement;
+    Element? documentedGetter;
 
     // Look for documentation comments of overridden members
     var overridden = findOverriddenElements(element);
@@ -37,7 +37,7 @@ class DartDocumentationComputer {
       element,
       ...overridden.superElements,
       ...overridden.interfaceElements,
-      if (element case PropertyAccessorElement2(variable3: var variable?))
+      if (element case PropertyAccessorElement(variable3: var variable?))
         variable,
     ];
     for (var candidate in candidates) {
@@ -81,7 +81,7 @@ class DartDocumentationComputer {
   /// Compute documentation for [element] and return either the summary or full
   /// docs (or `null`) depending on `preference`.
   String? computePreferred(
-    Element2 element,
+    Element element,
     DocumentationPreference preference,
   ) {
     if (preference == DocumentationPreference.none) {

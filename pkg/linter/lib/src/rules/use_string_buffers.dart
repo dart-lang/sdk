@@ -81,7 +81,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
 
 class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final localElements = <Element2?>{};
+  final localElements = <Element?>{};
 
   _UseStringBufferVisitor(this.rule);
 

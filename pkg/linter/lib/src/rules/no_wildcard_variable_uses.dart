@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (element is! LocalVariableElement2 &&
+    if (element is! LocalVariableElement &&
         element is! FormalParameterElement) {
       return;
     }

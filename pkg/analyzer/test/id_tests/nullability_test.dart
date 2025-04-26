@@ -66,10 +66,10 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
         node.inGetterContext() &&
         !node.inDeclarationContext()) {
       var element = node.element;
-      if (element is LocalVariableElement2 ||
+      if (element is LocalVariableElement ||
           element is FormalParameterElement) {
         var promotedType = _readType(node);
-        var declaredType = (element as VariableElement2).type;
+        var declaredType = (element as VariableElement).type;
         var isPromoted = promotedType != declaredType;
         if (isPromoted &&
             _typeSystem.isPotentiallyNullable(declaredType) &&

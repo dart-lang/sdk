@@ -425,7 +425,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         );
 
         // Method to Getter
-        if (element is ExecutableElement2 &&
+        if (element is ExecutableElement &&
             ConvertMethodToGetterRefactoring(
               server.refactoringWorkspace,
               unitResult.session,

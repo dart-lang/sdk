@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Computer of local elements and source ranges in which they are visible.
 class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
-  final Map<LocalElement2, SourceRange> _map = {};
+  final Map<LocalElement, SourceRange> _map = {};
 
   @override
   void visitCatchClause(CatchClause node) {
@@ -77,15 +77,15 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     }
   }
 
-  void _addLocalVariable(AstNode scopeNode, Element2? element) {
+  void _addLocalVariable(AstNode scopeNode, Element? element) {
     // TODO(brianwilkerson): Figure out whether this should be testing for
     //  `PromotableElement`. The test is missing parameter elements.
-    if (element is LocalElement2) {
+    if (element is LocalElement) {
       _map[element] = range.node(scopeNode);
     }
   }
 
-  static Map<LocalElement2, SourceRange> forNode(AstNode unit) {
+  static Map<LocalElement, SourceRange> forNode(AstNode unit) {
     var computer = VisibleRangesComputer();
     unit.accept(computer);
     return computer._map;

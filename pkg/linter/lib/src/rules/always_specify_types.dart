@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void checkLiteral(TypedLiteral literal) {
     if (literal.typeArguments == null) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         literal.beginToken,
         errorCode: LinterLintCode.always_specify_types_add_type,
       );
@@ -69,15 +69,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
       var element = node.declaredElement2;
-      if (element is VariableElement2) {
+      if (element is VariableElement) {
         if (keyword.keyword == Keyword.VAR) {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
             arguments: [keyword.lexeme, element!.type],
             errorCode: LinterLintCode.always_specify_types_replace_keyword,
           );
         } else {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
             arguments: [element!.type],
             errorCode: LinterLintCode.always_specify_types_specify_type,
@@ -94,13 +94,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       var keyword = node.keyword;
       var tokenToLint = keyword ?? node.name;
       if (keyword != null && keyword.keyword == Keyword.VAR) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           tokenToLint,
           arguments: [keyword.lexeme, type],
           errorCode: LinterLintCode.always_specify_types_replace_keyword,
         );
       } else {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           tokenToLint,
           arguments: [type],
           errorCode: LinterLintCode.always_specify_types_specify_type,
@@ -119,7 +119,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = namedType.type;
     if (type is InterfaceType) {
       var element = namedType.element2;
-      if (element is TypeParameterizedElement2 &&
+      if (element is TypeParameterizedElement &&
           element.typeParameters2.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
@@ -147,13 +147,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword.type == Keyword.VAR &&
             type != null &&
             type is! DynamicType) {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
             arguments: [keyword.lexeme, type],
             errorCode: LinterLintCode.always_specify_types_replace_keyword,
           );
         } else {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             keyword,
             errorCode: LinterLintCode.always_specify_types_add_type,
           );
@@ -217,11 +217,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           errorCode = LinterLintCode.always_specify_types_add_type;
         }
       }
-      rule.reportLintForToken(
-        keyword,
-        arguments: arguments,
-        errorCode: errorCode,
-      );
+      rule.reportAtToken(keyword, arguments: arguments, errorCode: errorCode);
     }
   }
 
@@ -233,7 +229,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         DartType? type;
         if (initializer is Identifier) {
           var element = initializer.element;
-          if (element is LocalVariableElement2) {
+          if (element is LocalVariableElement) {
             type = element.type;
           }
         }

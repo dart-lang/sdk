@@ -84,7 +84,7 @@ class ImportsHandler
       }
 
       var enclosingElement = element.enclosingElement2;
-      if (enclosingElement is ExtensionElement2) {
+      if (enclosingElement is ExtensionElement) {
         element = enclosingElement;
       }
 
@@ -99,7 +99,7 @@ class ImportsHandler
   List<Location> _getImportLocations(
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
-    Element2 element,
+    Element element,
     String? prefix,
   ) {
     var elementName = element.name3;
@@ -132,7 +132,7 @@ class ImportsHandler
   /// [unit].
   List<Location> _getImportsInUnit(
     CompilationUnit unit,
-    Element2 element, {
+    Element element, {
     required String? prefix,
     required String elementName,
   }) {
@@ -149,7 +149,7 @@ class ImportsHandler
               : import.namespace.getPrefixed2(prefix, elementName);
 
       var isMatch =
-          element is MultiplyDefinedElement2
+          element is MultiplyDefinedElement
               ? element.conflictingElements2.contains(importedElement)
               : element == importedElement;
 

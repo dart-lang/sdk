@@ -317,7 +317,7 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       rightOperand: rightOperand,
     );
-    node.element = _reader.readElement2() as MethodElement2?;
+    node.element = _reader.readElement2() as MethodElement?;
     node.staticInvokeType = _reader.readOptionalFunctionType();
     _readExpressionResolution(node);
     return node;
@@ -764,7 +764,7 @@ class AstBinaryReader {
         rightBracket: Tokens.closeSquareBracket(),
       );
     }
-    node.element = _reader.readElement2() as MethodElement2?;
+    node.element = _reader.readElement2() as MethodElement?;
     _readExpressionResolution(node);
     return node;
   }
@@ -1012,7 +1012,7 @@ class AstBinaryReader {
       operand: operand,
       operator: Tokens.fromType(operatorType),
     );
-    node.element = _reader.readElement2() as MethodElement2?;
+    node.element = _reader.readElement2() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
       node.readElement2 = _reader.readElement2();
       node.readType = _reader.readType();
@@ -1042,7 +1042,7 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       operand: operand,
     );
-    node.element = _reader.readElement2() as MethodElement2?;
+    node.element = _reader.readElement2() as MethodElement?;
     if (node.operator.type.isIncrementOperator) {
       node.readElement2 = _reader.readElement2();
       node.readType = _reader.readType();
@@ -1409,13 +1409,13 @@ class AstBinaryReader {
   }
 
   void _resolveNamedExpressions(
-    Element2? executable,
+    Element? executable,
     ArgumentList argumentList,
   ) {
     for (var argument in argumentList.arguments) {
       if (argument is NamedExpressionImpl) {
         var nameNode = argument.name.label;
-        if (executable is ExecutableElement2) {
+        if (executable is ExecutableElement) {
           var formalParameters = executable.formalParameters;
           var name = nameNode.name;
           nameNode.element = formalParameters.firstWhereOrNull((e) {

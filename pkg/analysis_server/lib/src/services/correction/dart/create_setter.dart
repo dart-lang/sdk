@@ -49,11 +49,11 @@ class CreateSetter extends ResolvedCorrectionProducer {
     }
     // prepare target element
     var staticModifier = false;
-    InstanceElement2? targetElement;
+    InstanceElement? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.element2;
-    } else if (target is Identifier && target.element is ExtensionElement2) {
-      targetElement = target.element as ExtensionElement2;
+    } else if (target is Identifier && target.element is ExtensionElement) {
+      targetElement = target.element as ExtensionElement;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type

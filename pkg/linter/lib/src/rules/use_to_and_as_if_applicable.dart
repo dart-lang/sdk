@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !_beginsWithAsOrTo(node.name.lexeme) &&
         !node.hasInheritedMethod(inheritanceManager) &&
         _checkBody(node.body)) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
   }
 

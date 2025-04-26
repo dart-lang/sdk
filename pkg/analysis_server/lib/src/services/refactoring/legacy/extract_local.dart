@@ -55,7 +55,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   Expression? singleExpression;
   String? stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
-  final Map<Element2, int> elementIds = <Element2, int>{};
+  final Map<Element, int> elementIds = <Element, int>{};
   Set<String> _excludedVariableNames = <String>{};
 
   ExtractLocalRefactoringImpl(
@@ -340,7 +340,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       if (node is MethodInvocation) {
         var invocation = node;
         var element = invocation.methodName.element;
-        if (element is ExecutableElement2 && element.returnType is VoidType) {
+        if (element is ExecutableElement && element.returnType is VoidType) {
           if (singleExpression == null) {
             return RefactoringStatus.fatal(
               'Cannot extract the void expression.',
@@ -361,7 +361,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           }
           var element = node.element;
           if (element is LocalFunctionElement ||
-              element is MethodElement2 ||
+              element is MethodElement ||
               element is TopLevelFunctionElement) {
             continue;
           }
@@ -390,9 +390,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     );
   }
 
-  /// Return an unique identifier for the given [Element2], or `null` if
+  /// Return an unique identifier for the given [Element], or `null` if
   /// [element] is `null`.
-  int? _encodeElement(Element2? element) {
+  int? _encodeElement(Element? element) {
     if (element == null) {
       return null;
     }
@@ -404,8 +404,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return id;
   }
 
-  /// Returns an [Element2]-sensitive encoding of [tokens].
-  /// Each [Token] with a [LocalVariableElement2] has a suffix of the element
+  /// Returns an [Element]-sensitive encoding of [tokens].
+  /// Each [Token] with a [LocalVariableElement] has a suffix of the element
   /// ID.
   ///
   /// So, we can distinguish different local variables with the same name, if
@@ -413,7 +413,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   /// function we are searching occurrences in.
   String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
     // prepare Token -> LocalElement map
-    Map<Token, Element2> map = HashMap<Token, Element2>(
+    Map<Token, Element> map = HashMap<Token, Element>(
       equals: (Token a, Token b) => a.lexeme == b.lexeme,
       hashCode: (Token t) => t.lexeme.hashCode,
     );
@@ -640,14 +640,14 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
 }
 
 class _TokenLocalElementVisitor extends RecursiveAstVisitor<void> {
-  final Map<Token, Element2> map;
+  final Map<Token, Element> map;
 
   _TokenLocalElementVisitor(this.map);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (element is LocalVariableElement2) {
+    if (element is LocalVariableElement) {
       map[node.token] = element;
     }
   }

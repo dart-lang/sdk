@@ -21,7 +21,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
     with ConstructorElementMixin, ConstructorElementMixin2
-    implements ConstructorElement2 {
+    implements ConstructorElement {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({
@@ -131,7 +131,7 @@ class ConstructorMember extends ExecutableMember
         return element;
       case ConstructorMember():
         var memberMap = element.substitution.map;
-        var map = <TypeParameterElement2, DartType>{
+        var map = <TypeParameterElement, DartType>{
           for (var MapEntry(:key, :value) in memberMap.entries)
             key: substitution.substituteType(value),
         };
@@ -206,7 +206,7 @@ abstract class ExecutableMember extends Member
   });
 
   @override
-  List<Element2> get children2 {
+  List<Element> get children2 {
     return [...typeParameters2, ...formalParameters];
   }
 
@@ -218,7 +218,7 @@ abstract class ExecutableMember extends Member
   String get displayName => declaration.displayName;
 
   @override
-  Element2? get enclosingElement2 => _element2.enclosingElement2;
+  Element? get enclosingElement2 => _element2.enclosingElement2;
 
   @override
   List<FormalParameterElementMixin> get formalParameters =>
@@ -270,7 +270,7 @@ abstract class ExecutableMember extends Member
   bool get isSynchronous => declaration.isSynchronous;
 
   @override
-  LibraryElement2 get library2 => _element2.library2;
+  LibraryElement get library2 => _element2.library2;
 
   @override
   Source get librarySource => _declaration.librarySource!;
@@ -279,7 +279,7 @@ abstract class ExecutableMember extends Member
   int get nameOffset => declaration.nameOffset;
 
   @override
-  Element2 get nonSynthetic2 => _element2;
+  Element get nonSynthetic2 => _element2;
 
   @override
   List<ParameterElementMixin> get parameters {
@@ -321,7 +321,7 @@ abstract class ExecutableMember extends Member
       typeParameters.map((fragment) => fragment.asElement2).toList();
 
   @override
-  ExecutableElement2 get _element2 => declaration.asElement2;
+  ExecutableElement get _element2 => declaration.asElement2;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -342,15 +342,15 @@ abstract class ExecutableMember extends Member
   }
 
   @override
-  bool isAccessibleIn2(LibraryElement2 library) =>
+  bool isAccessibleIn2(LibraryElement library) =>
       _element2.isAccessibleIn2(library);
 
   @override
-  Element2? thisOrAncestorMatching2(bool Function(Element2 p1) predicate) =>
+  Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) =>
       _element2.thisOrAncestorMatching2(predicate);
 
   @override
-  E? thisOrAncestorOfType2<E extends Element2>() =>
+  E? thisOrAncestorOfType2<E extends Element>() =>
       _element2.thisOrAncestorOfType2();
 
   @override
@@ -361,7 +361,7 @@ abstract class ExecutableMember extends Member
   }
 
   static ExecutableElement2OrMember from(
-    ExecutableElement2 element,
+    ExecutableElement element,
     MapSubstitution substitution,
   ) {
     return from2(element.asElement, substitution).asElement2;
@@ -380,7 +380,7 @@ abstract class ExecutableMember extends Member
     if (element is ExecutableMember) {
       declaration = element.declaration;
 
-      var map = <TypeParameterElement2, DartType>{
+      var map = <TypeParameterElement, DartType>{
         for (var MapEntry(:key, :value) in element.substitution.map.entries)
           key: substitution.substituteType(value),
       };
@@ -470,10 +470,10 @@ class FieldMember extends VariableMember
   });
 
   @override
-  FieldElement2 get baseElement => _element2;
+  FieldElement get baseElement => _element2;
 
   @override
-  List<Element2> get children2 => const [];
+  List<Element> get children2 => const [];
 
   @override
   ConstantInitializer? get constantInitializer2 {
@@ -487,7 +487,7 @@ class FieldMember extends VariableMember
   String get displayName => declaration.displayName;
 
   @override
-  InstanceElement2 get enclosingElement2 => _element2.enclosingElement2;
+  InstanceElement get enclosingElement2 => _element2.enclosingElement2;
 
   @override
   FieldFragment get firstFragment => _element2.firstFragment;
@@ -536,7 +536,7 @@ class FieldMember extends VariableMember
   bool get isPromotable => declaration.isPromotable;
 
   @override
-  LibraryElement2 get library2 => _element2.library2;
+  LibraryElement get library2 => _element2.library2;
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -548,7 +548,7 @@ class FieldMember extends VariableMember
   String? get name3 => _element2.name3;
 
   @override
-  Element2 get nonSynthetic2 => _element2.nonSynthetic2;
+  Element get nonSynthetic2 => _element2.nonSynthetic2;
 
   @override
   SetterElement2OrMember? get setter2 {
@@ -567,7 +567,7 @@ class FieldMember extends VariableMember
   Source? get source => _declaration.source;
 
   @override
-  FieldElement2 get _element2 => declaration.asElement2;
+  FieldElement get _element2 => declaration.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -586,17 +586,17 @@ class FieldMember extends VariableMember
   }
 
   @override
-  bool isAccessibleIn2(LibraryElement2 library) {
+  bool isAccessibleIn2(LibraryElement library) {
     return _element2.isAccessibleIn2(library);
   }
 
   @override
-  Element2? thisOrAncestorMatching2(bool Function(Element2 e) predicate) {
+  Element? thisOrAncestorMatching2(bool Function(Element e) predicate) {
     return _element2.thisOrAncestorMatching2(predicate);
   }
 
   @override
-  E? thisOrAncestorOfType2<E extends Element2>() {
+  E? thisOrAncestorOfType2<E extends Element>() {
     return _element2.thisOrAncestorOfType2<E>();
   }
 
@@ -673,7 +673,7 @@ class GetterMember extends PropertyAccessorMember
   String? get lookupName => _element2.lookupName;
 
   @override
-  Element2 get nonSynthetic2 {
+  Element get nonSynthetic2 {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {
@@ -732,7 +732,7 @@ abstract class Member implements ElementOrMember {
     }
   }
 
-  Element2 get baseElement;
+  Element get baseElement;
 
   @override
   AnalysisContext get context => _declaration.context;
@@ -784,7 +784,7 @@ abstract class Member implements ElementOrMember {
   @override
   Version? get sinceSdkVersion => _declaration.sinceSdkVersion;
 
-  Element2 get _element2;
+  Element get _element2;
 
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
@@ -861,7 +861,7 @@ class MethodMember extends ExecutableMember
   }
 
   @override
-  LibraryElement2 get library2 => _element2.library2;
+  LibraryElement get library2 => _element2.library2;
 
   @override
   String? get lookupName => name3;
@@ -934,7 +934,7 @@ class ParameterMember extends VariableMember
   FormalParameterElement get baseElement => _element2;
 
   @override
-  List<Element2> get children2 {
+  List<Element> get children2 {
     return [...typeParameters2, ...formalParameters];
   }
 
@@ -953,7 +953,7 @@ class ParameterMember extends VariableMember
   FormalParameterElementImpl get element => declaration.element;
 
   @override
-  Element2? get enclosingElement2 => _element2.enclosingElement2;
+  Element? get enclosingElement2 => _element2.enclosingElement2;
 
   @override
   FormalParameterFragment get firstFragment => _element2.firstFragment;
@@ -987,7 +987,7 @@ class ParameterMember extends VariableMember
   bool get isSuperFormal => declaration.isSuperFormal;
 
   @override
-  LibraryElement2? get library2 => _element2.library2;
+  LibraryElement? get library2 => _element2.library2;
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -1002,7 +1002,7 @@ class ParameterMember extends VariableMember
   String get nameShared => name;
 
   @override
-  Element2 get nonSynthetic2 => _element2;
+  Element get nonSynthetic2 => _element2;
 
   @deprecated
   @override
@@ -1023,7 +1023,7 @@ class ParameterMember extends VariableMember
   Source? get source => _declaration.source;
 
   @override
-  List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
+  List<TypeParameterElement> get typeParameters2 => _element2.typeParameters2;
 
   @override
   TypeImpl get typeShared => type;
@@ -1053,16 +1053,16 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  bool isAccessibleIn2(LibraryElement2 library) =>
+  bool isAccessibleIn2(LibraryElement library) =>
       _element2.isAccessibleIn2(library);
 
   @override
-  Element2? thisOrAncestorMatching2(bool Function(Element2 p1) predicate) {
+  Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) {
     return _element2.thisOrAncestorMatching2(predicate);
   }
 
   @override
-  E? thisOrAncestorOfType2<E extends Element2>() {
+  E? thisOrAncestorOfType2<E extends Element>() {
     return _element2.thisOrAncestorOfType2();
   }
 
@@ -1081,7 +1081,7 @@ class ParameterMember extends VariableMember
       var member = element;
       declaration = member.declaration;
 
-      var map = <TypeParameterElement2, DartType>{
+      var map = <TypeParameterElement, DartType>{
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
       };
@@ -1162,7 +1162,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
       _declaration as PropertyAccessorElementImpl;
 
   @override
-  Element2 get enclosingElement2 {
+  Element get enclosingElement2 {
     return super.enclosingElement2!;
   }
 
@@ -1261,7 +1261,7 @@ class SetterMember extends PropertyAccessorMember
   String? get lookupName => _element2.lookupName;
 
   @override
-  Element2 get nonSynthetic2 {
+  Element get nonSynthetic2 {
     if (!isSynthetic) {
       return this;
     } else if (variable3 case var variable?) {

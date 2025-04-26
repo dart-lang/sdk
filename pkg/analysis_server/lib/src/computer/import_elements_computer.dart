@@ -342,7 +342,7 @@ class ImportElementsComputer {
   /// Computes the best URI to import [what] into [from].
   ///
   /// Copied from DartFileEditBuilderImpl.
-  String _getLibrarySourceUri(LibraryElement2 from, Source what) {
+  String _getLibrarySourceUri(LibraryElement from, Source what) {
     var whatPath = what.fullName;
     // check if an absolute URI (such as 'dart:' or 'package:')
     var whatUri = what.uri;
@@ -362,7 +362,7 @@ class ImportElementsComputer {
 
     if (prefix.isNotEmpty) {
       var prefixElement = scope.lookup(prefix).getter2;
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         scope = prefixElement.scope;
       } else {
         return false;

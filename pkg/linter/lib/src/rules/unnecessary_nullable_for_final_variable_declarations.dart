@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (valueType == null) return;
     if (context.typeSystem.isNullable(type) &&
         context.typeSystem.isNonNullable(valueType)) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
   }
 
@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (context.typeSystem.isNullable(declaredElement.type) &&
         context.typeSystem.isNonNullable(initializerType)) {
-      rule.reportLintForToken(variable.name);
+      rule.reportAtToken(variable.name);
     }
   }
 }

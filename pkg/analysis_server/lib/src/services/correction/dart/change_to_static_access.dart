@@ -50,13 +50,13 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
     }
 
     var invokedElement = identifier.element;
-    if (invokedElement is! ExecutableElement2) {
+    if (invokedElement is! ExecutableElement) {
       return;
     }
 
     var declaringElement = invokedElement.enclosingElement2;
 
-    if (declaringElement is InterfaceElement2) {
+    if (declaringElement is InterfaceElement) {
       var declaringElementName = declaringElement.name3;
       if (declaringElementName != null) {
         _className = declaringElementName;
@@ -66,7 +66,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
           });
         });
       }
-    } else if (declaringElement is ExtensionElement2) {
+    } else if (declaringElement is ExtensionElement) {
       var extensionName = declaringElement.name3;
       if (extensionName != null) {
         _className = extensionName;

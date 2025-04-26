@@ -41,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     if (node case IfElement(:var thenElement, elseKeyword: null)) {
-      Element2? nullCheckTarget;
+      Element? nullCheckTarget;
       if (node.expression case BinaryExpression(
         :var operator,
         :var leftOperand,
@@ -69,20 +69,20 @@ class _Visitor extends SimpleAstVisitor<void> {
           //
           //     [if (x != null) x]
           //     {if (x != null) x}
-          rule.reportLintForToken(node.ifKeyword);
+          rule.reportAtToken(node.ifKeyword);
         } else if (thenElement case MapLiteralEntry(:var key, :var value)) {
           if (key is SimpleIdentifier &&
               nullCheckTarget == key.canonicalElement) {
             // Map keys, such as the following:
             //
             //     {if (x != null) x: value}
-            rule.reportLintForToken(node.ifKeyword);
+            rule.reportAtToken(node.ifKeyword);
           } else if (value is SimpleIdentifier &&
               nullCheckTarget == value.canonicalElement) {
             // Map keys, such as the following:
             //
             //     {if (x != null) key: x}
-            rule.reportLintForToken(node.ifKeyword);
+            rule.reportAtToken(node.ifKeyword);
           }
         }
       }

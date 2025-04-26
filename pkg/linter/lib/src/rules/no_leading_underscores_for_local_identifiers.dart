@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!id.lexeme.hasLeadingUnderscore) return;
     if (id.lexeme.isJustUnderscores) return;
 
-    rule.reportLintForToken(id, arguments: [id.lexeme]);
+    rule.reportAtToken(id, arguments: [id.lexeme]);
   }
 
   @override

@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else if (body is ExpressionFunctionBody) {
       if (body.expression is ThisExpression) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       }
     }
   }

@@ -91,7 +91,7 @@ class FunctionExpressionInvocationResolver {
     var result = _typePropertyResolver.resolve(
       receiver: function,
       receiverType: receiverType,
-      name: MethodElement2.CALL_METHOD_NAME,
+      name: MethodElement.CALL_METHOD_NAME,
       propertyErrorEntity: function,
       nameErrorEntity: function,
     );
@@ -193,7 +193,7 @@ class FunctionExpressionInvocationResolver {
   }) {
     var result = _extensionResolver.getOverrideMember(
       function,
-      MethodElement2.CALL_METHOD_NAME,
+      MethodElement.CALL_METHOD_NAME,
     );
     var callElement = result.getter2;
     node.element = callElement;

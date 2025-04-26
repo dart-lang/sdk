@@ -623,7 +623,7 @@ final class PostfixCompletionProcessor {
   }
 
   Expression? _findOuterExpression(AstNode? start, InterfaceType builtInType) {
-    if (start is SimpleIdentifier && start.element is PrefixElement2) {
+    if (start is SimpleIdentifier && start.element is PrefixElement) {
       return null;
     }
 

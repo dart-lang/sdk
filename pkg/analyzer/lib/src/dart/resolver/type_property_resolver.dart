@@ -194,7 +194,7 @@ class TypePropertyResolver {
           return _toResult();
         }
         if (receiverTypeResolved.isDartCoreFunction &&
-            _name == MethodElement2.CALL_METHOD_NAME) {
+            _name == MethodElement.CALL_METHOD_NAME) {
           _needsGetterError = false;
           _needsSetterError = false;
           return _toResult();
@@ -202,7 +202,7 @@ class TypePropertyResolver {
       }
 
       if (receiverTypeResolved is FunctionTypeImpl &&
-          _name == MethodElement2.CALL_METHOD_NAME) {
+          _name == MethodElement.CALL_METHOD_NAME) {
         return ResolutionResult(
           needsGetterError: false,
           needsSetterError: false,

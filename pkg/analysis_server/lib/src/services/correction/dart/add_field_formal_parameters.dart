@@ -42,7 +42,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
     // Compute uninitialized final fields.
     var fields = ErrorVerifier.computeNotInitializedFields(constructor);
-    fields.retainWhere((FieldElement2 field) => field.isFinal);
+    fields.retainWhere((FieldElement field) => field.isFinal);
     fields.sort(
       (a, b) => a.firstFragment.nameOffset2! - b.firstFragment.nameOffset2!,
     );
@@ -51,7 +51,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     if (superType.isExactlyStatelessWidgetType ||
         superType.isExactlyStatefulWidgetType) {
       if (parameters.isNotEmpty && parameters.last.isNamed) {
-        String parameterForField(FieldElement2 field) {
+        String parameterForField(FieldElement field) {
           var prefix = '';
           if (typeSystem.isPotentiallyNonNullable(field.type)) {
             prefix = 'required ';

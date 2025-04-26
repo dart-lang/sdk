@@ -30,7 +30,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// can be written latter into Dart code that considers imports. It also
 /// accumulates fragments of text, such as syntax `(`, or names of properties.
 class AnalyzerDartTemplateBuffer
-    implements DartTemplateBuffer<DartObject, FieldElement2, TypeImpl> {
+    implements DartTemplateBuffer<DartObject, FieldElement, TypeImpl> {
   final List<MissingPatternPart> parts = [];
   bool isComplete = true;
 
@@ -50,9 +50,9 @@ class AnalyzerDartTemplateBuffer
   }
 
   @override
-  void writeEnumValue(FieldElement2 value, String name) {
+  void writeEnumValue(FieldElement value, String name) {
     var enumElement = value.enclosingElement2;
-    if (enumElement is! EnumElement2) {
+    if (enumElement is! EnumElement) {
       isComplete = false;
       return;
     }
@@ -74,26 +74,25 @@ class AnalyzerDartTemplateBuffer
 }
 
 class AnalyzerEnumOperations
-    implements
-        EnumOperations<TypeImpl, EnumElement2, FieldElement2, DartObject> {
+    implements EnumOperations<TypeImpl, EnumElement, FieldElement, DartObject> {
   const AnalyzerEnumOperations();
 
   @override
-  EnumElement2? getEnumClass(TypeImpl type) {
+  EnumElement? getEnumClass(TypeImpl type) {
     var element = type.element3;
-    if (element is EnumElement2) {
+    if (element is EnumElement) {
       return element;
     }
     return null;
   }
 
   @override
-  String getEnumElementName(FieldElement2 enumField) {
+  String getEnumElementName(FieldElement enumField) {
     return '${enumField.enclosingElement2.name3}.${enumField.name3}';
   }
 
   @override
-  Iterable<FieldElement2> getEnumElements(EnumElement2 enumClass) sync* {
+  Iterable<FieldElement> getEnumElements(EnumElement enumClass) sync* {
     for (var field in enumClass.fields2) {
       if (field.isEnumConstant) {
         yield field;
@@ -102,12 +101,12 @@ class AnalyzerEnumOperations
   }
 
   @override
-  InterfaceTypeImpl getEnumElementType(FieldElement2 enumField) {
+  InterfaceTypeImpl getEnumElementType(FieldElement enumField) {
     return enumField.type as InterfaceTypeImpl;
   }
 
   @override
-  DartObject? getEnumElementValue(FieldElement2 enumField) {
+  DartObject? getEnumElementValue(FieldElement enumField) {
     return enumField.computeConstantValue();
   }
 }
@@ -116,14 +115,14 @@ class AnalyzerExhaustivenessCache
     extends
         ExhaustivenessCache<
           TypeImpl,
-          InterfaceElement2,
-          EnumElement2,
-          FieldElement2,
+          InterfaceElement,
+          EnumElement,
+          FieldElement,
           DartObject
         > {
   final TypeSystemImpl typeSystem;
 
-  AnalyzerExhaustivenessCache(this.typeSystem, LibraryElement2 enclosingLibrary)
+  AnalyzerExhaustivenessCache(this.typeSystem, LibraryElement enclosingLibrary)
     : super(
         AnalyzerTypeOperations(typeSystem, enclosingLibrary),
         const AnalyzerEnumOperations(),
@@ -145,7 +144,7 @@ class AnalyzerSealedClassOperations
     var library = sealedClass.library2;
     outer:
     for (var declaration in library.children2) {
-      if (declaration is ExtensionTypeElement2) {
+      if (declaration is ExtensionTypeElement) {
         continue;
       }
       if (declaration != sealedClass && declaration is InterfaceElementImpl2) {
@@ -242,7 +241,7 @@ class AnalyzerSealedClassOperations
 
 class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   final TypeSystemImpl _typeSystem;
-  final LibraryElement2 _enclosingLibrary;
+  final LibraryElement _enclosingLibrary;
 
   final Map<InterfaceTypeImpl, Map<Key, TypeImpl>> _interfaceFieldTypesCaches =
       {};
@@ -465,8 +464,8 @@ class ExhaustivenessDataForTesting {
 }
 
 class MissingPatternEnumValuePart extends MissingPatternPart {
-  final EnumElement2 enumElement2;
-  final FieldElement2 value2;
+  final EnumElement enumElement2;
+  final FieldElement value2;
 
   MissingPatternEnumValuePart({
     required this.enumElement2,

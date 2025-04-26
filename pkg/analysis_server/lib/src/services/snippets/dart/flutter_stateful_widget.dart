@@ -14,12 +14,12 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
   static const prefix = 'stful';
   static const label = 'Flutter Stateful Widget';
 
-  late ClassElement2? classStatefulWidget;
-  late ClassElement2? classState;
+  late ClassElement? classStatefulWidget;
+  late ClassElement? classState;
   @override
-  late ClassElement2? classBuildContext;
+  late ClassElement? classBuildContext;
   @override
-  late ClassElement2? classKey;
+  late ClassElement? classKey;
 
   FlutterStatefulWidget(super.request, {required super.elementImportCache});
 

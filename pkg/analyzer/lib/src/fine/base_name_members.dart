@@ -119,11 +119,6 @@ class BaseNameConstructor extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
   BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
     if (method.isStatic) {
       return BaseNameConflict();
@@ -158,11 +153,6 @@ class BaseNameConstructor extends BaseNameMembers {
       constructor: constructor,
       getter: InheritedGetter(id),
     );
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Constructor cannot be named []');
   }
 
   @override
@@ -219,24 +209,7 @@ class BaseNameConstructorGetter extends BaseNameMembers {
   ManifestItemId get getterOrMethodId => getter.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    return BaseNameConflict();
-  }
-
-  @override
   BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
     return BaseNameConflict();
   }
 
@@ -251,26 +224,6 @@ class BaseNameConstructorGetter extends BaseNameMembers {
         setter: DeclaredSetter(setter),
       );
     }
-  }
-
-  @override
-  BaseNameMembers addInheritedConstructor(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
   }
 
   @override
@@ -335,54 +288,7 @@ class BaseNameConstructorGetterSetter extends BaseNameMembers {
   ManifestItemId get setterId => setter.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
-    return BaseNameConflict();
-  }
-
-  @override
   BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedConstructor(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
     return BaseNameConflict();
   }
 
@@ -426,20 +332,8 @@ class BaseNameConstructorMethod extends BaseNameMembers {
   ManifestItemId get getterOrMethodId => method.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    return BaseNameConflict();
-  }
-
-  @override
   BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
     return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Constructor cannot be named []');
   }
 
   @override
@@ -449,26 +343,6 @@ class BaseNameConstructorMethod extends BaseNameMembers {
 
   @override
   BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedConstructor(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
     return BaseNameConflict();
   }
 
@@ -516,42 +390,7 @@ class BaseNameConstructorSetter extends BaseNameMembers {
   ManifestItemId get setterId => setter.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    if (getter.isStatic) {
-      return BaseNameConflict();
-    } else {
-      return BaseNameConstructorGetterSetter(
-        constructor: constructor,
-        getter: DeclaredGetter(getter),
-        setter: setter,
-      );
-    }
-  }
-
-  @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
-    return BaseNameConflict();
-  }
-
-  @override
   BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedConstructor(ManifestItemId id) {
     return BaseNameConflict();
   }
 
@@ -565,17 +404,7 @@ class BaseNameConstructorSetter extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
   BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
     return BaseNameConflict();
   }
 
@@ -605,31 +434,7 @@ class BaseNameGetter extends BaseNameMembers {
   ManifestItemId get getterOrMethodId => getter.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    if (getter.isStatic) {
-      return BaseNameConflict();
-    } else {
-      return BaseNameConstructorGetter(
-        constructor: DeclaredConstructor(constructor),
-        getter: getter,
-      );
-    }
-  }
-
-  @override
   BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Getter cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
     return BaseNameConflict();
   }
 
@@ -656,11 +461,6 @@ class BaseNameGetter extends BaseNameMembers {
   @override
   BaseNameMembers addInheritedGetter(ManifestItemId id) {
     return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Getter cannot be named []');
   }
 
   @override
@@ -714,36 +514,6 @@ class BaseNameGetterSetter extends BaseNameMembers {
   ManifestItemId get getterOrMethodId => getter.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    if (getter.isStatic || setter.isStatic) {
-      return BaseNameConflict();
-    } else {
-      return BaseNameConstructorGetterSetter(
-        constructor: DeclaredConstructor(constructor),
-        getter: getter,
-        setter: setter,
-      );
-    }
-  }
-
-  @override
-  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Getter cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
-    return BaseNameConflict();
-  }
-
-  @override
   BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
     return BaseNameConflict();
   }
@@ -764,11 +534,6 @@ class BaseNameGetterSetter extends BaseNameMembers {
   @override
   BaseNameMembers addInheritedGetter(ManifestItemId id) {
     return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Getter cannot be named []');
   }
 
   @override
@@ -807,18 +572,6 @@ class BaseNameIndexEq extends BaseNameMembers {
   ManifestItemId get indexEqId => indexEq.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    throw StateError('Getter cannot be named []');
-  }
-
-  @override
   BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
     return BaseNameConflict();
   }
@@ -832,33 +585,8 @@ class BaseNameIndexEq extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
-    throw StateError('Setter cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedConstructor(ManifestItemId id) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    throw StateError('Getter cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
   BaseNameMembers addInheritedMethod(ManifestItemId id) {
     return BaseNameMethodIndexEq(method: InheritedMethod(id), indexEq: indexEq);
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    throw StateError('Setter cannot be named []');
   }
 
   @override
@@ -921,27 +649,67 @@ sealed class BaseNameMembers {
 
   BaseNameMembers addDeclaredConstructor(
     InterfaceItemConstructorItem constructor,
-  );
+  ) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter);
+  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method);
+  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method);
+  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter);
+  BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addInheritedConstructor(ManifestItemId id);
+  BaseNameMembers addInheritedConstructor(ManifestItemId id) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addInheritedGetter(ManifestItemId id);
+  BaseNameMembers addInheritedGetter(ManifestItemId id) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id);
+  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addInheritedMethod(ManifestItemId id);
+  BaseNameMembers addInheritedMethod(ManifestItemId id) {
+    _unexpectedTransition();
+  }
 
-  BaseNameMembers addInheritedSetter(ManifestItemId id);
+  BaseNameMembers addInheritedSetter(ManifestItemId id) {
+    _unexpectedTransition();
+  }
 
   void write(BufferedSink sink);
+
+  /// The current implementation iterates over members in a specific order:
+  /// 1. declared constructors
+  /// 2. declared methods
+  /// 3. declared getters
+  /// 4. declared setters
+  /// 5. inherited constructors
+  /// 6. inherited methods
+  /// 7. inherited getters
+  /// 8. inherited setters
+  ///
+  /// So, not all transitions are possible.
+  ///
+  /// For example we should never transit with [addDeclaredMethod] from
+  /// [BaseNameGetter]. Correspondingly, it is impossible to test such method
+  /// implementation, and instead of leaving it and make an impression that
+  /// it works, we throw an exception.
+  Never _unexpectedTransition() {
+    throw StateError('Transition from $runtimeType');
+  }
 
   static Map<BaseName, BaseNameMembers> readMap(SummaryDataReader reader) {
     return reader.readMap(
@@ -967,20 +735,6 @@ class BaseNameMethod extends BaseNameMembers {
 
   @override
   ManifestItemId get getterOrMethodId => method.id;
-
-  @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    if (method.isStatic) {
-      return BaseNameConflict();
-    } else {
-      return BaseNameConstructorMethod(
-        constructor: DeclaredConstructor(constructor),
-        method: method,
-      );
-    }
-  }
 
   @override
   BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
@@ -1074,55 +828,8 @@ class BaseNameMethodIndexEq extends BaseNameMembers {
   ManifestItemId get indexEqId => indexEq.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    throw StateError('Getter cannot be named []');
-  }
-
-  @override
   BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
     return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
-    throw StateError('Setter cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedConstructor(ManifestItemId id) {
-    throw StateError('Constructor cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    throw StateError('Getter cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    throw StateError('Setter cannot be named []');
   }
 
   @override
@@ -1151,38 +858,6 @@ class BaseNameSetter extends BaseNameMembers {
   ManifestItemId get setterId => setter.id;
 
   @override
-  BaseNameMembers addDeclaredConstructor(
-    InterfaceItemConstructorItem constructor,
-  ) {
-    if (setter.isStatic) {
-      return BaseNameConflict();
-    } else {
-      return BaseNameConstructorSetter(
-        constructor: DeclaredConstructor(constructor),
-        setter: setter,
-      );
-    }
-  }
-
-  @override
-  BaseNameMembers addDeclaredGetter(InstanceItemGetterItem getter) {
-    if (setter.isStatic != getter.isStatic) {
-      return BaseNameConflict();
-    }
-    return BaseNameGetterSetter(getter: DeclaredGetter(getter), setter: setter);
-  }
-
-  @override
-  BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem method) {
-    throw StateError('Setter cannot be named []');
-  }
-
-  @override
-  BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
-    return BaseNameConflict();
-  }
-
-  @override
   BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
     return BaseNameConflict();
   }
@@ -1205,11 +880,6 @@ class BaseNameSetter extends BaseNameMembers {
       return BaseNameConflict();
     }
     return BaseNameGetterSetter(getter: InheritedGetter(id), setter: setter);
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    throw StateError('Setter cannot be named []');
   }
 
   @override

@@ -29,7 +29,7 @@ class OverrideHelper {
     : inheritanceManager = state.request.inheritanceManager;
 
   void computeOverridesFor({
-    required InterfaceElement2 interfaceElement,
+    required InterfaceElement interfaceElement,
     required SourceRange replacementRange,
     required bool skipAt,
   }) {
@@ -73,7 +73,7 @@ class OverrideHelper {
   }
 
   /// Checks if the [element] has the `@nonVirtual` annotation.
-  bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
+  bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is GetterElement && element.isSynthetic) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasNonVirtual) {

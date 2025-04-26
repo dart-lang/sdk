@@ -26,7 +26,7 @@ main() {
         );
         rule.reporter = reporter;
 
-        rule.reportLintForToken(
+        rule.reportAtToken(
           SimpleToken(TokenType.SEMICOLON, 0),
           errorCode: customCode,
         );
@@ -40,7 +40,7 @@ main() {
         );
         rule.reporter = reporter;
 
-        rule.reportLintForToken(SimpleToken(TokenType.SEMICOLON, 0));
+        rule.reportAtToken(SimpleToken(TokenType.SEMICOLON, 0));
         expect(reporter.code, rule.lintCode);
       });
       test('reportLint (custom)', () {
@@ -88,7 +88,7 @@ class CollectingReporter extends ErrorReporter {
 
   @override
   void atElement2(
-    Element2 element,
+    Element element,
     ErrorCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,

@@ -349,7 +349,7 @@ abstract class MultiCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement2;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -400,7 +400,7 @@ abstract class ResolvedCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement2;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -477,13 +477,13 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the class element associated with the [target], or `null` if there
   /// is no such element.
-  InterfaceElement2? getTargetInterfaceElement(Expression target) {
+  InterfaceElement? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
       return type.element3;
     } else if (target is Identifier) {
       var element = target.element;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         return element;
       }
     }
@@ -769,7 +769,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// library, and has the requested base name.
   ///
   /// For getters and setters the corresponding top-level variable is returned.
-  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
     String baseName,
   ) async {
     return await _context.dartFixContext!.getTopLevelDeclarations(baseName);
@@ -799,7 +799,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(Name memberName) {
+  Stream<LibraryElement> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
   }
 }

@@ -20,7 +20,7 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   /// The current extension type.
-  InterfaceElement2? _currentExtensionType;
+  InterfaceElement? _currentExtensionType;
 
   RedeclareVerifier(this._inheritance, this._errorReporter);
 
@@ -43,7 +43,7 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
 
     if (element.metadata2.hasRedeclare && !_redeclaresMember(element)) {
       switch (element) {
-        case MethodElement2():
+        case MethodElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
@@ -66,7 +66,7 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Return `true` if the [member] redeclares a member from a superinterface.
-  bool _redeclaresMember(ExecutableElement2 member) {
+  bool _redeclaresMember(ExecutableElement member) {
     var currentType = _currentExtensionType;
     if (currentType != null) {
       var interface = _inheritance.getInterface2(currentType);

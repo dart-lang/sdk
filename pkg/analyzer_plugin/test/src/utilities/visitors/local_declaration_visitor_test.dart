@@ -47,7 +47,7 @@ class TestVisitor extends LocalDeclarationVisitor {
   void declaredLocalVar(
     Token name,
     TypeAnnotation? type,
-    LocalVariableElement2 declaredElement,
+    LocalVariableElement declaredElement,
   ) {
     expect(name, isNotNull);
   }

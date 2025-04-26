@@ -227,7 +227,7 @@ void test() {}
     assertTestChangeResult(expectedCode);
   }
 
-  void _createRefactoringForElement(ExecutableElement2 element) {
+  void _createRefactoringForElement(ExecutableElement element) {
     refactoring = ConvertMethodToGetterRefactoring(
       refactoringWorkspace,
       testAnalysisResult.session,

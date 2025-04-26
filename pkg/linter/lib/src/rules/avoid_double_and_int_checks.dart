@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             ifCondition.type.type == typeProvider.doubleType &&
             elseCondition.type.type == typeProvider.intType &&
             (ifExpression.element is FormalParameterElement ||
-                ifExpression.element is LocalVariableElement2)) {
+                ifExpression.element is LocalVariableElement)) {
           rule.reportLint(elseCondition);
         }
       }

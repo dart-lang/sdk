@@ -66,7 +66,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   factory ConvertMethodToGetterRefactoring(
     RefactoringWorkspace workspace,
     AnalysisSession session,
-    ExecutableElement2 element,
+    ExecutableElement element,
   ) {
     return ConvertMethodToGetterRefactoringImpl(workspace, session, element);
   }
@@ -397,7 +397,7 @@ class RefactoringWorkspace {
   RefactoringWorkspace(this.drivers, this.searchEngine);
 
   /// Whether the [element] is defined in a file that is in a context root.
-  bool containsElement(Element2 element) {
+  bool containsElement(Element element) {
     if (element is MockLibraryImportElement) {
       return containsFile(element.libraryFragment.source.fullName);
     }
@@ -447,14 +447,14 @@ abstract class RenameRefactoring implements Refactoring {
   static RenameRefactoring? create(
     RefactoringWorkspace workspace,
     ResolvedUnitResult resolvedUnit,
-    Element2? element,
+    Element? element,
   ) {
     if (element == null) {
       return null;
     }
     var session = resolvedUnit.session;
     var sessionHelper = AnalysisSessionHelper(session);
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       element = element.variable3;
       if (element == null) {
         return null;
@@ -468,10 +468,10 @@ abstract class RenameRefactoring implements Refactoring {
       );
     }
     var enclosingElement = element.enclosingElement2;
-    if (element is PrefixElement2) {
+    if (element is PrefixElement) {
       enclosingElement = element.library2;
     }
-    if (enclosingElement is LibraryElement2) {
+    if (enclosingElement is LibraryElement) {
       return RenameUnitMemberRefactoringImpl(
         workspace,
         sessionHelper,
@@ -479,22 +479,22 @@ abstract class RenameRefactoring implements Refactoring {
         element,
       );
     }
-    if (element is ConstructorElement2) {
+    if (element is ConstructorElement) {
       return RenameConstructorRefactoringImpl(
         workspace,
         sessionHelper,
         element,
       );
     }
-    if (element is LabelElement2) {
+    if (element is LabelElement) {
       return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (element is LibraryElement2) {
+    if (element is LibraryElement) {
       return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (enclosingElement?.thisOrAncestorOfType2<InterfaceElement2>()
+    if (enclosingElement?.thisOrAncestorOfType2<InterfaceElement>()
         case var enclosingElement?) {
-      if (element case FieldFormalParameterElement2(:var field2?)) {
+      if (element case FieldFormalParameterElement(:var field2?)) {
         return RenameClassMemberRefactoringImpl(
           workspace,
           sessionHelper,
@@ -506,17 +506,17 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is FormalParameterElement) {
       return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (element is LocalElement2) {
+    if (element is LocalElement) {
       return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (element is TypeParameterElement2) {
+    if (element is TypeParameterElement) {
       return RenameTypeParameterRefactoringImpl(
         workspace,
         sessionHelper,
         element,
       );
     }
-    if (enclosingElement is InterfaceElement2) {
+    if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
         workspace,
         sessionHelper,
@@ -524,7 +524,7 @@ abstract class RenameRefactoring implements Refactoring {
         element,
       );
     }
-    if (enclosingElement is ExtensionElement2) {
+    if (enclosingElement is ExtensionElement) {
       return RenameExtensionMemberRefactoringImpl(
         workspace,
         sessionHelper,
@@ -539,7 +539,7 @@ abstract class RenameRefactoring implements Refactoring {
   /// example, the class when on the `new` keyword).
   static RenameRefactoringElement? getElementToRename(
     AstNode node,
-    Element2? element,
+    Element? element,
   ) {
     // TODO(scheglov): This is bad code.
     SyntacticEntity? nameNode;
@@ -630,7 +630,7 @@ abstract class RenameRefactoring implements Refactoring {
 }
 
 class RenameRefactoringElement {
-  final Element2 element;
+  final Element element;
   final int offset;
   final int length;
 

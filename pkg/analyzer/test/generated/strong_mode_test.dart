@@ -64,7 +64,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   _isMapOf;
   late final AsserterBuilder<DartType, DartType> _isType;
 
-  late final AsserterBuilder<Element2, DartType> _hasElement;
+  late final AsserterBuilder<Element, DartType> _hasElement;
 
   CompilationUnit get unit => result.unit;
 
@@ -244,7 +244,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
     var invoke = cascade.cascadeSections[0] as MethodInvocation;
     var function = invoke.argumentList.arguments[1] as FunctionExpression;
-    ExecutableElement2 f0 = function.declaredFragment!.element;
+    ExecutableElement f0 = function.declaredFragment!.element;
     _isListOf(_isInt)(f0.type.returnType as InterfaceType);
     expect(f0.type.normalParameterTypes[0], typeProvider.intType);
   }
@@ -409,9 +409,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var body = constructor.body as BlockFunctionBody;
     var stmt = body.block.statements[0] as ReturnStatement;
     var exp = stmt.expression as InstanceCreationExpression;
-    ClassElement2 elementB =
+    ClassElement elementB =
         AstFinder.getClass(unit, "B").declaredFragment!.element;
-    ClassElement2 elementA =
+    ClassElement elementA =
         AstFinder.getClass(unit, "A").declaredFragment!.element;
     var type = exp.constructorName.type.typeOrThrow as InterfaceType;
     expect(type.element3, elementB);
@@ -1325,7 +1325,7 @@ void test() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 347, 2),
     ]);
 
-    Element2 elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
       unit,
       "test",
@@ -1358,7 +1358,7 @@ void test() {
     ]);
 
     DartType cType = findElement2.localVar('c').type;
-    Element2 elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
+    Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementC))([_isType])(cType);
   }
@@ -2384,12 +2384,12 @@ MethodInvocation
     void hasType(Asserter<DartType> assertion, Expression exp) =>
         assertion(exp.typeOrThrow);
 
-    Element2 elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
-    Element2 elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
-    Element2 elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
-    Element2 elementD = AstFinder.getClass(unit, "D").declaredFragment!.element;
-    Element2 elementE = AstFinder.getClass(unit, "E").declaredFragment!.element;
-    Element2 elementF = AstFinder.getClass(unit, "F").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
+    Element elementD = AstFinder.getClass(unit, "D").declaredFragment!.element;
+    Element elementE = AstFinder.getClass(unit, "E").declaredFragment!.element;
+    Element elementF = AstFinder.getClass(unit, "F").declaredFragment!.element;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
         _isInstantiationOf(_hasElement(elementA));
@@ -2925,7 +2925,7 @@ MethodInvocation
     _isString(body.expression.typeOrThrow);
     var invoke = body.expression as MethodInvocation;
     var function = invoke.argumentList.arguments[0] as FunctionExpression;
-    ExecutableElement2 f0 = function.declaredFragment!.element;
+    ExecutableElement f0 = function.declaredFragment!.element;
     FunctionType type = f0.type;
     _isFunction2Of(_isString, _isInt)(type);
   }
@@ -2960,7 +2960,7 @@ MethodInvocation
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element2 elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNever])(type);
   }
@@ -2993,7 +2993,7 @@ MethodInvocation
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element2 elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
   }
@@ -3028,7 +3028,7 @@ MethodInvocation
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element2 elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNever])(type);
   }
@@ -3062,7 +3062,7 @@ MethodInvocation
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element2 elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
   }
@@ -3099,7 +3099,7 @@ MethodInvocation
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element2 elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
   }
@@ -3135,7 +3135,7 @@ MethodInvocation
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element2 elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3172,7 +3172,7 @@ MethodInvocation
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element2 elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3209,7 +3209,7 @@ MethodInvocation
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element2 elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }

@@ -238,7 +238,7 @@ class RefactoringManager {
       if (resolvedUnit != null) {
         var node = resolvedUnit.unit.nodeCovering(offset: offset);
         var element = node?.getElement();
-        if (element is ExecutableElement2) {
+        if (element is ExecutableElement) {
           refactoring = ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
             resolvedUnit.session,

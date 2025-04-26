@@ -153,21 +153,21 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // If no imposed return type, then any type is OK.
     if (returnType == null) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
 
     // We don't have to return anything.
     // So, the generated `Future` is not necessary.
     if (returnType is VoidType) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
 
     // It is OK to return values into `FutureOr`.
     // So, wrapping values into `Future` is not necessary.
     if (returnType.isDartAsyncFutureOr) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
 
@@ -185,7 +185,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // If every `return` returns `Future`, we don't need wrapping.
     if (visitor.everyReturnHasValue && visitor.returnsOnlyFuture) {
-      rule.reportLintForToken(asyncKeyword);
+      rule.reportAtToken(asyncKeyword);
       return;
     }
   }

@@ -58,7 +58,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
 
   Declaration? _currentDeclaration;
 
-  AssignedVariablesForTesting<AstNode, PromotableElement2>?
+  AssignedVariablesForTesting<AstNode, PromotableElement>?
   _currentAssignedVariables;
 
   _AssignedVariablesDataExtractor(super.uri, super.actualMap, this._flowResult);

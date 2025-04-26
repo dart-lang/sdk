@@ -487,7 +487,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  bool isNonSubtypableClass2(InterfaceElement2 element) {
+  bool isNonSubtypableClass2(InterfaceElement element) {
     var name = element.name3;
     if (_nonSubtypableClassNames.contains(name)) {
       var libraryUriStr = element.library2.uri.toString();

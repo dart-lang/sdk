@@ -65,7 +65,7 @@ class CommentReferenceResolver {
 
     var name = expression.identifier;
 
-    if (prefixElement is PrefixElement2) {
+    if (prefixElement is PrefixElement) {
       var prefixScope = prefixElement.scope;
       var lookupResult = prefixScope.lookup(name.name);
       var element = lookupResult.getter2 ?? lookupResult.setter2;
@@ -74,7 +74,7 @@ class CommentReferenceResolver {
     }
 
     if (!hasNewKeyword) {
-      if (prefixElement is InterfaceElement2) {
+      if (prefixElement is InterfaceElement) {
         name.element =
             _resolver.inheritance.getMember4(
               prefixElement,
@@ -84,7 +84,7 @@ class CommentReferenceResolver {
             prefixElement.getGetter2(name.name) ??
             prefixElement.getSetter2(name.name) ??
             prefixElement.getNamedConstructor2(name.name);
-      } else if (prefixElement is ExtensionElement2) {
+      } else if (prefixElement is ExtensionElement) {
         name.element =
             prefixElement.getMethod2(name.name) ??
             prefixElement.getGetter2(name.name) ??
@@ -92,7 +92,7 @@ class CommentReferenceResolver {
       } else {
         // TODO(brianwilkerson): Report this error.
       }
-    } else if (prefixElement is InterfaceElement2) {
+    } else if (prefixElement is InterfaceElement) {
       var constructor = prefixElement.getNamedConstructor2(name.name);
       if (constructor == null) {
         // TODO(brianwilkerson): Report this error.
@@ -119,7 +119,7 @@ class CommentReferenceResolver {
     var prefixElement = _resolveSimpleIdentifier(prefix);
     prefix.element = prefixElement;
 
-    if (prefixElement is! PrefixElement2) {
+    if (prefixElement is! PrefixElement) {
       // The only valid prefixElement is a PrefixElement; otherwise, this is
       // not a comment reference.
       return;
@@ -132,13 +132,13 @@ class CommentReferenceResolver {
     name.element = element;
 
     var propertyName = expression.propertyName;
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       propertyName.element =
           element.getMethod2(propertyName.name) ??
           element.getGetter2(propertyName.name) ??
           element.getSetter2(propertyName.name) ??
           element.getNamedConstructor2(propertyName.name);
-    } else if (element is ExtensionElement2) {
+    } else if (element is ExtensionElement) {
       propertyName.element =
           element.getMethod2(propertyName.name) ??
           element.getGetter2(propertyName.name) ??
@@ -150,7 +150,7 @@ class CommentReferenceResolver {
   ///
   /// Returns the resolved element, or `null` if the identifier could not be
   /// resolved. This does not record the results of the resolution.
-  Element2? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
+  Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
     var lookupResult = identifier.scopeLookupResult!;
     var element = lookupResult.getter2 ?? lookupResult.setter2;
 
@@ -203,7 +203,7 @@ class CommentReferenceResolver {
     }
     expression.element = element;
     if (hasNewKeyword) {
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         var constructor = element.unnamedConstructor2;
         if (constructor == null) {
           // TODO(brianwilkerson): Report this error.

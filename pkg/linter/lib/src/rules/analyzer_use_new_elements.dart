@@ -14,7 +14,7 @@ import '../extensions.dart';
 
 const _desc = r'Use new element model in opted-in files.';
 
-bool _isOldModelElement(Element2? element) {
+bool _isOldModelElement(Element? element) {
   if (element == null) {
     return false;
   }
@@ -28,7 +28,7 @@ bool _isOldModelElement(Element2? element) {
   var uriStr = libraryFragment.source.uri.toString();
 
   switch (element) {
-    case InstanceElement2():
+    case InstanceElement():
       if (uriStr == 'package:analyzer/dart/element/element.dart') {
         // Skip classes that don't required migration.
         if (const {
@@ -56,7 +56,7 @@ bool _isOldModelElement(Element2? element) {
           return element.name3 == 'declaredElement';
         case 'package:analyzer/src/dart/element/type.dart':
           var enclosingElement = element.enclosingElement2;
-          if (enclosingElement is InterfaceElement2) {
+          if (enclosingElement is InterfaceElement) {
             if (enclosingElement.thisType.implementsDartType) {
               return element.name3 == 'element';
             }
@@ -147,7 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_isOldModelElement(node.element2)) {
-      rule.reportLintForToken(node.name2);
+      rule.reportAtToken(node.name2);
     }
   }
 

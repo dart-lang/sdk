@@ -171,7 +171,7 @@ class TypeAssertions {
   Asserter<DartType> get isString => isType(_typeProvider.stringType);
 
   /// Assert that a type has the element that is equal to the [expected].
-  Asserter<DartType> hasElement(Element2 expected) =>
+  Asserter<DartType> hasElement(Element expected) =>
       (DartType type) => expect(expected, (type as InterfaceType).element3);
 
   /// Given assertions for the argument and return types, produce an

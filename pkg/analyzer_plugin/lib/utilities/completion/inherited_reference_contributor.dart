@@ -20,7 +20,7 @@ class InheritedReferenceContributor
     with ElementSuggestionBuilder
     implements CompletionContributor {
   @override
-  LibraryElement2? containingLibrary;
+  LibraryElement? containingLibrary;
 
   @override
   CompletionSuggestionKind? kind;
@@ -53,7 +53,7 @@ class InheritedReferenceContributor
   Future<void> computeSuggestionsForClass(
     DartCompletionRequest request,
     CompletionCollector collector,
-    ClassElement2? classElement, {
+    ClassElement? classElement, {
     AstNode? entryPoint,
     bool skipChildClass = true,
     CompletionTarget? target,
@@ -105,7 +105,7 @@ class InheritedReferenceContributor
   }
 
   void _computeSuggestionsForClass(CompletionCollector collector,
-      CompletionTarget target, ClassElement2 classElement, OpType optype,
+      CompletionTarget target, ClassElement classElement, OpType optype,
       {bool skipChildClass = true}) {
     var isFunctionalArgument = target.isFunctionalArgument();
     kind = isFunctionalArgument

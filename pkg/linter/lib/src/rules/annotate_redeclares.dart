@@ -56,14 +56,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (extensionType == null) return;
 
     if (_redeclaresMember(element, extensionType)) {
-      rule.reportLintForToken(node.name, arguments: [element.displayName]);
+      rule.reportAtToken(node.name, arguments: [element.displayName]);
     }
   }
 
   /// Return `true` if the [member] redeclares a member from a superinterface.
   bool _redeclaresMember(
-    ExecutableElement2 member,
-    InterfaceElement2 extensionType,
+    ExecutableElement member,
+    InterfaceElement extensionType,
   ) {
     // TODO(pq): unify with similar logic in `redeclare_verifier` and move to inheritanceManager
     var interface = context.inheritanceManager.getInterface2(extensionType);

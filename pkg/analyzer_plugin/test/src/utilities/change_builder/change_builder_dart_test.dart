@@ -2084,12 +2084,12 @@ A'''));
     expect(edit.replacement, typeCode);
   }
 
-  Future<ClassElement2> _getClassElement(String path, String name) async {
+  Future<ClassElement> _getClassElement(String path, String name) async {
     var unitResult = await resolveFile(path);
     return unitResult.libraryElement2.getClass2(name)!;
   }
 
-  Future<PropertyAccessorElement2> _getTopLevelGetter(
+  Future<PropertyAccessorElement> _getTopLevelGetter(
       String path, String name) async {
     var unitResult = await resolveFile(path);
     return unitResult.libraryElement2.getGetter(name)!;
@@ -2333,7 +2333,7 @@ void functionAfter() {
 
     var findNode = FindNode(resolvedLibUnit.content, resolvedLibUnit.unit);
     var classElement = findNode.classDeclaration('A').declaredFragment!.element;
-    var cache = <Element2, LibraryElement2?>{};
+    var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2373,7 +2373,7 @@ class B {}
         .declaredFragment!
         .element;
 
-    var cache = <Element2, LibraryElement2?>{};
+    var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2389,7 +2389,7 @@ class B {}
 
   /// [test_importElementLibrary_replacesPendingImports] verifies that
   /// `importElementLibrary` can replace pending imports, but it must not do so
-  /// if they were added explicitly (and not to satisfy a given [Element2]).
+  /// if they were added explicitly (and not to satisfy a given [Element]).
   Future<void>
       test_importElementLibrary_replacesPendingImports_unlessImportedExplicitly() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
@@ -2413,7 +2413,7 @@ class B {}
         .declaredFragment!
         .element;
 
-    var cache = <Element2, LibraryElement2?>{};
+    var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2436,7 +2436,7 @@ import 'package:test/all.dart';
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
     var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
-    var cache = <Element2, LibraryElement2?>{};
+    var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2462,7 +2462,7 @@ import 'package:test/all.dart';
 
     var findNode = FindNode(resolvedSrcUnit.content, resolvedSrcUnit.unit);
     var classElement = findNode.classDeclaration('A').declaredFragment!.element;
-    var cache = <Element2, LibraryElement2?>{};
+    var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
       var builderImpl = builder as DartFileEditBuilderImpl;
@@ -2483,7 +2483,7 @@ import 'package:test/all.dart';
     var resolvedFakeUnit = await resolveContent('/home/test/lib/fake.dart', '');
 
     var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
-    var cache = <Element2, LibraryElement2?>{
+    var cache = <Element, LibraryElement?>{
       futureOrElement: resolvedFakeUnit.libraryElement2,
     };
     var builder = await newBuilder();
@@ -4107,7 +4107,7 @@ class B extends A {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, content);
 
-    InterfaceElement2? targetElement;
+    InterfaceElement? targetElement;
     {
       var unitResult = await resolveFile(path);
       if (targetMixinName != null) {

@@ -72,7 +72,7 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void _check(AstNode node, Element2 element) {
+  void _check(AstNode node, Element element) {
     var parent = node.parent;
     if (parent is PrefixedIdentifier) {
       parent = parent.parent;
@@ -174,9 +174,9 @@ class UseResultVerifier {
     return node;
   }
 
-  static ElementAnnotation? _getUseResultMetadata(Element2 element) {
+  static ElementAnnotation? _getUseResultMetadata(Element element) {
     // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement2) {
+    if (element.isSynthetic && element is PropertyAccessorElement) {
       if (element.variable3 case var variable?) {
         element = variable;
       } else {

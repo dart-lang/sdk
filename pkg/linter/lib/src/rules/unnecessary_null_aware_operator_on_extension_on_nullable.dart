@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                   ?.enclosingElement2
               : node.element?.enclosingElement2,
         )) {
-      rule.reportLintForToken(question);
+      rule.reportAtToken(question);
     }
   }
 
@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         _isExtensionOnNullableType(
           node.methodName.element?.enclosingElement2,
         )) {
-      rule.reportLintForToken(operator);
+      rule.reportAtToken(operator);
     }
   }
 
@@ -81,12 +81,12 @@ class _Visitor extends SimpleAstVisitor<void> {
             ? realParent.writeElement2?.enclosingElement2
             : node.propertyName.element?.enclosingElement2,
       )) {
-        rule.reportLintForToken(node.operator);
+        rule.reportAtToken(node.operator);
       }
     }
   }
 
-  bool _isExtensionOnNullableType(Element2? enclosingElement) =>
-      enclosingElement is ExtensionElement2 &&
+  bool _isExtensionOnNullableType(Element? enclosingElement) =>
+      enclosingElement is ExtensionElement &&
       context.typeSystem.isNullable(enclosingElement.extendedType);
 }

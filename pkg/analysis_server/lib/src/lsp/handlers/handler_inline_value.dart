@@ -13,7 +13,7 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -124,7 +124,7 @@ class InlineValueRegistrations extends FeatureRegistration
 /// is recorded multiple times.
 class _InlineValueCollector {
   /// A map of elements and their inline value.
-  final Map<Element2, InlineValue> values = {};
+  final Map<analyzer.Element, InlineValue> values = {};
 
   /// The range for which simple inline values should be returned.
   ///
@@ -153,7 +153,7 @@ class _InlineValueCollector {
   ///
   /// Expression values are sent to the client without expressions because the
   /// client can use the range from the source to get the expression.
-  void recordExpression(Element2? element, int offset, int length) {
+  void recordExpression(analyzer.Element? element, int offset, int length) {
     assert(offset >= 0);
     assert(length > 0);
     if (element == null) return;
@@ -180,7 +180,7 @@ class _InlineValueCollector {
   /// Variable inline values are sent to the client without names because the
   /// client can infer the name from the range and look it up from the debuggers
   /// Scopes/Variables.
-  void recordVariableLookup(Element2? element, int offset, int length) {
+  void recordVariableLookup(analyzer.Element? element, int offset, int length) {
     assert(offset >= 0);
     assert(length > 0);
     if (element == null || element.isWildcardVariable) return;
@@ -214,10 +214,10 @@ class _InlineValueCollector {
 
   /// Returns whether [element] is something that should never be eagerly
   /// evaluated because of potential side-effects (such as `iterable.length`).
-  bool _isExcludedElement(Element2 element) {
+  bool _isExcludedElement(analyzer.Element element) {
     return switch (element) {
-      VariableElement2() => _isExcludedType(element.type),
-      GetterElement() => _isExcludedType(element.returnType),
+      analyzer.VariableElement() => _isExcludedType(element.type),
+      analyzer.GetterElement() => _isExcludedType(element.returnType),
       _ => false,
     };
   }
@@ -236,7 +236,7 @@ class _InlineValueCollector {
 
   /// Records an inline value [value] for [element] if it is within range and is
   /// the latest one in the source for that element.
-  void _record(InlineValue value, Element2 element) {
+  void _record(InlineValue value, analyzer.Element element) {
     // Don't create values for any elements that are excluded types.
     if (_isExcludedElement(element)) {
       return;
@@ -307,8 +307,8 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
 
       // Never produce values for obvious enum getters (this includes `values`).
       var isEnumGetter =
-          node.element is GetterElement &&
-          node.element?.enclosingElement2 is EnumElement2;
+          node.element is analyzer.GetterElement &&
+          node.element?.enclosingElement2 is analyzer.EnumElement;
 
       if (!isTarget && !isEnumGetter) {
         collector.recordExpression(node.element, node.offset, node.length);
@@ -347,8 +347,8 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
     var isInvocation = parent is InvocationExpression;
     if (!isTarget && !isInvocation) {
       switch (node.element) {
-        case LocalVariableElement2(name3: _?):
-        case FormalParameterElement():
+        case analyzer.LocalVariableElement(name3: _?):
+        case analyzer.FormalParameterElement():
           collector.recordVariableLookup(
             node.element,
             node.offset,

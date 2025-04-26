@@ -70,15 +70,15 @@ print the names of all of the members of each class in a given library,
 it might look something like this:
 
 ```dart
-void printMembers(LibraryElement2 libraryElement) {
-  for (ClassElement2 classElement in libraryElement.classes) {
+void printMembers(LibraryElement libraryElement) {
+  for (ClassElement classElement in libraryElement.classes) {
     print(classElement.name3);
-    for (ConstructorElement2 constructorElement in classElement.constructors2) {
+    for (ConstructorElement constructorElement in classElement.constructors2) {
       if (!constructorElement.isSynthetic) {
         print('  ${constructorElement.displayName}');
       }
     }
-    for (FieldElement2 fieldElement in classElement.fields2) {
+    for (FieldElement fieldElement in classElement.fields2) {
       if (!fieldElement.isSynthetic) {
         print('  ${fieldElement.name3}');
       }
@@ -93,7 +93,7 @@ void printMembers(LibraryElement2 libraryElement) {
         print('  ${setterElement.name3}');
       }
     }
-    for (MethodElement2 methodElement in classElement.methods2) {
+    for (MethodElement methodElement in classElement.methods2) {
       if (!methodElement.isSynthetic) {
         print('  ${methodElement.name3}');
       }
@@ -144,7 +144,7 @@ class ParameterCounter extends GeneralizingElementVisitor2<void> {
   int maxParameterCount = 0;
 
   @override
-  void visitExecutableElement(ExecutableElement2 element) {
+  void visitExecutableElement(ExecutableElement element) {
     maxParameterCount = math.max(maxParameterCount, element.formalParameters.length);
     super.visitExecutableElement(element);
   }

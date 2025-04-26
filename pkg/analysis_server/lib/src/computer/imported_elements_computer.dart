@@ -108,14 +108,14 @@ class _Visitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  void _addElement(String prefix, Element2? element) {
+  void _addElement(String prefix, Element? element) {
     if (element == null) {
       return;
     }
-    if (element is PrefixElement2) {
+    if (element is PrefixElement) {
       return;
     }
-    if (element.enclosingElement2 is! LibraryElement2) {
+    if (element.enclosingElement2 is! LibraryElement) {
       return;
     }
 
@@ -139,7 +139,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
   String _getPrefixFrom(SimpleIdentifier identifier) {
     if (identifier.offset <= endOffset && identifier.end >= startOffset) {
       var prefixElement = identifier.element;
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         return prefixElement.name3 ?? '';
       }
     }

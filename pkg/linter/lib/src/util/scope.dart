@@ -42,7 +42,7 @@ LinterNameInScopeResolutionResult resolveNameInScope(
 /// The result of resolving of a basename `id` in a scope.
 class LinterNameInScopeResolutionResult {
   /// The element with the requested basename, `null` is [isNone].
-  final Element2? element;
+  final Element? element;
 
   /// The state of the result.
   final _LinterNameInScopeResolutionResultState _state;

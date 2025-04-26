@@ -88,7 +88,7 @@ String buildClosureParameters(
 /// Compute default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
 CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
-  Element2 element,
+  Element element,
   Iterable<FormalParameterElement> requiredParams,
   Iterable<FormalParameterElement> namedParams,
 ) {
@@ -213,9 +213,9 @@ String getTypeString(DartType type) {
   }
 }
 
-/// Instantiates the given [InterfaceElement2]
+/// Instantiates the given [InterfaceElement]
 InterfaceType instantiateInstanceElement(
-  InterfaceElement2 element,
+  InterfaceElement element,
   NeverType neverType,
 ) {
   var typeParameters = element.typeParameters2;
@@ -233,7 +233,7 @@ InterfaceType instantiateInstanceElement(
 /// `Widget`.
 bool isFlutterWidgetParameter(FormalParameterElement parameter) {
   var element = parameter.enclosingElement2;
-  if (element is ConstructorElement2 && element.enclosingElement2.isWidget) {
+  if (element is ConstructorElement && element.enclosingElement2.isWidget) {
     return true;
   }
   return false;
@@ -247,19 +247,19 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   var element = identifier.element;
   if (element == null) {
     return DYNAMIC;
-  } else if (element is FunctionTypedElement2) {
-    if (element is PropertyAccessorElement2 && element is SetterElement) {
+  } else if (element is FunctionTypedElement) {
+    if (element is PropertyAccessorElement && element is SetterElement) {
       return null;
     }
     type = element.returnType;
-  } else if (element is TypeAliasElement2) {
+  } else if (element is TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       type = aliasedType.returnType;
     } else {
       return null;
     }
-  } else if (element is VariableElement2) {
+  } else if (element is VariableElement) {
     type = element.type;
   } else {
     return null;

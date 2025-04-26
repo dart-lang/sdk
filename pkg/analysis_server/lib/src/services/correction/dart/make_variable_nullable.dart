@@ -58,7 +58,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   /// given [variable] that is located in the given [block] or in a surrounding
   /// block. Return `null` if the declaration can't be found.
   VariableDeclarationList? _findDeclaration(
-    LocalVariableElement2 variable,
+    LocalVariableElement variable,
     Block? block,
   ) {
     var currentBlock = block;
@@ -89,7 +89,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     }
 
     var element = leftHandSide.element;
-    if (element is! LocalVariableElement2) {
+    if (element is! LocalVariableElement) {
       return;
     }
 
