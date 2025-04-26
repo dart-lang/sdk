@@ -151,6 +151,16 @@ void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt,
   // [analyzer] unspecified
   // [cfe] unspecified
 
+  if (color == (.red)) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  if (color != (.red)) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
   if (color == (condition ? .red : .green)) print('not ok');
   // ^
   // [analyzer] unspecified

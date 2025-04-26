@@ -96,6 +96,20 @@ void rhsNeedsToBeShorthand(
   StaticMemberExt memberExt,
   bool condition,
 ) {
+  if (member == (.member())) {
+    //            ^^^^^^
+    // [analyzer] unspecified
+    // [cfe] No type was provided to find the dot shorthand 'member'.
+    print('not ok');
+  }
+
+  if (member != (.member())) {
+    //            ^^^^^^
+    // [analyzer] unspecified
+    // [cfe] No type was provided to find the dot shorthand 'member'.
+    print('not ok');
+  }
+
   if (member == (condition ? .member() : .memberType<String, int>('s'))) {
     //                        ^^^^^^
     // [analyzer] unspecified
