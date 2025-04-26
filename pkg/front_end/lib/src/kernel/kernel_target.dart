@@ -1433,18 +1433,23 @@ class KernelTarget {
           Initializer initializer = fieldBuilder.buildImplicitInitializer();
           constructorBuilder.prependInitializer(initializer);
           if (fieldBuilder.isFinal) {
-            libraryBuilder.addProblem(
-                templateFinalFieldNotInitializedByConstructor
-                    .withArguments(fieldBuilder.name),
-                constructorBuilder.fileOffset,
-                constructorBuilder.name.length,
-                constructorBuilder.fileUri,
-                context: [
-                  templateMissingImplementationCause
-                      .withArguments(fieldBuilder.name)
-                      .withLocation(fieldBuilder.fileUri,
-                          fieldBuilder.fileOffset, fieldBuilder.name.length)
-                ]);
+            // Avoid cascading error if the constructor is known to be
+            // erroneous: such constructors don't initialize the final fields
+            // properly.
+            if (!constructorBuilder.invokeTarget.isErroneous) {
+              libraryBuilder.addProblem(
+                  templateFinalFieldNotInitializedByConstructor
+                      .withArguments(fieldBuilder.name),
+                  constructorBuilder.fileOffset,
+                  constructorBuilder.name.length,
+                  constructorBuilder.fileUri,
+                  context: [
+                    templateMissingImplementationCause
+                        .withArguments(fieldBuilder.name)
+                        .withLocation(fieldBuilder.fileUri,
+                            fieldBuilder.fileOffset, fieldBuilder.name.length)
+                  ]);
+            }
           } else if (fieldBuilder.fieldType is! InvalidType &&
               !fieldBuilder.isLate &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
