@@ -1180,6 +1180,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
     writeModifier(node.isSynthetic, 'synthetic');
+    writeModifier(node.isErroneous, 'erroneous');
     writeWord('constructor');
     List<String> features = <String>[];
     if (node.enclosingClass.fileUri != node.fileUri) {

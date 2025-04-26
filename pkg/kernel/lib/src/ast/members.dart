@@ -599,12 +599,16 @@ class Constructor extends Member {
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
   static const int FlagSynthetic = 1 << 2;
+  static const int FlagErroneous = 1 << 3;
 
   @override
   bool get isConst => flags & FlagConst != 0;
 
   @override
   bool get isExternal => flags & FlagExternal != 0;
+
+  @override
+  bool get isErroneous => flags & FlagErroneous != 0;
 
   /// True if this is a synthetic constructor inserted in a class that
   /// does not otherwise declare any constructors.
@@ -620,6 +624,10 @@ class Constructor extends Member {
 
   void set isSynthetic(bool value) {
     flags = value ? (flags | FlagSynthetic) : (flags & ~FlagSynthetic);
+  }
+
+  void set isErroneous(bool value) {
+    flags = value ? (flags | FlagErroneous) : (flags & ~FlagErroneous);
   }
 
   @override

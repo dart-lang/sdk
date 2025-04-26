@@ -368,6 +368,9 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
                   message: message,
                   kind: UnresolvedKind.Constructor))
             ..parent = parent);
+          if (parent is Constructor) {
+            parent.isErroneous = true;
+          }
         } else {
           _initializers.add(initializer..parent = parent);
         }
