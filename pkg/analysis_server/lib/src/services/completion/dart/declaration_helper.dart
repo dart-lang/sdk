@@ -1076,7 +1076,7 @@ class DeclarationHelper {
     var referencingInterface = _referencingInterfaceFor(type.element3);
     for (var entry in membersByName.entries) {
       var members = entry.value;
-      var rawMember = members.bestMember;
+      var rawMember = _bestMember(members);
       if (rawMember is MethodElement) {
         if (includeMethods) {
           if (rawMember.isOperator) {
@@ -1503,6 +1503,54 @@ class DeclarationHelper {
         }
       }
     }
+  }
+
+  /// Returns the element in [list] that is the best element to suggest.
+  ///
+  /// - If [mustBeAssignable] is `true` we look for the first setter:
+  ///   - If the setter is synthetic and contains a corresponding getter, we
+  ///     return the getter.
+  ///   - Otherwise, we return the setter.
+  /// - If [mustBeAssignable] is `false` or if there is no setter that meets the
+  ///   above criteria, we return the first getter.
+  /// - If the above are not possible, the first element in the list is
+  ///   returned under the assumption that it's lower in the hierarchy.
+  ExecutableElement _bestMember(List<ExecutableElement> list) {
+    var firstMember = list.first;
+    if (mustBeAssignable) {
+      if (firstMember case SetterElementImpl(
+        :var isSynthetic,
+        :var correspondingGetter2,
+      )) {
+        if (isSynthetic && correspondingGetter2 != null) {
+          return correspondingGetter2;
+        } else {
+          return firstMember;
+        }
+      }
+      for (var i = 1; i < list.length; i++) {
+        var member = list[i];
+        if (member case SetterElementImpl(
+          :var isSynthetic,
+          :var correspondingGetter2,
+        )) {
+          if (isSynthetic && correspondingGetter2 != null) {
+            return correspondingGetter2;
+          } else {
+            return member;
+          }
+        }
+      }
+    }
+    if (firstMember is SetterElement) {
+      for (var i = 1; i < list.length; i++) {
+        var member = list[i];
+        if (member is GetterElement) {
+          return member;
+        }
+      }
+    }
+    return firstMember;
   }
 
   bool _canAccessInstanceMember(ExecutableElement element) {
@@ -2532,25 +2580,6 @@ extension on Element {
     }
     var name = name3;
     return name != null && !Identifier.isPrivateName(name);
-  }
-}
-
-extension on List<ExecutableElement> {
-  /// Returns the element in this list that is the best element to suggest.
-  ///
-  /// Getters are preferred over setters, otherwise the first element in the
-  /// list is returned under the assumption that it's lower in the hierarchy.
-  ExecutableElement get bestMember {
-    ExecutableElement bestMember = this[0];
-    if (bestMember is SetterElement) {
-      for (var i = 1; i < length; i++) {
-        var member = this[i];
-        if (member is GetterElement) {
-          return member;
-        }
-      }
-    }
-    return bestMember;
   }
 }
 

@@ -67,7 +67,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     if (normalizedMessage == null ||
         normalizedMessage.isEmpty ||
         normalizedMessage == '.') {
-      _rule.reportLintForOffset(
+      _rule.reportAtOffset(
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName],
@@ -81,7 +81,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !normalizedMessage.endsWith('!')) {
         normalizedMessage = '$message.';
       }
-      _rule.reportLintForOffset(
+      _rule.reportAtOffset(
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName, normalizedMessage],

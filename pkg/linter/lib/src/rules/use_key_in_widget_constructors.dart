@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           return false;
         })) {
       var errorNode = node.name ?? node.returnType;
-      rule.reportLintForOffset(errorNode.offset, errorNode.length);
+      rule.reportAtOffset(errorNode.offset, errorNode.length);
     }
     super.visitConstructorDeclaration(node);
   }

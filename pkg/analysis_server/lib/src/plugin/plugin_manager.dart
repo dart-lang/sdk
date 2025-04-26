@@ -711,6 +711,31 @@ class PluginManager {
     return result;
   }
 
+  /// Compiles [pluginFile], in [pluginFolder], to an AOT snapshot, and returns
+  /// the [File] for the snapshot.
+  File _compileAsAot({required File pluginFile, required Folder pluginFolder}) {
+    // When the Dart Analysis Server is built as AOT, then all spawned
+    // Isolates must also be built as AOT.
+    var aotResult = _compileAotSnapshot(pluginFile.path);
+    if (aotResult.exitCode != 0) {
+      var buffer = StringBuffer();
+      buffer.writeln(
+        'Failed to compile "${pluginFile.path}" to an AOT snapshot.',
+      );
+      buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+      buffer.writeln('  exitCode = ${aotResult.exitCode}');
+      buffer.writeln('  stdout = ${aotResult.stdout}');
+      buffer.writeln('  stderr = ${aotResult.stderr}');
+      var exceptionReason = buffer.toString();
+      instrumentationService.logError(exceptionReason);
+      throw PluginException(exceptionReason);
+    }
+
+    return pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('plugin.aot');
+  }
+
   /// Computes the plugin files, given that the plugin should exist in
   /// [pluginFolder].
   ///
@@ -752,27 +777,11 @@ class PluginManager {
       }
 
       if (_builtAsAot) {
-        // When the Dart Analysis Server is built as AOT, then all spawned
-        // Isolates must also be built as AOT.
-        var aotResult = _compileAotSnapshot(pluginFile.path);
-        if (aotResult.exitCode != 0) {
-          var buffer = StringBuffer();
-          buffer.writeln(
-            'Failed to compile "${pluginFile.path}" to an AOT snapshot.',
-          );
-          buffer.writeln('  pluginFolder = ${pluginFolder.path}');
-          buffer.writeln('  exitCode = ${aotResult.exitCode}');
-          buffer.writeln('  stdout = ${aotResult.stdout}');
-          buffer.writeln('  stderr = ${aotResult.stderr}');
-          var exceptionReason = buffer.toString();
-          instrumentationService.logError(exceptionReason);
-          throw PluginException(exceptionReason);
-        }
-
         // Update the entrypoint path to be the AOT-compiled file.
-        pluginFile = pluginFolder
-            .getChildAssumingFolder('bin')
-            .getChildAssumingFile('plugin.aot');
+        pluginFile = _compileAsAot(
+          pluginFile: pluginFile,
+          pluginFolder: pluginFolder,
+        );
       }
 
       return PluginFiles(pluginFile, packageConfigFile);
@@ -793,6 +802,14 @@ class PluginManager {
           "the workspace at '$workspace'.",
         );
       }
+    }
+
+    if (_builtAsAot) {
+      // Update the entrypoint path to be the AOT-compiled file.
+      pluginFile = _compileAsAot(
+        pluginFile: pluginFile,
+        pluginFolder: pluginFolder,
+      );
     }
     return PluginFiles(pluginFile, packageConfigFile);
   }

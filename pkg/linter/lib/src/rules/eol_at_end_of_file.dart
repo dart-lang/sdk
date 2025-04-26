@@ -41,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // TODO(srawlins): Re-implement this check without iterating over
         // various lists of strings.
         (!content.endsWithNewline || content.endsWithMultipleNewlines)) {
-      rule.reportLintForOffset(content.trimRight().length, 1);
+      rule.reportAtOffset(content.trimRight().length, 1);
     }
   }
 }

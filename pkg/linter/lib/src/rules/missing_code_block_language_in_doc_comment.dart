@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (codeBlock.type != CodeBlockType.fenced) continue;
 
       var openingCodeBlockFence = codeBlock.lines.first;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         openingCodeBlockFence.offset,
         openingCodeBlockFence.length,
       );

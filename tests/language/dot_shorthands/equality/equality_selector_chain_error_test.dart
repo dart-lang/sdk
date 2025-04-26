@@ -178,6 +178,20 @@ void rhsNeedsToBeShorthand(
   ConstructorWithNonFinal ctor,
   bool condition,
 ) {
+  if (member == (.member().field)) {
+    //            ^^^^^^
+    // [analyzer] unspecified
+    // [cfe] No type was provided to find the dot shorthand 'member'.
+    print('not ok');
+  }
+
+  if (member == (.member().method())) {
+    //            ^^^^^^
+    // [analyzer] unspecified
+    // [cfe] No type was provided to find the dot shorthand 'member'.
+    print('not ok');
+  }
+
   if (member == (condition ? StaticMember.member() : .member().field)) {
     //                                                ^^^^^^
     // [analyzer] unspecified

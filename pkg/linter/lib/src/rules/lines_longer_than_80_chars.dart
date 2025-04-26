@@ -203,7 +203,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var line in longLines) {
       if (allowedLines.contains(line.index + 1)) continue;
-      rule.reportLintForOffset(line.offset, line.length);
+      rule.reportAtOffset(line.offset, line.length);
     }
   }
 }

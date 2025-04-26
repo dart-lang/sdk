@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         constructorElement.enclosingElement2.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,
         errorCode: LinterLintCode.deprecated_consistency_constructor,
@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (nameOffset == null) return;
       var nameLength = fieldFragment.name2?.length;
       if (nameLength == null) return;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         nameOffset,
         nameLength,
         errorCode: LinterLintCode.deprecated_consistency_parameter,

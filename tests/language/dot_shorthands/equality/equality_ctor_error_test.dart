@@ -209,6 +209,20 @@ void rhsNeedsToBeShorthand(
   // [analyzer] unspecified
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
+  if (ctor == (.new(1))) {
+    //          ^^^
+    // [analyzer] unspecified
+    // [cfe] No type was provided to find the dot shorthand 'new'.
+    print('not ok');
+  }
+
+  if (ctor != (.new(1))) {
+    //          ^^^
+    // [analyzer] unspecified
+    // [cfe] No type was provided to find the dot shorthand 'new'.
+    print('not ok');
+  }
+
   if (ctor == (condition ? .new(1) : .regular(1))) {
     //                      ^^^
     // [analyzer] unspecified
