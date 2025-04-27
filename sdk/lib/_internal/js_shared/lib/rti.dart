@@ -18,7 +18,7 @@ import 'dart:_foreign_helper'
         RAW_DART_FUNCTION_REF,
         TYPE_REF;
 import 'dart:_interceptors'
-    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
+    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray, JSObject;
 import 'dart:_js_helper'
     as records
     show createRecordTypePredicate, getRtiForRecord;
@@ -1306,6 +1306,8 @@ Object? _simpleSpecializedIsTest(Rti testRti) {
     isFn = RAW_DART_FUNCTION_REF(_isString);
   } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
     isFn = RAW_DART_FUNCTION_REF(_isBool);
+  } else if (_Utils.isIdentical(testRti, TYPE_REF<JSObject>())) {
+    isFn = RAW_DART_FUNCTION_REF(_isJSObject);
   }
   return isFn;
 }
@@ -1674,6 +1676,24 @@ String? _asStringQ(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) return _Utils.asNull(object);
   throw _TypeError.forType(object, 'String?');
+}
+
+bool _isJSObject(Object? object) {
+  if (object == null) return false;
+  if (JS('bool', 'typeof # == "object"', object)) {
+    if (_isDartObject(object)) return false;
+    return true;
+  }
+  if (JS('bool', 'typeof # == "function"', object)) {
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      // DDC functions have a signature attached.
+      var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+      var signature = JS('', '#[#]', object, signatureName);
+      return signature == null;
+    }
+    return true;
+  }
+  return false;
 }
 
 String _rtiArrayToString(Object? array, List<String>? genericContext) {
