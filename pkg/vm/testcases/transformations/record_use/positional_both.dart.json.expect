@@ -6,22 +6,31 @@
   "constants": [
     {
       "type": "int",
-      "value": 42
+      "value": 5
+    },
+    {
+      "type": "int",
+      "value": 3
+    },
+    {
+      "type": "int",
+      "value": 6
+    },
+    {
+      "type": "int",
+      "value": 4
     }
   ],
   "locations": [
     {
-      "uri": "loading_units_simple.dart"
-    },
-    {
-      "uri": "loading_units_simple_helper.dart"
+      "uri": "positional_both.dart"
     }
   ],
   "recordings": [
     {
       "definition": {
         "identifier": {
-          "uri": "loading_units_simple.dart",
+          "uri": "positional_both.dart",
           "scope": "SomeClass",
           "name": "someStaticMethod"
         },
@@ -31,30 +40,20 @@
         {
           "type": "with_arguments",
           "positional": [
-            0
+            0,
+            1
           ],
           "loading_unit": "1",
           "@": 0
-        }
-      ]
-    },
-    {
-      "definition": {
-        "identifier": {
-          "uri": "loading_units_simple_helper.dart",
-          "scope": "SomeClass",
-          "name": "someStaticMethod"
         },
-        "loading_unit": "2"
-      },
-      "calls": [
         {
           "type": "with_arguments",
           "positional": [
-            0
+            2,
+            3
           ],
-          "loading_unit": "2",
-          "@": 1
+          "loading_unit": "1",
+          "@": 0
         }
       ]
     }

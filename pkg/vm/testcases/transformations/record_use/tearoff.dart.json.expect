@@ -1,45 +1,28 @@
 {
   "metadata": {
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
-  "uris": [
-    "tearoff.dart"
-  ],
-  "ids": [
+  "locations": [
     {
-      "uri": 0,
-      "parent": "SomeClass",
-      "name": "someStaticMethod"
+      "uri": "tearoff.dart"
     }
   ],
-  "constants": [],
-  "calls": [
+  "recordings": [
     {
       "definition": {
-        "id": 0,
-        "@": {
-          "uri": 0,
-          "line": 15,
-          "column": 10
+        "identifier": {
+          "uri": "tearoff.dart",
+          "scope": "SomeClass",
+          "name": "someStaticMethod"
         },
-        "loadingUnit": "1"
+        "loading_unit": "1"
       },
-      "references": [
+      "calls": [
         {
-          "arguments": {
-            "nonConst": {
-              "positional": [
-                0
-              ]
-            }
-          },
-          "loadingUnit": null,
-          "@": {
-            "uri": 0,
-            "line": 11,
-            "column": 27
-          }
+          "type": "tearoff",
+          "loading_unit": "1",
+          "@": 0
         }
       ]
     }

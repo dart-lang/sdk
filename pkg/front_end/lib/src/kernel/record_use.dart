@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart';
 import '../base/messages.dart' show messageRecordUseCannotBePlacedHere;
 import 'constant_evaluator.dart' show ErrorReporter;
 
+// Coverage-ignore(suite): Not run.
 /// Get all of the `@RecordUse` annotations from `package:meta`
 /// that are attached to the specified [node].
 Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) =>
@@ -19,15 +20,18 @@ Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) =>
         .whereType<ConstantExpression>()
         .map((expression) => expression.constant)
         .whereType<InstanceConstant>()
-        .where((instance) => isRecordUse(instance.classNode))
-        .toList(growable: false);
+        .where((instance) => isRecordUse(instance.classNode));
+
+// Coverage-ignore(suite): Not run.
+bool hasRecordUseAnnotation(Annotatable node) =>
+    findRecordUseAnnotation(node).isNotEmpty;
 
 // Coverage-ignore(suite): Not run.
 final Uri _metaLibraryUri = new Uri(scheme: 'package', path: 'meta/meta.dart');
 
+// Coverage-ignore(suite): Not run.
 bool isRecordUse(Class cls) =>
     cls.name == 'RecordUse' &&
-    // Coverage-ignore(suite): Not run.
     cls.enclosingLibrary.importUri == _metaLibraryUri;
 
 // Coverage-ignore(suite): Not run.

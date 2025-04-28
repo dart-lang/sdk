@@ -13,97 +13,115 @@ void main() {
   test('All API calls', () {
     expect(
       RecordedUsages.fromJson(
-              jsonDecode(recordedUsesJson) as Map<String, dynamic>)
-          .argumentsTo(callId),
-      recordedUses.calls.expand((e) => e.references).map((e) => e.arguments),
+        jsonDecode(recordedUsesJson) as Map<String, Object?>,
+      ).constArgumentsFor(
+        Identifier(
+          importUri:
+              Uri.parse(
+                'file://lib/_internal/js_runtime/lib/js_helper.dart',
+              ).toString(),
+          scope: 'MyClass',
+          name: 'get:loadDeferredLibrary',
+        ),
+        '''
+void loadDeferredLibrary(String s, bool b, int i, {required String singer, String? character})''',
+      ).length,
+      2,
     );
   });
 
   test('All API instances', () {
-    final references =
-        recordedUses.instances.expand((instance) => instance.references);
-    final instances = RecordedUsages.fromJson(
-            jsonDecode(recordedUsesJson) as Map<String, dynamic>)
-        .instancesOf(instanceId);
-    expect(instances, references);
+    final instance =
+        RecordedUsages.fromJson(
+              jsonDecode(recordedUsesJson) as Map<String, Object?>,
+            )
+            .constantsOf(
+              Identifier(
+                importUri:
+                    Uri.parse(
+                      'file://lib/_internal/js_runtime/lib/js_helper.dart',
+                    ).toString(),
+                name: 'MyAnnotation',
+              ),
+            )
+            .first;
+    final instanceMap =
+        recordedUses.instancesForDefinition.values
+            .expand((usage) => usage)
+            .map(
+              (instance) => instance.instanceConstant.fields.map(
+                (key, constant) => MapEntry(key, constant.toValue()),
+              ),
+            )
+            .first;
+    for (final entry in instanceMap.entries) {
+      expect(instance[entry.key], entry.value);
+    }
   });
 
   test('Specific API calls', () {
-    final callId = Identifier(
-      importUri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
-          .toString(),
-      parent: 'MyClass',
-      name: 'get:loadDeferredLibrary',
-    );
-    final arguments = RecordedUsages.fromJson(
-            jsonDecode(recordedUsesJson) as Map<String, dynamic>)
-        .argumentsTo(callId)!
-        .toList();
-    expect(
-      arguments[0].constArguments.named,
-      const {
-        'leroy': StringConstant('jenkins'),
-        'freddy': StringConstant('mercury'),
-      },
-    );
-    expect(
-      arguments[0].constArguments.positional,
-      const {
-        0: StringConstant('lib_SHA1'),
-        1: BoolConstant(false),
-        2: IntConstant(1)
-      },
-    );
-    expect(arguments[1].constArguments.named, const {
-      'leroy': StringConstant('jenkins'),
-      'albert': ListConstant([
-        StringConstant('camus'),
-        ListConstant([
-          StringConstant('einstein'),
-          StringConstant('insert'),
-          BoolConstant(false),
-        ]),
-        StringConstant('einstein'),
-      ]),
-    });
-    expect(arguments[1].constArguments.positional, const {
-      0: StringConstant('lib_SHA1'),
-      2: IntConstant(0),
-      4: MapConstant({'key': IntConstant(99)})
-    });
+    var arguments =
+        RecordedUsages.fromJson(
+          jsonDecode(recordedUsesJson) as Map<String, Object?>,
+        ).constArgumentsFor(
+          Identifier(
+            importUri:
+                Uri.parse(
+                  'file://lib/_internal/js_runtime/lib/js_helper.dart',
+                ).toString(),
+            scope: 'MyClass',
+            name: 'get:loadDeferredLibrary',
+          ),
+          '''
+void loadDeferredLibrary(String s, bool b, int i, {required String freddy, String? leroy})''',
+        ).toList();
+    var (named: named0, positional: positional0) = arguments[0];
+    expect(named0, const {'freddy': 'mercury', 'leroy': 'jenkins'});
+    expect(positional0, const ['lib_SHA1', false, 1]);
+    var (named: named1, positional: positional1) = arguments[1];
+    expect(named1, const {'freddy': 0, 'leroy': 'jenkins'});
+    expect(positional1, const [
+      [
+        'camus',
+        ['einstein', 'insert', false],
+        'einstein',
+      ],
+      'lib_SHA1',
+      {'key': 99},
+    ]);
   });
 
   test('Specific API instances', () {
-    final instanceId = Identifier(
-      importUri: Uri.parse('file://lib/_internal/js_runtime/lib/js_helper.dart')
-          .toString(),
-      name: 'MyAnnotation',
-    );
-    expect(
-      RecordedUsages.fromJson(
-              jsonDecode(recordedUsesJson) as Map<String, dynamic>)
-          .instancesOf(instanceId)
-          ?.first,
-      InstanceReference(
-        instanceConstant: const InstanceConstant(
-          fields: {'a': IntConstant(42), 'b': NullConstant()},
-        ),
-        location: Location(uri: instanceId.importUri, line: 40, column: 30),
-        loadingUnit: 3.toString(),
-      ),
-    );
+    final instance =
+        RecordedUsages.fromJson(
+              jsonDecode(recordedUsesJson) as Map<String, Object?>,
+            )
+            .constantsOf(
+              Identifier(
+                importUri:
+                    Uri.parse(
+                      'file://lib/_internal/js_runtime/lib/js_helper.dart',
+                    ).toString(),
+                name: 'MyAnnotation',
+              ),
+            )
+            .first;
+    expect(instance['a'], 42);
+    expect(instance['b'], null);
   });
 
   test('HasNonConstInstance', () {
-    final id = const Identifier(
-      importUri: 'package:drop_dylib_recording/src/drop_dylib_recording.dart',
-      name: 'getMathMethod',
-    );
-
     expect(
-        RecordedUsages.fromJson(
-                jsonDecode(recordedUsesJson2) as Map<String, dynamic>)
-            .hasNonConstArguments(id),
-        false);
+      RecordedUsages.fromJson(
+        jsonDecode(recordedUsesJson2) as Map<String, Object?>,
+      ).hasNonConstArguments(
+        const Identifier(
+          importUri:
+              'package:drop_dylib_recording/src/drop_dylib_recording.dart',
+          name: 'getMathMethod',
+        ),
+      ),
+      false,
+    );
   });
 }

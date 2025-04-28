@@ -10,22 +10,33 @@ import 'package:test/test.dart';
 import 'test_data.dart';
 
 void main() {
-  final json = jsonDecode(recordedUsesJson) as Map<String, dynamic>;
-  test(
-    'JSON',
-    () => expect(recordedUses.toJson(), json),
-  );
+  group('object 1', () {
+    final json = jsonDecode(recordedUsesJson) as Map<String, Object?>;
+    test('JSON', () => expect(recordedUses.toJson(), json));
 
-  test(
-    'Object',
-    () => expect(UsageRecord.fromJson(json), recordedUses),
-  );
+    test('Object', () => expect(Recordings.fromJson(json), recordedUses));
 
-  test('Json->Object->Json', () {
-    expect(UsageRecord.fromJson(json).toJson(), json);
+    test('Json->Object->Json', () {
+      expect(Recordings.fromJson(json).toJson(), json);
+    });
+
+    test('Object->Json->Object', () {
+      expect(Recordings.fromJson(recordedUses.toJson()), recordedUses);
+    });
   });
 
-  test('Object->Json->Object', () {
-    expect(UsageRecord.fromJson(recordedUses.toJson()), recordedUses);
+  group('object 2', () {
+    final json2 = jsonDecode(recordedUsesJson2) as Map<String, Object?>;
+    test('JSON', () => expect(recordedUses2.toJson(), json2));
+
+    test('Object', () => expect(Recordings.fromJson(json2), recordedUses2));
+
+    test('Json->Object->Json', () {
+      expect(Recordings.fromJson(json2).toJson(), json2);
+    });
+
+    test('Object->Json->Object', () {
+      expect(Recordings.fromJson(recordedUses2.toJson()), recordedUses2);
+    });
   });
 }

@@ -79,8 +79,9 @@ class _ConstantCollector implements ConstantVisitor {
   void visitInstanceConstant(InstanceConstant constant) {
     assert(_expression != null);
     final classNode = constant.classNode;
-    if (_hasRecordUseAnnotation[classNode] ??=
-        recordUse.findRecordUseAnnotation(classNode).isNotEmpty) {
+    if (_hasRecordUseAnnotation[classNode] ??= recordUse.hasRecordUseAnnotation(
+      classNode,
+    )) {
       collector(_expression!, constant);
     }
     for (final value in constant.fieldValues.values) {
