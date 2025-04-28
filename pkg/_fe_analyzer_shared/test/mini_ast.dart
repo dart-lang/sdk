@@ -3236,6 +3236,63 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
+
+  @override
+  bool isKnownType(SharedTypeSchemaView typeSchema) {
+    var unwrapped = typeSchema.unwrapTypeSchemaView<Type>();
+    switch (unwrapped) {
+      case FutureOrType(:var typeArgument):
+        return isKnownType(SharedTypeSchemaView(typeArgument));
+      case PrimaryType(:var args):
+        for (var arg in args) {
+          if (!isKnownType(SharedTypeSchemaView(arg))) {
+            return false;
+          }
+        }
+        return true;
+      case FunctionType(
+          :var returnType,
+          :var typeParametersShared,
+          :var positionalParameters,
+          :var namedParameters
+        ):
+        if (!isKnownType(SharedTypeSchemaView(returnType))) {
+          return false;
+        }
+        for (var typeParameter in typeParametersShared) {
+          if (!isKnownType(SharedTypeSchemaView(typeParameter.bound))) {
+            return false;
+          }
+        }
+        for (var positionalParameter in positionalParameters) {
+          if (!isKnownType(SharedTypeSchemaView(positionalParameter))) {
+            return false;
+          }
+        }
+        for (var namedParameter in namedParameters) {
+          if (!isKnownType(SharedTypeSchemaView(namedParameter.type))) {
+            return false;
+          }
+        }
+        return true;
+      case RecordType(:var positionalTypes, :var namedTypes):
+        for (var positionalType in positionalTypes) {
+          if (!isKnownType(SharedTypeSchemaView(positionalType))) {
+            return false;
+          }
+        }
+        for (var namedType in namedTypes) {
+          if (!isKnownType(SharedTypeSchemaView(namedType.type))) {
+            return false;
+          }
+        }
+        return true;
+      case UnknownType():
+        return false;
+      default:
+        return true;
+    }
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

@@ -2113,7 +2113,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   int finishNativeMethods() {
     for (FactoryFragment fragment in _nativeFactoryFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     for (GetterFragment fragment in _nativeGetterFragments) {
       fragment.declaration.becomeNative(loader);
@@ -2125,7 +2125,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       fragment.declaration.becomeNative(loader);
     }
     for (ConstructorFragment fragment in _nativeConstructorFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     return _nativeFactoryFragments.length;
   }

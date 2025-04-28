@@ -4,11 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/messages.dart';
 import 'package:front_end/src/builder/property_builder.dart';
 import 'package:front_end/src/fragment/method/encoding.dart';
-import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_method_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -478,12 +476,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
         _fileOffset = fileOffset;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void becomeNative(SourceLoader loader) {
-    // TODO: implement becomeNative
-  }
-
-  @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
@@ -567,22 +559,12 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder) {
-    throw new UnsupportedError("$runtimeType.createBodyBuilderContext");
-  }
-
-  @override
   void createEncoding(
       ProblemReporting problemReporting,
       SourceMethodBuilder builder,
       MethodEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters) {
     throw new UnsupportedError("$runtimeType.createEncoding");
-  }
-
-  @override
-  LocalScope createFormalParameterScope(LookupScope typeParameterScope) {
-    throw new UnsupportedError("$runtimeType.createFormalParameterScope");
   }
 
   @override
@@ -593,24 +575,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
   @override
   Uri get fileUri => _fileUri;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formals => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  FunctionNode get function => _procedure.function;
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    throw new UnsupportedError("$runtimeType.getFormalParameter");
-  }
-
-  @override
-  VariableDeclaration? getTearOffParameter(int index) {
-    throw new UnsupportedError("$runtimeType.getTearOffParameter");
-  }
 
   @override
   Procedure get invokeTarget => _procedure;
@@ -624,19 +588,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
   @override
   Procedure? get readTarget => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  TypeBuilder get returnType =>
-      throw new UnsupportedError("$runtimeType.returnType");
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<TypeParameter>? get thisTypeParameters => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  VariableDeclaration? get thisVariable => null;
 }
 
 class _EnumValuesFieldDeclaration implements FieldDeclaration {
@@ -651,11 +602,10 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
 
   Field? _field;
 
-  @override
-  final TypeBuilder type;
+  final TypeBuilder _typeBuilder;
 
   _EnumValuesFieldDeclaration(
-      this._sourceEnumBuilder, this.fieldReference, this.type);
+      this._sourceEnumBuilder, this.fieldReference, this._typeBuilder);
 
   SourcePropertyBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
@@ -717,7 +667,7 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
       {required List<TypeParameter>? classTypeParameters}) {
-    fieldType = type.build(libraryBuilder, TypeUse.fieldType);
+    fieldType = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
     _field = new Field.immutable(dummyName,
         type: _type,
         isFinal: false,

@@ -22,7 +22,6 @@ import '../type_inference/type_inference_engine.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceMemberBuilderImpl
@@ -121,14 +120,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Builder? get setable => null;
 
-  void becomeNative(SourceLoader loader) {
-    _introductory.becomeNative(loader: loader, annotatables: annotatables);
-    for (FactoryDeclaration augmentation in _augmentations) {
-      // Coverage-ignore-block(suite): Not run.
-      augmentation.becomeNative(loader: loader, annotatables: annotatables);
-    }
-  }
-
   @override
   Builder get parent => declarationBuilder;
 
@@ -180,16 +171,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
-
-  // Coverage-ignore(suite): Not run.
-  /// If this is an extension instance method or constructor with lowering
-  /// enabled, the tear off parameter corresponding to the [index]th parameter
-  /// on the instance method or constructor is returned.
-  ///
-  /// This is used to update the default value for the closure parameter when
-  /// it has been computed for the original parameter.
-  VariableDeclaration? getTearOffParameter(int index) =>
-      _introductory.getTearOffParameter(index);
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -61,7 +61,7 @@ class GetterFragment implements Fragment, FunctionFragment {
 
   SourcePropertyBuilder? _builder;
 
-  GetterDeclaration? _declaration;
+  GetterFragmentDeclaration? _declaration;
 
   GetterFragment({
     required this.name,
@@ -96,12 +96,12 @@ class GetterFragment implements Fragment, FunctionFragment {
     _builder = value;
   }
 
-  GetterDeclaration get declaration {
+  GetterFragmentDeclaration get declaration {
     assert(_declaration != null, "Builder has not been computed for $this.");
     return _declaration!;
   }
 
-  void set declaration(GetterDeclaration value) {
+  void set declaration(GetterFragmentDeclaration value) {
     assert(_declaration == null,
         "Declaration has already been computed for $this.");
     _declaration = value;

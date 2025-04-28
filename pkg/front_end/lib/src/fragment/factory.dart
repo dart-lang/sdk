@@ -30,7 +30,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
 
   SourceFactoryBuilder? _builder;
 
-  FactoryDeclaration? _declaration;
+  FactoryFragmentDeclaration? _declaration;
 
   FactoryFragment({
     required this.constructorName,
@@ -67,13 +67,13 @@ class FactoryFragment implements Fragment, FunctionFragment {
     _builder = value;
   }
 
-  FactoryDeclaration get declaration {
+  FactoryFragmentDeclaration get declaration {
     assert(
         _declaration != null, "Declaration has not been computed for $this.");
     return _declaration!;
   }
 
-  void set declaration(FactoryDeclaration value) {
+  void set declaration(FactoryFragmentDeclaration value) {
     assert(_declaration == null,
         "Declaration has already been computed for $this.");
     _declaration = value;

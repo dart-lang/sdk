@@ -2463,7 +2463,7 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
       fieldIsLateWithLowering: fieldIsLateWithLowering,
       isExternal: fragment.modifiers.isExternal);
 
-  FieldFragmentDeclaration declaration = new FieldFragmentDeclaration(fragment);
+  FieldDeclarationImpl declaration = new FieldDeclarationImpl(fragment);
   SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,

@@ -1043,6 +1043,11 @@ class OperationsCfe
         inferenceResultForTesting: null,
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
   }
+
+  @override
+  bool isKnownType(SharedTypeSchemaView typeSchema) {
+    return isKnown(typeSchema.unwrapTypeSchemaView());
+  }
 }
 
 /// Type inference results used for testing.

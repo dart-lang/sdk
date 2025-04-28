@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 
@@ -853,6 +854,82 @@ main() {
               astNodeForTesting: Node.placeholder()))
           .isTrue();
       check(tcg.constraints).unorderedEquals(['num <: T']);
+    });
+  });
+
+  group('isKnownType', () {
+    test('Simple types', () {
+      var tcg = TypeConstraintGatherer({'T'});
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('String'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('dynamic'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('Object'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('void'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('T'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('_'))))
+          .isFalse();
+    });
+
+    test('Compound types', () {
+      var tcg = TypeConstraintGatherer({'T'});
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('List<String>'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('List<_>'))))
+          .isFalse();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('List<List<int>>'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('List<List<_>>'))))
+          .isFalse();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('dynamic Function()'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('_ Function()'))))
+          .isFalse();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('int Function(int)'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('int Function(_)'))))
+          .isFalse();
+      check(tcg.typeAnalyzerOperations.isKnownType(
+              SharedTypeSchemaView(Type('int Function({String named})'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations.isKnownType(
+              SharedTypeSchemaView(Type('int Function({_ named})'))))
+          .isFalse();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('(int, String, Object)'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations
+              .isKnownType(SharedTypeSchemaView(Type('(int, String, _)'))))
+          .isFalse();
+      check(tcg.typeAnalyzerOperations.isKnownType(
+              SharedTypeSchemaView(Type('(int, String, {dynamic named})'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations.isKnownType(
+              SharedTypeSchemaView(Type('(int, String, {_ named})'))))
+          .isFalse();
+      check(tcg.typeAnalyzerOperations.isKnownType(SharedTypeSchemaView(
+              Type('(int, String, {List<dynamic> Function(int) named})'))))
+          .isTrue();
+      check(tcg.typeAnalyzerOperations.isKnownType(SharedTypeSchemaView(
+              Type('(int, String, {List<_> Function(int) named})'))))
+          .isFalse();
     });
   });
 }

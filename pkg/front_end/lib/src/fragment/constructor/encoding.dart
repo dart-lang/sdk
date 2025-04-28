@@ -18,6 +18,7 @@ import '../../source/source_constructor_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
+import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../type_inference/type_schema.dart';
@@ -226,8 +227,10 @@ class RegularConstructorEncoding {
     _constructor.initializers.insert(0, initializer);
   }
 
-  void becomeNative() {
+  void becomeNative(SourceLoader loader, String nativeMethodName) {
     _constructor.isExternal = true;
+
+    loader.addNativeAnnotation(_constructor, nativeMethodName);
   }
 
   VariableDeclaration getFormalParameter(int index) {
@@ -291,7 +294,7 @@ class RegularConstructorEncoding {
 
   BodyBuilderContext createBodyBuilderContext(
       SourceConstructorBuilderImpl constructorBuilder,
-      ConstructorDeclaration constructorDeclaration) {
+      ConstructorFragmentDeclaration constructorDeclaration) {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
   }
@@ -590,7 +593,7 @@ class ExtensionTypeConstructorEncoding {
 
   BodyBuilderContext createBodyBuilderContext(
       SourceConstructorBuilderImpl constructorBuilder,
-      ConstructorDeclaration constructorDeclaration) {
+      ConstructorFragmentDeclaration constructorDeclaration) {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
   }

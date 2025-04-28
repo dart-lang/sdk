@@ -169,9 +169,6 @@ abstract class FieldDeclaration {
   /// `null` if this field declaration has no setter.
   Member? get writeTarget;
 
-  /// The [TypeBuilder] for the declared type of this field declaration.
-  TypeBuilder get type;
-
   /// The [DartType] of this field declaration.
   abstract DartType fieldType;
 
@@ -221,6 +218,9 @@ mixin FieldDeclarationMixin
   SourcePropertyBuilder get builder;
 
   bool get isConst;
+
+  /// The [TypeBuilder] for the declared type of this field declaration.
+  TypeBuilder get type;
 
   void _setCovariantByClassInternal();
 

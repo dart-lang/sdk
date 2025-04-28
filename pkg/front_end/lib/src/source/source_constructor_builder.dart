@@ -39,26 +39,117 @@ import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
+
+class ExtensionTypeInitializerToStatementConverter
+    implements InitializerVisitor<void> {
+  VariableDeclaration thisVariable;
+  final List<Statement> statements;
+
+  ExtensionTypeInitializerToStatementConverter(
+      this.statements, this.thisVariable);
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    statements.add(node.statement);
+  }
+
+  @override
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    if (node is ExtensionTypeRedirectingInitializer) {
+      statements.add(new ExpressionStatement(
+          new VariableSet(
+              thisVariable,
+              new StaticInvocation(node.target, node.arguments)
+                ..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset);
+      return;
+    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
+      thisVariable
+        ..initializer = (node.value..parent = thisVariable)
+        ..fileOffset = node.fileOffset;
+      return;
+    }
+    // Coverage-ignore-block(suite): Not run.
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitFieldInitializer(FieldInitializer node) {
+    thisVariable
+      ..initializer = (node.value..parent = thisVariable)
+      ..fileOffset = node.fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitInvalidInitializer(InvalidInitializer node) {
+    statements.add(new ExpressionStatement(
+        new InvalidExpression(null)..fileOffset = node.fileOffset)
+      ..fileOffset);
+  }
+
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
+    statements.add(node.variable);
+  }
+
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitSuperInitializer(SuperInitializer node) {
+    // TODO(johnniwinther): Report error for this case.
+  }
+}
+
+class InferableConstructor implements InferableMember {
+  @override
+  final Member member;
+
+  final SourceConstructorBuilder _builder;
+
+  InferableConstructor(this.member, this._builder);
+
+  @override
+  void inferMemberTypes(ClassHierarchyBase classHierarchy) {
+    _builder.inferFormalTypes(classHierarchy);
+  }
+
+  @override
+  void reportCyclicDependency() {
+    // There is a cyclic dependency where inferring the types of the
+    // initializing formals of a constructor required us to infer the
+    // corresponding field type which required us to know the type of the
+    // constructor.
+    String name = _builder.declarationBuilder.name;
+    if (_builder.name.isNotEmpty) {
+      // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
+      // instead. However, `inferrer.helper` may be null.
+      name += ".${_builder.name}";
+    }
+    _builder.libraryBuilder.addProblem(
+        templateCantInferTypeDueToCircularity.withArguments(name),
+        _builder.fileOffset,
+        name.length,
+        _builder.fileUri);
+  }
+}
 
 abstract class SourceConstructorBuilder implements ConstructorBuilder {
   @override
   DeclarationBuilder get declarationBuilder;
 
-  void buildOutlineNodes(BuildNodesCallback f);
-
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
-
-  int buildBodyNodes(BuildNodesCallback f);
-
-  /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes(ClassHierarchyBase hierarchy);
-
-  void addSuperParameterDefaultValueCloners(
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+  @override
+  Uri get fileUri;
 
   /// Returns `true` if this constructor is an redirecting generative
   /// constructor.
@@ -67,8 +158,18 @@ abstract class SourceConstructorBuilder implements ConstructorBuilder {
   /// initializer.
   bool get isRedirecting;
 
-  @override
-  Uri get fileUri;
+  void addSuperParameterDefaultValueCloners(
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  int buildBodyNodes(BuildNodesCallback f);
+
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  void buildOutlineNodes(BuildNodesCallback f);
+
+  /// Infers the types of any untyped initializing formals.
+  void inferFormalTypes(ClassHierarchyBase hierarchy);
 }
 
 class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
@@ -121,6 +222,21 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   late final Reference _readTargetReference;
   late final Member _readTarget;
 
+  late final Substitution _fieldTypeSubstitution =
+      _introductory.computeFieldTypeSubstitution(declarationBuilder);
+
+  final String? nativeMethodName;
+
+  SuperInitializer? superInitializer;
+
+  RedirectingInitializer? redirectingInitializer;
+
+  bool _hasBuiltOutlines = false;
+
+  bool hasBuiltOutlineExpressions = false;
+
+  bool _hasFormalsInferred = false;
+
   SourceConstructorBuilderImpl({
     required this.modifiers,
     required this.name,
@@ -169,48 +285,28 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
-  @override
-  Builder get parent => declarationBuilder;
-
-  bool get hasParameters => _introductory.formals != null;
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  Iterable<Annotatable> get annotatables => [invokeTarget];
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<MetadataBuilder>? get metadataForTesting => _introductory.metadata;
+  Iterable<Reference> get exportedMemberReferences => [invokeTargetReference];
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => modifiers.isAugment;
-
-  bool get isExternal => modifiers.isExternal;
-
-  @override
-  bool get isConst => modifiers.isConst;
+  String get fullNameForErrors {
+    return "${declarationBuilder.name}"
+        "${name.isEmpty ? '' : '.$name'}";
+  }
 
   @override
-  bool get isStatic => modifiers.isStatic;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Name get memberName => _memberName.name;
-
-  @override
-  bool get isRedirecting => _lastDeclaration.isRedirecting;
+  FunctionNode get function => _lastDeclaration.function;
 
   @override
   // Coverage-ignore(suite): Not run.
   Builder get getable => this;
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? get setable => null;
-
-  @override
-  Member get readTarget => _readTarget;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => _readTargetReference;
+  bool get hasParameters => _introductory.hasParameters;
 
   @override
   Member get invokeTarget => _invokeTarget;
@@ -221,62 +317,105 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isAugmentation => modifiers.isAugment;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isClassInstanceMember => false;
+
+  @override
+  bool get isConst => modifiers.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isDeclarationInstanceMember => false;
+
+  @override
+  bool get isEffectivelyExternal {
+    bool isExternal = this.isExternal;
+    if (isExternal) {
+      for (ConstructorDeclaration augmentation in _augmentations) {
+        isExternal &= augmentation.isExternal;
+      }
+    }
+    return isExternal;
+  }
+
+  @override
+  bool get isEffectivelyRedirecting {
+    bool isRedirecting = _introductory.isRedirecting;
+    if (!isRedirecting) {
+      for (ConstructorDeclaration augmentation in _augmentations) {
+        isRedirecting |= augmentation.isRedirecting;
+      }
+    }
+    return isRedirecting;
+  }
+
+  bool get isExternal => modifiers.isExternal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  // Coverage-ignore(suite): Not run.
+  bool get isNative => nativeMethodName != null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
+
+  @override
+  bool get isRedirecting => _lastDeclaration.isRedirecting;
+
+  @override
+  bool get isStatic => modifiers.isStatic;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get localMembers =>
+      throw new UnsupportedError('${runtimeType}.localMembers');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get localSetters =>
+      throw new UnsupportedError('${runtimeType}.localSetters');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Name get memberName => _memberName.name;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => _introductory.metadata;
+
+  @override
+  Builder get parent => declarationBuilder;
+
+  @override
+  Member get readTarget => _readTarget;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _readTargetReference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
   // Coverage-ignore(suite): Not run.
   Reference? get writeTargetReference => null;
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [invokeTargetReference];
-
-  // TODO(johnniwinther): Add annotations to tear-offs.
-  Iterable<Annotatable> get annotatables => [invokeTarget];
-
-  @override
-  FunctionNode get function => _lastDeclaration.function;
-
-  void becomeNative(SourceLoader loader) {
-    _introductory.becomeNative();
-    for (ConstructorDeclaration augmentation in _augmentations) {
-      // Coverage-ignore-block(suite): Not run.
-      augmentation.becomeNative();
-    }
-    for (Annotatable annotatable in annotatables) {
-      loader.addNativeAnnotation(annotatable, nativeMethodName!);
-    }
-  }
-
-  late final Substitution _fieldTypeSubstitution =
-      _introductory.computeFieldTypeSubstitution(declarationBuilder);
-
-  @override
-  DartType substituteFieldType(DartType fieldType) {
-    return _fieldTypeSubstitution.substituteType(fieldType);
-  }
-
-  final String? nativeMethodName;
-
-  // Coverage-ignore(suite): Not run.
-  bool get isNative => nativeMethodName != null;
-
   List<Initializer> get _initializers => _lastDeclaration.initializers;
-
-  SuperInitializer? superInitializer;
-
-  RedirectingInitializer? redirectingInitializer;
-
-  void _injectInvalidInitializer(Message message, int charOffset, int length,
-      ExpressionGeneratorHelper helper, TreeNode parent) {
-    Initializer lastInitializer = _initializers.removeLast();
-    assert(lastInitializer == superInitializer ||
-        lastInitializer == redirectingInitializer);
-    Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, length));
-    _initializers.add(error..parent = parent);
-    _initializers.add(lastInitializer);
-  }
 
   @override
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
@@ -394,66 +533,13 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    int count = _introductory.computeDefaultTypes(context,
-        inErrorRecovery: inErrorRecovery);
+  void addSuperParameterDefaultValueCloners(
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    _introductory.addSuperParameterDefaultValueCloners(
+        libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
     for (ConstructorDeclaration augmentation in _augmentations) {
-      count += augmentation.computeDefaultTypes(context,
-          inErrorRecovery: inErrorRecovery);
-    }
-    return count;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
-
-  @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
-    _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    for (ConstructorDeclaration augmentation in _augmentations) {
-      augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<ClassMember> get localMembers =>
-      throw new UnsupportedError('${runtimeType}.localMembers');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<ClassMember> get localSetters =>
-      throw new UnsupportedError('${runtimeType}.localSetters');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isProperty => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSynthesized => false;
-
-  @override
-  void buildOutlineNodes(BuildNodesCallback f) {
-    _lastDeclaration.buildOutlineNodes(f,
-        constructorBuilder: this,
-        libraryBuilder: libraryBuilder,
-        declarationConstructor: invokeTarget,
-        delayedDefaultValueCloners: _delayedDefaultValueCloners);
-    for (ConstructorDeclaration declaration in _augmentedDeclarations) {
-      declaration.buildOutlineNodes(noAddBuildNodesCallback,
-          constructorBuilder: this,
-          libraryBuilder: libraryBuilder,
-          declarationConstructor: invokeTarget,
-          delayedDefaultValueCloners: _delayedDefaultValueCloners);
+      augmentation.addSuperParameterDefaultValueCloners(
+          libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
     }
   }
 
@@ -465,36 +551,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     }
     return _augmentations.length;
   }
-
-  @override
-  void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
-    (_initializedFields ??= {}).add(fieldBuilder);
-  }
-
-  @override
-  Set<SourcePropertyBuilder>? takeInitializedFields() {
-    Set<SourcePropertyBuilder>? result = _initializedFields;
-    _initializedFields = null;
-    return result;
-  }
-
-  @override
-  void prepareInitializers() {
-    _introductory.prepareInitializers();
-    for (ConstructorDeclaration augmentation in _augmentations) {
-      augmentation.prepareInitializers();
-    }
-    redirectingInitializer = null;
-    superInitializer = null;
-  }
-
-  @override
-  void prependInitializer(Initializer initializer) {
-    _lastDeclaration.prependInitializer(initializer);
-  }
-
-  bool _hasBuiltOutlines = false;
-  bool hasBuiltOutlineExpressions = false;
 
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -531,48 +587,46 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  String get fullNameForErrors {
-    return "${declarationBuilder.name}"
-        "${name.isEmpty ? '' : '.$name'}";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isDeclarationInstanceMember => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isClassInstanceMember => false;
-
-  @override
-  bool get isEffectivelyExternal {
-    bool isExternal = this.isExternal;
-    if (isExternal) {
-      for (ConstructorDeclaration augmentation in _augmentations) {
-        isExternal &= augmentation.isExternal;
-      }
+  void buildOutlineNodes(BuildNodesCallback f) {
+    _lastDeclaration.buildOutlineNodes(f,
+        constructorBuilder: this,
+        libraryBuilder: libraryBuilder,
+        declarationConstructor: invokeTarget,
+        delayedDefaultValueCloners: _delayedDefaultValueCloners);
+    for (ConstructorDeclaration declaration in _augmentedDeclarations) {
+      declaration.buildOutlineNodes(noAddBuildNodesCallback,
+          constructorBuilder: this,
+          libraryBuilder: libraryBuilder,
+          declarationConstructor: invokeTarget,
+          delayedDefaultValueCloners: _delayedDefaultValueCloners);
     }
-    return isExternal;
   }
 
   @override
-  bool get isEffectivelyRedirecting {
-    bool isRedirecting = _introductory.isRedirecting;
-    if (!isRedirecting) {
-      for (ConstructorDeclaration augmentation in _augmentations) {
-        isRedirecting |= augmentation.isRedirecting;
-      }
+  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
-    return isRedirecting;
   }
 
   @override
-  void inferTypes(ClassHierarchyBase hierarchy) {
-    inferFormalTypes(hierarchy);
-  }
+  // Coverage-ignore(suite): Not run.
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
-  bool _hasFormalsInferred = false;
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    int count = _introductory.computeDefaultTypes(context,
+        inErrorRecovery: inErrorRecovery);
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      count += augmentation.computeDefaultTypes(context,
+          inErrorRecovery: inErrorRecovery);
+    }
+    return count;
+  }
 
   @override
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
@@ -587,14 +641,51 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  void addSuperParameterDefaultValueCloners(
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    _introductory.addSuperParameterDefaultValueCloners(
-        libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+  void inferTypes(ClassHierarchyBase hierarchy) {
+    inferFormalTypes(hierarchy);
+  }
+
+  @override
+  void prepareInitializers() {
+    _introductory.prepareInitializers();
     for (ConstructorDeclaration augmentation in _augmentations) {
-      augmentation.addSuperParameterDefaultValueCloners(
-          libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+      augmentation.prepareInitializers();
     }
+    redirectingInitializer = null;
+    superInitializer = null;
+  }
+
+  @override
+  void prependInitializer(Initializer initializer) {
+    _lastDeclaration.prependInitializer(initializer);
+  }
+
+  @override
+  void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
+    (_initializedFields ??= {}).add(fieldBuilder);
+  }
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    return _fieldTypeSubstitution.substituteType(fieldType);
+  }
+
+  @override
+  Set<SourcePropertyBuilder>? takeInitializedFields() {
+    Set<SourcePropertyBuilder>? result = _initializedFields;
+    _initializedFields = null;
+    return result;
+  }
+
+  void _injectInvalidInitializer(Message message, int charOffset, int length,
+      ExpressionGeneratorHelper helper, TreeNode parent) {
+    Initializer lastInitializer = _initializers.removeLast();
+    assert(lastInitializer == superInitializer ||
+        lastInitializer == redirectingInitializer);
+    Initializer error = helper.buildInvalidInitializer(
+        helper.buildProblem(message, charOffset, length));
+    _initializers.add(error..parent = parent);
+    _initializers.add(lastInitializer);
   }
 }
 
@@ -634,8 +725,11 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
         _constructorTearOff = constructorTearOff;
 
   @override
+  DeclarationBuilder get declarationBuilder => classBuilder;
+
+  @override
   // Coverage-ignore(suite): Not run.
-  Iterable<MetadataBuilder>? get metadataForTesting => null;
+  Iterable<Reference> get exportedMemberReferences => [_constructor.reference];
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -646,71 +740,11 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   Uri get fileUri => _constructor.fileUri;
 
   @override
-  Builder get parent => declarationBuilder;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [_constructor.reference];
-
-  @override
-  String get name => _constructor.name.text;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Name get memberName => _constructor.name;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSynthesized => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSynthetic => _constructor.isSynthetic;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isProperty => false;
+  FunctionNode get function => _constructor.function;
 
   @override
   // Coverage-ignore(suite): Not run.
   Builder get getable => this;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? get setable => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<ClassMember> get localMembers =>
-      throw new UnsupportedError('${runtimeType}.localMembers');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<ClassMember> get localSetters =>
-      throw new UnsupportedError('${runtimeType}.localSetters');
-
-  @override
-  FunctionNode get function => _constructor.function;
-
-  @override
-  Member get readTarget => _constructorTearOff ?? _constructor;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference =>
-      (_constructorTearOff ?? _constructor).reference;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Member? get writeTarget => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference? get writeTargetReference => null;
 
   @override
   Constructor get invokeTarget => _constructor;
@@ -723,7 +757,12 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   bool get isConst => _constructor.isConst;
 
   @override
-  DeclarationBuilder get declarationBuilder => classBuilder;
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -737,33 +776,56 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   }
 
   @override
-  void inferFormalTypes(ClassHierarchyBase hierarchy) {
-    if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
-      (_immediatelyDefiningConstructor as SourceConstructorBuilder)
-          .inferFormalTypes(hierarchy);
-    }
-    if (_typeDependency != null) {
-      _typeDependency!.copyInferred();
-      _typeDependency = null;
-    }
-  }
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => true;
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    if (_immediatelyDefiningConstructor != null) {
-      // Ensure that default value expressions have been created for [_origin].
-      // If [_origin] is from a source library, we need to build the default
-      // values and initializers first.
-      MemberBuilder origin = _immediatelyDefiningConstructor!;
-      if (origin is SourceConstructorBuilder) {
-        origin.buildOutlineExpressions(
-            classHierarchy, delayedDefaultValueCloners);
-      }
-      addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
-      _immediatelyDefiningConstructor = null;
-    }
-  }
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthetic => _constructor.isSynthetic;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get localMembers =>
+      throw new UnsupportedError('${runtimeType}.localMembers');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get localSetters =>
+      throw new UnsupportedError('${runtimeType}.localSetters');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Name get memberName => _constructor.name;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => null;
+
+  @override
+  String get name => _constructor.name.text;
+
+  @override
+  Builder get parent => declarationBuilder;
+
+  @override
+  Member get readTarget => _constructorTearOff ?? _constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference =>
+      (_constructorTearOff ?? _constructor).reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get setable => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Member? get writeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => null;
 
   @override
   void addSuperParameterDefaultValueCloners(
@@ -786,6 +848,32 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   }
 
   @override
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    if (_immediatelyDefiningConstructor != null) {
+      // Ensure that default value expressions have been created for [_origin].
+      // If [_origin] is from a source library, we need to build the default
+      // values and initializers first.
+      MemberBuilder origin = _immediatelyDefiningConstructor!;
+      if (origin is SourceConstructorBuilder) {
+        origin.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
+      }
+      addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
+      _immediatelyDefiningConstructor = null;
+    }
+  }
+
+  @override
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
   // Coverage-ignore(suite): Not run.
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
@@ -794,113 +882,14 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
-
-  @override
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {}
-}
-
-class ExtensionTypeInitializerToStatementConverter
-    implements InitializerVisitor<void> {
-  VariableDeclaration thisVariable;
-  final List<Statement> statements;
-
-  ExtensionTypeInitializerToStatementConverter(
-      this.statements, this.thisVariable);
-
-  @override
-  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
-    if (node is ExtensionTypeRedirectingInitializer) {
-      statements.add(new ExpressionStatement(
-          new VariableSet(
-              thisVariable,
-              new StaticInvocation(node.target, node.arguments)
-                ..fileOffset = node.fileOffset)
-            ..fileOffset = node.fileOffset)
-        ..fileOffset = node.fileOffset);
-      return;
-    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
-      thisVariable
-        ..initializer = (node.value..parent = thisVariable)
-        ..fileOffset = node.fileOffset;
-      return;
+  void inferFormalTypes(ClassHierarchyBase hierarchy) {
+    if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
+      (_immediatelyDefiningConstructor as SourceConstructorBuilder)
+          .inferFormalTypes(hierarchy);
     }
-    // Coverage-ignore-block(suite): Not run.
-    throw new UnsupportedError(
-        "Unexpected initializer $node (${node.runtimeType})");
-  }
-
-  @override
-  void visitAssertInitializer(AssertInitializer node) {
-    statements.add(node.statement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitFieldInitializer(FieldInitializer node) {
-    thisVariable
-      ..initializer = (node.value..parent = thisVariable)
-      ..fileOffset = node.fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitInvalidInitializer(InvalidInitializer node) {
-    statements.add(new ExpressionStatement(
-        new InvalidExpression(null)..fileOffset = node.fileOffset)
-      ..fileOffset);
-  }
-
-  @override
-  void visitLocalInitializer(LocalInitializer node) {
-    statements.add(node.variable);
-  }
-
-  @override
-  void visitRedirectingInitializer(RedirectingInitializer node) {
-    throw new UnsupportedError(
-        "Unexpected initializer $node (${node.runtimeType})");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitSuperInitializer(SuperInitializer node) {
-    // TODO(johnniwinther): Report error for this case.
-  }
-}
-
-class InferableConstructor implements InferableMember {
-  @override
-  final Member member;
-
-  final SourceConstructorBuilder _builder;
-
-  InferableConstructor(this.member, this._builder);
-
-  @override
-  void inferMemberTypes(ClassHierarchyBase classHierarchy) {
-    _builder.inferFormalTypes(classHierarchy);
-  }
-
-  @override
-  void reportCyclicDependency() {
-    // There is a cyclic dependency where inferring the types of the
-    // initializing formals of a constructor required us to infer the
-    // corresponding field type which required us to know the type of the
-    // constructor.
-    String name = _builder.declarationBuilder.name;
-    if (_builder.name.isNotEmpty) {
-      // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-      // instead. However, `inferrer.helper` may be null.
-      name += ".${_builder.name}";
+    if (_typeDependency != null) {
+      _typeDependency!.copyInferred();
+      _typeDependency = null;
     }
-    _builder.libraryBuilder.addProblem(
-        templateCantInferTypeDueToCircularity.withArguments(name),
-        _builder.fileOffset,
-        name.length,
-        _builder.fileUri);
   }
 }
