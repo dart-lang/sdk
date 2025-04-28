@@ -74,10 +74,8 @@ class FileTest {
   }
 
   static void createTempDirectory(Function doNext) {
-    Directory.systemTemp.createTemp('dart_file').then((temp) {
-      tempDirectory = temp;
-      doNext();
-    });
+    tempDirectory = Directory.systemTemp.createTempSync('dart_file');
+    doNext();
   }
 
   static void createLargeFile(Function doNext) {
@@ -1846,22 +1844,13 @@ class FileTest {
   static testMain() {
     asyncStart();
 
-    testRead();
-    testReadSync();
-    testReadStream();
-    testLengthSync();
-    testPositionSync();
-    testOpenDirectoryAsFile();
-    testOpenDirectoryAsFileSync();
-    testReadAsBytesSync();
-    testReadAsBytesSyncEmptyFile();
-    testReadAsTextSync();
-    testReadAsTextSyncEmptyFile();
-    testReadAsLinesSync();
-    testLastModifiedSync();
-    testLastAccessedSync();
-
     createTempDirectory(() {
+      // `testAbsolute` sets the current working directory so run it first
+      // (synchronously) so that it doesn't change the working directory while
+      // other tests are running.
+      //
+      // This is a hack. Really, all of the tests should be run consecutively.
+      testAbsolute();
       testLength();
       testLengthSyncDirectory();
       testReadWrite();
@@ -1924,13 +1913,31 @@ class FileTest {
       testSetLastAccessedSync();
       testSetLastAccessedSyncDirectory();
       testDoubleAsyncOperation();
-      testAbsolute();
       createLargeFile(() {
         testReadAsBytesLargeFile();
         testReadAsBytesSyncLargeFile();
+        // This `asyncEnd` pairs with the one called immediately on entry to
+        // `testMain`.
+        // We are calling this without actually knowing that all asynchronous
+        // operations have completed. This hack works because, in practice,
+        // the large file tests are the slowest to run.
         asyncEnd();
       });
     });
+    testRead();
+    testReadSync();
+    testReadStream();
+    testLengthSync();
+    testPositionSync();
+    testOpenDirectoryAsFile();
+    testOpenDirectoryAsFileSync();
+    testReadAsBytesSync();
+    testReadAsBytesSyncEmptyFile();
+    testReadAsTextSync();
+    testReadAsTextSyncEmptyFile();
+    testReadAsLinesSync();
+    testLastModifiedSync();
+    testLastAccessedSync();
   }
 }
 
