@@ -18,7 +18,7 @@ import 'declaration.dart';
 
 class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   final MethodFragment _fragment;
-  final MethodDeclaration _declaration;
+  final MethodFragmentDeclaration _declaration;
 
   MethodFragmentBodyBuilderContext(
       this._fragment,

@@ -27,12 +27,12 @@ import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
 
+/// Interface for the method declaration aspect of a [SourceMethodBuilder].
+///
+/// If a method is augmented, it will have multiple
+/// [MethodDeclaration]s on a single [SourceMethodBuilder].
 abstract class MethodDeclaration {
   Uri get fileUri;
-
-  List<FormalParameterBuilder>? get formals;
-
-  FunctionNode get function;
 
   Procedure get invokeTarget;
 
@@ -41,14 +41,6 @@ abstract class MethodDeclaration {
   List<MetadataBuilder>? get metadata;
 
   Procedure? get readTarget;
-
-  TypeBuilder get returnType;
-
-  List<TypeParameter>? get thisTypeParameters;
-
-  VariableDeclaration? get thisVariable;
-
-  void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
@@ -73,27 +65,20 @@ abstract class MethodDeclaration {
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
-  BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
-
   void createEncoding(
       ProblemReporting problemReporting,
       SourceMethodBuilder builder,
       MethodEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters);
 
-  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
-
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
       SourceClassBuilder enclosingClassBuilder,
       Set<ClassMember>? overrideDependencies);
-
-  VariableDeclaration getFormalParameter(int index);
-
-  VariableDeclaration? getTearOffParameter(int index);
 }
 
-class MethodDeclarationImpl implements MethodDeclaration {
+class MethodDeclarationImpl
+    implements MethodDeclaration, MethodFragmentDeclaration {
   final MethodFragment _fragment;
   late final MethodEncoding _encoding;
 
@@ -240,4 +225,27 @@ class MethodDeclarationImpl implements MethodDeclaration {
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
+}
+
+/// Interface for using a [MethodFragment] to create a [BodyBuilderContext].
+abstract class MethodFragmentDeclaration {
+  List<FormalParameterBuilder>? get formals;
+
+  FunctionNode get function;
+
+  TypeBuilder get returnType;
+
+  List<TypeParameter>? get thisTypeParameters;
+
+  VariableDeclaration? get thisVariable;
+
+  void becomeNative(SourceLoader loader);
+
+  BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
+
+  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
+
+  VariableDeclaration getFormalParameter(int index);
+
+  VariableDeclaration? getTearOffParameter(int index);
 }

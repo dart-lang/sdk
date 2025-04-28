@@ -28,36 +28,15 @@ import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
 
+/// Interface for a getter declaration aspect of a [SourcePropertyBuilder].
 abstract class GetterDeclaration {
-  GetterQuality get getterQuality;
-
-  AsyncMarker get asyncModifier;
-
   Uri get fileUri;
 
-  List<FormalParameterBuilder>? get formals;
-
-  FunctionNode get function;
-
-  bool get isAbstract;
-
-  bool get isExternal;
+  GetterQuality get getterQuality;
 
   List<MetadataBuilder>? get metadata;
 
-  String get name;
-
-  int get nameOffset;
-
   Procedure get readTarget;
-
-  TypeBuilder get returnType;
-
-  List<TypeParameter>? get thisTypeParameters;
-
-  VariableDeclaration? get thisVariable;
-
-  void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
       {required ClassHierarchy classHierarchy,
@@ -83,16 +62,11 @@ abstract class GetterDeclaration {
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
-  BodyBuilderContext createBodyBuilderContext(
-      SourcePropertyBuilder propertyBuilder);
-
   void createEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters);
-
-  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
   void ensureTypes(
       {required SourceLibraryBuilder libraryBuilder,
@@ -101,11 +75,10 @@ abstract class GetterDeclaration {
       required Set<ClassMember>? getterOverrideDependencies});
 
   Iterable<Reference> getExportedMemberReferences(GetterReference references);
-
-  VariableDeclaration getFormalParameter(int index);
 }
 
-class GetterDeclarationImpl implements GetterDeclaration {
+class GetterDeclarationImpl
+    implements GetterDeclaration, GetterFragmentDeclaration {
   final GetterFragment _fragment;
   late final GetterEncoding _encoding;
 
@@ -126,7 +99,11 @@ class GetterDeclarationImpl implements GetterDeclaration {
   FunctionNode get function => _encoding.function;
 
   @override
-  bool get isAbstract => _fragment.modifiers.isAbstract;
+  GetterQuality get getterQuality => _fragment.modifiers.isAbstract
+      ? GetterQuality.Abstract
+      : _fragment.modifiers.isExternal
+          ? GetterQuality.External
+          : GetterQuality.Concrete;
 
   @override
   bool get isExternal => _fragment.modifiers.isExternal;
@@ -198,7 +175,8 @@ class GetterDeclarationImpl implements GetterDeclaration {
   void checkTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {
     _encoding.checkTypes(libraryBuilder, typeEnvironment, setterBuilder,
-        isAbstract: isAbstract, isExternal: isExternal);
+        isAbstract: _fragment.modifiers.isAbstract,
+        isExternal: _fragment.modifiers.isExternal);
   }
 
   @override
@@ -232,7 +210,7 @@ class GetterDeclarationImpl implements GetterDeclaration {
     _fragment.typeParameterNameSpace.addTypeParameters(
         problemReporting, _encoding.clonedAndDeclaredTypeParameters,
         ownerName: _fragment.name, allowNameConflict: true);
-    returnType.registerInferredTypeListener(_encoding);
+    _fragment.returnType.registerInferredTypeListener(_encoding);
   }
 
   @override
@@ -265,11 +243,34 @@ class GetterDeclarationImpl implements GetterDeclaration {
   VariableDeclaration getFormalParameter(int index) {
     return _encoding.getFormalParameter(index);
   }
+}
 
-  @override
-  GetterQuality get getterQuality => _fragment.modifiers.isAbstract
-      ? GetterQuality.Abstract
-      : _fragment.modifiers.isExternal
-          ? GetterQuality.External
-          : GetterQuality.Concrete;
+/// Interface for using a [GetterFragment] to create a [BodyBuilderContext].
+abstract class GetterFragmentDeclaration {
+  AsyncMarker get asyncModifier;
+
+  List<FormalParameterBuilder>? get formals;
+
+  FunctionNode get function;
+
+  bool get isExternal;
+
+  String get name;
+
+  int get nameOffset;
+
+  TypeBuilder get returnType;
+
+  List<TypeParameter>? get thisTypeParameters;
+
+  VariableDeclaration? get thisVariable;
+
+  void becomeNative(SourceLoader loader);
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourcePropertyBuilder propertyBuilder);
+
+  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
+
+  VariableDeclaration getFormalParameter(int index);
 }

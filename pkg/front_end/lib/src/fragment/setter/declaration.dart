@@ -28,36 +28,15 @@ import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
 
+/// Interface for a setter declaration aspect of a [SourcePropertyBuilder].
 abstract class SetterDeclaration {
-  SetterQuality get setterQuality;
-
-  AsyncMarker get asyncModifier;
-
   Uri get fileUri;
-
-  List<FormalParameterBuilder>? get formals;
-
-  FunctionNode get function;
-
-  bool get isAbstract;
-
-  bool get isExternal;
 
   List<MetadataBuilder>? get metadata;
 
-  String get name;
-
-  int get nameOffset;
-
-  TypeBuilder get returnType;
-
-  List<TypeParameter>? get thisTypeParameters;
-
-  VariableDeclaration? get thisVariable;
+  SetterQuality get setterQuality;
 
   Procedure get writeTarget;
-
-  void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
       {required ClassHierarchy classHierarchy,
@@ -83,16 +62,11 @@ abstract class SetterDeclaration {
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
-  BodyBuilderContext createBodyBuilderContext(
-      SourcePropertyBuilder propertyBuilder);
-
   void createEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters);
-
-  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
   void ensureTypes(
       {required SourceLibraryBuilder libraryBuilder,
@@ -101,11 +75,10 @@ abstract class SetterDeclaration {
       required Set<ClassMember>? setterOverrideDependencies});
 
   Iterable<Reference> getExportedMemberReferences(SetterReference references);
-
-  VariableDeclaration getFormalParameter(int index);
 }
 
-class SetterDeclarationImpl implements SetterDeclaration {
+class SetterDeclarationImpl
+    implements SetterDeclaration, SetterFragmentDeclaration {
   final SetterFragment _fragment;
   late final SetterEncoding _encoding;
 
@@ -144,6 +117,13 @@ class SetterDeclarationImpl implements SetterDeclaration {
 
   @override
   TypeBuilder get returnType => _fragment.returnType;
+
+  @override
+  SetterQuality get setterQuality => _fragment.modifiers.isAbstract
+      ? SetterQuality.Abstract
+      : _fragment.modifiers.isExternal
+          ? SetterQuality.External
+          : SetterQuality.Concrete;
 
   @override
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
@@ -266,11 +246,36 @@ class SetterDeclarationImpl implements SetterDeclaration {
   VariableDeclaration getFormalParameter(int index) {
     return _encoding.getFormalParameter(index);
   }
+}
 
-  @override
-  SetterQuality get setterQuality => _fragment.modifiers.isAbstract
-      ? SetterQuality.Abstract
-      : _fragment.modifiers.isExternal
-          ? SetterQuality.External
-          : SetterQuality.Concrete;
+/// Interface for using a [SetterFragment] to create a [BodyBuilderContext].
+abstract class SetterFragmentDeclaration {
+  AsyncMarker get asyncModifier;
+
+  List<FormalParameterBuilder>? get formals;
+
+  FunctionNode get function;
+
+  bool get isAbstract;
+
+  bool get isExternal;
+
+  String get name;
+
+  int get nameOffset;
+
+  TypeBuilder get returnType;
+
+  List<TypeParameter>? get thisTypeParameters;
+
+  VariableDeclaration? get thisVariable;
+
+  void becomeNative(SourceLoader loader);
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourcePropertyBuilder propertyBuilder);
+
+  LocalScope createFormalParameterScope(LookupScope typeParameterScope);
+
+  VariableDeclaration getFormalParameter(int index);
 }

@@ -58,7 +58,7 @@ class SetterFragment implements Fragment, FunctionFragment {
   final LibraryFragment enclosingCompilationUnit;
 
   SourcePropertyBuilder? _builder;
-  SetterDeclaration? _declaration;
+  SetterFragmentDeclaration? _declaration;
 
   SetterFragment({
     required this.name,
@@ -93,13 +93,13 @@ class SetterFragment implements Fragment, FunctionFragment {
     _builder = value;
   }
 
-  SetterDeclaration get declaration {
+  SetterFragmentDeclaration get declaration {
     assert(
         _declaration != null, "Declaration has not been computed for $this.");
     return _declaration!;
   }
 
-  void set declaration(SetterDeclaration value) {
+  void set declaration(SetterFragmentDeclaration value) {
     assert(_declaration == null,
         "Declaration has already been computed for $this.");
     _declaration = value;

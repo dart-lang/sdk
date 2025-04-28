@@ -16,7 +16,7 @@ import 'declaration.dart';
 class FactoryBodyBuilderContext extends BodyBuilderContext {
   final SourceFactoryBuilder _builder;
 
-  final FactoryDeclaration _declaration;
+  final FactoryFragmentDeclaration _declaration;
 
   final Member _member;
 

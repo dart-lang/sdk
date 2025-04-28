@@ -18,7 +18,7 @@ import 'declaration.dart';
 
 class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   final SourcePropertyBuilder _builder;
-  final GetterDeclaration _declaration;
+  final GetterFragmentDeclaration _declaration;
 
   GetterFragmentBodyBuilderContext(
       this._builder,

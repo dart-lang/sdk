@@ -38,18 +38,19 @@ import '../../source/source_type_parameter_builder.dart';
 import '../fragment.dart';
 import 'encoding.dart';
 
+/// Interface for the constructor declaration aspect of a
+/// [SourceConstructorBuilder].
+///
+/// If a constructor is augmented, it will have multiple
+/// [ConstructorDeclaration]s on a single [SourceConstructorBuilder].
 abstract class ConstructorDeclaration {
-  int get fileOffset;
-
   Uri get fileUri;
 
   List<MetadataBuilder>? get metadata;
 
-  OmittedTypeBuilder get returnType;
-
-  List<FormalParameterBuilder>? get formals;
-
   FunctionNode get function;
+
+  bool get hasParameters;
 
   Member get readTarget;
 
@@ -58,14 +59,6 @@ abstract class ConstructorDeclaration {
   Member get invokeTarget;
 
   Reference get invokeTargetReference;
-
-  void registerFunctionBody(Statement value);
-
-  void registerNoBodyConstructor();
-
-  VariableDeclaration? get thisVariable;
-
-  List<TypeParameter>? get thisTypeParameters;
 
   List<Initializer> get initializers;
 
@@ -107,31 +100,10 @@ abstract class ConstructorDeclaration {
 
   void prependInitializer(Initializer initializer);
 
-  void becomeNative();
-
-  /// Returns the [VariableDeclaration] for the [index]th formal parameter
-  /// declared in the constructor.
-  ///
-  /// The synthetic parameters of enum constructor are *not* included, so index
-  /// 0 zero of an enum constructor is the first user defined parameter.
-  VariableDeclaration getFormalParameter(int index);
-
-  /// Returns the [VariableDeclaration] for the tear off, if any, of the
-  /// [index]th formal parameter declared in the constructor.
-  VariableDeclaration? getTearOffParameter(int index);
-
-  FormalParameterBuilder? getFormal(Identifier identifier);
-
-  LocalScope computeFormalParameterScope(LookupScope parent);
-
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
-
   Substitution computeFieldTypeSubstitution(
       DeclarationBuilder declarationBuilder);
 
   void buildBody();
-
-  bool get isConst;
 
   bool get isExternal;
 
@@ -148,12 +120,10 @@ abstract class ConstructorDeclaration {
       SourceConstructorBuilderImpl constructorBuilder,
       ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
-
-  BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder);
 }
 
-mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
+mixin ConstructorDeclarationMixin
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   bool get _hasSuperInitializingFormals;
 
   LookupScope get _typeParameterScope;
@@ -161,6 +131,9 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
   abstract Token? _beginInitializers;
 
   List<SourceNominalParameterBuilder>? get _typeParameters;
+
+  @override
+  bool get hasParameters => formals != null;
 
   @override
   FormalParameterBuilder? getFormal(Identifier identifier) {
@@ -673,11 +646,6 @@ mixin RegularConstructorDeclarationMixin
   }
 
   @override
-  void becomeNative() {
-    _encoding.becomeNative();
-  }
-
-  @override
   VariableDeclaration getFormalParameter(int index) {
     return _encoding.getFormalParameter(index);
   }
@@ -779,7 +747,7 @@ mixin RegularConstructorDeclarationMixin
 
 class RegularConstructorDeclaration
     with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final ConstructorFragment _fragment;
   final List<FormalParameterBuilder>? _syntheticFormals;
 
@@ -805,6 +773,11 @@ class RegularConstructorDeclaration
             isExternal: _fragment.modifiers.isExternal,
             isEnumConstructor: isEnumConstructor) {
     _fragment.declaration = this;
+  }
+
+  @override
+  void becomeNative(SourceLoader loader) {
+    _encoding.becomeNative(loader, _fragment.nativeMethodName!);
   }
 
   @override
@@ -914,7 +887,7 @@ class RegularConstructorDeclaration
 // Coverage-ignore(suite): Not run.
 class PrimaryConstructorDeclaration
     with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final PrimaryConstructorFragment _fragment;
 
   @override
@@ -929,6 +902,11 @@ class PrimaryConstructorDeclaration
             isExternal: _fragment.modifiers.isExternal,
             isEnumConstructor: false) {
     _fragment.declaration = this;
+  }
+
+  @override
+  void becomeNative(SourceLoader loader) {
+    throw new UnsupportedError("$runtimeType.becomeNative()");
   }
 
   @override
@@ -1067,6 +1045,11 @@ class DefaultEnumConstructorDeclaration
         _beginInitializers = new Token.eof(-1);
 
   @override
+  void becomeNative(SourceLoader loader) {
+    throw new UnsupportedError("$runtimeType.becomeNative()");
+  }
+
+  @override
   LookupScope get _typeParameterScope => _lookupScope;
 
   @override
@@ -1199,7 +1182,7 @@ mixin ExtensionTypeConstructorDeclarationMixin
   }
 
   @override
-  void becomeNative() {
+  void becomeNative(SourceLoader loader) {
     throw new UnsupportedError("$runtimeType.becomeNative()");
   }
 
@@ -1314,7 +1297,7 @@ mixin ExtensionTypeConstructorDeclarationMixin
 
 class ExtensionTypeConstructorDeclaration
     with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final ConstructorFragment _fragment;
 
   @override
@@ -1438,7 +1421,7 @@ class ExtensionTypeConstructorDeclaration
 
 class ExtensionTypePrimaryConstructorDeclaration
     with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final PrimaryConstructorFragment _fragment;
 
   @override
@@ -1550,4 +1533,50 @@ class ExtensionTypePrimaryConstructorDeclaration
 
   @override
   Uri get fileUri => _fragment.fileUri;
+}
+
+/// Interface for using a [ConstructorFragment] or [PrimaryConstructorFragment]
+/// to create a [BodyBuilderContext].
+abstract class ConstructorFragmentDeclaration {
+  int get fileOffset;
+
+  OmittedTypeBuilder get returnType;
+
+  List<FormalParameterBuilder>? get formals;
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilderImpl constructorBuilder);
+
+  FunctionNode get function;
+
+  void registerFunctionBody(Statement value);
+
+  void registerNoBodyConstructor();
+
+  VariableDeclaration? get thisVariable;
+
+  List<TypeParameter>? get thisTypeParameters;
+
+  void becomeNative(SourceLoader loader);
+
+  /// Returns the [VariableDeclaration] for the [index]th formal parameter
+  /// declared in the constructor.
+  ///
+  /// The synthetic parameters of enum constructor are *not* included, so index
+  /// 0 zero of an enum constructor is the first user defined parameter.
+  VariableDeclaration getFormalParameter(int index);
+
+  /// Returns the [VariableDeclaration] for the tear off, if any, of the
+  /// [index]th formal parameter declared in the constructor.
+  VariableDeclaration? getTearOffParameter(int index);
+
+  FormalParameterBuilder? getFormal(Identifier identifier);
+
+  LocalScope computeFormalParameterScope(LookupScope parent);
+
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
+
+  bool get isConst;
+
+  bool get isExternal;
 }
