@@ -68,6 +68,11 @@ var listWithNullAwareElements = [
 
 #### Analyzer
 
+- The analyzer now supports "doc imports," a new comment-based syntax which
+  enables external elements to be referenced in documentation comments without
+  actually importing them. See [the
+  documentation](https://dart.dev/tools/doc-comments/references#doc-imports)
+  for details.
 - Code completion is improved to offer more valid suggestions. In particular,
   the suggestions are improved when completing text in a comment reference on a
   documentation comment for an extension, a typedef, or a directive (an import,
