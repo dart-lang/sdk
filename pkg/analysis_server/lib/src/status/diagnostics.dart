@@ -166,7 +166,7 @@ String get _sdkVersion {
   return version;
 }
 
-String writeOption(String name, dynamic value) {
+String writeOption(String name, Object value) {
   return '$name: <code>$value</code><br> ';
 }
 
@@ -553,7 +553,7 @@ class CollectReportPage extends DiagnosticPage {
   }
 
   Future<String> _collectAllData() async {
-    Map<String, dynamic> collectedData = {};
+    Map<String, Object?> collectedData = {};
     var server = this.server;
 
     // General data.
@@ -762,14 +762,14 @@ class CollectReportPage extends DiagnosticPage {
         thisIsolateData['memory'] = isolateMemoryUsage.json;
         var allocationProfile = await serviceClient.getAllocationProfile(id);
         var allocationMembers = allocationProfile.members ?? [];
-        var allocationProfileData = [];
+        var allocationProfileData = <Map<String, Object?>>[];
         thisIsolateData['allocationProfile'] = allocationProfileData;
         for (var member in allocationMembers) {
           var bytesCurrent = member.bytesCurrent;
           // Filter out very small entries to avoid the report becoming too big.
           if (bytesCurrent == null || bytesCurrent < 1024) continue;
 
-          var memberData = {};
+          var memberData = <String, Object?>{};
           allocationProfileData.add(memberData);
           memberData['bytesCurrent'] = bytesCurrent;
           memberData['instancesCurrent'] = member.instancesCurrent;

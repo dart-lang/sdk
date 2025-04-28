@@ -1539,16 +1539,13 @@ lsp.SignatureHelp toSignatureHelp(
     var positionalOptional =
         signature.parameters.where((p) => p.isOptionalPositional).toList();
     var named = signature.parameters.where((p) => p.isNamed).toList();
-    var params = [];
-    if (positionalRequired.isNotEmpty) {
-      params.add(positionalRequired.map(getParamLabel).join(', '));
-    }
-    if (positionalOptional.isNotEmpty) {
-      params.add('[${positionalOptional.map(getParamLabel).join(', ')}]');
-    }
-    if (named.isNotEmpty) {
-      params.add('{${named.map(getParamLabel).join(', ')}}');
-    }
+    var params = [
+      if (positionalRequired.isNotEmpty)
+        positionalRequired.map(getParamLabel).join(', '),
+      if (positionalOptional.isNotEmpty)
+        '[${positionalOptional.map(getParamLabel).join(', ')}]',
+      if (named.isNotEmpty) '{${named.map(getParamLabel).join(', ')}}',
+    ];
     return '${resp.name}(${params.join(", ")})';
   }
 

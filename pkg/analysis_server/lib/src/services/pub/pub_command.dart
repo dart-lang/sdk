@@ -74,7 +74,7 @@ class PubCommand {
     }
 
     var packages =
-        (result['packages'] as List<dynamic>?)?.cast<Map<String, Object?>>();
+        (result['packages'] as List<Object?>?)?.cast<Map<String, Object?>>();
     if (packages == null) {
       return [];
     }

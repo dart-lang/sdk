@@ -91,7 +91,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     CodeActionKind actionKind,
     String name,
     RefactoringKind refactorKind, [
-    Map<String, dynamic>? options,
+    Map<String, Object?>? options,
   ]) {
     var command = Commands.performRefactor;
     assert(

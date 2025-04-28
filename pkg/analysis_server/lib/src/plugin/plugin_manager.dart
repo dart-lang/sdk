@@ -1063,7 +1063,7 @@ class PluginSession {
   }
 
   /// Handle the fact that an unhandled error has occurred in the plugin.
-  void handleOnError(dynamic error) {
+  void handleOnError(Object? error) {
     if (error case [String message, String stackTraceString]) {
       var stackTrace = StackTrace.fromString(stackTraceString);
       var exception = PluginException(message);

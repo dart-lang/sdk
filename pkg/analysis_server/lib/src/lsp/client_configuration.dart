@@ -94,7 +94,7 @@ class LspClientConfiguration {
     var oldTypes = _globalSettings.showTodoTypes;
     var newTypes = otherConfig.showTodoTypes;
     return newFlag != oldFlag ||
-        !const SetEquality().equals(oldTypes, newTypes);
+        !const SetEquality<String>().equals(oldTypes, newTypes);
   }
 
   /// Returns whether or not the provided new configuration changes any values
@@ -102,7 +102,7 @@ class LspClientConfiguration {
   bool affectsAnalysisRoots(LspGlobalClientConfiguration otherConfig) {
     var oldExclusions = _globalSettings.analysisExcludedFolders;
     var newExclusions = otherConfig.analysisExcludedFolders;
-    return !const ListEquality().equals(oldExclusions, newExclusions);
+    return !const ListEquality<String>().equals(oldExclusions, newExclusions);
   }
 
   /// Returns config for a given resource.
