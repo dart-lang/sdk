@@ -160,6 +160,67 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
         await _addEdit((builder) {
           builder.addDeletion(deletionRange);
         });
+      case Expression(
+            parent: ConditionalExpression(
+                  parent: var grandParent,
+                  :var condition,
+                  :var thenExpression,
+                  :var elseExpression,
+                ) &&
+                var parent,
+          )
+          when (node == thenExpression || node == elseExpression) &&
+              _looksSideEffectFree(condition):
+        // Then expression is `condition ? live : dead` or
+        // `condition ? dead : live`, with a condition that is free of side
+        // effects (or so we presume--see `_looksSideEffectFree` for details).
+        // So the conditional expression can be replaced with the `live`
+        // subexpression.
+        var nodeToKeep =
+            node == thenExpression ? elseExpression : thenExpression;
+        if (nodeToKeep is ThrowExpression &&
+            grandParent is CascadeExpression &&
+            grandParent.target == parent) {
+          // It's not safe to transform something like
+          // `a ? b : throw c..cascadeSection` into `throw c..cascadeSection`,
+          // because the former parses as `(a ? b : throw c)..cascadeSection`,
+          // and the latter parses as `throw (c..cascadeSection)`. This is
+          // unlikely to arise in practice, so just bail out and don't generate
+          // a correction.
+          return;
+        }
+        await _addEdit((builder) {
+          builder.addDeletion(range.startStart(parent, nodeToKeep));
+          builder.addDeletion(range.endEnd(nodeToKeep, parent));
+        });
+      case Statement(
+            parent: IfStatement(
+                  :var expression,
+                  caseClause: null,
+                  :var thenStatement,
+                  :var elseStatement,
+                ) &&
+                var ifStatement,
+          )
+          when _looksSideEffectFree(expression):
+        if (node == thenStatement) {
+          if (elseStatement == null) {
+            // The "if" statement is `if (expression) dead;`, so it can be
+            // removed in its entirety.
+            await _removeStatement(ifStatement);
+          } else {
+            // The "if" statement is `if (expression) dead; else live;`, so it
+            // can be replaced with `live;`.
+            await _replaceStatementWithInnerStatement(
+              ifStatement,
+              elseStatement,
+            );
+          }
+        } else if (node == elseStatement) {
+          // The "if" statement is `if (expression) live; else dead;`, so it can
+          // be replaced with `live;`.
+          await _replaceStatementWithInnerStatement(ifStatement, thenStatement);
+        }
       case Statement(:Block parent):
         var lastStatementInBlock = parent.statements.last;
         assert(
@@ -186,6 +247,64 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
             range.deletionRange(node, overrideEnd: overrideEnd),
           );
         });
+    }
+  }
+
+  /// Determines whether [expression] is side effect free, under certain
+  /// presumptions.
+  ///
+  /// The presumptions are:
+  /// - A getter invocation is presumed to be side effect free, because (a) in
+  ///   practice, most getter invocations are side effect free, and (b) it would
+  ///   take a lot of analysis to establish with certainty whether a particular
+  ///   getter invocation is side effect free.
+  /// - A use of a non-null assertion (`!`) or cast (`as`) is presumed to be
+  ///   side effect free, because in practice these constructs are only used
+  ///   when their operand is already known by the user to be of the appropriate
+  ///   type. This enables dead code like `if (a.b!.c == null) { ... }` to be
+  ///   eliminated (assuming `c` has a non-null type).
+  ///
+  /// These assumptions aren't necessarily going to be true of all code. We rely
+  /// on the user to verify these assumptions by inspecting the results of dead
+  /// code removal.
+  bool _looksSideEffectFree(Expression expression) {
+    switch (expression) {
+      case AsExpression(:var expression):
+        // A cast is presumed to be side effect free (provided that its operand
+        // is).
+        return _looksSideEffectFree(expression);
+      case BinaryExpression(:var leftOperand, :var rightOperand):
+        return _looksSideEffectFree(leftOperand) &&
+            _looksSideEffectFree(rightOperand);
+      case SimpleIdentifier():
+        // A simple identifier might be a local variable reference or a method
+        // tear-off, in which case it's definitely side effect free. Or it might
+        // be a call to a getter, in which case we assume it's side effect free.
+        return true;
+      case Literal():
+        return true;
+      case ParenthesizedExpression(:var expression):
+        return _looksSideEffectFree(expression);
+      case PostfixExpression(
+        :var operand,
+        operator: Token(type: TokenType.BANG),
+      ):
+        // A non-null assertion is presumed to be side effect free (provided
+        // that its operand is).
+        return _looksSideEffectFree(operand);
+      case PrefixedIdentifier(prefix: Expression? target):
+      case PropertyAccess(:var target):
+        // If the target isn't side effect free, then the property access isn't.
+        if (target != null && !_looksSideEffectFree(target)) return false;
+        // A property access might be a method tear-off, in which case it's
+        // definitely side effect free. Or it might be a call to a getter, in
+        // which case we assume it's side effect free.
+        return true;
+      case SuperExpression():
+        return true;
+      default:
+        // Anything else is conservatively assumed to have side effects.
+        return false;
     }
   }
 
@@ -242,6 +361,65 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
               );
             });
         }
+    }
+  }
+
+  Future<void> _removeStatement(Statement statement) async {
+    var parent = statement.parent;
+    switch (parent) {
+      case Block():
+        await _addEdit((builder) {
+          _deleteLineRange(builder, range.entity(statement));
+        });
+      case IfStatement(:var thenStatement, :var elseStatement)
+          when statement == elseStatement:
+        // The code looks something like:
+        //   if (condition) live; else if (false) dead;
+        //    thenStatement-^^^^^      ^^^^^^^^^^^^^^^^-elseStatement
+        //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-parent
+        // So drop the `else` and the `elseStatement` to produce:
+        //   if (condition) live;
+        await _addEdit((builder) {
+          builder.addDeletion(range.endEnd(thenStatement, parent));
+        });
+      default:
+        // In general it's not safe to just remove a statement, since it affects
+        // how the surrounding code will be parsed. So don't generate a
+        // correction.
+        break;
+    }
+  }
+
+  Future<void> _replaceStatementWithInnerStatement(
+    Statement statement,
+    Statement innerStatement,
+  ) async {
+    var parent = statement.parent;
+    if (parent is Block && innerStatement is Block) {
+      // The code looks something like:
+      //   { ... if (condition) { live; } ... }
+      //                        ^^^^^^^^^-innerStatement
+      //         ^^^^^^^^^^^^^^^^^^^^^^^^-statement
+      //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-parent
+      // So drop the opening and closing brace of `innerStatement` to produce:
+      //   { ...                  live;   ... }
+      await _addEdit((builder) {
+        _deleteLineRange(
+          builder,
+          range.startEnd(statement, innerStatement.leftBracket),
+        );
+        _deleteLineRange(
+          builder,
+          range.startEnd(innerStatement.rightBracket, statement),
+        );
+      });
+    } else {
+      // Don't do anything special with braces. Just replace `statement` with
+      // `innerStatement`.
+      await _addEdit((builder) {
+        builder.addDeletion(range.startStart(statement, innerStatement));
+        builder.addDeletion(range.endEnd(innerStatement, statement));
+      });
     }
   }
 }
