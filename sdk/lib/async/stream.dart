@@ -1611,7 +1611,7 @@ abstract mixin class Stream<T> {
   /// If [equals] throws, the data event is replaced by an error event
   /// containing the thrown error. The behavior is equivalent to the
   /// original stream emitting the error event, and it doesn't change
-  /// the what the most recently emitted data event is.
+  /// what the most recently emitted data event is.
   ///
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
