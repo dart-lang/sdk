@@ -30,6 +30,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
+import '../fragment/field/declaration.dart';
 import '../fragment/fragment.dart';
 import '../fragment/method/declaration.dart';
 import '../kernel/body_builder_context.dart';

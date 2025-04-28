@@ -555,7 +555,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/field.dart": (
-    hitCount: 393,
+    hitCount: 28,
     missCount: 0,
   ),
   // 100.0%.
@@ -566,6 +566,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/fragment/field/class_member.dart": (
     hitCount: 149,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/fragment/field/declaration.dart": (
+    hitCount: 412,
     missCount: 0,
   ),
   // 100.0%.
@@ -660,7 +665,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/util.dart": (
-    hitCount: 127,
+    hitCount: 80,
     missCount: 0,
   ),
   // 100.0%.

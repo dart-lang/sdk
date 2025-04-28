@@ -15,7 +15,7 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/property_builder.dart';
-import '../fragment/fragment.dart';
+import '../fragment/field/declaration.dart';
 import '../fragment/getter/declaration.dart';
 import '../fragment/setter/declaration.dart';
 import '../kernel/hierarchy/class_member.dart';

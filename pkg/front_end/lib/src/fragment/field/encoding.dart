@@ -8,7 +8,7 @@ part of '../fragment.dart';
 ///
 /// This is used to provide lowerings for late fields using synthesized getters
 /// and setters.
-sealed class _FieldEncoding {
+sealed class FieldEncoding {
   /// Creates the members necessary for this field encoding.
   ///
   /// This method is called for both outline and full compilation so the created
@@ -100,7 +100,7 @@ sealed class _FieldEncoding {
   void registerSuperCall();
 }
 
-class RegularFieldEncoding implements _FieldEncoding {
+class RegularFieldEncoding implements FieldEncoding {
   final FieldFragment _fragment;
   final bool isEnumElement;
   Field? _field;
@@ -269,7 +269,7 @@ class RegularFieldEncoding implements _FieldEncoding {
   }
 }
 
-abstract class AbstractLateFieldEncoding implements _FieldEncoding {
+abstract class AbstractLateFieldEncoding implements FieldEncoding {
   final FieldFragment _fragment;
   DartType? _type;
   Field? _field;
@@ -849,7 +849,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   }
 }
 
-class AbstractOrExternalFieldEncoding implements _FieldEncoding {
+class AbstractOrExternalFieldEncoding implements FieldEncoding {
   final FieldFragment _fragment;
   final bool isAbstract;
   final bool isExternal;
@@ -1191,7 +1191,7 @@ class AbstractOrExternalFieldEncoding implements _FieldEncoding {
 }
 
 /// The encoding of an extension type declaration representation field.
-class RepresentationFieldEncoding implements _FieldEncoding {
+class RepresentationFieldEncoding implements FieldEncoding {
   final FieldFragment _fragment;
 
   late Procedure _getter;

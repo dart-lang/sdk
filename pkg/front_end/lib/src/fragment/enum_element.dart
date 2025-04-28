@@ -578,19 +578,19 @@ class EnumElementDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get _fieldTypeInternal => _type;
+  DartType get fieldTypeInternal => _type;
 
   @override
   bool get isConst => true;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void _setCovariantByClassInternal() {
+  void setCovariantByClassInternal() {
     _field!.isCovariantByClass = true;
   }
 
   @override
-  void set _fieldTypeInternal(DartType value) {
+  void set fieldTypeInternal(DartType value) {
     _type = value;
     _field?.type = value;
   }
