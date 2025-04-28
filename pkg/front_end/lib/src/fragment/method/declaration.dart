@@ -43,13 +43,13 @@ abstract class MethodDeclaration {
   Procedure? get readTarget;
 
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      SourceMethodBuilder methodBuilder,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourceMethodBuilder methodBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember});
 
   void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f,
@@ -125,21 +125,21 @@ class MethodDeclarationImpl
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      SourceMethodBuilder methodBuilder,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourceMethodBuilder methodBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
     _encoding.buildOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        declarationBuilder,
-        createBodyBuilderContext(methodBuilder),
-        annotatable,
-        isClassInstanceMember: isClassInstanceMember,
-        createFileUriExpression: createFileUriExpression);
+        classHierarchy: classHierarchy,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: createBodyBuilderContext(methodBuilder),
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        isClassInstanceMember: isClassInstanceMember);
   }
 
   @override

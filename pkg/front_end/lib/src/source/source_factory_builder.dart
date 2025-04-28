@@ -297,16 +297,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         factoryBuilder: this,
         classHierarchy: classHierarchy,
         delayedDefaultValueCloners: delayedDefaultValueCloners,
-        createFileUriExpression:
-            _introductory.fileUri != _lastDeclaration.fileUri);
+        annotatables: annotatables,
+        annotatablesFileUri: _procedure.fileUri);
     for (FactoryDeclaration augmentation in _augmentations) {
       augmentation.buildOutlineExpressions(
           libraryBuilder: libraryBuilder,
           factoryBuilder: this,
           classHierarchy: classHierarchy,
           delayedDefaultValueCloners: delayedDefaultValueCloners,
-          createFileUriExpression:
-              augmentation.fileUri != _lastDeclaration.fileUri);
+          annotatables: annotatables,
+          annotatablesFileUri: _procedure.fileUri);
     }
   }
 

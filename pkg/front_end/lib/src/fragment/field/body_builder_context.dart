@@ -4,11 +4,11 @@
 
 part of '../fragment.dart';
 
-class _FieldFragmentBodyBuilderContext extends BodyBuilderContext {
+class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
   final FieldFragmentDeclaration _declaration;
   final FieldFragment _fragment;
 
-  _FieldFragmentBodyBuilderContext(
+  FieldFragmentBodyBuilderContext(
       this._declaration,
       this._fragment,
       SourceLibraryBuilder libraryBuilder,

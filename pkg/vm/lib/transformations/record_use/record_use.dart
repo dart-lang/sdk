@@ -36,15 +36,24 @@ ast.Component transformComponent(
       component.metadata[tag] as LoadingUnitsMetadataRepository;
   final loadingUnits = loadingMetadata.mapping[component]?.loadingUnits ?? [];
 
-  final staticCallRecorder = CallRecorder(source, loadingUnits);
-  final instanceUseRecorder = InstanceRecorder(source, loadingUnits);
-  component.accept(_RecordUseVisitor(staticCallRecorder, instanceUseRecorder));
+  final callRecorder = CallRecorder(source, loadingUnits);
+  final instanceRecorder = InstanceRecorder(source, loadingUnits);
+  component.accept(_RecordUseVisitor(callRecorder, instanceRecorder));
 
   final usages = _usages(
-    staticCallRecorder.foundCalls,
-    instanceUseRecorder.foundInstances,
+    callRecorder.callsForMethod,
+    instanceRecorder.instancesForClass,
+    mergeMaps(
+      callRecorder.loadingUnitForDefinition,
+      instanceRecorder.loadingUnitForDefinition,
+      value: (p0, p1) {
+        // The loading units for the same definition should be the same
+        assert(p0 == p1);
+        return p0;
+      },
+    ),
   );
-  var usagesStorageFormat = usages.toJson();
+  final usagesStorageFormat = usages.toJson();
   File.fromUri(recordedUsagesFile).writeAsStringSync(
     JsonEncoder.withIndent('  ').convert(usagesStorageFormat),
   );
@@ -74,18 +83,29 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   }
 }
 
-UsageRecord _usages(
-  Iterable<Usage<CallReference>> calls,
-  Iterable<Usage<InstanceReference>> instances,
+Recordings _usages(
+  Map<Identifier, List<CallReference>> calls,
+  Map<Identifier, List<InstanceReference>> instances,
+  Map<Identifier, String> loadingUnitForDefinition,
 ) {
-  return UsageRecord(
-    metadata: Metadata(
-      comment:
+  return Recordings(
+    metadata: Metadata.fromJson({
+      'comment':
           'Recorded usages of objects tagged with a `RecordUse` annotation',
-      version: Version(0, 1, 0),
+      'version': Version(0, 2, 0).toString(),
+    }),
+    callsForDefinition: calls.map(
+      (key, value) => MapEntry(
+        Definition(identifier: key, loadingUnit: loadingUnitForDefinition[key]),
+        value,
+      ),
     ),
-    calls: calls.toList(),
-    instances: instances.toList(),
+    instancesForDefinition: instances.map(
+      (key, value) => MapEntry(
+        Definition(identifier: key, loadingUnit: loadingUnitForDefinition[key]),
+        value,
+      ),
+    ),
   );
 }
 
@@ -135,10 +155,10 @@ Never _unsupported(String constantType) =>
     throw UnsupportedError('$constantType is not supported for recording.');
 
 extension RecordUseLocation on ast.Location {
-  Location recordLocation(Uri source) => Location(
+  Location recordLocation(Uri source, bool exactLocation) => Location(
     uri: relativizeUri(source, this.file, Platform.isWindows),
-    line: line,
-    column: column,
+    line: exactLocation ? line : null,
+    column: exactLocation ? column : null,
   );
 }
 

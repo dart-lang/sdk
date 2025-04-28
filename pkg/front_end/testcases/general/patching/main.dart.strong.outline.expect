@@ -93,7 +93,7 @@ class _InjectedClass extends core::Object { // from org-dartlang-testcase:///pat
   static method staticMethod(core::int value) → void
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension Extension on self2::Class {
   get extensionInstanceGetter = self2::Extension|get#extensionInstanceGetter;
   method extensionInstanceMethod = self2::Extension|extensionInstanceMethod;
@@ -180,7 +180,7 @@ Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:100:4 -> Instance
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:103:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:108:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:113:4 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:134:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:8:2 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:2 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:18:2 -> InstanceConstant(const _Patch{})

@@ -4,28 +4,28 @@
 
 class Location {
   final String uri;
-  final int line;
-  final int column;
+  final int? line;
+  final int? column;
 
-  const Location({
-    required this.uri,
-    required this.line,
-    required this.column,
-  });
+  const Location({required this.uri, this.line, this.column});
 
-  factory Location.fromJson(Map<String, dynamic> map, List<String> uris) {
+  static const _uriKey = 'uri';
+  static const _lineKey = 'line';
+  static const _columnKey = 'column';
+
+  factory Location.fromJson(Map<String, Object?> map) {
     return Location(
-      uri: uris[map['uri'] as int],
-      line: map['line'] as int,
-      column: map['column'] as int,
+      uri: map[_uriKey] as String,
+      line: map[_lineKey] as int?,
+      column: map[_columnKey] as int?,
     );
   }
 
-  Map<String, dynamic> toJson(Map<String, int> uris) {
+  Map<String, Object?> toJson() {
     return {
-      'uri': uris[uri]!,
-      'line': line,
-      'column': column,
+      _uriKey: uri,
+      if (line != null) _lineKey: line,
+      if (line != null) _columnKey: column,
     };
   }
 

@@ -368,17 +368,18 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     MetadataBuilder.buildAnnotations(
-        typedef,
-        _introductory.metadata,
-        createBodyBuilderContext(),
-        libraryBuilder,
-        fileUri,
-        _introductory.enclosingScope);
+        annotatable: typedef,
+        annotatableFileUri: typedef.fileUri,
+        metadata: _introductory.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _introductory.enclosingScope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
-            libraryBuilder, createBodyBuilderContext(), classHierarchy);
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {

@@ -1,6 +1,8 @@
-## 0.3.1-wip
+## 0.4.0
 
 - Update SDK constraint to `^3.5.0`.
+- Rewrite API to expose less symbols.
+- Remove locations for easier caching.
 
 ## 0.3.0
 

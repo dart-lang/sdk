@@ -536,7 +536,7 @@ class NominalParameterCopy {
     for (int index = 0; index < oldParameterBuilders.length; index++) {
       NominalParameterBuilder oldVariable = oldParameterBuilders[index];
       TypeParameterFragment? oldFragment = oldParameterFragments?[index];
-      Uri? fileUri = oldFragment?.fileUri ?? oldVariable.fileUri;
+      Uri fileUri = (oldFragment?.fileUri ?? oldVariable.fileUri)!;
       int fileOffset = oldFragment?.nameOffset ?? oldVariable.fileOffset;
       SourceNominalParameterBuilder newVariable =
           new SourceNominalParameterBuilder(

@@ -82,11 +82,11 @@ abstract class ConstructorDeclaration {
 
   void buildOutlineExpressions({
     required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilderImpl constructorBuilder,
     required ClassHierarchy classHierarchy,
-    required bool createFileUriExpression,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
@@ -531,12 +531,12 @@ mixin ConstructorDeclarationMixin
 
   void _buildMetadataForOutlineExpressions({
     required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilderImpl constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
-    required bool createFileUriExpression,
   });
 
   void _buildTypeParametersAndFormalsForOutlineExpressions({
@@ -549,11 +549,11 @@ mixin ConstructorDeclarationMixin
   @override
   void buildOutlineExpressions({
     required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilderImpl constructorBuilder,
     required ClassHierarchy classHierarchy,
-    required bool createFileUriExpression,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     formals?.infer(classHierarchy);
@@ -561,12 +561,12 @@ mixin ConstructorDeclarationMixin
         createBodyBuilderContext(constructorBuilder);
     _buildMetadataForOutlineExpressions(
         annotatables: annotatables,
+        annotatablesFileUri: annotatablesFileUri,
         libraryBuilder: libraryBuilder,
         declarationBuilder: declarationBuilder,
         constructorBuilder: constructorBuilder,
         bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        createFileUriExpression: createFileUriExpression);
+        classHierarchy: classHierarchy);
     _buildTypeParametersAndFormalsForOutlineExpressions(
         libraryBuilder: libraryBuilder,
         declarationBuilder: declarationBuilder,
@@ -845,21 +845,20 @@ class RegularConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable,
-          _fragment.metadata,
-          bodyBuilderContext,
-          libraryBuilder,
-          _fragment.fileUri,
-          _fragment.enclosingScope,
-          createFileUriExpression: createFileUriExpression);
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: _fragment.metadata,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope);
     }
   }
 
@@ -975,12 +974,12 @@ class PrimaryConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     // There is no metadata on a primary constructor.
   }
 
@@ -1109,12 +1108,12 @@ class DefaultEnumConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     // There is no metadata on a default enum constructor.
   }
 
@@ -1380,21 +1379,20 @@ class ExtensionTypeConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable,
-          _fragment.metadata,
-          bodyBuilderContext,
-          libraryBuilder,
-          _fragment.fileUri,
-          _fragment.enclosingScope,
-          createFileUriExpression: createFileUriExpression);
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: _fragment.metadata,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope);
     }
   }
 
@@ -1505,12 +1503,12 @@ class ExtensionTypePrimaryConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     // There is no metadata on a primary constructor.
   }
 

@@ -843,8 +843,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    compilationUnit.buildOutlineExpressions(library, createBodyBuilderContext(),
-        createFileUriExpression: false);
+    compilationUnit.buildOutlineExpressions(
+        annotatable: library,
+        annotatableFileUri: library.fileUri,
+        bodyBuilderContext: createBodyBuilderContext());
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {

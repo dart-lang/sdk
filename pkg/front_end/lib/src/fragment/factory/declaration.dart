@@ -44,11 +44,12 @@ abstract class FactoryDeclaration {
   Procedure? get tearOff;
 
   void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
+      {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
       required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      required bool createFileUriExpression});
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
 
   void buildOutlineNodes(
       {required SourceLibraryBuilder libraryBuilder,
@@ -107,6 +108,7 @@ class FactoryDeclarationImpl
   int get fileOffset => _fragment.fullNameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -146,25 +148,25 @@ class FactoryDeclarationImpl
 
   @override
   void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
+      {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required SourceLibraryBuilder libraryBuilder,
       required SourceFactoryBuilder factoryBuilder,
       required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      required bool createFileUriExpression}) {
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     _fragment.formals?.infer(classHierarchy);
 
     BodyBuilderContext bodyBuilderContext =
         createBodyBuilderContext(factoryBuilder);
 
-    for (Annotatable annotatable in factoryBuilder.annotatables) {
+    for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable,
-          _fragment.metadata,
-          bodyBuilderContext,
-          libraryBuilder,
-          _fragment.fileUri,
-          _fragment.enclosingScope,
-          createFileUriExpression: createFileUriExpression);
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: _fragment.metadata,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope);
     }
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {

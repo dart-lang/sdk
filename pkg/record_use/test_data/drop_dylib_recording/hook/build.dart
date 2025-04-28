@@ -13,8 +13,7 @@ void main(List<String> arguments) async {
       ..onRecord.listen((record) {
         print('${record.level.name}: ${record.time}: ${record.message}');
       });
-    final routing =
-        input.config.linkingEnabled
+    final routing = input.config.linkingEnabled
         ? [ToLinkHook(input.packageName)]
         : const [ToAppBundle()];
     await CBuilder.library(

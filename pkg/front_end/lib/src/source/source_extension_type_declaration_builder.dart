@@ -703,18 +703,19 @@ class SourceExtensionTypeDeclarationBuilder
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     MetadataBuilder.buildAnnotations(
-        extensionTypeDeclaration,
-        _introductory.metadata,
-        createBodyBuilderContext(),
-        libraryBuilder,
-        _introductory.fileUri,
-        _introductory.enclosingScope);
+        annotatable: extensionTypeDeclaration,
+        annotatableFileUri: extensionTypeDeclaration.fileUri,
+        metadata: _introductory.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _introductory.enclosingScope);
 
     if (_introductory.typeParameters != null) {
       for (int i = 0; i < _introductory.typeParameters!.length; i++) {
         _introductory.typeParameters![i].builder.buildOutlineExpressions(
-            libraryBuilder, createBodyBuilderContext(), classHierarchy);
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
 

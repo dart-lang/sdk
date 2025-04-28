@@ -328,17 +328,21 @@ class EnumElementDeclaration
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      List<Annotatable> annotatables,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required List<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required bool isClassInstanceMember}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      buildMetadataForOutlineExpressions(libraryBuilder,
-          _fragment.enclosingScope, bodyBuilderContext, annotatable, metadata,
-          fileUri: fileUri, createFileUriExpression: createFileUriExpression);
+      buildMetadataForOutlineExpressions(
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope,
+          bodyBuilderContext: bodyBuilderContext,
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: metadata);
     }
   }
 
@@ -574,19 +578,19 @@ class EnumElementDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get _fieldTypeInternal => _type;
+  DartType get fieldTypeInternal => _type;
 
   @override
   bool get isConst => true;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void _setCovariantByClassInternal() {
+  void setCovariantByClassInternal() {
     _field!.isCovariantByClass = true;
   }
 
   @override
-  void set _fieldTypeInternal(DartType value) {
+  void set fieldTypeInternal(DartType value) {
     _type = value;
     _field?.type = value;
   }

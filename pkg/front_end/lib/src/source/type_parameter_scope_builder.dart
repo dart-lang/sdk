@@ -26,6 +26,7 @@ import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../fragment/factory/declaration.dart';
+import '../fragment/field/declaration.dart';
 import '../fragment/fragment.dart';
 import '../fragment/getter/declaration.dart';
 import '../fragment/method/declaration.dart';
@@ -1700,7 +1701,7 @@ class NominalParameterNameSpace {
               context: [
                 templateTypeParameterDuplicatedNameCause
                     .withArguments(tv.name)
-                    .withLocation(existing.fileUri!, existing.fileOffset,
+                    .withLocation(existing.fileUri, existing.fileOffset,
                         existing.name.length)
               ]);
         }

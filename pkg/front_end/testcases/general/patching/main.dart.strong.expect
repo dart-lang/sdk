@@ -114,7 +114,7 @@ class _InjectedClass extends core::Object { // from org-dartlang-testcase:///pat
   static set staticSetter(core::int value) → void {}
   static method staticMethod(core::int value) → void {}
 }
-@#C8
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C8
 extension Extension on test::Class {
   get extensionInstanceGetter = test::Extension|get#extensionInstanceGetter;
   method extensionInstanceMethod = test::Extension|extensionInstanceMethod;

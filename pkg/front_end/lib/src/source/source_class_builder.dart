@@ -513,6 +513,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     _introductory.buildOutlineExpressions(
         annotatable: cls,
+        annotatableFileUri: cls.fileUri,
         bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
         classHierarchy: classHierarchy,
@@ -520,6 +521,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (ClassDeclaration augmentation in _augmentations) {
       augmentation.buildOutlineExpressions(
           annotatable: cls,
+          annotatableFileUri: cls.fileUri,
           bodyBuilderContext: bodyBuilderContext,
           classHierarchy: classHierarchy,
           libraryBuilder: libraryBuilder,
