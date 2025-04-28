@@ -155,8 +155,7 @@ JSObject getCurrentLibrary() =>
     // We can't use interop for this, as the lowering would be emitted as
     // `dart.global.eval('this')`, which does not evaluate to the same value as
     // `eval('this')`.
-    _foreign_helper
-    .JS('', 'this');
+    _foreign_helper.JS('', 'this');
 
 main() async {
   asyncStart();
@@ -268,11 +267,10 @@ window.PackageJSClass = function PackageJSClass(x) {
 
     addNestedFormatterGoldens('Iterable', iterable);
 
-    var s =
-        new Set()
-          ..add("foo")
-          ..add(42)
-          ..add(true);
+    var s = new Set()
+      ..add("foo")
+      ..add(42)
+      ..add(true);
     addNestedFormatterGoldens('Set', s);
   });
 

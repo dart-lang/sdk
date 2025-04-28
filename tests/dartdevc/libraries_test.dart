@@ -30,8 +30,9 @@ void main() {
   var expectParts = dart.getParts('package:expect/expect.dart');
   Expect.isTrue(expectParts.isEmpty);
 
-  var testLibraries =
-      libraries.where((l) => l.endsWith('libraries_test.dart')).toList();
+  var testLibraries = libraries
+      .where((l) => l.endsWith('libraries_test.dart'))
+      .toList();
   Expect.isTrue(testLibraries.length == 1);
   var testParts = dart.getParts(testLibraries.first);
   Expect.isTrue(testParts.length == 1);
