@@ -103,6 +103,23 @@ class _AddInvocation extends ResolvedCorrectionProducer {
         _constructor.formalParameters.any((p) => p.name3 == null)) {
       return;
     }
+    var currentConstructor =
+        node.thisOrAncestorOfType<ConstructorDeclaration>();
+    var positionalParameters = 0;
+    var namedParameters = <String>{};
+    if (currentConstructor case ConstructorDeclaration(:var parameters)) {
+      for (var parameter in parameters.parameters) {
+        if (parameter case SuperFormalParameter(
+          :var isPositional,
+        ) when isPositional) {
+          positionalParameters++;
+        } else if (parameter case DefaultFormalParameter(
+          :SuperFormalParameter parameter,
+        ) when parameter.isNamed) {
+          namedParameters.add(parameter.name.lexeme);
+        }
+      }
+    }
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(_insertOffset, (builder) {
         builder.write(_prefix);
@@ -115,11 +132,20 @@ class _AddInvocation extends ResolvedCorrectionProducer {
         // add arguments
         builder.write('(');
         var firstParameter = true;
-        for (var parameter in _constructor.formalParameters) {
+        for (var (index, parameter) in _constructor.formalParameters.indexed) {
           // skip non-required parameters
           if (parameter.isOptional) {
             break;
           }
+          if (parameter.isNamed && namedParameters.contains(parameter.name3)) {
+            // skip already initialized named parameters
+            continue;
+          }
+          if (parameter.isPositional && index < positionalParameters) {
+            // skip already initialized positional parameters
+            continue;
+          }
+
           // comma
           if (firstParameter) {
             firstParameter = false;
