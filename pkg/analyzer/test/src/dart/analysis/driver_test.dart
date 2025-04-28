@@ -7153,6 +7153,131 @@ class B with A<double> {}
     );
   }
 
+  test_dependency_class_getter_inherited_private() async {
+    // Test that there is a dependency between `f()` and `A._foo`.
+    // So, that we re-analyze `f()` body when `A._foo` changes.
+    // Currently this dependency is implicit: we analyze the whole library
+    // when any of its files changes.
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  int get _foo => 0;
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo.isEven;
+}
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.getter.declared: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    interfaces
+      dart:core
+        int
+          methods
+            isEven: #M5
+            isEven=: <null>
+      package:test/test.dart
+        A
+          constructors
+            new: #M6
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  String get _foo => '';
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo.isEven;
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.getter.declared: #M7
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        String: #M8
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      84 +6 UNDEFINED_GETTER
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        String: #M8
+    interfaces
+      dart:core
+        Object
+          methods
+            isEven: <null>
+            isEven=: <null>
+        String
+          methods
+            isEven: <null>
+            isEven=: <null>
+      package:test/test.dart
+        A
+          constructors
+            new: #M6
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_getter_returnType() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -8649,6 +8774,362 @@ class B with A<double> {}
     );
   }
 
+  test_dependency_class_method_inherited_private() async {
+    // Test that there is a dependency between `f()` and `A._foo`.
+    // So, that we re-analyze `f()` body when `A._foo` changes.
+    // Currently this dependency is implicit: we analyze the whole library
+    // when any of its files changes.
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  int _foo() => 0;
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo().isEven;
+}
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.method.declared: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    interfaces
+      dart:core
+        int
+          methods
+            isEven: #M5
+            isEven=: <null>
+      package:test/test.dart
+        A
+          constructors
+            new: #M6
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  String _foo() => '';
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo().isEven;
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.method.declared: #M7
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        String: #M8
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      84 +6 UNDEFINED_GETTER
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        String: #M8
+    interfaces
+      dart:core
+        Object
+          methods
+            isEven: <null>
+            isEven=: <null>
+        String
+          methods
+            isEven: <null>
+            isEven=: <null>
+      package:test/test.dart
+        A
+          constructors
+            new: #M6
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_private() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  int _foo() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b._foo();
+}
+''');
+
+    // Note:
+    // 1. No `_foo` in `B`, even though it is in the same library.
+    // 2. No dependency of `test.dart` on `_foo` through `B`.
+    // However: we reanalyze `test.dart` when we change it, because we
+    // always analyze the whole library when one of its files changes.
+    // So, we don't need a separate dependency on `_foo`.
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.method.declared: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    interfaces
+      package:test/test.dart
+        A
+          constructors
+            new: #M5
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  double _foo() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b._foo();
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.method.declared: #M6
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+    interfaces
+      package:test/test.dart
+        A
+          constructors
+            new: #M5
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_private2() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'test.dart';
+
+class B extends A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+
+class A {
+  void _foo() {}
+}
+
+void f(B b) {
+  b._foo();
+}
+''');
+
+    // Note:
+    // 1. No `_foo` in `B`.
+    // 2. No dependency of `test.dart` on `_foo` through `B`.
+    // However: we reanalyze `test.dart` when we change it, because we
+    // always analyze the whole library when one of its files changes.
+    // So, we don't need a separate dependency on `_foo`.
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+  package:test/test.dart
+    manifest
+      A: #M1
+        members
+          _foo.method.declared: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+import 'a.dart';
+
+class A {
+  void _bar() {}
+}
+
+void f(B b) {
+  b._foo();
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+  package:test/test.dart
+    manifest
+      A: #M1
+        members
+          _bar.method.declared: #M4
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      66 +4 UNDEFINED_METHOD
+      35 +4 UNUSED_ELEMENT
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M0
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_method_remove() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
@@ -9523,6 +10004,117 @@ class B with A<double> {}
           methods
             foo: <null>
             foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_inherited_private() async {
+    // Test that there is a dependency between `f()` and `A._foo`.
+    // So, that we re-analyze `f()` body when `A._foo` changes.
+    // Currently this dependency is implicit: we analyze the whole library
+    // when any of its files changes.
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  set _foo(int _) {}
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo = 0;
+}
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.setter.declared: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    interfaces
+      package:test/test.dart
+        A
+          constructors
+            new: #M5
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  set _foo(String _) {}
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo = 0;
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        members
+          _foo.setter.declared: #M6
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        String: #M7
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      85 +1 INVALID_ASSIGNMENT
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        String: #M7
+    interfaces
+      package:test/test.dart
+        A
+          constructors
+            new: #M5
 [status] idle
 ''',
     );
@@ -13689,6 +14281,126 @@ linkedBundleProvider: [k01, k02]
 elementFactory
   hasElement
     package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_baseName2_private2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void _foo() {}
+}
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+
+class B extends A {
+  int get _foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        members
+          _foo.method.declared: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M2
+        members
+          _foo.getter.declared: #M3
+''',
+      updatedCode: r'''
+import 'a.dart';
+
+class B extends A {
+  int get _foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M2
+        members
+          _foo.getter.declared: #M3
+          zzz.method.declared: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName2_private3() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'test.dart';
+
+class B extends A {
+  void _foo() {}
+}
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+
+class A {
+  int get _foo {}
+}
+
+class C extends B {
+  set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+        members
+          _foo.method.declared: #M1
+  package:test/test.dart
+    manifest
+      A: #M2
+        members
+          _foo.getter.declared: #M3
+      C: #M4
+        members
+          _foo.setter.declared: #M5
+''',
+      updatedCode: r'''
+import 'a.dart';
+
+class A {
+  int get _foo {}
+}
+
+class C extends B {
+  set _foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+        members
+          _foo.method.declared: #M1
+  package:test/test.dart
+    manifest
+      A: #M2
+        members
+          _foo.getter.declared: #M3
+      C: #M4
+        members
+          _foo.setter.declared: #M5
+          zzz.method.declared: #M6
 ''',
     );
   }

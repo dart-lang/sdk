@@ -193,7 +193,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&
-                element is FieldElementImpl &&
+                element is FieldFragmentImpl &&
                 node.isFinal &&
                 !element.isStatic)) {
       constantsToCompute.add(element);
@@ -262,7 +262,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     }
 
     if (element is VariableElementImpl2 && element.isConst) {
-      _callback(element.firstFragment as VariableElementImpl);
+      _callback(element.firstFragment as VariableFragmentImpl);
     }
   }
 

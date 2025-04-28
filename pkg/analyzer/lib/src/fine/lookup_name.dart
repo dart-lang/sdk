@@ -59,7 +59,7 @@ extension type LookupName(String _it) {
   bool get isPrivate => _it.startsWith('_');
 
   bool get isSetter {
-    return _it.endsWith('=') && !const {'==', '<=', '>='}.contains(_it);
+    return _it.endsWith('=') && !const {'==', '<=', '>=', '[]='}.contains(_it);
   }
 
   void write(BufferedSink sink) {

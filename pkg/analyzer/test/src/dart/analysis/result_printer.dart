@@ -839,38 +839,62 @@ class LibraryManifestPrinter {
       }
     }
 
+    void assertHasId({
+      bool constructor = false,
+      bool getterOrMethod = false,
+      bool indexEq = false,
+      bool setter = false,
+    }) {
+      expect(items.constructorId, constructor ? isNotNull : isNull);
+      expect(items.getterOrMethodId, getterOrMethod ? isNotNull : isNull);
+      expect(items.indexEqId, indexEq ? isNotNull : isNull);
+      expect(items.setterId, setter ? isNotNull : isNull);
+    }
+
     switch (items) {
       case BaseNameConflict():
         var idStr = idProvider.manifestId(items.id);
         sink.writelnWithIndent('$name.conflict: $idStr');
+        assertHasId();
       case BaseNameConstructor():
+        assertHasId(constructor: true);
         writeConstructor(items.constructor);
       case BaseNameConstructorGetter():
+        assertHasId(constructor: true, getterOrMethod: true);
         writeConstructor(items.constructor);
         writeGetter(items.getter);
       case BaseNameConstructorGetterSetter():
+        assertHasId(constructor: true, getterOrMethod: true, setter: true);
         writeConstructor(items.constructor);
         writeGetter(items.getter);
         writeSetter(items.setter);
       case BaseNameConstructorMethod():
+        assertHasId(constructor: true, getterOrMethod: true);
         writeConstructor(items.constructor);
         writeMethod(items.method);
       case BaseNameConstructorSetter():
+        assertHasId(constructor: true, setter: true);
         writeConstructor(items.constructor);
         writeSetter(items.setter);
       case BaseNameGetter():
+        assertHasId(getterOrMethod: true);
         writeGetter(items.getter);
       case BaseNameGetterSetter():
+        assertHasId(getterOrMethod: true, setter: true);
         writeGetter(items.getter);
         writeSetter(items.setter);
       case BaseNameIndexEq():
+        assertHasId(indexEq: true);
         writeIndexEq(items.indexEq);
       case BaseNameMethod():
+        assertHasId(getterOrMethod: true);
         writeMethod(items.method);
       case BaseNameMethodIndexEq():
+        assertHasId(getterOrMethod: true, indexEq: true);
         writeMethod(items.method);
         writeIndexEq(items.indexEq);
       case BaseNameSetter():
+        assertHasId(setter: true);
         writeSetter(items.setter);
     }
   }

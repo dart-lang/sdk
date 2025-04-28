@@ -2555,7 +2555,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   final Token name;
 
   @override
-  LocalVariableElementImpl? declaredFragment;
+  LocalVariableFragmentImpl? declaredFragment;
 
   CatchClauseParameterImpl({required this.name});
 
@@ -2783,7 +2783,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ClassElementImpl? declaredFragment;
+  ClassFragmentImpl? declaredFragment;
 
   ClassDeclarationImpl({
     required super.comment,
@@ -2966,7 +2966,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   ImplementsClauseImpl? _implementsClause;
 
   @override
-  ClassElementImpl? declaredFragment;
+  ClassFragmentImpl? declaredFragment;
 
   /// Initializes a newly created class type alias.
   ///
@@ -3392,7 +3392,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   final Token endToken;
 
   @override
-  CompilationUnitElementImpl? declaredFragment;
+  LibraryFragmentImpl? declaredFragment;
 
   @override
   final LineInfo lineInfo;
@@ -4068,7 +4068,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   FunctionBodyImpl _body;
 
   @override
-  ConstructorElementImpl? declaredFragment;
+  ConstructorFragmentImpl? declaredFragment;
 
   /// Initializes a newly created constructor declaration.
   ///
@@ -4770,7 +4770,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   final Token name;
 
   @override
-  LocalVariableElementImpl? declaredFragment;
+  LocalVariableFragmentImpl? declaredFragment;
 
   /// Initializes a newly created formal parameter.
   ///
@@ -4862,7 +4862,7 @@ sealed class DeclaredVariablePattern implements VariablePattern {
 final class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
-  BindPatternVariableElementImpl? declaredFragment;
+  BindPatternVariableFragmentImpl? declaredFragment;
 
   @override
   final Token? keyword;
@@ -5013,7 +5013,8 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @experimental
   @override
-  ParameterElementImpl? get declaredFragment => _parameter.declaredFragment;
+  FormalParameterFragmentImpl? get declaredFragment =>
+      _parameter.declaredFragment;
 
   @override
   ExpressionImpl? get defaultValue => _defaultValue;
@@ -5085,7 +5086,7 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 sealed class Directive implements AnnotatedNode {}
 
 sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
-  ElementImpl? element;
+  FragmentImpl? element;
 
   /// Initializes a newly create directive.
   ///
@@ -5721,7 +5722,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  FieldElementImpl? declaredFragment;
+  FieldFragmentImpl? declaredFragment;
 
   @override
   final EnumConstantArgumentsImpl? arguments;
@@ -5843,7 +5844,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  EnumElementImpl? declaredFragment;
+  EnumFragmentImpl? declaredFragment;
 
   /// Initializes a newly created enumeration declaration.
   ///
@@ -6543,7 +6544,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ExtensionElementImpl? declaredFragment;
+  ExtensionFragmentImpl? declaredFragment;
 
   ExtensionDeclarationImpl({
     required super.comment,
@@ -6867,7 +6868,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ExtensionTypeElementImpl? declaredFragment;
+  ExtensionTypeFragmentImpl? declaredFragment;
 
   ExtensionTypeDeclarationImpl({
     required super.comment,
@@ -7172,8 +7173,8 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  FieldFormalParameterElementImpl? get declaredFragment {
-    return super.declaredFragment as FieldFormalParameterElementImpl?;
+  FieldFormalParameterFragmentImpl? get declaredFragment {
+    return super.declaredFragment as FieldFormalParameterFragmentImpl?;
   }
 
   @override
@@ -7425,7 +7426,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   final DartPatternImpl pattern;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableElementImpl> variables;
+  late final List<BindPatternVariableFragmentImpl> variables;
 
   ForEachPartsWithPatternImpl({
     required List<AnnotationImpl>? metadata,
@@ -7699,7 +7700,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @experimental
   @override
-  ParameterElementImpl? declaredFragment;
+  FormalParameterFragmentImpl? declaredFragment;
 
   @override
   bool get isNamed => kind.isNamed;
@@ -7826,7 +7827,7 @@ final class FormalParameterListImpl extends AstNodeImpl
 
   @experimental
   @override
-  List<ParameterElementImpl?> get parameterFragments {
+  List<FormalParameterFragmentImpl?> get parameterFragments {
     return _parameters.map((node) => node.declaredFragment).toList();
   }
 
@@ -8333,7 +8334,7 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   FunctionExpressionImpl _functionExpression;
 
   @override
-  ExecutableElementImpl? declaredFragment;
+  ExecutableFragmentImpl? declaredFragment;
 
   /// Initializes a newly created function declaration.
   ///
@@ -8502,7 +8503,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   bool wasFunctionTypeSupplied = false;
 
   @override
-  ExecutableElementImpl? declaredFragment;
+  ExecutableFragmentImpl? declaredFragment;
 
   /// Initializes a newly created function declaration.
   FunctionExpressionImpl({
@@ -8795,7 +8796,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   FormalParameterListImpl _parameters;
 
   @override
-  TypeAliasElementImpl? declaredFragment;
+  TypeAliasFragmentImpl? declaredFragment;
 
   /// Initializes a newly created function type alias.
   ///
@@ -9062,7 +9063,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   /// The element associated with the function type, or `null` if the AST
   /// structure hasn't been resolved.
   @override
-  GenericFunctionTypeElementImpl? declaredFragment;
+  GenericFunctionTypeFragmentImpl? declaredFragment;
 
   /// Initializes a newly created generic function type.
   GenericFunctionTypeImpl({
@@ -9162,7 +9163,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   final Token equals;
 
   @override
-  TypeAliasElementImpl? declaredFragment;
+  TypeAliasFragmentImpl? declaredFragment;
 
   /// Initializes a newly created generic type alias.
   ///
@@ -10959,7 +10960,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   Token get beginToken => _label.beginToken;
 
   @override
-  LabelElementImpl? get declaredFragment =>
+  LabelFragmentImpl? get declaredFragment =>
       (label.element as LabelElementImpl2?)?.firstFragment;
 
   @override
@@ -11920,7 +11921,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   final FunctionBodyImpl body;
 
   @override
-  ExecutableElementImpl? declaredFragment;
+  ExecutableFragmentImpl? declaredFragment;
 
   MethodDeclarationImpl({
     required super.comment,
@@ -12281,7 +12282,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  MixinElementImpl? declaredFragment;
+  MixinFragmentImpl? declaredFragment;
 
   MixinDeclarationImpl({
     required super.comment,
@@ -15287,7 +15288,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final RepresentationConstructorNameImpl? constructorName;
 
   @override
-  ConstructorElementImpl? constructorFragment;
+  ConstructorFragmentImpl? constructorFragment;
 
   @override
   final Token leftParenthesis;
@@ -15302,7 +15303,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final Token fieldName;
 
   @override
-  FieldElementImpl? fieldFragment;
+  FieldFragmentImpl? fieldFragment;
 
   @override
   final Token rightParenthesis;
@@ -18048,7 +18049,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeAnnotationImpl? _bound;
 
   @override
-  TypeParameterElementImpl? declaredFragment;
+  TypeParameterFragmentImpl? declaredFragment;
 
   /// Initializes a newly created type parameter.
   ///
@@ -18314,7 +18315,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  VariableElementImpl? declaredFragment;
+  VariableFragmentImpl? declaredFragment;
 
   @override
   final Token? equals;

@@ -97,6 +97,55 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_const_assert_class() async {
+    await assertNoErrorsInCode(r'''
+class Integer {
+  static const Integer one = const Integer._(1);
+  final int integer;
+  Integer(this.integer);
+  const Integer._(this.integer);
+}
+
+class CAssert {
+  const CAssert.one(Integer i): assert(i == .one);
+}
+''');
+
+    var node = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: one
+    element: <testLibraryFragment>::@class::Integer::@getter::one#element
+    staticType: Integer
+  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  staticType: Integer
+''');
+  }
+
+  test_const_assert_enum() async {
+    await assertNoErrorsInCode(r'''
+enum Color { red, green, blue }
+
+class CAssert {
+  const CAssert.blue(Color color): assert(color == .blue);
+}
+''');
+
+    var node = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: blue
+    element: <testLibraryFragment>::@enum::Color::@getter::blue#element
+    staticType: Color
+  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  staticType: Color
+''');
+  }
+
   test_const_class() async {
     await assertNoErrorsInCode('''
 class C {

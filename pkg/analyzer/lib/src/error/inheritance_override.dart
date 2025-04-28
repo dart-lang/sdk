@@ -156,7 +156,7 @@ class _ClassVerifier {
   final FeatureSet featureSet;
   final LibraryElementImpl library;
   final Uri libraryUri;
-  final InterfaceElementImpl classElement;
+  final InterfaceFragmentImpl classElement;
 
   final Token classNameToken;
   final List<ClassMember> members;
@@ -197,8 +197,8 @@ class _ClassVerifier {
     var element = fragment.element;
     var firstFragment = element.firstFragment;
 
-    if (firstFragment is! EnumElementImpl &&
-        firstFragment is ClassElementImpl &&
+    if (firstFragment is! EnumFragmentImpl &&
+        firstFragment is ClassFragmentImpl &&
         !firstFragment.isAbstract &&
         implementsDartCoreEnum) {
       reporter.atToken(
@@ -250,7 +250,7 @@ class _ClassVerifier {
       if (member is FieldDeclarationImpl) {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
-          var fieldElement = field.declaredFragment! as FieldElementImpl;
+          var fieldElement = field.declaredFragment! as FieldFragmentImpl;
           _checkDeclaredMember(
             field.name,
             libraryUri,
@@ -261,7 +261,7 @@ class _ClassVerifier {
             libraryUri,
             fieldElement.setter?.asElement2,
           );
-          if (!member.isStatic && firstFragment is! EnumElementImpl) {
+          if (!member.isStatic && firstFragment is! EnumFragmentImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
           if (!member.isStatic) {
@@ -283,7 +283,7 @@ class _ClassVerifier {
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
-        if (!member.isStatic && firstFragment is! EnumElementImpl) {
+        if (!member.isStatic && firstFragment is! EnumFragmentImpl) {
           _checkIllegalEnumValuesDeclaration(member.name);
         }
       }
@@ -297,8 +297,8 @@ class _ClassVerifier {
       errorReporter: reporter,
     ).checkInterface(element, interface);
 
-    if (firstFragment is ClassElementImpl && !firstFragment.isAbstract ||
-        firstFragment is EnumElementImpl) {
+    if (firstFragment is ClassFragmentImpl && !firstFragment.isAbstract ||
+        firstFragment is EnumFragmentImpl) {
       List<ExecutableElement2OrMember>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
@@ -318,7 +318,7 @@ class _ClassVerifier {
             continue;
           }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
-          if (firstFragment is EnumElementImpl &&
+          if (firstFragment is EnumFragmentImpl &&
               const {'values', 'values='}.contains(name.name)) {
             continue;
           }
@@ -462,9 +462,9 @@ class _ClassVerifier {
     if (typeElement is ClassElement &&
         typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement is ClassElementImpl && classElement.isAbstract ||
-          classElement is EnumElementImpl ||
-          classElement is MixinElementImpl) {
+      if (classElement is ClassFragmentImpl && classElement.isAbstract ||
+          classElement is EnumFragmentImpl ||
+          classElement is MixinFragmentImpl) {
         return false;
       }
       hasEnum?.call();
@@ -542,7 +542,7 @@ class _ClassVerifier {
         )) {
           hasError = true;
         }
-        if (classElement is EnumElementImpl && _checkMixinOfEnum(namedType)) {
+        if (classElement is EnumFragmentImpl && _checkMixinOfEnum(namedType)) {
           hasError = true;
         }
       }
@@ -640,10 +640,10 @@ class _ClassVerifier {
   void _checkIllegalConcreteEnumMemberDeclaration(Token name) {
     if (implementsDartCoreEnum) {
       var classElement = this.classElement;
-      if (classElement is ClassElementImpl &&
+      if (classElement is ClassFragmentImpl &&
               !classElement.isDartCoreEnumImpl ||
-          classElement is EnumElementImpl ||
-          classElement is MixinElementImpl) {
+          classElement is EnumFragmentImpl ||
+          classElement is MixinFragmentImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
           reporter.atToken(
             name,
@@ -659,7 +659,7 @@ class _ClassVerifier {
     // We ignore mixins because they don't inherit and members.
     // But to support `super.foo()` invocations we put members from superclass
     // constraints into the `superImplemented` bucket, the same we look below.
-    if (classElement is MixinElementImpl) {
+    if (classElement is MixinFragmentImpl) {
       return;
     }
 
@@ -933,7 +933,7 @@ class _ClassVerifier {
 
   bool _reportNoCombinedSuperSignature(MethodDeclarationImpl node) {
     var fragment = node.declaredFragment;
-    if (fragment is MethodElementImpl) {
+    if (fragment is MethodFragmentImpl) {
       var inferenceError = fragment.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {

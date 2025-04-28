@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else {
         _checkSetter(node, element);
       }
-    } else if (fragment is MethodElementImpl) {
+    } else if (fragment is MethodFragmentImpl) {
       _checkMethod(node, fragment);
     }
   }
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkMethod(MethodDeclaration node, MethodElementImpl element) {
+  void _checkMethod(MethodDeclaration node, MethodFragmentImpl element) {
     if (element.typeInferenceError != null) {
       // Inferring the return type and/or one or more parameter types resulted
       // in a type inference error. Do not report lint in this case.

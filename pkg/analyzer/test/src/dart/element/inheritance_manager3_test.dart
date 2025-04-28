@@ -3065,7 +3065,7 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
-  void assertInterfaceText(InterfaceElementImpl element, String expected) {
+  void assertInterfaceText(InterfaceFragmentImpl element, String expected) {
     var actual = _interfaceText(element);
     if (actual != expected) {
       print('-------- Actual --------');
@@ -3075,7 +3075,7 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
     expect(actual, expected);
   }
 
-  String _interfaceText(InterfaceElementImpl element) {
+  String _interfaceText(InterfaceFragmentImpl element) {
     var library = element.library;
     var inheritance = library.session.inheritanceManager;
     var interface = inheritance.getInterface(element);
@@ -3253,11 +3253,11 @@ class _InterfacePrinter {
 }
 
 extension on LibraryElementImpl {
-  ClassElementImpl class_(String name) {
+  ClassFragmentImpl class_(String name) {
     return classes.singleWhere((e) => e.name3 == name).firstFragment;
   }
 
-  ExtensionTypeElementImpl extensionType(String name) {
+  ExtensionTypeFragmentImpl extensionType(String name) {
     return extensionTypes.singleWhere((e) => e.name3 == name).firstFragment;
   }
 }

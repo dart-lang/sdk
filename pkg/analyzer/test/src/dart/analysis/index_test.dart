@@ -47,7 +47,7 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   }
 
   void assertLibraryFragmentIndexText(
-    CompilationUnitElementImpl fragment,
+    LibraryFragmentImpl fragment,
     String expected,
   ) {
     var actual = _getLibraryFragmentReferenceText(fragment);
@@ -1874,7 +1874,7 @@ void f() {
 
     var importFind = findElement2.importFind('package:test/foo.dart');
     var importedFragment = importFind.importedLibrary.firstFragment;
-    importedFragment as CompilationUnitElementImpl;
+    importedFragment as LibraryFragmentImpl;
     assertLibraryFragmentIndexText(importedFragment, r'''
 7 1:8 |"foo.dart"|
 ''');
@@ -2743,7 +2743,7 @@ void f() {
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  String _getLibraryFragmentReferenceText(CompilationUnitElementImpl target) {
+  String _getLibraryFragmentReferenceText(LibraryFragmentImpl target) {
     var lineInfo = result.lineInfo;
     var targetId = index.getLibraryFragmentId(target);
 

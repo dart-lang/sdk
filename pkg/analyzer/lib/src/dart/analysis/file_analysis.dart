@@ -15,7 +15,7 @@ class FileAnalysis {
   final RecordingErrorListener errorListener;
   final ErrorReporter errorReporter;
   final CompilationUnitImpl unit;
-  final CompilationUnitElementImpl element;
+  final LibraryFragmentImpl element;
   final IgnoreInfo ignoreInfo;
   late ImportsTracking importsTracking;
 

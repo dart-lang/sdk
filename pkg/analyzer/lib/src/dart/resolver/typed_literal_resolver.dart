@@ -512,7 +512,7 @@ class TypedLiteralResolver {
     // Also use upwards information to infer the type.
     List<TypeImpl> elementTypes =
         node.elements.map(_computeElementType).toList();
-    var syntheticParameter = ParameterElementImpl.synthetic(
+    var syntheticParameter = FormalParameterFragmentImpl.synthetic(
       'element',
       genericElementType,
       ParameterKind.POSITIONAL,
@@ -839,14 +839,14 @@ class TypedLiteralResolver {
     var argumentTypes = <TypeImpl>[];
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters.add(
-        ParameterElementImpl.synthetic(
+        FormalParameterFragmentImpl.synthetic(
           'key',
           genericKeyType,
           ParameterKind.POSITIONAL,
         ),
       );
       parameters.add(
-        ParameterElementImpl.synthetic(
+        FormalParameterFragmentImpl.synthetic(
           'value',
           genericValueType,
           ParameterKind.POSITIONAL,
@@ -898,7 +898,7 @@ class TypedLiteralResolver {
     var argumentTypes = <TypeImpl>[];
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters.add(
-        ParameterElementImpl.synthetic(
+        FormalParameterFragmentImpl.synthetic(
           'element',
           genericElementType,
           ParameterKind.POSITIONAL,

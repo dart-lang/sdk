@@ -514,6 +514,9 @@ class BaseNameGetterSetter extends BaseNameMembers {
   ManifestItemId get getterOrMethodId => getter.id;
 
   @override
+  ManifestItemId get setterId => setter.id;
+
+  @override
   BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
     return BaseNameConflict();
   }

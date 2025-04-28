@@ -84,10 +84,7 @@ class InformativeDataApplier {
     _elementFactory.isApplyingInformativeData = false;
   }
 
-  void applyToUnit(
-    CompilationUnitElementImpl unitElement,
-    Uint8List unitInfoBytes,
-  ) {
+  void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
     var unitReader = SummaryDataReader(unitInfoBytes);
     var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
 
@@ -167,7 +164,7 @@ class InformativeDataApplier {
 
     forCorrespondingPairs(
       unitElement.typeAliases
-          .cast<TypeAliasElementImpl>()
+          .cast<TypeAliasFragmentImpl>()
           .where((e) => e.isFunctionTypeAliasBased)
           .toList(),
       unitInfo.functionTypeAliases,
@@ -176,7 +173,7 @@ class InformativeDataApplier {
 
     forCorrespondingPairs(
       unitElement.typeAliases
-          .cast<TypeAliasElementImpl>()
+          .cast<TypeAliasFragmentImpl>()
           .where((e) => !e.isFunctionTypeAliasBased)
           .toList(),
       unitInfo.genericTypeAliases,
@@ -192,7 +189,7 @@ class InformativeDataApplier {
   }
 
   void _applyToAccessors(
-    List<PropertyAccessorElementImpl> elementList,
+    List<PropertyAccessorFragmentImpl> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
     forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
@@ -218,7 +215,7 @@ class InformativeDataApplier {
   }
 
   void _applyToClassDeclaration(
-    ClassElementImpl element,
+    ClassFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -253,7 +250,7 @@ class InformativeDataApplier {
   }
 
   void _applyToClassTypeAlias(
-    ClassElementImpl element,
+    ClassFragmentImpl element,
     _InfoClassTypeAlias info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -299,7 +296,7 @@ class InformativeDataApplier {
   }
 
   void _applyToConstructors(
-    List<ConstructorElementImpl> elementList,
+    List<ConstructorFragmentImpl> elementList,
     List<_InfoConstructorDeclaration> infoList,
   ) {
     forCorrespondingPairs(elementList, infoList, (element, info) {
@@ -329,7 +326,7 @@ class InformativeDataApplier {
   }
 
   void _applyToEnumDeclaration(
-    EnumElementImpl element,
+    EnumFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -367,7 +364,7 @@ class InformativeDataApplier {
   }
 
   void _applyToExtensionDeclaration(
-    ExtensionElementImpl element,
+    ExtensionFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -396,7 +393,7 @@ class InformativeDataApplier {
   }
 
   void _applyToExtensionTypeDeclaration(
-    ExtensionTypeElementImpl element,
+    ExtensionTypeFragmentImpl element,
     _InfoExtensionTypeDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -473,7 +470,7 @@ class InformativeDataApplier {
   }
 
   void _applyToFields(
-    List<FieldElementImpl> elementList,
+    List<FieldFragmentImpl> elementList,
     List<_InfoFieldDeclaration> infoList,
   ) {
     forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
@@ -497,7 +494,7 @@ class InformativeDataApplier {
   }
 
   void _applyToFormalParameters(
-    List<ParameterElementImpl> parameters,
+    List<FormalParameterFragmentImpl> parameters,
     List<_InfoFormalParameter> infoList,
   ) {
     forCorrespondingPairs(parameters, infoList, (element, info) {
@@ -538,7 +535,7 @@ class InformativeDataApplier {
   }
 
   void _applyToFunctionTypeAlias(
-    TypeAliasElementImpl element,
+    TypeAliasFragmentImpl element,
     _InfoFunctionTypeAlias info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -558,7 +555,7 @@ class InformativeDataApplier {
   }
 
   void _applyToGenericTypeAlias(
-    TypeAliasElementImpl element,
+    TypeAliasFragmentImpl element,
     _InfoGenericTypeAlias info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -613,7 +610,7 @@ class InformativeDataApplier {
   }
 
   void _applyToMethods(
-    List<MethodElementImpl> elementList,
+    List<MethodFragmentImpl> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
     forCorrespondingPairs(elementList, infoList, (element, info) {
@@ -643,7 +640,7 @@ class InformativeDataApplier {
   }
 
   void _applyToMixinDeclaration(
-    MixinElementImpl element,
+    MixinFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -673,7 +670,7 @@ class InformativeDataApplier {
   }
 
   void _applyToTopLevelVariable(
-    TopLevelVariableElementImpl element,
+    TopLevelVariableFragmentImpl element,
     _InfoTopLevelVariable info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -695,7 +692,7 @@ class InformativeDataApplier {
   }
 
   void _applyToTypeParameters(
-    List<TypeParameterElementImpl> elementList,
+    List<TypeParameterFragmentImpl> elementList,
     List<_InfoTypeParameter> infoList,
   ) {
     forCorrespondingPairs(elementList, infoList, (element, info) {
@@ -705,13 +702,13 @@ class InformativeDataApplier {
     });
   }
 
-  Uint8List? _getInfoUnitBytes(CompilationUnitElementImpl element) {
+  Uint8List? _getInfoUnitBytes(LibraryFragmentImpl element) {
     var uri = element.source.uri;
     return _unitsInformativeBytes2[uri];
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(
-    TypeAliasElementImpl element,
+    TypeAliasFragmentImpl element,
     Uint32List constantOffsets, {
     List<_InfoFormalParameter>? aliasedFormalParameters,
     List<_InfoTypeParameter>? aliasedTypeParameters,
@@ -721,7 +718,7 @@ class InformativeDataApplier {
       applier.applyToTypeParameters(element.typeParameters);
 
       var aliasedElement = element.aliasedElement;
-      if (aliasedElement is FunctionTypedElementImpl) {
+      if (aliasedElement is FunctionTypedFragmentImpl) {
         applier.applyToTypeParameters(aliasedElement.typeParameters);
         applier.applyToFormalParameters(aliasedElement.parameters);
         if (aliasedTypeParameters != null) {
@@ -1976,21 +1973,21 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   _OffsetsApplier(this._iterator);
 
-  void applyToConstantInitializer(ElementImpl element) {
-    if (element is ConstFieldElementImpl && element.isEnumConstant) {
+  void applyToConstantInitializer(FragmentImpl element) {
+    if (element is ConstFieldFragmentImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
     } else if (element is ConstVariableElement) {
       element.constantInitializer?.accept(this);
     }
   }
 
-  void applyToConstructorInitializers(ConstructorElementImpl element) {
+  void applyToConstructorInitializers(ConstructorFragmentImpl element) {
     for (var initializer in element.constantInitializers) {
       initializer.accept(this);
     }
   }
 
-  void applyToEnumConstants(List<FieldElementImpl> constants) {
+  void applyToEnumConstants(List<FieldFragmentImpl> constants) {
     for (var constant in constants) {
       applyToMetadata(constant);
     }
@@ -2002,7 +1999,9 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToFormalParameters(List<ParameterElementImpl> formalParameters) {
+  void applyToFormalParameters(
+    List<FormalParameterFragmentImpl> formalParameters,
+  ) {
     for (var parameter in formalParameters) {
       applyToMetadata(parameter);
       applyToFormalParameters(parameter.parameters);
@@ -2016,7 +2015,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToMetadata(ElementImpl element) {
+  void applyToMetadata(FragmentImpl element) {
     for (var annotation in element.metadata) {
       var node = annotation.annotationAst;
       node.accept(this);
@@ -2035,7 +2034,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToTypeParameters(List<TypeParameterElementImpl> typeParameters) {
+  void applyToTypeParameters(List<TypeParameterFragmentImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
       applyToMetadata(typeParameter);
     }
@@ -2067,7 +2066,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
     var fragment = node.declaredFragment;
     var identifier = node.name;
-    if (fragment is ParameterElementImpl && identifier != null) {
+    if (fragment is FormalParameterFragmentImpl && identifier != null) {
       fragment.nameOffset = identifier.offset;
       fragment.nameOffset2 = identifier.offsetIfNotEmpty;
     }
@@ -2082,7 +2081,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     super.visitSimpleIdentifier(node);
   }
 
-  void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
+  void _applyToEnumConstantInitializer(ConstFieldFragmentImpl element) {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept(this);
@@ -2498,7 +2497,7 @@ extension on String {
   }
 }
 
-extension _ListOfElement<T extends ElementImpl> on List<T> {
+extension _ListOfElement<T extends FragmentImpl> on List<T> {
   List<T> get notSynthetic {
     return where((e) => !e.isSynthetic).toList();
   }

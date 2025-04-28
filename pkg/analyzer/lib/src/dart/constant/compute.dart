@@ -67,7 +67,7 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
     var constantsInCycle = scc.map((node) => node.constant);
     for (var node in scc) {
       var constant = node.constant;
-      if (constant is ConstructorElementImpl) {
+      if (constant is ConstructorFragmentImpl) {
         constant.isCycleFree = false;
       }
       _getEvaluationEngine(node).generateCycleError(constantsInCycle, constant);

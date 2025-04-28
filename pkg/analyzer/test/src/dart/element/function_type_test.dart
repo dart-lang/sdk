@@ -447,8 +447,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
 
   test_hash_typeFormalNames() {
     _testHashesAlwaysEqual((i) {
-      var t = TypeParameterElementImpl.synthetic('T$i');
-      var u = TypeParameterElementImpl.synthetic('U$i');
+      var t = TypeParameterFragmentImpl.synthetic('T$i');
+      var u = TypeParameterFragmentImpl.synthetic('U$i');
       return FunctionTypeImpl(
         typeFormals: [t, u],
         parameters: [

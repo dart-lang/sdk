@@ -214,34 +214,40 @@ class LibraryManifestBuilder {
     // Must be created already.
     var item = declaredItems[element] as InterfaceItem;
 
-    var map = element.inheritanceManager.getInterface2(element).map2;
-    for (var entry in map.entries) {
-      var executable = entry.value.baseElement;
+    var interface = element.inheritanceManager.getInterface2(element);
+    var inheritedExecutables = interface.map2.values
+        .map((e) => e.baseElement)
+        .where((e) => e.enclosingElement2 != element)
+        .toList(growable: false);
 
-      // Add only inherited.
-      if (executable.enclosingElement2 == element) {
-        continue;
-      }
+    for (var kindIndex = 0; kindIndex < 3; kindIndex++) {
+      for (var executable in inheritedExecutables) {
+        var lookupName = executable.lookupName?.asLookupName;
+        if (lookupName == null) {
+          continue;
+        }
 
-      var lookupName = executable.lookupName?.asLookupName;
-      if (lookupName == null) {
-        continue;
-      }
+        // We can see a private member only inside the library.
+        // But we reanalyze the library when one of its files changes.
+        if (lookupName.isPrivate) {
+          continue;
+        }
 
-      var id = _getInterfaceElementMemberId(executable);
+        var baseName = lookupName.asBaseName;
+        var id = _getInterfaceElementMemberId(executable);
 
-      var baseName = lookupName.asBaseName;
-      switch (executable) {
-        case MethodElementImpl2():
-          if (lookupName.isIndexEq) {
-            item.members.addInheritedIndexEq(baseName, id);
-          } else {
-            item.members.addInheritedMethod(baseName, id);
-          }
-        case GetterElementImpl():
-          item.members.addInheritedGetter(baseName, id);
-        case SetterElementImpl():
-          item.members.addInheritedSetter(baseName, id);
+        switch ((kindIndex, executable)) {
+          case (0, MethodElementImpl2()):
+            if (lookupName.isIndexEq) {
+              item.members.addInheritedIndexEq(baseName, id);
+            } else {
+              item.members.addInheritedMethod(baseName, id);
+            }
+          case (1, GetterElementImpl()):
+            item.members.addInheritedGetter(baseName, id);
+          case (2, SetterElementImpl()):
+            item.members.addInheritedSetter(baseName, id);
+        }
       }
     }
   }

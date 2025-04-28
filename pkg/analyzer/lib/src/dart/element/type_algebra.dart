@@ -209,7 +209,7 @@ abstract class Substitution {
   /// Substitutes the Nth parameter in [parameters] with the Nth type in
   /// [types].
   static MapSubstitution fromPairs(
-    List<TypeParameterElementImpl> parameters,
+    List<TypeParameterFragmentImpl> parameters,
     List<DartType> types,
   ) {
     return fromPairs2(parameters.map((p) => p.asElement2).toFixedList(), types);
@@ -259,7 +259,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
 
     var freshElements = List.generate(elements.length, (index) {
       var element = elements[index];
-      var freshElement = TypeParameterElementImpl(element.name3!, -1);
+      var freshElement = TypeParameterFragmentImpl(element.name3!, -1);
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );

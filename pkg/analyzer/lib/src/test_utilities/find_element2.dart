@@ -233,7 +233,7 @@ class FindElement2 extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  CompilationUnitElementImpl part(String targetUri) {
+  LibraryFragmentImpl part(String targetUri) {
     LibraryFragment? result;
 
     for (var partElement in libraryFragment.partIncludes) {
@@ -250,7 +250,7 @@ class FindElement2 extends _FindElementBase {
     }
 
     if (result != null) {
-      return result as CompilationUnitElementImpl;
+      return result as LibraryFragmentImpl;
     }
     throw StateError('Not found: $targetUri');
   }

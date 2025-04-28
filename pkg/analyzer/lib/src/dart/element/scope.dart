@@ -112,7 +112,7 @@ class FormalParameterScope extends EnclosedScope {
   }
 }
 
-/// Tracking information for all import in [CompilationUnitElementImpl].
+/// Tracking information for all import in [LibraryFragmentImpl].
 class ImportsTracking {
   /// Tracking information for each import prefix.
   final Map<PrefixElementImpl2?, ImportsTrackingOfPrefix> map;
@@ -310,7 +310,7 @@ class LibraryDeclarations with _GettersAndSetters {
 
 class LibraryFragmentScope implements Scope {
   final LibraryFragmentScope? parent;
-  final CompilationUnitElementImpl fragment;
+  final LibraryFragmentImpl fragment;
   final PrefixScope noPrefixScope;
 
   final Map<String, PrefixElementImpl2> _prefixElements = {};
@@ -326,7 +326,7 @@ class LibraryFragmentScope implements Scope {
   /// when we are not resolving files of this library.
   ImportsTracking? _importsTracking;
 
-  factory LibraryFragmentScope(CompilationUnitElementImpl fragment) {
+  factory LibraryFragmentScope(LibraryFragmentImpl fragment) {
     var parent = fragment.enclosingElement3?.scope;
     return LibraryFragmentScope._(
       parent: parent,
@@ -489,7 +489,7 @@ class LocalScope extends EnclosedScope {
 }
 
 class PrefixScope implements Scope {
-  final CompilationUnitElementImpl libraryFragment;
+  final LibraryFragmentImpl libraryFragment;
   final PrefixScope? parent;
 
   final List<LibraryImportElementImpl> _importElements = [];

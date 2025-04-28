@@ -57,7 +57,7 @@ class ConstructorElementToInfer {
 
   ConstructorElementMixin get element => element2.asElement;
 
-  List<TypeParameterElementImpl> get typeParameters {
+  List<TypeParameterFragmentImpl> get typeParameters {
     return typeParameters2.map((e) => e.asElement).toList();
   }
 }

@@ -172,7 +172,7 @@ class LinkedElementFactory {
   }
 
   // TODO(scheglov): Why would this method return `null`?
-  ElementImpl? elementOfReference(Reference reference) {
+  FragmentImpl? elementOfReference(Reference reference) {
     if (reference.element case var element?) {
       return element;
     }
@@ -189,7 +189,7 @@ class LinkedElementFactory {
     var parentElement = elementOfReference(parentRef);
 
     // Only classes delay creating children.
-    if (parentElement is ClassElementImpl) {
+    if (parentElement is ClassFragmentImpl) {
       parentElement.linkedData?.readMembers(parentElement);
     }
 
@@ -290,5 +290,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
-  void _disposeLibrary(ElementImpl? libraryElement) {}
+  void _disposeLibrary(FragmentImpl? libraryElement) {}
 }

@@ -516,7 +516,7 @@ lsp.Location? fragmentToLocation(
 
   int? nameOffset;
   int? nameLength;
-  if (fragment case PropertyAccessorElementImpl(
+  if (fragment case PropertyAccessorFragmentImpl(
     :var isSynthetic,
     :var nonSynthetic,
   ) when isSynthetic) {

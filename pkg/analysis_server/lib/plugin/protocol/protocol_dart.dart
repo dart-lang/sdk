@@ -133,7 +133,7 @@ ElementKind convertElementToElementKind(engine.Element element) {
   return convertElementKind(element.kind);
 }
 
-Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
+Element convertLibraryFragment(LibraryFragmentImpl fragment) {
   return Element(
     ElementKind.COMPILATION_UNIT,
     path.basename(fragment.source.fullName),

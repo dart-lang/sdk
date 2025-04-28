@@ -72,6 +72,10 @@ class _Collector {
       return;
     }
 
+    if (node is DotShorthandPropertyAccess) {
+      return _identifier(node.propertyName);
+    }
+
     if (node is StringInterpolation) {
       for (var component in node.elements) {
         if (component is InterpolationExpression) {

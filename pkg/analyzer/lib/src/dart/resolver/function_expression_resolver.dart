@@ -169,7 +169,7 @@ class FunctionExpressionResolver {
 
     if (_shouldUpdateReturnType(node)) {
       var firstFragment =
-          functionElement.firstFragment as ExecutableElementImpl;
+          functionElement.firstFragment as ExecutableFragmentImpl;
       firstFragment.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 

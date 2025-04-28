@@ -152,12 +152,12 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
 
 /// Returns the [LibraryImportElement] that declared [prefix] and imports [element].
 ///
-/// [libraryFragment] - the [CompilationUnitElementImpl] where reference is.
+/// [libraryFragment] - the [LibraryFragmentImpl] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
 /// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.
 MockLibraryImportElement? _getMockImportElement(
-  CompilationUnitElementImpl libraryFragment,
+  LibraryFragmentImpl libraryFragment,
   String prefix,
   Element element,
   Map<LibraryImport, Set<Element>> importElementsMap,

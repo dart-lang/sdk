@@ -90,7 +90,7 @@ class FunctionTypeImpl extends TypeImpl
 
   /// The formal type parameters of this generic function; for example,
   /// `<T> T -> T`.
-  final List<TypeParameterElementImpl> typeFormals;
+  final List<TypeParameterFragmentImpl> typeFormals;
 
   /// A list containing the parameters elements of this type of function.
   ///
@@ -122,7 +122,7 @@ class FunctionTypeImpl extends TypeImpl
   final List<ParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({
-    required List<TypeParameterElementImpl> typeFormals,
+    required List<TypeParameterFragmentImpl> typeFormals,
     required List<ParameterElementMixin> parameters,
     required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
@@ -333,7 +333,7 @@ class FunctionTypeImpl extends TypeImpl
 
   @Deprecated('Use referencesAny2() instead')
   @override
-  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
+  bool referencesAny(Set<TypeParameterFragmentImpl> parameters) {
     if (typeFormals.any((element) {
       assert(!parameters.contains(element));
 
@@ -412,7 +412,7 @@ class FunctionTypeImpl extends TypeImpl
       return instantiate([
         for (var i = 0; i < typeFormals.length; i++)
           TypeParameterTypeImpl(
-            element3: TypeParameterElementImpl.synthetic('T$i').element,
+            element3: TypeParameterFragmentImpl.synthetic('T$i').element,
             nullabilitySuffix: NullabilitySuffix.none,
           ),
       ]).hashCode;
@@ -465,7 +465,7 @@ class FunctionTypeImpl extends TypeImpl
     for (int i = 0; i < count; i++) {
       TypeParameterElement p1 = params1[i];
       TypeParameterElement p2 = params2[i];
-      TypeParameterElementImpl pFresh = TypeParameterElementImpl.synthetic(
+      TypeParameterFragmentImpl pFresh = TypeParameterFragmentImpl.synthetic(
         p2.name3!,
       );
 
@@ -1035,7 +1035,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Use referencesAny2() instead')
   @override
-  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
+  bool referencesAny(Set<TypeParameterFragmentImpl> parameters) {
     return typeArguments.any((argument) => argument.referencesAny(parameters));
   }
 
@@ -1505,7 +1505,7 @@ abstract class TypeImpl implements DartType, SharedType {
 
   /// Returns true if this type references any of the [parameters].
   @Deprecated('Use referencesAny2() instead')
-  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
+  bool referencesAny(Set<TypeParameterFragmentImpl> parameters) {
     return false;
   }
 

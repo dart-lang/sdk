@@ -83,13 +83,13 @@ class ConstantEvaluationEngine {
 
   /// Compute the constant value associated with the given [constant].
   void computeConstantValue(ConstantEvaluationTarget constant) {
-    if (constant is ElementImpl) {
-      var element = constant as ElementImpl;
+    if (constant is FragmentImpl) {
+      var element = constant as FragmentImpl;
       constant = element.declaration as ConstantEvaluationTarget;
     }
 
     var library = constant.library2 as LibraryElementImpl;
-    if (constant is ParameterElementImpl) {
+    if (constant is FormalParameterFragmentImpl) {
       if (constant is ConstVariableElement) {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
@@ -102,7 +102,7 @@ class ConstantEvaluationEngine {
           constant.evaluationResult = _nullObject(library);
         }
       }
-    } else if (constant is VariableElementImpl) {
+    } else if (constant is VariableFragmentImpl) {
       var constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         var errorListener = RecordingErrorListener();
@@ -154,7 +154,7 @@ class ConstantEvaluationEngine {
 
         constant.evaluationResult = dartConstant;
       }
-    } else if (constant is ConstructorElementImpl) {
+    } else if (constant is ConstructorFragmentImpl) {
       if (constant.isConst) {
         // No evaluation needs to be done; constructor declarations are only in
         // the dependency graph to ensure that any constants referred to in
@@ -170,7 +170,7 @@ class ConstantEvaluationEngine {
         // Just copy the evaluation result.
         var variableElement = element.variable3?.baseElement;
         var firstFragment =
-            variableElement?.firstFragment as VariableElementImpl?;
+            variableElement?.firstFragment as VariableFragmentImpl?;
         var evaluationResult = firstFragment?.evaluationResult;
         if (evaluationResult != null) {
           constant.evaluationResult = evaluationResult;
@@ -226,9 +226,9 @@ class ConstantEvaluationEngine {
     ConstantEvaluationTarget constant,
     ReferenceFinderCallback callback,
   ) {
-    if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
+    if (constant is ConstFieldFragmentImpl && constant.isEnumConstant) {
       var enclosing = constant.enclosingElement3;
-      if (enclosing is EnumElementImpl) {
+      if (enclosing is EnumFragmentImpl) {
         if (enclosing.name == 'values') {
           return;
         }
@@ -248,7 +248,7 @@ class ConstantEvaluationEngine {
       if (initializer != null) {
         initializer.accept(referenceFinder);
       }
-    } else if (constant is ConstructorElementImpl) {
+    } else if (constant is ConstructorFragmentImpl) {
       if (constant.isConst) {
         var redirectedConstructor = getConstRedirectedConstructor(constant);
         if (redirectedConstructor != null) {
@@ -308,13 +308,13 @@ class ConstantEvaluationEngine {
         // so it depends on the variable.
         if (element.variable3 case var variable?) {
           var baseElement = variable.baseElement as VariableElementImpl2;
-          callback(baseElement.firstFragment as VariableElementImpl);
+          callback(baseElement.firstFragment as VariableFragmentImpl);
         }
       } else if (element is ConstructorElement) {
         // The annotation is a constructor invocation, so it depends on the
         // constructor.
         var baseElement = element.baseElement;
-        callback(baseElement.firstFragment as ConstructorElementImpl);
+        callback(baseElement.firstFragment as ConstructorFragmentImpl);
       } else {
         // This could happen in the event of invalid code.  The error will be
         // reported at constant evaluation time.
@@ -322,7 +322,7 @@ class ConstantEvaluationEngine {
       if (constNode.arguments != null) {
         constNode.arguments!.accept(referenceFinder);
       }
-    } else if (constant is VariableElementImpl) {
+    } else if (constant is VariableFragmentImpl) {
       // `constant` is a VariableElement but not a VariableElementImpl.  This
       // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
@@ -418,7 +418,7 @@ class ConstantEvaluationEngine {
     Iterable<ConstantEvaluationTarget> cycle,
     ConstantEvaluationTarget constant,
   ) {
-    if (constant is VariableElementImpl) {
+    if (constant is VariableFragmentImpl) {
       RecordingErrorListener errorListener = RecordingErrorListener();
       ErrorReporter errorReporter = ErrorReporter(
         errorListener,
@@ -435,7 +435,7 @@ class ConstantEvaluationEngine {
         element: constant.asElement2!,
         errorCode: CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       );
-    } else if (constant is ConstructorElementImpl) {
+    } else if (constant is ConstructorFragmentImpl) {
       // We don't report cycle errors on constructor declarations here since
       // there is nowhere to put the error information.
       //
@@ -484,10 +484,10 @@ class ConstantEvaluationEngine {
     return redirectedConstructor;
   }
 
-  static _EnumConstant? _enumConstant(VariableElementImpl element) {
-    if (element is ConstFieldElementImpl && element.isEnumConstant) {
+  static _EnumConstant? _enumConstant(VariableFragmentImpl element) {
+    if (element is ConstFieldFragmentImpl && element.isEnumConstant) {
       var enum_ = element.enclosingElement3;
-      if (enum_ is EnumElementImpl) {
+      if (enum_ is EnumFragmentImpl) {
         var index = enum_.constants.indexOf(element);
         assert(index >= 0);
         return _EnumConstant(index: index, name: element.name);
@@ -1909,7 +1909,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // and errors for other constant expressions. In either case we have
       // already computed values of all dependencies first (or detect a cycle),
       // so the value has already been computed and we can just return it.
-      var firstFragment = variableElement.firstFragment as VariableElementImpl;
+      var firstFragment = variableElement.firstFragment as VariableFragmentImpl;
       var evaluationResult = firstFragment.evaluationResult;
       if (variableElement.isConst) {
         switch (evaluationResult) {
@@ -3000,7 +3000,7 @@ class _InstanceCreationEvaluator {
     for (var field in fields) {
       if ((field.isFinal || field.isConst) &&
           !field.isStatic &&
-          field is ConstFieldElementImpl) {
+          field is ConstFieldFragmentImpl) {
         var fieldValue = field.evaluationResult;
 
         // It is possible that the evaluation result is null.

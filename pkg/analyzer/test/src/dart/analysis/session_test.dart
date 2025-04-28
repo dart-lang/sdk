@@ -936,7 +936,7 @@ unitElementResult
 
       sink.writelnWithIndent('element');
       sink.withIndent(() {
-        var element = result.fragment as CompilationUnitElementImpl;
+        var element = result.fragment as LibraryFragmentImpl;
         sink.writelnWithIndent('reference: ${element.reference}');
 
         var library =

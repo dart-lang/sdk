@@ -348,7 +348,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
   for (var fragment in element.firstFragment.withAncestors) {
     if (fragment is engine.LibraryFragment) {
-      path.add(convertLibraryFragment(fragment as CompilationUnitElementImpl));
+      path.add(convertLibraryFragment(fragment as LibraryFragmentImpl));
     }
     path.add(convertElement(fragment.element));
   }

@@ -76,7 +76,7 @@ class ElementTextConfiguration {
       switch (o) {
         case LibraryFragment():
           return true;
-        case ClassElementImpl():
+        case ClassFragmentImpl():
           return classNames.contains(o.name);
         case ClassElement():
           return classNames.contains(o.name3);
@@ -213,7 +213,7 @@ abstract class _AbstractElementWriter {
     node.accept(_createAstPrinter());
   }
 
-  void _writeReference(ElementImpl e) {
+  void _writeReference(FragmentImpl e) {
     if (!configuration.withReferences) {
       return;
     }
@@ -254,7 +254,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
-      _writeReference(e as ElementImpl);
+      _writeReference(e as FragmentImpl);
 
       var name = e.name;
       if (name.isNotEmpty) {
@@ -417,7 +417,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeConstructorFragment(ConstructorFragment f) {
     // Check that the reference exists, and filled with the element.
-    var reference = (f as ConstructorElementImpl).reference;
+    var reference = (f as ConstructorFragmentImpl).reference;
     if (reference == null) {
       fail('Every constructor must have a reference.');
     }
@@ -702,9 +702,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isFinal, 'final ');
       _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
-      if (e is FieldFormalParameterElementImpl) {
+      if (e is FieldFormalParameterFragmentImpl) {
         _sink.write('this.');
-      } else if (e is SuperFormalParameterElementImpl) {
+      } else if (e is SuperFormalParameterFragmentImpl) {
         _sink.writeIf(e.hasDefaultValue, 'hasDefaultValue ');
         _sink.write('super.');
       }
@@ -763,9 +763,9 @@ class _Element2Writer extends _AbstractElementWriter {
       // _sink.writeIf(f.isCovariant, 'covariant ');
       // _sink.writeIf(f.isFinal, 'final ');
 
-      if (f is FieldFormalParameterElementImpl) {
+      if (f is FieldFormalParameterFragmentImpl) {
         _sink.write('this.');
-      } else if (f is SuperFormalParameterElementImpl) {
+      } else if (f is SuperFormalParameterFragmentImpl) {
         // _sink.writeIf(f.hasDefaultValue, 'hasDefaultValue ');
         _sink.write('super.');
       }
@@ -801,7 +801,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.writeIf(f.isGenerator, '*');
 
-    if (f is ExecutableElementImpl && f.invokesSuperSelf) {
+    if (f is ExecutableFragmentImpl && f.invokesSuperSelf) {
       _sink.write(' invokesSuperSelf');
     }
   }
@@ -865,8 +865,8 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeFragmentCodeRange(Fragment f) {
     if (configuration.withCodeRanges) {
-      if (f is ElementImpl) {
-        var e = f as ElementImpl;
+      if (f is FragmentImpl) {
+        var e = f as FragmentImpl;
         if (!e.isSynthetic) {
           _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
           _sink.writelnWithIndent('codeLength: ${e.codeLength}');
@@ -917,7 +917,7 @@ class _Element2Writer extends _AbstractElementWriter {
       return;
     }
 
-    if (f is CompilationUnitElementImpl) {
+    if (f is LibraryFragmentImpl) {
       _sink.writeIndentedLine(() {
         _sink.write(name);
         _sink.write(': ');
@@ -926,7 +926,7 @@ class _Element2Writer extends _AbstractElementWriter {
       return;
     }
 
-    var element = f as ElementImpl;
+    var element = f as FragmentImpl;
     if (element.reference case var reference?) {
       _sink.writeIndentedLine(() {
         _sink.write(name);
@@ -1269,7 +1269,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeLibraryFragment(CompilationUnitElementImpl f) {
+  void _writeLibraryFragment(LibraryFragmentImpl f) {
     var reference = f.reference!;
     _sink.writeIndentedLine(() {
       _elementPrinter.writeReference(reference);
@@ -1984,23 +1984,23 @@ class _Element2Writer extends _AbstractElementWriter {
 
 class _IdMap {
   final Map<Expression, String> expressionMap = Map.identity();
-  final Map<ElementImpl, String> fieldMap = Map.identity();
-  final Map<ElementImpl, String> getterMap = Map.identity();
-  final Map<ElementImpl, String> partMap = Map.identity();
-  final Map<ElementImpl, String> setterMap = Map.identity();
+  final Map<FragmentImpl, String> fieldMap = Map.identity();
+  final Map<FragmentImpl, String> getterMap = Map.identity();
+  final Map<FragmentImpl, String> partMap = Map.identity();
+  final Map<FragmentImpl, String> setterMap = Map.identity();
 
   String operator [](Object object) {
     if (object is Expression) {
       return expressionMap[object] ??= 'expression_${expressionMap.length}';
-    } else if (object is FieldElementImpl) {
+    } else if (object is FieldFragmentImpl) {
       return fieldMap[object] ??= 'field_${fieldMap.length}';
-    } else if (object is TopLevelVariableElementImpl) {
+    } else if (object is TopLevelVariableFragmentImpl) {
       return fieldMap[object] ??= 'variable_${fieldMap.length}';
-    } else if (object is PropertyAccessorElementImpl && object.isGetter) {
+    } else if (object is PropertyAccessorFragmentImpl && object.isGetter) {
       return getterMap[object] ??= 'getter_${getterMap.length}';
     } else if (object is PartElementImpl) {
       return partMap[object] ??= 'part_${partMap.length}';
-    } else if (object is PropertyAccessorElementImpl && object.isSetter) {
+    } else if (object is PropertyAccessorFragmentImpl && object.isSetter) {
       return setterMap[object] ??= 'setter_${setterMap.length}';
     } else {
       return '???';

@@ -166,7 +166,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   final LibraryElementImpl _currentLibrary;
 
   /// The current unit that is being analyzed.
-  final CompilationUnitElementImpl _currentUnit;
+  final LibraryFragmentImpl _currentUnit;
 
   /// The type representing the type 'int'.
   late final InterfaceTypeImpl _intType;
@@ -989,7 +989,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForMainFunction1(node.name, node.declaredFragment!);
     _checkForTypeAliasCannotReferenceItself(
       node.name,
-      node.declaredFragment as TypeAliasElementImpl,
+      node.declaredFragment as TypeAliasFragmentImpl,
     );
     super.visitFunctionTypeAlias(node);
   }
@@ -1541,7 +1541,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var variable in node.variables.variables) {
       var fragment = variable.declaredFragment;
-      fragment as TopLevelVariableElementImpl;
+      fragment as TopLevelVariableFragmentImpl;
       _checkForMainFunction1(variable.name, fragment);
     }
 
@@ -1625,7 +1625,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Returns `false` if a severe hierarchy error was found, so that further
   /// checking is not useful.
   bool _checkClassInheritance(
-    InterfaceElementImpl declarationElement,
+    InterfaceFragmentImpl declarationElement,
     NamedCompilationUnitMember node,
     NamedType? superclass,
     WithClauseImpl? withClause,
@@ -2145,7 +2145,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
   /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
   /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
-  void _checkForConflictingClassMembers(InterfaceElementImpl fragment) {
+  void _checkForConflictingClassMembers(InterfaceFragmentImpl fragment) {
     var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
       return;
@@ -2353,7 +2353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingEnumTypeVariableErrorCodes(
-    EnumElementImpl fragment,
+    EnumFragmentImpl fragment,
   ) {
     for (var typeParameter in fragment.typeParameters) {
       var name = typeParameter.name;
@@ -2380,7 +2380,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingExtensionTypeTypeVariableErrorCodes(
-    ExtensionTypeElementImpl fragment,
+    ExtensionTypeFragmentImpl fragment,
   ) {
     for (var typeParameter in fragment.typeParameters) {
       if (typeParameter.isWildcardVariable) continue;
@@ -2442,7 +2442,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
-    var fragment = node.declaredFragment as InterfaceElementImpl;
+    var fragment = node.declaredFragment as InterfaceFragmentImpl;
 
     // Report only on the declaration.
     if (fragment.isAugmentation) {
@@ -3053,7 +3053,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForEnumInstantiatedToBoundsIsNotWellBounded(
     EnumDeclaration node,
-    EnumElementImpl element,
+    EnumFragmentImpl element,
   ) {
     var valuesFieldType = element.valuesField?.type;
     if (valuesFieldType is InterfaceTypeImpl) {
@@ -3269,7 +3269,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeImplementsItself(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeElementImpl element,
+    ExtensionTypeFragmentImpl element,
   ) {
     if (element.hasImplementsSelfReference) {
       errorReporter.atToken(
@@ -3281,7 +3281,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeMemberConflicts({
     required ExtensionTypeDeclaration node,
-    required ExtensionTypeElementImpl element,
+    required ExtensionTypeFragmentImpl element,
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
       var contextMessages =
@@ -3323,7 +3323,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeRepresentationDependsOnItself(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeElementImpl element,
+    ExtensionTypeFragmentImpl element,
   ) {
     if (element.hasRepresentationSelfReference) {
       errorReporter.atToken(
@@ -3335,7 +3335,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeRepresentationTypeBottom(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeElementImpl element,
+    ExtensionTypeFragmentImpl element,
   ) {
     var representationType = element.representation.type;
     if (representationType.isBottom) {
@@ -3458,10 +3458,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
   /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitializedInClass(
-    InstanceElementImpl fragment,
+    InstanceFragmentImpl fragment,
     List<ClassMember> members,
   ) {
-    if (fragment is InterfaceElementImpl) {
+    if (fragment is InterfaceFragmentImpl) {
       var element = fragment.element;
       for (var constructor in element.constructors2) {
         if (constructor.isGenerative && !constructor.isSynthetic) {
@@ -4508,7 +4508,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// implicit or explicit.
   ///
   /// See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
-  void _checkForNoDefaultSuperConstructorImplicit(ClassElementImpl fragment) {
+  void _checkForNoDefaultSuperConstructorImplicit(ClassFragmentImpl fragment) {
     // do nothing if there is explicit constructor
     var constructors = fragment.element.constructors2;
     if (!constructors[0].isSynthetic) {
@@ -4628,7 +4628,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForNonCovariantTypeParameterPositionInRepresentationType(
     ExtensionTypeDeclaration node,
-    ExtensionTypeElementImpl fragment,
+    ExtensionTypeFragmentImpl fragment,
   ) {
     var typeParameters = node.typeParameters?.typeParameters;
     if (typeParameters == null) {
@@ -5242,7 +5242,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
   void _checkForTypeAliasCannotReferenceItself(
     Token nameToken,
-    TypeAliasElementImpl element,
+    TypeAliasFragmentImpl element,
   ) {
     if (element.hasSelfReference) {
       errorReporter.atToken(
@@ -5922,7 +5922,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// only components that allow explicit variance modifiers.
   void _checkForWrongVariancePosition(
     Variance variance,
-    TypeParameterElementImpl typeParameter,
+    TypeParameterFragmentImpl typeParameter,
     SyntacticEntity errorTarget,
   ) {
     if (!variance.greaterThanOrEqual(typeParameter.variance)) {
@@ -5967,7 +5967,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
   void _checkMixinInheritance(
-    MixinElementImpl declarationFragment,
+    MixinFragmentImpl declarationFragment,
     MixinDeclaration node,
     MixinOnClause? onClause,
     ImplementsClause? implementsClause,

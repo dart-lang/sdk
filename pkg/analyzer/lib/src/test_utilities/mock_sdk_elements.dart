@@ -38,31 +38,31 @@ class _MockSdkElementsBuilder {
   final engine.AnalysisContext analysisContext;
   final AnalysisSessionImpl analysisSession;
 
-  ClassElementImpl? _boolElement;
-  ClassElementImpl? _comparableElement;
-  ClassElementImpl? _completerElement;
-  ClassElementImpl? _deprecatedElement;
-  ClassElementImpl? _doubleElement;
-  ClassElementImpl? _functionElement;
-  ClassElementImpl? _futureElement;
-  ClassElementImpl? _futureOrElement;
-  ClassElementImpl? _intElement;
-  ClassElementImpl? _iterableElement;
-  ClassElementImpl? _iteratorElement;
-  ClassElementImpl? _listElement;
-  ClassElementImpl? _mapElement;
-  ClassElementImpl? _nullElement;
-  ClassElementImpl? _numElement;
-  ClassElementImpl? _objectElement;
-  ClassElementImpl? _overrideElement;
-  ClassElementImpl? _recordElement;
-  ClassElementImpl? _setElement;
-  ClassElementImpl? _stackTraceElement;
-  ClassElementImpl? _streamElement;
-  ClassElementImpl? _streamSubscriptionElement;
-  ClassElementImpl? _stringElement;
-  ClassElementImpl? _symbolElement;
-  ClassElementImpl? _typeElement;
+  ClassFragmentImpl? _boolElement;
+  ClassFragmentImpl? _comparableElement;
+  ClassFragmentImpl? _completerElement;
+  ClassFragmentImpl? _deprecatedElement;
+  ClassFragmentImpl? _doubleElement;
+  ClassFragmentImpl? _functionElement;
+  ClassFragmentImpl? _futureElement;
+  ClassFragmentImpl? _futureOrElement;
+  ClassFragmentImpl? _intElement;
+  ClassFragmentImpl? _iterableElement;
+  ClassFragmentImpl? _iteratorElement;
+  ClassFragmentImpl? _listElement;
+  ClassFragmentImpl? _mapElement;
+  ClassFragmentImpl? _nullElement;
+  ClassFragmentImpl? _numElement;
+  ClassFragmentImpl? _objectElement;
+  ClassFragmentImpl? _overrideElement;
+  ClassFragmentImpl? _recordElement;
+  ClassFragmentImpl? _setElement;
+  ClassFragmentImpl? _stackTraceElement;
+  ClassFragmentImpl? _streamElement;
+  ClassFragmentImpl? _streamSubscriptionElement;
+  ClassFragmentImpl? _stringElement;
+  ClassFragmentImpl? _symbolElement;
+  ClassFragmentImpl? _typeElement;
 
   InterfaceTypeImpl? _boolType;
   InterfaceTypeImpl? _doubleType;
@@ -73,14 +73,14 @@ class _MockSdkElementsBuilder {
   InterfaceTypeImpl? _typeType;
 
   late LibraryElementImpl _asyncLibrary;
-  late CompilationUnitElementImpl _asyncUnit;
+  late LibraryFragmentImpl _asyncUnit;
 
   late LibraryElementImpl _coreLibrary;
-  late CompilationUnitElementImpl _coreUnit;
+  late LibraryFragmentImpl _coreUnit;
 
   _MockSdkElementsBuilder(this.analysisContext, this.analysisSession);
 
-  ClassElementImpl get boolElement {
+  ClassFragmentImpl get boolElement {
     var boolElement = _boolElement;
     if (boolElement != null) return boolElement;
 
@@ -107,7 +107,7 @@ class _MockSdkElementsBuilder {
     return _boolType ??= _interfaceType(boolElement);
   }
 
-  ClassElementImpl get comparableElement {
+  ClassFragmentImpl get comparableElement {
     var comparableElement = _comparableElement;
     if (comparableElement != null) return comparableElement;
 
@@ -125,7 +125,7 @@ class _MockSdkElementsBuilder {
     return comparableElement;
   }
 
-  ClassElementImpl get completerElement {
+  ClassFragmentImpl get completerElement {
     var completerElement = _completerElement;
     if (completerElement != null) return completerElement;
 
@@ -143,7 +143,7 @@ class _MockSdkElementsBuilder {
     return completerElement;
   }
 
-  ClassElementImpl get deprecatedElement {
+  ClassFragmentImpl get deprecatedElement {
     var deprecatedElement = _deprecatedElement;
     if (deprecatedElement != null) return deprecatedElement;
 
@@ -167,7 +167,7 @@ class _MockSdkElementsBuilder {
     return deprecatedElement;
   }
 
-  ClassElementImpl get doubleElement {
+  ClassFragmentImpl get doubleElement {
     var doubleElement = _doubleElement;
     if (doubleElement != null) return doubleElement;
 
@@ -179,11 +179,11 @@ class _MockSdkElementsBuilder {
         );
     doubleElement.supertype = numType;
 
-    FieldElementImpl staticConstDoubleField(String name) {
+    FieldFragmentImpl staticConstDoubleField(String name) {
       return _field(name, doubleType, isStatic: true, isConst: true);
     }
 
-    doubleElement.fields = <FieldElementImpl>[
+    doubleElement.fields = <FieldFragmentImpl>[
       staticConstDoubleField('nan'),
       staticConstDoubleField('infinity'),
       staticConstDoubleField('negativeInfinity'),
@@ -253,7 +253,7 @@ class _MockSdkElementsBuilder {
 
   DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
-  ClassElementImpl get functionElement {
+  ClassFragmentImpl get functionElement {
     var functionElement = _functionElement;
     if (functionElement != null) return functionElement;
 
@@ -273,7 +273,7 @@ class _MockSdkElementsBuilder {
     return _interfaceType(functionElement);
   }
 
-  ClassElementImpl get futureElement {
+  ClassFragmentImpl get futureElement {
     var futureElement = _futureElement;
     if (futureElement != null) return futureElement;
 
@@ -321,7 +321,7 @@ class _MockSdkElementsBuilder {
     return futureElement;
   }
 
-  ClassElementImpl get futureOrElement {
+  ClassFragmentImpl get futureOrElement {
     var futureOrElement = _futureOrElement;
     if (futureOrElement != null) return futureOrElement;
 
@@ -338,7 +338,7 @@ class _MockSdkElementsBuilder {
     return futureOrElement;
   }
 
-  ClassElementImpl get intElement {
+  ClassFragmentImpl get intElement {
     var intElement = _intElement;
     if (intElement != null) return intElement;
 
@@ -390,7 +390,7 @@ class _MockSdkElementsBuilder {
     return _intType ??= _interfaceType(intElement);
   }
 
-  ClassElementImpl get iterableElement {
+  ClassFragmentImpl get iterableElement {
     var iterableElement = _iterableElement;
     if (iterableElement != null) return iterableElement;
 
@@ -417,7 +417,7 @@ class _MockSdkElementsBuilder {
     return iterableElement;
   }
 
-  ClassElementImpl get iteratorElement {
+  ClassFragmentImpl get iteratorElement {
     var iteratorElement = _iteratorElement;
     if (iteratorElement != null) return iteratorElement;
 
@@ -439,7 +439,7 @@ class _MockSdkElementsBuilder {
     return iteratorElement;
   }
 
-  ClassElementImpl get listElement {
+  ClassFragmentImpl get listElement {
     var listElement = _listElement;
     if (listElement != null) return listElement;
 
@@ -486,7 +486,7 @@ class _MockSdkElementsBuilder {
     return listElement;
   }
 
-  ClassElementImpl get mapElement {
+  ClassFragmentImpl get mapElement {
     var mapElement = _mapElement;
     if (mapElement != null) return mapElement;
 
@@ -522,7 +522,7 @@ class _MockSdkElementsBuilder {
     return mapElement;
   }
 
-  ClassElementImpl get nullElement {
+  ClassFragmentImpl get nullElement {
     var nullElement = _nullElement;
     if (nullElement != null) return nullElement;
 
@@ -537,7 +537,7 @@ class _MockSdkElementsBuilder {
     return nullElement;
   }
 
-  ClassElementImpl get numElement {
+  ClassFragmentImpl get numElement {
     var numElement = _numElement;
     if (numElement != null) return numElement;
 
@@ -632,7 +632,7 @@ class _MockSdkElementsBuilder {
     return _numType ??= _interfaceType(numElement);
   }
 
-  ClassElementImpl get objectElement {
+  ClassFragmentImpl get objectElement {
     var objectElement = _objectElement;
     if (objectElement != null) return objectElement;
 
@@ -640,7 +640,7 @@ class _MockSdkElementsBuilder {
     _coreUnit.encloseElement(objectElement);
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
-    objectElement.typeParameters = const <TypeParameterElementImpl>[];
+    objectElement.typeParameters = const <TypeParameterFragmentImpl>[];
     objectElement.constructors = [_constructor(isConst: true)];
 
     objectElement.methods = [
@@ -670,7 +670,7 @@ class _MockSdkElementsBuilder {
     return _objectType ??= _interfaceType(objectElement);
   }
 
-  ClassElementImpl get overrideElement {
+  ClassFragmentImpl get overrideElement {
     var overrideElement = _overrideElement;
     if (overrideElement != null) return overrideElement;
 
@@ -684,7 +684,7 @@ class _MockSdkElementsBuilder {
     return overrideElement;
   }
 
-  ClassElementImpl get recordElement {
+  ClassFragmentImpl get recordElement {
     var recordElement = _recordElement;
     if (recordElement != null) return recordElement;
 
@@ -704,7 +704,7 @@ class _MockSdkElementsBuilder {
     return _interfaceType(recordElement);
   }
 
-  ClassElementImpl get setElement {
+  ClassFragmentImpl get setElement {
     var setElement = _setElement;
     if (setElement != null) return setElement;
 
@@ -725,7 +725,7 @@ class _MockSdkElementsBuilder {
     return setElement;
   }
 
-  ClassElementImpl get stackTraceElement {
+  ClassFragmentImpl get stackTraceElement {
     var stackTraceElement = _stackTraceElement;
     if (stackTraceElement != null) return stackTraceElement;
 
@@ -741,7 +741,7 @@ class _MockSdkElementsBuilder {
     return stackTraceElement;
   }
 
-  ClassElementImpl get streamElement {
+  ClassFragmentImpl get streamElement {
     var streamElement = _streamElement;
     if (streamElement != null) return streamElement;
 
@@ -783,7 +783,7 @@ class _MockSdkElementsBuilder {
     return streamElement;
   }
 
-  ClassElementImpl get streamSubscriptionElement {
+  ClassFragmentImpl get streamSubscriptionElement {
     var streamSubscriptionElement = _streamSubscriptionElement;
     if (streamSubscriptionElement != null) return streamSubscriptionElement;
 
@@ -801,7 +801,7 @@ class _MockSdkElementsBuilder {
     return streamSubscriptionElement;
   }
 
-  ClassElementImpl get stringElement {
+  ClassFragmentImpl get stringElement {
     var stringElement = _stringElement;
     if (stringElement != null) return stringElement;
 
@@ -849,7 +849,7 @@ class _MockSdkElementsBuilder {
     return _stringType ??= _interfaceType(stringElement);
   }
 
-  ClassElementImpl get symbolElement {
+  ClassFragmentImpl get symbolElement {
     var symbolElement = _symbolElement;
     if (symbolElement != null) return symbolElement;
 
@@ -873,7 +873,7 @@ class _MockSdkElementsBuilder {
     return symbolElement;
   }
 
-  ClassElementImpl get typeElement {
+  ClassFragmentImpl get typeElement {
     var typeElement = _typeElement;
     if (typeElement != null) return typeElement;
 
@@ -929,7 +929,7 @@ class _MockSdkElementsBuilder {
       FeatureSet.latestLanguageVersion(),
     );
 
-    _asyncUnit = CompilationUnitElementImpl(
+    _asyncUnit = LibraryFragmentImpl(
       library: _asyncLibrary,
       source: asyncSource,
       lineInfo: LineInfo([0]),
@@ -939,7 +939,7 @@ class _MockSdkElementsBuilder {
     return _asyncLibrary;
   }
 
-  void _buildClassElement(ClassElementImpl fragment) {}
+  void _buildClassElement(ClassFragmentImpl fragment) {}
 
   LibraryElementImpl _buildCore() {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
@@ -952,7 +952,7 @@ class _MockSdkElementsBuilder {
       FeatureSet.latestLanguageVersion(),
     );
 
-    _coreUnit = CompilationUnitElementImpl(
+    _coreUnit = LibraryFragmentImpl(
       library: _coreLibrary,
       source: coreSource,
       lineInfo: LineInfo([0]),
@@ -962,37 +962,39 @@ class _MockSdkElementsBuilder {
     return _coreLibrary;
   }
 
-  ClassElementImpl _class({
+  ClassFragmentImpl _class({
     required String name,
     bool isAbstract = false,
     List<TypeParameterElementImpl2> typeParameters = const [],
-    required CompilationUnitElementImpl unit,
+    required LibraryFragmentImpl unit,
   }) {
-    var fragment = ClassElementImpl(name, 0);
+    var fragment = ClassFragmentImpl(name, 0);
     ClassElementImpl2(Reference.root(), fragment);
     fragment.typeParameters =
         typeParameters.map((tp) => tp.firstFragment).toList();
-    fragment.constructors = <ConstructorElementImpl>[_constructor()];
+    fragment.constructors = <ConstructorFragmentImpl>[_constructor()];
     unit.encloseElement(fragment);
     return fragment;
   }
 
-  ConstructorElementImpl _constructor({
+  ConstructorFragmentImpl _constructor({
     String name = '',
     bool isConst = false,
     bool isFactory = false,
     List<FormalParameterElement> parameters = const [],
   }) {
-    var element = ConstructorElementImpl(name, 0);
+    var element = ConstructorFragmentImpl(name, 0);
     element.name2 = name.ifNotEmptyOrElse('new');
     element.isFactory = isFactory;
     element.isConst = isConst;
     element.parameters =
-        parameters.map((p) => p.firstFragment as ParameterElementImpl).toList();
+        parameters
+            .map((p) => p.firstFragment as FormalParameterFragmentImpl)
+            .toList();
     return element;
   }
 
-  FieldElementImpl _field(
+  FieldFragmentImpl _field(
     String name,
     TypeImpl type, {
     bool isConst = false,
@@ -1000,7 +1002,7 @@ class _MockSdkElementsBuilder {
     bool isStatic = false,
   }) {
     var fragment =
-        isConst ? ConstFieldElementImpl(name, 0) : FieldElementImpl(name, 0);
+        isConst ? ConstFieldFragmentImpl(name, 0) : FieldFragmentImpl(name, 0);
     fragment.isConst = isConst;
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
@@ -1015,14 +1017,14 @@ class _MockSdkElementsBuilder {
   TopLevelFunctionFragmentImpl _function(
     String name,
     DartType returnType, {
-    List<TypeParameterElementImpl> typeFormals = const [],
+    List<TypeParameterFragmentImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
         TopLevelFunctionFragmentImpl(name, 0)
           ..parameters =
               parameters
-                  .map((p) => p.firstFragment as ParameterElementImpl)
+                  .map((p) => p.firstFragment as FormalParameterFragmentImpl)
                   .toList()
           ..returnType = returnType
           ..typeParameters = typeFormals;
@@ -1043,12 +1045,12 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  PropertyAccessorElementImpl _getter(
+  PropertyAccessorFragmentImpl _getter(
     String name,
     TypeImpl type, {
     bool isStatic = false,
   }) {
-    var field = FieldElementImpl(name, -1);
+    var field = FieldFragmentImpl(name, -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
@@ -1064,7 +1066,7 @@ class _MockSdkElementsBuilder {
   }
 
   InterfaceTypeImpl _interfaceType(
-    InterfaceElementImpl element, {
+    InterfaceFragmentImpl element, {
     List<TypeImpl> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
@@ -1074,17 +1076,17 @@ class _MockSdkElementsBuilder {
     );
   }
 
-  MethodElementImpl _method(
+  MethodFragmentImpl _method(
     String name,
     DartType returnType, {
-    List<TypeParameterElementImpl> typeFormals = const [],
+    List<TypeParameterFragmentImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
-        MethodElementImpl(name, 0)
+        MethodFragmentImpl(name, 0)
           ..parameters =
               parameters
-                  .map((p) => p.firstFragment as ParameterElementImpl)
+                  .map((p) => p.firstFragment as FormalParameterFragmentImpl)
                   .toList()
           ..returnType = returnType
           ..typeParameters = typeFormals;
@@ -1096,7 +1098,7 @@ class _MockSdkElementsBuilder {
     TypeImpl type, {
     String? initializerCode,
   }) {
-    var fragment = DefaultParameterElementImpl(
+    var fragment = DefaultParameterFragmentImpl(
       name: name,
       nameOffset: 0,
       name2: name,
@@ -1109,7 +1111,7 @@ class _MockSdkElementsBuilder {
   }
 
   void _populateAsync() {
-    _asyncUnit.classes = <ClassElementImpl>[
+    _asyncUnit.classes = <ClassFragmentImpl>[
       completerElement,
       futureElement,
       futureOrElement,
@@ -1121,7 +1123,7 @@ class _MockSdkElementsBuilder {
   }
 
   void _populateCore() {
-    _coreUnit.classes = <ClassElementImpl>[
+    _coreUnit.classes = <ClassFragmentImpl>[
       boolElement,
       comparableElement,
       deprecatedElement,
@@ -1170,12 +1172,12 @@ class _MockSdkElementsBuilder {
       _interfaceType(overrideElement),
     );
 
-    _coreUnit.accessors = <PropertyAccessorElementImpl>[
+    _coreUnit.accessors = <PropertyAccessorFragmentImpl>[
       deprecatedVariable.getter!,
       overrideVariable.getter!,
     ];
 
-    _coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
+    _coreUnit.topLevelVariables = <TopLevelVariableFragmentImpl>[
       deprecatedVariable,
       overrideVariable,
     ];
@@ -1184,7 +1186,7 @@ class _MockSdkElementsBuilder {
   }
 
   FormalParameterElement _positionalParameter(String name, TypeImpl type) {
-    var fragment = ParameterElementImpl(
+    var fragment = FormalParameterFragmentImpl(
       name: name,
       nameOffset: 0,
       name2: name,
@@ -1196,7 +1198,7 @@ class _MockSdkElementsBuilder {
   }
 
   FormalParameterElement _requiredParameter(String name, TypeImpl type) {
-    var fragment = ParameterElementImpl(
+    var fragment = FormalParameterFragmentImpl(
       name: name,
       nameOffset: 0,
       name2: name,
@@ -1209,23 +1211,23 @@ class _MockSdkElementsBuilder {
 
   /// Set the [accessors] and the corresponding fields for the [classElement].
   void _setAccessors(
-    ClassElementImpl classElement,
-    List<PropertyAccessorElementImpl> accessors,
+    ClassFragmentImpl classElement,
+    List<PropertyAccessorFragmentImpl> accessors,
   ) {
     classElement.accessors = accessors;
     classElement.fields =
         accessors
             .map((accessor) => accessor.variable2)
-            .cast<FieldElementImpl>()
+            .cast<FieldFragmentImpl>()
             .toList();
   }
 
-  TopLevelVariableElementImpl _topLevelVariableConst(
+  TopLevelVariableFragmentImpl _topLevelVariableConst(
     String name,
     TypeImpl type,
   ) {
     var fragment =
-        ConstTopLevelVariableElementImpl(name, -1)
+        ConstTopLevelVariableFragmentImpl(name, -1)
           ..isConst = true
           ..type = type;
     TopLevelVariableElementImpl2(Reference.root(), fragment);
@@ -1235,7 +1237,7 @@ class _MockSdkElementsBuilder {
 
   TypeParameterElementImpl2 _typeParameter(String name) {
     return TypeParameterElementImpl2(
-      firstFragment: TypeParameterElementImpl(name, 0),
+      firstFragment: TypeParameterFragmentImpl(name, 0),
       name3: name.nullIfEmpty,
     );
   }
@@ -1249,7 +1251,7 @@ class _MockSdkElementsBuilder {
 
   static void _fillLibraryFromFragment(
     LibraryElementImpl library,
-    CompilationUnitElementImpl fragment,
+    LibraryFragmentImpl fragment,
   ) {
     library.classes = fragment.classes.map((f) => f.element).toList();
 

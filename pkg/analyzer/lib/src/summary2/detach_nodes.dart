@@ -117,7 +117,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
             fragment.constantInitializer = initializer;
 
             ConstantContextForExpressionImpl(
-              fragment as VariableElementImpl,
+              fragment as VariableFragmentImpl,
               initializer,
             );
           }

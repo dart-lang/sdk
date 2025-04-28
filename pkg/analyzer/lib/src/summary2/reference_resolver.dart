@@ -370,7 +370,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var aliasedType = node.type;
     if (aliasedType is GenericFunctionTypeImpl) {
       fragment.encloseElement(
-        aliasedType.declaredFragment as GenericFunctionTypeElementImpl,
+        aliasedType.declaredFragment as GenericFunctionTypeFragmentImpl,
       );
     }
 

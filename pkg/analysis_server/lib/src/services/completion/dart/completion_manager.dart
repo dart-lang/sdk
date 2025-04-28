@@ -543,7 +543,11 @@ class TokenData {
             (currentToken.offset == selectionOffset &&
                 !currentToken.isKeywordOrIdentifier)) &&
         !currentToken.isEof) {
-      currentToken = currentToken.previous!;
+      if (currentToken.previous case var previous?) {
+        currentToken = previous;
+      } else {
+        return null;
+      }
     }
     if (currentToken.isEof) {
       return null;

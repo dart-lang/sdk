@@ -36,7 +36,7 @@ class ElementDisplayStringBuilder {
   @override
   String toString() => _buffer.toString();
 
-  void writeAbstractElement(ElementImpl element) {
+  void writeAbstractElement(FragmentImpl element) {
     _write(element.name ?? '<unnamed $runtimeType>');
   }
 
@@ -44,7 +44,7 @@ class ElementDisplayStringBuilder {
     _write(element.name3 ?? '<unnamed $runtimeType>');
   }
 
-  void writeClassElement(ClassElementImpl element) {
+  void writeClassElement(ClassFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -75,7 +75,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeCompilationUnitElement(CompilationUnitElementImpl element) {
+  void writeCompilationUnitElement(LibraryFragmentImpl element) {
     var path = element.source.fullName;
     _write(path);
   }
@@ -101,7 +101,7 @@ class ElementDisplayStringBuilder {
     _write('dynamic');
   }
 
-  void writeEnumElement(EnumElementImpl element) {
+  void writeEnumElement(EnumFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -140,7 +140,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writeExtensionElement(ExtensionElementImpl element) {
+  void writeExtensionElement(ExtensionFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -155,7 +155,7 @@ class ElementDisplayStringBuilder {
     _writeType(element.extendedType);
   }
 
-  void writeExtensionTypeElement(ExtensionTypeElementImpl element) {
+  void writeExtensionTypeElement(ExtensionTypeFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -201,7 +201,9 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
+  void writeGenericFunctionTypeElement(
+    GenericFunctionTypeFragmentImpl element,
+  ) {
     _writeType(element.returnType);
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
@@ -232,7 +234,7 @@ class ElementDisplayStringBuilder {
     _write('${element.source.uri}');
   }
 
-  void writeMixinElement(MixinElementImpl element) {
+  void writeMixinElement(MixinFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -314,7 +316,7 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeTypeAliasElement(TypeAliasElementImpl element) {
+  void writeTypeAliasElement(TypeAliasFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -332,7 +334,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeTypeParameter(TypeParameterElementImpl element) {
+  void writeTypeParameter(TypeParameterFragmentImpl element) {
     var variance = element.variance;
     if (!element.isLegacyCovariant && variance != Variance.unrelated) {
       _write(variance.keyword);
@@ -520,7 +522,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeTypeParameters(List<TypeParameterElementImpl> elements) {
+  void _writeTypeParameters(List<TypeParameterFragmentImpl> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -635,7 +637,7 @@ class ElementDisplayStringBuilder {
         name = typeParameter.name3! + subscript;
       }
 
-      var newTypeParameter = TypeParameterElementImpl(name, -1);
+      var newTypeParameter = TypeParameterFragmentImpl(name, -1);
       newTypeParameter.name2 = name;
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter.asElement2);

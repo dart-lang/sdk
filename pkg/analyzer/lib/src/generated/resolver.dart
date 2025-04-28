@@ -143,7 +143,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   final LibraryElementImpl definingLibrary;
 
   /// The library fragment being visited.
-  final CompilationUnitElementImpl libraryFragment;
+  final LibraryFragmentImpl libraryFragment;
 
   /// The context shared between different units of the same library.
   final LibraryResolutionContext libraryResolutionContext;
@@ -335,7 +335,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Source source,
     TypeProvider typeProvider,
     AnalysisErrorListener errorListener, {
-    required CompilationUnitElementImpl libraryFragment,
+    required LibraryFragmentImpl libraryFragment,
     required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
     required FlowAnalysisHelper flowAnalysisHelper,
@@ -2382,7 +2382,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       popRewrite();
     }
 
-    if (fragment is DefaultParameterElementImpl && node.isOfLocalFunction) {
+    if (fragment is DefaultParameterFragmentImpl && node.isOfLocalFunction) {
       fragment.constantInitializer = defaultValue;
     }
   }

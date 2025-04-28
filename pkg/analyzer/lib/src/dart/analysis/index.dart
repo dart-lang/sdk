@@ -100,11 +100,11 @@ Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
   return element;
 }
 
-/// Return the [CompilationUnitElementImpl] that should be used for [element].
+/// Return the [LibraryFragmentImpl] that should be used for [element].
 /// Throw [StateError] if the [element] is not linked into a unit.
-CompilationUnitElementImpl getUnitElement(Element element) {
+LibraryFragmentImpl getUnitElement(Element element) {
   var result = element.firstFragment.libraryFragment;
-  if (result case CompilationUnitElementImpl result) {
+  if (result case LibraryFragmentImpl result) {
     return result;
   }
   throw StateError('Element not contained in compilation unit: $element');
@@ -135,7 +135,7 @@ class ElementNameComponents {
     }
 
     String? unitMemberName;
-    if (element.firstFragment.enclosingFragment is CompilationUnitElementImpl) {
+    if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
       unitMemberName = element.lookupName;
       if (element is ExtensionElement && unitMemberName == null) {
         var enclosingUnit = element.enclosingElement2;
@@ -228,7 +228,7 @@ class IndexElementInfo {
 
 /// Information about an element referenced in index.
 class _ElementInfo {
-  /// The identifier of the [CompilationUnitElementImpl] containing the first
+  /// The identifier of the [LibraryFragmentImpl] containing the first
   /// fragment of this element.
   final int unitId;
 
@@ -295,18 +295,18 @@ class _IndexAssembler {
   /// Map associating referenced elements with their [_ElementInfo]s.
   final Map<Element, _ElementInfo> elementMap = {};
 
-  /// Map associating [CompilationUnitElementImpl]s with their identifiers,
+  /// Map associating [LibraryFragmentImpl]s with their identifiers,
   /// which are indices into [unitLibraryUris] and [unitUnitUris].
-  final Map<CompilationUnitElementImpl, int> unitMap = {};
+  final Map<LibraryFragmentImpl, int> unitMap = {};
 
   /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
-  /// describe each unique [CompilationUnitElementImpl].
+  /// describe each unique [LibraryFragmentImpl].
   ///
   /// This field contains the library URI of a unit.
   final List<_StringInfo> unitLibraryUris = [];
 
   /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
-  /// describe each unique [CompilationUnitElementImpl].
+  /// describe each unique [LibraryFragmentImpl].
   ///
   /// This field contains the unit URI of a unit, which might be the same as
   /// the library URI for the defining unit, or a different one for a part.
@@ -348,7 +348,7 @@ class _IndexAssembler {
   }
 
   void addLibraryFragmentReference({
-    required CompilationUnitElementImpl target,
+    required LibraryFragmentImpl target,
     required int uriOffset,
     required int uriLength,
   }) {
@@ -548,7 +548,7 @@ class _IndexAssembler {
   /// Add information about [unitElement] to [unitUnitUris] and
   /// [unitLibraryUris] if necessary, and return the location in those
   /// arrays representing [unitElement].
-  int _getUnitId(CompilationUnitElementImpl unitElement) {
+  int _getUnitId(LibraryFragmentImpl unitElement) {
     return unitMap.putIfAbsent(unitElement, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
@@ -1161,7 +1161,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     var parent = node.parent;
     if (element != null &&
-        element.firstFragment.enclosingFragment is CompilationUnitElementImpl &&
+        element.firstFragment.enclosingFragment is LibraryFragmentImpl &&
         // We're only unprefixed when part of a PrefixedIdentifier if we're
         // the left side.
         (parent is! PrefixedIdentifier || parent.prefix == node)) {
@@ -1512,7 +1512,7 @@ class _SubtypeInfo {
 }
 
 extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
-  int getLibraryFragmentId(CompilationUnitElementImpl fragment) {
+  int getLibraryFragmentId(LibraryFragmentImpl fragment) {
     var libraryUriId = getUriId(fragment.element.uri);
     var unitUriId = getUriId(fragment.source.uri);
     for (var i = 0; i < unitLibraryUris.length; i++) {

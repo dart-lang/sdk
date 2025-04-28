@@ -163,7 +163,7 @@ extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
     ParameterKind? kind,
     bool? isCovariant,
   }) {
-    var firstFragment = this.firstFragment as ParameterElementImpl;
+    var firstFragment = this.firstFragment as FormalParameterFragmentImpl;
     return FormalParameterElementImpl(
       firstFragment.copyWith(type: type, kind: kind, isCovariant: isCovariant),
     );
@@ -182,13 +182,13 @@ extension LibraryExtension2 on LibraryElement? {
 }
 
 extension ParameterElementMixinExtension on ParameterElementMixin {
-  /// Return [ParameterElementImpl] with the specified properties replaced.
-  ParameterElementImpl copyWith({
+  /// Return [FormalParameterFragmentImpl] with the specified properties replaced.
+  FormalParameterFragmentImpl copyWith({
     TypeImpl? type,
     ParameterKind? kind,
     bool? isCovariant,
   }) {
-    return ParameterElementImpl.synthetic(
+    return FormalParameterFragmentImpl.synthetic(
       name.nullIfEmpty,
       type ?? this.type,
       kind ?? parameterKind,
@@ -245,7 +245,7 @@ extension RecordTypeExtension on RecordType {
   }
 }
 
-extension TypeParameterElementImplExtension on TypeParameterElementImpl {
+extension TypeParameterElementImplExtension on TypeParameterFragmentImpl {
   bool get isWildcardVariable {
     return name == '_' && library.hasWildcardVariablesFeatureEnabled;
   }

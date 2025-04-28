@@ -184,14 +184,14 @@ class DartObjectImpl implements DartObject, Constant {
   final InstanceState state;
 
   /// If this object is the value of a constant variable, the variable.
-  final VariableElementImpl? variable;
+  final VariableFragmentImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].
   factory DartObjectImpl(
     TypeSystemImpl typeSystem,
     TypeImpl type,
     InstanceState state, {
-    VariableElementImpl? variable,
+    VariableFragmentImpl? variable,
   }) {
     type = type.extensionTypeErasure;
     return DartObjectImpl._(typeSystem, type, state, variable: variable);
@@ -200,7 +200,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// Creates a duplicate instance of [other], tied to [variable].
   factory DartObjectImpl.forVariable(
     DartObjectImpl other,
-    VariableElementImpl variable,
+    VariableFragmentImpl variable,
   ) {
     return DartObjectImpl(
       other._typeSystem,
