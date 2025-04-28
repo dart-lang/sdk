@@ -477,13 +477,13 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      SourceMethodBuilder methodBuilder,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourceMethodBuilder methodBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
     Name toStringName =
         new Name(_enumToStringName, classHierarchy.coreTypes.coreLibrary);
     Member? superToString = _enumBuilder.cls.superclass != null
@@ -641,12 +641,12 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      List<Annotatable> annotatables,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required List<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required bool isClassInstanceMember}) {
     List<Expression> values = <Expression>[];
     for (EnumElementFragment enumElement in _sourceEnumBuilder._enumElements) {
       enumElement.declaration.inferType(classHierarchy);

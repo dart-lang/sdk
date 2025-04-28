@@ -1700,7 +1700,7 @@ class NominalParameterNameSpace {
               context: [
                 templateTypeParameterDuplicatedNameCause
                     .withArguments(tv.name)
-                    .withLocation(existing.fileUri!, existing.fileOffset,
+                    .withLocation(existing.fileUri, existing.fileOffset,
                         existing.name.length)
               ]);
         }

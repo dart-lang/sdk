@@ -160,12 +160,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   void _buildOutlineExpressionsForFragment(ExtensionFragment fragment,
       ClassHierarchy classHierarchy, BodyBuilderContext bodyBuilderContext) {
     MetadataBuilder.buildAnnotations(
-        extension,
-        fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        fragment.fileUri,
-        fragment.enclosingScope);
+        annotatable: extension,
+        annotatableFileUri: extension.fileUri,
+        metadata: fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: fragment.enclosingScope);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,

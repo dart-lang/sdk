@@ -16,14 +16,14 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension IntExtension on core::int {
   method method1 = test::IntExtension|method1;
   method tearoff method1 = test::IntExtension|get#method1;
   method method2 = test::IntExtension|method2;
   method tearoff method2 = test::IntExtension|get#method2;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension GenericExtension<T extends core::Object? = dynamic> on T% {
   method method3 = test::GenericExtension|method3;
   method tearoff method3 = test::GenericExtension|get#method3;

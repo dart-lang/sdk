@@ -49,7 +49,7 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
   bool get isWildcard => _declaration.isWildcard;
 
   @override
-  Uri? get fileUri => _declaration.fileUri;
+  Uri get fileUri => _declaration.fileUri;
 
   void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext, ClassHierarchy classHierarchy) {
@@ -94,14 +94,14 @@ abstract class NominalParameterDeclaration {
 
   int get fileOffset;
 
-  Uri? get fileUri;
+  Uri get fileUri;
 
   void buildOutlineExpressions(
       {required SourceLibraryBuilder libraryBuilder,
       required BodyBuilderContext bodyBuilderContext,
       required ClassHierarchy classHierarchy,
       required TypeParameter parameter,
-      required Uri? annotatableFileUri});
+      required Uri annotatableFileUri});
 }
 
 class RegularNominalParameterDeclaration
@@ -114,7 +114,7 @@ class RegularNominalParameterDeclaration
   int get fileOffset => _fragment.nameOffset;
 
   @override
-  Uri? get fileUri => _fragment.fileUri;
+  Uri get fileUri => _fragment.fileUri;
 
   @override
   bool get isWildcard => _fragment.isWildcard;
@@ -131,15 +131,14 @@ class RegularNominalParameterDeclaration
       required BodyBuilderContext bodyBuilderContext,
       required ClassHierarchy classHierarchy,
       required TypeParameter parameter,
-      required Uri? annotatableFileUri}) {
+      required Uri annotatableFileUri}) {
     MetadataBuilder.buildAnnotations(
-        parameter,
-        _fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        _fragment.fileUri,
-        _fragment.typeParameterScope,
-        createFileUriExpression: _fragment.fileUri != annotatableFileUri);
+        annotatable: parameter,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.typeParameterScope);
   }
 }
 
@@ -157,7 +156,7 @@ class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
   final bool isWildcard;
 
   @override
-  final Uri? fileUri;
+  final Uri fileUri;
 
   DirectNominalParameterDeclaration(
       {required this.name,
@@ -184,7 +183,7 @@ class SyntheticNominalParameterDeclaration
   final int fileOffset;
 
   @override
-  final Uri? fileUri;
+  final Uri fileUri;
 
   @override
   final TypeParameterKind kind;

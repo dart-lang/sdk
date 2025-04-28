@@ -228,8 +228,9 @@ abstract class SourceCompilationUnit
       {required bool allowPartInParts});
 
   void buildOutlineExpressions(
-      Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
-      {required bool createFileUriExpression});
+      {required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required BodyBuilderContext bodyBuilderContext});
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.

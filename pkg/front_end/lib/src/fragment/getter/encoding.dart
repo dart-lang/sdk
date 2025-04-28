@@ -121,13 +121,13 @@ sealed class GetterEncoding implements InferredTypeListener {
   void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember});
 
   void buildOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
@@ -211,17 +211,20 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
     buildTypeParametersForOutlineExpressions(
         classHierarchy,
         libraryBuilder,
@@ -429,17 +432,20 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
 
   @override
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      Annotatable annotatable,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
-    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
-        fileUri: _fragment.fileUri,
-        createFileUriExpression: createFileUriExpression);
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
+    buildMetadataForOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: _fragment.metadata);
 
     buildTypeParametersForOutlineExpressions(
         classHierarchy,

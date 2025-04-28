@@ -598,7 +598,7 @@ class OutlineBuilder extends StackListenerImpl {
     Object? sentinel = pop(); // prefix or constructor
     push(sentinel is ParserRecovery
         ? sentinel
-        : new MetadataBuilder(beginToken));
+        : new MetadataBuilder(beginToken, _compilationUnit.fileUri));
   }
 
   @override

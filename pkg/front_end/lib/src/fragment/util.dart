@@ -46,16 +46,19 @@ class ConstructorName {
 }
 
 void buildMetadataForOutlineExpressions(
-    SourceLibraryBuilder libraryBuilder,
-    LookupScope parentScope,
-    BodyBuilderContext bodyBuilderContext,
-    Annotatable annotatable,
-    List<MetadataBuilder>? metadata,
-    {required Uri fileUri,
-    required bool createFileUriExpression}) {
-  MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
-      libraryBuilder, fileUri, parentScope,
-      createFileUriExpression: createFileUriExpression);
+    {required SourceLibraryBuilder libraryBuilder,
+    required LookupScope scope,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required List<MetadataBuilder>? metadata}) {
+  MetadataBuilder.buildAnnotations(
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: scope);
 }
 
 void buildTypeParametersForOutlineExpressions(
@@ -115,12 +118,12 @@ abstract class FieldDeclaration {
       {required List<TypeParameter>? classTypeParameters});
 
   void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      List<Annotatable> annotatables,
-      {required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required List<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
+      required bool isClassInstanceMember});
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 

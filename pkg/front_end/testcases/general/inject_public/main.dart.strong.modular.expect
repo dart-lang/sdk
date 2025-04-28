@@ -70,13 +70,13 @@ class _PrivateInjectedClass extends core::Object { // from org-dartlang-testcase
     ;
   method publicMethod() → dynamic {}
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension Extension on core::int {
   method injectedMethod = test::Extension|injectedMethod;
   method tearoff injectedMethod = test::Extension|get#injectedMethod;
   static method staticInjectedMethod = test::Extension|staticInjectedMethod;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 extension _PrivateExtension on core::int {
   method injectedMethod = test::_PrivateExtension|injectedMethod;
   method tearoff injectedMethod = test::_PrivateExtension|get#injectedMethod;

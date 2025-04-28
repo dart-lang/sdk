@@ -220,25 +220,24 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
       _introductoryField?.buildOutlineExpressions(
-          classHierarchy,
-          libraryBuilder,
-          declarationBuilder,
-          [
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          annotatables: [
             readTarget as Annotatable,
             if (writeTarget != null && readTarget != writeTarget)
               writeTarget as Annotatable
           ],
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression: false);
+          annotatablesFileUri: readTarget!.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
       _introductoryGetable?.buildOutlineExpressions(
           classHierarchy: classHierarchy,
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
           propertyBuilder: this,
           annotatable: readTarget as Annotatable,
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression:
-              _introductoryGetable?.fileUri != _lastGetable?.fileUri);
+          annotatableFileUri: readTarget!.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
       List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
       if (getterAugmentations != null) {
         for (GetterDeclaration augmentation in getterAugmentations) {
@@ -248,9 +247,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
               declarationBuilder: declarationBuilder,
               propertyBuilder: this,
               annotatable: readTarget as Annotatable,
-              isClassInstanceMember: isClassInstanceMember,
-              createFileUriExpression:
-                  augmentation.fileUri != _lastGetable?.fileUri);
+              annotatableFileUri: readTarget!.fileUri,
+              isClassInstanceMember: isClassInstanceMember);
         }
       }
       _introductorySetable?.buildOutlineExpressions(
@@ -259,9 +257,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           declarationBuilder: declarationBuilder,
           propertyBuilder: this,
           annotatable: writeTarget as Annotatable,
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression:
-              _introductorySetable?.fileUri != _lastSetable?.fileUri);
+          annotatableFileUri: writeTarget!.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
       List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
       if (setterAugmentations != null) {
         for (SetterDeclaration augmentation in setterAugmentations) {
@@ -271,9 +268,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
               declarationBuilder: declarationBuilder,
               propertyBuilder: this,
               annotatable: writeTarget as Annotatable,
-              isClassInstanceMember: isClassInstanceMember,
-              createFileUriExpression:
-                  augmentation.fileUri != _lastSetable?.fileUri);
+              annotatableFileUri: writeTarget!.fileUri,
+              isClassInstanceMember: isClassInstanceMember);
         }
       }
       hasBuiltOutlineExpressions = true;

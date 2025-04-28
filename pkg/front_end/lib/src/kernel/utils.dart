@@ -259,7 +259,8 @@ final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
 final Identifier dummyIdentifier = new SimpleIdentifier(dummyToken);
 final CombinatorBuilder dummyCombinator =
     new CombinatorBuilder(false, {}, -1, dummyUri);
-final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
+final MetadataBuilder dummyMetadataBuilder =
+    new MetadataBuilder(dummyToken, dummyUri);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =

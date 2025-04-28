@@ -146,17 +146,23 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      _introductory.buildOutlineExpressions(classHierarchy, libraryBuilder,
-          declarationBuilder, this, _invokeTarget,
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression:
-              _invokeTarget.fileUri != _introductory.fileUri);
+      _introductory.buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          methodBuilder: this,
+          annotatable: _invokeTarget,
+          annotatableFileUri: _invokeTarget.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
       for (MethodDeclaration augmentation in _augmentations) {
-        augmentation.buildOutlineExpressions(classHierarchy, libraryBuilder,
-            declarationBuilder, this, _invokeTarget,
-            isClassInstanceMember: isClassInstanceMember,
-            createFileUriExpression:
-                _invokeTarget.fileUri != augmentation.fileUri);
+        augmentation.buildOutlineExpressions(
+            classHierarchy: classHierarchy,
+            libraryBuilder: libraryBuilder,
+            declarationBuilder: declarationBuilder,
+            methodBuilder: this,
+            annotatable: _invokeTarget,
+            annotatableFileUri: _invokeTarget.fileUri,
+            isClassInstanceMember: isClassInstanceMember);
       }
       hasBuiltOutlineExpressions = true;
     }

@@ -560,22 +560,20 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     if (!hasBuiltOutlineExpressions) {
       _introductory.buildOutlineExpressions(
           annotatables: annotatables,
+          annotatablesFileUri: invokeTarget.fileUri,
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
           constructorBuilder: this,
           classHierarchy: classHierarchy,
-          createFileUriExpression:
-              _invokeTarget.fileUri != _introductory.fileUri,
           delayedDefaultValueCloners: delayedDefaultValueCloners);
       for (ConstructorDeclaration augmentation in _augmentations) {
         augmentation.buildOutlineExpressions(
             annotatables: annotatables,
+            annotatablesFileUri: invokeTarget.fileUri,
             libraryBuilder: libraryBuilder,
             declarationBuilder: declarationBuilder,
             constructorBuilder: this,
             classHierarchy: classHierarchy,
-            createFileUriExpression:
-                _invokeTarget.fileUri != augmentation.fileUri,
             delayedDefaultValueCloners: delayedDefaultValueCloners);
       }
       hasBuiltOutlineExpressions = true;

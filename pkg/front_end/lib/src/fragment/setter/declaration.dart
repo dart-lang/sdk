@@ -44,8 +44,8 @@ abstract class SetterDeclaration {
       required DeclarationBuilder? declarationBuilder,
       required SourcePropertyBuilder propertyBuilder,
       required Annotatable annotatable,
-      required bool isClassInstanceMember,
-      required bool createFileUriExpression});
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember});
 
   void buildOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
@@ -90,6 +90,7 @@ class SetterDeclarationImpl
   AsyncMarker get asyncModifier => _fragment.asyncModifier;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -146,16 +147,16 @@ class SetterDeclarationImpl
       required DeclarationBuilder? declarationBuilder,
       required SourcePropertyBuilder propertyBuilder,
       required Annotatable annotatable,
-      required bool isClassInstanceMember,
-      required bool createFileUriExpression}) {
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {
     _encoding.buildOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        declarationBuilder,
-        createBodyBuilderContext(propertyBuilder),
-        annotatable,
-        isClassInstanceMember: isClassInstanceMember,
-        createFileUriExpression: createFileUriExpression);
+        classHierarchy: classHierarchy,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: createBodyBuilderContext(propertyBuilder),
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        isClassInstanceMember: isClassInstanceMember);
   }
 
   @override

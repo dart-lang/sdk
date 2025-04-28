@@ -27,8 +27,8 @@ class Class<@#C10 @/* from org-dartlang-testcase:///patch_lib.dart */ #C12 T ext
   external method /* from org-dartlang-testcase:///patch_lib.dart */ method<@#C22 S extends core::Object? = dynamic>() → void;
 }
 @#C24
-@#C6
-@#C26
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C6
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C26
 extension Extension<@#C28 @/* from org-dartlang-testcase:///patch_lib.dart */ #C30 T extends core::Object? = dynamic> on core::int {
   method method = self2::Extension|method;
   method tearoff method = self2::Extension|get#method;
