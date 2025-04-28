@@ -691,6 +691,21 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
 
   /// Converts a type into a corresponding type schema.
   SharedTypeSchemaView typeToSchema(SharedTypeView type);
+
+  /// Determines whether a type schema contains the unknown type.
+  ///
+  /// Examples of known types:
+  ///
+  ///   * `int`,
+  ///   * `List<String>`,
+  ///   * `bool Function(double)`.
+  ///
+  /// Examples of types that are not known:
+  ///
+  ///   * `_`,
+  ///   * `List<_>`,
+  ///   * `_ Function(_)`.
+  bool isKnownType(SharedTypeSchemaView typeSchema);
 }
 
 mixin TypeAnalyzerOperationsMixin<Variable extends Object,

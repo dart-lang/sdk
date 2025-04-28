@@ -668,6 +668,13 @@ class TypeSystemOperations
   }
 
   @override
+  bool isKnownType(SharedTypeSchemaView typeSchema) {
+    return UnknownInferredType.isKnown(
+      typeSchema.unwrapTypeSchemaView<TypeImpl>(),
+    );
+  }
+
+  @override
   bool isNonNullableInternal(TypeImpl type) {
     return typeSystem.isNonNullable(type);
   }

@@ -371,7 +371,7 @@ class GenericInferrer {
         );
       }
 
-      if (UnknownInferredType.isKnown(inferred)) {
+      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(inferred))) {
         knownTypes[parameter] = inferred;
       } else if (_strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
@@ -519,10 +519,10 @@ class GenericInferrer {
     // For both of those, prefer the lower bound (arbitrary heuristic) or upper
     // bound if [isContravariant] is `true`
     if (isContravariant) {
-      if (UnknownInferredType.isKnown(upper)) {
+      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(upper))) {
         return upper;
       }
-      if (UnknownInferredType.isKnown(lower)) {
+      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(lower))) {
         return lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
@@ -533,10 +533,10 @@ class GenericInferrer {
       }
       return upper;
     } else {
-      if (UnknownInferredType.isKnown(lower)) {
+      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(lower))) {
         return lower;
       }
-      if (UnknownInferredType.isKnown(upper)) {
+      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(upper))) {
         return upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
@@ -596,7 +596,9 @@ class GenericInferrer {
 
         inferredTypes[i] = inferredType;
         if (typeParam.isLegacyCovariant &&
-            UnknownInferredType.isKnown(inferredType)) {
+            _typeSystemOperations.isKnownType(
+              SharedTypeSchemaView(inferredType),
+            )) {
           _typesInferredSoFar[typeParam] = inferredType;
         }
       } else {
@@ -730,7 +732,7 @@ class GenericInferrer {
       constraint,
       isContravariant: isContravariant,
     );
-    if (UnknownInferredType.isUnknown(t)) {
+    if (!_typeSystemOperations.isKnownType(SharedTypeSchemaView(t))) {
       return t;
     }
 
