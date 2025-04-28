@@ -39,10 +39,10 @@ class DefiningLinkingUnit extends LinkingUnit {
 }
 
 class ImplicitEnumNodes {
-  final EnumElementImpl element;
+  final EnumFragmentImpl element;
   final ast.NamedTypeImpl valuesTypeNode;
   final ast.VariableDeclarationImpl valuesNode;
-  final ConstFieldElementImpl valuesElement;
+  final ConstFieldFragmentImpl valuesElement;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
@@ -64,7 +64,7 @@ class LibraryBuilder {
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
 
-  final Map<EnumElementImpl, ImplicitEnumNodes> implicitEnumNodes =
+  final Map<EnumFragmentImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
 
   final Map<String, FragmentedElementBuilder> elementBuilderGetters = {};
@@ -83,11 +83,11 @@ class LibraryBuilder {
   /// The identifier of the reference used for unnamed fragments.
   int _nextUnnamedId = 0;
 
-  /// The fields that were speculatively created as [ConstFieldElementImpl],
+  /// The fields that were speculatively created as [ConstFieldFragmentImpl],
   /// but we want to clear [ConstVariableElement.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
   /// at the time when we create them, because of future augmentations.
-  final Set<ConstFieldElementImpl> finalInstanceFields = Set.identity();
+  final Set<ConstFieldFragmentImpl> finalInstanceFields = Set.identity();
 
   LibraryBuilder._({
     required this.linker,
@@ -139,11 +139,11 @@ class LibraryBuilder {
 
   void buildClassSyntheticConstructors() {
     for (var classFragment in element.topLevelElements) {
-      if (classFragment is! ClassElementImpl) continue;
+      if (classFragment is! ClassFragmentImpl) continue;
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
+      var constructor = ConstructorFragmentImpl('', -1)..isSynthetic = true;
       var containerRef = classFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
       reference.element = constructor;
@@ -195,7 +195,7 @@ class LibraryBuilder {
   }
 
   void buildEnumSyntheticConstructors() {
-    bool hasConstructor(EnumElementImpl fragment) {
+    bool hasConstructor(EnumFragmentImpl fragment) {
       for (var constructor in fragment.element.constructors2) {
         if (constructor.isGenerative || constructor.name3 == 'new') {
           return true;
@@ -205,11 +205,11 @@ class LibraryBuilder {
     }
 
     for (var enumFragment in element.topLevelElements) {
-      if (enumFragment is! EnumElementImpl) continue;
+      if (enumFragment is! EnumFragmentImpl) continue;
       if (hasConstructor(enumFragment)) continue;
 
       var constructor =
-          ConstructorElementImpl('', -1)
+          ConstructorFragmentImpl('', -1)
             ..isConst = true
             ..isSynthetic = true;
       var containerRef = enumFragment.reference!.getChild('@constructor');
@@ -264,9 +264,9 @@ class LibraryBuilder {
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
-    var withConstConstructors = Set<ClassElementImpl>.identity();
+    var withConstConstructors = Set<ClassFragmentImpl>.identity();
     for (var classFragment in element.topLevelElements) {
-      if (classFragment is! ClassElementImpl) continue;
+      if (classFragment is! ClassFragmentImpl) continue;
       if (classFragment.isMixinApplication) continue;
       if (classFragment.isAugmentation) continue;
       var hasConst = classFragment.element.constructors2.any((e) => e.isConst);
@@ -277,7 +277,7 @@ class LibraryBuilder {
 
     for (var fieldFragment in finalInstanceFields) {
       var enclosing = fieldFragment.enclosingElement3;
-      var element = enclosing.ifTypeOrNull<ClassElementImpl>()?.element;
+      var element = enclosing.ifTypeOrNull<ClassFragmentImpl>()?.element;
       if (element == null) continue;
       if (!withConstConstructors.contains(element.firstFragment)) {
         fieldFragment.constantInitializer = null;
@@ -287,11 +287,11 @@ class LibraryBuilder {
 
   void resolveConstructorFieldFormals() {
     for (var interfaceFragment in element.topLevelElements) {
-      if (interfaceFragment is! InterfaceElementImpl) {
+      if (interfaceFragment is! InterfaceFragmentImpl) {
         continue;
       }
 
-      if (interfaceFragment is ClassElementImpl &&
+      if (interfaceFragment is ClassFragmentImpl &&
           interfaceFragment.isMixinApplication) {
         continue;
       }
@@ -299,7 +299,7 @@ class LibraryBuilder {
       var element = interfaceFragment.element;
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
-          if (parameter is FieldFormalParameterElementImpl) {
+          if (parameter is FieldFormalParameterFragmentImpl) {
             parameter.field = element.getField2(parameter.name)?.asElement;
           }
         }
@@ -339,13 +339,13 @@ class LibraryBuilder {
     var objectType = element.typeProvider.objectType;
     for (var interfaceFragment in element.topLevelElements) {
       switch (interfaceFragment) {
-        case ClassElementImpl():
+        case ClassFragmentImpl():
           if (interfaceFragment.isDartCoreObject) continue;
           if (interfaceFragment.supertype == null) {
             shouldResetClassHierarchies = true;
             interfaceFragment.supertype = objectType;
           }
-        case MixinElementImpl():
+        case MixinFragmentImpl():
           var element = interfaceFragment.element;
           if (element.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
@@ -402,7 +402,7 @@ class LibraryBuilder {
   /// augmentations.
   void _buildDirectives({
     required FileKind kind,
-    required CompilationUnitElementImpl containerUnit,
+    required LibraryFragmentImpl containerUnit,
   }) {
     containerUnit.libraryExports =
         kind.libraryExports.map((state) {
@@ -496,7 +496,7 @@ class LibraryBuilder {
   }
 
   LibraryImportElementImpl _buildLibraryImport({
-    required CompilationUnitElementImpl containerUnit,
+    required LibraryFragmentImpl containerUnit,
     required LibraryImportState state,
   }) {
     var prefixFragment = state.unlinked.prefix.mapOrNull((unlinked) {
@@ -577,7 +577,7 @@ class LibraryBuilder {
   }
 
   PrefixFragmentImpl _buildLibraryImportPrefixFragment({
-    required CompilationUnitElementImpl libraryFragment,
+    required LibraryFragmentImpl libraryFragment,
     required UnlinkedLibraryImportPrefixName? unlinkedName,
     required int offset,
     required bool isDeferred,
@@ -609,7 +609,7 @@ class LibraryBuilder {
 
   PartElementImpl _buildPartInclude({
     required LibraryElementImpl containerLibrary,
-    required CompilationUnitElementImpl containerUnit,
+    required LibraryFragmentImpl containerUnit,
     required file_state.PartIncludeState state,
   }) {
     DirectiveUriImpl directiveUri;
@@ -621,7 +621,7 @@ class LibraryBuilder {
           var partUnitNode = partFile.parse(
             performance: OperationPerformanceImpl('<root>'),
           );
-          var unitElement = CompilationUnitElementImpl(
+          var unitElement = LibraryFragmentImpl(
             library: containerLibrary,
             source: partFile.source,
             lineInfo: partUnitNode.lineInfo,
@@ -706,11 +706,11 @@ class LibraryBuilder {
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
       var dynamicRef = reference.getChild('dynamic');
-      dynamicRef.element = DynamicElementImpl.instance;
+      dynamicRef.element = DynamicFragmentImpl.instance;
       declare('dynamic', dynamicRef);
 
       var neverRef = reference.getChild('Never');
-      neverRef.element = NeverElementImpl.instance;
+      neverRef.element = NeverFragmentImpl.instance;
       declare('Never', neverRef);
     }
   }
@@ -763,7 +763,7 @@ class LibraryBuilder {
 
     var linkingUnits = <LinkingUnit>[];
     {
-      var unitElement = CompilationUnitElementImpl(
+      var unitElement = LibraryFragmentImpl(
         library: libraryElement,
         source: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
@@ -801,7 +801,7 @@ class LibraryBuilder {
     linker.builders[builder.uri] = builder;
   }
 
-  static void _bindReference(Reference reference, ElementImpl element) {
+  static void _bindReference(Reference reference, FragmentImpl element) {
     reference.element = element;
     element.reference = reference;
   }
@@ -810,7 +810,7 @@ class LibraryBuilder {
 class LinkingUnit {
   final Reference reference;
   final ast.CompilationUnitImpl node;
-  final CompilationUnitElementImpl element;
+  final LibraryFragmentImpl element;
 
   LinkingUnit({
     required this.reference,

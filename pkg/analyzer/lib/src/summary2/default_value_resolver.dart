@@ -32,12 +32,14 @@ class DefaultValueResolver {
     }
   }
 
-  void _constructor(_ClassContext context, ConstructorElementImpl element) {
+  void _constructor(_ClassContext context, ConstructorFragmentImpl element) {
     if (element.isSynthetic) return;
     _executable(context, element);
   }
 
-  DefaultFormalParameterImpl? _defaultParameter(ParameterElementImpl element) {
+  DefaultFormalParameterImpl? _defaultParameter(
+    FormalParameterFragmentImpl element,
+  ) {
     var node = _linker.getLinkingNode(element);
     if (node is DefaultFormalParameterImpl && node.defaultValue != null) {
       return node;
@@ -46,7 +48,7 @@ class DefaultValueResolver {
     }
   }
 
-  void _executable(_Context context, ExecutableElementImpl element) {
+  void _executable(_Context context, ExecutableFragmentImpl element) {
     _ExecutableContext(
       enclosingContext: context,
       executableElement: element,
@@ -54,17 +56,20 @@ class DefaultValueResolver {
     ).forEach(element.parameters, _parameter);
   }
 
-  void _extension(_UnitContext context, ExtensionElementImpl element) {
+  void _extension(_UnitContext context, ExtensionFragmentImpl element) {
     context.forEach(element.methods, _executable);
   }
 
-  void _interface(_UnitContext context, InterfaceElementImpl element) {
+  void _interface(_UnitContext context, InterfaceFragmentImpl element) {
     _ClassContext(context, element)
       ..forEach(element.constructors, _constructor)
       ..forEach(element.methods, _executable);
   }
 
-  void _parameter(_ExecutableContext context, ParameterElementImpl parameter) {
+  void _parameter(
+    _ExecutableContext context,
+    FormalParameterFragmentImpl parameter,
+  ) {
     // If a function typed parameter, process nested parameters.
     context.forEach(parameter.parameters, _parameter);
 
@@ -88,7 +93,7 @@ class DefaultValueResolver {
     );
   }
 
-  Scope _scopeFromElement(ElementImpl element) {
+  Scope _scopeFromElement(FragmentImpl element) {
     var node = _linker.getLinkingNode(element)!;
     return LinkingNodeContext.get(node).scope;
   }
@@ -98,25 +103,25 @@ class _ClassContext extends _Context {
   final _UnitContext unitContext;
 
   @override
-  final InterfaceElementImpl classElement;
+  final InterfaceFragmentImpl classElement;
 
   _ClassContext(this.unitContext, this.classElement);
 
   @override
-  CompilationUnitElementImpl get libraryFragment {
+  LibraryFragmentImpl get libraryFragment {
     return unitContext.libraryFragment;
   }
 }
 
 abstract class _Context {
-  InterfaceElementImpl? get classElement => null;
+  InterfaceFragmentImpl? get classElement => null;
 
-  CompilationUnitElementImpl get libraryFragment;
+  LibraryFragmentImpl get libraryFragment;
 }
 
 class _ExecutableContext extends _Context {
   final _Context enclosingContext;
-  final ExecutableElementImpl executableElement;
+  final ExecutableFragmentImpl executableElement;
   final Scope scope;
 
   _ExecutableContext({
@@ -126,19 +131,19 @@ class _ExecutableContext extends _Context {
   });
 
   @override
-  InterfaceElementImpl? get classElement {
+  InterfaceFragmentImpl? get classElement {
     return enclosingContext.classElement;
   }
 
   @override
-  CompilationUnitElementImpl get libraryFragment {
+  LibraryFragmentImpl get libraryFragment {
     return enclosingContext.libraryFragment;
   }
 }
 
 class _UnitContext extends _Context {
   @override
-  final CompilationUnitElementImpl libraryFragment;
+  final LibraryFragmentImpl libraryFragment;
 
   _UnitContext(this.libraryFragment);
 }

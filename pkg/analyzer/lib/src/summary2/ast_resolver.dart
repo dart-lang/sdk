@@ -20,7 +20,7 @@ import 'package:analyzer/src/summary2/link.dart';
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
   final Linker _linker;
-  final CompilationUnitElementImpl _unitElement;
+  final LibraryFragmentImpl _unitElement;
   final Scope _nameScope;
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =

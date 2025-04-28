@@ -23,11 +23,11 @@ import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 Fragment _getEnclosingFragment(
-  CompilationUnitElementImpl libraryFragment,
+  LibraryFragmentImpl libraryFragment,
   int offset,
 ) {
   Fragment? visitFragment(Fragment fragment) {
-    var fragmentImpl = fragment as ElementImpl;
+    var fragmentImpl = fragment as FragmentImpl;
     var codeOffset = fragmentImpl.codeOffset;
     var codeLength = fragmentImpl.codeLength;
     if (codeOffset == null || codeLength == null) {
@@ -222,7 +222,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final LibraryImport import;
-  final CompilationUnitElementImpl enclosingLibraryFragment;
+  final LibraryFragmentImpl enclosingLibraryFragment;
 
   late final Set<Element> importedElements;
 
@@ -452,7 +452,7 @@ class Search {
   Future<List<LibraryFragmentSearchMatch>> referencesLibraryFragment(
     LibraryFragment libraryFragment,
   ) async {
-    var legacyElement = libraryFragment as CompilationUnitElementImpl;
+    var legacyElement = libraryFragment as LibraryFragmentImpl;
     var legacyResults = await _searchReferences_CompilationUnit(legacyElement);
 
     return legacyResults.map((match) {
@@ -710,7 +710,7 @@ class Search {
     }
   }
 
-  Future<CompilationUnitElementImpl?> _getUnitElement(String file) async {
+  Future<LibraryFragmentImpl?> _getUnitElement(String file) async {
     var result = await _driver.getUnitElement(file);
     return result is UnitElementResultImpl ? result.fragment : null;
   }
@@ -727,7 +727,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_CompilationUnit(
-    CompilationUnitElementImpl element,
+    LibraryFragmentImpl element,
   ) async {
     String path = element.source.fullName;
 
@@ -1260,7 +1260,7 @@ class _FindLibraryDeclarations {
   final void Function(Declaration) collect;
 
   _FindLibraryDeclarations(
-    CompilationUnitElementImpl unit,
+    LibraryFragmentImpl unit,
     this.result,
     this.maxResults,
     this.matcher,
@@ -1362,7 +1362,7 @@ class _FindLibraryDeclarations {
     var locationStart = lineInfo.getLocation(locationOffset);
 
     var fragmentImpl =
-        firstFragment as ElementImpl; // to access codeOffset/codeLength
+        firstFragment as FragmentImpl; // to access codeOffset/codeLength
 
     collect(
       Declaration(
@@ -1552,12 +1552,12 @@ class _IndexRequest {
   /// a relation with the kind from [relationToResultKind].
   ///
   /// The function [getEnclosingUnitElement] is used to lazily compute the
-  /// enclosing [CompilationUnitElementImpl] if there is a relation of an
+  /// enclosing [LibraryFragmentImpl] if there is a relation of an
   /// interesting kind.
   Future<List<SearchResult>> getRelations(
     int elementId,
     Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-    Future<CompilationUnitElementImpl?> Function() getEnclosingUnitElement,
+    Future<LibraryFragmentImpl?> Function() getEnclosingUnitElement,
   ) async {
     // Find the first usage of the element.
     int i = _findFirstOccurrence(index.usedElements, elementId);
@@ -1566,7 +1566,7 @@ class _IndexRequest {
     }
     // Create locations for every usage of the element.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElementImpl? enclosingUnitElement;
+    LibraryFragmentImpl? enclosingUnitElement;
     for (
       ;
       i < index.usedElements.length && index.usedElements[i] == elementId;
@@ -1610,7 +1610,7 @@ class _IndexRequest {
   Future<List<SearchResult>> getUnresolvedMemberReferences(
     String name,
     Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-    Future<CompilationUnitElementImpl?> Function() getEnclosingUnitElement,
+    Future<LibraryFragmentImpl?> Function() getEnclosingUnitElement,
   ) async {
     // Find the name identifier.
     int nameId = index.getStringId(name);
@@ -1626,7 +1626,7 @@ class _IndexRequest {
 
     // Create results for every usage of the name.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElementImpl? enclosingUnitElement;
+    LibraryFragmentImpl? enclosingUnitElement;
     for (; i < index.usedNames.length && index.usedNames[i] == nameId; i++) {
       IndexRelationKind relationKind = index.usedNameKinds[i];
       SearchResultKind? resultKind = relationToResultKind[relationKind];
@@ -1678,7 +1678,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final Set<Element> elements;
-  final CompilationUnitElementImpl enclosingLibraryFragment;
+  final LibraryFragmentImpl enclosingLibraryFragment;
 
   _LocalReferencesVisitor(this.elements, this.enclosingLibraryFragment);
 

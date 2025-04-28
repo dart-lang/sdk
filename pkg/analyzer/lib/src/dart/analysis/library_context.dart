@@ -99,8 +99,8 @@ class LibraryContext {
     }
   }
 
-  /// Computes a [CompilationUnitElementImpl] for the given library/unit pair.
-  CompilationUnitElementImpl computeUnitElement(
+  /// Computes a [LibraryFragmentImpl] for the given library/unit pair.
+  LibraryFragmentImpl computeUnitElement(
     LibraryFileKind library,
     FileState unit,
   ) {
@@ -109,7 +109,7 @@ class LibraryContext {
         .getChild('@fragment')
         .getChild(unit.uriStr);
     var element = elementFactory.elementOfReference(reference);
-    return element as CompilationUnitElementImpl;
+    return element as LibraryFragmentImpl;
   }
 
   /// Notifies this object that it is about to be discarded.

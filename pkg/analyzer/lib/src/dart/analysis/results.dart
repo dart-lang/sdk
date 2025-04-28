@@ -492,7 +492,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   }
 
   @override
-  CompilationUnitElementImpl get libraryFragment => unit.declaredFragment!;
+  LibraryFragmentImpl get libraryFragment => unit.declaredFragment!;
 
   @override
   TypeProviderImpl get typeProvider => libraryElement2.typeProvider;
@@ -504,7 +504,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
 class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
-  final CompilationUnitElementImpl fragment;
+  final LibraryFragmentImpl fragment;
 
   UnitElementResultImpl({
     required super.session,

@@ -82,7 +82,7 @@ class Linker {
 
   /// If the [element] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode(ElementImpl element) {
+  ast.AstNode? getLinkingNode(FragmentImpl element) {
     return elementNodes[element];
   }
 

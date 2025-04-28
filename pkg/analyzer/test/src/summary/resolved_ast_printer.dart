@@ -1759,7 +1759,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeDeclaredFragment(Fragment? fragment) {
     if (_withResolution) {
-      if (fragment is LocalVariableElementImpl) {
+      if (fragment is LocalVariableFragmentImpl) {
         _sink.writeWithIndent('declaredElement:');
         _sink.writeIf(fragment.hasImplicitType, ' hasImplicitType');
         _sink.writeIf(fragment.isConst, ' isConst');
@@ -1773,11 +1773,11 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else {
         _writeFragment('declaredElement', fragment);
-        if (fragment is ExecutableElementImpl) {
+        if (fragment is ExecutableFragmentImpl) {
           _sink.withIndent(() {
             _writeType('type', fragment.type);
           });
-        } else if (fragment is ParameterElementImpl) {
+        } else if (fragment is FormalParameterFragmentImpl) {
           _sink.withIndent(() {
             _writeType('type', fragment.type);
           });
@@ -1834,7 +1834,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeGenericFunctionTypeElement(
     String name,
-    GenericFunctionTypeElementImpl? element,
+    GenericFunctionTypeFragmentImpl? element,
   ) {
     _sink.writeWithIndent('$name: ');
     if (element == null) {
@@ -1929,7 +1929,7 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  void _writeParameterElements(List<ParameterElementImpl> parameters) {
+  void _writeParameterElements(List<FormalParameterFragmentImpl> parameters) {
     _sink.writelnWithIndent('parameters');
     _sink.withIndent(() {
       for (var parameter in parameters) {
@@ -1943,7 +1943,7 @@ Expected parent: (${parent.runtimeType}) $parent
     });
   }
 
-  void _writeParameterKind(ParameterElementImpl parameter) {
+  void _writeParameterKind(FormalParameterFragmentImpl parameter) {
     if (parameter.isOptionalNamed) {
       _sink.writelnWithIndent('kind: optional named');
     } else if (parameter.isOptionalPositional) {
@@ -2089,7 +2089,7 @@ Expected parent: (${parent.runtimeType}) $parent
       return declaredFragment.formalParameters;
     } else if (parametersParent is FormalParameter) {
       var declaredFragment = parametersParent.declaredFragment!;
-      declaredFragment as ParameterElementImpl;
+      declaredFragment as FormalParameterFragmentImpl;
       return declaredFragment.parameters;
     } else if (parametersParent is FunctionExpression) {
       var declaredFragment = parametersParent.declaredFragment!;

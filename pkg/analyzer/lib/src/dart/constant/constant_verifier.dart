@@ -172,7 +172,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // Factory cycles are reported in elsewhere in
       // [ErrorVerifier._checkForRecursiveFactoryRedirect].
       var element = node.declaredFragment;
-      if (element is ConstructorElementImpl &&
+      if (element is ConstructorFragmentImpl &&
           !element.isCycleFree &&
           !element.isFactory) {
         _errorReporter.atNode(
@@ -503,9 +503,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
       var element = node.declaredFragment!;
-      if (element is FieldElementImpl && !element.isStatic) {
+      if (element is FieldFragmentImpl && !element.isStatic) {
         var enclosingFragment = element.enclosingFragment;
-        if (enclosingFragment is ClassElementImpl &&
+        if (enclosingFragment is ClassFragmentImpl &&
             !enclosingFragment.hasGenerativeConstConstructor) {
           // TODO(kallentu): Evaluate if we need to do this check for inline
           // classes.
@@ -1615,7 +1615,7 @@ extension on Expression {
             var container = declarationListParent.parent;
             if (container is ClassDeclaration) {
               var enclosingClass = container.declaredFragment;
-              if (enclosingClass is ClassElementImpl) {
+              if (enclosingClass is ClassFragmentImpl) {
                 // A field initializer of a class with at least one generative
                 // const constructor does not constitute a constant context, but
                 // must be a constant expression.

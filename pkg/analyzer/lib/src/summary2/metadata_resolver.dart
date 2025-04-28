@@ -15,7 +15,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final Scope _containerScope;
   final LibraryBuilder _libraryBuilder;
-  final CompilationUnitElementImpl _unitElement;
+  final LibraryFragmentImpl _unitElement;
   late Scope _scope;
 
   MetadataResolver(this._linker, this._unitElement, this._libraryBuilder)

@@ -249,7 +249,7 @@ class DuplicateDefinitionVerifier {
       } else if (member is TopLevelVariableDeclarationImpl) {
         for (var variable in member.variables.variables) {
           var declaredFragment = variable.declaredFragment;
-          declaredFragment as TopLevelVariableElementImpl;
+          declaredFragment as TopLevelVariableFragmentImpl;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateIdentifier(
               definedGetters,
@@ -360,14 +360,14 @@ class DuplicateDefinitionVerifier {
 
 /// Information to pass from declarations to augmentations.
 class DuplicationDefinitionContext {
-  final Map<InstanceElementImpl, _InstanceElementContext>
+  final Map<InstanceFragmentImpl, _InstanceElementContext>
   _instanceElementContexts = {};
 }
 
 class MemberDuplicateDefinitionVerifier {
   final InheritanceManager3 _inheritanceManager;
   final LibraryElementImpl _currentLibrary;
-  final CompilationUnitElementImpl _currentUnit;
+  final LibraryFragmentImpl _currentUnit;
   final ErrorReporter _errorReporter;
   final DuplicationDefinitionContext context;
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
@@ -386,7 +386,7 @@ class MemberDuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(
-    InstanceElementImpl fragment,
+    InstanceFragmentImpl fragment,
     List<ClassMemberImpl> members,
   ) {
     var firstFragment = fragment.element.firstFragment;
@@ -435,7 +435,7 @@ class MemberDuplicateDefinitionVerifier {
               element: field.declaredFragment!,
               setterScope: member.isStatic ? staticSetters : instanceSetters,
             );
-            if (fragment is EnumElementImpl) {
+            if (fragment is EnumFragmentImpl) {
               _checkValuesDeclarationInEnum(field.name);
             }
           }
@@ -446,7 +446,7 @@ class MemberDuplicateDefinitionVerifier {
             element: member.declaredFragment!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
-          if (fragment is EnumElementImpl) {
+          if (fragment is EnumFragmentImpl) {
             if (!(member.isStatic && member.isSetter)) {
               _checkValuesDeclarationInEnum(member.name);
             }
@@ -454,7 +454,7 @@ class MemberDuplicateDefinitionVerifier {
       }
     }
 
-    if (firstFragment is InterfaceElementImpl) {
+    if (firstFragment is InterfaceFragmentImpl) {
       _checkConflictingConstructorAndStatic(
         interfaceElement: firstFragment,
         staticGetters: staticGetters,
@@ -464,7 +464,7 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkClassStatic(
-    InstanceElementImpl fragment,
+    InstanceFragmentImpl fragment,
     List<ClassMember> members,
   ) {
     var firstFragment = fragment.element.firstFragment;
@@ -484,7 +484,7 @@ class MemberDuplicateDefinitionVerifier {
             String name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
-              if (firstFragment is InterfaceElementImpl) {
+              if (firstFragment is InterfaceFragmentImpl) {
                 String className = firstFragment.name;
                 _errorReporter.atToken(
                   identifier,
@@ -501,7 +501,7 @@ class MemberDuplicateDefinitionVerifier {
           String name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
-            if (firstFragment is InterfaceElementImpl) {
+            if (firstFragment is InterfaceFragmentImpl) {
               String className = firstFragment.name;
               _errorReporter.atToken(
                 identifier,
@@ -516,14 +516,14 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkConflictingConstructorAndStatic({
-    required InterfaceElementImpl interfaceElement,
-    required Map<String, ElementImpl> staticGetters,
-    required Map<String, ElementImpl> staticSetters,
+    required InterfaceFragmentImpl interfaceElement,
+    required Map<String, FragmentImpl> staticGetters,
+    required Map<String, FragmentImpl> staticSetters,
   }) {
     for (var constructor in interfaceElement.constructors) {
       var name = constructor.name;
       var staticMember = staticGetters[name] ?? staticSetters[name];
-      if (staticMember is PropertyAccessorElementImpl) {
+      if (staticMember is PropertyAccessorFragmentImpl) {
         CompileTimeErrorCode errorCode;
         if (staticMember.isSynthetic) {
           errorCode =
@@ -540,7 +540,7 @@ class MemberDuplicateDefinitionVerifier {
           errorCode,
           arguments: [name],
         );
-      } else if (staticMember is MethodElementImpl) {
+      } else if (staticMember is MethodFragmentImpl) {
         _errorReporter.atElement2(
           constructor.asElement2,
           CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
@@ -554,25 +554,25 @@ class MemberDuplicateDefinitionVerifier {
   /// in one of the scopes - [getterScope] or [setterScope], and produce an
   /// error if it is.
   void _checkDuplicateIdentifier(
-    Map<String, ElementImpl> getterScope,
+    Map<String, FragmentImpl> getterScope,
     Token identifier, {
-    required ElementImpl element,
-    Map<String, ElementImpl>? setterScope,
+    required FragmentImpl element,
+    Map<String, FragmentImpl>? setterScope,
   }) {
     if (identifier.isSynthetic || element.asElement2.isWildcardVariable) {
       return;
     }
 
     switch (element) {
-      case ExecutableElementImpl _:
+      case ExecutableFragmentImpl _:
         if (element.isAugmentation) return;
-      case FieldElementImpl _:
+      case FieldFragmentImpl _:
         if (element.isAugmentation) return;
-      case InstanceElementImpl _:
+      case InstanceFragmentImpl _:
         if (element.isAugmentation) return;
-      case TypeAliasElementImpl _:
+      case TypeAliasFragmentImpl _:
         if (element.isAugmentation) return;
-      case TopLevelVariableElementImpl _:
+      case TopLevelVariableFragmentImpl _:
         if (element.isAugmentation) return;
     }
 
@@ -597,7 +597,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     var name = switch (element) {
-      MethodElementImpl() => element.name,
+      MethodFragmentImpl() => element.name,
       _ => identifier.lexeme,
     };
 
@@ -618,7 +618,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     if (setterScope != null) {
-      if (element is PropertyAccessorElementImpl && element.isSetter) {
+      if (element is PropertyAccessorFragmentImpl && element.isSetter) {
         previous = setterScope[name];
         if (previous != null) {
           _errorReporter.reportError(
@@ -678,7 +678,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = accessor.displayName;
       var inherited = _getInheritedMember(firstFragment, baseName);
-      if (inherited is MethodElementImpl) {
+      if (inherited is MethodFragmentImpl) {
         _errorReporter.atElement2(
           accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
@@ -700,7 +700,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = method.displayName;
       var inherited = _getInheritedMember(firstFragment, baseName);
-      if (inherited is PropertyAccessorElementImpl) {
+      if (inherited is PropertyAccessorFragmentImpl) {
         _errorReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
@@ -875,13 +875,13 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  _InstanceElementContext _getElementContext(InstanceElementImpl element) {
+  _InstanceElementContext _getElementContext(InstanceFragmentImpl element) {
     return context._instanceElementContexts[element] ??=
         _InstanceElementContext();
   }
 
   ExecutableElementOrMember? _getInheritedMember(
-    InterfaceElementImpl element,
+    InterfaceFragmentImpl element,
     String baseName,
   ) {
     var libraryUri = _currentLibrary.source.uri;
@@ -897,7 +897,7 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   ExecutableElementOrMember? _getInterfaceMember(
-    InterfaceElementImpl element,
+    InterfaceFragmentImpl element,
     String baseName,
   ) {
     var libraryUri = _currentLibrary.source.uri;
@@ -939,8 +939,9 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  static bool _isGetterSetterPair(ElementImpl a, ElementImpl b) {
-    if (a is PropertyAccessorElementImpl && b is PropertyAccessorElementImpl) {
+  static bool _isGetterSetterPair(FragmentImpl a, FragmentImpl b) {
+    if (a is PropertyAccessorFragmentImpl &&
+        b is PropertyAccessorFragmentImpl) {
       return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
     }
     return false;
@@ -950,8 +951,8 @@ class MemberDuplicateDefinitionVerifier {
 /// Information accumulated for a single declaration and its augmentations.
 class _InstanceElementContext {
   final Set<String> constructorNames = {};
-  final Map<String, ElementImpl> instanceGetters = {};
-  final Map<String, ElementImpl> instanceSetters = {};
-  final Map<String, ElementImpl> staticGetters = {};
-  final Map<String, ElementImpl> staticSetters = {};
+  final Map<String, FragmentImpl> instanceGetters = {};
+  final Map<String, FragmentImpl> instanceSetters = {};
+  final Map<String, FragmentImpl> staticGetters = {};
+  final Map<String, FragmentImpl> staticSetters = {};
 }

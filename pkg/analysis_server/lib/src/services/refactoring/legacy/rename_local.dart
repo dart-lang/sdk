@@ -175,16 +175,16 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     var element = this.element;
     if (element is PatternVariableElement) {
       var rootVariable =
-          (element.firstFragment as PatternVariableElementImpl).rootVariable;
+          (element.firstFragment as PatternVariableFragmentImpl).rootVariable;
       var declaredFragments =
-          rootVariable is JoinPatternVariableElementImpl
+          rootVariable is JoinPatternVariableFragmentImpl
               ? rootVariable.transitiveVariables
-                  .whereType<BindPatternVariableElementImpl>()
+                  .whereType<BindPatternVariableFragmentImpl>()
                   .toList()
               : [element.firstFragment];
       for (var declaredFragment in declaredFragments) {
         processor.addDeclarationEdit(declaredFragment.element);
-        if (declaredFragment is BindPatternVariableElementImpl) {
+        if (declaredFragment is BindPatternVariableFragmentImpl) {
           // If a variable is used to resolve a named field with an implicit
           // name, we need to make the field name explicit.
           var fieldName = declaredFragment.node.fieldNameWithImplicitName;

@@ -24,7 +24,7 @@ class ConstantInitializersResolver {
   final Linker linker;
 
   late LibraryBuilder _libraryBuilder;
-  late CompilationUnitElementImpl _libraryFragment;
+  late LibraryFragmentImpl _libraryFragment;
   late LibraryElementImpl _library;
   late Scope _scope;
 
@@ -48,20 +48,20 @@ class ConstantInitializersResolver {
     }
   }
 
-  void _resolveExtensionFields(ExtensionElementImpl extension_) {
+  void _resolveExtensionFields(ExtensionFragmentImpl extension_) {
     var node = linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
     extension_.fields.forEach(_resolveVariable);
   }
 
-  void _resolveInterfaceFields(InterfaceElementImpl class_) {
+  void _resolveInterfaceFields(InterfaceFragmentImpl class_) {
     var node = linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     class_.fields.forEach(_resolveVariable);
   }
 
   void _resolveVariable(PropertyInducingElementImpl element) {
-    if (element is FieldElementImpl && element.isEnumConstant) {
+    if (element is FieldFragmentImpl && element.isEnumConstant) {
       return;
     }
 
@@ -122,7 +122,7 @@ class _InitializerInference {
   final List<_PropertyInducingElementTypeInference> _inferring = [];
 
   late LibraryBuilder _libraryBuilder;
-  late CompilationUnitElementImpl _unitElement;
+  late LibraryFragmentImpl _unitElement;
   late Scope _scope;
 
   _InitializerInference(this._linker);
@@ -152,13 +152,13 @@ class _InitializerInference {
     }
   }
 
-  void _addClassElementFields(InterfaceElementImpl class_) {
+  void _addClassElementFields(InterfaceFragmentImpl class_) {
     var node = _linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     class_.fields.forEach(_addVariableNode);
   }
 
-  void _addExtensionElementFields(ExtensionElementImpl extension_) {
+  void _addExtensionElementFields(ExtensionFragmentImpl extension_) {
     var node = _linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
     extension_.fields.forEach(_addVariableNode);
@@ -166,7 +166,7 @@ class _InitializerInference {
 
   void _addVariableNode(PropertyInducingElementImpl element) {
     if (element.isSynthetic &&
-        !(element is FieldElementImpl && element.isSyntheticEnumField)) {
+        !(element is FieldFragmentImpl && element.isSyntheticEnumField)) {
       return;
     }
 
@@ -200,7 +200,7 @@ class _PropertyInducingElementTypeInference
   _InferenceStatus _status = _InferenceStatus.notInferred;
 
   final LibraryBuilder _libraryBuilder;
-  final CompilationUnitElementImpl _unitElement;
+  final LibraryFragmentImpl _unitElement;
   final Scope _scope;
   final PropertyInducingElementImpl _element;
   final VariableDeclarationImpl _node;
@@ -256,7 +256,7 @@ class _PropertyInducingElementTypeInference
 
     var enclosingElement = _element.enclosingElement3;
     var enclosingInterfaceElement =
-        enclosingElement.ifTypeOrNull<InterfaceElementImpl>()?.asElement2;
+        enclosingElement.ifTypeOrNull<InterfaceFragmentImpl>()?.asElement2;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(

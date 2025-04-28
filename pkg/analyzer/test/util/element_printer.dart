@@ -71,7 +71,7 @@ class ElementPrinter {
       case TypeParameterElementImpl2():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case ConstructorElement element:
-        var firstFragment = element.firstFragment as ElementImpl;
+        var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.writeln('#element');
@@ -85,16 +85,16 @@ class ElementPrinter {
       case TopLevelFunctionElementImpl element:
         writelnReference(element.reference);
       case FragmentedElementMixin element:
-        var firstFragment = element.firstFragment as ElementImpl;
+        var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference!;
         writeReference(reference);
         _sink.writeln('#element');
       case GetterElement element:
-        var firstFragment = element.firstFragment as ElementImpl;
+        var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.writeln('#element');
-      case LabelElementImpl():
+      case LabelFragmentImpl():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LabelElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
@@ -104,7 +104,7 @@ class ElementPrinter {
       case LocalFunctionElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case LocalVariableElementImpl():
+      case LocalVariableFragmentImpl():
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
@@ -123,7 +123,7 @@ class ElementPrinter {
       case MixinElementImpl2 element:
         writelnReference(element.reference);
       case MethodElement element:
-        var firstFragment = element.firstFragment as ElementImpl;
+        var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.writeln('#element');
@@ -135,12 +135,12 @@ class ElementPrinter {
             writeElement2(element);
           }
         });
-      case NeverElementImpl():
+      case NeverFragmentImpl():
         _sink.writeln('Never@-1');
       case PrefixElementImpl2 element:
         writelnReference(element.reference);
       case SetterElement element:
-        var firstFragment = element.firstFragment as ElementImpl;
+        var firstFragment = element.firstFragment as FragmentImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.writeln('#element');
@@ -267,13 +267,13 @@ class ElementPrinter {
     }
   }
 
-  String _elementToReferenceString(ElementImpl element) {
+  String _elementToReferenceString(FragmentImpl element) {
     var enclosingElement = element.enclosingElement3;
     var reference = element.reference;
     if (reference != null) {
       return _referenceToString(reference);
-    } else if (element is ParameterElementImpl &&
-        enclosingElement is! GenericFunctionTypeElementImpl) {
+    } else if (element is FormalParameterFragmentImpl &&
+        enclosingElement is! GenericFunctionTypeFragmentImpl) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.
       var enclosingStr =
@@ -281,7 +281,7 @@ class ElementPrinter {
               ? _elementToReferenceString(enclosingElement)
               : 'root';
       return '$enclosingStr::@parameter::${element.name}';
-    } else if (element is JoinPatternVariableElementImpl) {
+    } else if (element is JoinPatternVariableFragmentImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
@@ -297,7 +297,7 @@ class ElementPrinter {
 
   String _fragmentToReferenceString(Fragment element) {
     var enclosingFragment = element.enclosingFragment;
-    var reference = (element as ElementImpl).reference;
+    var reference = (element as FragmentImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);
     } else if (element is FormalParameterFragment &&
@@ -309,7 +309,7 @@ class ElementPrinter {
               ? _fragmentToReferenceString(enclosingFragment)
               : 'root';
       return '$enclosingStr::@formalParameter::${element.name2}';
-    } else if (element is JoinPatternVariableElementImpl) {
+    } else if (element is JoinPatternVariableFragmentImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',

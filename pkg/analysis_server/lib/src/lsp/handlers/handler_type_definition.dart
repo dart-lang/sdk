@@ -177,7 +177,7 @@ class TypeDefinitionHandler
     analyzer.LibraryFragment targetUnit,
   ) {
     var (codeOffset, codeLength) = switch (targetFragment) {
-      ElementImpl e => (e.codeOffset, e.codeLength),
+      FragmentImpl e => (e.codeOffset, e.codeLength),
       _ => (null, null),
     };
 

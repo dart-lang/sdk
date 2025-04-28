@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/scope_helpers.dart';
 ///
 /// The client must set [nameScope] before calling [resolve].
 class NamedTypeResolver with ScopeHelpers {
-  final CompilationUnitElementImpl _libraryFragment;
+  final LibraryFragmentImpl _libraryFragment;
   final TypeSystemImpl typeSystem;
   final TypeSystemOperations typeSystemOperations;
   final bool strictCasts;

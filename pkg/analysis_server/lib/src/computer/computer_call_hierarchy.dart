@@ -121,7 +121,7 @@ class CallHierarchyItem {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
     element = _nonSynthetic(element);
-    var fragment = element.firstFragment as ElementImpl;
+    var fragment = element.firstFragment as FragmentImpl;
 
     // Non-synthetic elements should always have code locations.
     // TODO(brianwilkerson): Figure out why that's no longer true and possibly
@@ -134,7 +134,7 @@ class CallHierarchyItem {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
     element = _nonSynthetic(element);
-    var fragment = element.firstFragment as ElementImpl;
+    var fragment = element.firstFragment as FragmentImpl;
 
     // Compilation units will return -1 for nameOffset which is not valid, so
     // use 0:0.

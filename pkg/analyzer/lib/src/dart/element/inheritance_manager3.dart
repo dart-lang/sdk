@@ -77,19 +77,19 @@ class InheritanceManager3 {
     MethodElement.NO_SUCH_METHOD_METHOD_NAME,
   );
 
-  /// Cached instance interfaces for [InterfaceElementImpl].
-  final Map<InterfaceElementImpl, Interface> _interfaces = {};
+  /// Cached instance interfaces for [InterfaceFragmentImpl].
+  final Map<InterfaceFragmentImpl, Interface> _interfaces = {};
 
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
-  final Set<InterfaceElementImpl> _processingClasses = {};
+  final Set<InterfaceFragmentImpl> _processingClasses = {};
 
   /// Combine [candidates] into a single signature in the [targetClass].
   ///
   /// If such signature does not exist, return `null`, and if [conflicts] is
   /// not `null`, add a new [Conflict] to it.
   ExecutableElementOrMember? combineSignatures({
-    required InterfaceElementImpl targetClass,
+    required InterfaceFragmentImpl targetClass,
     required List<ExecutableElementOrMember> candidates,
     required bool doTopMerge,
     required Name name,
@@ -153,7 +153,7 @@ class InheritanceManager3 {
   ///
   /// This is equivalent to `getInheritedMap2(type)[name]`.
   ExecutableElementOrMember? getInherited2(
-    InterfaceElementImpl element,
+    InterfaceFragmentImpl element,
     Name name,
   ) {
     return getInheritedMap2(element)[name];
@@ -199,9 +199,9 @@ class InheritanceManager3 {
   /// Return signatures of all concrete members that the given [element] inherits
   /// from the superclasses and mixins.
   Map<Name, ExecutableElementOrMember> getInheritedConcreteMap2(
-    InterfaceElementImpl element,
+    InterfaceFragmentImpl element,
   ) {
-    if (element is ExtensionTypeElementImpl) {
+    if (element is ExtensionTypeFragmentImpl) {
       return const {};
     }
 
@@ -227,7 +227,7 @@ class InheritanceManager3 {
   /// interfaces).  If there is no most specific signature for a name, the
   /// corresponding name will not be included.
   Map<Name, ExecutableElementOrMember> getInheritedMap2(
-    InterfaceElementImpl element,
+    InterfaceFragmentImpl element,
   ) {
     var interface = getInterface(element);
     var inheritedMap = interface.inheritedMap;
@@ -236,7 +236,7 @@ class InheritanceManager3 {
       _findMostSpecificFromNamedCandidates(
         element,
         inheritedMap,
-        element is ExtensionTypeElementImpl
+        element is ExtensionTypeFragmentImpl
             ? interface.redeclared
             : interface.overridden,
         doTopMerge: false,
@@ -247,7 +247,7 @@ class InheritanceManager3 {
 
   /// Return the interface of the given [element].  It might include
   /// private members, not necessary accessible in all libraries.
-  Interface getInterface(InterfaceElementImpl element) {
+  Interface getInterface(InterfaceFragmentImpl element) {
     var result = _interfaces[element];
     if (result != null) {
       return result;
@@ -259,9 +259,9 @@ class InheritanceManager3 {
     }
 
     try {
-      if (element is ExtensionTypeElementImpl) {
+      if (element is ExtensionTypeFragmentImpl) {
         result = _getInterfaceExtensionType(element);
-      } else if (element is MixinElementImpl) {
+      } else if (element is MixinFragmentImpl) {
         result = _getInterfaceMixin(element);
       } else {
         result = _getInterfaceClass(element);
@@ -320,7 +320,7 @@ class InheritanceManager3 {
   /// given number of mixins after it are considered.  For example for `1` in
   /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
   ExecutableElementOrMember? getMember2(
-    InterfaceElementImpl element,
+    InterfaceFragmentImpl element,
     Name name, {
     bool concrete = false,
     int forMixinIndex = -1,
@@ -332,7 +332,7 @@ class InheritanceManager3 {
     );
     var interface = getInterface(element);
     if (forSuper) {
-      if (element is ExtensionTypeElementImpl) {
+      if (element is ExtensionTypeFragmentImpl) {
         return null;
       }
       var superImplemented = interface.superImplemented;
@@ -421,7 +421,7 @@ class InheritanceManager3 {
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
   List<ExecutableElementOrMember>? getOverridden2(
-    InterfaceElementImpl element,
+    InterfaceFragmentImpl element,
     Name name,
   ) {
     var interface = getInterface(element);
@@ -468,7 +468,7 @@ class InheritanceManager3 {
 
   void _addImplemented(
     Map<Name, ExecutableElementOrMember> implemented,
-    InterfaceElementImpl fragment,
+    InterfaceFragmentImpl fragment,
     InterfaceElementImpl2 element,
   ) {
     var libraryUri = fragment.librarySource.uri;
@@ -541,7 +541,7 @@ class InheritanceManager3 {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-    InterfaceElementImpl targetClass,
+    InterfaceFragmentImpl targetClass,
     Map<Name, ExecutableElementOrMember> map,
     Map<Name, List<ExecutableElementOrMember>> namedCandidates, {
     required bool doTopMerge,
@@ -582,7 +582,7 @@ class InheritanceManager3 {
     return conflicts;
   }
 
-  Interface _getInterfaceClass(InterfaceElementImpl fragment) {
+  Interface _getInterfaceClass(InterfaceFragmentImpl fragment) {
     var element = fragment.element;
 
     var namedCandidates = <Name, List<ExecutableElementOrMember>>{};
@@ -720,7 +720,7 @@ class InheritanceManager3 {
     );
 
     var noSuchMethodForwarders = <Name>{};
-    if (fragment is ClassElementImpl && fragment.isAbstract) {
+    if (fragment is ClassFragmentImpl && fragment.isAbstract) {
       if (superTypeInterface != null) {
         noSuchMethodForwarders = superTypeInterface.noSuchMethodForwarders;
       }
@@ -792,7 +792,7 @@ class InheritanceManager3 {
   ///
   /// We handle "has an extension type member" and "has a non-extension type
   /// member" portions, considering redeclaration and conflicts.
-  Interface _getInterfaceExtensionType(ExtensionTypeElementImpl fragment) {
+  Interface _getInterfaceExtensionType(ExtensionTypeFragmentImpl fragment) {
     var element = fragment.element;
 
     // Add instance members implemented by the element itself.
@@ -985,7 +985,7 @@ class InheritanceManager3 {
     );
   }
 
-  Interface _getInterfaceMixin(MixinElementImpl fragment) {
+  Interface _getInterfaceMixin(MixinFragmentImpl fragment) {
     var element = fragment.element;
 
     var superCandidates = <Name, List<ExecutableElementOrMember>>{};
@@ -1062,7 +1062,7 @@ class InheritanceManager3 {
   /// covariant. If there are no covariant parameters, or parameters to
   /// update are already covariant, return the [executable] itself.
   ExecutableElementOrMember _inheritCovariance(
-    InterfaceElementImpl class_,
+    InterfaceFragmentImpl class_,
     Map<Name, List<ExecutableElementOrMember>> namedCandidates,
     Name name,
     ExecutableElementOrMember executable,
@@ -1099,7 +1099,7 @@ class InheritanceManager3 {
     }
 
     // Update covariance of the parameters of the chosen executable.
-    List<ParameterElementImpl>? transformedParameters;
+    List<FormalParameterFragmentImpl>? transformedParameters;
     for (var index = 0; index < parameters.length; index++) {
       var parameter = parameters[index];
       var shouldBeCovariant = covariantParameters.contains(
@@ -1120,7 +1120,7 @@ class InheritanceManager3 {
     }
 
     if (executable is MethodElementOrMember) {
-      var result = MethodElementImpl(executable.name, -1);
+      var result = MethodFragmentImpl(executable.name, -1);
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1137,7 +1137,7 @@ class InheritanceManager3 {
       result.returnType = executable.returnType;
 
       var field = executable.variable2!;
-      var resultField = FieldElementImpl(field.name, -1);
+      var resultField = FieldFragmentImpl(field.name, -1);
       resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
@@ -1154,7 +1154,7 @@ class InheritanceManager3 {
   /// signature. This signature always exists.
   ExecutableElementOrMember _topMerge(
     TypeSystemImpl typeSystem,
-    InterfaceElementImpl targetClass,
+    InterfaceFragmentImpl targetClass,
     List<ExecutableElementOrMember> validOverrides,
   ) {
     var first = validOverrides[0];
@@ -1193,7 +1193,7 @@ class InheritanceManager3 {
     if (first is MethodElementOrMember) {
       var firstMethod = first;
       var fragmentName = first.asElement2.firstFragment.name2;
-      var result = MethodElementImpl(firstMethod.name, -1);
+      var result = MethodFragmentImpl(firstMethod.name, -1);
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals;
@@ -1205,9 +1205,9 @@ class InheritanceManager3 {
       var firstAccessor = first as PropertyAccessorElementOrMember;
       var fragmentName = first.asElement2.firstFragment.name2;
       var variableName = firstAccessor.displayName;
-      var field = FieldElementImpl(variableName, -1);
+      var field = FieldFragmentImpl(variableName, -1);
 
-      PropertyAccessorElementImpl result;
+      PropertyAccessorFragmentImpl result;
       if (firstAccessor.isGetter) {
         field.getter = result = GetterFragmentImpl(variableName, -1);
       } else {
@@ -1233,7 +1233,7 @@ class InheritanceManager3 {
   }
 
   static Map<Name, ExecutableElementOrMember> _getTypeMembers(
-    InterfaceElementImpl fragment,
+    InterfaceFragmentImpl fragment,
     InterfaceElementImpl2 element,
   ) {
     var declared = <Name, ExecutableElementOrMember>{};

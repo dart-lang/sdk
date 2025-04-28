@@ -217,7 +217,7 @@ class TypeHierarchyItem {
   /// Returns the [SourceRange] of the code for [element].
   static SourceRange _codeRangeForElement(Element element) {
     // Non-synthetic elements should always have code locations.
-    var firstFragment = element.nonSynthetic2.firstFragment as ElementImpl;
+    var firstFragment = element.nonSynthetic2.firstFragment as FragmentImpl;
     return SourceRange(firstFragment.codeOffset!, firstFragment.codeLength!);
   }
 

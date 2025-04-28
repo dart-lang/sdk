@@ -12,7 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart'
-    show TypeParameterElementImpl;
+    show TypeParameterFragmentImpl;
 
 enum Variance {
   out,
@@ -72,7 +72,7 @@ abstract class VarianceChecker {
               var argument = arguments[i];
               Variance parameterVariance;
               var parameterFragment =
-                  parameter.firstFragment as TypeParameterElementImpl;
+                  parameter.firstFragment as TypeParameterFragmentImpl;
               if (parameterFragment.isLegacyCovariant ||
                   parameterFragment.variance.isCovariant) {
                 parameterVariance = variance;

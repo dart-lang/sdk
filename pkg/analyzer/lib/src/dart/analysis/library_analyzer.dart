@@ -144,7 +144,7 @@ class LibraryAnalyzer {
   AnalysisForCompletionResult analyzeForCompletion({
     required FileState file,
     required int offset,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required OperationPerformanceImpl performance,
   }) {
     var fileAnalysis = performance.run('parse', (performance) {
@@ -254,7 +254,7 @@ class LibraryAnalyzer {
     var libraryUnit = libraryUnitAnalysis.unit;
     var libraryOverrideToken = libraryUnit.languageVersionToken;
 
-    var elementToUnit = <CompilationUnitElementImpl, CompilationUnit>{};
+    var elementToUnit = <LibraryFragmentImpl, CompilationUnit>{};
     for (var fileAnalysis in _libraryFiles.values) {
       elementToUnit[fileAnalysis.element] = fileAnalysis.unit;
     }
@@ -647,7 +647,7 @@ class LibraryAnalyzer {
   /// Return a new parsed unresolved [CompilationUnit].
   FileAnalysis _parse({
     required FileState file,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
   }) {
     var errorListener = RecordingErrorListener();
     var unit = file.parse(
@@ -758,7 +758,7 @@ class LibraryAnalyzer {
   void _resolveDirectives({
     required FileAnalysis? enclosingFile,
     required FileKind fileKind,
-    required CompilationUnitElementImpl fileElement,
+    required LibraryFragmentImpl fileElement,
   }) {
     var fileAnalysis = _parse(file: fileKind.file, unitElement: fileElement);
     var containerUnit = fileAnalysis.unit;

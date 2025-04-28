@@ -234,7 +234,7 @@ class DefinitionHandler
     // Read the main codeOffset from the element. This may include doc comments
     // but will give the correct end position.
     int? codeOffset, codeLength;
-    if (codeFragment case ElementImpl codeFragment) {
+    if (codeFragment case FragmentImpl codeFragment) {
       codeOffset = codeFragment.codeOffset;
       codeLength = codeFragment.codeLength;
     }

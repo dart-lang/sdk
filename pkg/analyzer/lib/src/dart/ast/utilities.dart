@@ -546,7 +546,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     } else if (identical(node.defaultValue, _oldNode)) {
       node.defaultValue = _newNode as ExpressionImpl;
       var parameterElement = node.declaredFragment;
-      if (parameterElement is DefaultParameterElementImpl) {
+      if (parameterElement is DefaultParameterFragmentImpl) {
         parameterElement.constantInitializer = _newNode;
       } else if (parameterElement is DefaultFieldFormalParameterElementImpl) {
         parameterElement.constantInitializer = _newNode;

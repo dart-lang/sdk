@@ -150,7 +150,7 @@ class GenericInferrer {
     TypeImpl argumentType,
     TypeImpl parameterType,
     String parameterName, {
-    InterfaceElementImpl? genericClass,
+    InterfaceFragmentImpl? genericClass,
     required AstNodeImpl? nodeForTesting,
   }) {
     var origin = TypeConstraintFromArgument(
@@ -178,7 +178,7 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments({
-    InterfaceElementImpl? genericClass,
+    InterfaceFragmentImpl? genericClass,
     required List<ParameterElementMixin> parameters,
     required List<TypeImpl> argumentTypes,
     required AstNodeImpl? nodeForTesting,
@@ -199,7 +199,7 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments2({
-    InterfaceElementImpl? genericClass,
+    InterfaceFragmentImpl? genericClass,
     required List<FormalParameterElementMixin> parameters,
     required List<TypeImpl> argumentTypes,
     required AstNodeImpl? nodeForTesting,
@@ -621,7 +621,7 @@ class GenericInferrer {
     }
   }
 
-  String _elementStr(ElementImpl element) {
+  String _elementStr(FragmentImpl element) {
     return element.getDisplayString();
   }
 

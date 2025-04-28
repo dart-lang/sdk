@@ -175,7 +175,7 @@ library
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
-    var x = variables[0] as ConstTopLevelVariableElementImpl;
+    var x = variables[0] as ConstTopLevelVariableFragmentImpl;
     _assertTypeStr(x.type, 'Type');
     expect(x.constantInitializer.toString(), 'FutureOr');
   }

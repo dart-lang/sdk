@@ -45,7 +45,7 @@ class MethodInvocationResolver with ScopeHelpers {
   final Uri _definingLibraryUri;
 
   /// The library fragment of the compilation unit being visited.
-  final CompilationUnitElementImpl _libraryFragment;
+  final LibraryFragmentImpl _libraryFragment;
 
   /// The object providing promoted or declared types of variables.
   final LocalVariableTypeProvider _localVariableTypeProvider;
