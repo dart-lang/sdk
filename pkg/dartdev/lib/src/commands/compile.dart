@@ -539,8 +539,6 @@ Remove debugging information from the output and save it separately to the speci
       ..addOption('target-arch',
           help: 'Compile to a specific target architecture.',
           allowed: Architecture.values.map((v) => v.name).toList())
-      ..addFlag('experimental-cross-compilation',
-          hide: true, help: 'Pass to enable cross-compilation.')
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -583,14 +581,6 @@ Remove debugging information from the output and save it separately to the speci
     final target = crossCompilationTarget(args);
 
     if (target != null) {
-      if (!args.flag('experimental-cross-compilation')) {
-        stderr.writeln('Target platform ($target) '
-            'does not match host platform (${Target.current}).');
-        stderr.writeln('Native cross-compilation support is experimental. '
-            'Pass the `--experimental-cross-compilation` flag to enable it.');
-        return 128;
-      }
-
       if (!supportedTargetPlatforms.contains(target)) {
         stderr.writeln('Unsupported target platform $target.');
         stderr.writeln('Supported target platforms: '
