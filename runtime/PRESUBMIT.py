@@ -19,7 +19,6 @@ USE_PYTHON3 = True
 BANNED_FUNCTIONS = [
     ['\\bmemcpy\\(', 'memcpy'],
     ['\\bpthread_detach\\(', 'pthread_detach'],
-    ['\\bdetach\\(', 'std::thread::detach'],
 ]
 
 

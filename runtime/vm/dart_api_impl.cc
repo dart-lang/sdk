@@ -742,6 +742,7 @@ DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
 DART_EXPORT void Dart_KillIsolate(Dart_Isolate handle) {
   Isolate* isolate = reinterpret_cast<Isolate*>(handle);
   CHECK_ISOLATE(isolate);
+  TransitionNativeToVM transition(Thread::Current());
   Isolate::KillIfExists(isolate, Isolate::kKillMsg);
 }
 

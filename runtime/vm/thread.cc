@@ -1477,6 +1477,9 @@ bool Thread::CanAcquireSafepointLocks() const {
   // Example: We own reload safepoint operation, load kernel, which allocates
   // symbols, where the symbol implementation acquires the symbol lock (we know
   // other mutators at reload safepoint do not hold symbol lock).
+  if (current_safepoint_level() == SafepointLevel::kGCAndDeoptAndReload) {
+    return false;
+  }
   return isolate_group()->safepoint_handler()->InnermostSafepointOperation(
              this) >= SafepointLevel::kGCAndDeoptAndReload;
 }

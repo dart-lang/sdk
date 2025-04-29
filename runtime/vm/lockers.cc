@@ -112,6 +112,7 @@ bool SafepointRwLock::EnterRead() {
   //
   // Though if the lock was already acquired by this thread before entering a
   // safepoint, we do allow the nested acquire (which is a NOP).
+  ASSERT(thread == nullptr || thread->execution_state() == Thread::kThreadInVM);
   DEBUG_ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks() ||
                IsCurrentThreadReader());
 
@@ -178,6 +179,7 @@ void SafepointRwLock::EnterWrite() {
   //
   // Though if the lock was already acquired by this thread before entering a
   // safepoint, we do allow the nested acquire (which is a NOP).
+  ASSERT(thread == nullptr || thread->execution_state() == Thread::kThreadInVM);
   DEBUG_ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks() ||
                IsCurrentThreadWriter());
 
