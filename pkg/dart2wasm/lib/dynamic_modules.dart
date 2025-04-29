@@ -430,93 +430,114 @@ class DynamicModuleInfo {
     b.global_set(moduleIdGlobal);
   }
 
+  bool _isClassDynamicModuleInstantiable(Class cls) {
+    return cls.isDynamicModuleExtendable(translator.coreTypes) ||
+        cls.constructors
+            .any((e) => e.isDynamicModuleCallable(translator.coreTypes)) ||
+        cls.procedures.any((e) =>
+            e.isFactory && e.isDynamicModuleCallable(translator.coreTypes));
+  }
+
   void _initializeCallableReferences() {
-    void collectCallableReference(Reference reference) {
-      final member = reference.asMember;
-
-      if (member.isExternal) {
-        final isGeneratedIntrinsic = member is Procedure &&
-            MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null;
-        if (!isGeneratedIntrinsic) return;
-      }
-
-      if (!member.isInstanceMember) {
-        // Generate static members immediately since they are unconditionally
-        // callable.
-        metadata.callableReferenceIds[reference] ??=
-            metadata.callableReferenceIds.length;
-        translator.functions.getFunction(reference);
-        return;
-      }
-
-      final selector = translator.dispatchTable.selectorForTarget(reference);
-      final targetRanges = selector
-          .targets(unchecked: false)
-          .targetRanges
-          .followedBy(selector.targets(unchecked: true).targetRanges);
-      // Record usage of the target on all classes that inherit the member. The
-      // class must be allocated in order for the target to be live.
-      for (final (:range, :target) in targetRanges) {
-        // Match any reference for the callable member, even if the reference
-        // kind is not the same.
-        if (target.asMember != member) continue;
-        metadata.callableReferenceIds[target] ??=
-            metadata.callableReferenceIds.length;
-        for (int classId = range.start; classId <= range.end; ++classId) {
-          translator.functions.recordClassTargetUse(classId, target);
-        }
-      }
-    }
-
-    void collectCallableReferences(Member member) {
-      if (member is Procedure) {
-        collectCallableReference(member.reference);
-        // We ignore the tear-off and let each dynamic module generate it for
-        // itself.
-      } else if (member is Field) {
-        collectCallableReference(member.getterReference);
-        if (member.hasSetter) {
-          collectCallableReference(member.setterReference!);
-        }
-      } else if (member is Constructor &&
-          // Skip types that don't extend Object in the wasm type hierarchy.
-          // These types do not have directly invokable constructors.
-          translator.classInfo[member.enclosingClass]!.struct
-              .isSubtypeOf(translator.objectInfo.struct)) {
-        collectCallableReference(member.reference);
-        collectCallableReference(member.initializerReference);
-        collectCallableReference(member.constructorBodyReference);
-      }
-    }
-
     for (final lib in translator.component.libraries) {
       for (final member in lib.members) {
-        if (member.isDynamicModuleCallable(translator.coreTypes)) {
-          collectCallableReferences(member);
+        if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
+        _forEachMemberReference(member, _registerStaticCallableTarget);
+      }
+    }
+
+    for (final classInfo in translator.classesSupersFirst) {
+      final cls = classInfo.cls;
+      if (cls == null) continue;
+
+      // Register any callable functions defined within this class.
+      for (final member in cls.members) {
+        if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
+
+        if (!member.isInstanceMember) {
+          // Generate static members immediately since they are unconditionally
+          // callable.
+          _forEachMemberReference(member, _registerStaticCallableTarget);
+          continue;
+        }
+
+        // Consider callable references invoked and therefore if they're
+        // overrideable include them in the runtime dispatch table.
+        if (member.isDynamicModuleOverrideable(translator.coreTypes)) {
+          _forEachMemberReference(
+              member, metadata.invokedOverrideableReferences.add);
         }
       }
 
-      for (final cls in lib.classes) {
-        for (final member in cls.members) {
-          if (member.isDynamicModuleCallable(translator.coreTypes)) {
-            collectCallableReferences(member);
-          }
-        }
+      // Anonymous mixins' targets don't need to be registered since they aren't
+      // directly allocatable.
+      if (cls.isAnonymousMixin) continue;
+
+      if (cls.isAbstract && !_isClassDynamicModuleInstantiable(cls)) {
+        continue;
+      }
+
+      // For each dispatch target, register the member as callable from this
+      // class.
+      final targets = translator.hierarchy.getDispatchTargets(cls).followedBy(
+          translator.hierarchy.getDispatchTargets(cls, setters: true));
+      for (final member in targets) {
+        if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
+
+        _forEachMemberReference(member,
+            (reference) => _registerCallableDispatchTarget(reference, cls));
       }
     }
   }
 
-  void _initializeDynamicAllocatableClasses() {
-    for (final lib in translator.component.libraries) {
-      for (final cls in lib.classes) {
-        if (cls.isAnonymousMixin) continue;
+  /// If class [cls] is marked allocated then ensure we compile [target].
+  ///
+  /// The [cls] may be marked allocated in
+  /// [_initializeDynamicAllocatableClasses] which (together with this) will
+  /// enqueue the [target] for compilation. Otherwise the [cls] must be
+  /// allocated via a constructor call in the program itself.
+  void _registerCallableDispatchTarget(Reference target, Class cls) {
+    final member = target.asMember;
 
-        if (cls.isDynamicModuleExtendable(translator.coreTypes) ||
-            cls.constructors
-                .any((e) => e.isDynamicModuleCallable(translator.coreTypes))) {
-          translator.functions
-              .recordClassAllocation(translator.classInfo[cls]!.classId);
-        }
+    if (member.isExternal) {
+      final isGeneratedIntrinsic = member is Procedure &&
+          MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null;
+      if (!isGeneratedIntrinsic) return;
+    }
+
+    final classId =
+        (translator.classInfo[cls]!.classId as AbsoluteClassId).value;
+
+    metadata.callableReferenceIds[target] ??=
+        metadata.callableReferenceIds.length;
+    // The class must be allocated in order for the target to be live.
+    translator.functions.recordClassTargetUse(classId, target);
+  }
+
+  void _registerStaticCallableTarget(Reference target) {
+    final member = target.asMember;
+
+    if (member.isExternal) {
+      final isGeneratedIntrinsic = member is Procedure &&
+          MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null;
+      if (!isGeneratedIntrinsic) return;
+    }
+
+    // Generate static members immediately since they are unconditionally
+    // callable.
+    metadata.callableReferenceIds[target] ??=
+        metadata.callableReferenceIds.length;
+    translator.functions.getFunction(target);
+  }
+
+  void _initializeDynamicAllocatableClasses() {
+    for (final classInfo in translator.classesSupersFirst) {
+      final cls = classInfo.cls;
+      if (cls == null) continue;
+      if (cls.isAnonymousMixin) continue;
+
+      if (_isClassDynamicModuleInstantiable(cls)) {
+        translator.functions.recordClassAllocation(classInfo.classId);
       }
     }
   }
@@ -529,11 +550,12 @@ class DynamicModuleInfo {
           name: '#r_${builtin.name}');
     }
 
-    for (final reference in metadata.invokedReferences) {
+    for (final reference in metadata.invokedOverrideableReferences) {
       final selector = translator.dispatchTable.selectorForTarget(reference);
       translator.functions.recordSelectorUse(selector, false);
 
-      final mainSelector = translator.dynamicMainModuleDispatchTable!
+      final mainSelector = (translator.dynamicMainModuleDispatchTable ??
+              translator.dispatchTable)
           .selectorForTarget(reference);
       final signature = _getGeneralizedSignature(mainSelector);
       final buildMain = buildSelectorBranch(reference, mainSelector);
@@ -544,6 +566,39 @@ class DynamicModuleInfo {
           buildMain: buildMain,
           buildDynamic: buildDynamic,
           name: '#s${mainSelector.id}_${mainSelector.name}');
+    }
+  }
+
+  void _forEachMemberReference(Member member, void Function(Reference) f) {
+    void passReference(Reference reference) {
+      final checkedReference =
+          translator.getFunctionEntry(reference, uncheckedEntry: false);
+      f(checkedReference);
+
+      final uncheckedReference =
+          translator.getFunctionEntry(reference, uncheckedEntry: true);
+      if (uncheckedReference != checkedReference) {
+        f(uncheckedReference);
+      }
+    }
+
+    if (member is Procedure) {
+      passReference(member.reference);
+      // We ignore the tear-off and let each dynamic module generate it for
+      // itself.
+    } else if (member is Field) {
+      passReference(member.getterReference);
+      if (member.hasSetter) {
+        passReference(member.setterReference!);
+      }
+    } else if (member is Constructor &&
+        // Skip types that don't extend Object in the wasm type hierarchy.
+        // These types do not have directly invokable constructors.
+        translator.classInfo[member.enclosingClass]!.struct
+            .isSubtypeOf(translator.objectInfo.struct)) {
+      passReference(member.reference);
+      passReference(member.initializerReference);
+      passReference(member.constructorBodyReference);
     }
   }
 
@@ -776,7 +831,7 @@ class DynamicModuleInfo {
   void callOverrideableDispatch(
       w.InstructionsBuilder b, SelectorInfo selector, Reference interfaceTarget,
       {required bool useUncheckedEntry}) {
-    metadata.invokedReferences.add(interfaceTarget);
+    metadata.invokedOverrideableReferences.add(interfaceTarget);
 
     final localSignature = selector.signature;
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it

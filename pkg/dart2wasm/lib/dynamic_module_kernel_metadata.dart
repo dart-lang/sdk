@@ -221,7 +221,7 @@ class MainModuleMetadata {
   late final DispatchTable dispatchTable;
 
   /// Contains each invoked reference that targets an updateable function.
-  final Set<Reference> invokedReferences;
+  final Set<Reference> invokedOverrideableReferences;
 
   /// Maps invocation keys (either selector or builtin) to the implementation's
   /// index in the runtime table. Key includes whether the key was invoked
@@ -240,7 +240,7 @@ class MainModuleMetadata {
       this.classMetadata,
       this.callableReferenceIds,
       this.dispatchTable,
-      this.invokedReferences,
+      this.invokedOverrideableReferences,
       this.keyInvocationToIndex,
       this.dfsOrderClassIds,
       this.mainModuleTranslatorOptions,
@@ -250,7 +250,7 @@ class MainModuleMetadata {
       this.mainModuleTranslatorOptions, this.mainModuleEnvironment)
       : classMetadata = {},
         callableReferenceIds = {},
-        invokedReferences = {},
+        invokedOverrideableReferences = {},
         keyInvocationToIndex = {},
         dfsOrderClassIds = [];
 
@@ -299,7 +299,7 @@ class MainModuleMetadata {
 
     dispatchTable.serialize(sink);
 
-    sink.writeList(invokedReferences, sink.writeReference);
+    sink.writeList(invokedOverrideableReferences, sink.writeReference);
 
     sink.writeMap(keyInvocationToIndex, sink.writeInt, sink.writeInt);
 
