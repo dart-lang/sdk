@@ -59,6 +59,39 @@ class DynamicModuleGlobalIdRepository extends MetadataRepository<int> {
   }
 }
 
+/// Repository for kernel constants.
+class DynamicModuleConstantRepository
+    extends MetadataRepository<Map<Constant, int>> {
+  static const repositoryTag = 'wasm.dynamic-modules.constants';
+
+  @override
+  final String tag = repositoryTag;
+
+  @override
+  final Map<TreeNode, Map<Constant, int>> mapping = {};
+
+  @override
+  Map<Constant, int> readFromBinary(Node node, BinarySource source) {
+    final length = source.readUInt30();
+    final Map<Constant, int> constants = {};
+    for (int i = 0; i < length; i++) {
+      final constant = source.readConstantReference();
+      final id = source.readUInt30();
+      constants[constant] = id;
+    }
+    return constants;
+  }
+
+  @override
+  void writeToBinary(Map<Constant, int> constants, Node node, BinarySink sink) {
+    sink.writeUInt30(constants.length);
+    constants.forEach((constant, id) {
+      sink.writeConstantReference(constant);
+      sink.writeUInt30(id);
+    });
+  }
+}
+
 class ClassMetadata {
   /// The class numbering ID assigned to this class.
   final int classId;
@@ -454,6 +487,7 @@ Future<(Component, JSMethods)> generateDynamicModuleComponent(
       optimizedMainComponentBytes.length, dynamicModuleComponentBytes);
   final newComponent = Component()
     ..addMetadataRepository(DynamicModuleGlobalIdRepository())
+    ..addMetadataRepository(DynamicModuleConstantRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())

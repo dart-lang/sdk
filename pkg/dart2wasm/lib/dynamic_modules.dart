@@ -116,6 +116,7 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
       addPragma(lib, _mainModLibPragma, coreTypes);
     }
 
+    component.addMetadataRepository(DynamicModuleConstantRepository());
     component.addMetadataRepository(DynamicModuleGlobalIdRepository());
   }
 
