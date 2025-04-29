@@ -12,7 +12,13 @@ import 'package:analyzer/src/error/error_code_values.g.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
-    show ErrorCode, ErrorSeverity, ErrorType;
+    show
+        DiagnosticCode,
+        DiagnosticSeverity,
+        DiagnosticType,
+        ErrorCode,
+        ErrorSeverity,
+        ErrorType;
 export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
 export 'package:analyzer/src/error/error_code_values.g.dart';
 
