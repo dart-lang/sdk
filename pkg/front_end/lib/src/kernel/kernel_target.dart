@@ -1426,6 +1426,7 @@ class KernelTarget {
         in constructorInitializedFields.entries) {
       ConstructorDeclarationBuilder constructorBuilder = entry.key;
       Set<SourcePropertyBuilder> fieldBuilders = entry.value;
+      bool hasReportedErrors = false;
       for (SourcePropertyBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
         if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
@@ -1449,6 +1450,7 @@ class KernelTarget {
                         .withLocation(fieldBuilder.fileUri,
                             fieldBuilder.fileOffset, fieldBuilder.name.length)
                   ]);
+              hasReportedErrors = true;
             }
           } else if (fieldBuilder.fieldType is! InvalidType &&
               !fieldBuilder.isLate &&
@@ -1465,7 +1467,19 @@ class KernelTarget {
                       .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.fileOffset, fieldBuilder.name.length)
                 ]);
+            hasReportedErrors = true;
           }
+        }
+      }
+
+      if (hasReportedErrors) {
+        switch (constructorBuilder.invokeTarget) {
+          case Constructor constructorParent:
+            constructorParent.isErroneous = true;
+          case Procedure procedureParent:
+            procedureParent.isErroneous = true;
+          default:
+          // Do nothing.
         }
       }
     }

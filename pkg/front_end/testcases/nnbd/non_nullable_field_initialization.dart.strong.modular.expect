@@ -62,7 +62,7 @@ class Foo extends core::Object {
 class A extends core::Object {
   static field core::int staticFieldOfA = null;
   field core::int fieldOfA;
-  constructor foo() → self::A
+  erroneous constructor foo() → self::A
     : self::A::fieldOfA = null, super core::Object::•()
     ;
   constructor bar(core::int fieldOfA) → self::A
@@ -72,7 +72,7 @@ class A extends core::Object {
 class B<X extends core::Object?, Y extends core::Object> extends core::Object {
   covariant-by-class field self::B::X% fieldOfB;
   covariant-by-class field self::B::Y fieldOfB2;
-  constructor foo() → self::B<self::B::X%, self::B::Y>
+  erroneous constructor foo() → self::B<self::B::X%, self::B::Y>
     : self::B::fieldOfB2 = null, self::B::fieldOfB = null, super core::Object::•()
     ;
   constructor bar(self::B::X% fieldOfB, self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
