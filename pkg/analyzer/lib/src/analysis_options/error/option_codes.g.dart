@@ -65,61 +65,6 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
-class AnalysisOptionsHintCode extends ErrorCode {
-  ///  A hint code indicating reference to a deprecated lint.
-  ///
-  ///  Parameters:
-  ///  0: the rule name
-  static const AnalysisOptionsHintCode DEPRECATED_LINT =
-      AnalysisOptionsHintCode(
-        'DEPRECATED_LINT',
-        "'{0}' is a deprecated lint rule and should not be used.",
-        correctionMessage: "Try removing '{0}'.",
-      );
-
-  ///  A hint code indicating reference to a deprecated lint.
-  ///
-  ///  Parameters:
-  ///  0: the deprecated lint name
-  ///  1: the replacing rule name
-  static const AnalysisOptionsHintCode DEPRECATED_LINT_WITH_REPLACEMENT =
-      AnalysisOptionsHintCode(
-        'DEPRECATED_LINT_WITH_REPLACEMENT',
-        "'{0}' is deprecated and should be replaced by '{1}'.",
-        correctionMessage: "Try replacing '{0}' with '{1}'.",
-      );
-
-  ///  Duplicate rules.
-  ///
-  ///  Parameters:
-  ///  0: the rule name
-  static const AnalysisOptionsHintCode DUPLICATE_RULE = AnalysisOptionsHintCode(
-    'DUPLICATE_RULE',
-    "The rule {0} is already specified and doesn't need to be specified again.",
-    correctionMessage: "Try removing all but one specification of the rule.",
-  );
-
-  /// Initialize a newly created error code to have the given [name].
-  const AnalysisOptionsHintCode(
-    String name,
-    String problemMessage, {
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-  }) : super(
-         name: name,
-         problemMessage: problemMessage,
-         uniqueName: 'AnalysisOptionsHintCode.${uniqueName ?? name}',
-       );
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
-
-  @override
-  ErrorType get type => ErrorType.HINT;
-}
-
 class AnalysisOptionsWarningCode extends ErrorCode {
   ///  An error code indicating that the given option is deprecated.
   ///
@@ -143,6 +88,40 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     "The option '{0}' is no longer supported.",
     correctionMessage: "Try using the new '{1}' option.",
     uniqueName: 'ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT',
+  );
+
+  ///  A hint code indicating reference to a deprecated lint.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  static const AnalysisOptionsWarningCode DEPRECATED_LINT =
+      AnalysisOptionsWarningCode(
+        'DEPRECATED_LINT',
+        "'{0}' is a deprecated lint rule and should not be used.",
+        correctionMessage: "Try removing '{0}'.",
+      );
+
+  ///  A hint code indicating reference to a deprecated lint.
+  ///
+  ///  Parameters:
+  ///  0: the deprecated lint name
+  ///  1: the replacing rule name
+  static const AnalysisOptionsWarningCode DEPRECATED_LINT_WITH_REPLACEMENT =
+      AnalysisOptionsWarningCode(
+        'DEPRECATED_LINT_WITH_REPLACEMENT',
+        "'{0}' is deprecated and should be replaced by '{1}'.",
+        correctionMessage: "Try replacing '{0}' with '{1}'.",
+      );
+
+  ///  Duplicate rules.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  static const AnalysisOptionsWarningCode
+  DUPLICATE_RULE = AnalysisOptionsWarningCode(
+    'DUPLICATE_RULE',
+    "The rule {0} is already specified and doesn't need to be specified again.",
+    correctionMessage: "Try removing all but one specification of the rule.",
   );
 
   ///  An error code indicating a specified include file has a warning.

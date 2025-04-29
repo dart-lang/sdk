@@ -58,19 +58,19 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsHintCode.DEPRECATED_LINT:
-  status: hasFix
-AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
-  status: needsFix
-  notes: |-
-    We should be able to replace the deprecated lint rule with its replacement.
-AnalysisOptionsHintCode.DUPLICATE_RULE:
-  status: hasFix
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+  status: hasFix
+AnalysisOptionsWarningCode.DEPRECATED_LINT:
+  status: hasFix
+AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+AnalysisOptionsWarningCode.DUPLICATE_RULE:
   status: hasFix
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
