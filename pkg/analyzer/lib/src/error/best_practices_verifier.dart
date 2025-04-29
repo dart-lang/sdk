@@ -1852,7 +1852,7 @@ class _InvalidAccessVerifier {
     _errorReporter.atOffset(
       offset: errorEntity.offset,
       length: errorEntity.length,
-      errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+      errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
       arguments: [name],
     );
   }
@@ -1897,14 +1897,14 @@ class _InvalidAccessVerifier {
           _errorReporter.atOffset(
             offset: errorEntity.offset,
             length: errorEntity.length,
-            errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+            errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
             arguments: [name],
           );
         } else {
           // For positional arguments.
           _errorReporter.atNode(
             argument,
-            WarningCode.invalid_use_of_do_not_submit_member,
+            WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
             arguments: [element.displayName],
           );
         }
