@@ -45,10 +45,9 @@ test(bool b) {
     Object? o;
     o = '' as Object?;
     if (o is String) {
-      o =
-          b
-              ? (contextType('')..expectStaticType<Exactly<String>>())
-              : (contextType('')..expectStaticType<Exactly<String>>());
+      o = b
+          ? (contextType('')..expectStaticType<Exactly<String>>())
+          : (contextType('')..expectStaticType<Exactly<String>>());
     }
   }
 

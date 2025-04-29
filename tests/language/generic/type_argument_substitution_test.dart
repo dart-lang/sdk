@@ -16,9 +16,8 @@ class B extends A<K> {}
 class X<T> {}
 
 main() {
-  var v =
-      new DateTime.now().millisecondsSinceEpoch != 42
-          ? new X<B>()
-          : new X<A<String>>();
+  var v = new DateTime.now().millisecondsSinceEpoch != 42
+      ? new X<B>()
+      : new X<A<String>>();
   Expect.isFalse(v is X<A<String>>);
 }
