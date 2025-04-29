@@ -913,7 +913,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isDuplicate) {
         if (declaration.isUnnamedExtension) {
           declaration.extensionName.name =
-              '_extension#${library.extensions.length}';
+              '${NameScheme.unnamedExtensionNamePrefix}'
+              '${library.extensions.length}';
         }
         library.addExtension(extension);
       }

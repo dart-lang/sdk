@@ -468,11 +468,13 @@ extension on int? {
    lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithoutInitializer
   */
   /*member: _extension#1|unnamedExtensionNonNullableWithoutInitializer:
+   extensionName=<unnamed extension>.unnamedExtensionNonNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=_extension#1|unnamedExtensionNonNullableWithoutInitializer,
    lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithoutInitializer
   */
   /*member: _extension#1|unnamedExtensionNonNullableWithoutInitializer=:
+   extensionName=<unnamed extension>.unnamedExtensionNonNullableWithoutInitializer,
    lateFieldName=_extension#1|unnamedExtensionNonNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithoutInitializer
@@ -484,11 +486,13 @@ extension on int? {
    lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer
   */
   /*member: _extension#1|finalUnnamedExtensionNonNullableWithoutInitializer:
+   extensionName=<unnamed extension>.finalUnnamedExtensionNonNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer,
    lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer
   */
   /*member: _extension#1|finalUnnamedExtensionNonNullableWithoutInitializer=:
+   extensionName=<unnamed extension>.finalUnnamedExtensionNonNullableWithoutInitializer,
    lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithoutInitializer
@@ -505,11 +509,13 @@ extension on int? {
    lateIsSetField
   */
   /*member: _extension#1|unnamedExtensionNullableWithoutInitializer=:
+   extensionName=<unnamed extension>.unnamedExtensionNullableWithoutInitializer,
    lateFieldName=_extension#1|unnamedExtensionNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithoutInitializer
   */
   /*member: _extension#1|unnamedExtensionNullableWithoutInitializer:
+   extensionName=<unnamed extension>.unnamedExtensionNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=_extension#1|unnamedExtensionNullableWithoutInitializer,
    lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithoutInitializer
@@ -526,11 +532,13 @@ extension on int? {
    lateIsSetField
   */
   /*member: _extension#1|finalUnnamedExtensionNullableWithoutInitializer:
+   extensionName=<unnamed extension>.finalUnnamedExtensionNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=_extension#1|finalUnnamedExtensionNullableWithoutInitializer,
    lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithoutInitializer
   */
   /*member: _extension#1|finalUnnamedExtensionNullableWithoutInitializer=:
+   extensionName=<unnamed extension>.finalUnnamedExtensionNullableWithoutInitializer,
    lateFieldName=_extension#1|finalUnnamedExtensionNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#_extension#1|finalUnnamedExtensionNullableWithoutInitializer
@@ -543,12 +551,14 @@ extension on int? {
    lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithInitializer
   */
   /*member: _extension#1|unnamedExtensionNonNullableWithInitializer=:
+   extensionName=<unnamed extension>.unnamedExtensionNonNullableWithInitializer,
    lateFieldInitializer=13,
    lateFieldName=_extension#1|unnamedExtensionNonNullableWithInitializer,
    lateFieldSetter,
    lateFieldTarget=_#_extension#1|unnamedExtensionNonNullableWithInitializer
   */
   /*member: _extension#1|unnamedExtensionNonNullableWithInitializer:
+   extensionName=<unnamed extension>.unnamedExtensionNonNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=13,
    lateFieldName=_extension#1|unnamedExtensionNonNullableWithInitializer,
@@ -562,6 +572,7 @@ extension on int? {
    lateFieldTarget=_#_extension#1|finalUnnamedExtensionNonNullableWithInitializer
   */
   /*member: _extension#1|finalUnnamedExtensionNonNullableWithInitializer:
+   extensionName=<unnamed extension>.finalUnnamedExtensionNonNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=14,
    lateFieldName=_extension#1|finalUnnamedExtensionNonNullableWithInitializer,
@@ -581,12 +592,14 @@ extension on int? {
    lateIsSetField
   */
   /*member: _extension#1|unnamedExtensionNullableWithInitializer=:
+   extensionName=<unnamed extension>.unnamedExtensionNullableWithInitializer,
    lateFieldInitializer=15,
    lateFieldName=_extension#1|unnamedExtensionNullableWithInitializer,
    lateFieldSetter,
    lateFieldTarget=_#_extension#1|unnamedExtensionNullableWithInitializer
   */
   /*member: _extension#1|unnamedExtensionNullableWithInitializer:
+   extensionName=<unnamed extension>.unnamedExtensionNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=15,
    lateFieldName=_extension#1|unnamedExtensionNullableWithInitializer,
@@ -606,6 +619,7 @@ extension on int? {
    lateIsSetField
   */
   /*member: _extension#1|finalUnnamedExtensionNullableWithInitializer:
+   extensionName=<unnamed extension>.finalUnnamedExtensionNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=16,
    lateFieldName=_extension#1|finalUnnamedExtensionNullableWithInitializer,
@@ -621,11 +635,13 @@ extension Extension on int? {
    lateFieldTarget=_#Extension|namedExtensionNonNullableWithoutInitializer
   */
   /*member: Extension|namedExtensionNonNullableWithoutInitializer=:
+   extensionName=Extension.namedExtensionNonNullableWithoutInitializer,
    lateFieldName=Extension|namedExtensionNonNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#Extension|namedExtensionNonNullableWithoutInitializer
   */
   /*member: Extension|namedExtensionNonNullableWithoutInitializer:
+   extensionName=Extension.namedExtensionNonNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=Extension|namedExtensionNonNullableWithoutInitializer,
    lateFieldTarget=_#Extension|namedExtensionNonNullableWithoutInitializer
@@ -637,11 +653,13 @@ extension Extension on int? {
    lateFieldTarget=_#Extension|finalNamedExtensionNonNullableWithoutInitializer
   */
   /*member: Extension|finalNamedExtensionNonNullableWithoutInitializer:
+   extensionName=Extension.finalNamedExtensionNonNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=Extension|finalNamedExtensionNonNullableWithoutInitializer,
    lateFieldTarget=_#Extension|finalNamedExtensionNonNullableWithoutInitializer
   */
   /*member: Extension|finalNamedExtensionNonNullableWithoutInitializer=:
+   extensionName=Extension.finalNamedExtensionNonNullableWithoutInitializer,
    lateFieldName=Extension|finalNamedExtensionNonNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#Extension|finalNamedExtensionNonNullableWithoutInitializer
@@ -658,11 +676,13 @@ extension Extension on int? {
    lateIsSetField
   */
   /*member: Extension|namedExtensionNullableWithoutInitializer:
+   extensionName=Extension.namedExtensionNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=Extension|namedExtensionNullableWithoutInitializer,
    lateFieldTarget=_#Extension|namedExtensionNullableWithoutInitializer
   */
   /*member: Extension|namedExtensionNullableWithoutInitializer=:
+   extensionName=Extension.namedExtensionNullableWithoutInitializer,
    lateFieldName=Extension|namedExtensionNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#Extension|namedExtensionNullableWithoutInitializer
@@ -679,11 +699,13 @@ extension Extension on int? {
    lateIsSetField
   */
   /*member: Extension|finalNamedExtensionNullableWithoutInitializer:
+   extensionName=Extension.finalNamedExtensionNullableWithoutInitializer,
    lateFieldGetter,
    lateFieldName=Extension|finalNamedExtensionNullableWithoutInitializer,
    lateFieldTarget=_#Extension|finalNamedExtensionNullableWithoutInitializer
   */
   /*member: Extension|finalNamedExtensionNullableWithoutInitializer=:
+   extensionName=Extension.finalNamedExtensionNullableWithoutInitializer,
    lateFieldName=Extension|finalNamedExtensionNullableWithoutInitializer,
    lateFieldSetter,
    lateFieldTarget=_#Extension|finalNamedExtensionNullableWithoutInitializer
@@ -696,12 +718,14 @@ extension Extension on int? {
    lateFieldTarget=_#Extension|namedExtensionNonNullableWithInitializer
   */
   /*member: Extension|namedExtensionNonNullableWithInitializer:
+   extensionName=Extension.namedExtensionNonNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=17,
    lateFieldName=Extension|namedExtensionNonNullableWithInitializer,
    lateFieldTarget=_#Extension|namedExtensionNonNullableWithInitializer
   */
   /*member: Extension|namedExtensionNonNullableWithInitializer=:
+   extensionName=Extension.namedExtensionNonNullableWithInitializer,
    lateFieldInitializer=17,
    lateFieldName=Extension|namedExtensionNonNullableWithInitializer,
    lateFieldSetter,
@@ -715,6 +739,7 @@ extension Extension on int? {
    lateFieldTarget=_#Extension|finalNamedExtensionNonNullableWithInitializer
   */
   /*member: Extension|finalNamedExtensionNonNullableWithInitializer:
+   extensionName=Extension.finalNamedExtensionNonNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=18,
    lateFieldName=Extension|finalNamedExtensionNonNullableWithInitializer,
@@ -734,12 +759,14 @@ extension Extension on int? {
    lateIsSetField
   */
   /*member: Extension|namedExtensionNullableWithInitializer:
+   extensionName=Extension.namedExtensionNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=19,
    lateFieldName=Extension|namedExtensionNullableWithInitializer,
    lateFieldTarget=_#Extension|namedExtensionNullableWithInitializer
   */
   /*member: Extension|namedExtensionNullableWithInitializer=:
+   extensionName=Extension.namedExtensionNullableWithInitializer,
    lateFieldInitializer=19,
    lateFieldName=Extension|namedExtensionNullableWithInitializer,
    lateFieldSetter,
@@ -759,6 +786,7 @@ extension Extension on int? {
    lateIsSetField
   */
   /*member: Extension|finalNamedExtensionNullableWithInitializer:
+   extensionName=Extension.finalNamedExtensionNullableWithInitializer,
    lateFieldGetter,
    lateFieldInitializer=20,
    lateFieldName=Extension|finalNamedExtensionNullableWithInitializer,

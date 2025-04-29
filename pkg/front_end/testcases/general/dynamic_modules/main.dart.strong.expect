@@ -175,13 +175,13 @@
 //   print(ExtType1);
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:130:9: Error: Cannot invoke member 'ExtType1.constructor#' from a dynamic module.
-// Try removing the call or update the dynamic interface to list member 'ExtType1.constructor#' as callable.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:130:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'ExtType1.new' as callable.
 //   print(ExtType1(42));
 //         ^
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:131:12: Error: Cannot invoke member 'Ext1.get#isPositive' from a dynamic module.
-// Try removing the call or update the dynamic interface to list member 'Ext1.get#isPositive' as callable.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:131:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
 //   print(42.isPositive);
 //            ^
 //
