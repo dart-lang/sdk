@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var lexeme = parameter.name.lexeme;
       if (_wildCardVariablesEnabled && lexeme == '_') continue;
       if (ancestorTypeParameterNames.contains(lexeme)) {
-        rule.reportLint(
+        rule.reportAtNode(
           parameter,
           arguments: [parameter.name.lexeme, ancestorKind],
         );

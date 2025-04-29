@@ -54,7 +54,7 @@ main() {
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportLint(node, errorCode: customCode);
+        rule.reportAtNode(node, errorCode: customCode);
         expect(reporter.code, customCode);
       });
       test('reportLint (default)', () {
@@ -68,7 +68,7 @@ main() {
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportLint(node);
+        rule.reportAtNode(node);
         expect(reporter.code, rule.lintCode);
       });
     });

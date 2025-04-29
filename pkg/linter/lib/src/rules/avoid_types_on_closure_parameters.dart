@@ -58,14 +58,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
     if (type is NamedType && type.type is! DynamicType) {
-      rule.reportLint(node.type);
+      rule.reportAtNode(node.type);
     }
   }
 }

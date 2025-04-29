@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (node.canBeConst) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

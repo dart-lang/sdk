@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   visitIsExpression(IsExpression node) {
     var type = node.type.type;
     if (type != null && type.implementsInterface('DartType', 'kernel.ast')) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

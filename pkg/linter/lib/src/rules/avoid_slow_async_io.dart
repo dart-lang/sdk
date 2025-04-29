@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkDirectoryMethods(MethodInvocation node, DartType? type) {
     if (type.extendsClass('Directory', 'dart.io')) {
       if (_dirMethodNames.contains(node.methodName.name)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkFileMethods(MethodInvocation node, DartType? type) {
     if (type.extendsClass('File', 'dart.io')) {
       if (_fileMethodNames.contains(node.methodName.name)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var element = target.element;
       if (element is ClassElement && element.name3 == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       }
     }

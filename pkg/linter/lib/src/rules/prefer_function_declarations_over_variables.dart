@@ -44,13 +44,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         // definition for a field or a top-level variable, which should only
         // be reported if final.
         if (node.isFinal) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       } else {
         var declaredElement = node.declaredElement2;
         if (declaredElement != null &&
             !function.isPotentiallyMutatedInScope2(declaredElement)) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       }
     }

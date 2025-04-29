@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (followingCommentLine > commentEndLine + 1) {
         // There is a blank line between the declaration's doc comment and the
         // declaration.
-        rule.reportLint(docComment);
+        rule.reportAtNode(docComment);
         return;
       }
 
@@ -129,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declarationStartLine > commentEndLine + 1) {
       // There is a blank line between the declaration's doc comment and the
       // declaration.
-      rule.reportLint(docComment);
+      rule.reportAtNode(docComment);
     }
   }
 }

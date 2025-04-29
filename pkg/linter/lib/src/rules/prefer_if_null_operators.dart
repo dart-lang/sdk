@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
               ? node.elseExpression
               : node.thenExpression;
       if (exp.toString() == expression.toString()) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }

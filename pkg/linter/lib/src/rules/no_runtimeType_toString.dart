@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isRuntimeTypeAccess(node.expression)) return;
     if (_canSkip(node)) return;
 
-    rule.reportLint(node.expression);
+    rule.reportAtNode(node.expression);
   }
 
   @override
@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isRuntimeTypeAccess(node.realTarget)) return;
     if (_canSkip(node)) return;
 
-    rule.reportLint(node.methodName);
+    rule.reportAtNode(node.methodName);
   }
 
   bool _canSkip(AstNode node) =>

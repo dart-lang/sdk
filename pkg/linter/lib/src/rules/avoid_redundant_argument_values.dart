@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var expressionValue = arg.computeConstantValue().value;
       if ((expressionValue?.hasKnownValue ?? false) &&
           expressionValue == value) {
-        rule.reportLint(arg);
+        rule.reportAtNode(arg);
       }
     }
   }

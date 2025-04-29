@@ -84,7 +84,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   }
 
   void reportLint(AstNode node) {
-    rule.reportLint(node, arguments: [parameter.name!.lexeme]);
+    rule.reportAtNode(node, arguments: [parameter.name!.lexeme]);
   }
 
   @override

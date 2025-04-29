@@ -420,7 +420,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftType == null || rightType == null) return;
     var code = getInvalidJsInteropTypeTest(leftType, rightType, check: false);
     if (code != null) {
-      rule.reportLint(node, arguments: [leftType, rightType], errorCode: code);
+      rule.reportAtNode(
+        node,
+        arguments: [leftType, rightType],
+        errorCode: code,
+      );
     }
   }
 
@@ -431,7 +435,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftType == null || rightType == null) return;
     var code = getInvalidJsInteropTypeTest(leftType, rightType, check: true);
     if (code != null) {
-      rule.reportLint(node, arguments: [leftType, rightType], errorCode: code);
+      rule.reportAtNode(
+        node,
+        arguments: [leftType, rightType],
+        errorCode: code,
+      );
     }
   }
 }

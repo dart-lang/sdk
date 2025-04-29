@@ -88,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           lastExpression,
           secondLastExpression,
         )) {
-      rule.reportLint(secondLastStatement);
+      rule.reportAtNode(secondLastStatement);
     }
   }
 }

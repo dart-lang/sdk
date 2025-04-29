@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.containsNullAwareInvocationInChain &&
         !_hasMethodChaining(node) &&
         !_isInsideCascade(node)) {
-      rule.reportLint(node.function);
+      rule.reportAtNode(node.function);
     }
   }
 }

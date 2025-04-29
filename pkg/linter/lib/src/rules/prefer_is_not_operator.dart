@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Check for NOT (!) operator
       if (prefixExpression is PrefixExpression &&
           prefixExpression.operator.type == TokenType.BANG) {
-        rule.reportLint(prefixExpression);
+        rule.reportAtNode(prefixExpression);
       }
     }
   }

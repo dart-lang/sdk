@@ -56,7 +56,7 @@ mixin ControlFlowInFinallyBlockReporter {
       tryStatement,
     );
     if (enablerNode == null) {
-      rule.reportLint(node, arguments: [kind]);
+      rule.reportAtNode(node, arguments: [kind]);
     }
   }
 

@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       node.expression.accept(visitor);
       if (!visitor.useParameter) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -97,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       for (var variable in node.fields.variables) {
         if (variable.initializer != null) {
-          rule.reportLint(variable);
+          rule.reportAtNode(variable);
         }
       }
     }

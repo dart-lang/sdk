@@ -35,7 +35,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitLibraryDirective(LibraryDirective node) {
     var name = node.name2;
     if (name != null && !isLowerCaseUnderScoreWithDots(name.toString())) {
-      rule.reportLint(name, arguments: [name.toString()]);
+      rule.reportAtNode(name, arguments: [name.toString()]);
     }
   }
 }

@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLint(creation);
+    rule.reportAtNode(creation);
   }
 
   FunctionExpression? _extractClosure(String name, Expression argument) {

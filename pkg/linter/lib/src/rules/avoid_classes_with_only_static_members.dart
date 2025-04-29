@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (methods.isNotEmpty && !methods.every((m) => m.isStatic)) return;
 
     if (methods.isNotEmpty || declaredElement.fields2.any((f) => !f.isConst)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

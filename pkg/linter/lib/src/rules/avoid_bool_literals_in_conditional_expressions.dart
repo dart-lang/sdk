@@ -45,8 +45,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (thenExp.staticType == typeProvider.boolType &&
         elseExp.staticType == typeProvider.boolType) {
-      if (thenExp is BooleanLiteral) rule.reportLint(node);
-      if (elseExp is BooleanLiteral) rule.reportLint(node);
+      if (thenExp is BooleanLiteral) rule.reportAtNode(node);
+      if (elseExp is BooleanLiteral) rule.reportAtNode(node);
     }
   }
 }

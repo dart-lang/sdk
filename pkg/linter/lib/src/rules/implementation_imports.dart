@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!importUri.isImplementation) return;
 
       if (!importUri.isSamePackageAs(sourceUri)) {
-        rule.reportLint(node.uri);
+        rule.reportAtNode(node.uri);
       }
     }
   }

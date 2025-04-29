@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType &&
           _overridesEquals(interfaceType.element3)) {
-        rule.reportLint(interface);
+        rule.reportAtNode(interface);
       }
     }
   }

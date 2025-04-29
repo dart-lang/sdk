@@ -63,7 +63,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var arguments = node.argumentList.arguments;
     if (arguments.length == 1 && arguments.first.canonicalElement == element) {
-      rule.reportLint(forEachStatement);
+      rule.reportAtNode(forEachStatement);
     }
   }
 
@@ -74,7 +74,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
     if (arguments.length == 1 &&
         arguments.first.canonicalElement == element &&
         (target == null || !_ReferenceFinder(element).references(target))) {
-      rule.reportLint(forEachStatement);
+      rule.reportAtNode(forEachStatement);
     }
   }
 

@@ -44,6 +44,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (uniqueStatement is! ReturnStatement) return;
     if (uniqueStatement.expression == null) return;
 
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }

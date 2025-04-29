@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
           !element.metadata2.hasOptionalTypeArgs) {
-        rule.reportLint(
+        rule.reportAtNode(
           namedType,
           errorCode: LinterLintCode.always_specify_types_add_type,
         );
@@ -160,12 +160,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       } else if (type != null) {
         if (type is DynamicType) {
-          rule.reportLint(
+          rule.reportAtNode(
             param,
             errorCode: LinterLintCode.always_specify_types_add_type,
           );
         } else {
-          rule.reportLint(
+          rule.reportAtNode(
             param,
             arguments: [type],
             errorCode: LinterLintCode.always_specify_types_specify_type,

@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (elementAnnotation != null &&
         elementAnnotation.isDeprecated &&
         node.arguments == null) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

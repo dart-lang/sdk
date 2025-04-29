@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (interfaceElement is EnumElement ||
               interfaceElement is ClassElement &&
                   interfaceElement.isEnumLikeClass()) {
-            rule.reportLint(member);
+            rule.reportAtNode(member);
           }
           return;
         }

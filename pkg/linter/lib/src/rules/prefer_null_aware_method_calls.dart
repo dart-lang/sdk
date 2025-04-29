@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (target is PostfixExpression &&
           target.operator.type == TokenType.BANG &&
           target.operand.toSource() == condition.leftOperand.toSource()) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     }
   }

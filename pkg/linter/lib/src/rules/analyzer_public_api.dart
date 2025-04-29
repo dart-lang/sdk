@@ -161,7 +161,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (badNames != null) {
-      rule.reportLint(
+      rule.reportAtNode(
         node,
         errorCode: AnalyzerPublicApi.exportsNonPublicName,
         arguments: [badNames.join(', ')],
@@ -178,7 +178,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
-      rule.reportLint(node, errorCode: AnalyzerPublicApi.badPartDirective);
+      rule.reportAtNode(node, errorCode: AnalyzerPublicApi.badPartDirective);
     }
   }
 

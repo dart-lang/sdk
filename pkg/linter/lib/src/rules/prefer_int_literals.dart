@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Ensure that replacing the double would not change the semantics
     if (canReplaceWithIntLiteral(node)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 

@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.inAugmentation) return;
 
     if (type is NamedType && type.type is DynamicType) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

@@ -258,7 +258,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var typeArgument =
             collectionType.typeArguments[methodDefinition.typeArgumentIndex];
         if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),
@@ -269,7 +269,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       case _ExpectedArgumentKind.assignableToCollection:
         if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),
@@ -284,7 +284,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
         if (iterableType != null &&
             !typeSystem.isAssignableTo(argumentType, iterableType)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),

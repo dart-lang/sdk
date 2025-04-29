@@ -35,7 +35,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
     if (isRounded(node.value)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

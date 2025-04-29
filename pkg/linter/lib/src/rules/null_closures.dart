@@ -268,11 +268,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (arg is NamedExpression) {
         if (arg.expression is NullLiteral &&
             names.contains(arg.name.label.name)) {
-          rule.reportLint(arg);
+          rule.reportAtNode(arg);
         }
       } else {
         if (arg is NullLiteral && positions.contains(i)) {
-          rule.reportLint(arg);
+          rule.reportAtNode(arg);
         }
       }
     }

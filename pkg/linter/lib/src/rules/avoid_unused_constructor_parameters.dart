@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var parameter in constructorVisitor.unusedParameters) {
-      rule.reportLint(parameter, arguments: [parameter.name!.lexeme]);
+      rule.reportAtNode(parameter, arguments: [parameter.name!.lexeme]);
     }
   }
 }
