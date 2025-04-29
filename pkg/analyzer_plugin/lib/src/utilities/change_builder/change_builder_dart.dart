@@ -1228,8 +1228,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
-  void _writeSuperMemberInvocation(ExecutableElement element,
-      String memberName, List<FormalParameterElement> parameters) {
+  void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
+      List<FormalParameterElement> parameters) {
     var isOperator = element is MethodElement && element.isOperator;
     write(isOperator ? ' ' : '.');
     write(memberName);
@@ -1728,9 +1728,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     // Queued change.
     var importChange = (libraryChangeBuilder ?? this).librariesToImport[uri];
-    if (importChange != null) return true;
-
-    return false;
+    return importChange != null;
   }
 
   @override
@@ -2814,7 +2812,7 @@ class _LibraryImport implements Comparable<_LibraryImport> {
         '${allHiddenNames.isNotEmpty ? 'hide ${allHiddenNames.join(', ')}' : ''};';
   }
 
-  /// Ensures [name] is visible for this import.
+  /// Ensures that [name] is visible for this import.
   ///
   /// If the import already has a show combinator, this name will be added.
   /// If the import hides this name, it will be unhidden.
