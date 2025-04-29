@@ -620,7 +620,29 @@ void f(A a) {
     await assertNoFix();
   }
 
-  Future<void> test_static() async {
+  Future<void> test_static_class() async {
+    await resolveTestCode('''
+class C {
+}
+
+void f(String s) {
+  int v = C.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class C {
+  static int get test => null;
+}
+
+void f(String s) {
+  int v = C.test;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_static_extension() async {
     await resolveTestCode('''
 extension E on String {
 }

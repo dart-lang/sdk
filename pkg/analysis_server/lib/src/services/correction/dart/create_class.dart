@@ -56,7 +56,9 @@ class CreateClass extends ResolvedCorrectionProducer {
       }
       className = targetNode.name2.lexeme;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
-    } else if (targetNode is SimpleIdentifier) {
+    } else if (targetNode case SimpleIdentifier(
+      :var parent,
+    ) when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
       className = targetNode.nameOfType;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {

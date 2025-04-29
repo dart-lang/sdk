@@ -145,8 +145,8 @@ class CreateGetter extends CreateFieldOrGetter {
     InstanceElement? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.element2;
-    } else if (target is Identifier && target.element is ExtensionElement) {
-      targetElement = target.element as InstanceElement?;
+    } else if (target case Identifier(element: InstanceElement element)) {
+      targetElement = element;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type
