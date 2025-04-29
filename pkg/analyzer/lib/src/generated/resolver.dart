@@ -3074,6 +3074,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
     checkUnreachableNode(node);
 
     var target = node.target;
@@ -3132,6 +3138,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     nullShortingTermination(node, rewrittenExpression: replacement);
     _insertImplicitCallReference(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
     inferenceLogWriter?.exitExpression(node);
   }
 

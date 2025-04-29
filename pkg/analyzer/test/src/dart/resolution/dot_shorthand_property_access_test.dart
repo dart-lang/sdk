@@ -270,6 +270,31 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_equality_indexExpression() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  static List<C> instances = [C(1)];
+}
+
+void main() {
+  print(C(1) == .instances[0]);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: instances
+    element: <testLibraryFragment>::@class::C::@getter::instances#element
+    staticType: List<C>
+  staticType: List<C>
+''');
+  }
+
   test_equality_pattern() async {
     await assertNoErrorsInCode('''
 enum Color { red, blue }

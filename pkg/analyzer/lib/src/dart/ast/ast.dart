@@ -10091,7 +10091,7 @@ abstract final class IndexExpression
 }
 
 final class IndexExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, DotShorthandMixin
     implements IndexExpression {
   @override
   Token? period;

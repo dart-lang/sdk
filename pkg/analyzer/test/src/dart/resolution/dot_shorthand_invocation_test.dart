@@ -321,6 +321,35 @@ DotShorthandInvocation
 ''');
   }
 
+  test_equality_indexExpression() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  static List<C> instances() => [C(1)];
+}
+
+void main() {
+  print(C(1) == .instances()[0]);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instances
+    element: <testLibraryFragment>::@class::C::@method::instances#element
+    staticType: List<C> Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: List<C> Function()
+  staticType: List<C>
+''');
+  }
+
   test_extensionType() async {
     await assertNoErrorsInCode(r'''
 extension type C(int integer) {
