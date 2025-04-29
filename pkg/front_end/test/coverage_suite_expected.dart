@@ -45,7 +45,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/api_prototype/lowering_predicates.dart": (
-    hitCount: 15,
+    hitCount: 31,
     missCount: 0,
   ),
   // 100.0%.
@@ -150,7 +150,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/incremental_compiler.dart": (
-    hitCount: 829,
+    hitCount: 819,
     missCount: 0,
   ),
   // 100.0%.
@@ -1076,7 +1076,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/object_access_target.dart": (
-    hitCount: 552,
+    hitCount: 549,
     missCount: 0,
   ),
   // 100.0%.

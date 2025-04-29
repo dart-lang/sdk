@@ -2652,6 +2652,7 @@ class _ComponentProblems {
     // Report old problems that wasn't reported again.
     for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
         in _remainingComponentProblems.entries) {
+      // Coverage-ignore-block(suite): Not run.
       List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];
