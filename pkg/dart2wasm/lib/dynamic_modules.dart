@@ -521,33 +521,24 @@ class DynamicModuleInfo {
 
   void _initializeOverrideableReferences() {
     for (final builtin in BuiltinUpdatableFunctions.values) {
-      _createUpdateableFunction(
-          builtin.index, false, builtin._buildType(translator),
+      _createUpdateableFunction(builtin.index, builtin._buildType(translator),
           buildMain: (f) => builtin._buildMain(f, translator),
           buildDynamic: (f) => builtin._buildDynamic(f, translator),
           name: '#r_${builtin.name}');
     }
 
-    for (final (reference, useUncheckedEntry) in metadata.invokedReferences) {
+    for (final reference in metadata.invokedReferences) {
       final selector = translator.dispatchTable.selectorForTarget(reference);
-      translator.functions.recordSelectorUse(selector, useUncheckedEntry);
-
-      w.FunctionType signature;
-      void Function(w.FunctionBuilder) buildMain;
-      void Function(w.FunctionBuilder) buildDynamic;
+      translator.functions.recordSelectorUse(selector, false);
 
       final mainSelector = translator.dynamicMainModuleDispatchTable!
           .selectorForTarget(reference);
-      signature = _getGeneralizedSignature(mainSelector);
-      buildMain =
-          buildSelectorBranch(reference, useUncheckedEntry, mainSelector);
-      buildDynamic =
-          buildSelectorBranch(reference, useUncheckedEntry, mainSelector);
+      final signature = _getGeneralizedSignature(mainSelector);
+      final buildMain = buildSelectorBranch(reference, mainSelector);
+      final buildDynamic = buildSelectorBranch(reference, mainSelector);
 
       _createUpdateableFunction(
-          mainSelector.id + BuiltinUpdatableFunctions.values.length,
-          useUncheckedEntry,
-          signature,
+          mainSelector.id + BuiltinUpdatableFunctions.values.length, signature,
           buildMain: buildMain,
           buildDynamic: buildDynamic,
           name: '#s${mainSelector.id}_${mainSelector.name}');
@@ -582,16 +573,14 @@ class DynamicModuleInfo {
     b.drop();
   }
 
-  int _createUpdateableFunction(
-      int key, bool useUncheckedEntry, w.FunctionType type,
+  int _createUpdateableFunction(int key, w.FunctionType type,
       {required void Function(w.FunctionBuilder function) buildMain,
       required void Function(w.FunctionBuilder function) buildDynamic,
       bool skipDynamic = false,
       required String name}) {
-    final mapKey = (key, useUncheckedEntry);
+    final mapKey = key;
     final index = metadata.keyInvocationToIndex[mapKey] ??=
         metadata.keyInvocationToIndex.length;
-
     overrideableFunctions.putIfAbsent(index, () {
       if (!isDynamicModule) {
         final mainFunction = translator.mainModule.functions.define(type, name);
@@ -611,8 +600,8 @@ class DynamicModuleInfo {
     return index;
   }
 
-  void _callClassIdBranch(int key, bool useUncheckedEntry,
-      w.InstructionsBuilder b, w.FunctionType signature,
+  void _callClassIdBranch(
+      int key, w.InstructionsBuilder b, w.FunctionType signature,
       {required void Function(w.FunctionBuilder b) buildMainMatch,
       required void Function(w.FunctionBuilder b) buildDynamicMatch,
       bool skipDynamic = false,
@@ -622,8 +611,7 @@ class DynamicModuleInfo {
     final canSkipDynamicBranch = skipDynamic ||
         translator.classIdNumbering.maxDynamicModuleClassId ==
             translator.classIdNumbering.maxClassId;
-    final callIndex = _createUpdateableFunction(
-        key, useUncheckedEntry, signature,
+    final callIndex = _createUpdateableFunction(key, signature,
         buildMain: buildMainMatch,
         buildDynamic: buildDynamicMatch,
         skipDynamic: canSkipDynamicBranch,
@@ -644,7 +632,7 @@ class DynamicModuleInfo {
   void callClassIdBranchBuiltIn(
       BuiltinUpdatableFunctions key, w.InstructionsBuilder b,
       {bool skipDynamic = false}) {
-    _callClassIdBranch(key.index, false, b, key._buildType(translator),
+    _callClassIdBranch(key.index, b, key._buildType(translator),
         buildMainMatch: (f) => key._buildMain(f, translator),
         buildDynamicMatch: (f) => key._buildDynamic(f, translator),
         name: '#r_${key.name}',
@@ -658,6 +646,7 @@ class DynamicModuleInfo {
     // selector's signature may change between compilations.
     final generalizedSignature = translator.typesBuilder.defineFunction([
       ...signature.inputs.map((e) => const w.RefType.any(nullable: true)),
+      w.NumType.i32,
       w.NumType.i32
     ], [
       ...signature.outputs.map((e) => const w.RefType.any(nullable: true))
@@ -666,15 +655,16 @@ class DynamicModuleInfo {
   }
 
   void Function(w.FunctionBuilder) buildSelectorBranch(
-      Reference target, bool useUncheckedEntry, SelectorInfo mainSelector) {
+      Reference target, SelectorInfo mainSelector) {
     return (w.FunctionBuilder function) {
       final localSelector = translator.dispatchTable.selectorForTarget(target);
       final localSignature = localSelector.signature;
       final ib = function.body;
 
-      final offset = localSelector.targets(unchecked: useUncheckedEntry).offset;
+      final uncheckedOffset = localSelector.targets(unchecked: true).offset;
+      final checkedOffset = localSelector.targets(unchecked: false).offset;
 
-      if (offset == null) {
+      if (uncheckedOffset == null && checkedOffset == null) {
         ib.unreachable();
         ib.end();
         return;
@@ -745,12 +735,32 @@ class DynamicModuleInfo {
             ib, constant, localSignature.inputs[localsIndex]);
       }
 
-      ib.local_get(ib.locals.last);
+      ib.local_get(ib.locals[function.type.inputs.length - 2]);
       if (isDynamicModule) {
         translator.callReference(translator.scopeClassId.reference, ib);
       }
-      if (offset != 0) {
-        ib.i32_const(offset);
+      if (checkedOffset == uncheckedOffset) {
+        if (checkedOffset != 0) {
+          ib.i32_const(checkedOffset!);
+          ib.i32_add();
+        }
+      } else if (checkedOffset != 0 || uncheckedOffset != 0) {
+        // Check if the invocation is checked or unchecked and use the
+        // appropriate offset.
+        ib.local_get(ib.locals[function.type.inputs.length - 1]);
+        ib.if_(const [], const [w.NumType.i32]);
+        if (uncheckedOffset != null) {
+          ib.i32_const(uncheckedOffset);
+        } else {
+          ib.unreachable();
+        }
+        ib.else_();
+        if (checkedOffset != null) {
+          ib.i32_const(checkedOffset);
+        } else {
+          ib.unreachable();
+        }
+        ib.end();
         ib.i32_add();
       }
       final table = translator.dispatchTable.getWasmTable(ib.module);
@@ -764,7 +774,7 @@ class DynamicModuleInfo {
   void callOverrideableDispatch(
       w.InstructionsBuilder b, SelectorInfo selector, Reference interfaceTarget,
       {required bool useUncheckedEntry}) {
-    metadata.invokedReferences.add((interfaceTarget, useUncheckedEntry));
+    metadata.invokedReferences.add(interfaceTarget);
 
     final localSignature = selector.signature;
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it
@@ -788,6 +798,7 @@ class DynamicModuleInfo {
     final idLocal = b.addLocal(w.NumType.i32);
     b.struct_get(translator.topInfo.struct, FieldIndex.classId);
     b.local_tee(idLocal);
+    b.i32_const(useUncheckedEntry ? 1 : 0);
     b.local_get(idLocal);
 
     final mainDispatchTable =
@@ -799,17 +810,13 @@ class DynamicModuleInfo {
     // For consistency, always use the main module selector ID when generating
     // the key.
     final key = mainModuleSelector.id + BuiltinUpdatableFunctions.values.length;
-    _callClassIdBranch(key, useUncheckedEntry, b, generalizedSignature,
+    _callClassIdBranch(key, b, generalizedSignature,
         name: '#s${mainModuleSelector.id}_${mainModuleSelector.name}',
-        buildMainMatch: buildSelectorBranch(
-            interfaceTarget, useUncheckedEntry, mainModuleSelector),
-        buildDynamicMatch: buildSelectorBranch(
-            interfaceTarget, useUncheckedEntry, mainModuleSelector),
-        skipDynamic: translator.isDynamicModule &&
-            selector
-                .targets(unchecked: useUncheckedEntry)
-                .targetRanges
-                .isEmpty);
+        buildMainMatch:
+            buildSelectorBranch(interfaceTarget, mainModuleSelector),
+        buildDynamicMatch:
+            buildSelectorBranch(interfaceTarget, mainModuleSelector),
+        skipDynamic: selector.targets(unchecked: false).targetRanges.isEmpty);
     translator.convertType(
         b, generalizedSignature.outputs.single, localSignature.outputs.single);
   }

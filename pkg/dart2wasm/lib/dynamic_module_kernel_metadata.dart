@@ -221,12 +221,12 @@ class MainModuleMetadata {
   late final DispatchTable dispatchTable;
 
   /// Contains each invoked reference that targets an updateable function.
-  final Set<(Reference, bool)> invokedReferences;
+  final Set<Reference> invokedReferences;
 
   /// Maps invocation keys (either selector or builtin) to the implementation's
   /// index in the runtime table. Key includes whether the key was invoked
   /// with unchecked entry.
-  final Map<(int, bool), int> keyInvocationToIndex;
+  final Map<int, int> keyInvocationToIndex;
 
   /// Classes in dfs order.
   final List<Class> dfsOrderClassIds;
@@ -299,15 +299,9 @@ class MainModuleMetadata {
 
     dispatchTable.serialize(sink);
 
-    sink.writeList(invokedReferences, (r) {
-      sink.writeReference(r.$1);
-      sink.writeBool(r.$2);
-    });
+    sink.writeList(invokedReferences, sink.writeReference);
 
-    sink.writeMap(keyInvocationToIndex, (r) {
-      sink.writeInt(r.$1);
-      sink.writeBool(r.$2);
-    }, sink.writeInt);
+    sink.writeMap(keyInvocationToIndex, sink.writeInt, sink.writeInt);
 
     sink.writeList(dfsOrderClassIds, sink.writeClass);
 
@@ -324,17 +318,9 @@ class MainModuleMetadata {
 
     final dispatchTable = DispatchTable.deserialize(source);
 
-    final invokedReferences = source.readList(() {
-      final reference = source.readReference();
-      final useUncheckedEntry = source.readBool();
-      return (reference, useUncheckedEntry);
-    }).toSet();
+    final invokedReferences = source.readList(source.readReference).toSet();
 
-    final keyInvocationToIndex = source.readMap(() {
-      final key = source.readInt();
-      final useUncheckedEntry = source.readBool();
-      return (key, useUncheckedEntry);
-    }, source.readInt);
+    final keyInvocationToIndex = source.readMap(source.readInt, source.readInt);
 
     final dfsOrderClasses = source.readList(source.readClass);
 
