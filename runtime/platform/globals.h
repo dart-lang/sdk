@@ -122,9 +122,6 @@
 #if TARGET_OS_IPHONE
 #define DART_HOST_OS_IOS 1
 #endif
-#if TARGET_OS_WATCH
-#define DART_HOST_OS_WATCH 1
-#endif
 
 #elif defined(_WIN32)
 

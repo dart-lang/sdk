@@ -903,11 +903,6 @@ int Process::Exec(Namespace* namespc,
                   const char* working_directory,
                   char* errmsg,
                   intptr_t errmsg_len) {
-#if defined(DART_HOST_OS_WATCH)
-  // execvp is not available on watchOS.
-  Utils::StrError(ENOSYS, errmsg, errmsg_len);
-  return -1;
-#else
   if (working_directory != nullptr &&
       TEMP_FAILURE_RETRY(chdir(working_directory)) == -1) {
     Utils::StrError(errno, errmsg, errmsg_len);
@@ -917,7 +912,6 @@ int Process::Exec(Namespace* namespc,
   execvp(const_cast<const char*>(path), const_cast<char* const*>(arguments));
   Utils::StrError(errno, errmsg, errmsg_len);
   return -1;
-#endif
 }
 
 static int SignalMap(intptr_t id) {

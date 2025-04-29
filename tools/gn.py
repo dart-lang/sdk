@@ -198,12 +198,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
         gn_args['target_os'] = host_os
     elif target_os == 'ios_simulator':
         gn_args['target_os'] = 'ios'
-        gn_args['use_simulator'] = True
-    elif target_os == 'watchos_simulator':
-        gn_args['target_os'] = 'watchos'
-        gn_args['use_simulator'] = True
-    elif target_os == 'watchos':
-        gn_args['target_os'] = 'watchos'
+        gn_args['use_ios_simulator'] = True
     else:
         gn_args['target_os'] = target_os
 
@@ -363,7 +358,7 @@ def ProcessOptions(args):
     for os_name in oses:
         if not os_name in [
                 'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia',
-                'ios', 'ios_simulator', 'watchos', 'watchos_simulator'
+                'ios', 'ios_simulator'
         ]:
             print("Unknown os %s" % os_name)
             return False
@@ -398,7 +393,7 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
                 return False
-        elif os_name == 'ios' or os_name == 'ios_simulator' or os_name == 'watchos' or os_name == 'watchos_simulator':
+        elif os_name == 'ios' or os_name == 'ios_simulator':
             if not HOST_OS in ['macos']:
                 print(f'Target os {os_name} is only supported on macOS')
                 return False

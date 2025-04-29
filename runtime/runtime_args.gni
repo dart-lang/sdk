@@ -72,11 +72,11 @@ declare_args() {
   # Whether the sampling heap profiler should be included in product mode.
   dart_include_sampling_heap_profiler = false
 
-  # Whether features that depend on Perfetto should be built. We need
-  # to define this to allow excluding code that depends on Perfetto
-  # from being built on platforms which have a problem linking in the
-  # Perfetto library, e.g. watchOS.
-  dart_support_perfetto = !is_watchos
+  # Whether features that depend on Perfetto should be built. We temporarily
+  # need to define this to allow excluding code that depends on Perfetto from
+  # being built on platforms which have a problem linking in the Perfetto
+  # library.
+  dart_support_perfetto = true
 
   # Whether to support dynamic loading and interpretation of Dart bytecode.
   dart_dynamic_modules = false

@@ -172,10 +172,7 @@ source_set("libprotozero") {
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
   extra_product_deps = []
-  extra_nonproduct_deps = []
-  if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ ":libprotozero" ]
-  }
+  extra_nonproduct_deps = [ ":libprotozero" ]
   extra_deps = [
     "//third_party/icu:icui18n",
     "//third_party/icu:icuuc",
@@ -216,11 +213,7 @@ library_for_all_configs_with_compiler("libdart_compiler") {
   public_configs = [ ":libdart_vm_config" ]
   sources = rebase_path(compiler_sources, ".", "./compiler/")
   include_dirs = [ ".." ]
-
-  extra_nonproduct_deps = []
-  if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ ":libprotozero" ]
-  }
+  extra_nonproduct_deps = [ ":libprotozero" ]
   extra_deps = []
   if (is_fuchsia) {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
@@ -229,10 +222,7 @@ library_for_all_configs_with_compiler("libdart_compiler") {
 
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
-  extra_nonproduct_deps = []
-  if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ ":libprotozero" ]
-  }
+  extra_nonproduct_deps = [ ":libprotozero" ]
   extra_deps = []
   if (is_fuchsia) {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
