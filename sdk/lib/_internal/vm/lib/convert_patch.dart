@@ -775,8 +775,12 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     int keywordType = partialState & KWD_TYPE_MASK;
     int count = partialState >> KWD_COUNT_SHIFT;
     int keywordTypeIndex = keywordType >> KWD_TYPE_SHIFT;
-    String keyword =
-        const ["null", "true", "false", "\xEF\xBB\xBF"][keywordTypeIndex];
+    String keyword = const [
+      "null",
+      "true",
+      "false",
+      "\xEF\xBB\xBF",
+    ][keywordTypeIndex];
     assert(count < keyword.length);
     do {
       if (position == chunkEnd) {

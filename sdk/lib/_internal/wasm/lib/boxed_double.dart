@@ -190,11 +190,11 @@ final class BoxedDouble implements double {
   bool operator ==(Object other) {
     return other is double
         ? this ==
-            other // Intrinsic ==
+              other // Intrinsic ==
         : other is int
         ? this ==
-            other
-                .toDouble() // Intrinsic ==
+              other
+                  .toDouble() // Intrinsic ==
         : false;
   }
 
@@ -438,10 +438,10 @@ final class BoxedDouble implements double {
     fractionDigits == null
         ? JS<WasmExternRef>("d => d.toExponential()", value)
         : JS<WasmExternRef>(
-          "(d, f) => d.toExponential(f)",
-          value,
-          fractionDigits.toDouble(),
-        ),
+            "(d, f) => d.toExponential(f)",
+            value,
+            fractionDigits.toDouble(),
+          ),
   );
 
   String toStringAsPrecision(int precision) {

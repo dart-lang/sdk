@@ -77,10 +77,9 @@ extension DoubleToExternRef on double? {
 }
 
 extension StringToExternRef on String? {
-  WasmExternRef? get toExternRef =>
-      this == null
-          ? WasmExternRef.nullRef
-          : jsStringFromDartString(this!).toExternRef;
+  WasmExternRef? get toExternRef => this == null
+      ? WasmExternRef.nullRef
+      : jsStringFromDartString(this!).toExternRef;
 }
 
 extension JSValueToExternRef on JSValue? {
@@ -228,18 +227,18 @@ WasmExternRef? callConstructorVarArgsRaw(
   WasmExternRef? o,
   WasmExternRef? args,
 ) =>
-// Apply bind to the constructor. We pass `null` as the first argument
-// to `bind.apply` because this is `bind`'s unused context
-// argument(`new` will explicitly create a new context).
-JS<WasmExternRef?>(
-  """(constructor, args) => {
+    // Apply bind to the constructor. We pass `null` as the first argument
+    // to `bind.apply` because this is `bind`'s unused context
+    // argument(`new` will explicitly create a new context).
+    JS<WasmExternRef?>(
+      """(constructor, args) => {
       const factoryFunction = constructor.bind.apply(
           constructor, [null, ...args]);
       return new factoryFunction();
     }""",
-  o,
-  args,
-);
+      o,
+      args,
+    );
 
 bool hasPropertyRaw(WasmExternRef? o, WasmExternRef? p) =>
     JS<bool>("(o, p) => p in o", o, p);
@@ -446,8 +445,7 @@ class ExternRefType {
 /// should be updated as well.
 int externRefType(WasmExternRef? ref) {
   if (ref.isNull) return ExternRefType.null_;
-  final val =
-      JS<WasmI32>('''
+  final val = JS<WasmI32>('''
   o => {
     if (o === undefined) return 1;
     var type = typeof o;
@@ -490,8 +488,8 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.array => toDartList(ref),
     ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromJSArray(ref),
     ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromJSArray(ref),
-    ExternRefType.uint8ClampedArray => js_types
-        .JSUint8ClampedArrayImpl.fromJSArray(ref),
+    ExternRefType.uint8ClampedArray =>
+      js_types.JSUint8ClampedArrayImpl.fromJSArray(ref),
     ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromJSArray(ref),
     ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromJSArray(ref),
     ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromJSArray(ref),

@@ -310,14 +310,13 @@ class NoSuchMethodError {
 
       String kindBuf = "function";
       if (kind >= 0 && kind < 5) {
-        kindBuf =
-            (const [
-              "method",
-              "getter",
-              "setter",
-              "getter or setter",
-              "variable",
-            ])[kind];
+        kindBuf = (const [
+          "method",
+          "getter",
+          "setter",
+          "getter or setter",
+          "variable",
+        ])[kind];
       }
 
       StringBuffer msgBuf = StringBuffer("NoSuchMethodError: ");

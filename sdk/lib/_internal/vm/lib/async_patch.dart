@@ -624,8 +624,9 @@ class _SyncStarIterator<T> implements Iterator<T> {
           // current _state for later resumption).
           final stack = (_stack ??= []);
           stack.add(_state!);
-          final nestedState =
-              unsafeCast<_SyncStarIterable>(iterable)._stateAtStart!._clone();
+          final nestedState = unsafeCast<_SyncStarIterable>(
+            iterable,
+          )._stateAtStart!._clone();
           nestedState._functionData = this;
           _state = nestedState;
         } else {

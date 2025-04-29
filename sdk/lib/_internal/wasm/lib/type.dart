@@ -1584,10 +1584,9 @@ bool _isTypeSubtype(_Type s, _Type t) {
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 void _asSubtype(Object? o, bool onlyNullabilityCheck, _Type t) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, t.isDeclaredNullable)
-          : _isSubtype(o, t);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, t.isDeclaredNullable)
+      : _isSubtype(o, t);
   if (success) return;
   _throwAsCheckError(o, t);
 }
@@ -1601,10 +1600,9 @@ void _asInterfaceSubtype(
   WasmI32 tId,
   WasmArray<_Type> typeArguments,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments);
   if (success) return;
   _throwInterfaceTypeAsCheckError(o, isDeclaredNullable, tId, typeArguments);
 }
@@ -1617,10 +1615,9 @@ void _asInterfaceSubtype0(
   bool isDeclaredNullable,
   WasmI32 tId,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype0(o, isDeclaredNullable, tId);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype0(o, isDeclaredNullable, tId);
   if (success) return;
   _throwInterfaceTypeAsCheckError0(o, isDeclaredNullable, tId);
 }
@@ -1634,10 +1631,9 @@ void _asInterfaceSubtype1(
   WasmI32 tId,
   _Type typeArgument0,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0);
   if (success) return;
   _throwInterfaceTypeAsCheckError1(o, isDeclaredNullable, tId, typeArgument0);
 }
@@ -1652,16 +1648,15 @@ void _asInterfaceSubtype2(
   _Type typeArgument0,
   _Type typeArgument1,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype2(
-            o,
-            isDeclaredNullable,
-            tId,
-            typeArgument0,
-            typeArgument1,
-          );
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype2(
+          o,
+          isDeclaredNullable,
+          tId,
+          typeArgument0,
+          typeArgument1,
+        );
   if (success) return;
   _throwInterfaceTypeAsCheckError2(
     o,

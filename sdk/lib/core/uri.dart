@@ -1394,10 +1394,8 @@ abstract interface class Uri {
       } else if (index != 0) {
         var key = element.substring(0, index);
         var value = element.substring(index + 1);
-        map[decodeQueryComponent(
-          key,
-          encoding: encoding,
-        )] = decodeQueryComponent(value, encoding: encoding);
+        map[decodeQueryComponent(key, encoding: encoding)] =
+            decodeQueryComponent(value, encoding: encoding);
       }
       return map;
     });
@@ -2152,8 +2150,9 @@ final class _Uri implements _PlatformUri {
       if (path.startsWith(sep, 1)) {
         // Absolute file:// URI with host.
         int pathStart = path.indexOf(r'\', 2);
-        String hostPart =
-            (pathStart < 0) ? path.substring(2) : path.substring(2, pathStart);
+        String hostPart = (pathStart < 0)
+            ? path.substring(2)
+            : path.substring(2, pathStart);
         String pathPart = (pathStart < 0) ? "" : path.substring(pathStart + 1);
         var pathSegments = pathPart.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
@@ -2275,8 +2274,8 @@ final class _Uri implements _PlatformUri {
     return (pathToSplit.isEmpty)
         ? const <String>[]
         : List<String>.unmodifiable(
-          pathToSplit.split("/").map(Uri.decodeComponent),
-        );
+            pathToSplit.split("/").map(Uri.decodeComponent),
+          );
   }
 
   static Map<String, List<String>> _computeQueryParametersAll(String? query) {
@@ -2323,8 +2322,9 @@ final class _Uri implements _PlatformUri {
       if (host.codeUnitAt(start + 1) != _LOWER_CASE_V) {
         index = _checkZoneID(host, start + 1, end - 1);
         if (index < end - 1) {
-          int zoneIDstart =
-              (host.startsWith("25", index + 1)) ? index + 3 : index + 1;
+          int zoneIDstart = (host.startsWith("25", index + 1))
+              ? index + 3
+              : index + 1;
           zoneID = _normalizeZoneID(host, zoneIDstart, end - 1, "%25");
         }
       }
@@ -2343,8 +2343,9 @@ final class _Uri implements _PlatformUri {
           String zoneID = "";
           int index = _checkZoneID(host, start, end);
           if (index < end) {
-            int zoneIDstart =
-                (host.startsWith("25", index + 1)) ? index + 3 : index + 1;
+            int zoneIDstart = (host.startsWith("25", index + 1))
+                ? index + 3
+                : index + 1;
             zoneID = _normalizeZoneID(host, zoneIDstart, end, "%25");
           }
           Uri.parseIPv6Address(host, start, index);
@@ -4468,10 +4469,9 @@ final class _SimpleUri implements _PlatformUri {
 
   String get authority =>
       _hostStart > 0 ? _uri.substring(_schemeEnd + 3, _pathStart) : "";
-  String get userInfo =>
-      (_hostStart > _schemeEnd + 3)
-          ? _uri.substring(_schemeEnd + 3, _hostStart - 1)
-          : "";
+  String get userInfo => (_hostStart > _schemeEnd + 3)
+      ? _uri.substring(_schemeEnd + 3, _hostStart - 1)
+      : "";
   String get host =>
       _hostStart > 0 ? _uri.substring(_hostStart, _portStart) : "";
   int get port {
@@ -4482,10 +4482,9 @@ final class _SimpleUri implements _PlatformUri {
   }
 
   String get path => _uri.substring(_pathStart, _queryStart);
-  String get query =>
-      (_queryStart < _fragmentStart)
-          ? _uri.substring(_queryStart + 1, _fragmentStart)
-          : "";
+  String get query => (_queryStart < _fragmentStart)
+      ? _uri.substring(_queryStart + 1, _fragmentStart)
+      : "";
   String get fragment =>
       (_fragmentStart < _uri.length) ? _uri.substring(_fragmentStart + 1) : "";
 

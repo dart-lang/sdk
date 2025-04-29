@@ -172,15 +172,14 @@ class Message {
     final values = _makeAllString(
       params.values.cast<Object?>().toList(growable: false),
     );
-    final request =
-        List<Object?>.filled(6, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = receivePort.sendPort
-          ..[2] = serial
-          ..[3] = method
-          ..[4] = keys
-          ..[5] = values;
+    final request = List<Object?>.filled(6, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = receivePort.sendPort
+      ..[2] = serial
+      ..[3] = method
+      ..[4] = keys
+      ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
       ports.remove(receivePort);
@@ -224,15 +223,14 @@ class Message {
       keys = _makeAllString(keys);
       values = _makeAllString(values);
     }
-    final request =
-        List<dynamic>.filled(6, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = receivePort.sendPort
-          ..[2] = serial
-          ..[3] = method
-          ..[4] = keys
-          ..[5] = values;
+    final request = List<dynamic>.filled(6, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = receivePort.sendPort
+      ..[2] = serial
+      ..[3] = method
+      ..[4] = keys
+      ..[5] = values;
 
     if (_methodNeedsObjectParameters(method!)) {
       // We use a different method invocation path here.

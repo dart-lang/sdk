@@ -37,15 +37,14 @@ final class FileSystemEntityType {
   const FileSystemEntityType._internal(this._type);
 
   static FileSystemEntityType _lookup(int type) => _typeList[type];
-  String toString() =>
-      const [
-        'file',
-        'directory',
-        'link',
-        'unixDomainSock',
-        'pipe',
-        'notFound',
-      ][_type];
+  String toString() => const [
+    'file',
+    'directory',
+    'link',
+    'unixDomainSock',
+    'pipe',
+    'notFound',
+  ][_type];
 }
 
 /// The result of calling the POSIX `stat()` function on a file system object.
@@ -183,7 +182,8 @@ interface class FileStat {
     );
   }
 
-  String toString() => """
+  String toString() =>
+      """
 FileStat: type $type
           changed $changed
           modified $modified
@@ -772,7 +772,7 @@ abstract class FileSystemEntity {
   /// [FileSystemEntityType.directory].
   static bool isDirectorySync(String path) =>
       (_getTypeSync(_toUtf8Array(path), true) ==
-          FileSystemEntityType.directory);
+      FileSystemEntityType.directory);
 
   external static _getTypeNative(
     _Namespace namespace,
@@ -787,10 +787,9 @@ abstract class FileSystemEntity {
   external static _resolveSymbolicLinks(_Namespace namespace, Uint8List path);
 
   // Finds the next-to-last component when dividing at path separators.
-  static final RegExp _parentRegExp =
-      Platform.isWindows
-          ? new RegExp(r'[^/\\][/\\]+[^/\\]')
-          : new RegExp(r'[^/]/+[^/]');
+  static final RegExp _parentRegExp = Platform.isWindows
+      ? new RegExp(r'[^/\\][/\\]+[^/\\]')
+      : new RegExp(r'[^/]/+[^/]');
 
   /// The parent path of a path.
   ///

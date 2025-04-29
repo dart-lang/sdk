@@ -63,8 +63,9 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   void insertAll(int index, Iterable<T> iterable) {
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
-    final that =
-        iterable is EfficientLengthIterable ? iterable : iterable.toList();
+    final that = iterable is EfficientLengthIterable
+        ? iterable
+        : iterable.toList();
     final thatLength = that.length;
     _setLengthUnsafe(length + thatLength);
     final end = index + thatLength;
@@ -346,10 +347,9 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   void replaceRange(int start, int end, Iterable<T> replacement) {
     RangeErrorUtils.checkValidRange(start, end, length);
-    final replacementList =
-        replacement is EfficientLengthIterable
-            ? replacement
-            : replacement.toList();
+    final replacementList = replacement is EfficientLengthIterable
+        ? replacement
+        : replacement.toList();
     final removeLength = end - start;
     final insertLength = replacementList.length;
     if (removeLength >= insertLength) {
@@ -396,14 +396,13 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   Iterable<T> get reversed => ReversedListIterable<T>(this);
 
-  static int _compareAny<T extends JSAny?>(T a, T b) =>
-      js
-          .JS<double>(
-            '(a, b) => a == b ? 0 : (a > b ? 1 : -1)',
-            a.toExternRef,
-            b.toExternRef,
-          )
-          .toInt();
+  static int _compareAny<T extends JSAny?>(T a, T b) => js
+      .JS<double>(
+        '(a, b) => a == b ? 0 : (a > b ? 1 : -1)',
+        a.toExternRef,
+        b.toExternRef,
+      )
+      .toInt();
 
   @override
   void sort([int Function(T, T)? compare]) =>

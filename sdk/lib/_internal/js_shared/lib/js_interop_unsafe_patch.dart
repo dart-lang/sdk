@@ -96,11 +96,11 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
     arg1 == null
         ? null
         : [
-          arg1,
-          if (arg2 != null) arg2,
-          if (arg3 != null) arg3,
-          if (arg4 != null) arg4,
-        ],
+            arg1,
+            if (arg2 != null) arg2,
+            if (arg3 != null) arg3,
+            if (arg4 != null) arg4,
+          ],
   );
 
   @patch

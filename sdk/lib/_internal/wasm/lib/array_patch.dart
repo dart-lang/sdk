@@ -16,24 +16,21 @@ class List<E> {
 
   @patch
   @pragma("wasm:prefer-inline")
-  factory List.filled(int length, E fill, {bool growable = false}) =>
-      growable
-          ? GrowableList<E>.filled(length, fill)
-          : ModifiableFixedLengthList<E>.filled(length, fill);
+  factory List.filled(int length, E fill, {bool growable = false}) => growable
+      ? GrowableList<E>.filled(length, fill)
+      : ModifiableFixedLengthList<E>.filled(length, fill);
 
   @patch
   @pragma("wasm:prefer-inline")
-  factory List.from(Iterable elements, {bool growable = true}) =>
-      growable
-          ? GrowableList<E>.ofUntypedIterable(elements)
-          : ModifiableFixedLengthList<E>.ofUntypedIterable(elements);
+  factory List.from(Iterable elements, {bool growable = true}) => growable
+      ? GrowableList<E>.ofUntypedIterable(elements)
+      : ModifiableFixedLengthList<E>.ofUntypedIterable(elements);
 
   @patch
   @pragma("wasm:prefer-inline")
-  factory List.of(Iterable<E> elements, {bool growable = true}) =>
-      growable
-          ? GrowableList<E>.of(elements)
-          : ModifiableFixedLengthList<E>.of(elements);
+  factory List.of(Iterable<E> elements, {bool growable = true}) => growable
+      ? GrowableList<E>.of(elements)
+      : ModifiableFixedLengthList<E>.of(elements);
 
   @patch
   @pragma("wasm:prefer-inline")
@@ -41,10 +38,9 @@ class List<E> {
     int length,
     E generator(int index), {
     bool growable = true,
-  }) =>
-      growable
-          ? GrowableList<E>.generate(length, generator)
-          : ModifiableFixedLengthList<E>.generate(length, generator);
+  }) => growable
+      ? GrowableList<E>.generate(length, generator)
+      : ModifiableFixedLengthList<E>.generate(length, generator);
 
   @patch
   @pragma("wasm:prefer-inline")

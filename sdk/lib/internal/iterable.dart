@@ -1066,10 +1066,9 @@ class IndexedIterator<T> implements Iterator<(int, T)> {
     return false;
   }
 
-  (int, T) get current =>
-      _index >= 0
-          ? (_start + _index, _source.current)
-          : (throw IterableElementError.noElement());
+  (int, T) get current => _index >= 0
+      ? (_start + _index, _source.current)
+      : (throw IterableElementError.noElement());
 }
 
 /**

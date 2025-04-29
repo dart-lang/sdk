@@ -44,11 +44,10 @@ extension JSAnyUtilityExtension on JSAny? {
       foreign_helper.JS('bool', '# instanceof #', this, constructor);
 
   @patch
-  bool isA<T>() =>
-      throw UnimplementedError(
-        "This should never be called. Calls to 'isA' should have been "
-        'transformed by the interop transformer.',
-      );
+  bool isA<T>() => throw UnimplementedError(
+    "This should never be called. Calls to 'isA' should have been "
+    'transformed by the interop transformer.',
+  );
 
   @patch
   @pragma('dart2js:prefer-inline')
@@ -68,29 +67,26 @@ extension NullableObjectUtilExtension on Object? {
 @patch
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
-  Function get toDart =>
-      throw UnimplementedError(
-        "'toDart' should never directly be called. Calls to 'toDart' should have "
-        'been transformed by the interop transformer.',
-      );
+  Function get toDart => throw UnimplementedError(
+    "'toDart' should never directly be called. Calls to 'toDart' should have "
+    'been transformed by the interop transformer.',
+  );
 }
 
 @patch
 extension FunctionToJSExportedDartFunction on Function {
   @patch
-  JSExportedDartFunction get toJS =>
-      throw UnimplementedError(
-        "'toJS' should never directly be called. Calls to 'toJS' should have "
-        'been transformed by the interop transformer.',
-      );
+  JSExportedDartFunction get toJS => throw UnimplementedError(
+    "'toJS' should never directly be called. Calls to 'toJS' should have "
+    'been transformed by the interop transformer.',
+  );
 
   @patch
-  JSExportedDartFunction get toJSCaptureThis =>
-      throw UnimplementedError(
-        "'toJSCaptureThis' should never directly be called. Calls to "
-        "'toJSCaptureThis' should have been transformed by the interop "
-        'transformer.',
-      );
+  JSExportedDartFunction get toJSCaptureThis => throw UnimplementedError(
+    "'toJSCaptureThis' should never directly be called. Calls to "
+    "'toJSCaptureThis' should have been transformed by the interop "
+    'transformer.',
+  );
 }
 
 // Embedded global property for wrapped Dart objects passed via JS interop.

@@ -498,18 +498,15 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
   Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     _controller = StreamController<FileSystemEvent>();
-    _subscription = _FileSystemWatcher._listenOnSocket(
-      pathId,
-      0,
-      pathId,
-    ).listen((event) {
-      assert(event[0] == pathId);
-      if (event[1] != null) {
-        _controller.add(event[1]);
-      } else {
-        _controller.close();
-      }
-    });
+    _subscription = _FileSystemWatcher._listenOnSocket(pathId, 0, pathId)
+        .listen((event) {
+          assert(event[0] == pathId);
+          if (event[1] != null) {
+            _controller.add(event[1]);
+          } else {
+            _controller.close();
+          }
+        });
     return _controller.stream;
   }
 
@@ -530,17 +527,14 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
     var pathId = _watcherPath!.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
     _controller = StreamController<FileSystemEvent>();
-    _subscription = _FileSystemWatcher._listenOnSocket(
-      socketId,
-      0,
-      pathId,
-    ).listen((event) {
-      if (event[1] != null) {
-        _controller.add(event[1]);
-      } else {
-        _controller.close();
-      }
-    });
+    _subscription = _FileSystemWatcher._listenOnSocket(socketId, 0, pathId)
+        .listen((event) {
+          if (event[1] != null) {
+            _controller.add(event[1]);
+          } else {
+            _controller.close();
+          }
+        });
     return _controller.stream;
   }
 

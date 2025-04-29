@@ -1170,23 +1170,23 @@ abstract mixin class Stream<T> {
     subscription.onData(
       separator.isEmpty
           ? (T element) {
-            try {
-              buffer.write(element);
-            } catch (e, s) {
-              _cancelAndErrorWithReplacement(subscription, result, e, s);
+              try {
+                buffer.write(element);
+              } catch (e, s) {
+                _cancelAndErrorWithReplacement(subscription, result, e, s);
+              }
             }
-          }
           : (T element) {
-            if (!first) {
-              buffer.write(separator);
-            }
-            first = false;
-            try {
-              buffer.write(element);
-            } catch (e, s) {
-              _cancelAndErrorWithReplacement(subscription, result, e, s);
-            }
-          },
+              if (!first) {
+                buffer.write(separator);
+              }
+              first = false;
+              try {
+                buffer.write(element);
+              } catch (e, s) {
+                _cancelAndErrorWithReplacement(subscription, result, e, s);
+              }
+            },
     );
     return result;
   }
@@ -2689,9 +2689,9 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
 abstract interface class StreamIterator<T> {
   /// Create a [StreamIterator] on [stream].
   factory StreamIterator(Stream<T> stream) =>
-  // TODO(lrn): use redirecting factory constructor when type
-  // arguments are supported.
-  _StreamIterator<T>(stream);
+      // TODO(lrn): use redirecting factory constructor when type
+      // arguments are supported.
+      _StreamIterator<T>(stream);
 
   /// Wait for the next stream value to be available.
   ///

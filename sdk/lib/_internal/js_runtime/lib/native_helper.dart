@@ -59,10 +59,9 @@ String toStringForNativeObject(var obj) {
   // TODO(sra): Is this code dead?
   // [getTagFunction] might be uninitialized, but in usual usage, toString has
   // been called via an interceptor and initialized it.
-  String name =
-      getTagFunction == null
-          ? '<Unknown>'
-          : JS('String', '#', getTagFunction!(obj));
+  String name = getTagFunction == null
+      ? '<Unknown>'
+      : JS('String', '#', getTagFunction!(obj));
   return 'Instance of $name';
 }
 
@@ -416,10 +415,10 @@ void initHooks() {
   var prototypeForTag = JS('', '#.prototypeForTag', hooks);
 
   getTagFunction = (o) => JS('String|Null', '#(#)', getTag, o);
-  alternateTagFunction =
-      (o, String tag) => JS('String|Null', '#(#, #)', getUnknownTag, o, tag);
-  prototypeForTagFunction =
-      (String tag) => JS('', '#(#)', prototypeForTag, tag);
+  alternateTagFunction = (o, String tag) =>
+      JS('String|Null', '#(#, #)', getUnknownTag, o, tag);
+  prototypeForTagFunction = (String tag) =>
+      JS('', '#(#)', prototypeForTag, tag);
 }
 
 applyHooksTransformer(transformer, hooks) {
