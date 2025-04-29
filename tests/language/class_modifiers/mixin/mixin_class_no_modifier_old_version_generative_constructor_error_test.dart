@@ -18,4 +18,3 @@ abstract class AbstractClassMixingCtorClass with GenerativeConstructorClass {}
 // [cfe] Can't use 'GenerativeConstructorClass' as a mixin because it has constructors.
 //                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
-

@@ -14,14 +14,12 @@ class B {
   final y;
 
   B(a)
-    : x =
-          a
-            ..foo()
-            ..bar(),
-      y =
-          a
-            ..foo()
-            ..bar() {}
+    : x = a
+        ..foo()
+        ..bar(),
+      y = a
+        ..foo()
+        ..bar() {}
 }
 
 main() {

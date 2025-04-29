@@ -106,11 +106,11 @@ main() {
     }
   };
 
-  Future<A> Function() f_expressionSyntax_B =
-      () async => false ? new A() : new B();
+  Future<A> Function() f_expressionSyntax_B = () async =>
+      false ? new A() : new B();
 
-  Future<A> Function() f_expressionSyntax_FutureB =
-      () async => false ? futureA() : futureB();
+  Future<A> Function() f_expressionSyntax_FutureB = () async =>
+      false ? futureA() : futureB();
 
   // Not executed
   void checkStaticTypes() {

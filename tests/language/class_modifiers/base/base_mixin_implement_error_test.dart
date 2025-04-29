@@ -22,4 +22,3 @@ enum EnumOutside implements MixinForEnum { x }
 //                          ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The mixin 'MixinForEnum' can't be implemented outside of its library because it's a base mixin.
-

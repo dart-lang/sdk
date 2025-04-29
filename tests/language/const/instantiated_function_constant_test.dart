@@ -59,12 +59,11 @@ class A<U extends num> {
       x3 = b ? ((b ? prefix.f1 : f2))<U> : ((b ? prefix.f1 : f2))<int>,
       x4 = b ? ((b ? c01 : prefix.c02))<U> : ((b ? c01 : prefix.c02))<int>,
       x5 = b ? (null ?? f1)<U> : (null ?? f1)<int>,
-      x6 =
-          b
-              ? ((c01 as dynamic)
-                  as void Function<X extends num>(X, [num, List<X>]))<U>
-              : ((c01 as dynamic)
-                  as void Function<X extends num>(X, [num, List<X>]))<int>,
+      x6 = b
+          ? ((c01 as dynamic)
+                as void Function<X extends num>(X, [num, List<X>]))<U>
+          : ((c01 as dynamic)
+                as void Function<X extends num>(X, [num, List<X>]))<int>,
       x7 = b ? f1 : f2,
       x8 = b ? c01 : c02,
       x9 = null ?? c02,
