@@ -5,9 +5,9 @@
 /// 3D programming in the browser.
 ///
 /// > [!Note]
-/// > New projects should prefer to use
-/// > [package:web](https://pub.dev/packages/web). For existing projects, see
-/// > our [migration guide](https://dart.dev/go/package-web).
+/// > This core library is deprecated, and scheduled for removal in late 2025.
+/// > It has been replaced by [package:web](https://pub.dev/packages/web).
+/// > The [migration guide](https://dart.dev/go/package-web) has more details.
 ///
 /// {@category Web (Legacy)}
 @Deprecated('Use package:web and dart:js_interop instead.')

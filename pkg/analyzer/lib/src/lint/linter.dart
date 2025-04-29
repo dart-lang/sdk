@@ -343,34 +343,6 @@ abstract class LintRule {
     contextMessages: contextMessages,
     errorCode: errorCode,
   );
-
-  @Deprecated('Use reportAtOffset instead')
-  void reportLintForOffset(
-    int offset,
-    int length, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
-  }) => reportAtOffset(
-    offset,
-    length,
-    arguments: arguments,
-    contextMessages: contextMessages,
-    errorCode: errorCode,
-  );
-
-  @Deprecated('Use reportAtToken')
-  void reportLintForToken(
-    Token token, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
-  }) => reportAtToken(
-    token,
-    arguments: arguments,
-    contextMessages: contextMessages,
-    errorCode: errorCode,
-  );
 }
 
 /// Provides access to information needed by lint rules that is not available

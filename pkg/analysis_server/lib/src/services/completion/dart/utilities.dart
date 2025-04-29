@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     as protocol
     show Element, ElementKind;
@@ -179,8 +180,12 @@ DefaultArgument? getDefaultStringParameterValue(
       return DefaultArgument('$quote$quote', cursorPosition: 1);
     }
   } else if (type is FunctionType) {
-    var params = type.formalParameters
-        .map((p) => '${getTypeString(p.type)}${p.displayName}')
+    var params = type.formalParameters.indexed
+        .map((r) {
+          var (index, parameter) = r;
+          var name = parameter.displayName.ifNotEmptyOrElse('p${index + 1}');
+          return '${getTypeString(parameter.type)}$name';
+        })
         .join(', ');
     // TODO(devoncarew): Support having this method return text with newlines.
     var text = '($params) {  }';

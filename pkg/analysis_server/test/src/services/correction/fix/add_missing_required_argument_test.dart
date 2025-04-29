@@ -319,6 +319,23 @@ void f() {
 ''');
   }
 
+  Future<void> test_functionType_noParameterName() async {
+    await resolveTestCode('''
+void foo({required void Function(int) f}) {}
+
+void bar() {
+  foo();
+}
+''');
+    await assertHasFix('''
+void foo({required void Function(int) f}) {}
+
+void bar() {
+  foo(f: (int p1) {  });
+}
+''');
+  }
+
   Future<void> test_multiple() async {
     await resolveTestCode('''
 test({required int a, required int bcd}) {}

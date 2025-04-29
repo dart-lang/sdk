@@ -122,6 +122,54 @@ void f(int p) {
 ''');
   }
 
+  Future<void> test_conditionalExpression_falseCondition() async {
+    await resolveTestCode('''
+void f(int i, int j) => false ? i : j;
+''');
+    await assertHasFix('''
+void f(int i, int j) => j;
+''');
+  }
+
+  Future<void>
+  test_conditionalExpression_falseCondition_cascadeException() async {
+    // It's not safe to transform something like
+    // `a ? b : throw c..cascadeSection` into `throw c..cascadeSection`, because
+    // the former parses as `(a ? b : throw c)..cascadeSection`, and the latter
+    // parses as `throw (c..cascadeSection)`.
+    var code = '''
+void f(int i, int j) => false ? i : throw j..abs();
+''';
+    await resolveTestCode(code);
+    await assertNoFix(
+      errorFilter: (error) => error.offset == code.indexOf('i :'),
+    );
+  }
+
+  Future<void> test_conditionalExpression_trueCondition() async {
+    await resolveTestCode('''
+void f(int i, int j) => true ? i : j;
+''');
+    await assertHasFix('''
+void f(int i, int j) => i;
+''');
+  }
+
+  Future<void>
+  test_conditionalExpression_trueCondition_cascadeException() async {
+    // It's not safe to transform something like
+    // `a ? throw b : c..cascadeSection` into `throw b..cascadeSection`, because
+    // the former parses as `(a ? throw b : c)..cascadeSection`, and the latter
+    // parses as `throw (b..cascadeSection)`.
+    var code = '''
+void f(int i, int j) => true ? throw i : j..abs();
+''';
+    await resolveTestCode(code);
+    await assertNoFix(
+      errorFilter: (error) => error.offset == code.indexOf('j..'),
+    );
+  }
+
   Future<void> test_do_returnInBody() async {
     await resolveTestCode('''
 void f(bool c) {
@@ -281,6 +329,25 @@ void f(bool c) {
   }
 }
 ''', errorFilter: (error) => error.length == 12);
+  }
+
+  Future<void> test_else_if_false() async {
+    await resolveTestCode('''
+void f(bool b) {
+  if (b) {
+    print('');
+  } else if (false) {
+    return;
+  }
+}
+''');
+    await assertHasFix('''
+void f(bool b) {
+  if (b) {
+    print('');
+  }
+}
+''');
   }
 
   Future<void> test_emptyStatement() async {
@@ -462,18 +529,204 @@ void f() {
 ''');
   }
 
-  Future<void> test_if_false_return() async {
+  Future<void> test_if_false_block() async {
+    await resolveTestCode('''
+void f() {
+  if (false) {
+    return;
+  }
+  print('');
+}
+''');
+    await assertHasFix('''
+void f() {
+  print('');
+}
+''');
+  }
+
+  Future<void> test_if_false_block_else_block() async {
+    await resolveTestCode('''
+void f() {
+  if (false) {
+    return;
+  } else {
+    print('1');
+  }
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+    print('1');
+  print('2');
+}
+''');
+  }
+
+  Future<void> test_if_false_block_else_noBlock() async {
+    await resolveTestCode('''
+void f() {
+  if (false) {
+    return;
+  } else print('1');
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+  print('1');
+  print('2');
+}
+''');
+  }
+
+  Future<void> test_if_false_noBlock() async {
     await resolveTestCode('''
 void f() {
   if (false) return;
   print('');
 }
 ''');
-    // No fix. It's not safe to remove the `return;` statement, because then the
-    // `if (false)` would cover the `print('');` statement.
-    // TODO(paulberry): add the ability to recognize that `false` has no effect,
-    // and thus it is safe to remove the entire `if` statement.
+    await assertHasFix('''
+void f() {
+  print('');
+}
+''');
+  }
+
+  Future<void> test_if_false_noBlock_else_block() async {
+    await resolveTestCode('''
+void f() {
+  if (false) return; else {
+    print('1');
+  }
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+    print('1');
+  print('2');
+}
+''');
+  }
+
+  Future<void> test_if_false_noBlock_else_noBlock() async {
+    await resolveTestCode('''
+void f() {
+  if (false) return; else print('1');
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+  print('1');
+  print('2');
+}
+''');
+  }
+
+  Future<void> test_if_false_notInBlock() async {
+    // Normally a statement like `if (true) { live; } else { dead; }` will be
+    // fixed by removing the opening and closing braces around `live;`. But if
+    // the parent of the if statement is not a block, this is not safe to do,
+    // so the braces are kept.
+    await resolveTestCode('''
+void f() {
+  while (true) if (true) {
+    print('1');
+  } else {
+    return;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  while (true) {
+    print('1');
+  }
+}
+''');
+  }
+
+  Future<void> test_if_false_notRemovable() async {
+    // Normally a statement like `if (false) dead;` can be removed. But if the
+    // parent is not a block, it's not safe to do so.
+    await resolveTestCode('''
+void f() {
+  while (true) if (false) return;
+}
+''');
     await assertNoFix();
+  }
+
+  Future<void> test_if_true_block_else_block() async {
+    await resolveTestCode('''
+void f() {
+  if (true) {
+    print('1');
+  } else {
+    return;
+  }
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+    print('1');
+  print('2');
+}
+''');
+  }
+
+  Future<void> test_if_true_block_else_noBlock() async {
+    await resolveTestCode('''
+void f() {
+  if (true) {
+    print('1');
+  } else return;
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+    print('1');
+  print('2');
+}
+''');
+  }
+
+  Future<void> test_if_true_noBlock_else_block() async {
+    await resolveTestCode('''
+void f() {
+  if (true) print('1'); else {
+    return;
+  }
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+  print('1');
+  print('2');
+}
+''');
+  }
+
+  Future<void> test_if_true_noBlock_else_noBlock() async {
+    await resolveTestCode('''
+void f() {
+  if (true) print('1'); else return;
+  print('2');
+}
+''');
+    await assertHasFix('''
+void f() {
+  print('1');
+  print('2');
+}
+''');
   }
 
   Future<void> test_statements_one() async {
@@ -656,6 +909,248 @@ class RemoveDeadCodeSoundFlowAnalysisTest extends FixProcessorTest
   @override
   List<String> get experiments => [...super.experiments, 'sound-flow-analysis'];
 
+  Future<void> test_conditional_unnecessaryNullCheck_equalsNull() async {
+    await resolveTestCode(r'''
+class C {
+  String? s;
+  void f(int i) {
+    s = i == null ? null : '$i';
+  }
+}
+''');
+    await assertHasFix(r'''
+class C {
+  String? s;
+  void f(int i) {
+    s = '$i';
+  }
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_conditional_unnecessaryNullCheck_notEqualsNull() async {
+    await resolveTestCode(r'''
+class C {
+  String? s;
+  void f(int i) {
+    s = i != null ? '$i' : null;
+  }
+}
+''');
+    await assertHasFix(r'''
+class C {
+  String? s;
+  void f(int i) {
+    s = '$i';
+  }
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_castEqualsNull() async {
+    // Casts are presumed to be side effect free, so it is safe to remove
+    // `if ((i as int) == null) return null;`
+    await resolveTestCode(r'''
+String? f(int? i) {
+  if ((i as int) == null) return null;
+  return '$i';
+}
+''');
+    await assertHasFix(r'''
+String? f(int? i) {
+  return '$i';
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_castEqualsNull_withTargetSideEffect() async {
+    // Casts are presumed to be side effect free, but only if the target of the
+    // cast is side effect free. So it is not safe to remove
+    // `if ((g(i) as int) == null) return null;`, because `g(i)` may have side
+    // effects.
+    await resolveTestCode(r'''
+String? f(int i, int? Function(int) g) {
+  if ((g(i) as int) == null) return null;
+  return '$i';
+}
+''');
+    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_identifierEqualsNull() async {
+    await resolveTestCode(r'''
+String? f(int i) {
+  if (i == null) return null;
+  return '$i';
+}
+''');
+    await assertHasFix(r'''
+String? f(int i) {
+  return '$i';
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_nonNullAssertEqualsNull() async {
+    // Non-null assertions are presumed to be side effect free, so it is safe to
+    // remove `if (i! == null) return null;`
+    await resolveTestCode(r'''
+String? f(int? i) {
+  if (i! == null) return null;
+  return '$i';
+}
+''');
+    await assertHasFix(r'''
+String? f(int? i) {
+  return '$i';
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_nonNullAssertEqualsNull_withTargetSideEffect() async {
+    // Non-null assertions are presumed to be side effect free, but only if the
+    // target of the assertion is side effect free. So it is not safe to remove
+    // `if (g(i)! == null) return null;`, because `g(i)` may have side effects.
+    await resolveTestCode(r'''
+String? f(int i, int? Function(int) g) {
+  if (g(i)! == null) return null;
+  return '$i';
+}
+''');
+    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_nullEqualsPropertyAccess_withTargetSideEffect() async {
+    // Getter invocations are presumed to be side effect free, but only if the
+    // target of the invocation is side effect free. So it is not safe to remove
+    // `if (null == g(i).isEven) return null;`, because `g(i)` may have side
+    // effects.
+    await resolveTestCode(r'''
+String? f(int i, int Function(int) g) {
+  if (null == g(i).isEven) return null;
+  return '$i';
+}
+''');
+    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_postfixOperatorEqualsNull() async {
+    // Postfix operators other than `!` are not side effect free, so it is not
+    // safe to remove `if (i++ == null) return null;`.
+    await resolveTestCode(r'''
+String? f(int i) {
+  if (i++ == null) return null;
+  return '$i';
+}
+''');
+    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_prefixedIdentifierEqualsNull() async {
+    // Getter invocations are presumed to be side effect free, so it is safe to
+    // remove `if (i.isEven == null) return null;`.
+    await resolveTestCode(r'''
+String? f(int i) {
+  if (i.isEven == null) return null;
+  return '$i';
+}
+''');
+    await assertHasFix(r'''
+String? f(int i) {
+  return '$i';
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_propertyAccessEqualsNull() async {
+    // Getter invocations are presumed to be side effect free, so it is safe to
+    // remove `if ((i).isEven == null) return null;`.
+    // Note: parentheses around `i` to force `.isEven` to be represented as a
+    // PropertyAccess rather than a PrefixedIdentifier.
+    await resolveTestCode(r'''
+String? f(int i) {
+  if ((i).isEven == null) return null;
+  return '$i';
+}
+''');
+    await assertHasFix(r'''
+String? f(int i) {
+  return '$i';
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_propertyAccessEqualsNull_nullAware() async {
+    // Getter invocations are presumed to be side effect free, so it is safe to
+    // remove `if ((i?.isEven)! == null) return null;`.
+    await resolveTestCode(r'''
+String? f(int i) {
+  if ((i?.isEven)! == null) return null;
+  return '$i';
+}
+''');
+    await assertHasFix(r'''
+String? f(int i) {
+  return '$i';
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void>
+  test_if_propertyAccessEqualsNull_parenthesizedWithTargetSideEffect() async {
+    // Getter invocations are presumed to be side effect free, but only if the
+    // target of the invocation is side effect free. So it is not safe to remove
+    // `if ((g(i)).isEven == null) return null;`, because `(g(i))` may have side
+    // effects.
+    await resolveTestCode(r'''
+String? f(int i, int Function(int) g) {
+  if ((g(i)).isEven == null) return null;
+  return '$i';
+}
+''');
+    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_propertyAccessEqualsNull_super() async {
+    // Getter invocations are presumed to be side effect free, so it is safe to
+    // remove `if (super.foo == null) return null;`.
+    await resolveTestCode(r'''
+class B {
+  int get foo => 0;
+}
+class C extends B {
+  String? f() {
+    if (super.foo == null) return null;
+    return '${super.foo}';
+  }
+}
+''');
+    await assertHasFix(r'''
+class B {
+  int get foo => 0;
+}
+class C extends B {
+  String? f() {
+    return '${super.foo}';
+  }
+}
+''', errorFilter: _ignoreNullSafetyWarnings);
+  }
+
+  Future<void> test_if_propertyAccessEqualsNull_withTargetSideEffect() async {
+    // Getter invocations are presumed to be side effect free, but only if the
+    // target of the invocation is side effect free. So it is not safe to remove
+    // `if (g(i).isEven == null) return null;`, because `g(i)` may have side
+    // effects.
+    await resolveTestCode(r'''
+String? f(int i, int Function(int) g) {
+  if (g(i).isEven == null) return null;
+  return '$i';
+}
+''');
+    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+  }
+
   Future<void> test_ifNull() async {
     await resolveTestCode('''
 void f(int i, int j) => i ?? j;
@@ -668,5 +1163,9 @@ void f(int i, int j) => i;
   /// Error filter ignoring warnings that frequently occur in conjunction with
   /// code that is dead due to sound flow analysis.
   bool _ignoreNullSafetyWarnings(AnalysisError error) =>
-      error.errorCode.name != 'DEAD_NULL_AWARE_EXPRESSION';
+      !const {
+        'DEAD_NULL_AWARE_EXPRESSION',
+        'INVALID_NULL_AWARE_OPERATOR',
+        'UNNECESSARY_NULL_COMPARISON',
+      }.contains(error.errorCode.name);
 }
