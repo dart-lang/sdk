@@ -51,7 +51,7 @@ def Main():
         return -1
 
     with open(options.output, "w") as output_file:
-        if options.target_os in ["mac", "ios"]:
+        if options.target_os in ["mac", "ios", "watchos"]:
             if options.executable:
                 output_file.write(".text\n")
             else:
@@ -106,7 +106,7 @@ def Main():
                 if incbin:
                     output_file.write(".incbin \"%s\"\n" % options.input)
 
-        if options.target_os not in ["mac", "ios", "win", "win_gnu"]:
+        if options.target_os not in ["mac", "ios", "watchos", "win", "win_gnu"]:
             output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))
 
         if options.size_symbol_name:
@@ -128,7 +128,7 @@ def Main():
                 else:
                     output_file.write("dword %d\n" % size)
             else:
-                if options.target_os in ["mac", "ios"]:
+                if options.target_os in ["mac", "ios", "watchos"]:
                     output_file.write(
                         ".global _%s\n" % options.size_symbol_name)
                     output_file.write("_%s:\n" % options.size_symbol_name)
