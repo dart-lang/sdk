@@ -63,13 +63,10 @@ import 'package:pub_semver/pub_semver.dart';
 // TODO(scheglov): https://github.com/dart-lang/dartdoc/issues/4039
 typedef ConstructorElementImpl = ConstructorFragmentImpl;
 
-abstract class AnnotatableElement implements Element, Annotatable {
+abstract class AnnotatableElementImpl implements ElementImpl2, Annotatable {
   @override
   MetadataImpl get metadata2;
 }
-
-abstract class AnnotatableElementImpl
-    implements ElementImpl2, AnnotatableElement {}
 
 /// Shared implementation for an augmentable [Fragment].
 mixin AugmentableFragment on FragmentImpl {
@@ -2276,13 +2273,15 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
 
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement2`.
-abstract class ExecutableElement2OrMember
-    implements ExecutableElement, AnnotatableElement {
+abstract class ExecutableElement2OrMember implements ExecutableElement {
   @override
   ExecutableElementImpl2 get baseElement;
 
   @override
   List<FormalParameterElementMixin> get formalParameters;
+
+  @override
+  MetadataImpl get metadata2;
 
   @override
   TypeImpl get returnType;
