@@ -548,12 +548,10 @@ class FileResolver {
       var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
       var completionOffset = lineOffset + completionColumn;
 
-      performance.run('libraryContext', (performance) {
-        libraryContext!.load(
-          targetLibrary: libraryKind,
-          performance: performance,
-        );
-      });
+      _loadLibraryAndDocLibraryImports(
+        libraryKind: libraryKind,
+        performance: performance,
+      );
 
       var unitElement = libraryContext!.computeUnitElement(libraryKind, file);
 
@@ -622,12 +620,10 @@ class FileResolver {
       var file = fileContext.file;
       var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
-      performance.run('libraryContext', (performance) {
-        libraryContext!.load(
-          targetLibrary: libraryKind,
-          performance: performance,
-        );
-      });
+      _loadLibraryAndDocLibraryImports(
+        libraryKind: libraryKind,
+        performance: performance,
+      );
 
       testData?.addResolvedLibrary(path);
 
@@ -857,6 +853,29 @@ class FileResolver {
     }
 
     return options;
+  }
+
+  void _loadLibraryAndDocLibraryImports({
+    required LibraryFileKind libraryKind,
+    required OperationPerformanceImpl performance,
+  }) {
+    performance.run('libraryContext', (performance) {
+      libraryContext!.load(
+        targetLibrary: libraryKind,
+        performance: performance,
+      );
+
+      for (var import in libraryKind.docLibraryImports) {
+        if (import is LibraryImportWithFile) {
+          if (import.importedLibrary case var libraryFileKind?) {
+            libraryContext!.load(
+              targetLibrary: libraryFileKind,
+              performance: performance,
+            );
+          }
+        }
+      }
+    });
   }
 
   Future<List<CiderSearchMatch>> _searchReferences_Import(

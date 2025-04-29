@@ -1380,6 +1380,18 @@ var foo = 0;
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
+  test_getErrors_docImports() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+/// @docImport 'a.dart';
+library;
+''');
+
+    var errorsResult = await fileResolver.getErrors2(path: b.path);
+    assertErrorsInList(errorsResult.errors, []);
+  }
+
   test_getErrors_library() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 var a = 42
