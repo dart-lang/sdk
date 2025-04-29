@@ -35,13 +35,14 @@ main() {
   dynamic tearOff = baz;
   Expect.throwsNoSuchMethodError(() => tearOff(a: "aa", c: "cc", d: "dd"));
 
-  dynamic closure = ({
-    required String a,
-    required String b,
-    required String c,
-    required String d,
-  }) {
-    return a.length + b.length + c.length + d.length;
-  };
+  dynamic closure =
+      ({
+        required String a,
+        required String b,
+        required String c,
+        required String d,
+      }) {
+        return a.length + b.length + c.length + d.length;
+      };
   Expect.throwsNoSuchMethodError(() => closure(a: "aa", c: "cc", d: "dd"));
 }
