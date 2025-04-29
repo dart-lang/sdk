@@ -11,8 +11,8 @@ import 'package:dartdev/src/unified_analytics.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:http/http.dart' as http;
-import 'package:native_assets_cli/code_assets_builder.dart'
-    show Architecture, OS, Target;
+import 'package:native_assets_builder/native_assets_builder.dart' show Target;
+import 'package:native_assets_cli/code_assets.dart' show Architecture, OS;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart';
 

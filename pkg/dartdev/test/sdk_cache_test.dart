@@ -9,7 +9,8 @@ import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http;
-import 'package:native_assets_cli/code_assets_builder.dart' show Target, OS;
+import 'package:native_assets_builder/native_assets_builder.dart' show Target;
+import 'package:native_assets_cli/code_assets.dart' show OS;
 import 'package:test/test.dart';
 
 const dartArchiveUri = 'https://storage.googleapis.com/dart-archive';

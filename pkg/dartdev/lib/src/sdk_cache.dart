@@ -9,7 +9,8 @@ import 'dart:typed_data';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:http/http.dart' as http;
-import 'package:native_assets_cli/code_assets_builder.dart' show OS, Target;
+import 'package:native_assets_builder/native_assets_builder.dart' show Target;
+import 'package:native_assets_cli/code_assets.dart' show OS;
 
 /// S_IXUSR bit from POSIX sys/stat.h.
 ///

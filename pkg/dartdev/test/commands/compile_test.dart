@@ -7,7 +7,8 @@ import 'dart:math';
 
 import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
-import 'package:native_assets_cli/code_assets_builder.dart';
+import 'package:native_assets_builder/native_assets_builder.dart';
+import 'package:native_assets_cli/code_assets.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
