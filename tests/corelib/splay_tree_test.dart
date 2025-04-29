@@ -60,10 +60,9 @@ main() {
   // Setting values do not break iteration.
   // Setting values during iteration may show either old or new value,
   // but must be consistent when read.
-  var map =
-      SplayTreeMap<String, int>()
-        ..["a"] = 1
-        ..["b"] = 2;
+  var map = SplayTreeMap<String, int>()
+    ..["a"] = 1
+    ..["b"] = 2;
   var index = 0;
   for (var v in map.values) {
     if (index == 0) {

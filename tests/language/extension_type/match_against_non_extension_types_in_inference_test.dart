@@ -46,10 +46,9 @@ String Function(E<String>) producingFunctionE() => ((E<String> e) => "");
 
 // In type constraint generation, E<String> is compared against ET2<T>,
 // yielding the constraint String <: T.
-test4() =>
-    acceptingFunctionET2(
-      producingFunctionE(),
-    ).expectStaticType<Exactly<String>>();
+test4() => acceptingFunctionET2(
+  producingFunctionE(),
+).expectStaticType<Exactly<String>>();
 
 extension type ET3<Y>(A<Y> it) implements ET1<Y> {}
 
@@ -81,10 +80,9 @@ T acceptingFunctionET4<T>(Function(ET4<T>) f) => f(ET4<T>(producingE<T>()));
 
 // In type constraint generation, E<String> is compared against ET4<T>,
 // yielding the constraint String <: T.
-test8() =>
-    acceptingFunctionET4(
-      producingFunctionE(),
-    ).expectStaticType<Exactly<String>>();
+test8() => acceptingFunctionET4(
+  producingFunctionE(),
+).expectStaticType<Exactly<String>>();
 
 main() {
   test1();

@@ -25,12 +25,18 @@ class Database {
   bool _open = false;
 
   /// Open a database located at the file [path].
-  Database(String path,
-      [int flags = Flags.SQLITE_OPEN_READWRITE | Flags.SQLITE_OPEN_CREATE]) {
+  Database(
+    String path, [
+    int flags = Flags.SQLITE_OPEN_READWRITE | Flags.SQLITE_OPEN_CREATE,
+  ]) {
     Pointer<Pointer<types.Database>> dbOut = calloc();
     final pathC = Utf8Resource(path.toNativeUtf8());
-    final int resultCode =
-        bindings.sqlite3_open_v2(pathC.unsafe(), dbOut, flags, nullptr);
+    final int resultCode = bindings.sqlite3_open_v2(
+      pathC.unsafe(),
+      dbOut,
+      flags,
+      nullptr,
+    );
     _database = DatabaseResource(dbOut.value);
     calloc.free(dbOut);
     pathC.free();
@@ -108,10 +114,12 @@ class Database {
     if (errorCode == null) {
       return SQLiteException(errorMessage);
     }
-    String errorCodeExplanation =
-        bindings.sqlite3_errstr(errorCode).toDartString();
+    String errorCodeExplanation = bindings
+        .sqlite3_errstr(errorCode)
+        .toDartString();
     return SQLiteException(
-        "$errorMessage (Code $errorCode: $errorCodeExplanation)");
+      "$errorMessage (Code $errorCode: $errorCodeExplanation)",
+    );
   }
 }
 
@@ -185,8 +193,10 @@ class Row {
   /// By default it returns a dynamically typed value. If [convert] is set to
   /// [Convert.StaticType] the value is converted to the static type computed
   /// for the column by the query compiler.
-  dynamic readColumn(String columnName,
-      {Convert convert = Convert.DynamicType}) {
+  dynamic readColumn(
+    String columnName, {
+    Convert convert = Convert.DynamicType,
+  }) {
     return readColumnByIndex(_columnIndices[columnName]!, convert: convert);
   }
 
@@ -195,16 +205,19 @@ class Row {
   /// By default it returns a dynamically typed value. If [convert] is set to
   /// [Convert.StaticType] the value is converted to the static type computed
   /// for the column by the query compiler.
-  dynamic readColumnByIndex(int columnIndex,
-      {Convert convert = Convert.DynamicType}) {
+  dynamic readColumnByIndex(
+    int columnIndex, {
+    Convert convert = Convert.DynamicType,
+  }) {
     _checkIsCurrentRow();
 
     Type dynamicType;
     if (convert == Convert.DynamicType) {
       dynamicType = _typeFromCode(_statement.columnType(columnIndex));
     } else {
-      dynamicType =
-          _typeFromText(_statement.columnDecltype(columnIndex).toDartString());
+      dynamicType = _typeFromText(
+        _statement.columnDecltype(columnIndex).toDartString(),
+      );
     }
 
     switch (dynamicType) {
@@ -245,8 +258,9 @@ class Row {
   void _checkIsCurrentRow() {
     if (!_isCurrentRow) {
       throw Exception(
-          "This row is not the current row, reading data from the non-current"
-          " row is not supported by sqlite.");
+        "This row is not the current row, reading data from the non-current"
+        " row is not supported by sqlite.",
+      );
     }
   }
 
@@ -256,8 +270,9 @@ class Row {
 }
 
 class DatabaseResource implements Finalizable {
-  static final NativeFinalizer _finalizer =
-      NativeFinalizer(bindings.sqlite3_close_v2_native_return_void.cast());
+  static final NativeFinalizer _finalizer = NativeFinalizer(
+    bindings.sqlite3_close_v2_native_return_void.cast(),
+  );
 
   /// [_statement] must never escape [StatementResource], otherwise the
   /// [_finalizer] will run prematurely.
@@ -272,10 +287,19 @@ class DatabaseResource implements Finalizable {
     return bindings.sqlite3_close_v2(_database);
   }
 
-  int prepare(Utf8Resource query, int nbytes,
-      Pointer<Pointer<Statement>> statementOut, Pointer<Pointer<Utf8>> tail) {
+  int prepare(
+    Utf8Resource query,
+    int nbytes,
+    Pointer<Pointer<Statement>> statementOut,
+    Pointer<Pointer<Utf8>> tail,
+  ) {
     int result = bindings.sqlite3_prepare_v2(
-        _database, query.unsafe(), nbytes, statementOut, tail);
+      _database,
+      query.unsafe(),
+      nbytes,
+      statementOut,
+      tail,
+    );
     return result;
   }
 
@@ -283,8 +307,9 @@ class DatabaseResource implements Finalizable {
 }
 
 class StatementResource implements Finalizable {
-  static final NativeFinalizer _finalizer =
-      NativeFinalizer(bindings.sqlite3_finalize_native_return_void.cast());
+  static final NativeFinalizer _finalizer = NativeFinalizer(
+    bindings.sqlite3_finalize_native_return_void.cast(),
+  );
 
   /// [_statement] must never escape [StatementResource], otherwise the
   /// [_finalizer] will run prematurely.

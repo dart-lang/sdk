@@ -409,7 +409,9 @@ class AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitial
   Function f2;
   int a;
 
-  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer(int a) : this.a = a,
+  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer(
+    int a,
+  ) : this.a = a,
       f1 = (() {
         Expect.identical(T, int);
       }),
@@ -439,7 +441,9 @@ class AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInIniti
   Function f2;
   int a;
 
-  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer(int a) : this.a = a,
+  AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer(
+    int a,
+  ) : this.a = a,
       f1 = (() {
         a++;
         Expect.equals(++expectedValueOfA, a);
@@ -1005,9 +1009,10 @@ void main() {
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer
-  k = AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer<
-    int
-  >(expectedValueOfA);
+  k =
+      AllocatorContextNormalParamCapturedInBodyAndNormalAndTypeParamInInitializer<
+        int
+      >(expectedValueOfA);
   k.runAssertions();
 
   expectedValueOfA = 123;
@@ -1019,14 +1024,18 @@ void main() {
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer
-  m = AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer<
-    int
-  >(expectedValueOfA);
+  m =
+      AllocatorContextNormalParamAndTypeParamCapturedInBodyAndTypeParamInInitializer<
+        int
+      >(expectedValueOfA);
   m.runAssertions();
 
   expectedValueOfA = 123;
   AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer
-  n = AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer<int>(expectedValueOfA);
+  n =
+      AllocatorContextNormalParamAndTypeParamCapturedInBodyAndNormalParamInInitializer<
+        int
+      >(expectedValueOfA);
   n.runAssertions();
 
   expectedValueOfA = 123;

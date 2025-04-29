@@ -28,16 +28,18 @@ class _SQLiteBindings {
   /// an English language description of the error following a failure of any
   /// of the sqlite3_open() routines.
   late int Function(
-      Pointer<Utf8> filename,
-      Pointer<Pointer<Database>> databaseOut,
-      int flags,
-      Pointer<Utf8> vfs) sqlite3_open_v2;
+    Pointer<Utf8> filename,
+    Pointer<Pointer<Database>> databaseOut,
+    int flags,
+    Pointer<Utf8> vfs,
+  )
+  sqlite3_open_v2;
 
   late int Function(Pointer<Database> database) sqlite3_close_v2;
   late Pointer<NativeFunction<sqlite3_close_v2_native_t>>
-      sqlite3_close_v2_native;
+  sqlite3_close_v2_native;
   late Pointer<NativeFunction<Void Function(Pointer<Database> database)>>
-      sqlite3_close_v2_native_return_void;
+  sqlite3_close_v2_native_return_void;
 
   /// Compiling An SQL Statement
   ///
@@ -87,11 +89,13 @@ class _SQLiteBindings {
   /// original SQL text. This causes the [sqlite3_step] interface to
   /// behave differently in three ways:
   late int Function(
-      Pointer<Database> database,
-      Pointer<Utf8> query,
-      int nbytes,
-      Pointer<Pointer<Statement>> statementOut,
-      Pointer<Pointer<Utf8>> tail) sqlite3_prepare_v2;
+    Pointer<Database> database,
+    Pointer<Utf8> query,
+    int nbytes,
+    Pointer<Pointer<Statement>> statementOut,
+    Pointer<Pointer<Utf8>> tail,
+  )
+  sqlite3_prepare_v2;
 
   /// Evaluate An SQL Statement
   ///
@@ -219,9 +223,9 @@ class _SQLiteBindings {
   /// undesirable behavior such as segfaults and heap corruption.
   late int Function(Pointer<Statement> statement) sqlite3_finalize;
   late Pointer<NativeFunction<sqlite3_finalize_native_t>>
-      sqlite3_finalize_native;
+  sqlite3_finalize_native;
   late Pointer<NativeFunction<Void Function(Pointer<Statement> statement)>>
-      sqlite3_finalize_native_return_void;
+  sqlite3_finalize_native_return_void;
 
   /// Number Of Columns In A Result Set
   ///
@@ -254,7 +258,7 @@ class _SQLiteBindings {
   /// that column, if there is an AS clause.  If there is no AS clause
   /// then the name of the column is unspecified and may change from
   late Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
-      sqlite3_column_name;
+  sqlite3_column_name;
 
   /// CAPI3REF: Declared Datatype Of A Query Result
   ///
@@ -284,22 +288,22 @@ class _SQLiteBindings {
   /// is associated with individual values, not with the containers
   /// used to hold those values.
   late Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
-      sqlite3_column_decltype;
+  sqlite3_column_decltype;
 
   late int Function(Pointer<Statement> statement, int columnIndex)
-      sqlite3_column_type;
+  sqlite3_column_type;
 
   late Pointer<Value> Function(Pointer<Statement> statement, int columnIndex)
-      sqlite3_column_value;
+  sqlite3_column_value;
 
   late double Function(Pointer<Statement> statement, int columnIndex)
-      sqlite3_column_double;
+  sqlite3_column_double;
 
   late int Function(Pointer<Statement> statement, int columnIndex)
-      sqlite3_column_int;
+  sqlite3_column_int;
 
   late Pointer<Utf8> Function(Pointer<Statement> statement, int columnIndex)
-      sqlite3_column_text;
+  sqlite3_column_text;
 
   /// The sqlite3_errstr() interface returns the English-language text that
   /// describes the result code, as UTF-8. Memory to hold the error message
@@ -350,7 +354,8 @@ class _SQLiteBindings {
     sqlite3_close_v2 = sqlite3_close_v2_native.asFunction();
     sqlite3_prepare_v2 = sqlite
         .lookup<NativeFunction<sqlite3_prepare_v2_native_t>>(
-            "sqlite3_prepare_v2")
+          "sqlite3_prepare_v2",
+        )
         .asFunction();
     sqlite3_step = sqlite
         .lookup<NativeFunction<sqlite3_step_native_t>>("sqlite3_step")
@@ -370,35 +375,43 @@ class _SQLiteBindings {
         .asFunction();
     sqlite3_column_count = sqlite
         .lookup<NativeFunction<sqlite3_column_count_native_t>>(
-            "sqlite3_column_count")
+          "sqlite3_column_count",
+        )
         .asFunction();
     sqlite3_column_name = sqlite
         .lookup<NativeFunction<sqlite3_column_name_native_t>>(
-            "sqlite3_column_name")
+          "sqlite3_column_name",
+        )
         .asFunction();
     sqlite3_column_decltype = sqlite
         .lookup<NativeFunction<sqlite3_column_decltype_native_t>>(
-            "sqlite3_column_decltype")
+          "sqlite3_column_decltype",
+        )
         .asFunction();
     sqlite3_column_type = sqlite
         .lookup<NativeFunction<sqlite3_column_type_native_t>>(
-            "sqlite3_column_type")
+          "sqlite3_column_type",
+        )
         .asFunction();
     sqlite3_column_value = sqlite
         .lookup<NativeFunction<sqlite3_column_value_native_t>>(
-            "sqlite3_column_value")
+          "sqlite3_column_value",
+        )
         .asFunction();
     sqlite3_column_double = sqlite
         .lookup<NativeFunction<sqlite3_column_double_native_t>>(
-            "sqlite3_column_double")
+          "sqlite3_column_double",
+        )
         .asFunction();
     sqlite3_column_int = sqlite
         .lookup<NativeFunction<sqlite3_column_int_native_t>>(
-            "sqlite3_column_int")
+          "sqlite3_column_int",
+        )
         .asFunction();
     sqlite3_column_text = sqlite
         .lookup<NativeFunction<sqlite3_column_text_native_t>>(
-            "sqlite3_column_text")
+          "sqlite3_column_text",
+        )
         .asFunction();
   }
 }

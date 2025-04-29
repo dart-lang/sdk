@@ -8,8 +8,8 @@ import 'package:expect/expect.dart';
 
 List<int> testList(int x) {
   return <int>[?x];
-//             ^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+  //           ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 }
 
 Set<int> testSet(int x) {

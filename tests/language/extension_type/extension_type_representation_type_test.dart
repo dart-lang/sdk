@@ -112,7 +112,10 @@ void main() {
   V32(({int x = 0, String y = "0"}) {})._;
   V33((int x, {required String y}) {})._;
   V34(({required int x, String y = "0"}) {})._;
-  V35(() => (Function f) => f)._;
+  V35(
+    () =>
+        (Function f) => f,
+  )._;
   V36<Type>(int)._;
   V37<Type>([int])._;
   V38<Type>(int)._;

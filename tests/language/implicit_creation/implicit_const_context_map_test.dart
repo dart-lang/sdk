@@ -24,18 +24,15 @@ main() {
   const c1 = <int, int>{37: 87};
 
   // Inside const expression.
-  var c2 =
-      (const [
-        <int, int>{37: 87},
-      ])[0]; // List element.
-  var c3 =
-      (const {
-        <int, int>{37: 87}: 0,
-      }).keys.first; // Map key.
-  var c4 =
-      (const {
-        0: <int, int>{37: 87},
-      }).values.first; // Map value.
+  var c2 = (const [
+    <int, int>{37: 87},
+  ])[0]; // List element.
+  var c3 = (const {
+    <int, int>{37: 87}: 0,
+  }).keys.first; // Map key.
+  var c4 = (const {
+    0: <int, int>{37: 87},
+  }).values.first; // Map value.
   var c5 = (const C(<int, int>{37: 87})).x; // Constructor argument.
 
   Expect.identical(c0, c1);

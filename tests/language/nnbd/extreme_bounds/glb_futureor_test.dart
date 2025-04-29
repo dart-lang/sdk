@@ -30,7 +30,8 @@ typedef Exactly<T> = T Function(T);
 /*
 * Given an argument of type T, produce a result of type Exactly<T>.
 */
-Exactly<T> exactly<T>(T t) => (T t) => t;
+Exactly<T> exactly<T>(T t) =>
+    (T t) => t;
 
 /*
 * Given a call infer(a, b) where a has type void Function(S0) and b has type

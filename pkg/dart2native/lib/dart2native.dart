@@ -7,7 +7,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:kernel/binary/tag.dart' show Tag;
-import 'package:native_assets_cli/code_assets_builder.dart' show OS;
+import 'package:native_assets_cli/code_assets.dart' show OS;
 import 'package:path/path.dart' as path;
 
 import 'dart2native_macho.dart' show writeAppendedMachOExecutable;

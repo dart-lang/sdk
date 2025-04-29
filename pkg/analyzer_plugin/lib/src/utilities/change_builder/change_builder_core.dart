@@ -59,6 +59,18 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// A map of absolute normalized path to YAML file edit builders.
   final Map<String, YamlFileEditBuilderImpl> _yamlFileEditBuilders = {};
 
+  /// The number of times that any of the file edit builders in this change have
+  /// been modified.
+  ///
+  /// A file builder is considered to be modified when the list of edits is
+  /// modified in any way, such as by adding a new edit to the list. For Dart
+  /// file edit builders this includes changes to the list of libraries that
+  /// will be imported by creating edits at a later point.
+  ///
+  /// This can be used, for example, to determine whether any edits were added
+  /// by a given correction producer.
+  int modificationCount = 0;
+
   /// Initialize a newly created change builder. If the builder will be used to
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
@@ -66,26 +78,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
       {AnalysisSession? session, ChangeWorkspace? workspace, this.eol})
       : assert(session == null || workspace == null),
         workspace = workspace ?? _SingleSessionWorkspace(session!);
-
-  /// Return a hash value that will change when new edits have been added to
-  /// this builder.
-  int get changeHash {
-    // The hash value currently ignores edits to import directives because
-    // finalizing the builders needs to happen exactly once and this getter
-    // needs to be invoked repeatedly.
-    //
-    // In addition, we should consider implementing our own hash function for
-    // file edits because the `hashCode` defined for them might not be
-    // sufficient to detect all changes to the list of edits.
-    return Object.hashAll([
-      for (var builder in _genericFileEditBuilders.values)
-        if (builder.hasEdits) builder.fileEdit,
-      for (var builder in _dartFileEditBuilders.values)
-        if (builder.hasEdits) builder.fileEdit,
-      for (var builder in _yamlFileEditBuilders.values)
-        if (builder.hasEdits) builder.fileEdit,
-    ]);
-  }
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits {
@@ -270,6 +262,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     for (var entry in _yamlFileEditBuilders.entries) {
       copy._yamlFileEditBuilders[entry.key] = entry.value.copyWith(copy);
     }
+    copy.modificationCount = modificationCount;
     return copy;
   }
 
@@ -625,6 +618,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     var delta = _editDelta(edit);
     changeBuilder._updatePositions(edit.offset, delta);
     changeBuilder._lockedPositions.clear();
+    changeBuilder.modificationCount++;
   }
 
   /// Add the edit from the given [builder] to the edits associated with the

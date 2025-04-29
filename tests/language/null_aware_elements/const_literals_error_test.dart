@@ -18,7 +18,6 @@ var intVar = 0;
 
 var stringVar = "";
 
-
 const list1 = [?nullVar, intConst, stringConst];
 //              ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE

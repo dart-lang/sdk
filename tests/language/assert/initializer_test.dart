@@ -96,14 +96,13 @@ void test(int x, int y) {
   bool assertionsEnabled = false;
   assert(assertionsEnabled = true);
 
-  void Function(C Function()) doTest =
-      (assertionsEnabled && x >= y)
-          ? (f) {
-            Expect.throwsAssertionError(f);
-          }
-          : (f) {
-            Expect.equals(x, f().x);
-          };
+  void Function(C Function()) doTest = (assertionsEnabled && x >= y)
+      ? (f) {
+          Expect.throwsAssertionError(f);
+        }
+      : (f) {
+          Expect.equals(x, f().x);
+        };
 
   doTest(() => new C.c01(x, y));
   doTest(() => new C.c02(x, y));

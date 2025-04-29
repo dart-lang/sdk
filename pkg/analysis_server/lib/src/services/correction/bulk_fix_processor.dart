@@ -862,12 +862,11 @@ class BulkFixProcessor {
     CorrectionProducer producer,
     String codeName,
   ) async {
-    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
-
-    var oldHash = computeChangeHash();
+    var oldCount = (builder as ChangeBuilderImpl).modificationCount;
+    // Apply the producer, which might re-assign the `builder`.
     await _applyProducer(producer);
-    var newHash = computeChangeHash();
-    if (newHash != oldHash) {
+    var newCount = (builder as ChangeBuilderImpl).modificationCount;
+    if (newCount != oldCount) {
       changeMap.add(context.path, codeName.toLowerCase());
     }
   }

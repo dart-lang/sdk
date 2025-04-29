@@ -56,8 +56,9 @@ main() async {
 
   // Target of a property set
   (await ((null as Future<B>?) ??
-          (Future.value(C())..expectStaticType<Exactly<Future<C>>>())))
-      .prop = 0;
+              (Future.value(C())..expectStaticType<Exactly<Future<C>>>())))
+          .prop =
+      0;
 
   // Target of a property get
   (await ((null as Future<B>?) ??

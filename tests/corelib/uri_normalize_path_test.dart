@@ -25,10 +25,9 @@ test(String path, String normalizedPath) {
             fragment: fragment,
           );
           var expected = base.replace(
-            path:
-                (base.hasAuthority && normalizedPath.isEmpty)
-                    ? "/"
-                    : normalizedPath,
+            path: (base.hasAuthority && normalizedPath.isEmpty)
+                ? "/"
+                : normalizedPath,
           );
           var actual = base.normalizePath();
           Expect.equals(expected, actual, "$base");

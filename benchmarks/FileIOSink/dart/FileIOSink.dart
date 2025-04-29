@@ -83,10 +83,9 @@ class BenchmarkAlternatingSizedAdd extends AsyncBenchmarkBase {
   @override
   Future<void> setup() async {
     _tempDir = Directory.systemTemp.createTempSync();
-    _ioSink =
-        File(
-          _tempDir.uri.resolve('alternative-add-size').toFilePath(),
-        ).openWrite();
+    _ioSink = File(
+      _tempDir.uri.resolve('alternative-add-size').toFilePath(),
+    ).openWrite();
   }
 
   @override

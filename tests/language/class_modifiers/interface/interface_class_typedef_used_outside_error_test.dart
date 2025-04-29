@@ -14,4 +14,3 @@ class A extends ATypeDef {}
 //              ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'InterfaceClass' can't be extended outside of its library because it's an interface class.
-
