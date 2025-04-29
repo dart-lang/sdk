@@ -64,11 +64,10 @@ class _Directory extends FileSystemEntity implements Directory {
       // Fall back to the String-based path.
       Directory d => FileSystemEntity._toUtf8Array(d.path),
       String s => FileSystemEntity._toUtf8Array(s),
-      _ =>
-        throw ArgumentError(
-          '${Error.safeToString(path)} is not a String or'
-          ' Directory',
-        ),
+      _ => throw ArgumentError(
+        '${Error.safeToString(path)} is not a String or'
+        ' Directory',
+      ),
     };
 
     if (!_EmbedderConfig._mayChdir) {

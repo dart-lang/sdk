@@ -303,8 +303,9 @@ class _File extends FileSystemEntity implements File {
   File get absolute => new File(_absolutePath);
 
   Future<File> create({bool recursive = false, bool exclusive = false}) {
-    var result =
-        recursive ? parent.create(recursive: true) : new Future.value(null);
+    var result = recursive
+        ? parent.create(recursive: true)
+        : new Future.value(null);
     return result
         .then(
           (_) => _dispatchWithNamespace(_IOService.fileCreate, [

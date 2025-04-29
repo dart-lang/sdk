@@ -247,8 +247,9 @@ class _Link extends FileSystemEntity implements Link {
   Link get absolute => isAbsolute ? this : _Link(_absolutePath);
 
   Future<Link> create(String target, {bool recursive = false}) {
-    var result =
-        recursive ? parent.create(recursive: true) : new Future.value(null);
+    var result = recursive
+        ? parent.create(recursive: true)
+        : new Future.value(null);
     return result
         .then(
           (_) => _File._dispatchWithNamespace(_IOService.fileCreateLink, [

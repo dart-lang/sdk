@@ -169,12 +169,9 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     if (_hasError) return done;
 
     _isBound = true;
-    var future =
-        _controllerCompleter == null
-            ? _target.addStream(stream)
-            : _controllerCompleter!.future.then(
-              (_) => _target.addStream(stream),
-            );
+    var future = _controllerCompleter == null
+        ? _target.addStream(stream)
+        : _controllerCompleter!.future.then((_) => _target.addStream(stream));
     _controllerInstance?.close();
 
     // Wait for any pending events in [_controller] to be dispatched before

@@ -549,10 +549,9 @@ Rti? instantiatedGenericFunctionType(
   // instantiation appears to be an interface type instead.
   if (genericFunctionRti == null) return null;
   var bounds = Rti._getGenericFunctionBounds(genericFunctionRti);
-  var typeArguments =
-      JS_GET_FLAG('DEV_COMPILER')
-          ? Rti._getBindingArguments(instantiationRti)
-          : Rti._getInterfaceTypeArguments(instantiationRti);
+  var typeArguments = JS_GET_FLAG('DEV_COMPILER')
+      ? Rti._getBindingArguments(instantiationRti)
+      : Rti._getInterfaceTypeArguments(instantiationRti);
   assert(_Utils.arrayLength(bounds) == _Utils.arrayLength(typeArguments));
 
   var cache = Rti._getBindCache(genericFunctionRti);
@@ -1011,14 +1010,13 @@ Rti _instanceTypeFromConstructorMiss(Object? instance, Object? constructor) {
     //
     // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
     // prototype of Closure/BoundClosure/StaticClosure classes?
-    var effectiveConstructor =
-        _isClosure(instance)
-            ? JS(
-              '',
-              'Object.getPrototypeOf(Object.getPrototypeOf(#)).constructor',
-              instance,
-            )
-            : constructor;
+    var effectiveConstructor = _isClosure(instance)
+        ? JS(
+            '',
+            'Object.getPrototypeOf(Object.getPrototypeOf(#)).constructor',
+            instance,
+          )
+        : constructor;
     rti = _Universe.findErasedType(
       _theUniverse(),
       JS('String', '#.name', effectiveConstructor),
@@ -1256,12 +1254,11 @@ bool _installSpecializedIsTest(Object? object) {
     // TODO(sra): Can we easily recognize other interface types instantiated to
     // bounds?
     if (JS('bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
-      Object propertyName =
-          JS_GET_FLAG('DEV_COMPILER')
-              // DDC uses a JavaScript symbol when tagging the type to hide them
-              // on native types.
-              ? getSpecializedTestTag(name)
-              : '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+      Object propertyName = JS_GET_FLAG('DEV_COMPILER')
+          // DDC uses a JavaScript symbol when tagging the type to hide them
+          // on native types.
+          ? getSpecializedTestTag(name)
+          : '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
       Rti._setSpecializedTestResource(testRti, propertyName);
       if (name == JS_GET_NAME(JsGetName.LIST_CLASS_TYPE_NAME)) {
         return _finishIsFn(
@@ -2506,10 +2503,9 @@ class _Universe {
     for (int i = 0; i < length; i += 3) {
       String name = _Utils.asString(_Utils.arrayAt(arguments, i));
       bool isRequired = _Utils.asBool(_Utils.arrayAt(arguments, i + 1));
-      String nameSep =
-          isRequired
-              ? Recipe.requiredNameSeparatorString
-              : Recipe.nameSeparatorString;
+      String nameSep = isRequired
+          ? Recipe.requiredNameSeparatorString
+          : Recipe.nameSeparatorString;
       Rti type = _Utils.asRti(_Utils.arrayAt(arguments, i + 2));
       String subrecipe = Rti._getCanonicalRecipe(type);
       s = _recipeJoin5(s, sep, name, nameSep, subrecipe);
@@ -3811,10 +3807,9 @@ bool _areArgumentsSubtypes(
     Rti sArg = _Utils.asRti(_Utils.arrayAt(sArgs, i));
     Rti tArg = _Utils.asRti(_Utils.arrayAt(tArgs, i));
     if (JS_GET_FLAG("VARIANCE")) {
-      int sVariance =
-          hasVariances
-              ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
-              : Variance.legacyCovariant;
+      int sVariance = hasVariances
+          ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
+          : Variance.legacyCovariant;
       switch (sVariance) {
         case Variance.legacyCovariant:
         case Variance.covariant:
@@ -3946,10 +3941,9 @@ class _Utils {
   static void objectDelete(Object? o, Object? property) =>
       JS('', 'delete #[#]', o, property);
 
-  static Object? newArrayOrEmpty(int length) =>
-      length > 0
-          ? JS('', 'new Array(#)', length)
-          : _Universe.sharedEmptyArray(_theUniverse());
+  static Object? newArrayOrEmpty(int length) => length > 0
+      ? JS('', 'new Array(#)', length)
+      : _Universe.sharedEmptyArray(_theUniverse());
 
   static bool isArray(Object? o) => JS('bool', 'Array.isArray(#)', o);
 

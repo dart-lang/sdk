@@ -1176,8 +1176,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
     assert(_bodyController == null);
     assert(!_bodyPaused);
     var controller = _bodyController = StreamController<Uint8List>(sync: true);
-    var incoming =
-        _incoming = _HttpIncoming(_headers!, transferLength, controller.stream);
+    var incoming = _incoming = _HttpIncoming(
+      _headers!,
+      transferLength,
+      controller.stream,
+    );
     controller
       ..onListen = () {
         if (incoming != _incoming) return;

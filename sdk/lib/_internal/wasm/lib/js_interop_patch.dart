@@ -29,50 +29,45 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   // reified `JSUndefined` and `JSNull`, we have to handle the case where
   // `this == null`. However, after migration we can remove these checks.
   @patch
-  bool get isUndefined =>
-      throw UnimplementedError(
-        "JS 'null' and 'undefined' are internalized as "
-        "Dart null in dart2wasm. As such, they can not be differentiated and "
-        "this API should not be used when compiling to Wasm.",
-      );
+  bool get isUndefined => throw UnimplementedError(
+    "JS 'null' and 'undefined' are internalized as "
+    "Dart null in dart2wasm. As such, they can not be differentiated and "
+    "this API should not be used when compiling to Wasm.",
+  );
 
   @patch
-  bool get isNull =>
-      throw UnimplementedError(
-        "JS 'null' and 'undefined' are internalized as "
-        "Dart null in dart2wasm. As such, they can not be differentiated and "
-        "this API should not be used when compiling to Wasm.",
-      );
+  bool get isNull => throw UnimplementedError(
+    "JS 'null' and 'undefined' are internalized as "
+    "Dart null in dart2wasm. As such, they can not be differentiated and "
+    "this API should not be used when compiling to Wasm.",
+  );
 }
 
 @patch
 extension JSAnyUtilityExtension on JSAny? {
   @patch
-  bool typeofEquals(String type) =>
-      js_helper
-          .JS<WasmI32>(
-            '(o, t) => typeof o === t',
-            this.toExternRef,
-            type.toJS.toExternRef,
-          )
-          .toBool();
+  bool typeofEquals(String type) => js_helper
+      .JS<WasmI32>(
+        '(o, t) => typeof o === t',
+        this.toExternRef,
+        type.toJS.toExternRef,
+      )
+      .toBool();
 
   @patch
-  bool instanceof(JSFunction constructor) =>
-      js_helper
-          .JS<WasmI32>(
-            '(o, c) => o instanceof c',
-            toExternRef,
-            constructor.toExternRef,
-          )
-          .toBool();
+  bool instanceof(JSFunction constructor) => js_helper
+      .JS<WasmI32>(
+        '(o, c) => o instanceof c',
+        toExternRef,
+        constructor.toExternRef,
+      )
+      .toBool();
 
   @patch
-  bool isA<T>() =>
-      throw UnimplementedError(
-        "This should never be called. Calls to 'isA' should have been "
-        'transformed by the interop transformer.',
-      );
+  bool isA<T>() => throw UnimplementedError(
+    "This should never be called. Calls to 'isA' should have been "
+    'transformed by the interop transformer.',
+  );
 
   @patch
   Object? dartify() => js_util.dartify(this);
@@ -103,19 +98,17 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
 @patch
 extension FunctionToJSExportedDartFunction on Function {
   @patch
-  JSExportedDartFunction get toJS =>
-      throw UnimplementedError(
-        "This should never be called. Calls to 'toJS' should have been "
-        'transformed by the interop transformer.',
-      );
+  JSExportedDartFunction get toJS => throw UnimplementedError(
+    "This should never be called. Calls to 'toJS' should have been "
+    'transformed by the interop transformer.',
+  );
 
   @patch
-  JSExportedDartFunction get toJSCaptureThis =>
-      throw UnimplementedError(
-        "'toJSCaptureThis' should never directly be called. Calls to "
-        "'toJSCaptureThis' should have been transformed by the interop "
-        'transformer.',
-      );
+  JSExportedDartFunction get toJSCaptureThis => throw UnimplementedError(
+    "'toJSCaptureThis' should never directly be called. Calls to "
+    "'toJSCaptureThis' should have been transformed by the interop "
+    'transformer.',
+  );
 }
 
 // Embedded global property for wrapped Dart objects passed via JS interop.
@@ -202,34 +195,32 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   @patch
   Future<T> get toDart {
     final completer = Completer<T>();
-    final success =
-        (JSAny? r) {
-          // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
-          // This is because if there's a `TypeError` with the cast, we want to
-          // bubble that up through the completer, so we end up doing a try-catch
-          // here to do so.
-          try {
-            final value = r as T;
-            completer.complete(value);
-          } catch (e) {
-            completer.completeError(e);
-          }
-        }.toJS;
-    final error =
-        (JSAny? e) {
-          // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
-          // all backends and if it is feasible, or feasible for some limited use
-          // cases, then we should pass [e] directly to `completeError`.
-          // TODO(joshualitt): Use helpers to avoid conflating `null` and `JSNull` /
-          // `JSUndefined`.
-          if (e == null) {
-            // Note that we pass false as a default. It's not currently possible to
-            // be able to differentiate between null and undefined.
-            completer.completeError(js_util.NullRejectionException(false));
-            return;
-          }
-          completer.completeError(e);
-        }.toJS;
+    final success = (JSAny? r) {
+      // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
+      // This is because if there's a `TypeError` with the cast, we want to
+      // bubble that up through the completer, so we end up doing a try-catch
+      // here to do so.
+      try {
+        final value = r as T;
+        completer.complete(value);
+      } catch (e) {
+        completer.completeError(e);
+      }
+    }.toJS;
+    final error = (JSAny? e) {
+      // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
+      // all backends and if it is feasible, or feasible for some limited use
+      // cases, then we should pass [e] directly to `completeError`.
+      // TODO(joshualitt): Use helpers to avoid conflating `null` and `JSNull` /
+      // `JSUndefined`.
+      if (e == null) {
+        // Note that we pass false as a default. It's not currently possible to
+        // be able to differentiate between null and undefined.
+        completer.completeError(js_util.NullRejectionException(false));
+        return;
+      }
+      completer.completeError(e);
+    }.toJS;
     promiseThen(toExternRef, success.toExternRef, error.toExternRef);
     return completer.future;
   }

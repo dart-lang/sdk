@@ -828,18 +828,16 @@ class _AsBroadcastStream<T> extends Stream<T> {
     this._source,
     void onListenHandler(StreamSubscription<T> subscription)?,
     void onCancelHandler(StreamSubscription<T> subscription)?,
-  ) : _onListenHandler =
-          onListenHandler == null
-              ? null
-              : Zone.current.registerUnaryCallback<void, StreamSubscription<T>>(
-                onListenHandler,
-              ),
-      _onCancelHandler =
-          onCancelHandler == null
-              ? null
-              : Zone.current.registerUnaryCallback<void, StreamSubscription<T>>(
-                onCancelHandler,
-              ),
+  ) : _onListenHandler = onListenHandler == null
+          ? null
+          : Zone.current.registerUnaryCallback<void, StreamSubscription<T>>(
+              onListenHandler,
+            ),
+      _onCancelHandler = onCancelHandler == null
+          ? null
+          : Zone.current.registerUnaryCallback<void, StreamSubscription<T>>(
+              onCancelHandler,
+            ),
       _zone = Zone.current {
     _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
   }

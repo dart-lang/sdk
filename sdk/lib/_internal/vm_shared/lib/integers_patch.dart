@@ -323,8 +323,9 @@ class int {
     _int64OverflowLimits[tableIndex + 2] = unsafeCast<int>(
       _maxInt64.remainder(multiplier),
     );
-    _int64OverflowLimits[tableIndex + 3] =
-        -unsafeCast<int>(_minInt64.remainder(multiplier));
+    _int64OverflowLimits[tableIndex + 3] = -unsafeCast<int>(
+      _minInt64.remainder(multiplier),
+    );
     return _int64OverflowLimits[tableIndex];
   }
 }

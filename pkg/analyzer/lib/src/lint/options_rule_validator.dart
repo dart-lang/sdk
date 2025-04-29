@@ -92,7 +92,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         } else if (!seenRules.add(rule.name)) {
           reporter.atSourceSpan(
             node.span,
-            AnalysisOptionsHintCode.DUPLICATE_RULE,
+            AnalysisOptionsWarningCode.DUPLICATE_RULE,
             arguments: [value],
           );
         }
@@ -106,13 +106,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT,
+              AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT,
               arguments: [value, replacedBy],
             );
           } else {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsHintCode.DEPRECATED_LINT,
+              AnalysisOptionsWarningCode.DEPRECATED_LINT,
               arguments: [value],
             );
           }

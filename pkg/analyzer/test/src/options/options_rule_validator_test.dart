@@ -80,7 +80,7 @@ linter:
   rules:
     - deprecated_lint_with_replacement
 ''',
-      [AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT],
+      [AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT],
     );
   }
 
@@ -91,7 +91,7 @@ linter:
   rules:
     deprecated_lint: false
 ''',
-      [AnalysisOptionsHintCode.DEPRECATED_LINT],
+      [AnalysisOptionsWarningCode.DEPRECATED_LINT],
     );
   }
 
@@ -102,7 +102,7 @@ linter:
   rules:
     - deprecated_lint
 ''',
-      [AnalysisOptionsHintCode.DEPRECATED_LINT],
+      [AnalysisOptionsWarningCode.DEPRECATED_LINT],
     );
   }
 
@@ -113,7 +113,7 @@ linter:
   rules:
     - deprecated_since_3_lint
 ''',
-      [AnalysisOptionsHintCode.DEPRECATED_LINT],
+      [AnalysisOptionsWarningCode.DEPRECATED_LINT],
       sdk: dart3,
     );
   }
@@ -150,7 +150,7 @@ linter:
     - stable_lint
     - stable_lint
 ''',
-      [AnalysisOptionsHintCode.DUPLICATE_RULE],
+      [AnalysisOptionsWarningCode.DUPLICATE_RULE],
     );
   }
 

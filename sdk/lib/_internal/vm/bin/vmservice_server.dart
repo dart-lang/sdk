@@ -196,8 +196,9 @@ class _DebuggingSession {
     _process = process;
 
     // DDS will close stderr once it's finished launching.
-    final launchResultStderr =
-        await _process.stderr.transform(utf8.decoder).join();
+    final launchResultStderr = await _process.stderr
+        .transform(utf8.decoder)
+        .join();
 
     void printError(String details) =>
         stderr.writeln('Could not start the VM service: $details');
@@ -552,8 +553,9 @@ class Server {
     if (acceptNewWebSocketConnections) {
       WebSocketTransformer.upgrade(
         request,
-        protocolSelector:
-            subprotocols == null ? null : (_) => 'implicit-redirect',
+        protocolSelector: subprotocols == null
+            ? null
+            : (_) => 'implicit-redirect',
         compression: CompressionOptions.compressionOff,
       ).then((WebSocket webSocket) {
         WebSocketClient(webSocket, _service);
@@ -677,10 +679,9 @@ class Server {
     // thing with Windows drive letters. Only use Uri.parse with known file
     // URIs, and use Uri.file otherwise to properly handle drive letters in
     // paths.
-    final uri =
-        serviceInfoFilenameLocal.startsWith(kFileScheme)
-            ? Uri.parse(serviceInfoFilenameLocal)
-            : Uri.file(serviceInfoFilenameLocal);
+    final uri = serviceInfoFilenameLocal.startsWith(kFileScheme)
+        ? Uri.parse(serviceInfoFilenameLocal)
+        : Uri.file(serviceInfoFilenameLocal);
     final file = File.fromUri(uri);
     return file.writeAsString(json.encode(serviceInfo));
   }

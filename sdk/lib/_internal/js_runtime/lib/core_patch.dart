@@ -202,15 +202,14 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
   final Object? _registry;
 
   _FinalizationRegistryWrapper(void Function(T) callback)
-    : _registry =
-          _finalizationRegistryConstructor == null
-              ? null
-              : JS(
-                '',
-                'new #(#)',
-                _finalizationRegistryConstructor,
-                convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1),
-              );
+    : _registry = _finalizationRegistryConstructor == null
+          ? null
+          : JS(
+              '',
+              'new #(#)',
+              _finalizationRegistryConstructor,
+              convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1),
+            );
 
   void attach(Object value, T token, {Object? detach}) {
     if (_registry != null) {
@@ -230,8 +229,8 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
 
   static final Object? _finalizationRegistryConstructor =
       JS('', 'typeof FinalizationRegistry == "function"')
-          ? JS('', 'FinalizationRegistry')
-          : null;
+      ? JS('', 'FinalizationRegistry')
+      : null;
 }
 
 @patch
@@ -331,8 +330,9 @@ class Stopwatch {
 class List<E> {
   @patch
   factory List.filled(int length, E fill, {bool growable = false}) {
-    var result =
-        growable ? JSArray<E>.growable(length) : JSArray<E>.fixed(length);
+    var result = growable
+        ? JSArray<E>.growable(length)
+        : JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
       // TODO(sra): Consider using `Array.fill`.
       for (int i = 0; i < result.length; i++) {
@@ -390,8 +390,9 @@ class List<E> {
     E generator(int index), {
     bool growable = true,
   }) {
-    final result =
-        growable ? JSArray<E>.growable(length) : JSArray<E>.fixed(length);
+    final result = growable
+        ? JSArray<E>.growable(length)
+        : JSArray<E>.fixed(length);
     for (int i = 0; i < length; i++) {
       result[i] = generator(i);
     }

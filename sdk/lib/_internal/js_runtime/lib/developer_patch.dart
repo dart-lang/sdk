@@ -58,29 +58,27 @@ extension type _JSJSON(JSObject performance) {
   external JSObject parse(JSString string);
 }
 
-_JSPerformance? _performance =
-    (() {
-      final value = _jsPerformance;
-      if (value.isA<JSObject>()) {
-        final performance = _JSPerformance(value as JSObject);
-        if (performance._measureMethod != null &&
-            performance._markMethod != null &&
-            performance._clearMeasuresMethod != null &&
-            performance._clearMarksMethod != null) {
-          return performance;
-        }
-      }
-      return null;
-    })();
+_JSPerformance? _performance = (() {
+  final value = _jsPerformance;
+  if (value.isA<JSObject>()) {
+    final performance = _JSPerformance(value as JSObject);
+    if (performance._measureMethod != null &&
+        performance._markMethod != null &&
+        performance._clearMeasuresMethod != null &&
+        performance._clearMarksMethod != null) {
+      return performance;
+    }
+  }
+  return null;
+})();
 
-_JSJSON _json =
-    (() {
-      final value = _jsJSON;
-      if (value.isA<JSObject>()) {
-        return value as _JSJSON;
-      }
-      throw UnsupportedError('Missing JSON.parse() support');
-    })();
+_JSJSON _json = (() {
+  final value = _jsJSON;
+  if (value.isA<JSObject>()) {
+    return value as _JSJSON;
+  }
+  throw UnsupportedError('Missing JSON.parse() support');
+})();
 
 @patch
 @pragma('dart2js:tryInline')

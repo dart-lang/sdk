@@ -30,9 +30,9 @@ import 'package:yaml_edit/yaml_edit.dart';
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
   static const List<ErrorCode> codesWithFixes = [
-    AnalysisOptionsHintCode.DEPRECATED_LINT,
+    AnalysisOptionsWarningCode.DEPRECATED_LINT,
     AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-    AnalysisOptionsHintCode.DUPLICATE_RULE,
+    AnalysisOptionsWarningCode.DUPLICATE_RULE,
     AnalysisOptionsWarningCode.REMOVED_LINT,
     AnalysisOptionsWarningCode.UNDEFINED_LINT,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
@@ -115,8 +115,8 @@ class AnalysisOptionsFixGenerator {
           strongModeMap,
         );
       }
-    } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT ||
-        errorCode == AnalysisOptionsHintCode.DUPLICATE_RULE ||
+    } else if (errorCode == AnalysisOptionsWarningCode.DEPRECATED_LINT ||
+        errorCode == AnalysisOptionsWarningCode.DUPLICATE_RULE ||
         errorCode == AnalysisOptionsWarningCode.REMOVED_LINT ||
         errorCode == AnalysisOptionsWarningCode.UNDEFINED_LINT) {
       await _addFix_removeLint(coveringNodePath);

@@ -21,12 +21,6 @@ const List<ErrorClassInfo> errorClasses = [
   ),
   ErrorClassInfo(
     filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
-    name: 'AnalysisOptionsHintCode',
-    type: 'HINT',
-    severity: 'INFO',
-  ),
-  ErrorClassInfo(
-    filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
     name: 'AnalysisOptionsWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',

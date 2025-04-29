@@ -1367,7 +1367,7 @@ DART_EXPORT void CallFunctionOnNewThreadNonBlocking(int64_t response_id,
   if (result != 0) perror("pthread_attr_destroy");
 #else
   std::thread thread(fn, response_id, 123);
-  thread.detach();
+  thread.detach();  // NOLINT(not glibc)
 #endif
 }
 

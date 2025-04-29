@@ -61,7 +61,26 @@ AnalysisOptionsErrorCode:
 
       Parameters:
       0: the error message from the parse error
-AnalysisOptionsHintCode:
+AnalysisOptionsWarningCode:
+  ANALYSIS_OPTION_DEPRECATED:
+    problemMessage: "The option '{0}' is no longer supported."
+    hasPublishedDocs: false
+    comment: |
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+    sharedName: ANALYSIS_OPTION_DEPRECATED
+    problemMessage: "The option '{0}' is no longer supported."
+    correctionMessage: "Try using the new '{1}' option."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+      1: the replacement option name
   DEPRECATED_LINT:
     problemMessage: "'{0}' is a deprecated lint rule and should not be used."
     correctionMessage: Try removing '{0}'.
@@ -90,26 +109,6 @@ AnalysisOptionsHintCode:
 
       Parameters:
       0: the rule name
-AnalysisOptionsWarningCode:
-  ANALYSIS_OPTION_DEPRECATED:
-    problemMessage: "The option '{0}' is no longer supported."
-    hasPublishedDocs: false
-    comment: |
-      An error code indicating that the given option is deprecated.
-
-      Parameters:
-      0: the option name
-  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
-    sharedName: ANALYSIS_OPTION_DEPRECATED
-    problemMessage: "The option '{0}' is no longer supported."
-    correctionMessage: "Try using the new '{1}' option."
-    hasPublishedDocs: false
-    comment: |-
-      An error code indicating that the given option is deprecated.
-
-      Parameters:
-      0: the option name
-      1: the replacement option name
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
     hasPublishedDocs: false

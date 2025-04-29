@@ -10,6 +10,8 @@ extendable:
 callable:
   - library: 'shared/shared.dart'
     class: 'M'
+  - library: 'shared/shared_old.dart'
+    class: 'M3'
 
 can-be-overridden:
   - library: 'shared/shared.dart'
