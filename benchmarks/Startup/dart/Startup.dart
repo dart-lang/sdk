@@ -23,8 +23,9 @@ Future<void> main(List<String> args) async {
   var events;
   try {
     tempDir = await Directory.systemTemp.createTemp();
-    final timelinePath =
-        tempDir.uri.resolve('Startup-timeline.json').toFilePath();
+    final timelinePath = tempDir.uri
+        .resolve('Startup-timeline.json')
+        .toFilePath();
     final p = await Process.run(Platform.executable, [
       ...Platform.executableArguments,
       '--timeline_recorder=file:$timelinePath',

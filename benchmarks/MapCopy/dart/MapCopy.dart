@@ -224,14 +224,12 @@ void pollute() {
   final Map<String, Object> m2 = HashMap.of(m1);
   final Map<int, Object> m3 = Map.of({1: 66});
   final Map<int, Object> m4 = HashMap.of({1: 66});
-  final Map<Object, Object> m5 =
-      Map.identity()
-        ..[Thing()] = 1
-        ..[Thing()] = 2;
-  final Map<Object, Object> m6 =
-      HashMap.identity()
-        ..[Thing()] = 1
-        ..[Thing()] = 2;
+  final Map<Object, Object> m5 = Map.identity()
+    ..[Thing()] = 1
+    ..[Thing()] = 2;
+  final Map<Object, Object> m6 = HashMap.identity()
+    ..[Thing()] = 1
+    ..[Thing()] = 2;
   final Map<Object, Object> m7 = UnmodifiableMapView(m1);
   final Map<Object, Object> m8 = UnmodifiableMapView(m2);
   final Map<Object, Object> m9 = UnmodifiableMapView(m3);
