@@ -59,10 +59,6 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-@Deprecated('Do not use implementation classes')
-// TODO(scheglov): https://github.com/dart-lang/dartdoc/issues/4039
-typedef ConstructorElementImpl = ConstructorFragmentImpl;
-
 abstract class AnnotatableElementImpl implements ElementImpl2, Annotatable {
   @override
   MetadataImpl get metadata2;
