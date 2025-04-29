@@ -19,12 +19,10 @@ import 'package:front_end/src/api_unstable/vm.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart'
-    show writeComponentToBinary, writeComponentToText;
+import 'package:kernel/kernel.dart' show writeComponentToText;
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
-import 'package:path/path.dart' as path show setExtension;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;
@@ -45,7 +43,6 @@ import 'js/runtime_generator.dart' as js;
 import 'modules.dart';
 import 'record_class_generator.dart';
 import 'records.dart';
-import 'serialization.dart';
 import 'target.dart' as wasm show Mode;
 import 'target.dart' hide Mode;
 import 'translator.dart';
@@ -84,6 +81,24 @@ class CFECrashError extends CompilationError {
 class CFECompileTimeErrors extends CompilationError {
   CFECompileTimeErrors();
 }
+
+const List<String> _librariesToIndex = [
+  "dart:_boxed_bool",
+  "dart:_boxed_double",
+  "dart:_boxed_int",
+  "dart:_compact_hash",
+  "dart:_internal",
+  "dart:_js_helper",
+  "dart:_js_types",
+  "dart:_list",
+  "dart:_string",
+  "dart:_wasm",
+  "dart:async",
+  "dart:collection",
+  "dart:core",
+  "dart:ffi",
+  "dart:typed_data",
+];
 
 /// Compile a Dart file into a Wasm module.
 ///
@@ -159,8 +174,6 @@ Future<CompilationResult> compileToModule(
     compilerOptions.compileSdk = true;
   }
 
-  final dynamicMainModuleUri = options.dynamicModuleMainUri;
-
   final dynamicModuleMainUri = await resolveUri(options.dynamicModuleMainUri);
   final dynamicInterfaceUri = await resolveUri(options.dynamicInterfaceUri);
   final isDynamicMainModule =
@@ -183,25 +196,10 @@ Future<CompilationResult> compileToModule(
 
   Component component = compilerResult!.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
-  final classHierarchy =
+
+  ClosedWorldClassHierarchy classHierarchy =
       ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
-  LibraryIndex libraryIndex = LibraryIndex(component, [
-    "dart:_boxed_bool",
-    "dart:_boxed_double",
-    "dart:_boxed_int",
-    "dart:_compact_hash",
-    "dart:_internal",
-    "dart:_js_helper",
-    "dart:_js_types",
-    "dart:_list",
-    "dart:_string",
-    "dart:_wasm",
-    "dart:async",
-    "dart:collection",
-    "dart:core",
-    "dart:ffi",
-    "dart:typed_data",
-  ]);
+  LibraryIndex libraryIndex = LibraryIndex(component, _librariesToIndex);
 
   if (options.dumpKernelAfterCfe != null) {
     writeComponentToText(component, path: options.dumpKernelAfterCfe!);
@@ -211,6 +209,43 @@ Future<CompilationResult> compileToModule(
     to_string_transformer.transformComponent(
         component, options.deleteToStringPackageUri);
   }
+
+  var jsInteropMethods = js.performJSInteropTransformations(
+      component.getDynamicModuleLibraries(coreTypes),
+      coreTypes,
+      classHierarchy);
+
+  if (isDynamicModule) {
+    // Join the dynamic module libraries with the TFAed component from the main
+    // module compilation. JS interop transformer must be run before this since
+    // some methods it uses may have been tree-shaken from the TFAed component.
+    (component, jsInteropMethods) = await generateDynamicModuleComponent(
+        component, coreTypes, dynamicModuleMainUri, jsInteropMethods);
+    coreTypes = CoreTypes(component);
+    classHierarchy =
+        ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
+    libraryIndex = LibraryIndex(component, _librariesToIndex);
+  }
+
+  final librariesToTransform = isDynamicModule
+      ? component.getDynamicModuleLibraries(coreTypes)
+      : component.libraries;
+  final constantEvaluator = ConstantEvaluator(
+      options, target, component, coreTypes, classHierarchy, libraryIndex);
+  unreachable_code_elimination.transformLibraries(target, librariesToTransform,
+      constantEvaluator, options.translatorOptions.enableAsserts);
+
+  final Map<RecordShape, Class> recordClasses = generateRecordClasses(
+      component, coreTypes,
+      isDynamicMainModule: isDynamicMainModule,
+      isDynamicModule: isDynamicModule);
+  target.recordClasses = recordClasses;
+
+  if (options.dumpKernelBeforeTfa != null) {
+    writeComponentToText(component, path: options.dumpKernelBeforeTfa!);
+  }
+
+  mixin_deduplication.transformLibraries(librariesToTransform);
 
   ModuleStrategy moduleStrategy;
   if (options.translatorOptions.enableDeferredLoading) {
@@ -232,51 +267,19 @@ Future<CompilationResult> compileToModule(
     moduleStrategy = DefaultModuleStrategy(component);
   }
 
-  final librariesToTransform = isDynamicModule
-      ? component.getDynamicModuleLibraries(coreTypes)
-      : component.libraries;
-  ConstantEvaluator constantEvaluator = ConstantEvaluator(
-      options, target, component, coreTypes, classHierarchy, libraryIndex);
-  unreachable_code_elimination.transformLibraries(target, librariesToTransform,
-      constantEvaluator, options.translatorOptions.enableAsserts);
-
-  js.RuntimeFinalizer? jsRuntimeFinalizer = js.RuntimeFinalizer(
-      js.performJSInteropTransformations(
-          librariesToTransform, coreTypes, classHierarchy));
-
-  final Map<RecordShape, Class> recordClasses = generateRecordClasses(
-      component, coreTypes, isDynamicMainModule || isDynamicModule);
-  target.recordClasses = recordClasses;
-
-  if (options.dumpKernelBeforeTfa != null) {
-    writeComponentToText(component, path: options.dumpKernelBeforeTfa!);
-  }
-
-  mixin_deduplication.transformLibraries(librariesToTransform);
-
   moduleStrategy.prepareComponent();
 
   MainModuleMetadata mainModuleMetadata =
       MainModuleMetadata.empty(options.translatorOptions, options.environment);
 
   if (isDynamicModule) {
-    final filename = options.dynamicModuleMetadataFile ??
-        Uri.parse(
-            path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
-    final dynamicModuleMetadataBytes =
-        await File.fromUri(filename).readAsBytes();
-    final source = DataDeserializer(dynamicModuleMetadataBytes, component);
-    mainModuleMetadata = MainModuleMetadata.deserialize(source);
+    mainModuleMetadata =
+        await deserializeMainModuleMetadata(component, options);
     mainModuleMetadata.verifyDynamicModuleOptions(options);
-    mainModuleMetadata.initializeDynamicModuleKernel(
-        component,
-        coreTypes,
-        // Create a new hierarchy with generated record classes.
-        ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy);
   } else if (isDynamicMainModule) {
     MainModuleMetadata.verifyMainModuleOptions(options);
-    writeComponentToBinary(component, dynamicModuleMainUri.path,
-        includeSource: false);
+    await serializeMainModuleComponent(component, dynamicModuleMainUri,
+        optimized: false);
   }
 
   if (!isDynamicModule) {
@@ -327,7 +330,9 @@ Future<CompilationResult> compileToModule(
         (moduleBytes: wasmModuleSerialized, sourceMap: sourceMap);
   });
 
-  final jsRuntime = translator.isDynamicModule
+  final jsRuntimeFinalizer = js.RuntimeFinalizer(jsInteropMethods);
+
+  final jsRuntime = isDynamicModule
       ? jsRuntimeFinalizer.generateDynamicModule(
           translator.functions.translatedProcedures,
           translator.internalizedStringsForJSRuntime)
@@ -341,12 +346,9 @@ Future<CompilationResult> compileToModule(
 
   final supportJs = _generateSupportJs(options.translatorOptions);
   if (isDynamicMainModule) {
-    final filename = options.dynamicModuleMetadataFile ??
-        Uri.parse(
-            path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
-    final serializer = DataSerializer(translator.component);
-    translator.dynamicModuleInfo!.metadata.serialize(serializer, translator);
-    await File.fromUri(filename).writeAsBytes(serializer.takeBytes());
+    await serializeMainModuleMetadata(component, translator, options);
+    await serializeMainModuleComponent(component, dynamicModuleMainUri,
+        optimized: true);
   }
 
   return CompilationSuccess(wasmModules, jsRuntime, supportJs);

@@ -10,6 +10,7 @@ import 'package:vm/metadata/table_selector.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'reference_extensions.dart';
@@ -367,16 +368,25 @@ class DispatchTable {
   late final Map<TreeNode, ProcedureAttributesMetadata>
       procedureAttributeMetadata =
       translator.isDynamicModule && !isDynamicModuleTable
-          ? translator.dynamicModuleInfo!.mainModuleProcedureAttributes
+          ? (translator.component
+                      .metadata[dynamicMainModuleProcedureAttributeMetadataTag]
+                  as ProcedureAttributesMetadataRepository)
+              .mapping
           : translator.procedureAttributeMetadata;
 
   late final Translator translator;
 
   late final List<TableSelectorInfo> _selectorMetadata =
-      (translator.component.metadata["vm.table-selector.metadata"]
-              as TableSelectorMetadataRepository)
-          .mapping[translator.component]!
-          .selectors;
+      translator.isDynamicModule && !isDynamicModuleTable
+          ? (translator.component.metadata[dynamicMainModuleSelectorMetadataTag]
+                  as TableSelectorMetadataRepository)
+              .mapping[translator.component]!
+              .selectors
+          : (translator.component
+                      .metadata[TableSelectorMetadataRepository.repositoryTag]
+                  as TableSelectorMetadataRepository)
+              .mapping[translator.component]!
+              .selectors;
   late final int minClassId = isDynamicModuleTable
       ? translator.classIdNumbering.firstDynamicModuleClassId
       : 0;

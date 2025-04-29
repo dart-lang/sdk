@@ -20,10 +20,10 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
   final bool _hasDynamicModuleSupport;
   final bool _deferredLoadingEnabled;
 
-  final Procedure _dartInternalCheckBoundsGetter;
-  final Procedure _dartInternalMinifyGetter;
-  final Procedure _dartInternalHasDynamicModuleSupportGetter;
-  final Procedure _dartInternalDeferredLoadingEnabled;
+  final Procedure? _dartInternalCheckBoundsGetter;
+  final Procedure? _dartInternalMinifyGetter;
+  final Procedure? _dartInternalHasDynamicModuleSupportGetter;
+  final Procedure? _dartInternalDeferredLoadingEnabled;
 
   ConstantEvaluator(
       WasmCompilerOptions options,
@@ -38,15 +38,17 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
         _deferredLoadingEnabled =
             options.translatorOptions.enableDeferredLoading ||
                 options.translatorOptions.enableMultiModuleStressTestMode,
-        _dartInternalCheckBoundsGetter = libraryIndex.getTopLevelProcedure(
-            "dart:_internal", "get:checkBounds"),
-        _dartInternalMinifyGetter =
-            libraryIndex.getTopLevelProcedure("dart:_internal", "get:minify"),
+        _dartInternalCheckBoundsGetter = libraryIndex.tryGetProcedure(
+            "dart:_internal", LibraryIndex.topLevel, "get:checkBounds"),
+        _dartInternalMinifyGetter = libraryIndex.tryGetProcedure(
+            "dart:_internal", LibraryIndex.topLevel, "get:minify"),
         _dartInternalHasDynamicModuleSupportGetter =
-            libraryIndex.getTopLevelProcedure(
-                "dart:_internal", "get:hasDynamicModuleSupport"),
-        _dartInternalDeferredLoadingEnabled = libraryIndex.getTopLevelProcedure(
-            "dart:_internal", "get:deferredLoadingEnabled"),
+            libraryIndex.tryGetProcedure("dart:_internal",
+                LibraryIndex.topLevel, "get:hasDynamicModuleSupport"),
+        _dartInternalDeferredLoadingEnabled = libraryIndex.tryGetProcedure(
+            "dart:_internal",
+            LibraryIndex.topLevel,
+            "get:deferredLoadingEnabled"),
         super(
           target.dartLibrarySupport,
           target.constantsBackend,

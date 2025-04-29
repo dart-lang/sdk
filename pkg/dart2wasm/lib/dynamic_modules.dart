@@ -3,13 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
-import 'package:vm/metadata/procedure_attributes.dart'
-    show ProcedureAttributesMetadata;
+import 'package:vm/metadata/direct_call.dart' show DirectCallMetadata;
+import 'package:vm/metadata/procedure_attributes.dart';
+import 'package:vm/metadata/table_selector.dart';
+import 'package:vm/transformations/devirtualization.dart';
 import 'package:vm/transformations/dynamic_interface_annotator.dart'
     as dynamic_interface_annotator;
 import 'package:vm/transformations/pragma.dart';
+import 'package:vm/transformations/type_flow/table_selector_assigner.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
@@ -21,6 +25,7 @@ import 'dynamic_module_kernel_metadata.dart';
 import 'intrinsics.dart' show MemberIntrinsic;
 import 'kernel_nodes.dart';
 import 'modules.dart';
+import 'record_class_generator.dart' show dynamicModulesRecordsLibraryUri;
 import 'reference_extensions.dart';
 import 'target.dart';
 import 'translator.dart';
@@ -29,9 +34,6 @@ import 'util.dart';
 
 // Pragmas used to annotate the kernel during main module compilation.
 const String _mainModLibPragma = 'wasm:mainMod';
-const String _mainLibPragma = 'wasm:mainLib';
-const String _mainMethodPragma = 'wasm:mainMethod';
-const String _globalIdPragma = 'wasm:globalId';
 const String _dynamicModuleEntryPointName = '\$invokeEntryPoint';
 
 extension DynamicModuleComponent on Component {
@@ -52,9 +54,6 @@ extension DynamicModuleClass on Class {
   bool isDynamicModuleExtendable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleExtendablePragmaName) ||
       hasPragma(coreTypes, this, kDynModuleImplicitlyExtendablePragmaName);
-
-  bool isMainModuleLive(CoreTypes coreTypes) =>
-      getPragma<int>(coreTypes, this, _globalIdPragma, defaultValue: 0) != null;
 }
 
 extension DynamicModuleMember on Member {
@@ -70,35 +69,27 @@ extension DynamicModuleMember on Member {
   bool isDynamicModuleOverrideable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenPragmaName) ||
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenImplicitlyPragmaName);
-
-  bool isMainModuleLive(CoreTypes coreTypes) =>
-      getPragma<int>(coreTypes, this, _globalIdPragma, defaultValue: 0) != null;
 }
 
 class DynamicModuleOutputData extends ModuleOutputData {
   final CoreTypes coreTypes;
-  DynamicModuleOutputData(this.coreTypes, super.modules, super.importMap);
-
-  ModuleOutput get _dynamicModule => modules[1];
+  final ModuleOutput _dynamicModule;
+  DynamicModuleOutputData(this.coreTypes, super.modules, super.importMap)
+      : _dynamicModule = modules[1];
 
   @override
   ModuleOutput moduleForReference(Reference reference) {
     // Rather than create tear-offs for all dynamic callable methods in the main
     // module, we create them as needed in the dynamic modules.
     if (reference.isTearOffReference) return _dynamicModule;
-    final member = reference.asMember;
-
-    // Members in new record classes should get generated in the dynamic module.
-    if (member.enclosingClass?.superclass == coreTypes.recordClass &&
-        !member.isMainModuleLive(coreTypes)) {
-      return _dynamicModule;
-    }
 
     return super.moduleForReference(reference);
   }
 }
 
-class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
+class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
+  @override
+  final Component component;
   @override
   final CoreTypes coreTypes;
   @override
@@ -107,7 +98,7 @@ class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
   final String dynamicInterfaceSpecification;
 
   DynamicMainModuleStrategy(
-      super.component,
+      this.component,
       this.coreTypes,
       this.dynamicInterfaceSpecification,
       this.dynamicInterfaceSpecificationBaseUri)
@@ -119,7 +110,13 @@ class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
     dynamic_interface_annotator.annotateComponent(dynamicInterfaceSpecification,
         dynamicInterfaceSpecificationBaseUri, component, coreTypes);
     _addImplicitPragmas();
-    _addMetadataPragmas();
+
+    for (final lib in component.libraries) {
+      lib.annotations = [...lib.annotations];
+      addPragma(lib, _mainModLibPragma, coreTypes);
+    }
+
+    component.addMetadataRepository(DynamicModuleGlobalIdRepository());
   }
 
   @override
@@ -189,57 +186,17 @@ class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
     // SystemHash.combine used by closures.
     add(systemHashCombine, kDynModuleCallablePragmaName);
   }
-
-  void _addMetadataPragmas() {
-    // Annotate with kernel with metadata that will help subsequent dynamic
-    // module compilations to identify members and classes.
-    addPragma(
-        component.mainMethod!.enclosingLibrary, _mainLibPragma, coreTypes);
-    addPragma(component.mainMethod!, _mainMethodPragma, coreTypes);
-
-    int nextId = 0;
-    final idRepo = DynamicModuleGlobalIdRepository();
-    component.addMetadataRepository(idRepo);
-
-    void annotateMember(Member member) {
-      final memberId = nextId++;
-      addPragma(member, _globalIdPragma, coreTypes,
-          value: IntConstant(memberId));
-      idRepo.mapping[member] = memberId;
-    }
-
-    for (final lib in component.libraries) {
-      lib.annotations = [...lib.annotations];
-      addPragma(lib, _mainModLibPragma, coreTypes);
-      for (final member in lib.members) {
-        annotateMember(member);
-      }
-      for (final cls in lib.classes) {
-        final classId = nextId++;
-        idRepo.mapping[cls] = classId;
-        addPragma(cls, _globalIdPragma, coreTypes, value: IntConstant(classId));
-        for (final member in cls.members) {
-          annotateMember(member);
-        }
-      }
-    }
-  }
 }
 
-class DynamicModuleStrategy extends DefaultModuleStrategy with KernelNodes {
+class DynamicModuleStrategy extends ModuleStrategy {
+  final Component component;
   final WasmCompilerOptions options;
   final WasmTarget kernelTarget;
   final Uri mainModuleComponentUri;
-  @override
   final CoreTypes coreTypes;
-  @override
-  final LibraryIndex index;
-  final Set<Library> _mainModuleLibraries = {};
-  final Set<Library> _dynamicModuleLibraries = {};
 
-  DynamicModuleStrategy(super.component, this.options, this.kernelTarget,
-      this.coreTypes, this.mainModuleComponentUri)
-      : index = coreTypes.index;
+  DynamicModuleStrategy(this.component, this.options, this.kernelTarget,
+      this.coreTypes, this.mainModuleComponentUri);
 
   @override
   void prepareComponent() {
@@ -248,9 +205,9 @@ class DynamicModuleStrategy extends DefaultModuleStrategy with KernelNodes {
     DynamicModuleComponent._dynamicModuleEntryPoint[component] =
         dynamicEntryPoint;
 
-    _processMetadataPragmas();
     _registerLibraries();
     _prepareWasmEntryPoint(dynamicEntryPoint);
+    _addTfaMetadata();
   }
 
   void _prepareWasmEntryPoint(Procedure dynamicEntryPoint) {
@@ -262,41 +219,6 @@ class DynamicModuleStrategy extends DefaultModuleStrategy with KernelNodes {
         value: StringConstant(_dynamicModuleEntryPointName));
   }
 
-  void _processMetadataPragmas() {
-    // Unpack metadata from the kernel AST nodes that were annotated during the
-    // main module compilation.
-    final idRepo = DynamicModuleGlobalIdRepository();
-    component.addMetadataRepository(idRepo);
-
-    void processMember(Member member) {
-      idRepo.mapping[member] = getPragma(coreTypes, member, _globalIdPragma)!;
-    }
-
-    for (final library in component.libraries) {
-      if (hasPragma(coreTypes, library, _mainModLibPragma)) {
-        for (final member in library.members) {
-          processMember(member);
-        }
-        _mainModuleLibraries.add(library);
-        for (final cls in library.classes) {
-          final classId = getPragma(coreTypes, cls, _globalIdPragma);
-          if (classId == null) continue;
-          idRepo.mapping[cls] = classId;
-          for (final member in cls.members) {
-            processMember(member);
-          }
-        }
-      } else {
-        _dynamicModuleLibraries.add(library);
-      }
-      if (hasPragma(coreTypes, library, _mainLibPragma)) {
-        final mainMethod = library.procedures
-            .firstWhere((m) => hasPragma(coreTypes, m, _mainMethodPragma));
-        component.setMainMethodAndMode(mainMethod.reference, true);
-      }
-    }
-  }
-
   void _registerLibraries() {
     // Register each library with the SDK. This will ensure no duplicate
     // libraries are included across dynamic modules.
@@ -304,14 +226,17 @@ class DynamicModuleStrategy extends DefaultModuleStrategy with KernelNodes {
         .getTopLevelProcedure('dart:_internal', 'registerLibraryUris');
     final entryPoint = component.dynamicModuleEntryPoint!;
     final libraryUris = ListLiteral([
-      ..._dynamicModuleLibraries
+      ...component
+          .getDynamicModuleLibraries(coreTypes)
+          .where((l) => '${l.importUri}' != dynamicModulesRecordsLibraryUri)
           .map((l) => StringLiteral(l.importUri.toString()))
     ], typeArgument: coreTypes.stringNonNullableRawType);
     entryPoint.function.body = Block([
       ExpressionStatement(
           StaticInvocation(registerLibraryUris, Arguments([libraryUris]))),
       entryPoint.function.body!,
-    ]);
+    ])
+      ..parent = entryPoint.function;
   }
 
   static Procedure _findDynamicEntryPoint(
@@ -330,14 +255,60 @@ class DynamicModuleStrategy extends DefaultModuleStrategy with KernelNodes {
     throw StateError('Entry point not found for dynamic module.');
   }
 
+  void _addTfaMetadata() {
+    component.metadata[dynamicMainModuleProcedureAttributeMetadataTag] =
+        component
+            .metadata[ProcedureAttributesMetadataRepository.repositoryTag]!;
+    component.metadata[dynamicMainModuleSelectorMetadataTag] =
+        component.metadata[TableSelectorMetadataRepository.repositoryTag]!;
+
+    final selectorAssigner = TableSelectorAssigner(component);
+    for (final selector in selectorAssigner.metadata.selectors) {
+      selector.callCount++;
+      selector.tornOff = true;
+      selector.calledOnNull = true;
+    }
+
+    final selectorMetadataRepository = TableSelectorMetadataRepository();
+    component.metadata[TableSelectorMetadataRepository.repositoryTag] =
+        selectorMetadataRepository;
+    selectorMetadataRepository.mapping[component] = selectorAssigner.metadata;
+
+    final dynamicModuleProcedureAttributes =
+        ProcedureAttributesMetadataRepository();
+    for (final library in component.libraries) {
+      for (final cls in library.classes) {
+        for (final member in cls.members) {
+          if (!member.isInstanceMember) continue;
+          dynamicModuleProcedureAttributes.mapping[member] =
+              ProcedureAttributesMetadata(
+                  getterSelectorId: selectorAssigner.getterSelectorId(member),
+                  methodOrSetterSelectorId:
+                      selectorAssigner.methodOrSetterSelectorId(member));
+        }
+      }
+    }
+    component.metadata[ProcedureAttributesMetadataRepository.repositoryTag] =
+        dynamicModuleProcedureAttributes;
+
+    final classHierarchy =
+        ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
+
+    component.accept(_Devirtualization(coreTypes, component, classHierarchy,
+        classHierarchy.computeSubtypesInformation()));
+  }
+
   @override
   ModuleOutputData buildModuleOutputData() {
     final moduleBuilder = ModuleOutputBuilder();
     final mainModule = moduleBuilder.buildModule(skipEmit: true);
-    mainModule.libraries.addAll(_mainModuleLibraries);
-
     final dynamicModule = moduleBuilder.buildModule(emitAsMain: true);
-    dynamicModule.libraries.addAll(_dynamicModuleLibraries);
+    for (final library in component.libraries) {
+      final module = hasPragma(coreTypes, library, _mainModLibPragma)
+          ? mainModule
+          : dynamicModule;
+      module.libraries.add(library);
+    }
 
     return DynamicModuleOutputData(
         coreTypes, [mainModule, dynamicModule], const {});
@@ -409,14 +380,7 @@ class DynamicModuleInfo {
   late final w.ModuleBuilder dynamicModule =
       translator.modules.firstWhere((m) => m != translator.mainModule);
 
-  final Map<Member, ProcedureAttributesMetadata> mainModuleProcedureAttributes =
-      {};
-
-  DynamicModuleInfo(this.translator, this.metadata) {
-    metadata.memberMetadata.forEach((member, metadata) {
-      mainModuleProcedureAttributes[member] = metadata.procedureAttributes;
-    });
-  }
+  DynamicModuleInfo(this.translator, this.metadata);
 
   void initDynamicModule() {
     dynamicModule.functions.start = initFunction = dynamicModule.functions
@@ -474,12 +438,12 @@ class DynamicModuleInfo {
             MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null;
         if (!isGeneratedIntrinsic) return;
       }
-      metadata.callableReferenceIds[reference] =
-          metadata.callableReferenceIds.length;
 
       if (!member.isInstanceMember) {
         // Generate static members immediately since they are unconditionally
         // callable.
+        metadata.callableReferenceIds[reference] ??=
+            metadata.callableReferenceIds.length;
         translator.functions.getFunction(reference);
         return;
       }
@@ -489,10 +453,14 @@ class DynamicModuleInfo {
           .targets(unchecked: false)
           .targetRanges
           .followedBy(selector.targets(unchecked: true).targetRanges);
-      // Instance members are only callable if their enclosing class is
-      // allocated.
+      // Record usage of the target on all classes that inherit the member. The
+      // class must be allocated in order for the target to be live.
       for (final (:range, :target) in targetRanges) {
-        if (target != reference) continue;
+        // Match any reference for the callable member, even if the reference
+        // kind is not the same.
+        if (target.asMember != member) continue;
+        metadata.callableReferenceIds[target] ??=
+            metadata.callableReferenceIds.length;
         for (int classId = range.start; classId <= range.end; ++classId) {
           translator.functions.recordClassTargetUse(classId, target);
         }
@@ -538,6 +506,8 @@ class DynamicModuleInfo {
   void _initializeDynamicAllocatableClasses() {
     for (final lib in translator.component.libraries) {
       for (final cls in lib.classes) {
+        if (cls.isAnonymousMixin) continue;
+
         if (cls.isDynamicModuleExtendable(translator.coreTypes) ||
             cls.constructors
                 .any((e) => e.isDynamicModuleCallable(translator.coreTypes))) {
@@ -629,9 +599,7 @@ class DynamicModuleInfo {
         return mainFunction;
       }
 
-      if (skipDynamic) {
-        return null;
-      }
+      if (skipDynamic) return null;
 
       final dynamicModuleFunction = dynamicModule.functions.define(type, name);
       dynamicModule.functions.declare(dynamicModuleFunction);
@@ -811,7 +779,7 @@ class DynamicModuleInfo {
       }
       for (final local in locals.reversed) {
         b.local_get(local);
-        translator.convertType(b, local.type, translator.topInfo.nullableType);
+        translator.convertType(b, local.type, w.RefType.any(nullable: true));
       }
       b.local_get(receiverLocal);
     }
@@ -1296,5 +1264,24 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   @override
   Never visitUnevaluatedConstant(UnevaluatedConstant node) {
     throw UnsupportedError('Cannot canonicalize unevaluated constants.');
+  }
+}
+
+/// Populates [DirectCallMetadata] for a visited component.
+class _Devirtualization extends CHADevirtualization {
+  final CoreTypes coreTypes;
+
+  _Devirtualization(
+      this.coreTypes,
+      Component component,
+      ClosedWorldClassHierarchy hierarchy,
+      ClassHierarchySubtypes hierarchySubtype)
+      : super(coreTypes, component, hierarchy, hierarchySubtype);
+
+  @override
+  void makeDirectCall(
+      TreeNode node, Member? target, DirectCallMetadata directCall) {
+    if (target != null && target.isDynamicModuleOverrideable(coreTypes)) return;
+    super.makeDirectCall(node, target, directCall);
   }
 }
