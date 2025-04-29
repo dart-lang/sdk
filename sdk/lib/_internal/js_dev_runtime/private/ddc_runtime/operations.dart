@@ -1242,7 +1242,7 @@ Future<void> loadLibrary(
     JS('', '#.add(#)', result, importPrefix);
     return _ddcNewLoadLibraryTiming ? Future(() {}) : Future.value();
   } else {
-    int currentHotRestartIteration = hotRestartIteration;
+    int hotRestartGenerationBefore = hotRestartGeneration();
     var loadId = '$libraryUri::$importPrefix';
     if (targetModule.isEmpty) {
       throw ArgumentError('Empty module passed for deferred load: $loadId.');
@@ -1254,7 +1254,7 @@ Future<void> loadLibrary(
 
     // Don't mark a load ID as loaded across hot restart boundaries.
     void internalComplete(void Function()? beforeComplete) {
-      if (hotRestartIteration == currentHotRestartIteration &&
+      if (hotRestartGeneration() == hotRestartGenerationBefore &&
           beforeComplete != null) {
         beforeComplete();
       }

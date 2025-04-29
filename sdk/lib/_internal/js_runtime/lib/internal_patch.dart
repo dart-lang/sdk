@@ -15,6 +15,18 @@ import 'dart:typed_data' show Uint8List;
 @pragma('dart2js:tryInline')
 bool typeAcceptsNull<T>() => null is T;
 
+/// No-op in dart2js.
+///
+/// Only used in DDC for hot restart correctness.
+@pragma('dart2js:tryInline')
+int? getHotRestartGeneration() => null;
+
+/// No-op in dart2js.
+///
+/// Only used in DDC for hot restart correctness.
+@pragma('dart2js:tryInline')
+bool isCurrentHotRestartGeneration(int _) => true;
+
 @patch
 class Symbol implements core.Symbol {
   @patch
