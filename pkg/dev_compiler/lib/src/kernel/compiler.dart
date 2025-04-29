@@ -6205,6 +6205,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (_isSdkInternalRuntime(enclosingLibrary)) {
       var name = target.name.text;
+      if (node.arguments.positional.isEmpty) {
+        if (name == 'hotRestartGeneration') {
+          return _runtimeCall('hotRestartIteration');
+        }
+      }
       if (node.arguments.positional.length == 1) {
         var firstArg = node.arguments.positional.single;
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {

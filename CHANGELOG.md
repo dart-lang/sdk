@@ -1,5 +1,16 @@
 ## 3.9.0
 
+### Tools
+
+#### Dart Development Compiler (dartdevc)
+
+Outstanding async code now checks and cancels itself after a hot restart if
+it was started in a different generation of the application before the restart.
+This includes outstanding `Future`s created by calling `JSPromise.toDart` from
+`dart:js_interop` and the underlying the `dart:js_util` helper
+`promiseToFuture`. Dart callbacks will not be run, but callbacks on the
+JavaScript side will still be executed.
+
 ## 3.8.0
 
 **Released on:** Unreleased

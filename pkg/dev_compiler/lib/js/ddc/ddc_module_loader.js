@@ -1641,7 +1641,7 @@ if (!self.deferred_loader) {
 
       // Then we link the existing libraries. Note this may trigger initializing
       // and linking new library dependencies that were not present before and
-      // requires for all library intitializers to be up to date.
+      // requires for all library initializers to be up to date.
       for (let name in this.pendingHotReloadLibraryInitializers) {
         if (previouslyLoaded[name]) {
           this.libraries[name].link();
@@ -1662,11 +1662,6 @@ if (!self.deferred_loader) {
       if (!this.savedEntryPointLibraryName) {
         throw "Error: Hot restart requested before application started.";
       }
-      // TODO(nshahan): Stop calling hotRestart in the SDK when scheduled
-      // futures no longer keep lazy initialized values from the previous
-      // generation alive.
-      let dart = this.importLibrary('dart:_runtime');
-      dart.hotRestart();
       // Clear all libraries.
       this.libraries = Object.create(null);
       this.triggeredSDKLibrariesWithSideEffects = false;

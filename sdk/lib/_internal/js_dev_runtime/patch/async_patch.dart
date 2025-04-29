@@ -175,15 +175,17 @@ class _AsyncRun {
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateJSOverride(void Function() callback) {
+    final createdGeneration = dart.hotRestartGeneration();
     JS('void', '#.scheduleImmediate(#)', dart.global_, () {
-      callback();
+      if (createdGeneration == dart.hotRestartGeneration()) callback();
     });
   }
 
   @ReifyFunctionTypes(false)
   static void _scheduleImmediateWithPromise(void Function() callback) {
+    final createdGeneration = dart.hotRestartGeneration();
     JS('', '#.Promise.resolve(null).then(#)', dart.global_, () {
-      callback();
+      if (createdGeneration == dart.hotRestartGeneration()) callback();
     });
   }
 }
@@ -487,7 +489,6 @@ class _AsyncStarImpl<T> {
 class _AsyncAwaitCompleter<T> implements Completer<T> {
   final _future = _Future<T>();
   bool isSync;
-  int hotRestartIteration = dart.hotRestartIteration;
 
   _AsyncAwaitCompleter() : isSync = false;
 

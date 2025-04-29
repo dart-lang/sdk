@@ -15,6 +15,18 @@ import 'dart:typed_data' show Uint8List;
 @patch
 bool typeAcceptsNull<T>() => null is T;
 
+int? getHotRestartGeneration() => dart.hotRestartGeneration();
+
+/// Returns `true` when the provided [generation] matches the current hot
+/// restart generation.
+///
+/// This is intended to avoid completing a Dart Future after a hot restart that
+/// originated from a converted Promise before the hot restart.
+///
+/// See uses in `promiseToFuture` from `dart:js_util`.
+bool isCurrentHotRestartGeneration(int generation) =>
+    generation == dart.hotRestartGeneration();
+
 @patch
 class Symbol implements core.Symbol {
   @patch
