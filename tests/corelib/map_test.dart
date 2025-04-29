@@ -1169,9 +1169,8 @@ void testLazyKeysValueEntries() {
         );
         {
           // No `operator==` on `MapEntry`.
-          var currentEntries =
-              entries.map((x) => x).toList()
-                ..sort((e1, e2) => e1.value.compareTo(e2.value));
+          var currentEntries = entries.map((x) => x).toList()
+            ..sort((e1, e2) => e1.value.compareTo(e2.value));
           for (var j = 0; j <= i; j++) {
             var currentEntry = currentEntries[j];
             Expect.equals(toKey(j), currentEntry.key, testName);
@@ -1206,9 +1205,8 @@ void testLazyKeysValueEntries() {
         );
         {
           // No `operator==` on `MapEntry`.
-          var currentEntries =
-              entries.map((x) => x).toList()
-                ..sort((e1, e2) => e1.value.compareTo(e2.value));
+          var currentEntries = entries.map((x) => x).toList()
+            ..sort((e1, e2) => e1.value.compareTo(e2.value));
           for (var j = i + 1; j < mapSize; j++) {
             var currentEntry = currentEntries[j - i - 1];
             Expect.equals(toKey(j), currentEntry.key, testName);

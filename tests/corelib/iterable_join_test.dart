@@ -40,19 +40,17 @@ testCollections() {
   var ic = new IC();
   testJoin("0,1,2,3", [ic, ic, ic, ic], ",");
 
-  var set =
-      new Set()
-        ..add(1)
-        ..add(2)
-        ..add(3);
-  var perm =
-      new Set()
-        ..add("123")
-        ..add("132")
-        ..add("213")
-        ..add("231")
-        ..add("312")
-        ..add("321");
+  var set = new Set()
+    ..add(1)
+    ..add(2)
+    ..add(3);
+  var perm = new Set()
+    ..add("123")
+    ..add("132")
+    ..add("213")
+    ..add("231")
+    ..add("312")
+    ..add("321");
   var setString = set.join();
   Expect.isTrue(perm.contains(setString), "set: $setString");
 
