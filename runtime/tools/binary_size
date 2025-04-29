@@ -16,7 +16,7 @@ class Symbol {
     for (var i = 0; i < children.length; i++) {
       children[i] = children[i].compressTrivialPaths();
     }
-    if ((type == "path") && (children.length == 1)) {
+    if ((type == "path") && (children.length == 1) && (children[0].type == "path")) {
       return children[0];
     }
     return this;
@@ -145,6 +145,17 @@ main(List<String> args) {
     var path = columns[1];
     var vmSize = int.parse(columns[2]);
     var fileSize = int.parse(columns[3]);
+
+    if (path.startsWith("[")) {
+      if (path == name) {
+        path = "";
+      } else if (name.contains("::")) {
+        path = "(no path)/" + name.substring(0, name.lastIndexOf("::")).replaceAll("::", "/");
+        name = name.substring(name.lastIndexOf("::") + 2);
+      } else {
+        path = "(no path)";
+      }
+    }
 
     path = prettyPath(path);
 
@@ -373,8 +384,12 @@ function createTreemapTile(v, width, height, depth) {
 }
 
 function showDominatorTree(v) {
-  // Add the content div to the document first so the browser will calculate
+  // Add a filler div to the document first so the browser will calculate
   // the available width and height.
+  let fill = document.createElement("div");
+  fill.style.width = "100%";
+  fill.style.height = "100%";
+  setBody(fill);
   let w = document.body.offsetWidth;
   let h = document.body.offsetHeight;
 
