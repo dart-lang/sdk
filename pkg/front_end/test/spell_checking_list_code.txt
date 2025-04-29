@@ -118,6 +118,7 @@ augments
 author
 auto
 automagically
+automatic
 auxiliary
 averages
 awaited
@@ -1485,6 +1486,7 @@ redirections
 redirector
 redo
 reevaluation
+reexport
 reexports
 ref
 refactoring
