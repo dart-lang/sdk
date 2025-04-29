@@ -5,7 +5,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 extension AstNodeExtension on AstNode {
   /// Returns all tokens, from [beginToken] to [endToken] including.
@@ -44,7 +46,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// The [ExecutableElement] of the enclosing executable [AstNode].
-  ExecutableElement? get enclosingExecutableElement2 {
+  ExecutableElement? get enclosingExecutableElement {
     for (var node in withParents) {
       if (node is FunctionDeclaration) {
         return node.declaredFragment?.element;
@@ -60,7 +62,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// The [InstanceElement] of the enclosing executable [AstNode].
-  InstanceElement? get enclosingInstanceElement2 {
+  InstanceElement? get enclosingInstanceElement {
     for (var node in withParents) {
       var element = switch (node) {
         ClassDeclaration(:var declaredFragment?) => declaredFragment.element,
@@ -78,6 +80,9 @@ extension AstNodeExtension on AstNode {
     }
     return null;
   }
+
+  InterfaceElement? get enclosingInterfaceElement =>
+      enclosingInstanceElement.ifTypeOrNull();
 
   AstNode? get enclosingUnitChild {
     for (var node in withParents) {
@@ -156,6 +161,11 @@ extension CompilationUnitExtension on CompilationUnit {
       _ => false,
     };
   }
+}
+
+extension ExtensionElementExtension on ExtensionElement {
+  InterfaceElement? get extendedInterfaceElement =>
+      extendedType.ifTypeOrNull<InterfaceType>()?.element3;
 }
 
 extension VariableDeclarationExtension on VariableDeclaration {

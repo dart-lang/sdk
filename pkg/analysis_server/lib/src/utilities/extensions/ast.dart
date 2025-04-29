@@ -75,16 +75,6 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 }
 
 extension AstNodeExtension on AstNode {
-  /// Returns [ExtensionElement] declared by an enclosing node.
-  ExtensionElement? get enclosingExtensionElement {
-    for (var node in withParents) {
-      if (node is ExtensionDeclaration) {
-        return node.declaredFragment?.element;
-      }
-    }
-    return null;
-  }
-
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
     for (var node in withParents) {
@@ -92,18 +82,6 @@ extension AstNodeExtension on AstNode {
         return node;
       } else if (node is! Expression) {
         return null;
-      }
-    }
-    return null;
-  }
-
-  /// Returns [InterfaceElement] declared by an enclosing node.
-  InterfaceElement? get enclosingInterfaceElement {
-    for (var node in withParents) {
-      if (node is ClassDeclaration) {
-        return node.declaredFragment?.element;
-      } else if (node is MixinDeclaration) {
-        return node.declaredFragment?.element;
       }
     }
     return null;

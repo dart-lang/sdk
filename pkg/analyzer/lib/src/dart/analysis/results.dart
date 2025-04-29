@@ -16,17 +16,22 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// This returns the offset used for finding the corresponding AST node.
 ///
-/// If the fragment is named, the [Fragment.nameOffset2] is used. If the
-/// fragment is a a [ConstructorFragment] for an unnamed constructor, the
-/// [ConstructorFragment.typeNameOffset] is used.
+/// - If the fragment is named, the [Fragment.nameOffset2] is used.
+/// - If the fragment is a a [ConstructorFragment] for an unnamed constructor,
+/// the [ConstructorFragment.typeNameOffset] is used.
+/// - If the fragment is an unnamed [ExtensionFragment], the
+/// [ExtensionFragment.offset] is used.
 int? _getFragmentNameOffset(Fragment fragment) {
   var nameOffset = fragment.nameOffset2;
   if (nameOffset == null) {
     if (fragment is ConstructorFragment) {
       nameOffset = fragment.typeNameOffset;
+    } else if (fragment is ExtensionFragment) {
+      nameOffset = fragment.offset;
     }
   }
   return nameOffset;
@@ -95,7 +100,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       }
     } else if (fragment is ExtensionFragment) {
       if (node is ExtensionDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.name ?? node.extensionKeyword)) {
           result = node;
         }
       }
@@ -433,7 +438,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        var elementStr = fragment.element.displayName;
+        var elementStr = fragment.element.displayName.ifNotEmptyOrElse(
+          fragment.element.displayString2(),
+        );
         throw ArgumentError(
           'Element (${fragment.runtimeType}) $elementStr is '
           'not defined in this library.',

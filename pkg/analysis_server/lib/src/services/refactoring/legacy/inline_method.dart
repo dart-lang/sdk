@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring_inte
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -22,6 +21,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';

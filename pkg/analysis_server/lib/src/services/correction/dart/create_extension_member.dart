@@ -42,25 +42,25 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     _getterName = nameNode.name;
 
     // prepare target
-    Expression? target;
+    DartType? targetType;
     switch (nameNode.parent) {
       case PrefixedIdentifier prefixedIdentifier:
         if (prefixedIdentifier.identifier == nameNode) {
-          target = prefixedIdentifier.prefix;
+          targetType = prefixedIdentifier.prefix.staticType;
         }
       case PropertyAccess propertyAccess:
         if (propertyAccess.propertyName == nameNode) {
-          target = propertyAccess.realTarget;
+          targetType = propertyAccess.realTarget.staticType;
         }
-    }
-    if (target == null) {
-      return;
+      case ExpressionFunctionBody expressionFunctionBody:
+        if (expressionFunctionBody.expression == nameNode) {
+          targetType = node.enclosingInstanceElement?.thisType;
+        }
     }
 
     // TODO(FMorschel): We should take into account if the target type contains
     // a setter for the same name and stop the fix from being applied.
     // We need the type for the extension.
-    var targetType = target.staticType;
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
