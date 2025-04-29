@@ -25,7 +25,8 @@ main(List<String> args, SendPort? sendPort) async {
   if (args.contains('--persistent_worker')) {
     if (args.length != 1) {
       throw new StateError(
-          "unexpected args, expected only --persistent-worker but got: $args");
+        "unexpected args, expected only --persistent-worker but got: $args",
+      );
     }
     await new KernelWorker(sendPort: sendPort).run();
   } else {
@@ -43,10 +44,11 @@ class KernelWorker extends AsyncWorkerLoop {
   /// If [sendPort] is provided it is used for bazel worker communication
   /// instead of stdin/stdout.
   KernelWorker({SendPort? sendPort})
-      : super(
-            connection: sendPort == null
-                ? null
-                : SendPortAsyncWorkerConnection(sendPort));
+    : super(
+        connection: sendPort == null
+            ? null
+            : SendPortAsyncWorkerConnection(sendPort),
+      );
 
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var outputBuffer = new StringBuffer();
@@ -65,11 +67,13 @@ class KernelWorker extends AsyncWorkerLoop {
         inputDigests[toUri(input.path)] = input.digest;
       }
 
-      var result = await computeKernel(request.arguments,
-          isWorker: true,
-          outputBuffer: outputBuffer,
-          inputDigests: inputDigests,
-          previousState: previousStateToPass);
+      var result = await computeKernel(
+        request.arguments,
+        isWorker: true,
+        outputBuffer: outputBuffer,
+        inputDigests: inputDigests,
+        previousState: previousStateToPass,
+      );
       previousState = result.previousState;
       if (!result.succeeded) {
         response.exitCode = 15;

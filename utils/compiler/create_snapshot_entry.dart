@@ -27,7 +27,8 @@ Future<String> getVersion(var rootPath, bool noGitHash) {
 
 Future<String> getDart2jsSnapshotGenerationFile(var rootPath, bool noGitHash) {
   return getVersion(rootPath, noGitHash).then((version) {
-    var snapshotGenerationText = """
+    var snapshotGenerationText =
+        """
 import 'package:compiler/src/dart2js.dart' as dart2jsMain;
 
 void main(List<String> arguments) {
