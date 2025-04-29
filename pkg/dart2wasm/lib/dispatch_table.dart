@@ -424,6 +424,9 @@ class DispatchTable {
   void serialize(DataSerializer sink) {
     sink.writeList(_selectorInfo.values, (s) => s.serialize(sink));
     sink.writeList(_table, (r) => sink.writeNullable(r, sink.writeReference));
+    // Preserve call selectors for closure calls which are handled dynamically.
+    final callSelectors = _dynamicGetters['call']!;
+    sink.writeList(callSelectors, (s) => sink.writeInt(s.id));
   }
 
   factory DispatchTable.deserialize(DataDeserializer source) {
@@ -433,11 +436,20 @@ class DispatchTable {
         source.readList(() => SelectorInfo.deserialize(source, dispatchTable));
     final table = source
         .readList(() => source.readNullable(() => source.readReference()));
+    final callSelectorIds = source.readList(source.readInt);
 
     for (final selector in selectors) {
       dispatchTable._selectorInfo[selector.id] = selector;
     }
     dispatchTable._table = table;
+
+    // Preserve call selectors for closure calls which are handled dynamically.
+    final callSelectors = <SelectorInfo>{};
+    for (final selectorId in callSelectorIds) {
+      callSelectors.add(dispatchTable._selectorInfo[selectorId]!);
+    }
+    dispatchTable._dynamicGetters['call'] = callSelectors;
+
     return dispatchTable;
   }
 

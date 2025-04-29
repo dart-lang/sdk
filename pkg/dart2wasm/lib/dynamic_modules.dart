@@ -491,14 +491,16 @@ class DynamicModuleInfo {
 
     for (final lib in translator.component.libraries) {
       for (final member in lib.members) {
-        if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
-        collectCallableReferences(member);
+        if (member.isDynamicModuleCallable(translator.coreTypes)) {
+          collectCallableReferences(member);
+        }
       }
 
       for (final cls in lib.classes) {
         for (final member in cls.members) {
-          if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
-          collectCallableReferences(member);
+          if (member.isDynamicModuleCallable(translator.coreTypes)) {
+            collectCallableReferences(member);
+          }
         }
       }
     }

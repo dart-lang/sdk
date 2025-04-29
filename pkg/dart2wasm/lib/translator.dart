@@ -836,6 +836,15 @@ class Translator with KernelNodes {
       return topInfo.typeWithNullability(nullable);
     }
     if (type is FunctionType) {
+      if (dynamicModuleSupportEnabled) {
+        // The closure representation is based on the available closure
+        // definitions and invocations seen in the program. For dynamic modules,
+        // this can differ from one module to another. So use the less specific
+        // closure base class everywhere. Usages will get downcast to the
+        // appropriate closure type.
+        return w.RefType.def(closureLayouter.closureBaseStruct,
+            nullable: nullable);
+      }
       ClosureRepresentation? representation =
           closureLayouter.getClosureRepresentation(
               type.typeParameters.length,
@@ -1095,11 +1104,13 @@ class Translator with KernelNodes {
           representation.instantiationTypeHashFunctionForModule(ib.module));
       ib.ref_func(representation.instantiationFunctionForModule(ib.module));
     }
-    for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
-      fillVtableEntry(ib, posArgCount, const []);
-    }
-    for (NameCombination nameCombination in representation.nameCombinations) {
-      fillVtableEntry(ib, positionalCount, nameCombination.names);
+    if (!dynamicModuleSupportEnabled) {
+      for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
+        fillVtableEntry(ib, posArgCount, const []);
+      }
+      for (NameCombination nameCombination in representation.nameCombinations) {
+        fillVtableEntry(ib, positionalCount, nameCombination.names);
+      }
     }
     ib.struct_new(representation.vtableStruct);
     ib.end();

@@ -2454,7 +2454,8 @@ abstract class AstCodeGenerator
         intrinsifier.generateFunctionCallIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    if (node.kind == FunctionAccessKind.Function) {
+    if (node.kind == FunctionAccessKind.Function ||
+        translator.dynamicModuleSupportEnabled) {
       // Type of function is `Function`, without the argument types.
       return visitDynamicInvocation(
           DynamicInvocation(DynamicAccessKind.Dynamic, node.receiver, node.name,

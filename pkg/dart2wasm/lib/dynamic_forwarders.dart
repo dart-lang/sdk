@@ -77,7 +77,9 @@ class Forwarder {
   Forwarder._(Translator translator, this._kind, this.memberName,
       w.ModuleBuilder module)
       : function = module.functions.define(_kind.functionType(translator),
-            "$_kind forwarder for '$memberName'");
+            "$_kind forwarder for '$memberName'"),
+        assert(!translator.isDynamicModule ||
+            (memberName == 'call' && _kind == _ForwarderKind.Getter));
 
   void _generateCode(Translator translator) {
     switch (_kind) {
@@ -478,10 +480,8 @@ class Forwarder {
       }
     }
 
-    final getterSelectors =
-        translator.dispatchTable.dynamicGetterSelectors(memberName);
     final getterValueLocal = b.addLocal(translator.topInfo.nullableType);
-    for (final selector in getterSelectors) {
+    void handleGetterSelector(SelectorInfo selector) {
       for (final (:range, :target)
           in selector.targets(unchecked: false).targetRanges) {
         for (int classId = range.start; classId <= range.end; ++classId) {
@@ -566,6 +566,21 @@ class Forwarder {
 
           b.end(); // class ID
         }
+      }
+    }
+
+    final getterSelectors =
+        translator.dispatchTable.dynamicGetterSelectors(memberName);
+    for (final selector in getterSelectors) {
+      handleGetterSelector(selector);
+    }
+
+    final dynamicMainModuleGetterSelectors = translator
+        .dynamicMainModuleDispatchTable
+        ?.dynamicGetterSelectors(memberName);
+    if (dynamicMainModuleGetterSelectors != null) {
+      for (final selector in dynamicMainModuleGetterSelectors) {
+        handleGetterSelector(selector);
       }
     }
 
