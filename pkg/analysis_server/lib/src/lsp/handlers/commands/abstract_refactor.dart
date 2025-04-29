@@ -48,7 +48,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
     ResolvedUnitResult result,
     int offset,
     int length,
-    Map<String, dynamic>? options,
+    Map<String, Object?>? options,
   ) async {
     switch (kind) {
       case RefactoringKind.EXTRACT_METHOD:

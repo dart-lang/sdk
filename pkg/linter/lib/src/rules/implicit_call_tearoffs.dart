@@ -34,6 +34,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImplicitCallReference(ImplicitCallReference node) {
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }

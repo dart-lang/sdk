@@ -136,7 +136,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_isOldModelType(node.staticType)) {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
     }
   }
 
@@ -164,12 +164,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_isOldModelElement(node.element)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
 
     if (_isOldModelType(node.staticType)) {
       _isDeprecatedNode(node);
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 

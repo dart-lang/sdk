@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 /// in it can be used to configure the SDK for specific environments, like
 /// google3. This file generally lives in `<dart-sdk>/config/settings.json`.
 class SdkConfiguration {
-  final Map<String, dynamic> _values = {};
+  final Map<String, Object?> _values = {};
 
   SdkConfiguration.readFromFile(File file) {
     if (!file.existsSync()) {

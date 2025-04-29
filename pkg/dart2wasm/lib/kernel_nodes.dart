@@ -205,8 +205,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:_internal", "loadLibrary");
   late final Procedure checkLibraryIsLoaded =
       index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
-  late final Procedure loadLibraryImportMap =
-      index.getTopLevelProcedure("dart:_internal", "get:_importMapping");
+  late final Procedure? loadLibraryImportMap = index.tryGetProcedure(
+      "dart:_internal", LibraryIndex.topLevel, "get:_importMapping");
 
   // dart:_js_helper procedures
   late final Procedure getInternalizedString =

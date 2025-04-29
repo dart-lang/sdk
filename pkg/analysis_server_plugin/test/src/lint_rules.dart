@@ -47,7 +47,7 @@ class _NoBoolsVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }
 
@@ -58,6 +58,6 @@ class _NoDoublesVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }

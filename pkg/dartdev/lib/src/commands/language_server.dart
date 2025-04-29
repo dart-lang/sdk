@@ -50,6 +50,9 @@ For more information about the server's capabilities and configuration, see:
     }
     try {
       if (argResults!.flag(_useAotSnapshotFlag)) {
+        if (!Sdk.checkArtifactExists(sdk.dartAotRuntime)) {
+          return _genericErrorExitCode;
+        }
         args.remove('--$_useAotSnapshotFlag');
         VmInteropHandler.run(
           sdk.dartAotRuntime,
@@ -75,4 +78,6 @@ For more information about the server's capabilities and configuration, see:
   }
 
   static const _useAotSnapshotFlag = 'use-aot-snapshot';
+
+  static const _genericErrorExitCode = 255;
 }

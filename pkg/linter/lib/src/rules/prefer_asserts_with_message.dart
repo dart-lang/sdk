@@ -35,14 +35,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssertInitializer(AssertInitializer node) {
     if (node.message == null) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     if (node.message == null) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

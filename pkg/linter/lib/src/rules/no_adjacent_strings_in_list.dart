@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void check(AstNode? element) {
     if (element is AdjacentStrings) {
-      rule.reportLint(element);
+      rule.reportAtNode(element);
     }
   }
 
@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     if (node.elseElement == null && node.thenElement is AdjacentStrings) {
-      rule.reportLint(node.thenElement);
+      rule.reportAtNode(node.thenElement);
     } else {
       check(node.elseElement);
     }

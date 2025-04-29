@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     } else {
       var forEachPattern = node.thisOrAncestorOfType<ForEachPartsWithPattern>();
@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (!inCaseClause) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     } else {
       if (!node.hasPotentiallyMutatedDeclaredVariableInScope(function)) {
@@ -140,7 +140,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword != null) {
       rule.reportAtToken(keyword);
     } else if (node.type != null) {
-      rule.reportLint(node.type);
+      rule.reportAtNode(node.type);
     }
   }
 }

@@ -55,6 +55,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLint(invocation.methodName);
+    rule.reportAtNode(invocation.methodName);
   }
 }

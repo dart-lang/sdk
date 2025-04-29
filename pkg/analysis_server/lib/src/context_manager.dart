@@ -888,7 +888,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// On windows, the directory watcher may overflow, and we must recover.
-  void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
+  void _handleWatchInterruption(Object? error, StackTrace stackTrace) {
     // If the watcher failed because the directory does not exist, rebuilding
     // the contexts will result in infinite looping because it will just
     // re-occur.

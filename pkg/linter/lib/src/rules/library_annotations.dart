@@ -63,9 +63,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (elementAnnotation.targetKinds.length == 1 &&
           elementAnnotation.targetKinds.contains(TargetKind.library) &&
           firstDirective == node) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       } else if (elementAnnotation.isPragmaLateTrust) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       }
     }
   }

@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var body = node.body;
     if (node.body.statements.isEmpty &&
         body.rightBracket.precedingComments == null) {
-      rule.reportLint(body);
+      rule.reportAtNode(body);
     }
   }
 }

@@ -48,6 +48,15 @@ import 'type_environment.dart';
 import 'type_recipe_generator.dart';
 import 'type_table.dart';
 
+/// The groups of compiled arguments ready to be flattened into a single
+/// [js_ast.Array] for statically sound calls or into separate packets for
+/// runtime checked calls.
+typedef _ArgumentGroups = ({
+  List<js_ast.Expression>? typeArguments,
+  List<js_ast.Expression>? positionalArguments,
+  List<js_ast.Property>? namedArguments
+});
+
 /// Name used as a prefix for extension symbols and the identifier of the object
 /// used to store them.
 final _extensionSymbolHolderName = 'dartx';
@@ -5712,28 +5721,28 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitDynamicInvocation(DynamicInvocation node) {
-    return _emitMethodCall(node.receiver, null, node.arguments, node);
+    return _emitDynamicInvocation(
+        node.receiver, node.name.text, node.arguments);
   }
 
   @override
   js_ast.Expression visitFunctionInvocation(FunctionInvocation node) {
-    assert(node.name.text == 'call');
-    var function = _visitExpression(node.receiver);
-    var arguments = _emitArgumentList(node.arguments);
+    var name = node.name.text;
+    assert(name == 'call');
     if (node.functionType == null) {
       // A `null` here implies the receiver is typed as `Function`. There isn't
       // any more type information available at compile time to know this
       // invocation is sound so a dynamic call will handle the checks at
       // runtime.
-      return _emitDynamicInvoke(function, null, arguments, node.arguments);
+      return _emitDynamicInvocation(node.receiver, name, node.arguments);
     }
-    return js_ast.Call(function, arguments);
+    return js_ast.Call(
+        _visitExpression(node.receiver), _emitArgumentList(node.arguments));
   }
 
   @override
   js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
-    var invocation = _emitMethodCall(
-        node.receiver, node.interfaceTarget, node.arguments, node);
+    var invocation = _emitInstanceInvocation(node);
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(invocation)
         : invocation;
@@ -5742,11 +5751,62 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitInstanceGetterInvocation(
       InstanceGetterInvocation node) {
-    var getterInvocation = _emitMethodCall(
-        node.receiver, node.interfaceTarget, node.arguments, node);
+    if (node.functionType == null) {
+      // A `null` here implies the receiver must be typed as `dynamic` or
+      // `Function`. There isn't any more type information available at compile
+      // time to know this invocation is sound so a dynamic call will handle the
+      // checks at runtime.
+      return _emitDynamicInvocation(
+          node.receiver, node.name.text, node.arguments);
+    }
+    var getterInvocation = _emitInstanceGetterInvocation(node);
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(getterInvocation)
         : getterInvocation;
+  }
+
+  js_ast.Expression _emitInstanceGetterInvocation(
+      InstanceGetterInvocation node) {
+    var receiver = _visitExpression(node.receiver);
+    var arguments =
+        _emitArgumentList(node.arguments, target: node.interfaceTarget);
+    if (node.name.text == 'call') {
+      // Erasing the extension types here to support existing callable behavior
+      // on the old style JS interop types that are callable. This should be
+      // safe as it is a compile time error to try to dynamically invoke a call
+      // method that is inherited from an extension type.
+      var receiverType =
+          node.receiver.getStaticType(_staticTypeContext).extensionTypeErasure;
+      if (_isDirectCallable(receiverType)) {
+        // Call methods on function types should be handled as function calls.
+        return js_ast.Call(receiver, arguments);
+      }
+    }
+    var memberName =
+        _emitMemberName(node.name.text, member: node.interfaceTarget);
+    // We must erase the extension type to potentially find the `call` method.
+    // If the extension type has a runtime representation with a `call`:
+    //
+    // ```
+    // extension type Ext(C c) implements C {...}
+    // class C {
+    //   call() {...}
+    // }
+    // ```
+    //
+    // We can always erase eagerly because:
+    //  - Extension types that do not implement an interface that exposes a
+    //    `call` method will result in a static error at the call site.
+    //  - Calls to extension types that implement their own call method are
+    //    lowered by the CFE to top level static method calls.
+    var erasedGetterType = node.interfaceTarget.getterType.extensionTypeErasure;
+    if (erasedGetterType is InterfaceType) {
+      var callName = _implicitCallTarget(erasedGetterType);
+      if (callName != null) {
+        return js.call('#.#.#(#)', [receiver, memberName, callName, arguments]);
+      }
+    }
+    return js.call('#.#(#)', [receiver, memberName, arguments]);
   }
 
   @override
@@ -5769,20 +5829,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         negated: false);
   }
 
-  js_ast.Expression _emitMethodCall(Expression receiver, Member? target,
-      Arguments arguments, InvocationExpression node) {
-    var name = node.name.text;
-
+  js_ast.Expression _emitInstanceInvocation(InstanceInvocation node) {
     /// Returns `true` when [node] represents an invocation of `List.add()` that
     /// can be optimized.
     ///
     /// The optimized add operation can skip checks for a growable or modifiable
     /// list and the element type is known to be invariant so it can skip the
     /// type check.
-    bool isNativeListInvariantAdd(InvocationExpression node) {
-      if (node is InstanceInvocation &&
-          node.isInvariant &&
-          node.name.text == 'add') {
+    bool isNativeListInvariantAdd(InstanceInvocation node) {
+      if (node.isInvariant && node.name.text == 'add') {
         // The call to add is marked as invariant, so the type check on the
         // parameter to add is not needed.
         var receiver = node.receiver;
@@ -5812,6 +5867,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return false;
     }
 
+    var name = node.name.text;
+    var receiver = node.receiver;
+    var arguments = node.arguments;
+    var target = node.interfaceTarget;
     if (isOperatorMethodName(name) && arguments.named.isEmpty) {
       var argLength = arguments.positional.length;
       if (argLength == 0) {
@@ -5821,113 +5880,72 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             receiver, target, arguments.positional[0], node);
       }
     }
-
     var jsReceiver = _visitExpression(receiver);
     var args = _emitArgumentList(arguments, target: target);
-
     if (isNativeListInvariantAdd(node)) {
       return js.call('#.push(#)', [jsReceiver, args]);
     }
-
-    var isCallingDynamicField = target is Member &&
-        target.hasGetter &&
-        // Erasing extension types here doesn't make sense. If there is an
-        // extension type on dynamic or Function it will only be callable if it
-        // defines a call method which would be invoked statically.
-        _isDynamicOrFunction(target.getterType);
     if (name == 'call') {
-      // Erasing the extension types here to support existing callable behaivor
+      // Erasing the extension types here to support existing callable behavior
       // on the old style JS interop types that are callable. This should be
       // safe as it is a compile time error to try to dynamically invoke a call
       // method that is inherited from an extension type.
       var receiverType =
           receiver.getStaticType(_staticTypeContext).extensionTypeErasure;
-      if (isCallingDynamicField || _isDynamicOrFunction(receiverType)) {
-        return _emitDynamicInvoke(jsReceiver, null, args, arguments);
-      } else if (_isDirectCallable(receiverType)) {
-        // Call methods on function types should be handled as function calls.
+      if (_isDirectCallable(receiverType)) {
+        // Handle call methods on function types as function calls.
         return js_ast.Call(jsReceiver, args);
       }
     }
-
+    if (_isObjectMethodCall(name, arguments) &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // Handle Object methods when the receiver could potentially be `null` or
+      // JavaScript interop values with static helper methods.
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance members.
+      return _runtimeCall('#(#, #)', [name, jsReceiver, args]);
+    }
+    // Otherwise generate this as a normal typed method call.
     var jsName = _emitMemberName(name, member: target);
-
-    // Handle Object methods that are supported by `null` and potentially
-    // JavaScript interop values.
-    if (_isObjectMethodCall(name, arguments)) {
-      if (_shouldCallObjectMemberHelper(receiver)) {
-        // The names of the static helper methods in the runtime must match the
-        // names of the Object instance members.
-        return _runtimeCall('#(#, #)', [name, jsReceiver, args]);
-      }
-      // Otherwise generate this as a normal typed method call.
-    } else if (target == null || isCallingDynamicField) {
-      return _emitDynamicInvoke(jsReceiver, jsName, args, arguments);
-    }
-    // TODO(jmesserly): remove when Kernel desugars this for us.
-    // Handle `o.m(a)` where `o.m` is a getter returning a class with `call`.
-    if (target is Field || target is Procedure && target.isAccessor) {
-      // We must erase the extension type to find the `call` method.
-      // If the extension type has a runtime representation with a `call`:
-      //
-      // ```
-      // extension type Ext(C c) implements C {...}
-      // class C {
-      //   call() {...}
-      // }
-      // ```
-      //
-      // We can always erase eagerly becuase:
-      //  - Extension types that do not implment an interface that exposes a
-      //    `call` method will result in a static error at the call site.
-      //  - Calls to extension types that implement their own call method are
-      //    lowered by the CFE to top level static method calls.
-      var fromType = target!.getterType.extensionTypeErasure;
-      if (fromType is InterfaceType) {
-        var callName = _implicitCallTarget(fromType);
-        if (callName != null) {
-          return js.call('#.#.#(#)', [jsReceiver, jsName, callName, args]);
-        }
-      }
-    }
     return js.call('#.#(#)', [jsReceiver, jsName, args]);
   }
 
-  js_ast.Expression _emitDynamicInvoke(
-      js_ast.Expression fn,
-      js_ast.Expression? methodName,
-      Iterable<js_ast.Expression> args,
-      Arguments arguments) {
-    var jsArgs = <Object>[fn];
+  /// Returns an invocation of the runtime helpers `dcall`, `dgcall`, `dsend`,
+  /// or `dgsend` to perform dynamic checks before invoking [memberName] on
+  /// [receiver] and passing [arguments].
+  js_ast.Expression _emitDynamicInvocation(
+      Expression receiver, String memberName, Arguments arguments) {
+    var jsArgs = [_visitExpression(receiver)];
     String jsCode;
-
-    var typeArgs = arguments.types;
-    if (typeArgs.isNotEmpty) {
-      jsArgs.add(args.take(typeArgs.length));
-      args = args.skip(typeArgs.length);
-      if (methodName != null) {
-        jsCode = 'dgsend$_replSuffix(#, [#], #';
-        jsArgs.add(methodName);
+    var (:typeArguments, :positionalArguments, :namedArguments) =
+        _emitArgumentGroups(arguments, isJSInterop: false);
+    if (memberName == 'call') {
+      if (typeArguments != null) {
+        jsCode = 'dgcall(#, #';
+        jsArgs.add(js_ast.ArrayInitializer(typeArguments));
       } else {
-        jsCode = 'dgcall(#, [#]';
+        jsCode = 'dcall(#';
       }
-    } else if (methodName != null) {
-      jsCode = 'dsend$_replSuffix(#, #';
-      jsArgs.add(methodName);
     } else {
-      jsCode = 'dcall(#';
+      if (typeArguments != null) {
+        jsCode = 'dgsend$_replSuffix(#, #, #';
+        jsArgs.add(js_ast.ArrayInitializer(typeArguments));
+      } else {
+        jsCode = 'dsend$_replSuffix(#, #';
+      }
+      jsArgs.add(_emitMemberName(memberName));
     }
-
-    var hasNamed = arguments.named.isNotEmpty;
-    if (hasNamed) {
-      jsCode += ', [#], #)';
-      jsArgs.add(args.take(args.length - 1));
-      jsArgs.add(args.last);
+    if (positionalArguments != null) {
+      jsCode += ', #';
+      jsArgs.add(js_ast.ArrayInitializer(positionalArguments));
     } else {
-      jsArgs.add(args);
-      jsCode += ', [#])';
+      jsCode += ', []';
     }
-
+    if (namedArguments != null) {
+      jsCode += ', #';
+      jsArgs.add(js_ast.ObjectInitializer(namedArguments));
+    }
+    jsCode += ')';
     return _runtimeCall(jsCode, jsArgs);
   }
 
@@ -5942,11 +5960,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     return null;
   }
-
-  bool _isDynamicOrFunction(DartType t) =>
-      DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
-          .areEqual(t, _coreTypes.functionNonNullableRawType) ||
-      t == const DynamicType();
 
   js_ast.Expression _emitUnaryOperator(
       Expression expr, Member? target, InvocationExpression node) {
@@ -6834,27 +6847,63 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitTopLevelName(target);
   }
 
+  /// Returns all parts of [arguments] flattened into a list so they can be
+  /// passed in the calling convention for calls with no runtime checks.
+  ///
+  /// When [types] is `false` any type arguments present in [arguments] will be
+  /// omitted.
+  ///
+  /// Passing [target] when applicable allows for detection of an annotation to
+  /// omit passing type parameters and to detect if positional arguments should
+  /// be packaged to be passed to a JavaScript using an interop call.
   List<js_ast.Expression> _emitArgumentList(Arguments node,
       {bool types = true, Member? target}) {
     types = types && _reifyGenericFunction(target);
-    final isJsInterop = target != null && isJsMember(target);
+    var (:typeArguments, :positionalArguments, :namedArguments) =
+        _emitArgumentGroups(node,
+            isJSInterop: target != null && isJsMember(target));
     return [
-      if (types)
-        for (var typeArg in node.types) _emitType(typeArg),
-      for (var arg in node.positional)
-        if (arg is StaticInvocation &&
-            isJSSpreadInvocation(arg.target) &&
-            arg.arguments.positional.length == 1)
-          js_ast.Spread(_visitExpression(arg.arguments.positional[0]))
-        else if (isJsInterop)
-          _visitExpression(_assertInterop(arg))
-        else
-          _visitExpression(arg),
-      if (node.named.isNotEmpty)
-        js_ast.ObjectInitializer([
-          for (var arg in node.named) _emitNamedExpression(arg, isJsInterop)
-        ]),
+      if (types && typeArguments != null) ...typeArguments,
+      if (positionalArguments != null) ...positionalArguments,
+      if (namedArguments != null) js_ast.ObjectInitializer([...namedArguments]),
     ];
+  }
+
+  /// Returns all [arguments] but kept in separate packets so they can be
+  /// further processed.
+  ///
+  /// Facilitates passing arguments in the calling convention used by runtime
+  /// helpers that check arguments.
+  ///
+  /// When [isJSInterop] is `true` the positional arguments are packaged to
+  /// be passed to JavaScript via an interop call.
+  _ArgumentGroups _emitArgumentGroups(Arguments node,
+      {required bool isJSInterop}) {
+    var typeArguments = node.types.isEmpty
+        ? null
+        : [for (var typeArgument in node.types) _emitType(typeArgument)];
+    var positionalArguments = node.positional.isEmpty
+        ? null
+        : [
+            for (var arg in node.positional)
+              if (arg is StaticInvocation &&
+                  isJSSpreadInvocation(arg.target) &&
+                  arg.arguments.positional.length == 1)
+                js_ast.Spread(_visitExpression(arg.arguments.positional[0]))
+              else if (isJSInterop)
+                _visitExpression(_assertInterop(arg))
+              else
+                _visitExpression(arg),
+          ];
+    var namedArguments = node.named.isEmpty
+        ? null
+        : [for (var arg in node.named) _emitNamedExpression(arg, isJSInterop)];
+
+    return (
+      typeArguments: typeArguments,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments
+    );
   }
 
   js_ast.Property _emitNamedExpression(NamedExpression arg,

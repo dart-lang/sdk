@@ -322,7 +322,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
       }
       if (currentExpressionBox.compatibleWith(previousExpressionBox)) {
-        rule.reportLint(statement);
+        rule.reportAtNode(statement);
       }
       previousExpressionBox = currentExpressionBox;
     }

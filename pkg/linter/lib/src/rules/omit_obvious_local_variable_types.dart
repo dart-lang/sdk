@@ -58,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       var iterableType = iterable.staticType;
       if (iterableType.elementTypeOfIterable == staticType) {
-        rule.reportLint(loopVariableType);
+        rule.reportAtNode(loopVariableType);
       }
     }
   }
@@ -82,6 +82,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
-    rule.reportLint(node.type);
+    rule.reportAtNode(node.type);
   }
 }

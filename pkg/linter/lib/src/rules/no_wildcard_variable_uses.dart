@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (node.name.isJustUnderscores) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

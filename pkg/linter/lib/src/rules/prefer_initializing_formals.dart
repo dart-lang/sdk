@@ -146,14 +146,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var assignment in assignments) {
       if (isAssignmentExpressionToLint(assignment)) {
         var rightElement = _getRightElement(assignment)!;
-        rule.reportLint(assignment, arguments: [rightElement.displayName]);
+        rule.reportAtNode(assignment, arguments: [rightElement.displayName]);
       }
     }
 
     for (var initializer in initializers) {
       if (isConstructorFieldInitializerToLint(initializer)) {
         var name = initializer.fieldName.element!.name3!;
-        rule.reportLint(initializer, arguments: [name]);
+        rule.reportAtNode(initializer, arguments: [name]);
       }
     }
   }

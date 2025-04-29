@@ -115,7 +115,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     var uriString = node.uri.stringValue;
     if (uriString != null && isWebUri(uriString)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

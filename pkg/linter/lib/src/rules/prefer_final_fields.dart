@@ -143,10 +143,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
 
         if (isSetInEveryConstructor) {
-          rule.reportLint(variable, arguments: [variable.name.lexeme]);
+          rule.reportAtNode(variable, arguments: [variable.name.lexeme]);
         }
       } else if (field.hasInitializer) {
-        rule.reportLint(variable, arguments: [variable.name.lexeme]);
+        rule.reportAtNode(variable, arguments: [variable.name.lexeme]);
       }
     }
   }

@@ -15,9 +15,15 @@ can-be-overridden:
   - library: 'shared/shared.dart'
     class: 'Base'
     member: 'method3'
+  - library: 'shared/shared.dart'
+    class: 'Base'
+    member: 'method4'
 
 # TODO(sigmund): consider implying this for all extendable types.
 callable:
   - library: 'shared/shared.dart'
     class: 'Base'
     member: ''
+  - library: 'shared/shared.dart'
+    class: 'Base'
+    member: 'method4'

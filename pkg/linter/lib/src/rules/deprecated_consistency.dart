@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
-      rule.reportLint(
+      rule.reportAtNode(
         node,
         errorCode: LinterLintCode.deprecated_consistency_field,
       );

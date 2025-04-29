@@ -64,7 +64,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   visitBinaryExpression(BinaryExpression node) {
     if (_isParameterWithQuestionQuestion(node, parameter) ||
         _isComparingParameterWithNull(node, parameter)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     super.visitBinaryExpression(node);
   }
@@ -73,7 +73,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   visitMethodInvocation(MethodInvocation node) {
     if (node.operator?.type == TokenType.QUESTION_PERIOD &&
         node.target.canonicalElement == parameter) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     super.visitMethodInvocation(node);
   }
@@ -82,7 +82,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   visitPropertyAccess(PropertyAccess node) {
     if (node.operator.type == TokenType.QUESTION_PERIOD &&
         node.target.canonicalElement == parameter) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     super.visitPropertyAccess(node);
   }

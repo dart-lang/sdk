@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportLint(
+    rule.reportAtNode(
       invocation.methodName,
       errorCode:
           addAll

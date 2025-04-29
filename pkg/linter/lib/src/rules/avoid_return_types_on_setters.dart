@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.isSetter) {
       if (node.returnType != null) {
-        rule.reportLint(node.returnType);
+        rule.reportAtNode(node.returnType);
       }
     }
   }
@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isSetter) {
       if (node.returnType != null) {
-        rule.reportLint(node.returnType);
+        rule.reportAtNode(node.returnType);
       }
     }
   }

@@ -8,4 +8,6 @@ abstract class Base {
   int method2(int i, {int? j}) => i;
 
   int method3<T>(int i, {int? j}) => i;
+
+  int method4<T>(int i, {int? j}) => i;
 }

@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parameterOfSuperName = positionalParametersOfSuper[i].name3;
       if (parameterOfSuperName != null &&
           superParameterName != parameterOfSuperName) {
-        rule.reportLint(
+        rule.reportAtNode(
           superParameter,
           arguments: [superParameterName, parameterOfSuperName],
         );

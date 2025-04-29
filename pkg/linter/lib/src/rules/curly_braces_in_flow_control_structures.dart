@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var lineInfo = unit.lineInfo;
       if (lineInfo.getLocation(node.ifKeyword.offset).lineNumber !=
           lineInfo.getLocation(node.thenStatement.end).lineNumber) {
-        rule.reportLint(node.thenStatement, arguments: ['an if']);
+        rule.reportAtNode(node.thenStatement, arguments: ['an if']);
       }
     } else {
       _check('an if', node.thenStatement);
@@ -82,6 +82,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _check(String where, Statement node) {
-    if (node is! Block) rule.reportLint(node, arguments: [where]);
+    if (node is! Block) rule.reportAtNode(node, arguments: [where]);
   }
 }

@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitDoStatement(DoStatement node) {
     if (_onlyLiterals(node.condition)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
       if (_onlyLiterals(loopParts.condition)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -78,14 +78,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitIfStatement(IfStatement node) {
     if (node.caseClause != null) return;
     if (_onlyLiterals(node.expression)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
   @override
   void visitWhenClause(WhenClause node) {
     if (_onlyLiterals(node.expression)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_onlyLiterals(condition)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

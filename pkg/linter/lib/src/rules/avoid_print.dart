@@ -36,7 +36,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     if ((node.methodName.element?.isDartCorePrint ?? false) &&
         !_isDebugOnly(node)) {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
     }
 
     node.argumentList.arguments.forEach(_validateArgument);
@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is SimpleIdentifier) {
       var element = expression.element;
       if (element.isDartCorePrint) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     }
   }

@@ -51,12 +51,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitThrowExpression(ThrowExpression node) {
     if (node.expression is Literal) {
-      rule.reportLint(node.expression);
+      rule.reportAtNode(node.expression);
       return;
     }
 
     if (!_isThrowable(node.expression.staticType)) {
-      rule.reportLint(node.expression);
+      rule.reportAtNode(node.expression);
     }
   }
 }

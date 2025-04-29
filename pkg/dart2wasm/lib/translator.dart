@@ -442,6 +442,11 @@ class Translator with KernelNodes {
   }
 
   void _initLoadLibraryImportMap() {
+    final importMapGetter = loadLibraryImportMap;
+
+    // Can be null for dynamic modules that don't use deferred libraries.
+    if (importMapGetter == null) return;
+
     final mapEntries = <MapLiteralEntry>[];
     _moduleOutputData.generateModuleImportMap().forEach((libName, importMap) {
       final subMapEntries = <MapLiteralEntry>[];
@@ -453,14 +458,14 @@ class Translator with KernelNodes {
           MapLiteralEntry(StringLiteral(libName), MapLiteral(subMapEntries)));
     });
     final stringClass = jsStringClass;
-    loadLibraryImportMap.function.body = ReturnStatement(MapLiteral(mapEntries,
+    importMapGetter.function.body = ReturnStatement(MapLiteral(mapEntries,
         keyType: InterfaceType(stringClass, Nullability.nonNullable),
         valueType: InterfaceType(coreTypes.mapNonNullableRawType.classNode,
             Nullability.nonNullable, [
           InterfaceType(stringClass, Nullability.nonNullable),
           InterfaceType(stringClass, Nullability.nonNullable)
         ])));
-    loadLibraryImportMap.isExternal = false;
+    importMapGetter.isExternal = false;
   }
 
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
@@ -831,6 +836,15 @@ class Translator with KernelNodes {
       return topInfo.typeWithNullability(nullable);
     }
     if (type is FunctionType) {
+      if (dynamicModuleSupportEnabled) {
+        // The closure representation is based on the available closure
+        // definitions and invocations seen in the program. For dynamic modules,
+        // this can differ from one module to another. So use the less specific
+        // closure base class everywhere. Usages will get downcast to the
+        // appropriate closure type.
+        return w.RefType.def(closureLayouter.closureBaseStruct,
+            nullable: nullable);
+      }
       ClosureRepresentation? representation =
           closureLayouter.getClosureRepresentation(
               type.typeParameters.length,
@@ -1090,11 +1104,13 @@ class Translator with KernelNodes {
           representation.instantiationTypeHashFunctionForModule(ib.module));
       ib.ref_func(representation.instantiationFunctionForModule(ib.module));
     }
-    for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
-      fillVtableEntry(ib, posArgCount, const []);
-    }
-    for (NameCombination nameCombination in representation.nameCombinations) {
-      fillVtableEntry(ib, positionalCount, nameCombination.names);
+    if (!dynamicModuleSupportEnabled) {
+      for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
+        fillVtableEntry(ib, posArgCount, const []);
+      }
+      for (NameCombination nameCombination in representation.nameCombinations) {
+        fillVtableEntry(ib, positionalCount, nameCombination.names);
+      }
     }
     ib.struct_new(representation.vtableStruct);
     ib.end();
@@ -1216,8 +1232,12 @@ class Translator with KernelNodes {
     // If there's only uses of the member via `this`, then we know that
     // covariant parameters will type check correctly, except parameters that
     // were marked explicitly with the `covariant` keyword.
-    final useUncheckedEntry =
-        !metadata.hasTearOffUses && !metadata.hasNonThisUses;
+    final useUncheckedEntry = !metadata.hasTearOffUses &&
+        !metadata.hasNonThisUses &&
+        // For dynamic modules we always use the checked entry since TFA
+        // provides per-module results so we don't know if the unchecked entry
+        // can be used in a future module.
+        !dynamicModuleSupportEnabled;
 
     if (member is Field) {
       return needToCheckImplicitSetterValue(member,
@@ -1553,18 +1573,16 @@ class Translator with KernelNodes {
   }
 
   DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
-    return _filterInferredType(node.type,
-        dynamicModuleSupportEnabled ? null : inferredArgTypeMetadata[node]);
+    return _filterInferredType(node.type, inferredArgTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfReturnValue(Member node) {
-    return _filterInferredType(node.function!.returnType,
-        dynamicModuleSupportEnabled ? null : inferredReturnTypeMetadata[node]);
+    return _filterInferredType(
+        node.function!.returnType, inferredReturnTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfField(Field node) {
-    return _filterInferredType(node.type,
-        dynamicModuleSupportEnabled ? null : inferredTypeMetadata[node]);
+    return _filterInferredType(node.type, inferredTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfLocalVariable(VariableDeclaration node) {

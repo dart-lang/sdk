@@ -358,7 +358,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If the above code is extended to support multiple sets of config
       // this will need tweaking to handle the item for each section.
       if (result != null &&
-          result is List<dynamic> &&
+          result is List<Object?> &&
           result.length == 1 + folders.length) {
         // Config is stored as a map keyed by the workspace folder, and a key of
         // null for the global config

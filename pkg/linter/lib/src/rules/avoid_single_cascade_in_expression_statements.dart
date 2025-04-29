@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var sections = node.cascadeSections;
     if (sections.length == 1 && node.parent is ExpressionStatement) {
       var operator = operatorFor(sections[0]);
-      rule.reportLint(node, arguments: [operator]);
+      rule.reportAtNode(node, arguments: [operator]);
     }
   }
 }

@@ -200,7 +200,14 @@ class ClosureLayouter extends RecursiveVisitor {
   final Translator translator;
   final Map<TreeNode, ProcedureAttributesMetadata> procedureAttributeMetadata;
 
-  List<List<ClosureRepresentationsForParameterCount>> representations = [];
+  late final List<List<ClosureRepresentationsForParameterCount>>
+      representations;
+
+  // Dynamic modules invoke closures dynamically so they use the base structs
+  // in all cases. Therefore, We only need one global copy of the
+  // ClosureRepresentation for generic and one for non-generic functions.
+  ClosureRepresentation? _dynamicModuleRepresentation;
+  ClosureRepresentation? _dynamicModuleGenericRepresentation;
 
   Set<Constant> visitedConstants = Set.identity();
 
@@ -356,6 +363,12 @@ class ClosureLayouter extends RecursiveVisitor {
                 .mapping;
 
   void collect() {
+    // Dynamic module enabled builds use dynamic call entry points for all
+    // closure invocations so we don't need to generate any representation
+    // info.
+    if (translator.dynamicModuleSupportEnabled) return;
+    representations = [];
+
     translator.component.accept(this);
     computeClusters();
   }
@@ -391,6 +404,14 @@ class ClosureLayouter extends RecursiveVisitor {
   /// `names` should be sorted.
   ClosureRepresentation? getClosureRepresentation(
       int typeCount, int positionalCount, List<String> names) {
+    if (translator.dynamicModuleSupportEnabled) {
+      if (typeCount == 0) {
+        return _dynamicModuleRepresentation ??=
+            _createRepresentation(typeCount, 0, const [], null, null, const []);
+      }
+      return _dynamicModuleGenericRepresentation ??=
+          _createRepresentation(typeCount, 0, const [], null, null, const []);
+    }
     final representations =
         _representationsForCounts(typeCount, positionalCount);
     if (representations.withoutNamed == null) {
@@ -423,8 +444,6 @@ class ClosureLayouter extends RecursiveVisitor {
       ClosureRepresentation? parent,
       Map<NameCombination, int>? indexOfCombination,
       Iterable<int> paramCounts) {
-    // TODO(natebiggs): Add logic to allow for changing signatures in a dynamic
-    // module.
     List<String> nameTags = ["$typeCount", "$positionalCount", ...names];
     String vtableName = ["#Vtable", ...nameTags].join("-");
     String closureName = ["#Closure", ...nameTags].join("-");
@@ -505,6 +524,9 @@ class ClosureLayouter extends RecursiveVisitor {
       // generation, after the imports have been added.
 
       representation._instantiationTrampolinesGenerator = (module) {
+        // Dynamic modules do not have any trampolines, only a dynamic call
+        // entry point.
+        if (translator.dynamicModuleSupportEnabled) return const [];
         List<w.BaseFunction> instantiationTrampolines = [
           ...?parent?._instantiationTrampolinesForModule(module)
         ];

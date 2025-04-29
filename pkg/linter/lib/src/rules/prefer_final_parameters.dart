@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             !declaredElement.isInitializingFormal &&
             !declaredElement.isWildcardVariable &&
             !body.isPotentiallyMutatedInScope2(declaredElement)) {
-          rule.reportLint(param, arguments: [param.name!.lexeme]);
+          rule.reportAtNode(param, arguments: [param.name!.lexeme]);
         }
       }
     }

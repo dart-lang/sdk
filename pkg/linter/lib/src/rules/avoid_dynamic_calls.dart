@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // x ??= foo is not a dynamic call.
       return;
     }
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 
   @override
@@ -167,7 +167,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node == null || node.staticType is! DynamicType) return false;
     if (_isExplicitCast(node)) return false;
 
-    rule.reportLint(node);
+    rule.reportAtNode(node);
     return true;
   }
 
@@ -176,7 +176,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (staticType == null) return;
     if (_isExplicitCast(node)) return;
     if (staticType is DynamicType || staticType.isDartCoreFunction) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -189,7 +189,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // An assignment expression can only be a dynamic call if it is a
         // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
         // `dynamic` we should report.
-        rule.reportLint(root);
+        rule.reportAtNode(root);
       }
     }
   }

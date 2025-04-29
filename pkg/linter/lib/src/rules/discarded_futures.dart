@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       _isMapClass(expr.methodName.element?.enclosingElement2);
 
   void _reportOnExpression(Expression expr) {
-    rule.reportLint(switch (expr) {
+    rule.reportAtNode(switch (expr) {
       MethodInvocation(:var methodName) => methodName,
       InstanceCreationExpression(:var constructorName) => constructorName,
       FunctionExpressionInvocation(:var function) => function,

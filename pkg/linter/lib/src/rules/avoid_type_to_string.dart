@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     SimpleIdentifier methodIdentifier,
   ) {
     if (_isToStringOnCoreTypeClass(targetType, methodIdentifier)) {
-      rule.reportLint(methodIdentifier);
+      rule.reportAtNode(methodIdentifier);
     }
   }
 

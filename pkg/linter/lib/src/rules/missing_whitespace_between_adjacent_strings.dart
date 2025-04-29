@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!current.hasWhitespace) {
         continue;
       }
-      rule.reportLint(current);
+      rule.reportAtNode(current);
     }
 
     return super.visitAdjacentStrings(node);

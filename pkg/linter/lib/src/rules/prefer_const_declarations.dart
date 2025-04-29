@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
               (initializer.beginToken.keyword == Keyword.CONST)) &&
           !hasConstantError(initializer);
     })) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

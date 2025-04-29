@@ -821,11 +821,11 @@ class LegacyAnalysisServer extends AnalysisServer {
   @override
   void sendServerErrorNotification(
     String message,
-    dynamic exception,
-    /*StackTrace*/ stackTrace, {
+    Object exception,
+    StackTrace? stackTrace, {
     bool fatal = false,
   }) {
-    var msg = exception == null ? message : '$message: $exception';
+    var msg = '$message: $exception';
     if (stackTrace != null && exception is! CaughtException) {
       stackTrace = StackTrace.current;
     }
@@ -1002,7 +1002,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   /// Implementation for `analysis.updateContent`.
-  void updateContent(String id, Map<String, dynamic> changes) {
+  void updateContent(String id, Map<String, Object?> changes) {
     _onAnalysisSetChangedController.add(null);
     changes.forEach((file, change) {
       // Prepare the old overlay contents.
@@ -1362,7 +1362,7 @@ class ServerContextManagerCallbacks
   // method, or a top-level declaration, we would not have this problem - the
   // completion computer would be the only consumer of the partial analysis
   // result.
-  void _runDelayed(Function() f) {
+  void _runDelayed(void Function() f) {
     Future(f);
   }
 }

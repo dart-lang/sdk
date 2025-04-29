@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_wildCardVariablesEnabled && prefixString == '_') return;
 
     if (!isValidLibraryPrefix(prefixString)) {
-      rule.reportLint(prefix, arguments: [prefixString]);
+      rule.reportAtNode(prefix, arguments: [prefixString]);
     }
   }
 }

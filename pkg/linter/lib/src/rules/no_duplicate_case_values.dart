@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // TODO(brianwilkeson): This would benefit from having a context message
         //  pointing at the `duplicateValue`.
         if (duplicateValue != null) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             arguments: [expression.toString(), duplicateValue.toString()],
           );

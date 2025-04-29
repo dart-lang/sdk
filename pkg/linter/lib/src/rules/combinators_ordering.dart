@@ -36,14 +36,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitHideCombinator(HideCombinator node) {
     if (!node.hiddenNames.map((e) => e.name).isSorted()) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
   @override
   void visitShowCombinator(ShowCombinator node) {
     if (!node.shownNames.map((e) => e.name).isSorted()) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

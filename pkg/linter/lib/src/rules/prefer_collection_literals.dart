@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (node.isMap || node.isHashMap) {
       if (constructorName == null && node.argumentList.arguments.isEmpty) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
       return;
     }
@@ -69,14 +69,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (constructorName == null) {
         // Allow `LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)`.
         if (args.isEmpty) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       } else if (constructorName == 'from' || constructorName == 'of') {
         if (args.length != 1) {
           return;
         }
         if (args.first is ListLiteral) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       }
     }
@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (node.target is ListLiteral) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

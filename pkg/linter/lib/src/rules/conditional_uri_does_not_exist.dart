@@ -41,7 +41,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       // in the analysis server (although running the script when the files
       // don't exist on disk would also fail to find it).
       if (!(source?.exists() ?? false)) {
-        rule.reportLint(configuration.uri, arguments: [uri.relativeUriString]);
+        rule.reportAtNode(
+          configuration.uri,
+          arguments: [uri.relativeUriString],
+        );
       }
     }
   }

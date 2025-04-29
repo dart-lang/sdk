@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (node.defaultValue.isNullLiteral && isNullable(declaredElement.type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isFinal &&
         node.initializer.isNullLiteral &&
         isNullable(declaredElement.type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

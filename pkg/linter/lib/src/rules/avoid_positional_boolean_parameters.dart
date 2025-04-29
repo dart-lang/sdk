@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkParams(List<FormalParameter>? parameters) {
     var parameterToLint = parameters?.firstWhereOrNull(_isBoolean);
     if (parameterToLint != null) {
-      rule.reportLint(parameterToLint);
+      rule.reportAtNode(parameterToLint);
     }
   }
 

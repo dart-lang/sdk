@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameters != null) {
       for (var param in parameters.parameters) {
         if (param.isFinal) {
-          rule.reportLint(param);
+          rule.reportAtNode(param);
         }
       }
     }

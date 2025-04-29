@@ -10,6 +10,7 @@ import 'package:vm/metadata/table_selector.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'reference_extensions.dart';
@@ -367,16 +368,25 @@ class DispatchTable {
   late final Map<TreeNode, ProcedureAttributesMetadata>
       procedureAttributeMetadata =
       translator.isDynamicModule && !isDynamicModuleTable
-          ? translator.dynamicModuleInfo!.mainModuleProcedureAttributes
+          ? (translator.component
+                      .metadata[dynamicMainModuleProcedureAttributeMetadataTag]
+                  as ProcedureAttributesMetadataRepository)
+              .mapping
           : translator.procedureAttributeMetadata;
 
   late final Translator translator;
 
   late final List<TableSelectorInfo> _selectorMetadata =
-      (translator.component.metadata["vm.table-selector.metadata"]
-              as TableSelectorMetadataRepository)
-          .mapping[translator.component]!
-          .selectors;
+      translator.isDynamicModule && !isDynamicModuleTable
+          ? (translator.component.metadata[dynamicMainModuleSelectorMetadataTag]
+                  as TableSelectorMetadataRepository)
+              .mapping[translator.component]!
+              .selectors
+          : (translator.component
+                      .metadata[TableSelectorMetadataRepository.repositoryTag]
+                  as TableSelectorMetadataRepository)
+              .mapping[translator.component]!
+              .selectors;
   late final int minClassId = isDynamicModuleTable
       ? translator.classIdNumbering.firstDynamicModuleClassId
       : 0;
@@ -414,6 +424,9 @@ class DispatchTable {
   void serialize(DataSerializer sink) {
     sink.writeList(_selectorInfo.values, (s) => s.serialize(sink));
     sink.writeList(_table, (r) => sink.writeNullable(r, sink.writeReference));
+    // Preserve call selectors for closure calls which are handled dynamically.
+    final callSelectors = _dynamicGetters['call']!;
+    sink.writeList(callSelectors, (s) => sink.writeInt(s.id));
   }
 
   factory DispatchTable.deserialize(DataDeserializer source) {
@@ -423,11 +436,20 @@ class DispatchTable {
         source.readList(() => SelectorInfo.deserialize(source, dispatchTable));
     final table = source
         .readList(() => source.readNullable(() => source.readReference()));
+    final callSelectorIds = source.readList(source.readInt);
 
     for (final selector in selectors) {
       dispatchTable._selectorInfo[selector.id] = selector;
     }
     dispatchTable._table = table;
+
+    // Preserve call selectors for closure calls which are handled dynamically.
+    final callSelectors = <SelectorInfo>{};
+    for (final selectorId in callSelectorIds) {
+      callSelectors.add(dispatchTable._selectorInfo[selectorId]!);
+    }
+    dispatchTable._dynamicGetters['call'] = callSelectors;
+
     return dispatchTable;
   }
 
@@ -755,6 +777,7 @@ class DispatchTable {
   }
 
   void output() {
+    final Map<w.BaseFunction, w.BaseFunction> wrappedDynamicModuleImports = {};
     for (int i = 0; i < _table.length; i++) {
       Reference? target = _table[i];
       if (target != null) {
@@ -770,6 +793,14 @@ class DispatchTable {
         if (fun != null) {
           final targetModule = fun.enclosingModule;
           if (targetModule == _definedWasmTable.enclosingModule) {
+            if (isDynamicModuleTable &&
+                targetModule == translator.dynamicModule &&
+                fun is w.ImportedFunction) {
+              // Functions imported into dynamic modules may need to be wrapped
+              // to match the updated dispatch table signature.
+              fun = wrappedDynamicModuleImports[fun] ??=
+                  _wrapDynamicModuleFunction(target, fun);
+            }
             _definedWasmTable.setElement(i, fun);
           } else {
             // This will generate the imported table if it doesn't already
@@ -780,6 +811,61 @@ class DispatchTable {
         }
       }
     }
+  }
+
+  w.BaseFunction _wrapDynamicModuleFunction(
+      Reference target, w.BaseFunction importedFunction) {
+    final mainSelector =
+        translator.dynamicMainModuleDispatchTable!.selectorForTarget(target);
+    final mainSignature = translator.signatureForMainModule(target);
+    final localSelector = translator.dispatchTable.selectorForTarget(target);
+    final localSignature = localSelector.signature;
+
+    // If the type is the same in both the main module and the dynamic module,
+    // use the imported function itself.
+    if (mainSignature.isStructurallyEqualTo(localSignature)) {
+      return importedFunction;
+    }
+
+    // Otherwise we need to create a wrapper to handle the differing types.
+    // The local signature should include all the parameters necessary to call
+    // the target in main since the local signature must include the target
+    // member itself and any other members in the main module's selector range.
+    final wrapper = translator.dynamicModule.functions
+        .define(localSignature, '${target.asMember} wrapper');
+
+    final ib = wrapper.body;
+
+    assert(mainSignature.inputs.length <= localSignature.inputs.length);
+
+    final mainModulePreParamCount =
+        (mainSelector.paramInfo.takesContextOrReceiver ? 1 : 0) +
+            mainSelector.paramInfo.typeParamCount;
+    final mainModuleBeforeNamedCount =
+        mainModulePreParamCount + mainSelector.paramInfo.positional.length;
+    int mainIndex = 0;
+    for (; mainIndex < mainModuleBeforeNamedCount; mainIndex++) {
+      final local = ib.locals[mainIndex];
+      ib.local_get(local);
+      translator.convertType(ib, local.type, mainSignature.inputs[mainIndex]);
+    }
+
+    final localPreParamCount =
+        (localSelector.paramInfo.takesContextOrReceiver ? 1 : 0) +
+            localSelector.paramInfo.typeParamCount;
+
+    for (final name in mainSelector.paramInfo.names) {
+      final namedIndex = localSelector.paramInfo.nameIndex[name]!;
+      final local = ib.locals[localPreParamCount + namedIndex];
+      ib.local_get(local);
+      translator.convertType(ib, local.type, mainSignature.inputs[mainIndex++]);
+    }
+    ib.call(importedFunction);
+    translator.convertType(
+        ib, mainSignature.outputs.single, localSignature.outputs.single);
+    ib.end();
+
+    return wrapper;
   }
 }
 

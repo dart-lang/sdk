@@ -38,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var block = body.block;
       if (block.statements.isEmpty) {
         if (block.endToken.precedingComments == null) {
-          rule.reportLint(block);
+          rule.reportAtNode(block);
         }
       }
     }
