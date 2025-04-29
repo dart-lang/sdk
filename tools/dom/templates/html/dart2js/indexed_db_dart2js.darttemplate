@@ -9,9 +9,9 @@
 /// A client-side key-value store with support for indexes.
 ///
 /// > [!Note]
-/// > New projects should prefer to use
-/// > [package:web](https://pub.dev/packages/web). For existing projects, see
-/// > our [migration guide](https://dart.dev/go/package-web).
+/// > This core library is deprecated, and scheduled for removal in late 2025.
+/// > It has been replaced by [package:web](https://pub.dev/packages/web).
+/// > The [migration guide](https://dart.dev/go/package-web) has more details.
 ///
 /// IndexedDB is a web standard API for client-side storage of
 /// structured data. By storing data on the client in an IndexedDB,
