@@ -1473,14 +1473,7 @@ class KernelTarget {
       }
 
       if (hasReportedErrors) {
-        switch (constructorBuilder.invokeTarget) {
-          case Constructor constructorParent:
-            constructorParent.isErroneous = true;
-          case Procedure procedureParent:
-            procedureParent.isErroneous = true;
-          default:
-          // Do nothing.
-        }
+        constructorBuilder.markAsErroneous();
       }
     }
   }

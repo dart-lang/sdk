@@ -899,22 +899,19 @@ class FunctionAccessTarget extends ObjectAccessTarget {
 class DynamicAccessTarget extends ObjectAccessTarget {
   /// Creates an access on a dynamic receiver type with no known target.
   const DynamicAccessTarget.dynamic()
-      : super // Coverage-ignore(suite): Not run.
-        .internal(ObjectAccessTargetKind.dynamic);
+      : super.internal(ObjectAccessTargetKind.dynamic);
 
   /// Creates an access with no target due to an invalid receiver type.
   ///
   /// This is not in itself an error but a consequence of another error.
   const DynamicAccessTarget.invalid()
-      : super // Coverage-ignore(suite): Not run.
-        .internal(ObjectAccessTargetKind.invalid);
+      : super.internal(ObjectAccessTargetKind.invalid);
 
   /// Creates an access with no target.
   ///
   /// This is an error case.
   const DynamicAccessTarget.missing()
-      : super // Coverage-ignore(suite): Not run.
-        .internal(ObjectAccessTargetKind.missing);
+      : super.internal(ObjectAccessTargetKind.missing);
 
   @override
   // Coverage-ignore(suite): Not run.
