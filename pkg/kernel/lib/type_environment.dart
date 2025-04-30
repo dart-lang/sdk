@@ -200,6 +200,11 @@ abstract class TypeEnvironment extends Types {
   /// (see [isSpecialCasedBinaryOperator]) given the static type of the
   /// operands.
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2) {
+    // Handle invalid types first, to avoid inconsistent typing of operators
+    // involving invalid expressions.
+    if (type1 is InvalidType || type2 is InvalidType) {
+      return const InvalidType();
+    }
     // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
     // e1 % e2 or e1.remainder(e2), where the static type of e1 is a non-Never
     // type T and T <: num, and where the static type of e2 is S and S is

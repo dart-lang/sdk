@@ -240,8 +240,6 @@ inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
-late_lowering/definitely_unassigned: TypeCheckError
-nnbd/definitely_unassigned: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError

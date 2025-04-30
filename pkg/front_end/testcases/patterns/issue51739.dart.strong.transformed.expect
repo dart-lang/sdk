@@ -15,7 +15,7 @@ static method method() → dynamic {
     final synthesized core::int? #0#0 = q;
     {
       hoisted invalid-type x;
-      if((let final core::int? #t1 = #0#0! in let final core::int? #t2 = x = #0#0! in true) || #0#0 is core::String && (let final core::int? #t3 = x = #0#0 in true)) {
+      if((let final dynamic #t1 = #0#0! in let final dynamic #t2 = x = #0#0! in true) || #0#0 is core::String && (let final dynamic #t3 = x = #0#0 in true)) {
         core::print(x);
         core::print(core::_GrowableList::_literal1<dynamic>(x).{core::Object::runtimeType}{core::Type});
       }

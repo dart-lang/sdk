@@ -8,7 +8,7 @@ static method main() → void {
     final synthesized core::List<core::int> #0#0 = core::_GrowableList::_literal3<core::int>(1, 2, 3);
     {
       hoisted core::List<core::int> rest;
-      if(#0#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::int} && (let final core::List<core::int> #t1 = rest = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
+      if(#0#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::List::[]}(0){(core::int) → core::int} && (let final dynamic #t1 = rest = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
         {
           self::expect(null, rest);
           break #L1;
@@ -17,7 +17,7 @@ static method main() → void {
     }
     {
       hoisted core::List<core::int> all;
-      if(let final core::List<core::int> #t2 = all = #0#0.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<core::int>} in true) {
+      if(let final dynamic #t2 = all = #0#0.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<core::int>} in true) {
         {
           self::expect(core::_GrowableList::_literal3<dynamic>(1, 2, 3), all);
         }
@@ -29,7 +29,7 @@ static method main() → void {
     final synthesized core::List<core::int> #1#0 = core::_GrowableList::_literal3<core::int>(1, 2, 3);
     {
       hoisted core::List<core::int> all;
-      if(let final core::List<core::int> #t3 = all = #1#0.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<core::int>} in true) {
+      if(let final dynamic #t3 = all = #1#0.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<core::int>} in true) {
         {
           self::expect(core::_GrowableList::_literal3<dynamic>(1, 2, 3), all);
           break #L2;
@@ -38,7 +38,7 @@ static method main() → void {
     }
     {
       hoisted core::List<core::int> rest;
-      if(#1#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0.{core::List::[]}(0){(core::int) → core::int} && (let final core::List<core::int> #t4 = rest = #1#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
+      if(#1#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #1#0.{core::List::[]}(0){(core::int) → core::int} && (let final dynamic #t4 = rest = #1#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
         {
           self::expect(null, rest);
         }
@@ -52,7 +52,7 @@ static method main() → void {
     synthesized core::bool #2#1#isSet = false;
     {
       hoisted core::List<core::int> rest;
-      if((#2#1#isSet ?{core::int} #2#1{core::int} : let final core::bool #t5 = #2#1#isSet = true in #2#1 = #2#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #2#0.{core::List::[]}(0){(core::int) → core::int} && #C4 =={core::num::==}{(core::Object) → core::bool} #2#0.{core::List::[]}(1){(core::int) → core::int} && (let final core::List<core::int> #t6 = rest = #2#0.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>} in true)) {
+      if((#2#1#isSet ?{core::int} #2#1{core::int} : let final dynamic #t5 = #2#1#isSet = true in #2#1 = #2#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #2#0.{core::List::[]}(0){(core::int) → core::int} && #C4 =={core::num::==}{(core::Object) → core::bool} #2#0.{core::List::[]}(1){(core::int) → core::int} && (let final dynamic #t6 = rest = #2#0.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>} in true)) {
         {
           self::expect(null, rest);
           break #L3;
@@ -61,7 +61,7 @@ static method main() → void {
     }
     {
       hoisted core::List<core::int> all;
-      if((#2#1#isSet ?{core::int} #2#1{core::int} : let final core::bool #t7 = #2#1#isSet = true in #2#1 = #2#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<core::int> #t8 = all = #2#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
+      if((#2#1#isSet ?{core::int} #2#1{core::int} : let final dynamic #t7 = #2#1#isSet = true in #2#1 = #2#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t8 = all = #2#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
         {
           self::expect(core::_GrowableList::_literal2<dynamic>(2, 3), all);
         }
@@ -75,7 +75,7 @@ static method main() → void {
     synthesized core::bool #3#1#isSet = false;
     {
       hoisted core::List<core::int> all;
-      if((#3#1#isSet ?{core::int} #3#1{core::int} : let final core::bool #t9 = #3#1#isSet = true in #3#1 = #3#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<core::int> #t10 = all = #3#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
+      if((#3#1#isSet ?{core::int} #3#1{core::int} : let final dynamic #t9 = #3#1#isSet = true in #3#1 = #3#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t10 = all = #3#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::int>} in true)) {
         {
           self::expect(core::_GrowableList::_literal2<dynamic>(2, 3), all);
           break #L4;
@@ -84,7 +84,7 @@ static method main() → void {
     }
     {
       hoisted core::List<core::int> rest;
-      if((#3#1#isSet ?{core::int} #3#1{core::int} : let final core::bool #t11 = #3#1#isSet = true in #3#1 = #3#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #3#0.{core::List::[]}(0){(core::int) → core::int} && #C4 =={core::num::==}{(core::Object) → core::bool} #3#0.{core::List::[]}(1){(core::int) → core::int} && (let final core::List<core::int> #t12 = rest = #3#0.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>} in true)) {
+      if((#3#1#isSet ?{core::int} #3#1{core::int} : let final dynamic #t11 = #3#1#isSet = true in #3#1 = #3#0.{core::List::length}{core::int}).{core::num::>=}(#C3){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #3#0.{core::List::[]}(0){(core::int) → core::int} && #C4 =={core::num::==}{(core::Object) → core::bool} #3#0.{core::List::[]}(1){(core::int) → core::int} && (let final dynamic #t12 = rest = #3#0.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<core::int>} in true)) {
         {
           self::expect(null, rest);
         }
