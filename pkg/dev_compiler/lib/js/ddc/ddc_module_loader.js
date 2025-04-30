@@ -1379,6 +1379,8 @@ if (!self.deferred_loader) {
     pendingHotReloadFileUrls = null;
     pendingHotReloadLibraryInitializers = Object.create(null);
 
+    pendingHotRestartLibraryInitializers = Object.create(null);
+
     // The name of the entrypoint module. Set when the application starts for
     // the first time and used during a hot restart.
     savedEntryPointLibraryName = null;
@@ -1427,8 +1429,14 @@ if (!self.deferred_loader) {
       if (this.hotReloadInProgress
         && this.pendingHotReloadLibraryNames.includes(libraryName)) {
         this.pendingHotReloadLibraryInitializers[libraryName] = initializer;
-      } else if (!libraryManager.hotRestartInProgress
-        && libraryName in this.libraryInitializers) {
+      } else if (libraryManager.hotRestartInProgress) {
+        // TODO(srujzs): We should have a `pendingHotRestartLibraryNames` set
+        // like we do with hot reload, but that requires a change to the
+        // `hotRestart` API. This would prevent libraries that have different
+        // names from the ones we expect to be compiled during a hot restart
+        // from being accidentally treated as part of the hot restart.
+        this.pendingHotRestartLibraryInitializers[libraryName] = initializer;
+      } else if (libraryName in this.libraryInitializers) {
         throw 'Library ' + libraryName +
         ' was previously defined but DDC is not currently executing a hot ' +
         ' reload or a hot restart. Failed to define the library.'
@@ -1673,6 +1681,12 @@ if (!self.deferred_loader) {
       this.libraries = Object.create(null);
       this.triggeredSDKLibrariesWithSideEffects = false;
       this.setDartSDKRuntimeOptions(this.savedDartSdkRuntimeOptions);
+      // Update initializers. They'll be invoked later at some point after we
+      // call main.
+      for (let name in this.pendingHotRestartLibraryInitializers) {
+        let initializer = this.pendingHotRestartLibraryInitializers[name];
+        this.libraryInitializers[name] = initializer;
+      }
       let entryPointLibrary = this.initializeAndLinkLibrary(this.savedEntryPointLibraryName);
       // TODO(nshahan): Start sharing a single source of truth for the restart
       // generation between the dart:_runtime and this module system.
@@ -1680,7 +1694,10 @@ if (!self.deferred_loader) {
       console.log('Hot restarting application from main method in: ' +
         this.savedEntryPointLibraryName + ' (generation: ' +
         this.hotRestartGeneration + ').');
+      // Cleanup.
       this.hotRestartInProgress = false;
+      this.pendingHotRestartLibraryInitializers = Object.create(null);
+
       this._runMain(entryPointLibrary);
     }
   }
