@@ -10,6 +10,7 @@ import 'document_highlights_test.dart' as document_highlights;
 import 'document_symbols_test.dart' as document_symbols;
 import 'edit_argument_test.dart' as edit_argument;
 import 'editable_arguments_test.dart' as editable_arguments;
+import 'execute_command_test.dart' as execute_command;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
@@ -28,6 +29,7 @@ void main() {
     document_symbols.main();
     edit_argument.main();
     editable_arguments.main();
+    execute_command.main();
     format.main();
     hover.main();
     implementation.main();
