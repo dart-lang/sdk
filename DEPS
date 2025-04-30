@@ -98,7 +98,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "b4bdcc33115b31758c56b83bb9de4642c411a042",
-  "boringssl_rev": "cccf8525db8a57153d3cb3e22efed2db4b71a8ab",
+  "boringssl_rev": "34492c89a8e381e0e856a686cc71b1eb5bd728db",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "4b7eda127290518ad9e0dea4dcb9510b6e5e4a41",
