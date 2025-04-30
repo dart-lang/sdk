@@ -124,12 +124,12 @@ final class FixInFileProcessor {
     }
   }
 
-  List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
-    if (errorCode is LintCode) {
-      return registeredFixGenerators.lintProducers[errorCode] ?? [];
+  List<ProducerGenerator> _getGenerators(DiagnosticCode diagnosticCode) {
+    if (diagnosticCode is LintCode) {
+      return registeredFixGenerators.lintProducers[diagnosticCode] ?? [];
     } else {
       // TODO(pq): consider support for multi-generators.
-      return registeredFixGenerators.nonLintProducers[errorCode] ?? [];
+      return registeredFixGenerators.nonLintProducers[diagnosticCode] ?? [];
     }
   }
 }
