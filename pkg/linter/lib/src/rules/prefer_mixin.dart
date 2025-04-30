@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var element = type.element3;
         if (element is MixinElement) continue;
         if (element is ClassElement && !element.isMixinClass) {
-          rule.reportLint(mixinNode, arguments: [mixinNode.name2.lexeme]);
+          rule.reportAtNode(mixinNode, arguments: [mixinNode.name2.lexeme]);
         }
       }
     }
