@@ -33,7 +33,7 @@ void command() {
   test('description formatting', () {
     DartdevRunner(['--suppress-analytics'])
         .commands
-        .forEach((String commandKey, Command command) {
+        .forEach((String commandKey, Command<int> command) {
       expect(commandKey, isNotEmpty);
       expect(command.description, isNotEmpty);
       expect(command.description.split('\n').first, endsWith('.'));
@@ -45,7 +45,7 @@ void command() {
   test('argParser usageLineLength', () {
     DartdevRunner(['--suppress-analytics'])
         .commands
-        .forEach((String commandKey, Command command) {
+        .forEach((String commandKey, Command<int> command) {
       if (command.name != 'help' &&
           command.name != 'format' &&
           command.name != 'pub' &&

@@ -107,7 +107,7 @@ void main() {
           ],
         );
         final completer = Completer<void>();
-        late StreamSubscription sub;
+        late final StreamSubscription<String> sub;
         bool sawServiceMsg = false;
         void onData(event) {
           print(event);

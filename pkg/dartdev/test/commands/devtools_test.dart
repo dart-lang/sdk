@@ -79,7 +79,7 @@ void devtools() {
       final devToolsServedCompleter = Completer<void>();
       final dtdServedCompleter = Completer<void>();
 
-      late StreamSubscription sub;
+      late final StreamSubscription<String> sub;
       sub = process!.stdout
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
@@ -157,7 +157,7 @@ void devtools() {
     bool startedDds = false;
     bool startedDtd = false;
     final devToolsServedCompleter = Completer<void>();
-    late StreamSubscription sub;
+    late final StreamSubscription<String> sub;
     sub = process.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
@@ -228,7 +228,7 @@ Future<void> main() async {
       );
 
       final serviceUriCompleter = Completer<String>();
-      late StreamSubscription sub;
+      late final StreamSubscription<String> sub;
       sub = targetProjectInstance!.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter())

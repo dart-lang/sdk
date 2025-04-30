@@ -27,7 +27,7 @@ void defineLanguageServerTests() {
   late utils.TestProject project;
   Process? process;
 
-  Future runWithLsp(List<String> args) async {
+  Future<void> runWithLsp(List<String> args) async {
     project = utils.project();
 
     process = await project.start(args);

@@ -531,7 +531,7 @@ void main(List<String> args) => print("$b $args");
       p.relativeFilePath,
     ]);
     final completer = Completer<void>();
-    late StreamSubscription sub;
+    late final StreamSubscription<String> sub;
     sub = process.stdout.transform(utf8.decoder).listen((event) async {
       if (event.contains(dartVMServiceRegExp)) {
         await sub.cancel();
@@ -834,7 +834,7 @@ main() => print('b:b');
         final readyCompleter = Completer<void>();
         final completer = Completer<void>();
 
-        late StreamSubscription sub;
+        late final StreamSubscription<String> sub;
         sub = process.stdout.transform(utf8.decoder).listen((event) async {
           if (event.contains('ready')) {
             readyCompleter.complete();
@@ -912,8 +912,8 @@ main() => print('b:b');
 
           final completer = Completer<void>();
 
-          late StreamSubscription sub;
-          late String uri;
+          late final StreamSubscription<String> sub;
+          late final String uri;
           sub = process.stdout.transform(utf8.decoder).listen((event) async {
             if (event.contains(dartVMServiceRegExp)) {
               uri = dartVMServiceRegExp.firstMatch(event)!.group(1)!;
