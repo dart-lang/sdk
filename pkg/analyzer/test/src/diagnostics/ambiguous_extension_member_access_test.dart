@@ -416,6 +416,37 @@ void f() {
 ''');
   }
 
+  test_method_triple_conflict_sameName() async {
+    var one = newFile('$testPackageLibPath/one.dart', '''
+extension E on int { void foo() {} }
+''');
+    var two = newFile('$testPackageLibPath/two.dart', '''
+extension E on int { void foo() {} }
+''');
+    newFile('$testPackageLibPath/three.dart', '''
+extension E1 on int { void foo() {} }
+''');
+    await assertErrorsInCode(
+      '''
+// ignore_for_file: unused_import
+import 'one.dart';
+import 'two.dart';
+import 'three.dart';
+void f() {
+  0.foo();
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+          108,
+          3,
+          contextMessages: [message(one, 10, 1), message(two, 10, 1)],
+        ),
+      ],
+    );
+  }
+
   test_noMoreSpecificExtension() async {
     await assertErrorsInCode(
       r'''

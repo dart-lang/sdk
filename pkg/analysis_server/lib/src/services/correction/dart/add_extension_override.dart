@@ -33,7 +33,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
       target = parent.prefix;
       targetType = target.staticType;
     }
-    targetType ??= node.enclosingInstanceElement2?.thisType;
+    targetType ??= node.enclosingInstanceElement?.thisType;
     if (targetType == null) return const [];
 
     var dartFixContext = context.dartFixContext;

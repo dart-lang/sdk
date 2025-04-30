@@ -4,13 +4,13 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -145,8 +145,8 @@ class CreateGetter extends CreateFieldOrGetter {
     InstanceElement? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.element2;
-    } else if (target is Identifier && target.element is ExtensionElement) {
-      targetElement = target.element as InstanceElement?;
+    } else if (target case Identifier(element: InstanceElement element)) {
+      targetElement = element;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type
@@ -162,13 +162,14 @@ class CreateGetter extends CreateFieldOrGetter {
         staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
-      targetElement =
-          nameNode.enclosingInterfaceElement ??
-          nameNode.enclosingExtensionElement;
+      staticModifier = inStaticContext;
+      targetElement = nameNode.enclosingInstanceElement;
+      if (targetElement is ExtensionElement && !staticModifier) {
+        targetElement = targetElement.extendedInterfaceElement;
+      }
       if (targetElement == null) {
         return;
       }
-      staticModifier = inStaticContext;
     }
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
@@ -194,7 +195,7 @@ class CreateGetter extends CreateFieldOrGetter {
 
     var targetFragment = targetElement.firstFragment;
     var targetSource = targetFragment.libraryFragment.source;
-    if (targetElement.library2.isInSdk == true) {
+    if (targetElement.library2.isInSdk) {
       return;
     }
     // prepare target declaration

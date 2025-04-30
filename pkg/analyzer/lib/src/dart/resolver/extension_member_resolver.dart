@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -125,6 +126,7 @@ class ExtensionMemberResolver {
         ],
       );
     } else {
+      var extensions = mostSpecific.map((e) => e.extension).toList();
       _errorReporter.atEntity(
         nameEntity,
         CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
@@ -135,10 +137,11 @@ class ExtensionMemberResolver {
             if (name != null) {
               return "extension '$name'";
             }
-            var type = e.extension.extendedType.getDisplayString();
+            var type = e.extendedType.getDisplayString();
             return "unnamed extension on '$type'";
           }).commaSeparatedWithAnd,
         ],
+        contextMessages: convertTypeNames(<Object>[...extensions]),
       );
     }
     return ExtensionResolutionError.ambiguous;

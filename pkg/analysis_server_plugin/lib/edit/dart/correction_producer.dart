@@ -525,7 +525,7 @@ abstract class ResolvedCorrectionProducer
       if (_closureReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement2;
+      var executable = expression.enclosingExecutableElement;
       return executable?.returnType;
     }
     // `return myFunction();`.
@@ -533,7 +533,7 @@ abstract class ResolvedCorrectionProducer
       if (_closureReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement2;
+      var executable = expression.enclosingExecutableElement;
       return executable?.returnType;
     }
     // `int v = myFunction();`.

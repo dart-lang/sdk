@@ -24742,7 +24742,7 @@ WarningCode:
 
       Parameters:
       0: the name of the member
-  invalid_use_of_do_not_submit_member:
+  INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
     problemMessage: "Uses of '{0}' should not be submitted to source control."
     correctionMessage: "Try removing the reference to '{0}'."
     hasPublishedDocs: true

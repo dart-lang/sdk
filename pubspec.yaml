@@ -21,6 +21,7 @@ workspace:
   - pkg/analyzer
   - pkg/analyzer_cli
   - pkg/analyzer_plugin
+  - pkg/analyzer_testing
   - pkg/analyzer_utilities
   - pkg/async_helper
   - pkg/bisect_dart

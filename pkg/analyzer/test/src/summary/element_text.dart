@@ -832,20 +832,32 @@ class _Element2Writer extends _AbstractElementWriter {
       case FormalParameterFragment():
         if (f.enclosingFragment case SetterFragment setter) {
           if (setter.isSynthetic) {
-            var variableOffset = setter.variable3!.offset;
-            expect(f.offset, variableOffset);
-            return;
+            var variable = setter.variable3!;
+            if (!variable.isSynthetic) {
+              expect(f.offset, variable.offset);
+              return;
+            }
           }
         }
       case GetterFragment():
         expect(f.isSynthetic, isTrue);
-        if (f.isSynthetic) {
-          expect(f.offset, f.variable3!.offset);
+        var variable = f.variable3!;
+        if (!variable.isSynthetic) {
+          expect(f.offset, variable.offset);
+          return;
+        }
+        // Special case enum fields/getters: index, _name, values.
+        if (variable is FieldFragmentImpl && variable.isSyntheticEnumField) {
+          var enumElement = f.enclosingFragment as EnumFragmentImpl;
+          expect(f.offset, enumElement.offset);
+          expect(variable.offset, enumElement.offset);
           return;
         }
       case SetterFragment():
-        if (f.isSynthetic) {
-          var variableOffset = f.variable3!.offset;
+        expect(f.isSynthetic, isTrue);
+        var variable = f.variable3!;
+        if (!variable.isSynthetic) {
+          var variableOffset = variable.offset;
           expect(f.offset, variableOffset);
           expect(f.formalParameters.single.offset, variableOffset);
           return;

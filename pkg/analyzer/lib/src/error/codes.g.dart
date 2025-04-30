@@ -6888,6 +6888,15 @@ class WarningCode extends ErrorCode {
 
   ///  Parameters:
   ///  0: the name of the member
+  static const WarningCode INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER = WarningCode(
+    'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
+    "Uses of '{0}' should not be submitted to source control.",
+    correctionMessage: "Try removing the reference to '{0}'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
   static const WarningCode INVALID_USE_OF_INTERNAL_MEMBER = WarningCode(
     'INVALID_USE_OF_INTERNAL_MEMBER',
     "The member '{0}' can only be used within its package.",
@@ -7734,15 +7743,6 @@ class WarningCode extends ErrorCode {
     correctionMessage:
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the member
-  static const WarningCode invalid_use_of_do_not_submit_member = WarningCode(
-    'invalid_use_of_do_not_submit_member',
-    "Uses of '{0}' should not be submitted to source control.",
-    correctionMessage: "Try removing the reference to '{0}'.",
     hasPublishedDocs: true,
   );
 

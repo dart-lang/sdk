@@ -1011,6 +1011,9 @@ final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
     CreateMethodOrFunction.new,
     CreateMixin.new,
     CreateSetter.new,
+    CreateExtensionGetter.new,
+    CreateExtensionMethod.new,
+    CreateExtensionSetter.new,
   ],
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [AddAsync.new],
   CompileTimeErrorCode.UNDEFINED_METHOD: [

@@ -31,6 +31,17 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_inExtensionGetter() async {
+    await resolveTestCode('''
+void f(int i) => i.foo;
+
+extension on int {
+  int get foo => bar;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_inLibraryOfPrefix() async {
     var libCode = r'''
 class A {}

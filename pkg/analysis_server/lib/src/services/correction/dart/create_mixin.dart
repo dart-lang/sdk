@@ -51,6 +51,10 @@ class CreateMixin extends ResolvedCorrectionProducer {
           if (parent.propertyName == node) {
             return;
           }
+        case ExpressionFunctionBody():
+          if (parent.expression == node) {
+            return;
+          }
       }
       _mixinName = node.name;
     } else if (node is PrefixedIdentifier) {

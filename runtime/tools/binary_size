@@ -397,6 +397,19 @@ function showDominatorTree(v) {
   topTile.style.width = w;
   topTile.style.height = h;
   setBody(topTile);
+
+  // Encode the current view into the URL fragment.
+  if (v == root) {
+    window.location.hash = "";
+  } else {
+    var fragment = v.name;
+    v = v.parent;
+    while (v != root) {
+      fragment = v.name + "," + fragment;
+      v = v.parent;
+    }
+    window.location.hash = fragment;
+  }
 }
 
 function setBody(div) {
@@ -413,9 +426,24 @@ function setParents(v) {
     setParents(child);
   });
 }
-
 setParents(root);
-showDominatorTree(root);
+
+let v = root;
+let fragments = window.location.hash.substring(1).split(",");
+for (let i = 0; i < fragments.length; i++) {
+  let fragment = fragments[i];
+  let foundChild = null;
+  for (let j = 0; j < v.children.length; j++) {
+    let child = v.children[j];
+    if (child.name == fragment) {
+      foundChild = child;
+      break;
+    }
+  }
+  if (foundChild == null) break;  // Not found, end search.
+  v = foundChild;
+}
+showDominatorTree(v);
 
 </script>
 </body>
