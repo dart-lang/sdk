@@ -214,10 +214,6 @@ abstract class BuilderClassMember implements ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isInternalImplementation => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isNoSuchMethodForwarder => false;
 
   @override

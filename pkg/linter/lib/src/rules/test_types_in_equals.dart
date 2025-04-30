@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parameterName = parameters?.parameterFragments.first?.name2;
     if (expression.name == parameterName) {
       var typeName = _getTypeName(declaration!);
-      rule.reportLint(node, arguments: [typeName]);
+      rule.reportAtNode(node, arguments: [typeName]);
     }
   }
 

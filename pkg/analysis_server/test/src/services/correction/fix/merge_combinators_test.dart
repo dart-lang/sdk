@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class MergeHideUsingHideTest extends _MergeCombinatorTest {
   @override
-  ErrorCode get errorCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_HIDE_HIDE;
@@ -44,7 +44,7 @@ export 'other.dart' hide Stream, Future hide Future;
 ''');
     await assertHasFix('''
 export 'other.dart' hide Future, Stream;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_export_hide_show() async {
@@ -81,7 +81,7 @@ import 'other.dart' hide Stream, Future hide Future;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Stream, Future;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_hide_hide() async {
@@ -90,7 +90,7 @@ import 'other.dart' hide Stream hide Future hide FutureOr;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Stream, Future, FutureOr;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_hide_lint() async {
@@ -100,14 +100,14 @@ import 'other.dart' hide Stream, Future hide Future;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Future, Stream;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show() async {
     await resolveTestCode('''
 import 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show() async {
@@ -121,21 +121,21 @@ import 'other.dart' show Future, Stream;
     await resolveTestCode('''
 import 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_show() async {
     await resolveTestCode('''
 import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 }
 
 @reflectiveTest
 class MergeHideUsingShowTest extends _MergeCombinatorTest {
   @override
-  ErrorCode get errorCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_SHOW_HIDE;
@@ -156,7 +156,7 @@ export 'other.dart' hide Stream, Future hide Future;
 ''');
     await assertHasFix('''
 export 'other.dart' show Completer, FutureOr, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_export_hide_show() async {
@@ -193,7 +193,7 @@ import 'other.dart' hide Stream, Future hide Future;
 ''');
     await assertHasFix('''
 import 'other.dart' show Completer, FutureOr, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_hide_hide() async {
@@ -202,7 +202,7 @@ import 'other.dart' hide Stream hide Future hide FutureOr;
 ''');
     await assertHasFix('''
 import 'other.dart' show Completer, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_hide_lint() async {
@@ -212,14 +212,14 @@ import 'other.dart' hide Stream, Future hide Future;
 ''');
     await assertHasFix('''
 import 'other.dart' show Completer, FutureOr, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show() async {
     await resolveTestCode('''
 import 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show() async {
@@ -233,21 +233,21 @@ import 'other.dart' show Future, Stream;
     await resolveTestCode('''
 import 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_show() async {
     await resolveTestCode('''
 import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 }
 
 @reflectiveTest
 class MergeShowUsingHideTest extends _MergeCombinatorTest {
   @override
-  ErrorCode get errorCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_HIDE_SHOW;
@@ -275,7 +275,7 @@ export 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
     await assertHasFix('''
 export 'other.dart' hide Future, Stream, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_export_show_hide() async {
@@ -294,7 +294,7 @@ export 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
     await assertHasFix('''
 export 'other.dart' hide Completer, Stream, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_export_show_show() async {
@@ -317,7 +317,7 @@ import 'other.dart' hide Future, Stream;
     await resolveTestCode('''
 import 'other.dart' hide Stream, Future hide Future;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show() async {
@@ -326,7 +326,7 @@ import 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Stream, Future, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show_lint() async {
@@ -336,7 +336,7 @@ import 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Future, Stream, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show_show() async {
@@ -345,7 +345,7 @@ import 'other.dart' hide Future show Stream, FutureOr show FutureOr;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Future, Completer, Stream, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show() async {
@@ -361,7 +361,7 @@ import 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Stream, Completer, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_hide_lint() async {
@@ -371,7 +371,7 @@ import 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Completer, Stream, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_show() async {
@@ -380,14 +380,14 @@ import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Completer, Future, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 }
 
 @reflectiveTest
 class MergeShowUsingShowTest extends _MergeCombinatorTest {
   @override
-  ErrorCode get errorCode => WarningCode.MULTIPLE_COMBINATORS;
+  DiagnosticCode get diagnosticCode => WarningCode.MULTIPLE_COMBINATORS;
 
   @override
   FixKind get kind => DartFixKind.MERGE_COMBINATORS_SHOW_SHOW;
@@ -415,7 +415,7 @@ export 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
     await assertHasFix('''
 export 'other.dart' show Completer, FutureOr;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_export_show_hide() async {
@@ -434,7 +434,7 @@ export 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
     await assertHasFix('''
 export 'other.dart' show Future, FutureOr;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_export_show_show() async {
@@ -453,7 +453,7 @@ export 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 ''');
     await assertHasFix('''
 export 'other.dart' show FutureOr, Stream;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide() async {
@@ -467,7 +467,7 @@ import 'other.dart' hide Future, Stream;
     await resolveTestCode('''
 import 'other.dart' hide Stream, Future hide Future;
 ''');
-    await assertNoFix(errorFilter: errorCodeFilter);
+    await assertNoFix(errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show() async {
@@ -476,7 +476,7 @@ import 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
     await assertHasFix('''
 import 'other.dart' show FutureOr, Completer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show_hide() async {
@@ -485,7 +485,7 @@ import 'other.dart' hide Stream show FutureOr, Completer, Timer hide Future;
 ''');
     await assertHasFix('''
 import 'other.dart' show FutureOr, Completer, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_hide_show_lint() async {
@@ -495,7 +495,7 @@ import 'other.dart' hide Stream, Future show FutureOr, Completer;
 ''');
     await assertHasFix('''
 import 'other.dart' show Completer, FutureOr;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show() async {
@@ -511,7 +511,7 @@ import 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
     await assertHasFix('''
 import 'other.dart' show FutureOr, Future;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_hide_lint() async {
@@ -521,7 +521,7 @@ import 'other.dart' show FutureOr, Stream, Future hide Stream;
 ''');
     await assertHasFix('''
 import 'other.dart' show Future, FutureOr;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_show() async {
@@ -530,7 +530,7 @@ import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 ''');
     await assertHasFix('''
 import 'other.dart' show Stream, FutureOr;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_show_lint() async {
@@ -540,7 +540,7 @@ import 'other.dart' show Stream, FutureOr, Future show Stream, FutureOr;
 ''');
     await assertHasFix('''
 import 'other.dart' show FutureOr, Stream;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 
   Future<void> test_import_show_show_show() async {
@@ -549,7 +549,7 @@ import 'other.dart' hide Stream show FutureOr, Completer, Timer hide Future;
 ''');
     await assertHasFix('''
 import 'other.dart' show FutureOr, Completer, Timer;
-''', errorFilter: errorCodeFilter);
+''', errorFilter: diagnosticCodeFilter);
   }
 }
 

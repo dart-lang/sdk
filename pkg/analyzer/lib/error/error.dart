@@ -57,8 +57,8 @@ class AnalysisError implements Diagnostic {
   /// The error code associated with the error.
   final ErrorCode errorCode;
 
-  /// The message describing the problem.
-  late final DiagnosticMessage _problemMessage;
+  @override
+  final DiagnosticMessage problemMessage;
 
   /// The context messages associated with the problem. This list will be empty
   /// if there are no context messages.
@@ -85,30 +85,29 @@ class AnalysisError implements Diagnostic {
     List<DiagnosticMessage> contextMessages = const [],
     this.data,
   }) : _correctionMessage = correctionMessage,
-       _contextMessages = contextMessages {
-    _problemMessage = DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: message,
-      offset: offset,
-      url: null,
-    );
-  }
+       _contextMessages = contextMessages,
+       problemMessage = DiagnosticMessageImpl(
+         filePath: source.fullName,
+         length: length,
+         message: message,
+         offset: offset,
+         url: null,
+       );
 
   /// Initialize a newly created analysis error. The error is associated with
   /// the given [source] and is located at the given [offset] with the given
   /// [length]. The error will have the given [errorCode] and the list of
   /// [arguments] will be used to complete the message and correction. If any
   /// [contextMessages] are provided, they will be recorded with the error.
-  AnalysisError.tmp({
-    required this.source,
+  factory AnalysisError.tmp({
+    required Source source,
     required int offset,
     required int length,
-    required this.errorCode,
+    required ErrorCode errorCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
-    this.data,
-  }) : _contextMessages = contextMessages {
+    Object? data,
+  }) {
     assert(
       arguments.length == errorCode.numParameters,
       'Message $errorCode requires ${errorCode.numParameters} '
@@ -117,17 +116,22 @@ class AnalysisError implements Diagnostic {
       'argument${arguments.length == 1 ? ' was' : 's were'} '
       'provided',
     );
-    String problemMessage = formatList(errorCode.problemMessage, arguments);
+    String message = formatList(errorCode.problemMessage, arguments);
     String? correctionTemplate = errorCode.correctionMessage;
+    String? correctionMessage;
     if (correctionTemplate != null) {
-      _correctionMessage = formatList(correctionTemplate, arguments);
+      correctionMessage = formatList(correctionTemplate, arguments);
     }
-    _problemMessage = DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: problemMessage,
+
+    return AnalysisError.forValues(
+      source: source,
       offset: offset,
-      url: null,
+      length: length,
+      errorCode: errorCode,
+      message: message,
+      correctionMessage: correctionMessage,
+      contextMessages: contextMessages,
+      data: data,
     );
   }
 
@@ -152,18 +156,15 @@ class AnalysisError implements Diagnostic {
 
   /// The number of characters from the offset to the end of the source which
   /// encompasses the compilation error.
-  int get length => _problemMessage.length;
+  int get length => problemMessage.length;
 
   /// Return the message to be displayed for this error. The message should
   /// indicate what is wrong and why it is wrong.
-  String get message => _problemMessage.messageText(includeUrl: true);
+  String get message => problemMessage.messageText(includeUrl: true);
 
   /// The character offset from the beginning of the source (zero based) where
   /// the error occurred.
-  int get offset => _problemMessage.offset;
-
-  @override
-  DiagnosticMessage get problemMessage => _problemMessage;
+  int get offset => problemMessage.offset;
 
   @override
   Severity get severity {

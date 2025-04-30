@@ -75,6 +75,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    rule.reportLint(node, arguments: [value == 0 ? 'isEven' : 'isOdd']);
+    rule.reportAtNode(node, arguments: [value == 0 ? 'isEven' : 'isOdd']);
   }
 }

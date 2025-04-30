@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var field = paramElement.field2;
     // If no such field exists, the code is invalid; do not report lint.
     if (field != null && nodeType.type == field.type) {
-      rule.reportLint(nodeType);
+      rule.reportAtNode(nodeType);
     }
   }
 
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (superConstructorParameter == null) return;
 
     if (superConstructorParameter.type == nodeType.type) {
-      rule.reportLint(nodeType);
+      rule.reportAtNode(nodeType);
     }
   }
 }

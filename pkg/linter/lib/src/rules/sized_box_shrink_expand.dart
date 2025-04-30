@@ -48,10 +48,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (data.width == 0 && data.height == 0) {
-      rule.reportLint(node.constructorName, arguments: ['shrink']);
+      rule.reportAtNode(node.constructorName, arguments: ['shrink']);
     } else if (data.width == double.infinity &&
         data.height == double.infinity) {
-      rule.reportLint(node.constructorName, arguments: ['expand']);
+      rule.reportAtNode(node.constructorName, arguments: ['expand']);
     }
   }
 

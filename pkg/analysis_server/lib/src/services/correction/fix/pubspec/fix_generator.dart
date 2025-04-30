@@ -22,7 +22,7 @@ import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
 class PubspecFixGenerator {
-  static const List<ErrorCode> codesWithFixes = [
+  static const List<DiagnosticCode> codesWithFixes = [
     PubspecWarningCode.MISSING_DEPENDENCY,
     PubspecWarningCode.MISSING_NAME,
   ];
@@ -154,7 +154,7 @@ class PubspecFixGenerator {
     fixes.add(Fix(kind: kind, change: change));
   }
 
-  Future<void> _addMissingDependency(ErrorCode errorCode) async {
+  Future<void> _addMissingDependency(DiagnosticCode diagnosticCode) async {
     var node = this.node;
     if (node is! YamlMap) {
       return;

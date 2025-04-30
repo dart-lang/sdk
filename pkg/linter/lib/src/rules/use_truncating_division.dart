@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (grandParent is MethodInvocation &&
         grandParent.methodName.name == 'toInt' &&
         grandParent.argumentList.arguments.isEmpty) {
-      rule.reportLint(grandParent);
+      rule.reportAtNode(grandParent);
     }
   }
 }

@@ -563,7 +563,7 @@ final _builtInLintMultiGenerators = {
   ],
 };
 
-final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
+final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
     RemoveAbstract.new,
     RemoveInitializer.new,

@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           var value = argument.literal.lexeme.toLowerCase();
           value = value.replaceAll(_underscoresPattern, '');
           if (!value.startsWith('0x') || value.length != 10) {
-            rule.reportLint(argument);
+            rule.reportAtNode(argument);
           }
         }
       }

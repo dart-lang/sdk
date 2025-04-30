@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (node.sortedCommentAndAnnotations.isEmpty) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

@@ -36,9 +36,9 @@ abstract class SetterDeclaration {
 
   SetterQuality get setterQuality;
 
-  Procedure get writeTarget;
+  Member? get writeTarget;
 
-  void buildOutlineExpressions(
+  void buildSetterOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -47,34 +47,37 @@ abstract class SetterDeclaration {
       required Uri annotatableFileUri,
       required bool isClassInstanceMember});
 
-  void buildOutlineNode(
+  void buildSetterOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required List<TypeParameter>? classTypeParameters});
 
-  void checkTypes(
+  void checkSetterTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment);
 
-  void checkVariance(
+  void checkSetterVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context);
+  int computeSetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createEncoding(
+  void createSetterEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters);
 
-  void ensureTypes(
+  void ensureSetterTypes(
       {required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
       required ClassMembersBuilder membersBuilder,
       required Set<ClassMember>? setterOverrideDependencies});
 
-  Iterable<Reference> getExportedMemberReferences(SetterReference references);
+  Iterable<Reference> getExportedSetterReferences(
+      PropertyReferences references);
+
+  List<ClassMember> get localSetters;
 }
 
 class SetterDeclarationImpl
@@ -141,7 +144,7 @@ class SetterDeclarationImpl
   }
 
   @override
-  void buildOutlineExpressions(
+  void buildSetterOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -160,11 +163,11 @@ class SetterDeclarationImpl
   }
 
   @override
-  void buildOutlineNode(
+  void buildSetterOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required List<TypeParameter>? classTypeParameters}) {
     _encoding.buildOutlineNode(
         libraryBuilder: libraryBuilder,
@@ -177,7 +180,7 @@ class SetterDeclarationImpl
   }
 
   @override
-  void checkTypes(
+  void checkSetterTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
     _encoding.checkTypes(libraryBuilder, typeEnvironment,
         isAbstract: _fragment.modifiers.isAbstract,
@@ -185,13 +188,13 @@ class SetterDeclarationImpl
   }
 
   @override
-  void checkVariance(
+  void checkSetterVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     _encoding.checkVariance(sourceClassBuilder, typeEnvironment);
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+  int computeSetterDefaultTypes(ComputeDefaultTypeContext context) {
     return _encoding.computeDefaultTypes(context);
   }
 
@@ -205,7 +208,7 @@ class SetterDeclarationImpl
   }
 
   @override
-  void createEncoding(
+  void createSetterEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
@@ -223,7 +226,7 @@ class SetterDeclarationImpl
   }
 
   @override
-  void ensureTypes(
+  void ensureSetterTypes(
       {required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
       required ClassMembersBuilder membersBuilder,
@@ -240,13 +243,19 @@ class SetterDeclarationImpl
   }
 
   @override
-  Iterable<Reference> getExportedMemberReferences(SetterReference references) =>
-      [references.setterReference];
+  Iterable<Reference> getExportedSetterReferences(
+          PropertyReferences references) =>
+      [references.setterReference!];
 
   @override
   VariableDeclaration getFormalParameter(int index) {
     return _encoding.getFormalParameter(index);
   }
+
+  @override
+  List<ClassMember> get localSetters => _fragment.builder.isConflictingSetter
+      ? const []
+      : [new SetterClassMember(_fragment.builder)];
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].

@@ -133,7 +133,7 @@ sealed class GetterEncoding implements InferredTypeListener {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
@@ -244,7 +244,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     FunctionNode function = new FunctionNode(
@@ -473,7 +473,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     List<TypeParameter>? typeParameters;

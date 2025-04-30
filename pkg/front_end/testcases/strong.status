@@ -139,7 +139,6 @@ dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
 static_field_lowering/opt_in: SemiFuzzFailure
 
-dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
 macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
 macros/duplicate_augment: semiFuzzFailureOnForceRebuildBodies
 macros/extend_augmented: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
@@ -240,8 +239,6 @@ inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
-late_lowering/definitely_unassigned: TypeCheckError
-nnbd/definitely_unassigned: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError

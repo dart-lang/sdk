@@ -64,14 +64,14 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
     return errors[0];
   }
 
-  Future<AnalysisError> _findErrorToFixOfType(ErrorCode errorCode) async {
+  Future<AnalysisError> _findErrorToFixOfType(DiagnosticCode code) async {
     var errors = testAnalysisResult.errors;
     for (var error in errors) {
-      if (error.errorCode == errorCode) {
+      if (error.errorCode == code) {
         return error;
       }
     }
-    fail('Expected to find an error with the code: $errorCode');
+    fail('Expected to find an error with the code: $code');
   }
 }
 
@@ -279,13 +279,13 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 }
 
 /// A base class defining support for writing fix processor tests that are
-/// specific to fixes associated with the [errorCode] that use the FixKind.
+/// specific to fixes associated with the [diagnosticCode] that use the FixKind.
 abstract class FixProcessorErrorCodeTest extends FixProcessorTest {
-  /// Return the error code being tested.
-  ErrorCode get errorCode;
+  /// The diagnostic code being tested.
+  DiagnosticCode get diagnosticCode;
 
-  ErrorFilter get errorCodeFilter => (e) {
-    return e.errorCode == errorCode;
+  ErrorFilter get diagnosticCodeFilter => (AnalysisError e) {
+    return e.errorCode == diagnosticCode;
   };
 }
 
@@ -363,12 +363,12 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   Future<void> assertHasFixAllFix(
-    ErrorCode errorCode,
+    DiagnosticCode diagnosticCode,
     String expected, {
     String? target,
   }) async {
     expected = normalizeSource(expected);
-    var error = await _findErrorToFixOfType(errorCode);
+    var error = await _findErrorToFixOfType(diagnosticCode);
     var fix = await _assertHasFixAllFix(error);
     change = fix.change;
 
@@ -436,8 +436,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     await _assertNoFix(error);
   }
 
-  Future<void> assertNoFixAllFix(ErrorCode errorCode) async {
-    var error = await _findErrorToFixOfType(errorCode);
+  Future<void> assertNoFixAllFix(DiagnosticCode diagnosticCode) async {
+    var error = await _findErrorToFixOfType(diagnosticCode);
     await _assertNoFixAllFix(error);
   }
 

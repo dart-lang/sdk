@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (operandType == null) return;
     if (_comparable(valueType, operandType)) return;
 
-    rule.reportLint(
+    rule.reportAtNode(
       node,
       errorCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
       arguments: [operandType.getDisplayString(), valueType.getDisplayString()],

@@ -40,7 +40,7 @@ static method test1(dynamic x1) → dynamic {
     final const synthesized core::int #0#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
     {
       hoisted core::int a1;
-      if(#0#0 is core::int && (let final core::int #t1 = a1 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool} || #0#0 is core::int && (let final core::int #t2 = a1 = #0#0{core::int} in true)) {
+      if(#0#0 is core::int && (let final dynamic #t1 = a1 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool} || #0#0 is core::int && (let final dynamic #t2 = a1 = #0#0{core::int} in true)) {
         return a1;
       }
       else {
@@ -48,7 +48,7 @@ static method test1(dynamic x1) → dynamic {
         final const synthesized core::int #1#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
         {
           hoisted core::int a1;
-          if(#1#0 is core::int && (let final core::int #t3 = a1 = #1#0{core::int} in true) || #1#0 is core::int && (let final core::int #t4 = a1 = #1#0{core::int} in true) && #1#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
+          if(#1#0 is core::int && (let final dynamic #t3 = a1 = #1#0{core::int} in true) || #1#0 is core::int && (let final dynamic #t4 = a1 = #1#0{core::int} in true) && #1#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
             return a1;
           }
           else {
@@ -66,7 +66,7 @@ static method test2(dynamic x2) → dynamic {
     {
       lowered hoisted core::int a2#case#0;
       lowered hoisted core::String a2#case#1;
-      if(#0#0 is core::int && (let final core::int #t5 = a2#case#0 = #0#0{core::int} in true) || #0#0 is core::String && (let final core::String #t6 = a2#case#1 = #0#0{core::String} in true)) {
+      if(#0#0 is core::int && (let final dynamic #t5 = a2#case#0 = #0#0{core::int} in true) || #0#0 is core::String && (let final dynamic #t6 = a2#case#1 = #0#0{core::String} in true)) {
         {
           return 1;
         }
@@ -90,7 +90,7 @@ static method test3(dynamic x3) → dynamic {
     {
       lowered hoisted core::int a3#case#0;
       lowered hoisted core::String a3#case#1;
-      if(#0#0 is core::int && (let final core::int #t7 = a3#case#0 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool} || #0#0 is core::String && (let final core::String #t8 = a3#case#1 = #0#0{core::String} in true) && #0#0{core::String} =={core::String::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression.") {
+      if(#0#0 is core::int && (let final dynamic #t7 = a3#case#0 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool} || #0#0 is core::String && (let final dynamic #t8 = a3#case#1 = #0#0{core::String} in true) && #0#0{core::String} =={core::String::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression.") {
         {
           return 1;
         }
@@ -114,7 +114,7 @@ static method test4(dynamic x4) → dynamic {
     {
       lowered hoisted core::int a4#case#0;
       lowered hoisted core::String a4#case#1;
-      if(#0#0 is core::int && (let final core::int #t9 = a4#case#0 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool} && a4#case#0.{core::num::>}(0){(core::num) → core::bool} || #0#0 is core::String && (let final core::String #t10 = a4#case#1 = #0#0{core::String} in true) && #0#0{core::String} =={core::String::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && a4#case#1.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
+      if(#0#0 is core::int && (let final dynamic #t9 = a4#case#0 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool} && a4#case#0.{core::num::>}(0){(core::num) → core::bool} || #0#0 is core::String && (let final dynamic #t10 = a4#case#1 = #0#0{core::String} in true) && #0#0{core::String} =={core::String::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && a4#case#1.{core::String::startsWith}("f"){(core::Pattern, [core::int]) → core::bool}) {
         {
           return 1;
         }
@@ -138,7 +138,7 @@ static method test5(dynamic x5) → dynamic {
     {
       {
         hoisted core::int a5;
-        if(#0#0 is core::int && (let final core::int #t12 = a5 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
+        if(#0#0 is core::int && (let final dynamic #t12 = a5 = #0#0{core::int} in true) && #0#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
           #t11 = 1;
           break #L4;
         }
@@ -163,7 +163,7 @@ static method test6(dynamic x6) → dynamic {
       synthesized core::bool #0#6#isSet = false;
       synthesized dynamic #0#7;
       synthesized core::bool #0#7#isSet = false;
-      if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t14 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t15 = i6 = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t16 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final core::bool #t17 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::int && (let final core::int #t18 = n6 = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final core::bool #t19 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::int in true))))
+      if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t14 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t15 = i6 = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t16 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t17 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::int && (let final dynamic #t18 = n6 = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t19 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::int in true))))
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t20 = i6;
@@ -182,7 +182,7 @@ static method test7(dynamic x7) → dynamic {
       synthesized core::bool #0#6#isSet = false;
       synthesized dynamic #0#7;
       synthesized core::bool #0#7#isSet = false;
-      if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t22 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t23 = i7 = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t24 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final core::bool #t25 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::int && (let final core::int #t26 = n7 = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final core::bool #t27 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::int in true))))
+      if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t22 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t23 = i7 = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t24 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t25 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::int && (let final dynamic #t26 = n7 = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t27 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::int in true))))
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t28 = i7;

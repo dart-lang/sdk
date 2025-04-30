@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var statements = parent.statements;
       if (statements.length == 1) return;
       if (node == statements.last) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }

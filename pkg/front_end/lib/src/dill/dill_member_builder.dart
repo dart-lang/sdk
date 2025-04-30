@@ -322,7 +322,11 @@ class DillClassMember extends BuilderClassMember {
   @override
   final ClassMemberKind memberKind;
 
-  DillClassMember(this.memberBuilder, this.memberKind);
+  DillClassMember(this.memberBuilder, this.memberKind)
+      : assert(
+            !memberBuilder.member.isInternalImplementation,
+            "ClassMember should not be created for internal implementation "
+            "member $memberBuilder.");
 
   @override
   bool get isSourceDeclaration => false;
@@ -331,12 +335,6 @@ class DillClassMember extends BuilderClassMember {
   bool get isExtensionTypeMember {
     Member member = memberBuilder.member;
     return member.isExtensionTypeMember;
-  }
-
-  @override
-  bool get isInternalImplementation {
-    Member member = memberBuilder.member;
-    return member.isInternalImplementation;
   }
 
   @override

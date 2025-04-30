@@ -98,12 +98,15 @@ mixin DillFieldBuilderMixin implements DillMemberBuilder, PropertyBuilder {
 
   @override
   List<ClassMember> get localMembers =>
-      _localMembers ??= [new DillClassMember(this, ClassMemberKind.Getter)];
+      _localMembers ??= !member.isInternalImplementation
+          ? [new DillClassMember(this, ClassMemberKind.Getter)]
+          : const [];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= hasSetter
-      ? [new DillClassMember(this, ClassMemberKind.Setter)]
-      : const [];
+  List<ClassMember> get localSetters =>
+      _localSetters ??= hasSetter && !member.isInternalImplementation
+          ? [new DillClassMember(this, ClassMemberKind.Setter)]
+          : const [];
 }
 
 mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
@@ -136,7 +139,9 @@ mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
 
   @override
   List<ClassMember> get localMembers =>
-      _localMembers ??= [new DillClassMember(this, ClassMemberKind.Getter)];
+      _localMembers ??= !member.isInternalImplementation
+          ? [new DillClassMember(this, ClassMemberKind.Getter)]
+          : const [];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -179,7 +184,9 @@ mixin DillSetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
 
   @override
   List<ClassMember> get localSetters =>
-      _localSetters ??= [new DillClassMember(this, ClassMemberKind.Setter)];
+      _localSetters ??= !member.isInternalImplementation
+          ? [new DillClassMember(this, ClassMemberKind.Setter)]
+          : const [];
 }
 
 mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
@@ -207,7 +214,9 @@ mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
 
   @override
   List<ClassMember> get localMembers =>
-      _localMembers ??= [new DillClassMember(this, ClassMemberKind.Method)];
+      _localMembers ??= !member.isInternalImplementation
+          ? [new DillClassMember(this, ClassMemberKind.Method)]
+          : const [];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -247,7 +256,9 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
 
   @override
   List<ClassMember> get localMembers =>
-      _localMembers ??= [new DillClassMember(this, ClassMemberKind.Method)];
+      _localMembers ??= !member.isInternalImplementation
+          ? [new DillClassMember(this, ClassMemberKind.Method)]
+          : const [];
 
   @override
   List<ClassMember> get localSetters => const [];

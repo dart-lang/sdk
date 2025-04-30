@@ -138,7 +138,9 @@ class AnalysisErrorTest {
   void test_fromEngine_hasUrl() {
     engineError = MockAnalysisError(
       source: source,
-      errorCode: MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
+      errorCode: MockDiagnosticCode(
+        url: 'http://codes.dartlang.org/TEST_ERROR',
+      ),
       offset: 10,
       length: 20,
       message: 'my message',
@@ -325,7 +327,7 @@ class EnumTester<EngineEnum, ApiEnum> {
 
 class MockAnalysisError implements engine.AnalysisError {
   final MockSource? _source;
-  final engine.ErrorCode? _errorCode;
+  final engine.DiagnosticCode? _diagnosticCode;
   final int? _offset;
   final int? _length;
   final String? _message;
@@ -338,7 +340,7 @@ class MockAnalysisError implements engine.AnalysisError {
 
   MockAnalysisError({
     MockSource? source,
-    engine.ErrorCode? errorCode,
+    engine.DiagnosticCode? errorCode,
     int? offset,
     int? length,
     String? message,
@@ -346,7 +348,7 @@ class MockAnalysisError implements engine.AnalysisError {
     DiagnosticMessage? problemMessage,
     String? correctionMessage,
   }) : _source = source,
-       _errorCode = errorCode,
+       _diagnosticCode = errorCode,
        _offset = offset,
        _length = length,
        _message = message,
@@ -364,7 +366,7 @@ class MockAnalysisError implements engine.AnalysisError {
   Object? get data => throw UnimplementedError();
 
   @override
-  engine.ErrorCode get errorCode => _errorCode!;
+  engine.DiagnosticCode get errorCode => _diagnosticCode!;
 
   @override
   int get length => _length!;
@@ -385,7 +387,7 @@ class MockAnalysisError implements engine.AnalysisError {
   engine.Source get source => _source!;
 }
 
-class MockErrorCode implements engine.ErrorCode {
+class MockDiagnosticCode implements engine.DiagnosticCode {
   @override
   engine.ErrorType type;
 
@@ -398,7 +400,7 @@ class MockErrorCode implements engine.ErrorCode {
   @override
   String? url;
 
-  MockErrorCode({
+  MockDiagnosticCode({
     this.type = engine.ErrorType.COMPILE_TIME_ERROR,
     this.errorSeverity = engine.ErrorSeverity.ERROR,
     this.name = 'TEST_ERROR',

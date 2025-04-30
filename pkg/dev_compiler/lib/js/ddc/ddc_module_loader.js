@@ -1530,6 +1530,7 @@ if (!self.deferred_loader) {
       this.initializeAndLinkLibrary('dart:_interceptors');
       this.initializeAndLinkLibrary('dart:_native_typed_data');
       this.initializeAndLinkLibrary('dart:html');
+      this.initializeAndLinkLibrary('dart:indexed_db');
       this.initializeAndLinkLibrary('dart:svg');
       this.initializeAndLinkLibrary('dart:web_audio');
       this.initializeAndLinkLibrary('dart:web_gl');

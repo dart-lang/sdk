@@ -58,7 +58,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (isSelfReference(node)) {
-      rule.reportLint(node, arguments: [node.name]);
+      rule.reportAtNode(node, arguments: [node.name]);
     }
 
     // No need to call super visit (SimpleIdentifiers have no children).

@@ -32,6 +32,7 @@ import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../fragment/field/declaration.dart';
 import '../fragment/fragment.dart';
+import '../fragment/getter/declaration.dart';
 import '../fragment/method/declaration.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -260,6 +261,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         declarationBuilder: this,
         nameScheme: staticFieldNameScheme,
         fieldDeclaration: _enumValuesFieldDeclaration,
+        getterDeclaration: _enumValuesFieldDeclaration,
+        setterDeclaration: null,
         modifiers:
             Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
         references: valuesReferences);
@@ -591,7 +594,8 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   Procedure? get readTarget => null;
 }
 
-class _EnumValuesFieldDeclaration implements FieldDeclaration {
+class _EnumValuesFieldDeclaration
+    implements FieldDeclaration, GetterDeclaration {
   static const String name = "values";
 
   final SourceEnumBuilder _sourceEnumBuilder;
@@ -641,7 +645,7 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   }
 
   @override
-  void buildOutlineExpressions(
+  void buildFieldOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -665,7 +669,7 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
+  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
       {required List<TypeParameter>? classTypeParameters}) {
     fieldType = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
@@ -687,16 +691,16 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
+  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkVariance(
+  void checkFieldVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+  int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
     return 0;
   }
 
@@ -707,12 +711,6 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
       Set<ClassMember>? getterOverrideDependencies,
       Set<ClassMember>? setterOverrideDependencies) {
     inferType(membersBuilder.hierarchyBuilder);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedMemberReferences(FieldReference references) {
-    return [references.fieldGetterReference];
   }
 
   @override
@@ -745,17 +743,11 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   List<ClassMember> get localMembers => [new _EnumValuesClassMember(builder)];
 
   @override
-  List<ClassMember> get localSetters => const [];
-
-  @override
   // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => null;
 
   @override
   Member get readTarget => _field!;
-
-  @override
-  Member? get writeTarget => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -782,8 +774,63 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   GetterQuality get getterQuality => GetterQuality.Implicit;
 
   @override
+  void buildGetterOutlineExpressions(
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourcePropertyBuilder propertyBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {}
+
+  @override
+  void buildGetterOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required PropertyReferences? references,
+      required List<TypeParameter>? classTypeParameters}) {}
+
+  @override
+  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+
+  @override
   // Coverage-ignore(suite): Not run.
-  SetterQuality get setterQuality => SetterQuality.Absent;
+  void checkGetterVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void createGetterEncoding(
+      ProblemReporting problemReporting,
+      SourcePropertyBuilder builder,
+      PropertyEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void ensureGetterTypes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required ClassMembersBuilder membersBuilder,
+      required Set<ClassMember>? getterOverrideDependencies}) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => _sourceEnumBuilder.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> getExportedGetterReferences(
+      PropertyReferences references) {
+    return [references.getterReference!];
+  }
 }
 
 class _EnumValuesClassMember implements ClassMember {
@@ -872,10 +919,6 @@ class _EnumValuesClassMember implements ClassMember {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isInternalImplementation => false;
 
   @override
   // Coverage-ignore(suite): Not run.

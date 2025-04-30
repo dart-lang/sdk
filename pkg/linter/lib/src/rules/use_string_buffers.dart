@@ -66,7 +66,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.element == identifier.element) {
-      rule.reportLint(identifier);
+      rule.reportAtNode(identifier);
     }
   }
 
@@ -99,7 +99,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
         writeType.isDartCoreString) {
       if (node.operator.type == TokenType.PLUS_EQ &&
           !localElements.contains(node.writeElement2)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
       if (node.operator.type == TokenType.EQ) {
         var visitor = _IdentifierIsPrefixVisitor(rule, left);

@@ -55,7 +55,7 @@ class _PatternVisitor extends GeneralizingAstVisitor<void> {
         !staticType.isDartCoreNull) {
       return;
     }
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }
 
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (iterable.hasObviousType) {
         return;
       }
-      rule.reportLint(loopParts.loopVariable);
+      rule.reportAtNode(loopParts.loopVariable);
     }
   }
 
@@ -133,10 +133,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (aDeclaredTypeIsNeeded) {
       if (node.variables.length == 1) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       } else {
         // Multiple variables, report each of them separately. No fix.
-        variablesThatNeedAType.forEach(rule.reportLint);
+        variablesThatNeedAType.forEach(rule.reportAtNode);
       }
     }
   }

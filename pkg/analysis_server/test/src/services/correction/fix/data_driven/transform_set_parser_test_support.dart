@@ -29,7 +29,7 @@ abstract class AbstractTransformSetParserTest {
   }
 
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     String? text,

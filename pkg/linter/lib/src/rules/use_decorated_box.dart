@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_shouldReportForArguments(node.argumentList)) {
-      rule.reportLint(node.constructorName);
+      rule.reportAtNode(node.constructorName);
     }
   }
 

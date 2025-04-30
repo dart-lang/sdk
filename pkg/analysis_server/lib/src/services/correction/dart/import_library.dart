@@ -80,9 +80,9 @@ class ImportLibrary extends MultiCorrectionProducer {
     ];
   }
 
-  /// A map of all the error codes that this fix can be applied to and the
+  /// A map of all the diagnostic codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
-  Map<ErrorCode, List<MultiProducerGenerator>> get _errorCodesWhereThisIsValid {
+  Map<DiagnosticCode, List<MultiProducerGenerator>> get _codesWhereThisIsValid {
     var producerGenerators = _ImportKind.values.map((key) => key.fn).toList();
     var nonLintMultiProducers = registeredFixGenerators.nonLintMultiProducers;
     return {
@@ -720,7 +720,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// Searches all diagnostics reported for this compilation unit for unresolved
   /// names where this fix can be applied besides the current diagnostic.
   Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
-    var errorsForThisFix = _errorCodesWhereThisIsValid;
+    var errorsForThisFix = _codesWhereThisIsValid;
     var errors =
         <AnalysisError, List<MultiProducerGenerator>>{}..addEntries(
           unitResult.errors.map((error) {

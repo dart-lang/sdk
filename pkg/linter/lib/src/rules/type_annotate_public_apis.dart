@@ -114,7 +114,7 @@ class _VisitorHelper extends RecursiveAstVisitor<void> {
     if (param.type == null) {
       var paramName = param.name?.lexeme;
       if (paramName != null && !paramName.isJustUnderscores) {
-        rule.reportLint(param);
+        rule.reportAtNode(param);
       }
     }
   }

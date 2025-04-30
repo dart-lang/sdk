@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
     if (hasEscape) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

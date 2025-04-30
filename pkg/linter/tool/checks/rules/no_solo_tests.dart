@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var annotation in node.metadata) {
       if (annotation.isSoloTest) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       }
     }
   }

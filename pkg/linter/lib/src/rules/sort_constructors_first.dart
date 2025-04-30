@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var member in members) {
       if (member is ConstructorDeclaration) {
         if (other) {
-          rule.reportLint(member.returnType);
+          rule.reportAtNode(member.returnType);
         }
       } else {
         other = true;

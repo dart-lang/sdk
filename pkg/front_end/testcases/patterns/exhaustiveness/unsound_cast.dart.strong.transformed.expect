@@ -53,13 +53,13 @@ static method method(self::S s) → dynamic
     #L1:
     {
       {
-        if(let final self::A #t2 = #0#0 as self::A in (#0#0 as self::A) is self::X) {
+        if(let final dynamic #t2 = #0#0 as self::A in (#0#0 as self::A) is self::X) {
           #t1 = 0;
           break #L1;
         }
       }
       {
-        if(let final self::B #t3 = #0#0 as self::B in (#0#0 as self::B) is self::Y) {
+        if(let final dynamic #t3 = #0#0 as self::B in (#0#0 as self::B) is self::Y) {
           #t1 = 1;
           break #L1;
         }

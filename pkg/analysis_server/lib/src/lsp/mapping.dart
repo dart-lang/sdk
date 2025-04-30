@@ -53,19 +53,21 @@ final completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
 final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
+  _diagnosticCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
+  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
+  _diagnosticCode(
+    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
+  ): [lsp.DiagnosticTag.Deprecated],
+  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE): [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
+  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
     lsp.DiagnosticTag.Deprecated,
   ],
 };
@@ -1846,7 +1848,7 @@ lsp.MarkupContent _asMarkup(
   return lsp.MarkupContent(kind: format, value: content);
 }
 
-String _errorCode(server.ErrorCode code) => code.name.toLowerCase();
+String _diagnosticCode(server.DiagnosticCode code) => code.name.toLowerCase();
 
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.

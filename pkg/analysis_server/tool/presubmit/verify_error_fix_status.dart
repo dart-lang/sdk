@@ -187,8 +187,8 @@ class ErrorData {
       entriesWithNoCode.isNotEmpty;
 }
 
-extension on ErrorCode {
-  /// Whether this [ErrorCode] is likely to have a fix associated with
+extension on DiagnosticCode {
+  /// Whether this [DiagnosticCode] is likely to have a fix associated with
   /// it.
   bool get hasFix {
     var self = this;

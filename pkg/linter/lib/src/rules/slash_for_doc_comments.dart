@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void checkComment(Comment? comment) {
     if (comment != null && isJavaStyle(comment)) {
-      rule.reportLint(comment);
+      rule.reportAtNode(comment);
     }
   }
 

@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
         node.rightHandSide.isNullLiteral) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

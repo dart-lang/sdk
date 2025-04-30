@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (isTestInvocation(lastBodyStatement, 'fail') &&
         node.finallyBlock == null) {
-      rule.reportLint(lastBodyStatement);
+      rule.reportAtNode(lastBodyStatement);
     }
   }
 }

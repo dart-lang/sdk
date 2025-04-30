@@ -299,8 +299,11 @@ class StatementCompletionProcessor {
   void _checkExpressions(AstNode node) {
     // Note: This may queue edits that have to be accounted for later.
     // See _lengthOfInsertions().
-    AstNode? errorMatching(ErrorCode errorCode, {Pattern? partialMatch}) {
-      var error = _findError(errorCode, partialMatch: partialMatch);
+    AstNode? diagnosticMatching(
+      DiagnosticCode diagnosticCode, {
+      Pattern? partialMatch,
+    }) {
+      var error = _findError(diagnosticCode, partialMatch: partialMatch);
       if (error == null) {
         return null;
       }
@@ -310,7 +313,7 @@ class StatementCompletionProcessor {
           : null;
     }
 
-    var expr = errorMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+    var expr = diagnosticMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     if (expr != null) {
       var source = utils.getNodeText(expr);
       var content = source;
@@ -340,8 +343,14 @@ class StatementCompletionProcessor {
       _addInsertEdit(loc, delimiter);
     }
     expr =
-        errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'") ??
-        errorMatching(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+        diagnosticMatching(
+          ParserErrorCode.EXPECTED_TOKEN,
+          partialMatch: "']'",
+        ) ??
+        diagnosticMatching(
+          ScannerErrorCode.EXPECTED_TOKEN,
+          partialMatch: "']'",
+        );
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr is ListLiteral) {
@@ -1161,7 +1170,10 @@ class StatementCompletionProcessor {
     );
   }
 
-  engine.AnalysisError? _findError(ErrorCode code, {Pattern? partialMatch}) {
+  engine.AnalysisError? _findError(
+    DiagnosticCode code, {
+    Pattern? partialMatch,
+  }) {
     return errors.firstWhereOrNull(
       (err) =>
           err.errorCode == code &&
@@ -1264,8 +1276,8 @@ class StatementCompletionProcessor {
     return Position(file, offset);
   }
 
-  void _removeError(ErrorCode errorCode, {Pattern? partialMatch}) {
-    var error = _findError(errorCode, partialMatch: partialMatch);
+  void _removeError(DiagnosticCode diagnosticCode, {Pattern? partialMatch}) {
+    var error = _findError(diagnosticCode, partialMatch: partialMatch);
     if (error != null) {
       errors.remove(error);
     }

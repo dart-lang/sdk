@@ -35,25 +35,23 @@ import '../../type_inference/inference_helper.dart';
 import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../fragment.dart';
+import '../getter/declaration.dart';
+import '../setter/declaration.dart';
 
 /// Common interface for fragments that can declare a field.
 abstract class FieldDeclaration {
   FieldQuality get fieldQuality;
-
-  GetterQuality get getterQuality;
-
-  SetterQuality get setterQuality;
 
   /// The metadata declared on this fragment.
   List<MetadataBuilder>? get metadata;
 
   /// Builds the core AST structures for this field declaration as needed for
   /// the outline.
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
+  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
       {required List<TypeParameter>? classTypeParameters});
 
-  void buildOutlineExpressions(
+  void buildFieldOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -61,19 +59,15 @@ abstract class FieldDeclaration {
       required Uri annotatablesFileUri,
       required bool isClassInstanceMember});
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context);
+  int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
 
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
+  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// type of this field declaration.
-  void checkVariance(
+  void checkFieldVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
-
-  /// The references to the members from this field declaration that are
-  /// accessible in exports through the name of the builder.
-  Iterable<Reference> getExportedMemberReferences(FieldReference references);
 
   /// Return `true` if the declaration introduces a setter.
   bool get hasSetter;
@@ -93,20 +87,6 @@ abstract class FieldDeclaration {
 
   /// Returns `true` if this field is declared by an enum element.
   bool get isEnumElement;
-
-  /// The [ClassMember]s for the getter introduced by this field declaration.
-  List<ClassMember> get localMembers;
-
-  /// The [ClassMember]s for the setter introduced by this field declaration,
-  /// if any.
-  List<ClassMember> get localSetters;
-
-  /// The [Member] uses as the target for reading from this field declaration.
-  Member get readTarget;
-
-  /// The [Member] uses as the target for writing to this field declaration, or
-  /// `null` if this field declaration has no setter.
-  Member? get writeTarget;
 
   /// The [DartType] of this field declaration.
   abstract DartType fieldType;
@@ -153,6 +133,8 @@ class FieldDeclarationImpl
     implements
         FieldDeclaration,
         FieldFragmentDeclaration,
+        GetterDeclaration,
+        SetterDeclaration,
         Inferable,
         InferredTypeListener {
   final FieldFragment _fragment;
@@ -322,7 +304,7 @@ class FieldDeclarationImpl
   }
 
   @override
-  void buildOutlineExpressions(
+  void buildFieldOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -371,7 +353,7 @@ class FieldDeclarationImpl
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
+  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
       {required List<TypeParameter>? classTypeParameters}) {
     _encoding.buildOutlineNode(libraryBuilder, nameScheme, references,
@@ -385,7 +367,7 @@ class FieldDeclarationImpl
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
+  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {
     libraryBuilder.checkTypesInField(typeEnvironment,
         isInstanceMember: builder.isDeclarationInstanceMember,
@@ -400,7 +382,7 @@ class FieldDeclarationImpl
   }
 
   @override
-  void checkVariance(
+  void checkFieldVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInField(typeEnvironment,
         fieldType: fieldType,
@@ -412,7 +394,7 @@ class FieldDeclarationImpl
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+  int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
     if (type is! OmittedTypeBuilder) {
       context.reportInboundReferenceIssuesForType(type);
       context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
@@ -549,14 +531,6 @@ class FieldDeclarationImpl
   }
 
   @override
-  Iterable<Reference> getExportedMemberReferences(FieldReference references) {
-    return [
-      references.getterReference!,
-      if (hasSetter) references.setterReference!
-    ];
-  }
-
-  @override
   void registerSuperCall() {
     _encoding.registerSuperCall();
   }
@@ -605,6 +579,108 @@ class FieldDeclarationImpl
   @override
   void setCovariantByClassInternal() {
     _encoding.setCovariantByClass();
+  }
+
+  @override
+  void buildGetterOutlineExpressions(
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourcePropertyBuilder propertyBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {}
+
+  @override
+  void buildGetterOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required PropertyReferences? references,
+      required List<TypeParameter>? classTypeParameters}) {}
+
+  @override
+  void buildSetterOutlineExpressions(
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourcePropertyBuilder propertyBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {}
+
+  @override
+  void buildSetterOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required PropertyReferences? references,
+      required List<TypeParameter>? classTypeParameters}) {}
+
+  @override
+  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+
+  @override
+  void checkGetterVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkSetterTypes(
+      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkSetterVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  @override
+  int computeSetterDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  @override
+  void createGetterEncoding(
+      ProblemReporting problemReporting,
+      SourcePropertyBuilder builder,
+      PropertyEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {}
+
+  @override
+  void createSetterEncoding(
+      ProblemReporting problemReporting,
+      SourcePropertyBuilder builder,
+      PropertyEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {}
+
+  @override
+  void ensureGetterTypes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required ClassMembersBuilder membersBuilder,
+      required Set<ClassMember>? getterOverrideDependencies}) {}
+
+  @override
+  void ensureSetterTypes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required ClassMembersBuilder membersBuilder,
+      required Set<ClassMember>? setterOverrideDependencies}) {}
+
+  @override
+  Iterable<Reference> getExportedGetterReferences(
+      PropertyReferences references) {
+    return [references.getterReference!];
+  }
+
+  @override
+  Iterable<Reference> getExportedSetterReferences(
+      PropertyReferences references) {
+    return hasSetter ? [references.setterReference!] : const [];
   }
 }
 

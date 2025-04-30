@@ -151,7 +151,7 @@ sealed class SetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
@@ -246,7 +246,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     FunctionNode function = new FunctionNode(
@@ -481,7 +481,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required SetterReference? references,
+      required PropertyReferences? references,
       required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     List<TypeParameter>? typeParameters;

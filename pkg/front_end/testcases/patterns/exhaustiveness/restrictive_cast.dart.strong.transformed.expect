@@ -44,13 +44,13 @@ static method method(self::S s) → core::int?
     #L1:
     {
       {
-        if(let final self::A #t2 = #0#0 as self::A in #C1 =={core::Object::==}{(core::Object) → core::bool} (#0#0 as self::A).{self::A::b}{core::bool}) {
+        if(let final dynamic #t2 = #0#0 as self::A in #C1 =={core::Object::==}{(core::Object) → core::bool} (#0#0 as self::A).{self::A::b}{core::bool}) {
           #t1 = 0;
           break #L1;
         }
       }
       {
-        if(let final self::B #t3 = #0#0 as self::B in #C1 =={core::Object::==}{(core::Object) → core::bool} (#0#0 as self::B).{self::B::b}{core::bool}) {
+        if(let final dynamic #t3 = #0#0 as self::B in #C1 =={core::Object::==}{(core::Object) → core::bool} (#0#0 as self::B).{self::B::b}{core::bool}) {
           #t1 = self::value;
           break #L1;
         }

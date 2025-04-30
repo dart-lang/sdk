@@ -81,6 +81,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var packageName = uriContent.substring(8, firstSlash);
     if (virtualPackages.contains(packageName)) return;
     if (availableDeps.contains(packageName)) return;
-    rule.reportLint(node.uri, arguments: [packageName]);
+    rule.reportAtNode(node.uri, arguments: [packageName]);
   }
 }

@@ -57,7 +57,7 @@ abstract class AbstractCodeFragmentParserTest {
 
   // ignore:unreachable_from_main
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     String? message,
