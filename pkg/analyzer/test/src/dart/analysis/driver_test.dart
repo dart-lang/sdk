@@ -5485,10 +5485,14 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
   requirements
     topLevels
       dart:core
@@ -5532,10 +5536,14 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M6
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M6
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
   requirements
     topLevels
       dart:core
@@ -5610,10 +5618,14 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
   requirements
     topLevels
       dart:core
@@ -5657,10 +5669,14 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M6
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M6
+          foo.setter: #M3
+        interface
+          map
+            foo: #M6
+            foo=: #M3
   requirements
     topLevels
       dart:core
@@ -5735,10 +5751,14 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
   requirements
     topLevels
       dart:core
@@ -5782,10 +5802,14 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M6
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M6
+        interface
+          map
+            foo: #M2
+            foo=: #M6
   requirements
     topLevels
       dart:core
@@ -5857,9 +5881,12 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -5902,9 +5929,12 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M5
-          foo.method.declared: #M2
+        declaredMembers
+          foo.constructor: #M5
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -5976,9 +6006,12 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -6021,9 +6054,12 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M5
+        interface
+          map
+            foo: #M5
   requirements
     topLevels
       dart:core
@@ -6094,8 +6130,8 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
   requirements
     topLevels
       dart:core
@@ -6134,8 +6170,8 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M4
+        declaredMembers
+          named.constructor: #M4
   requirements
     topLevels
       dart:core
@@ -6204,8 +6240,8 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
+        declaredMembers
+          c1.constructor: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -6242,9 +6278,9 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M3
   requirements
 [future] getErrors T2
   ErrorsResult #1
@@ -6309,9 +6345,9 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
   requirements
     topLevels
       dart:core
@@ -6351,9 +6387,9 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M5
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
   requirements
     topLevels
       dart:core
@@ -6401,9 +6437,9 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -6439,8 +6475,8 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
+        declaredMembers
+          c1.constructor: #M1
   requirements
 [future] getErrors T2
   ErrorsResult #1
@@ -6506,8 +6542,8 @@ class B extends A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
   requirements
     topLevels
       dart:core
@@ -6516,8 +6552,8 @@ class B extends A {
   package:test/test.dart
     manifest
       B: #M3
-        members
-          foo.constructor.declared: #M4
+        declaredMembers
+          foo.constructor: #M4
   requirements
     topLevels
       dart:core
@@ -6562,8 +6598,8 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M5
+        declaredMembers
+          named.constructor: #M5
   requirements
     topLevels
       dart:core
@@ -6584,8 +6620,8 @@ class A {
   package:test/test.dart
     manifest
       B: #M3
-        members
-          foo.constructor.declared: #M4
+        declaredMembers
+          foo.constructor: #M4
   requirements
     topLevels
       dart:core
@@ -6658,8 +6694,8 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          new.constructor.declared: #M1
+        declaredMembers
+          new.constructor: #M1
   requirements
     topLevels
       dart:core
@@ -6698,8 +6734,8 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          new.constructor.declared: #M4
+        declaredMembers
+          new.constructor: #M4
   requirements
     topLevels
       dart:core
@@ -6768,11 +6804,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -6819,11 +6859,15 @@ class B extends A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -6906,11 +6950,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -6957,11 +7005,15 @@ class B implements A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -7044,11 +7096,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -7095,11 +7151,15 @@ class B with A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -7186,8 +7246,8 @@ void f (B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
+        declaredMembers
+          _foo.getter: #M1
       B: #M2
       f: #M3
   requirements
@@ -7235,8 +7295,8 @@ void f (B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M7
+        declaredMembers
+          _foo.getter: #M7
       B: #M2
       f: #M3
   requirements
@@ -7304,8 +7364,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -7355,8 +7418,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M4
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
   requirements
     topLevels
       dart:core
@@ -7429,9 +7495,13 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M1
-          foo.getter.declared: #M2
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -7481,8 +7551,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -8170,8 +8243,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -8243,14 +8319,19 @@ void f(C c) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
       C: #M3
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8299,14 +8380,19 @@ class C extends B {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M6
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
       C: #M7
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8389,11 +8475,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8440,11 +8530,15 @@ class B extends A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8527,11 +8621,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8578,11 +8676,15 @@ class B implements A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8665,11 +8767,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8716,11 +8822,15 @@ class B with A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -8807,8 +8917,8 @@ void f (B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
       B: #M2
       f: #M3
   requirements
@@ -8856,8 +8966,8 @@ void f (B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M7
+        declaredMembers
+          _foo.method: #M7
       B: #M2
       f: #M3
   requirements
@@ -8934,8 +9044,8 @@ void f(B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
       B: #M2
       f: #M3
   requirements
@@ -8978,8 +9088,8 @@ void f(B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M6
+        declaredMembers
+          _foo.method: #M6
       B: #M2
       f: #M3
   requirements
@@ -9054,8 +9164,8 @@ void f(B b) {
   package:test/test.dart
     manifest
       A: #M1
-        members
-          _foo.method.declared: #M2
+        declaredMembers
+          _foo.method: #M2
       f: #M3
   requirements
     topLevels
@@ -9098,8 +9208,8 @@ void f(B b) {
   package:test/test.dart
     manifest
       A: #M1
-        members
-          _bar.method.declared: #M4
+        declaredMembers
+          _bar.method: #M4
       f: #M3
   requirements
     topLevels
@@ -9157,8 +9267,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -9268,8 +9381,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -9319,8 +9435,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M4
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
   requirements
     topLevels
       dart:core
@@ -9393,9 +9512,13 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -9446,9 +9569,13 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M5
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M5
+          foo.method: #M2
+        interface
+          map
+            bar: #M5
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -9548,8 +9675,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
   requirements
     topLevels
       dart:core
@@ -9624,11 +9754,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -9675,11 +9809,15 @@ class B extends A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M5
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -9762,11 +9900,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -9813,11 +9955,15 @@ class B implements A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M5
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -9900,11 +10046,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -9951,11 +10101,15 @@ class B with A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M5
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -10042,8 +10196,8 @@ void f (B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
+        declaredMembers
+          _foo.setter: #M1
       B: #M2
       f: #M3
   requirements
@@ -10086,8 +10240,8 @@ void f (B b) {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M6
+        declaredMembers
+          _foo.setter: #M6
       B: #M2
       f: #M3
   requirements
@@ -10146,8 +10300,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -10272,8 +10429,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -10323,8 +10483,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M4
   requirements
     topLevels
       dart:core
@@ -10399,10 +10562,10 @@ void f() {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
       B: #M2
-        members
+        declaredMembers
           named.constructor.inherited: #M1
       M: #M3
   requirements
@@ -10445,10 +10608,10 @@ class B = A with M;
   package:test/a.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M6
+        declaredMembers
+          named.constructor: #M6
       B: #M2
-        members
+        declaredMembers
           named.constructor.inherited: #M6
       M: #M3
   requirements
@@ -11464,11 +11627,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -11515,11 +11682,15 @@ mixin B on A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -11599,8 +11770,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -11650,8 +11824,11 @@ mixin A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M4
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
   requirements
     topLevels
       dart:core
@@ -11724,9 +11901,13 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M1
-          foo.getter.declared: #M2
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -11776,8 +11957,11 @@ mixin A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -12465,8 +12649,11 @@ mixin A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -12536,11 +12723,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -12587,11 +12778,15 @@ mixin B implements A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -12674,11 +12869,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -12725,11 +12924,15 @@ mixin B on A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M5
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -12810,8 +13013,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12921,8 +13127,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -12972,8 +13181,11 @@ mixin A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M4
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
   requirements
     topLevels
       dart:core
@@ -13046,9 +13258,13 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -13099,9 +13315,13 @@ mixin A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M5
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M5
+          foo.method: #M2
+        interface
+          map
+            bar: #M5
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -13201,8 +13421,11 @@ mixin A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
   requirements
     topLevels
       dart:core
@@ -13277,11 +13500,15 @@ void f(B b) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -13328,11 +13555,15 @@ mixin B on A<double> {}
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M5
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -13412,8 +13643,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -13538,8 +13772,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -13589,8 +13826,11 @@ mixin A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M4
   requirements
     topLevels
       dart:core
@@ -14306,14 +14546,14 @@ class B extends A {
   package:test/a.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
     manifest
       B: #M2
-        members
-          _foo.getter.declared: #M3
+        declaredMembers
+          _foo.getter: #M3
 ''',
       updatedCode: r'''
 import 'a.dart';
@@ -14328,9 +14568,12 @@ class B extends A {
   package:test/test.dart
     manifest
       B: #M2
-        members
-          _foo.getter.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          _foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            zzz: #M4
 ''',
     );
   }
@@ -14362,16 +14605,16 @@ class C extends B {
   package:test/a.dart
     manifest
       B: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
   package:test/test.dart
     manifest
       A: #M2
-        members
-          _foo.getter.declared: #M3
+        declaredMembers
+          _foo.getter: #M3
       C: #M4
-        members
-          _foo.setter.declared: #M5
+        declaredMembers
+          _foo.setter: #M5
 ''',
       updatedCode: r'''
 import 'a.dart';
@@ -14390,17 +14633,20 @@ class C extends B {
   package:test/a.dart
     manifest
       B: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
   package:test/test.dart
     manifest
       A: #M2
-        members
-          _foo.getter.declared: #M3
+        declaredMembers
+          _foo.getter: #M3
       C: #M4
-        members
-          _foo.setter.declared: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          _foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            zzz: #M6
 ''',
     );
   }
@@ -14418,8 +14664,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -14432,9 +14678,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
 ''',
     );
   }
@@ -14453,7 +14702,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
 ''',
       updatedCode: r'''
@@ -14468,9 +14717,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
-          zzz.method.declared: #M3
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
 ''',
     );
   }
@@ -14489,9 +14741,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -14505,10 +14760,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -14528,8 +14787,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -14544,9 +14806,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -14566,10 +14832,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -14584,11 +14854,16 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -14609,8 +14884,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -14626,9 +14905,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -14652,13 +14936,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -14677,14 +14968,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -14709,14 +15008,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.declared: #M5
-          foo.setter.declared: #M6
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+          foo.setter: #M6
+        interface
+          map
+            foo: #M5
+            foo=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -14736,15 +15043,24 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.declared: #M5
-          foo.setter.declared: #M6
-          zzz.method.declared: #M7
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+          foo.setter: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M5
+            foo=: #M6
+            zzz: #M7
 ''',
     );
   }
@@ -14768,13 +15084,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -14793,14 +15116,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -14824,13 +15155,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -14849,14 +15187,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -14876,8 +15222,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -14892,9 +15241,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -14918,11 +15271,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -14941,12 +15300,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -14971,12 +15337,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M5
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -14996,13 +15370,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M8
+            foo=: #M2
+            zzz: #M7
 ''',
     );
   }
@@ -15026,11 +15409,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -15049,12 +15438,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -15078,11 +15474,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -15101,12 +15504,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            foo=: #M1
+            zzz: #M6
 ''',
     );
   }
@@ -15129,12 +15540,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -15152,13 +15569,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -15182,14 +15606,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.declared: #M5
-          foo.setter.inherited: #M2
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+        interface
+          map
+            foo: #M5
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15208,15 +15639,23 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.declared: #M5
-          foo.setter.inherited: #M2
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+            zzz: #M6
 ''',
     );
   }
@@ -15239,12 +15678,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -15262,13 +15707,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -15291,13 +15743,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.inherited: #M1
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -15315,14 +15773,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.declared: #M4
-          foo.setter.inherited: #M1
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -15341,9 +15806,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15357,10 +15825,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.method.declared: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -15380,8 +15852,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15396,9 +15871,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -15419,8 +15898,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15436,9 +15918,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -15459,8 +15945,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -15476,9 +15966,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -15498,8 +15993,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15514,9 +16012,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -15536,8 +16038,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -15552,9 +16058,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -15575,8 +16086,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -15592,9 +16107,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -15617,12 +16137,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.method.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -15640,13 +16166,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.method.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -15670,12 +16203,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M4
+        declaredMembers
+          foo.constructor: #M4
+          foo.method: #M5
+        interface
+          map
+            foo: #M5
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15694,13 +16236,23 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.constructor: #M4
+          foo.method: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+            zzz: #M6
 ''',
     );
   }
@@ -15723,12 +16275,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.method.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -15746,13 +16304,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.method.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -15775,11 +16340,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -15797,12 +16370,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -15821,9 +16403,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15837,10 +16422,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.setter.declared: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -15860,8 +16449,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -15876,9 +16468,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -15901,13 +16497,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -15925,14 +16527,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -15956,14 +16565,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M5
+        declaredMembers
+          foo.constructor: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -15982,15 +16598,23 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.constructor: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -16013,11 +16637,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -16035,12 +16667,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -16063,12 +16704,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -16086,13 +16733,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.setter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -16111,7 +16765,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
 ''',
       updatedCode: r'''
@@ -16126,9 +16780,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
-          zzz.method.declared: #M3
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
 ''',
     );
   }
@@ -16148,8 +16805,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -16164,9 +16824,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -16190,11 +16854,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -16213,12 +16884,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -16243,12 +16922,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -16268,13 +16955,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M1
+            foo=: #M8
+            zzz: #M7
 ''',
     );
   }
@@ -16298,11 +16994,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -16321,12 +17024,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -16350,11 +17061,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -16373,12 +17090,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo=: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -16398,7 +17122,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
 ''',
       updatedCode: r'''
@@ -16414,9 +17138,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
-          zzz.method.declared: #M3
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
 ''',
     );
   }
@@ -16440,11 +17167,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16463,12 +17196,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -16493,12 +17233,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -16518,13 +17266,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M5
-          zzz.method.declared: #M6
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
 ''',
     );
   }
@@ -16548,11 +17305,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16571,12 +17334,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -16600,11 +17370,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16623,12 +17399,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -16651,11 +17434,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16673,12 +17462,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -16702,12 +17498,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -16726,13 +17530,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M5
-          zzz.method.declared: #M6
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
 ''',
     );
   }
@@ -16755,11 +17568,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16777,12 +17596,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -16805,11 +17631,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16827,12 +17659,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -16851,7 +17690,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
 ''',
       updatedCode: r'''
@@ -16866,9 +17705,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
-          zzz.method.declared: #M3
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
 ''',
     );
   }
@@ -16891,11 +17733,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -16913,12 +17761,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -16942,12 +17797,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -16966,13 +17829,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M5
-          zzz.method.declared: #M6
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
 ''',
     );
   }
@@ -16995,11 +17867,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17017,12 +17895,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -17045,11 +17930,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17067,12 +17958,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -17091,7 +17989,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
 ''',
       updatedCode: r'''
@@ -17106,9 +18004,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
-          zzz.method.declared: #M3
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
 ''',
     );
   }
@@ -17131,11 +18032,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17153,12 +18060,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -17182,12 +18096,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -17206,13 +18128,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M5
-          zzz.method.declared: #M6
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
 ''',
     );
   }
@@ -17235,11 +18166,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17257,12 +18194,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -17285,11 +18229,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17307,12 +18257,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M4
-          zzz.method.declared: #M5
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -17334,12 +18291,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.inherited: #M1
+        declaredMembers
+          foo.constructor: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17356,13 +18318,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.getter.inherited: #M1
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -17385,14 +18353,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.inherited: #M1
-          foo.setter.inherited: #M2
+        declaredMembers
+          foo.constructor: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -17410,15 +18384,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.constructor.declared: #M4
-          foo.getter.inherited: #M1
-          foo.setter.inherited: #M2
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.constructor: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
 ''',
     );
   }
@@ -17440,12 +18421,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.method.inherited: #M1
+        declaredMembers
+          foo.constructor: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17462,13 +18448,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.method.inherited: #M1
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -17490,12 +18482,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.setter.inherited: #M1
+        declaredMembers
+          foo.constructor: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17512,13 +18509,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.constructor.declared: #M3
-          foo.setter.inherited: #M1
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.constructor: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -17536,8 +18539,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17550,9 +18556,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          [].method: #M1
+          zzz.method: #M2
+        interface
+          map
+            []: #M1
+            zzz: #M2
 ''',
     );
   }
@@ -17571,8 +18581,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           [].conflict: #M1
+        interface
+          map
+            []: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -17586,9 +18599,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          [].conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -17607,9 +18624,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
-          [].indexEq.declared: #M2
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -17623,10 +18644,15 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
-          [].indexEq.declared: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+          zzz.method: #M3
+        interface
+          map
+            []: #M1
+            []=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -17646,8 +18672,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           [].conflict: #M1
+        interface
+          map
+            []: #M2
+            []=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -17662,9 +18692,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          [].conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            []: #M6
+            []=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -17687,12 +18722,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.declared: #M3
-          [].indexEq.declared: #M4
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+        interface
+          map
+            []: #M3
+            []=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -17710,13 +18752,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.declared: #M3
-          [].indexEq.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+          zzz.method: #M5
+        interface
+          map
+            []: #M3
+            []=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -17739,12 +18789,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].method.declared: #M3
-          [].indexEq.declared: #M4
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+        interface
+          map
+            []: #M3
+            []=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -17762,13 +18819,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].method.declared: #M3
-          [].indexEq.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+          zzz.method: #M5
+        interface
+          map
+            []: #M3
+            []=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -17790,11 +18855,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.declared: #M3
+        declaredMembers
+          [].method: #M3
+        interface
+          map
+            []: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -17811,12 +18882,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          [].method: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -17838,12 +18916,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].method.declared: #M3
-          [].indexEq.inherited: #M1
+        declaredMembers
+          [].method: #M3
+        interface
+          map
+            []: #M3
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17860,13 +18944,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].method.declared: #M3
-          [].indexEq.inherited: #M1
-          zzz.method.declared: #M4
+        declaredMembers
+          [].method: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M3
+            []=: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -17884,8 +18975,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -17898,9 +18992,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          [].indexEq: #M1
+          zzz.method: #M2
+        interface
+          map
+            []=: #M1
+            zzz: #M2
 ''',
     );
   }
@@ -17923,9 +19021,13 @@ class B extends A {
     manifest
       A: #M0
       B: #M1
-        members
-          [].method.declared: #M2
-          [].indexEq.declared: #M3
+        declaredMembers
+          [].method: #M2
+          [].indexEq: #M3
+        interface
+          map
+            []: #M2
+            []=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -17943,10 +19045,15 @@ class B extends A {
     manifest
       A: #M0
       B: #M1
-        members
-          [].method.declared: #M2
-          [].indexEq.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          [].method: #M2
+          [].indexEq: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M2
+            []=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -17965,8 +19072,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           [].conflict: #M1
+        interface
+          map
+            []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -17980,9 +19090,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          [].conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            []=: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -18004,12 +19118,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.inherited: #M1
-          [].indexEq.declared: #M3
+        declaredMembers
+          [].indexEq: #M3
+        interface
+          map
+            []: #M1
+            []=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -18026,13 +19146,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.inherited: #M1
-          [].indexEq.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          [].indexEq: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M1
+            []=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -18054,11 +19181,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].indexEq.declared: #M3
+        declaredMembers
+          [].indexEq: #M3
+        interface
+          map
+            []=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -18075,12 +19208,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].indexEq.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          [].indexEq: #M3
+          zzz.method: #M4
+        interface
+          map
+            []=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -18098,8 +19238,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -18112,9 +19255,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          zzz.method: #M2
+        interface
+          map
+            foo: #M1
+            zzz: #M2
 ''',
     );
   }
@@ -18133,8 +19280,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18148,9 +19298,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -18169,9 +19323,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18185,10 +19343,15 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M3
 ''',
     );
   }
@@ -18208,8 +19371,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -18224,9 +19391,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -18249,12 +19421,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -18272,13 +19451,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -18302,13 +19489,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -18327,14 +19522,23 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.declared: #M4
-          foo.setter.declared: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
 ''',
     );
   }
@@ -18357,12 +19561,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -18380,13 +19591,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -18409,12 +19628,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -18432,13 +19658,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -18457,8 +19691,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18472,9 +19709,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -18497,11 +19738,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -18519,12 +19766,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -18548,12 +19802,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M5
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18572,13 +19834,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M8
+            foo=: #M2
+            zzz: #M7
 ''',
     );
   }
@@ -18601,11 +19872,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -18623,12 +19900,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -18651,11 +19935,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -18673,12 +19964,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            foo=: #M1
+            zzz: #M6
 ''',
     );
   }
@@ -18700,11 +19999,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -18721,12 +20026,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -18749,13 +20061,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.declared: #M4
-          foo.setter.inherited: #M2
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18773,14 +20092,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.declared: #M4
-          foo.setter.inherited: #M2
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M2
+            zzz: #M5
 ''',
     );
   }
@@ -18802,11 +20129,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -18823,12 +20156,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -18850,12 +20190,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.inherited: #M1
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -18872,13 +20218,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.getter.declared: #M3
-          foo.setter.inherited: #M1
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -18896,8 +20249,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -18910,9 +20266,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          foo.method: #M1
+          zzz.method: #M2
+        interface
+          map
+            foo: #M1
+            zzz: #M2
 ''',
     );
   }
@@ -18931,8 +20291,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18946,9 +20309,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -18968,8 +20335,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -18984,9 +20354,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -19006,8 +20380,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19022,9 +20400,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -19045,8 +20428,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19062,9 +20449,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -19083,8 +20475,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -19098,9 +20493,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -19119,8 +20518,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19134,9 +20537,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -19156,8 +20564,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19172,9 +20584,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
 ''',
     );
   }
@@ -19196,11 +20613,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.declared: #M3
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19217,12 +20640,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -19245,12 +20675,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M4
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -19268,13 +20706,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M2
+            zzz: #M5
 ''',
     );
   }
@@ -19296,11 +20743,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.declared: #M3
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19317,12 +20770,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -19344,11 +20804,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -19365,12 +20832,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -19388,8 +20863,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -19402,9 +20880,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          foo.setter: #M1
+          zzz.method: #M2
+        interface
+          map
+            foo=: #M1
+            zzz: #M2
 ''',
     );
   }
@@ -19423,8 +20905,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -19438,9 +20923,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -19462,12 +20951,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19484,13 +20979,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -19513,13 +21015,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M4
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -19537,14 +21046,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.inherited: #M1
-          foo.setter.declared: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+            zzz: #M5
 ''',
     );
   }
@@ -19566,11 +21083,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19587,12 +21111,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -19614,11 +21146,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -19635,12 +21173,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.declared: #M3
-          zzz.method.declared: #M4
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M3
+            zzz: #M4
 ''',
     );
   }
@@ -19658,8 +21203,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -19672,9 +21217,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
 ''',
     );
   }
@@ -19693,8 +21241,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -19708,9 +21259,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.conflict: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
 ''',
     );
   }
@@ -19733,11 +21288,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -19755,12 +21317,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -19784,12 +21354,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -19808,13 +21386,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M1
+            foo=: #M8
+            zzz: #M7
 ''',
     );
   }
@@ -19837,11 +21424,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -19859,12 +21453,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -19887,11 +21489,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
+        interface
+          map
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -19909,12 +21517,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo=: #M7
+            zzz: #M6
 ''',
     );
   }
@@ -19933,9 +21548,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -19949,10 +21564,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
-          zzz.method.declared: #M3
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
 ''',
     );
   }
@@ -19975,11 +21593,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -19997,12 +21622,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -20026,12 +21659,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M4
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -20050,13 +21692,23 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
 ''',
     );
   }
@@ -20079,11 +21731,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20101,12 +21760,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -20129,11 +21796,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20151,12 +21825,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
 ''',
     );
   }
@@ -20178,11 +21860,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20199,12 +21887,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20227,12 +21922,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M4
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -20250,13 +21953,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
 ''',
     );
   }
@@ -20278,11 +21990,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20299,12 +22017,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20326,11 +22051,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20347,12 +22078,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20370,8 +22108,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20384,9 +22122,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          foo.method: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
 ''',
     );
   }
@@ -20408,11 +22149,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20429,12 +22176,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20457,12 +22211,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M4
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -20480,13 +22242,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
 ''',
     );
   }
@@ -20508,11 +22279,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20529,12 +22306,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20556,11 +22340,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20577,12 +22367,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20600,8 +22397,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20614,9 +22411,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
-          zzz.method.declared: #M2
+        declaredMembers
+          foo.setter: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
 ''',
     );
   }
@@ -20638,11 +22438,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20659,12 +22465,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20687,12 +22500,20 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M4
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -20710,13 +22531,22 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.conflict: #M5
-          zzz.method.declared: #M6
+        declaredMembers
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
 ''',
     );
   }
@@ -20738,11 +22568,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20759,12 +22595,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20786,11 +22629,17 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M3
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -20807,12 +22656,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.conflict: #M4
-          zzz.method.declared: #M5
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
 ''',
     );
   }
@@ -20834,10 +22690,10 @@ class B = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
       B: #M2
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
       M: #M3
 ''',
@@ -20856,10 +22712,10 @@ class Z {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
       B: #M2
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
       M: #M3
       Z: #M4
@@ -20885,10 +22741,10 @@ class B = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M3
       M: #M4
 ''',
@@ -20908,10 +22764,10 @@ class Z {}
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M5
       B: #M2
-        members
+        declaredMembers
           foo.conflict: #M6
       M: #M4
       Z: #M7
@@ -20937,13 +22793,18 @@ class B = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
       B: #M3
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.getter.inherited: #M2
+        interface
+          map
+            foo: #M2
       M: #M4
 ''',
       updatedCode: r'''
@@ -20962,13 +22823,18 @@ class Z {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
       B: #M3
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.getter.inherited: #M2
+        interface
+          map
+            foo: #M2
       M: #M4
       Z: #M5
 ''',
@@ -20994,15 +22860,21 @@ class B = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
       B: #M4
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.getter.inherited: #M2
-          foo.setter.inherited: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
       M: #M5
 ''',
       updatedCode: r'''
@@ -21022,15 +22894,21 @@ class Z {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.getter.declared: #M2
-          foo.setter.declared: #M3
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
       B: #M4
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.getter.inherited: #M2
-          foo.setter.inherited: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
       M: #M5
       Z: #M6
 ''',
@@ -21055,13 +22933,18 @@ class B = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
       B: #M3
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.method.inherited: #M2
+        interface
+          map
+            foo: #M2
       M: #M4
 ''',
       updatedCode: r'''
@@ -21080,13 +22963,18 @@ class Z {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
       B: #M3
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.method.inherited: #M2
+        interface
+          map
+            foo: #M2
       M: #M4
       Z: #M5
 ''',
@@ -21111,13 +22999,18 @@ class B = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.setter.inherited: #M2
+        interface
+          map
+            foo=: #M2
       M: #M4
 ''',
       updatedCode: r'''
@@ -21136,13 +23029,18 @@ class Z {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
       B: #M3
-        members
+        declaredMembers
           foo.constructor.inherited: #M1
-          foo.setter.inherited: #M2
+        interface
+          map
+            foo=: #M2
       M: #M4
       Z: #M5
 ''',
@@ -21165,11 +23063,15 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.inherited: #M1
+        interface
+          map
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21185,12 +23087,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
       B: #M2
-        members
-          [].method.inherited: #M1
-          zzz.method.declared: #M3
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            []: #M1
+            zzz: #M3
 ''',
     );
   }
@@ -21212,13 +23120,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
-          [].indexEq.declared: #M2
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
       B: #M3
-        members
-          [].method.inherited: #M1
-          [].indexEq.inherited: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -21235,14 +23148,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
-          [].indexEq.declared: #M2
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
       B: #M3
-        members
-          [].method.inherited: #M1
-          [].indexEq.inherited: #M2
-          zzz.method.declared: #M4
+        declaredMembers
+          zzz.method: #M4
+        interface
+          map
+            []: #M1
+            []=: #M2
+            zzz: #M4
 ''',
     );
   }
@@ -21263,11 +23183,15 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].indexEq.inherited: #M1
+        interface
+          map
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21283,12 +23207,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].indexEq.declared: #M1
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
       B: #M2
-        members
-          [].indexEq.inherited: #M1
-          zzz.method.declared: #M3
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            []=: #M1
+            zzz: #M3
 ''',
     );
   }
@@ -21310,13 +23240,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
-          [].indexEq.declared: #M2
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
       B: #M3
-        members
-          [].method.inherited: #M1
-          [].indexEq.inherited: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -21333,14 +23268,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          [].method.declared: #M1
-          [].indexEq.declared: #M2
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
       B: #M3
-        members
-          [].method.inherited: #M1
-          [].indexEq.inherited: #M2
-          zzz.method.declared: #M4
+        declaredMembers
+          zzz.method: #M4
+        interface
+          map
+            []: #M1
+            []=: #M2
+            zzz: #M4
 ''',
     );
   }
@@ -21361,11 +23303,15 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21381,12 +23327,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
-          zzz.method.declared: #M3
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            foo: #M1
+            zzz: #M3
 ''',
     );
   }
@@ -21408,13 +23360,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.inherited: #M1
-          foo.setter.inherited: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -21431,14 +23388,21 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
       B: #M3
-        members
-          foo.getter.inherited: #M1
-          foo.setter.inherited: #M2
-          zzz.method.declared: #M4
+        declaredMembers
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M4
 ''',
     );
   }
@@ -21459,11 +23423,15 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21479,12 +23447,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
-          zzz.method.declared: #M3
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            foo: #M1
+            zzz: #M3
 ''',
     );
   }
@@ -21505,11 +23479,15 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21525,12 +23503,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
-          zzz.method.declared: #M3
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            foo=: #M1
+            zzz: #M3
 ''',
     );
   }
@@ -21574,8 +23558,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21588,9 +23572,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.constructor.declared: #M2
-          foo.constructor.declared: #M1
+        declaredMembers
+          bar.constructor: #M2
+          foo.constructor: #M1
 ''',
     );
   }
@@ -21609,8 +23593,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21623,9 +23607,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.constructor.declared: #M2
-          foo.constructor.declared: #M1
+        declaredMembers
+          bar.constructor: #M2
+          foo.constructor: #M1
 ''',
     );
   }
@@ -21644,8 +23628,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          new.constructor.declared: #M1
+        declaredMembers
+          new.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21657,8 +23641,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          new.constructor.declared: #M2
+        declaredMembers
+          new.constructor: #M2
 ''',
     );
   }
@@ -21676,8 +23660,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21689,8 +23673,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M2
+        declaredMembers
+          named.constructor: #M2
 ''',
     );
   }
@@ -21709,9 +23693,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -21724,9 +23708,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M3
 ''',
     );
   }
@@ -21745,9 +23729,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          named.constructor.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21760,9 +23747,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          named.constructor.declared: #M3
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M3
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -21781,9 +23771,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          named.constructor.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21796,9 +23789,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          named.constructor.declared: #M3
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M3
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -21816,8 +23812,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21829,8 +23825,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M2
+        declaredMembers
+          named.constructor: #M2
 ''',
     );
   }
@@ -21850,10 +23846,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
-          f.getter.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -21867,10 +23866,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M4
-          f.getter.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M4
+          f.getter: #M3
+        interface
+          map
+            f: #M3
 ''',
     );
   }
@@ -21891,11 +23893,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
-          c3.constructor.declared: #M3
-          f.getter.declared: #M4
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          c3.constructor: #M3
+          f.getter: #M4
+        interface
+          map
+            f: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -21910,11 +23915,14 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
-          c3.constructor.declared: #M5
-          f.getter.declared: #M4
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          c3.constructor: #M5
+          f.getter: #M4
+        interface
+          map
+            f: #M4
 ''',
     );
   }
@@ -21932,8 +23940,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -21945,8 +23953,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M2
+        declaredMembers
+          named.constructor: #M2
 ''',
     );
   }
@@ -21968,11 +23976,11 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
       B: #M2
-        members
-          named.constructor.declared: #M3
+        declaredMembers
+          named.constructor: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -21988,11 +23996,11 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
       B: #M2
-        members
-          named.constructor.declared: #M4
+        declaredMembers
+          named.constructor: #M4
 ''',
     );
   }
@@ -22016,14 +24024,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
-          f.getter.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
       B: #M4
-        members
-          f.getter.inherited: #M3
-          named.constructor.declared: #M5
+        declaredMembers
+          named.constructor: #M5
+        interface
+          map
+            f: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -22041,14 +24054,19 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
-          f.getter.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
       B: #M4
-        members
-          f.getter.inherited: #M3
-          named.constructor.declared: #M6
+        declaredMembers
+          named.constructor: #M6
+        interface
+          map
+            f: #M3
 ''',
     );
   }
@@ -22071,13 +24089,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          f.getter.declared: #M1
-          named.constructor.declared: #M2
+        declaredMembers
+          f.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            f: #M1
       B: #M3
-        members
-          f.getter.inherited: #M1
-          named.constructor.declared: #M4
+        declaredMembers
+          named.constructor: #M4
+        interface
+          map
+            f: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22094,13 +24117,18 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          f.getter.declared: #M1
-          named.constructor.declared: #M5
+        declaredMembers
+          f.getter: #M1
+          named.constructor: #M5
+        interface
+          map
+            f: #M1
       B: #M3
-        members
-          f.getter.inherited: #M1
-          named.constructor.declared: #M6
+        declaredMembers
+          named.constructor: #M6
+        interface
+          map
+            f: #M1
 ''',
     );
   }
@@ -22118,8 +24146,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22131,8 +24159,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
 ''',
     );
   }
@@ -22151,9 +24179,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          named.constructor.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22166,9 +24197,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
-          named.constructor.declared: #M2
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -22188,10 +24222,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
-          f.getter.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -22205,10 +24242,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
-          f.getter.declared: #M3
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
 ''',
     );
   }
@@ -22230,11 +24270,11 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
       B: #M2
-        members
-          named.constructor.declared: #M3
+        declaredMembers
+          named.constructor: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -22250,11 +24290,11 @@ class B extends A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
       B: #M2
-        members
-          named.constructor.declared: #M3
+        declaredMembers
+          named.constructor: #M3
 ''',
     );
   }
@@ -22272,8 +24312,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22285,8 +24325,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -22304,8 +24344,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22317,8 +24357,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -22336,8 +24376,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22349,8 +24389,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -22368,8 +24408,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22381,8 +24421,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.constructor.declared: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -22403,9 +24443,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.constructor.declared: #M1
-          foo.constructor.declared: #M2
+        declaredMembers
+          bar.constructor: #M1
+          foo.constructor: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -22420,9 +24460,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.constructor.declared: #M1
-          foo.constructor.declared: #M3
+        declaredMembers
+          bar.constructor: #M1
+          foo.constructor: #M3
 ''',
     );
   }
@@ -22440,8 +24480,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.constructor.declared: #M1
+        declaredMembers
+          _foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22454,9 +24494,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.constructor.declared: #M1
-          bar.constructor.declared: #M2
+        declaredMembers
+          _foo.constructor: #M1
+          bar.constructor: #M2
 ''',
     );
   }
@@ -22474,8 +24514,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.constructor.declared: #M1
+        declaredMembers
+          _foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22488,9 +24528,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.constructor.declared: #M1
-          bar.constructor.declared: #M2
+        declaredMembers
+          _foo.constructor: #M1
+          bar.constructor: #M2
 ''',
     );
   }
@@ -22600,8 +24640,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22614,9 +24657,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            a: #M1
+            b: #M2
 ''',
     );
   }
@@ -22634,8 +24681,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22647,8 +24697,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M2
+        declaredMembers
+          a.getter: #M2
+        interface
+          map
+            a: #M2
 ''',
     );
   }
@@ -22666,8 +24719,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22679,8 +24735,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
     );
   }
@@ -22698,8 +24757,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22711,8 +24770,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M2
+        declaredMembers
+          a.getter: #M2
 ''',
     );
   }
@@ -22730,8 +24789,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22743,8 +24802,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
 ''',
     );
   }
@@ -22765,11 +24824,17 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          a.setter.declared: #M2
-          b.getter.declared: #M3
-          b.setter.declared: #M4
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M3
+            b=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -22784,11 +24849,17 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          a.setter.declared: #M2
-          b.getter.declared: #M5
-          b.setter.declared: #M6
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M5
+          b.setter: #M6
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M5
+            b=: #M6
 ''',
     );
   }
@@ -22806,8 +24877,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
+        declaredMembers
+          _a.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22820,9 +24891,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            b: #M2
 ''',
     );
   }
@@ -22840,8 +24914,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
+        declaredMembers
+          _a.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22854,9 +24928,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
 ''',
     );
   }
@@ -22874,9 +24948,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          _a.setter.declared: #M2
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -22889,11 +24963,15 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          _a.setter.declared: #M2
-          b.getter.declared: #M3
-          b.setter.declared: #M4
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            b: #M3
+            b=: #M4
 ''',
     );
   }
@@ -22911,9 +24989,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          a.setter.declared: #M2
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+        interface
+          map
+            a: #M1
+            a=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -22925,9 +25007,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M3
-          a.setter.declared: #M4
+        declaredMembers
+          a.getter: #M3
+          a.setter: #M4
+        interface
+          map
+            a: #M3
+            a=: #M4
 ''',
     );
   }
@@ -22947,11 +25033,15 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -22966,13 +25056,18 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -22992,11 +25087,15 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -23011,13 +25110,18 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -23037,11 +25141,15 @@ class B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23056,13 +25164,18 @@ class B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -23082,11 +25195,15 @@ class B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -23101,13 +25218,18 @@ class B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -23127,11 +25249,15 @@ class B with A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23146,13 +25272,18 @@ class B with A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -23172,11 +25303,15 @@ class B with A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -23191,13 +25326,18 @@ class B with A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -23218,9 +25358,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M1
-          foo.getter.declared: #M2
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -23235,9 +25379,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M1
-          foo.getter.declared: #M3
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
 ''',
     );
   }
@@ -23255,8 +25403,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
+        declaredMembers
+          _foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23269,9 +25417,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
-          bar.getter.declared: #M2
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -23289,8 +25440,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
+        declaredMembers
+          _foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23303,9 +25454,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
-          bar.getter.declared: #M2
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -23325,9 +25479,12 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
             returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23340,9 +25497,12 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
             returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -23360,8 +25520,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23374,9 +25534,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M2
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M2
+          foo.getter: #M1
 ''',
     );
   }
@@ -23394,8 +25554,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23407,8 +25570,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
 ''',
     );
   }
@@ -23426,8 +25589,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23439,8 +25602,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
 ''',
     );
   }
@@ -23458,8 +25621,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23471,8 +25634,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -23490,8 +25656,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23504,8 +25673,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -23523,8 +25695,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23537,8 +25712,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -23556,8 +25734,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23570,8 +25751,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -23589,8 +25773,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23603,8 +25790,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -23622,8 +25812,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23636,7 +25826,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
 ''',
     );
@@ -23655,8 +25845,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23669,7 +25859,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
 ''',
     );
@@ -23808,8 +25998,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23822,9 +26015,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M2
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -23844,11 +26041,15 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -23863,13 +26064,18 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -23889,11 +26095,15 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -23908,13 +26118,18 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -23936,14 +26151,19 @@ class C extends B {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
       C: #M3
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -23960,17 +26180,23 @@ class C extends B {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M4
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M4
+          foo.method: #M1
+        interface
+          map
+            bar: #M4
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M4
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M4
+            foo: #M1
       C: #M3
-        members
-          bar.method.inherited: #M4
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M4
+            foo: #M1
 ''',
     );
   }
@@ -23990,11 +26216,15 @@ class B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24009,13 +26239,18 @@ class B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -24035,11 +26270,15 @@ class B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -24054,13 +26293,18 @@ class B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -24080,11 +26324,15 @@ class B with A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24099,13 +26347,18 @@ class B with A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -24125,11 +26378,15 @@ class B with A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -24144,13 +26401,18 @@ class B with A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -24168,8 +26430,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24182,9 +26447,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M2
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -24202,8 +26471,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24216,9 +26488,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M2
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -24236,8 +26512,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24250,9 +26529,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M2
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -24270,8 +26553,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24283,8 +26569,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -24304,12 +26593,15 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
             functionType: FunctionType
               named
                 a: required int @ dart:core
               returnType: void
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24322,12 +26614,15 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
             functionType: FunctionType
               named
                 a: required double @ dart:core
               returnType: void
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -24345,8 +26640,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24359,9 +26657,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M2
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -24379,8 +26681,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24392,8 +26697,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -24411,8 +26719,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24424,8 +26735,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -24444,8 +26758,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24457,8 +26774,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -24477,8 +26797,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24490,8 +26813,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -24510,8 +26836,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24523,8 +26852,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M3
 ''',
     );
   }
@@ -24543,8 +26872,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24556,8 +26888,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -24576,8 +26911,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24589,8 +26927,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -24609,8 +26950,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
+        interface
+          map
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24622,8 +26966,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M3
 ''',
     );
   }
@@ -24642,7 +26986,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
 ''',
       updatedCode: r'''
@@ -24655,8 +26999,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -24675,7 +27019,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M1
 ''',
       updatedCode: r'''
@@ -24688,8 +27032,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -24710,9 +27054,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24727,9 +27075,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M3
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
 ''',
     );
   }
@@ -24747,8 +27099,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24761,9 +27113,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
-          bar.method.declared: #M2
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -24781,8 +27136,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24795,9 +27150,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
-          bar.method.declared: #M2
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -24816,9 +27174,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -24830,8 +27192,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -24851,10 +27216,13 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
             functionType: FunctionType
               returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24867,10 +27235,13 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
             functionType: FunctionType
               returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -24888,8 +27259,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24901,8 +27275,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -24920,8 +27294,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24933,8 +27307,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -24952,8 +27326,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24965,8 +27339,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -24984,8 +27361,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -24998,8 +27378,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -25017,8 +27400,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25031,8 +27417,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -25050,8 +27439,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25064,8 +27456,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -25083,8 +27478,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25097,8 +27495,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -25116,8 +27517,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25130,8 +27531,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -25149,8 +27553,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25163,8 +27567,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo: #M3
 ''',
     );
   }
@@ -25182,8 +27589,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25196,7 +27603,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
 ''',
     );
@@ -25215,8 +27622,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25229,7 +27636,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
 ''',
     );
@@ -25252,14 +27659,17 @@ class A<T> {
         typeParameters
           bound: <null>
         supertype: Object @ dart:core
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
             functionType: FunctionType
               typeParameters
                 bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -25275,17 +27685,21 @@ class A<T> {
         typeParameters
           bound: <null>
         supertype: Object @ dart:core
-        members
-          bar.method.declared: #M2
+        declaredMembers
+          bar.method: #M2
             functionType: FunctionType
               returnType: void
-          foo.method.declared: #M1
+          foo.method: #M1
             functionType: FunctionType
               typeParameters
                 bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -25303,8 +27717,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25316,8 +27733,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -25335,8 +27755,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25348,8 +27771,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -25415,11 +27841,15 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25434,13 +27864,18 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -25460,11 +27895,15 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -25479,13 +27918,18 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -25505,11 +27949,15 @@ class B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25524,13 +27972,18 @@ class B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -25550,11 +28003,15 @@ class B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -25569,13 +28026,18 @@ class B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -25595,11 +28057,15 @@ class B with A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25614,13 +28080,18 @@ class B with A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -25640,11 +28111,15 @@ class B with A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -25659,13 +28134,18 @@ class B with A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -25686,9 +28166,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M2
+        interface
+          map
+            bar=: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -25703,9 +28187,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M1
-          foo.setter.declared: #M3
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M3
+        interface
+          map
+            bar=: #M1
+            foo=: #M3
 ''',
     );
   }
@@ -25723,8 +28211,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
+        declaredMembers
+          _foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25737,9 +28225,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
-          bar.setter.declared: #M2
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
 ''',
     );
   }
@@ -25757,8 +28248,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
+        declaredMembers
+          _foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25771,9 +28262,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
-          bar.setter.declared: #M2
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
 ''',
     );
   }
@@ -25791,8 +28285,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25805,9 +28299,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M2
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M2
+          foo.setter: #M1
 ''',
     );
   }
@@ -25825,8 +28319,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25838,8 +28335,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
 ''',
     );
   }
@@ -25857,8 +28354,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25870,8 +28367,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
 ''',
     );
   }
@@ -25889,8 +28389,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25902,8 +28402,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
 ''',
     );
   }
@@ -25921,8 +28421,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25935,8 +28438,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo=: #M3
 ''',
     );
   }
@@ -25954,8 +28460,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -25968,8 +28477,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo=: #M1
 ''',
     );
   }
@@ -25987,8 +28499,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -26001,8 +28516,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo=: #M1
 ''',
     );
   }
@@ -26020,8 +28538,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -26034,8 +28555,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
+        interface
+          map
+            foo=: #M1
 ''',
     );
   }
@@ -26053,8 +28577,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -26067,7 +28591,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
 ''',
     );
@@ -26086,8 +28610,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -26100,7 +28624,7 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        members
+        declaredMembers
           foo.conflict: #M2
 ''',
     );
@@ -26121,9 +28645,12 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
             valueType: int @ dart:core
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -26136,9 +28663,12 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
             valueType: double @ dart:core
+        interface
+          map
+            foo=: #M2
 ''',
     );
   }
@@ -26158,11 +28688,11 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
+        declaredMembers
+          c1.constructor: #M1
       M: #M2
       X: #M3
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
 ''',
       updatedCode: r'''
@@ -26178,12 +28708,12 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M4
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M4
       M: #M2
       X: #M3
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M4
 ''',
@@ -26206,14 +28736,14 @@ class X2 = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
+        declaredMembers
+          c1.constructor: #M1
       M: #M2
       X1: #M3
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
       X2: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
 ''',
       updatedCode: r'''
@@ -26230,16 +28760,16 @@ class X2 = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M5
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
       M: #M2
       X1: #M3
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M5
       X2: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M5
 ''',
@@ -26262,14 +28792,14 @@ class X2 = X1 with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
+        declaredMembers
+          c1.constructor: #M1
       M: #M2
       X1: #M3
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
       X2: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
 ''',
       updatedCode: r'''
@@ -26286,16 +28816,16 @@ class X2 = X1 with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M5
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
       M: #M2
       X1: #M3
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M5
       X2: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M5
 ''',
@@ -26318,12 +28848,12 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
       M: #M3
       X: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M2
 ''',
@@ -26340,12 +28870,12 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M5
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
       M: #M3
       X: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M5
 ''',
@@ -26368,12 +28898,12 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
-          c2.constructor.declared: #M2
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
       M: #M3
       X: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
           c2.constructor.inherited: #M2
 ''',
@@ -26389,11 +28919,11 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          c1.constructor.declared: #M1
+        declaredMembers
+          c1.constructor: #M1
       M: #M3
       X: #M4
-        members
+        declaredMembers
           c1.constructor.inherited: #M1
 ''',
     );
@@ -26460,19 +28990,28 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo1.getter.declared: #M1
-          foo2.getter.declared: #M2
+        declaredMembers
+          foo1.getter: #M1
+          foo2.getter: #M2
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
       M: #M3
-        members
-          foo3.getter.declared: #M4
-          foo4.getter.declared: #M5
+        declaredMembers
+          foo3.getter: #M4
+          foo4.getter: #M5
+        interface
+          map
+            foo3: #M4
+            foo4: #M5
       X: #M6
-        members
-          foo1.getter.inherited: #M1
-          foo2.getter.inherited: #M2
-          foo3.getter.inherited: #M4
-          foo4.getter.inherited: #M5
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M4
+            foo4: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -26492,19 +29031,28 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo1.getter.declared: #M1
-          foo2.getter.declared: #M7
+        declaredMembers
+          foo1.getter: #M1
+          foo2.getter: #M7
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
       M: #M3
-        members
-          foo3.getter.declared: #M4
-          foo4.getter.declared: #M8
+        declaredMembers
+          foo3.getter: #M4
+          foo4.getter: #M8
+        interface
+          map
+            foo3: #M4
+            foo4: #M8
       X: #M6
-        members
-          foo1.getter.inherited: #M1
-          foo2.getter.inherited: #M7
-          foo3.getter.inherited: #M4
-          foo4.getter.inherited: #M8
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
+            foo3: #M4
+            foo4: #M8
 ''',
     );
   }
@@ -26610,19 +29158,28 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo1.method.declared: #M1
-          foo2.method.declared: #M2
+        declaredMembers
+          foo1.method: #M1
+          foo2.method: #M2
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
       M: #M3
-        members
-          foo3.method.declared: #M4
-          foo4.method.declared: #M5
+        declaredMembers
+          foo3.method: #M4
+          foo4.method: #M5
+        interface
+          map
+            foo3: #M4
+            foo4: #M5
       X: #M6
-        members
-          foo1.method.inherited: #M1
-          foo2.method.inherited: #M2
-          foo3.method.inherited: #M4
-          foo4.method.inherited: #M5
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M4
+            foo4: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -26642,19 +29199,28 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo1.method.declared: #M1
-          foo2.method.declared: #M7
+        declaredMembers
+          foo1.method: #M1
+          foo2.method: #M7
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
       M: #M3
-        members
-          foo3.method.declared: #M4
-          foo4.method.declared: #M8
+        declaredMembers
+          foo3.method: #M4
+          foo4.method: #M8
+        interface
+          map
+            foo3: #M4
+            foo4: #M8
       X: #M6
-        members
-          foo1.method.inherited: #M1
-          foo2.method.inherited: #M7
-          foo3.method.inherited: #M4
-          foo4.method.inherited: #M8
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
+            foo3: #M4
+            foo4: #M8
 ''',
     );
   }
@@ -26680,19 +29246,28 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo1.setter.declared: #M1
-          foo2.setter.declared: #M2
+        declaredMembers
+          foo1.setter: #M1
+          foo2.setter: #M2
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M2
       M: #M3
-        members
-          foo3.setter.declared: #M4
-          foo4.setter.declared: #M5
+        declaredMembers
+          foo3.setter: #M4
+          foo4.setter: #M5
+        interface
+          map
+            foo3=: #M4
+            foo4=: #M5
       X: #M6
-        members
-          foo1.setter.inherited: #M1
-          foo2.setter.inherited: #M2
-          foo3.setter.inherited: #M4
-          foo4.setter.inherited: #M5
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M2
+            foo3=: #M4
+            foo4=: #M5
 ''',
       updatedCode: r'''
 class A {
@@ -26712,19 +29287,28 @@ class X = A with M;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo1.setter.declared: #M1
-          foo2.setter.declared: #M7
+        declaredMembers
+          foo1.setter: #M1
+          foo2.setter: #M7
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M7
       M: #M3
-        members
-          foo3.setter.declared: #M4
-          foo4.setter.declared: #M8
+        declaredMembers
+          foo3.setter: #M4
+          foo4.setter: #M8
+        interface
+          map
+            foo3=: #M4
+            foo4=: #M8
       X: #M6
-        members
-          foo1.setter.inherited: #M1
-          foo2.setter.inherited: #M7
-          foo3.setter.inherited: #M4
-          foo4.setter.inherited: #M8
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M7
+            foo3=: #M4
+            foo4=: #M8
 ''',
     );
   }
@@ -26899,8 +29483,11 @@ const x = a + 1;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          +.method.declared: #M1
+        declaredMembers
+          +.method: #M1
+        interface
+          map
+            +: #M1
       a: #M2
       x: #M3
 ''',
@@ -26917,8 +29504,11 @@ const x = a + 1;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          +.method.declared: #M4
+        declaredMembers
+          +.method: #M4
+        interface
+          map
+            +: #M4
       a: #M2
       x: #M5
 ''',
@@ -27153,8 +29743,8 @@ const a = A.named();
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M1
+        declaredMembers
+          named.constructor: #M1
       a: #M2
 ''',
       updatedCode: r'''
@@ -27168,8 +29758,8 @@ const a = A.named();
   package:test/test.dart
     manifest
       A: #M0
-        members
-          named.constructor.declared: #M3
+        declaredMembers
+          named.constructor: #M3
       a: #M4
 ''',
     );
@@ -27190,8 +29780,8 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        members
-          new.constructor.declared: #M1
+        declaredMembers
+          new.constructor: #M1
       a: #M2
 ''',
       updatedCode: r'''
@@ -27205,8 +29795,8 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        members
-          new.constructor.declared: #M3
+        declaredMembers
+          new.constructor: #M3
       a: #M4
 ''',
     );
@@ -27227,8 +29817,8 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        members
-          new.constructor.declared: #M1
+        declaredMembers
+          new.constructor: #M1
       a: #M2
 ''',
       updatedCode: r'''
@@ -27243,9 +29833,12 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M3
-          new.constructor.declared: #M1
+        declaredMembers
+          foo.method: #M3
+          new.constructor: #M1
+        interface
+          map
+            foo: #M3
       a: #M2
 ''',
     );
@@ -27534,9 +30127,9 @@ const d = A.b;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
       c: #M3
       d: #M4
 ''',
@@ -27554,9 +30147,9 @@ const d = A.b;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          b.getter.declared: #M5
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M5
       c: #M3
       d: #M6
 ''',
@@ -27582,9 +30175,9 @@ const d = self.A.b;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
       c: #M3
       d: #M4
 ''',
@@ -27604,9 +30197,9 @@ const d = self.A.b;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          b.getter.declared: #M5
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M5
       c: #M3
       d: #M6
 ''',
@@ -27738,8 +30331,11 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          unary-.method.declared: #M1
+        declaredMembers
+          unary-.method: #M1
+        interface
+          map
+            unary-: #M1
       a: #M2
       b: #M3
 ''',
@@ -27755,8 +30351,11 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          unary-.method.declared: #M4
+        declaredMembers
+          unary-.method: #M4
+        interface
+          map
+            unary-: #M4
       a: #M2
       b: #M5
 ''',
@@ -27778,8 +30377,11 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          unary-.method.declared: #M1
+        declaredMembers
+          unary-.method: #M1
+        interface
+          map
+            unary-: #M1
       a: #M2
       b: #M3
 ''',
@@ -27796,9 +30398,13 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M4
-          unary-.method.declared: #M1
+        declaredMembers
+          foo.method: #M4
+          unary-.method: #M1
+        interface
+          map
+            foo: #M4
+            unary-: #M1
       a: #M2
       b: #M3
 ''',
@@ -28038,8 +30644,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28052,9 +30661,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            a: #M1
+            b: #M2
 ''',
     );
   }
@@ -28072,8 +30685,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28085,8 +30701,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M2
+        declaredMembers
+          a.getter: #M2
+        interface
+          map
+            a: #M2
 ''',
     );
   }
@@ -28104,8 +30723,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28117,8 +30739,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
 ''',
     );
   }
@@ -28136,8 +30761,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28149,8 +30774,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M2
+        declaredMembers
+          a.getter: #M2
 ''',
     );
   }
@@ -28168,8 +30793,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28181,8 +30806,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
+        declaredMembers
+          a.getter: #M1
 ''',
     );
   }
@@ -28203,11 +30828,17 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          a.setter.declared: #M2
-          b.getter.declared: #M3
-          b.setter.declared: #M4
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M3
+            b=: #M4
 ''',
       updatedCode: r'''
 mixin A {
@@ -28222,11 +30853,17 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          a.setter.declared: #M2
-          b.getter.declared: #M5
-          b.setter.declared: #M6
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M5
+          b.setter: #M6
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M5
+            b=: #M6
 ''',
     );
   }
@@ -28244,8 +30881,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
+        declaredMembers
+          _a.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28258,9 +30895,12 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            b: #M2
 ''',
     );
   }
@@ -28278,8 +30918,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
+        declaredMembers
+          _a.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28292,9 +30932,9 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          b.getter.declared: #M2
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
 ''',
     );
   }
@@ -28312,9 +30952,9 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          _a.setter.declared: #M2
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -28327,11 +30967,15 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _a.getter.declared: #M1
-          _a.setter.declared: #M2
-          b.getter.declared: #M3
-          b.setter.declared: #M4
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            b: #M3
+            b=: #M4
 ''',
     );
   }
@@ -28349,9 +30993,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M1
-          a.setter.declared: #M2
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+        interface
+          map
+            a: #M1
+            a=: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -28363,9 +31011,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          a.getter.declared: #M3
-          a.setter.declared: #M4
+        declaredMembers
+          a.getter: #M3
+          a.setter: #M4
+        interface
+          map
+            a: #M3
+            a=: #M4
 ''',
     );
   }
@@ -28385,11 +31037,15 @@ mixin B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28404,13 +31060,18 @@ mixin B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -28430,11 +31091,15 @@ mixin B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -28449,13 +31114,18 @@ mixin B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -28475,11 +31145,15 @@ mixin B on A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28494,13 +31168,18 @@ mixin B on A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -28520,11 +31199,15 @@ mixin B on A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.getter.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -28539,13 +31222,18 @@ mixin B on A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M3
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.getter.inherited: #M3
-          foo.getter.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -28566,9 +31254,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M1
-          foo.getter.declared: #M2
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -28583,9 +31275,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M1
-          foo.getter.declared: #M3
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
 ''',
     );
   }
@@ -28603,8 +31299,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
+        declaredMembers
+          _foo.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28617,9 +31313,12 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
-          bar.getter.declared: #M2
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -28637,8 +31336,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
+        declaredMembers
+          _foo.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28651,9 +31350,12 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.getter.declared: #M1
-          bar.getter.declared: #M2
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -28674,9 +31376,12 @@ mixin A {
       A: #M0
         superclassConstraints
           Object @ dart:core
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
             returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28690,9 +31395,12 @@ mixin A {
       A: #M0
         superclassConstraints
           Object @ dart:core
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
             returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -28710,8 +31418,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28724,9 +31432,9 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.getter.declared: #M2
-          foo.getter.declared: #M1
+        declaredMembers
+          bar.getter: #M2
+          foo.getter: #M1
 ''',
     );
   }
@@ -28744,8 +31452,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28757,8 +31468,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
 ''',
     );
   }
@@ -28776,8 +31487,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28789,8 +31500,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
 ''',
     );
   }
@@ -28808,8 +31519,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28821,8 +31532,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.getter.declared: #M2
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -28960,8 +31674,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -28974,9 +31691,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M2
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -28996,11 +31717,15 @@ mixin B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29015,13 +31740,18 @@ mixin B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -29041,11 +31771,15 @@ mixin B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -29060,13 +31794,18 @@ mixin B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -29086,11 +31825,15 @@ mixin B on A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29105,13 +31848,18 @@ mixin B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -29131,11 +31879,15 @@ mixin B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        members
-          foo.method.inherited: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -29150,13 +31902,18 @@ mixin B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M3
-          foo.method.declared: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        members
-          bar.method.inherited: #M3
-          foo.method.inherited: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -29177,9 +31934,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -29194,9 +31955,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M3
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
 ''',
     );
   }
@@ -29214,8 +31979,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29228,9 +31993,12 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
-          bar.method.declared: #M2
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -29248,8 +32016,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
+        declaredMembers
+          _foo.method: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29262,9 +32030,12 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.method.declared: #M1
-          bar.method.declared: #M2
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -29283,9 +32054,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.method.declared: #M1
-          foo.method.declared: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -29297,8 +32072,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -29319,10 +32097,13 @@ mixin A {
       A: #M0
         superclassConstraints
           Object @ dart:core
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
             functionType: FunctionType
               returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29336,10 +32117,13 @@ mixin A {
       A: #M0
         superclassConstraints
           Object @ dart:core
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
             functionType: FunctionType
               returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -29357,8 +32141,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29370,8 +32157,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -29389,8 +32176,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29402,8 +32189,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -29421,8 +32208,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29434,8 +32221,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -29458,14 +32248,17 @@ mixin A<T> {
           bound: <null>
         superclassConstraints
           Object @ dart:core
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
             functionType: FunctionType
               typeParameters
                 bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -29482,17 +32275,21 @@ mixin A<T> {
           bound: <null>
         superclassConstraints
           Object @ dart:core
-        members
-          bar.method.declared: #M2
+        declaredMembers
+          bar.method: #M2
             functionType: FunctionType
               returnType: void
-          foo.method.declared: #M1
+          foo.method: #M1
             functionType: FunctionType
               typeParameters
                 bound: <null>
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -29510,8 +32307,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29523,8 +32323,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -29542,8 +32345,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29555,8 +32361,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.method.declared: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -29720,11 +32529,15 @@ mixin B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29739,13 +32552,18 @@ mixin B implements A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -29765,11 +32583,15 @@ mixin B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -29784,13 +32606,18 @@ mixin B implements A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -29810,11 +32637,15 @@ mixin B on A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29829,13 +32660,18 @@ mixin B on A {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -29855,11 +32691,15 @@ mixin B on A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
       B: #M2
-        members
-          foo.setter.inherited: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -29874,13 +32714,18 @@ mixin B on A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M3
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
       B: #M2
-        members
-          bar.setter.inherited: #M3
-          foo.setter.inherited: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
 ''',
     );
   }
@@ -29901,9 +32746,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M1
-          foo.setter.declared: #M2
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M2
+        interface
+          map
+            bar=: #M1
+            foo=: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -29918,9 +32767,13 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M1
-          foo.setter.declared: #M3
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M3
+        interface
+          map
+            bar=: #M1
+            foo=: #M3
 ''',
     );
   }
@@ -29938,8 +32791,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
+        declaredMembers
+          _foo.setter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29952,9 +32805,12 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
-          bar.setter.declared: #M2
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
 ''',
     );
   }
@@ -29972,8 +32828,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
+        declaredMembers
+          _foo.setter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -29986,9 +32842,12 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          _foo.setter.declared: #M1
-          bar.setter.declared: #M2
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
 ''',
     );
   }
@@ -30006,8 +32865,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -30020,9 +32879,9 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          bar.setter.declared: #M2
-          foo.setter.declared: #M1
+        declaredMembers
+          bar.setter: #M2
+          foo.setter: #M1
 ''',
     );
   }
@@ -30040,8 +32899,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -30053,8 +32915,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
 ''',
     );
   }
@@ -30072,8 +32934,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -30085,8 +32947,11 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
 ''',
     );
   }
@@ -30104,8 +32969,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -30117,8 +32982,8 @@ mixin A {
   package:test/test.dart
     manifest
       A: #M0
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
 ''',
     );
   }
@@ -30139,9 +33004,12 @@ mixin A {
       A: #M0
         superclassConstraints
           Object @ dart:core
-        members
-          foo.setter.declared: #M1
+        declaredMembers
+          foo.setter: #M1
             valueType: int @ dart:core
+        interface
+          map
+            foo=: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -30155,9 +33023,12 @@ mixin A {
       A: #M0
         superclassConstraints
           Object @ dart:core
-        members
-          foo.setter.declared: #M2
+        declaredMembers
+          foo.setter: #M2
             valueType: double @ dart:core
+        interface
+          map
+            foo=: #M2
 ''',
     );
   }

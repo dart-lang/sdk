@@ -136,7 +136,8 @@ class LibraryManifestBuilder {
     encodingContext.withTypeParameters(element.typeParameters2, (
       typeParameters,
     ) {
-      classItem.members.clear();
+      classItem.declaredMembers.clear();
+      classItem.interface.clear();
       _addInterfaceElementExecutables(
         encodingContext: encodingContext,
         instanceElement: element,
@@ -192,7 +193,7 @@ class LibraryManifestBuilder {
         inheritedMap[constructor] = id;
 
         var baseName = lookupName.asBaseName;
-        item.members.addInheritedConstructor(baseName, id);
+        item.declaredMembers.addInheritedConstructor(baseName, id);
       }
     }
 
@@ -200,63 +201,6 @@ class LibraryManifestBuilder {
       for (var element in libraryElement.children2) {
         if (element is ClassElementImpl2) {
           addForElement(element);
-        }
-      }
-    }
-  }
-
-  void _addInheritedInterfaceElementExecutables(InterfaceElementImpl2 element) {
-    // We don't create items for elements without name.
-    if (element.lookupName == null) {
-      return;
-    }
-
-    // Must be created already.
-    var item = declaredItems[element] as InterfaceItem;
-
-    var interface = element.inheritanceManager.getInterface2(element);
-    var inheritedExecutables = interface.map2.values
-        .map((e) => e.baseElement)
-        .where((e) => e.enclosingElement2 != element)
-        .toList(growable: false);
-
-    for (var kindIndex = 0; kindIndex < 3; kindIndex++) {
-      for (var executable in inheritedExecutables) {
-        var lookupName = executable.lookupName?.asLookupName;
-        if (lookupName == null) {
-          continue;
-        }
-
-        // We can see a private member only inside the library.
-        // But we reanalyze the library when one of its files changes.
-        if (lookupName.isPrivate) {
-          continue;
-        }
-
-        var baseName = lookupName.asBaseName;
-        var id = _getInterfaceElementMemberId(executable);
-
-        switch ((kindIndex, executable)) {
-          case (0, MethodElementImpl2()):
-            if (lookupName.isIndexEq) {
-              item.members.addInheritedIndexEq(baseName, id);
-            } else {
-              item.members.addInheritedMethod(baseName, id);
-            }
-          case (1, GetterElementImpl()):
-            item.members.addInheritedGetter(baseName, id);
-          case (2, SetterElementImpl()):
-            item.members.addInheritedSetter(baseName, id);
-        }
-      }
-    }
-  }
-
-  void _addInheritedInterfaceElementsExecutables() {
-    for (var libraryElement in libraryElements) {
-      for (var element in libraryElement.children2) {
-        if (element is InterfaceElementImpl2) {
-          _addInheritedInterfaceElementExecutables(element);
         }
       }
     }
@@ -311,7 +255,7 @@ class LibraryManifestBuilder {
     });
 
     var baseName = lookupName.asBaseName;
-    instanceItem.members.addDeclaredGetter(baseName, item);
+    instanceItem.declaredMembers.addDeclaredGetter(baseName, item);
   }
 
   void _addInstanceElementMethod({
@@ -334,9 +278,9 @@ class LibraryManifestBuilder {
 
     var baseName = lookupName.asBaseName;
     if (lookupName.isIndexEq) {
-      instanceItem.members.addDeclaredIndexEq(baseName, item);
+      instanceItem.declaredMembers.addDeclaredIndexEq(baseName, item);
     } else {
-      instanceItem.members.addDeclaredMethod(baseName, item);
+      instanceItem.declaredMembers.addDeclaredMethod(baseName, item);
     }
   }
 
@@ -359,7 +303,7 @@ class LibraryManifestBuilder {
     });
 
     var baseName = lookupName.asBaseName;
-    instanceItem.members.addDeclaredSetter(baseName, item);
+    instanceItem.declaredMembers.addDeclaredSetter(baseName, item);
   }
 
   void _addInterfaceElementConstructor({
@@ -381,7 +325,7 @@ class LibraryManifestBuilder {
     });
 
     var baseName = lookupName.asBaseName;
-    interfaceItem.members.addDeclaredConstructor(baseName, item);
+    interfaceItem.declaredMembers.addDeclaredConstructor(baseName, item);
   }
 
   void _addInterfaceElementExecutables({
@@ -429,7 +373,8 @@ class LibraryManifestBuilder {
     encodingContext.withTypeParameters(element.typeParameters2, (
       typeParameters,
     ) {
-      mixinItem.members.clear();
+      mixinItem.declaredMembers.clear();
+      mixinItem.interface.clear();
       _addInterfaceElementExecutables(
         encodingContext: encodingContext,
         instanceElement: element,
@@ -616,10 +561,49 @@ class LibraryManifestBuilder {
       newManifests[libraryUri] = newManifest;
     }
 
-    _addInheritedInterfaceElementsExecutables();
+    _fillInterfaceElementsInterface();
     _addClassTypeAliasConstructors();
 
     return newManifests;
+  }
+
+  void _fillInterfaceElementInterface(InterfaceElementImpl2 element) {
+    // We don't create items for elements without name.
+    if (element.lookupName == null) {
+      return;
+    }
+
+    // Must be created already.
+    var item = declaredItems[element] as InterfaceItem;
+
+    var interface = element.inheritanceManager.getInterface2(element);
+    for (var entry in interface.map2.entries) {
+      var executable = entry.value.baseElement;
+
+      var lookupName = executable.lookupName?.asLookupName;
+      if (lookupName == null) {
+        continue;
+      }
+
+      // We can see a private member only inside the library.
+      // But we reanalyze the library when one of its files changes.
+      if (lookupName.isPrivate) {
+        continue;
+      }
+
+      var id = _getInterfaceElementMemberId(executable);
+      item.interface.map[lookupName] = id;
+    }
+  }
+
+  void _fillInterfaceElementsInterface() {
+    for (var libraryElement in libraryElements) {
+      for (var element in libraryElement.children2) {
+        if (element is InterfaceElementImpl2) {
+          _fillInterfaceElementInterface(element);
+        }
+      }
+    }
   }
 
   void _fillItemMapFromInputManifests({
@@ -914,7 +898,7 @@ class _LibraryMatch {
       if (executable.isStatic) {
         if (!_matchInstanceElementExecutable(
           interfaceMatchContext: matchContext,
-          members: item.members,
+          members: item.declaredMembers,
           executable: executable,
         )) {
           structureMismatched.add(executable);
@@ -956,7 +940,7 @@ class _LibraryMatch {
     for (var constructor in interfaceElement.constructors2) {
       if (!_matchInterfaceElementConstructor(
         interfaceMatchContext: matchContext,
-        members: item.members,
+        members: item.declaredMembers,
         element: constructor,
       )) {
         structureMismatched.add(constructor);
@@ -976,7 +960,7 @@ class _LibraryMatch {
         executable as ExecutableElementImpl2;
         if (!_matchInstanceElementExecutable(
           interfaceMatchContext: matchContext,
-          members: item.members,
+          members: item.declaredMembers,
           executable: executable,
         )) {
           structureMismatched.add(executable);

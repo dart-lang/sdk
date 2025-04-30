@@ -20,10 +20,11 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
     required super.id,
     required super.metadata,
     required super.typeParameters,
+    required super.declaredMembers,
+    required super.interface,
     required super.supertype,
     required super.mixins,
     required super.interfaces,
-    required super.members,
   });
 
   factory ClassItem.fromElement({
@@ -38,10 +39,11 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata2),
         typeParameters: typeParameters,
+        declaredMembers: {},
+        interface: ManifestInterface.empty(),
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
-        members: {},
       );
     });
   }
@@ -51,7 +53,8 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      members: BaseNameMembers.readMap(reader),
+      declaredMembers: BaseNameMembers.readMap(reader),
+      interface: ManifestInterface.read(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
@@ -69,17 +72,25 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
 sealed class InstanceItem<E extends InstanceElementImpl2>
     extends TopLevelItem<E> {
   final List<ManifestTypeParameter> typeParameters;
-  final Map<BaseName, BaseNameMembers> members;
+
+  /// This name is almost truth, it contains declared constructors, methods,
+  /// getters, and setters; both instance and static. But for class type
+  /// aliases it also has "inherited" constructors, references to the
+  /// superclass constructors.
+  final Map<BaseName, BaseNameMembers> declaredMembers;
+
+  final ManifestInterface interface;
 
   InstanceItem({
     required super.id,
     required super.metadata,
     required this.typeParameters,
-    required this.members,
+    required this.declaredMembers,
+    required this.interface,
   });
 
   ManifestItemId? getConstructorId(LookupName name) {
-    var baseNameMembers = members[name.asBaseName];
+    var baseNameMembers = declaredMembers[name.asBaseName];
     if (baseNameMembers == null) {
       return null;
     }
@@ -87,8 +98,8 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     return baseNameMembers.constructorId;
   }
 
-  ManifestItemId? getMemberId(LookupName name) {
-    var baseNameMembers = members[name.asBaseName];
+  ManifestItemId? getDeclaredMemberId(LookupName name) {
+    var baseNameMembers = declaredMembers[name.asBaseName];
     if (baseNameMembers == null) {
       return null;
     }
@@ -104,11 +115,16 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     return baseNameMembers.getterOrMethodId;
   }
 
+  ManifestItemId? getInterfaceMethodId(LookupName name) {
+    return getDeclaredMemberId(name);
+  }
+
   @override
   void write(BufferedSink sink) {
     super.write(sink);
     typeParameters.writeList(sink);
-    members.write(sink);
+    declaredMembers.write(sink);
+    interface.write(sink);
   }
 }
 
@@ -331,11 +347,17 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
     required super.id,
     required super.metadata,
     required super.typeParameters,
-    required super.members,
+    required super.declaredMembers,
+    required super.interface,
     required this.supertype,
     required this.mixins,
     required this.interfaces,
   });
+
+  @override
+  ManifestItemId? getInterfaceMethodId(LookupName name) {
+    return interface.map[name];
+  }
 
   @override
   bool match(MatchContext context, E element) {
@@ -458,6 +480,38 @@ class ManifestAnnotation {
   }
 }
 
+/// Manifest version of `Interface` computed by `InheritanceManager`.
+///
+/// We store only IDs of the interface members, but not type substitutions,
+/// because in order to invoke any of these members, you need an instance
+/// of the class for this [InterfaceItem]. And any code that can give such
+/// instance will reference the class name, directly as a type annotation, or
+/// indirectly by invoking a function that references the class as a return
+/// type. So, any such code depends on the header of the class, so includes
+/// the type arguments for the class that declares the inherited member.
+class ManifestInterface {
+  /// The map of names to their IDs in the interface.
+  final Map<LookupName, ManifestItemId> map;
+
+  ManifestInterface({required this.map});
+
+  factory ManifestInterface.empty() {
+    return ManifestInterface(map: {});
+  }
+
+  factory ManifestInterface.read(SummaryDataReader reader) {
+    return ManifestInterface(map: LookupNameIdMapExtension.read(reader));
+  }
+
+  void clear() {
+    map.clear();
+  }
+
+  void write(BufferedSink sink) {
+    map.write(sink);
+  }
+}
+
 sealed class ManifestItem<E extends AnnotatableElementImpl> {
   /// The unique identifier of this item.
   final ManifestItemId id;
@@ -532,7 +586,8 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
     required super.supertype,
     required super.interfaces,
     required super.mixins,
-    required super.members,
+    required super.declaredMembers,
+    required super.interface,
     required this.superclassConstraints,
   }) : assert(supertype == null),
        assert(mixins.isEmpty),
@@ -550,10 +605,11 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata2),
         typeParameters: typeParameters,
+        declaredMembers: {},
+        interface: ManifestInterface.empty(),
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
-        members: {},
         superclassConstraints: element.superclassConstraints.encode(context),
       );
     });
@@ -564,7 +620,8 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
       id: ManifestItemId.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      members: BaseNameMembers.readMap(reader),
+      declaredMembers: BaseNameMembers.readMap(reader),
+      interface: ManifestInterface.read(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
@@ -756,6 +813,23 @@ enum _ManifestItemKind {
   topLevelFunction,
   topLevelGetter,
   topLevelSetter,
+}
+
+extension LookupNameIdMapExtension on Map<LookupName, ManifestItemId> {
+  void write(BufferedSink sink) {
+    sink.writeMap(
+      this,
+      writeKey: (name) => name.write(sink),
+      writeValue: (items) => items.write(sink),
+    );
+  }
+
+  static Map<LookupName, ManifestItemId> read(SummaryDataReader reader) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => ManifestItemId.read(reader),
+    );
+  }
 }
 
 extension _AnnotatableElementExtension on AnnotatableElementImpl {

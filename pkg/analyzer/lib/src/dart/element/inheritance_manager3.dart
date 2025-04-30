@@ -326,10 +326,6 @@ class InheritanceManager3 {
     int forMixinIndex = -1,
     bool forSuper = false,
   }) {
-    globalResultRequirements?.notifyInterfaceRequest(
-      element: element.asElement2,
-      nameObj: name,
-    );
     var interface = getInterface(element);
     if (forSuper) {
       if (element is ExtensionTypeFragmentImpl) {
@@ -349,7 +345,14 @@ class InheritanceManager3 {
     if (concrete) {
       return interface.implemented[name];
     }
-    return interface.map[name];
+
+    var result = interface.map[name];
+    globalResultRequirements?.notifyInterfaceRequest(
+      element: element.asElement2,
+      nameObj: name,
+      methodElement: result?.asElement2,
+    );
+    return result;
   }
 
   /// Returns the result of [getMember4] with [type] substitution.

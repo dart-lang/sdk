@@ -334,7 +334,7 @@ class RequirementsManifest {
         var methods = interfaceEntry.value.methods;
         for (var methodEntry in methods.entries) {
           var methodName = methodEntry.key;
-          var methodId = interfaceItem.getMemberId(methodName);
+          var methodId = interfaceItem.getInterfaceMethodId(methodName);
           var expectedId = methodEntry.value;
           if (expectedId != methodId) {
             return InstanceMethodIdMismatch(
@@ -381,6 +381,7 @@ class RequirementsManifest {
   void notifyInterfaceRequest({
     required InterfaceElementImpl2 element,
     required Name nameObj,
+    required ExecutableElement? methodElement,
   }) {
     // Skip private names, cannot be used outside this library.
     if (!nameObj.isPublic) {
@@ -394,7 +395,21 @@ class RequirementsManifest {
 
     var (interfaceItem, interface) = interfacePair;
     var methodName = nameObj.name.asLookupName;
-    var methodId = interfaceItem.getMemberId(methodName);
+    var methodId = interfaceItem.getInterfaceMethodId(methodName);
+
+    // Check for consistency between the actual interface and manifest.
+    if (methodElement != null) {
+      if (methodId == null) {
+        var qName = _qualifiedMethodName(element, methodName);
+        throw StateError('Expected ID for $qName');
+      }
+    } else {
+      if (methodId != null) {
+        var qName = _qualifiedMethodName(element, methodName);
+        throw StateError('Expected no ID for $qName');
+      }
+    }
+
     interface.methods[methodName] = methodId;
   }
 
@@ -532,6 +547,15 @@ class RequirementsManifest {
     var interfaceRequirements =
         interfacesMap[interfaceName] ??= InterfaceRequirements.empty();
     return (interfaceItem, interfaceRequirements);
+  }
+
+  String _qualifiedMethodName(
+    InterfaceElementImpl2 element,
+    LookupName methodName,
+  ) {
+    return '${element.library2.uri}'
+        '${element.displayName}.'
+        '${methodName.asString}';
   }
 }
 

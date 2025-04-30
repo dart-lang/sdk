@@ -54,26 +54,6 @@ class BaseNameConflict extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return this;
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    return this;
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return this;
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    return this;
-  }
-
-  @override
   void write(BufferedSink sink) {
     sink.writeEnum(_BaseNameItemsKind.conflict);
     id.write(sink);
@@ -113,7 +93,7 @@ class BaseNameConstructor extends BaseNameMembers {
     } else {
       return BaseNameConstructorGetter(
         constructor: constructor,
-        getter: DeclaredGetter(getter),
+        getter: getter,
       );
     }
   }
@@ -125,7 +105,7 @@ class BaseNameConstructor extends BaseNameMembers {
     } else {
       return BaseNameConstructorMethod(
         constructor: constructor,
-        method: DeclaredMethod(method),
+        method: method,
       );
     }
   }
@@ -137,7 +117,7 @@ class BaseNameConstructor extends BaseNameMembers {
     } else {
       return BaseNameConstructorSetter(
         constructor: constructor,
-        setter: DeclaredSetter(setter),
+        setter: setter,
       );
     }
   }
@@ -145,30 +125,6 @@ class BaseNameConstructor extends BaseNameMembers {
   @override
   BaseNameMembers addInheritedConstructor(ManifestItemId id) {
     return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConstructorGetter(
-      constructor: constructor,
-      getter: InheritedGetter(id),
-    );
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConstructorMethod(
-      constructor: constructor,
-      method: InheritedMethod(id),
-    );
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    return BaseNameConstructorSetter(
-      constructor: constructor,
-      setter: InheritedSetter(id),
-    );
   }
 
   @override
@@ -180,7 +136,7 @@ class BaseNameConstructor extends BaseNameMembers {
 
 class BaseNameConstructorGetter extends BaseNameMembers {
   final DeclaredOrInheritedConstructor constructor;
-  final DeclaredOrInheritedGetter getter;
+  final InstanceItemGetterItem getter;
 
   BaseNameConstructorGetter({required this.constructor, required this.getter})
     : assert(!getter.isStatic);
@@ -188,7 +144,7 @@ class BaseNameConstructorGetter extends BaseNameMembers {
   factory BaseNameConstructorGetter.read(SummaryDataReader reader) {
     return BaseNameConstructorGetter(
       constructor: DeclaredOrInheritedConstructor.read(reader),
-      getter: DeclaredOrInheritedGetter.read(reader),
+      getter: InstanceItemGetterItem.read(reader),
     );
   }
 
@@ -201,8 +157,8 @@ class BaseNameConstructorGetter extends BaseNameMembers {
   }
 
   @override
-  InstanceItemGetterItem? get declaredGetter {
-    return getter.item;
+  InstanceItemGetterItem get declaredGetter {
+    return getter;
   }
 
   @override
@@ -221,18 +177,9 @@ class BaseNameConstructorGetter extends BaseNameMembers {
       return BaseNameConstructorGetterSetter(
         constructor: constructor,
         getter: getter,
-        setter: DeclaredSetter(setter),
+        setter: setter,
       );
     }
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    return BaseNameConstructorGetterSetter(
-      constructor: constructor,
-      getter: getter,
-      setter: InheritedSetter(id),
-    );
   }
 
   @override
@@ -245,8 +192,8 @@ class BaseNameConstructorGetter extends BaseNameMembers {
 
 class BaseNameConstructorGetterSetter extends BaseNameMembers {
   final DeclaredOrInheritedConstructor constructor;
-  final DeclaredOrInheritedGetter getter;
-  final DeclaredOrInheritedSetter setter;
+  final InstanceItemGetterItem getter;
+  final InstanceItemSetterItem setter;
 
   BaseNameConstructorGetterSetter({
     required this.constructor,
@@ -258,8 +205,8 @@ class BaseNameConstructorGetterSetter extends BaseNameMembers {
   factory BaseNameConstructorGetterSetter.read(SummaryDataReader reader) {
     return BaseNameConstructorGetterSetter(
       constructor: DeclaredOrInheritedConstructor.read(reader),
-      getter: DeclaredOrInheritedGetter.read(reader),
-      setter: DeclaredOrInheritedSetter.read(reader),
+      getter: InstanceItemGetterItem.read(reader),
+      setter: InstanceItemSetterItem.read(reader),
     );
   }
 
@@ -272,13 +219,13 @@ class BaseNameConstructorGetterSetter extends BaseNameMembers {
   }
 
   @override
-  InstanceItemGetterItem? get declaredGetter {
-    return getter.item;
+  InstanceItemGetterItem get declaredGetter {
+    return getter;
   }
 
   @override
-  InstanceItemSetterItem? get declaredSetter {
-    return setter.item;
+  InstanceItemSetterItem get declaredSetter {
+    return setter;
   }
 
   @override
@@ -303,7 +250,7 @@ class BaseNameConstructorGetterSetter extends BaseNameMembers {
 
 class BaseNameConstructorMethod extends BaseNameMembers {
   final DeclaredOrInheritedConstructor constructor;
-  final DeclaredOrInheritedMethod method;
+  final InstanceItemMethodItem method;
 
   BaseNameConstructorMethod({required this.constructor, required this.method})
     : assert(!method.isStatic);
@@ -311,7 +258,7 @@ class BaseNameConstructorMethod extends BaseNameMembers {
   factory BaseNameConstructorMethod.read(SummaryDataReader reader) {
     return BaseNameConstructorMethod(
       constructor: DeclaredOrInheritedConstructor.read(reader),
-      method: DeclaredOrInheritedMethod.read(reader),
+      method: InstanceItemMethodItem.read(reader),
     );
   }
 
@@ -324,8 +271,8 @@ class BaseNameConstructorMethod extends BaseNameMembers {
   }
 
   @override
-  InstanceItemMethodItem? get declaredMethod {
-    return method.item;
+  InstanceItemMethodItem get declaredMethod {
+    return method;
   }
 
   @override
@@ -347,11 +294,6 @@ class BaseNameConstructorMethod extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
   void write(BufferedSink sink) {
     sink.writeEnum(_BaseNameItemsKind.constructorMethod);
     constructor.write(sink);
@@ -361,7 +303,7 @@ class BaseNameConstructorMethod extends BaseNameMembers {
 
 class BaseNameConstructorSetter extends BaseNameMembers {
   final DeclaredOrInheritedConstructor constructor;
-  final DeclaredOrInheritedSetter setter;
+  final InstanceItemSetterItem setter;
 
   BaseNameConstructorSetter({required this.constructor, required this.setter})
     : assert(!setter.isStatic);
@@ -369,7 +311,7 @@ class BaseNameConstructorSetter extends BaseNameMembers {
   factory BaseNameConstructorSetter.read(SummaryDataReader reader) {
     return BaseNameConstructorSetter(
       constructor: DeclaredOrInheritedConstructor.read(reader),
-      setter: DeclaredOrInheritedSetter.read(reader),
+      setter: InstanceItemSetterItem.read(reader),
     );
   }
 
@@ -382,8 +324,8 @@ class BaseNameConstructorSetter extends BaseNameMembers {
   }
 
   @override
-  InstanceItemSetterItem? get declaredSetter {
-    return setter.item;
+  InstanceItemSetterItem get declaredSetter {
+    return setter;
   }
 
   @override
@@ -391,20 +333,6 @@ class BaseNameConstructorSetter extends BaseNameMembers {
 
   @override
   BaseNameMembers addDeclaredSetter(InstanceItemSetterItem setter) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConstructorGetterSetter(
-      constructor: constructor,
-      getter: InheritedGetter(id),
-      setter: setter,
-    );
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
     return BaseNameConflict();
   }
 
@@ -417,17 +345,17 @@ class BaseNameConstructorSetter extends BaseNameMembers {
 }
 
 class BaseNameGetter extends BaseNameMembers {
-  final DeclaredOrInheritedGetter getter;
+  final InstanceItemGetterItem getter;
 
   BaseNameGetter({required this.getter});
 
   factory BaseNameGetter.read(SummaryDataReader reader) {
-    return BaseNameGetter(getter: DeclaredOrInheritedGetter.read(reader));
+    return BaseNameGetter(getter: InstanceItemGetterItem.read(reader));
   }
 
   @override
-  InstanceItemGetterItem? get declaredGetter {
-    return getter.item;
+  InstanceItemGetterItem get declaredGetter {
+    return getter;
   }
 
   @override
@@ -443,7 +371,7 @@ class BaseNameGetter extends BaseNameMembers {
     if (getter.isStatic != setter.isStatic) {
       return BaseNameConflict();
     }
-    return BaseNameGetterSetter(getter: getter, setter: DeclaredSetter(setter));
+    return BaseNameGetterSetter(getter: getter, setter: setter);
   }
 
   @override
@@ -459,24 +387,6 @@ class BaseNameGetter extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    if (getter.isStatic) {
-      return BaseNameConflict();
-    }
-    return BaseNameGetterSetter(getter: getter, setter: InheritedSetter(id));
-  }
-
-  @override
   void write(BufferedSink sink) {
     sink.writeEnum(_BaseNameItemsKind.getter);
     getter.write(sink);
@@ -484,8 +394,8 @@ class BaseNameGetter extends BaseNameMembers {
 }
 
 class BaseNameGetterSetter extends BaseNameMembers {
-  final DeclaredOrInheritedGetter getter;
-  final DeclaredOrInheritedSetter setter;
+  final InstanceItemGetterItem getter;
+  final InstanceItemSetterItem setter;
 
   BaseNameGetterSetter({required this.getter, required this.setter})
     : assert(
@@ -495,19 +405,19 @@ class BaseNameGetterSetter extends BaseNameMembers {
 
   factory BaseNameGetterSetter.read(SummaryDataReader reader) {
     return BaseNameGetterSetter(
-      getter: DeclaredOrInheritedGetter.read(reader),
-      setter: DeclaredOrInheritedSetter.read(reader),
+      getter: InstanceItemGetterItem.read(reader),
+      setter: InstanceItemSetterItem.read(reader),
     );
   }
 
   @override
-  InstanceItemGetterItem? get declaredGetter {
-    return getter.item;
+  InstanceItemGetterItem get declaredGetter {
+    return getter;
   }
 
   @override
-  InstanceItemSetterItem? get declaredSetter {
-    return setter.item;
+  InstanceItemSetterItem get declaredSetter {
+    return setter;
   }
 
   @override
@@ -535,21 +445,6 @@ class BaseNameGetterSetter extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
   void write(BufferedSink sink) {
     sink.writeEnum(_BaseNameItemsKind.getterSetter);
     getter.write(sink);
@@ -558,17 +453,17 @@ class BaseNameGetterSetter extends BaseNameMembers {
 }
 
 class BaseNameIndexEq extends BaseNameMembers {
-  final DeclaredOrInheritedMethod indexEq;
+  final InstanceItemMethodItem indexEq;
 
   BaseNameIndexEq({required this.indexEq});
 
   factory BaseNameIndexEq.read(SummaryDataReader reader) {
-    return BaseNameIndexEq(indexEq: DeclaredOrInheritedMethod.read(reader));
+    return BaseNameIndexEq(indexEq: InstanceItemMethodItem.read(reader));
   }
 
   @override
-  InstanceItemMethodItem? get declaredIndexEq {
-    return indexEq.item;
+  InstanceItemMethodItem get declaredIndexEq {
+    return indexEq;
   }
 
   @override
@@ -581,15 +476,7 @@ class BaseNameIndexEq extends BaseNameMembers {
 
   @override
   BaseNameMembers addDeclaredMethod(InstanceItemMethodItem method) {
-    return BaseNameMethodIndexEq(
-      method: DeclaredMethod(method),
-      indexEq: indexEq,
-    );
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameMethodIndexEq(method: InheritedMethod(id), indexEq: indexEq);
+    return BaseNameMethodIndexEq(method: method, indexEq: indexEq);
   }
 
   @override
@@ -676,22 +563,6 @@ sealed class BaseNameMembers {
     _unexpectedTransition();
   }
 
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    _unexpectedTransition();
-  }
-
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    _unexpectedTransition();
-  }
-
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    _unexpectedTransition();
-  }
-
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    _unexpectedTransition();
-  }
-
   void write(BufferedSink sink);
 
   /// The current implementation iterates over members in a specific order:
@@ -723,17 +594,17 @@ sealed class BaseNameMembers {
 }
 
 class BaseNameMethod extends BaseNameMembers {
-  final DeclaredOrInheritedMethod method;
+  final InstanceItemMethodItem method;
 
   BaseNameMethod({required this.method});
 
   factory BaseNameMethod.read(SummaryDataReader reader) {
-    return BaseNameMethod(method: DeclaredOrInheritedMethod.read(reader));
+    return BaseNameMethod(method: InstanceItemMethodItem.read(reader));
   }
 
   @override
-  InstanceItemMethodItem? get declaredMethod {
-    return method.item;
+  InstanceItemMethodItem get declaredMethod {
+    return method;
   }
 
   @override
@@ -746,10 +617,7 @@ class BaseNameMethod extends BaseNameMembers {
 
   @override
   BaseNameMembers addDeclaredIndexEq(InstanceItemMethodItem indexEq) {
-    return BaseNameMethodIndexEq(
-      method: method,
-      indexEq: DeclaredMethod(indexEq),
-    );
+    return BaseNameMethodIndexEq(method: method, indexEq: indexEq);
   }
 
   @override
@@ -775,26 +643,6 @@ class BaseNameMethod extends BaseNameMembers {
   }
 
   @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedIndexEq(ManifestItemId id) {
-    return BaseNameMethodIndexEq(method: method, indexEq: InheritedMethod(id));
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
   void write(BufferedSink sink) {
     sink.writeEnum(_BaseNameItemsKind.method);
     method.write(sink);
@@ -802,26 +650,26 @@ class BaseNameMethod extends BaseNameMembers {
 }
 
 class BaseNameMethodIndexEq extends BaseNameMembers {
-  final DeclaredOrInheritedMethod method;
-  final DeclaredOrInheritedMethod indexEq;
+  final InstanceItemMethodItem method;
+  final InstanceItemMethodItem indexEq;
 
   BaseNameMethodIndexEq({required this.method, required this.indexEq});
 
   factory BaseNameMethodIndexEq.read(SummaryDataReader reader) {
     return BaseNameMethodIndexEq(
-      method: DeclaredOrInheritedMethod.read(reader),
-      indexEq: DeclaredOrInheritedMethod.read(reader),
+      method: InstanceItemMethodItem.read(reader),
+      indexEq: InstanceItemMethodItem.read(reader),
     );
   }
 
   @override
-  InstanceItemMethodItem? get declaredIndexEq {
-    return indexEq.item;
+  InstanceItemMethodItem get declaredIndexEq {
+    return indexEq;
   }
 
   @override
-  InstanceItemMethodItem? get declaredMethod {
-    return method.item;
+  InstanceItemMethodItem get declaredMethod {
+    return method;
   }
 
   @override
@@ -844,17 +692,17 @@ class BaseNameMethodIndexEq extends BaseNameMembers {
 }
 
 class BaseNameSetter extends BaseNameMembers {
-  final DeclaredOrInheritedSetter setter;
+  final InstanceItemSetterItem setter;
 
   BaseNameSetter({required this.setter});
 
   factory BaseNameSetter.read(SummaryDataReader reader) {
-    return BaseNameSetter(setter: DeclaredOrInheritedSetter.read(reader));
+    return BaseNameSetter(setter: InstanceItemSetterItem.read(reader));
   }
 
   @override
-  InstanceItemSetterItem? get declaredSetter {
-    return setter.item;
+  InstanceItemSetterItem get declaredSetter {
+    return setter;
   }
 
   @override
@@ -875,24 +723,6 @@ class BaseNameSetter extends BaseNameMembers {
         setter: setter,
       );
     }
-  }
-
-  @override
-  BaseNameMembers addInheritedGetter(ManifestItemId id) {
-    if (setter.isStatic) {
-      return BaseNameConflict();
-    }
-    return BaseNameGetterSetter(getter: InheritedGetter(id), setter: setter);
-  }
-
-  @override
-  BaseNameMembers addInheritedMethod(ManifestItemId id) {
-    return BaseNameConflict();
-  }
-
-  @override
-  BaseNameMembers addInheritedSetter(ManifestItemId id) {
-    return BaseNameConflict();
   }
 
   @override
@@ -922,52 +752,6 @@ class DeclaredConstructor extends DeclaredOrInheritedConstructor {
   }
 }
 
-class DeclaredGetter extends DeclaredOrInheritedGetter {
-  @override
-  final InstanceItemGetterItem item;
-
-  DeclaredGetter(this.item);
-
-  factory DeclaredGetter.read(SummaryDataReader reader) {
-    return DeclaredGetter(InstanceItemGetterItem.read(reader));
-  }
-
-  @override
-  ManifestItemId get id => item.id;
-
-  @override
-  bool get isStatic => item.isStatic;
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_DeclaredOrInheritedKind.declared);
-    item.write(sink);
-  }
-}
-
-class DeclaredMethod extends DeclaredOrInheritedMethod {
-  @override
-  final InstanceItemMethodItem item;
-
-  DeclaredMethod(this.item);
-
-  factory DeclaredMethod.read(SummaryDataReader reader) {
-    return DeclaredMethod(InstanceItemMethodItem.read(reader));
-  }
-
-  @override
-  ManifestItemId get id => item.id;
-
-  @override
-  bool get isStatic => item.isStatic;
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_DeclaredOrInheritedKind.declared);
-    item.write(sink);
-  }
-}
-
 sealed class DeclaredOrInheritedConstructor {
   DeclaredOrInheritedConstructor();
 
@@ -988,95 +772,6 @@ sealed class DeclaredOrInheritedConstructor {
   void write(BufferedSink sink);
 }
 
-sealed class DeclaredOrInheritedGetter {
-  DeclaredOrInheritedGetter();
-
-  factory DeclaredOrInheritedGetter.read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_DeclaredOrInheritedKind.values);
-    switch (kind) {
-      case _DeclaredOrInheritedKind.declared:
-        return DeclaredGetter.read(reader);
-      case _DeclaredOrInheritedKind.inherited:
-        return InheritedGetter.read(reader);
-    }
-  }
-
-  ManifestItemId get id;
-
-  bool get isStatic;
-
-  InstanceItemGetterItem? get item => null;
-
-  void write(BufferedSink sink);
-}
-
-sealed class DeclaredOrInheritedMethod {
-  DeclaredOrInheritedMethod();
-
-  factory DeclaredOrInheritedMethod.read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_DeclaredOrInheritedKind.values);
-    switch (kind) {
-      case _DeclaredOrInheritedKind.declared:
-        return DeclaredMethod.read(reader);
-      case _DeclaredOrInheritedKind.inherited:
-        return InheritedMethod.read(reader);
-    }
-  }
-
-  ManifestItemId get id;
-
-  bool get isStatic;
-
-  InstanceItemMethodItem? get item => null;
-
-  void write(BufferedSink sink);
-}
-
-sealed class DeclaredOrInheritedSetter {
-  DeclaredOrInheritedSetter();
-
-  factory DeclaredOrInheritedSetter.read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_DeclaredOrInheritedKind.values);
-    switch (kind) {
-      case _DeclaredOrInheritedKind.declared:
-        return DeclaredSetter.read(reader);
-      case _DeclaredOrInheritedKind.inherited:
-        return InheritedSetter.read(reader);
-    }
-  }
-
-  ManifestItemId get id;
-
-  bool get isStatic;
-
-  InstanceItemSetterItem? get item => null;
-
-  void write(BufferedSink sink);
-}
-
-class DeclaredSetter extends DeclaredOrInheritedSetter {
-  @override
-  final InstanceItemSetterItem item;
-
-  DeclaredSetter(this.item);
-
-  factory DeclaredSetter.read(SummaryDataReader reader) {
-    return DeclaredSetter(InstanceItemSetterItem.read(reader));
-  }
-
-  @override
-  ManifestItemId get id => item.id;
-
-  @override
-  bool get isStatic => item.isStatic;
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_DeclaredOrInheritedKind.declared);
-    item.write(sink);
-  }
-}
-
 class InheritedConstructor extends DeclaredOrInheritedConstructor {
   @override
   final ManifestItemId id;
@@ -1086,73 +781,6 @@ class InheritedConstructor extends DeclaredOrInheritedConstructor {
   factory InheritedConstructor.read(SummaryDataReader reader) {
     return InheritedConstructor(ManifestItemId.read(reader));
   }
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_DeclaredOrInheritedKind.inherited);
-    id.write(sink);
-  }
-}
-
-class InheritedGetter extends DeclaredOrInheritedGetter {
-  @override
-  final ManifestItemId id;
-
-  InheritedGetter(this.id);
-
-  factory InheritedGetter.read(SummaryDataReader reader) {
-    return InheritedGetter(ManifestItemId.read(reader));
-  }
-
-  @override
-  bool get isStatic => false;
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_DeclaredOrInheritedKind.inherited);
-    id.write(sink);
-  }
-}
-
-/// We store only IDs of the inherited members, but not type substitutions,
-/// because in order to invoke any of these members, you need an instance
-/// of the class for this [InterfaceItem]. And any code that can give such
-/// instance will reference the class name, directly as a type annotation, or
-/// indirectly by invoking a function that references the class as a return
-/// type. So, any such code depends on the header of the class, so includes
-/// the type arguments for the class that declares the inherited member.
-class InheritedMethod extends DeclaredOrInheritedMethod {
-  @override
-  final ManifestItemId id;
-
-  InheritedMethod(this.id);
-
-  factory InheritedMethod.read(SummaryDataReader reader) {
-    return InheritedMethod(ManifestItemId.read(reader));
-  }
-
-  @override
-  bool get isStatic => false;
-
-  @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_DeclaredOrInheritedKind.inherited);
-    id.write(sink);
-  }
-}
-
-class InheritedSetter extends DeclaredOrInheritedSetter {
-  @override
-  final ManifestItemId id;
-
-  InheritedSetter(this.id);
-
-  factory InheritedSetter.read(SummaryDataReader reader) {
-    return InheritedSetter(ManifestItemId.read(reader));
-  }
-
-  @override
-  bool get isStatic => false;
 
   @override
   void write(BufferedSink sink) {
@@ -1196,7 +824,7 @@ extension BaseNameItemsMapExtension on Map<BaseName, BaseNameMembers> {
   void addDeclaredGetter(BaseName name, InstanceItemGetterItem getter) {
     var existing = this[name];
     if (existing == null) {
-      this[name] = BaseNameGetter(getter: DeclaredGetter(getter));
+      this[name] = BaseNameGetter(getter: getter);
     } else {
       this[name] = existing.addDeclaredGetter(getter);
     }
@@ -1205,7 +833,7 @@ extension BaseNameItemsMapExtension on Map<BaseName, BaseNameMembers> {
   void addDeclaredIndexEq(BaseName name, InstanceItemMethodItem method) {
     var existing = this[name];
     if (existing == null) {
-      this[name] = BaseNameIndexEq(indexEq: DeclaredMethod(method));
+      this[name] = BaseNameIndexEq(indexEq: method);
     } else {
       this[name] = existing.addDeclaredIndexEq(method);
     }
@@ -1214,7 +842,7 @@ extension BaseNameItemsMapExtension on Map<BaseName, BaseNameMembers> {
   void addDeclaredMethod(BaseName name, InstanceItemMethodItem method) {
     var existing = this[name];
     if (existing == null) {
-      this[name] = BaseNameMethod(method: DeclaredMethod(method));
+      this[name] = BaseNameMethod(method: method);
     } else {
       this[name] = existing.addDeclaredMethod(method);
     }
@@ -1223,7 +851,7 @@ extension BaseNameItemsMapExtension on Map<BaseName, BaseNameMembers> {
   void addDeclaredSetter(BaseName name, InstanceItemSetterItem setter) {
     var existing = this[name];
     if (existing == null) {
-      this[name] = BaseNameSetter(setter: DeclaredSetter(setter));
+      this[name] = BaseNameSetter(setter: setter);
     } else {
       this[name] = existing.addDeclaredSetter(setter);
     }
@@ -1235,42 +863,6 @@ extension BaseNameItemsMapExtension on Map<BaseName, BaseNameMembers> {
       this[name] = BaseNameConstructor(constructor: InheritedConstructor(id));
     } else {
       this[name] = existing.addInheritedConstructor(id);
-    }
-  }
-
-  void addInheritedGetter(BaseName name, ManifestItemId id) {
-    var existing = this[name];
-    if (existing == null) {
-      this[name] = BaseNameGetter(getter: InheritedGetter(id));
-    } else {
-      this[name] = existing.addInheritedGetter(id);
-    }
-  }
-
-  void addInheritedIndexEq(BaseName name, ManifestItemId id) {
-    var existing = this[name];
-    if (existing == null) {
-      this[name] = BaseNameIndexEq(indexEq: InheritedMethod(id));
-    } else {
-      this[name] = existing.addInheritedIndexEq(id);
-    }
-  }
-
-  void addInheritedMethod(BaseName name, ManifestItemId id) {
-    var existing = this[name];
-    if (existing == null) {
-      this[name] = BaseNameMethod(method: InheritedMethod(id));
-    } else {
-      this[name] = existing.addInheritedMethod(id);
-    }
-  }
-
-  void addInheritedSetter(BaseName name, ManifestItemId id) {
-    var existing = this[name];
-    if (existing == null) {
-      this[name] = BaseNameSetter(setter: InheritedSetter(id));
-    } else {
-      this[name] = existing.addInheritedSetter(id);
     }
   }
 

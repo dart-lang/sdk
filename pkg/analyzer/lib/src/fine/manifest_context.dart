@@ -303,14 +303,14 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     }
 
     // TODO(scheglov): When implementation is complete, cast unconditionally.
-    if (topLevelItem is InstanceItem) {
+    if (topLevelItem is InterfaceItem) {
       var memberName = memberElement.lookupName!.asLookupName;
       if (element is ConstructorElement) {
         return topLevelItem.getConstructorId(memberName);
       }
-      var memberId = topLevelItem.getMemberId(memberName);
+      var methodId = topLevelItem.getInterfaceMethodId(memberName);
       // TODO(scheglov): When implementation is complete, null assert.
-      return memberId;
+      return methodId;
     }
 
     return null;
