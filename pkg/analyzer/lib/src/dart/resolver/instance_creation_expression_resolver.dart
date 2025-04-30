@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] and
@@ -71,6 +73,25 @@ class InstanceCreationExpressionResolver {
 
     // TODO(kallentu): Support other context types
     if (dotShorthandContextType is InterfaceTypeImpl) {
+      // This branch will be true if we're resolving an explicitly marked
+      // const constructor invocation. It's completely unresolved, unlike a
+      // rewritten [DotShorthandConstructorInvocation] that resulted from
+      // resolving a [DotShorthandInvocation].
+      if (node.element == null) {
+        var contextElement = dotShorthandContextType.element3;
+        if (contextElement.getNamedConstructor2(node.constructorName.name)
+            case ConstructorElementImpl2 element?
+            when element.isAccessibleIn2(_resolver.definingLibrary)) {
+          node.element = element;
+        } else {
+          _resolver.errorReporter.atNode(
+            node.constructorName,
+            CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+            arguments: [contextType, node.constructorName.name],
+          );
+        }
+      }
+
       _resolveDotShorthandConstructorInvocation(
         node,
         contextType: contextType,

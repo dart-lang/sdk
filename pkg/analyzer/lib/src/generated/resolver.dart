@@ -2411,6 +2411,30 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    covariant DotShorthandConstructorInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    _instanceCreationExpressionResolver.resolveDotShorthand(
+      node,
+      contextType: contextType,
+    );
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(
     covariant DotShorthandInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,

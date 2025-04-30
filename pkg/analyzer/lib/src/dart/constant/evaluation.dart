@@ -876,6 +876,30 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
+  Constant visitDotShorthandConstructorInvocation(
+    covariant DotShorthandConstructorInvocationImpl node,
+  ) {
+    var constructor = node.constructorName.element;
+    if (constructor is ConstructorElementMixin2) {
+      return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
+        _library,
+        node,
+        constructor.returnType.typeArguments,
+        node.argumentList.arguments,
+        constructor.asElement,
+        this,
+      );
+    }
+
+    // Couldn't resolve the constructor so we can't compute a value.  No
+    // problem - the error has already been reported.
+    return InvalidConstant.forEntity(
+      entity: node,
+      errorCode: CompileTimeErrorCode.INVALID_CONSTANT,
+    );
+  }
+
+  @override
   Constant visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
   ) {

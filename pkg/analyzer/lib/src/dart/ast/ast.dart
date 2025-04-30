@@ -5210,8 +5210,18 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 abstract final class DotShorthandConstructorInvocation
     extends InvocationExpression
     implements ConstructorReferenceNode {
+  /// The `const` keyword, or `null` if the expression isn't preceded by the
+  /// keyword `const`.
+  Token? get constKeyword;
+
   /// The name of the constructor invocation.
   SimpleIdentifier get constructorName;
+
+  /// Whether this dot shorthand constructor invocation will be evaluated at
+  /// compile-time, either because the keyword `const` was explicitly provided
+  /// or because no keyword was provided and this expression is in a constant
+  /// context.
+  bool get isConst;
 
   /// The token representing the period.
   Token get period;
@@ -5219,11 +5229,15 @@ abstract final class DotShorthandConstructorInvocation
 
 final class DotShorthandConstructorInvocationImpl
     extends InvocationExpressionImpl
+    with DotShorthandMixin
     implements
         DotShorthandConstructorInvocation,
         RewrittenMethodInvocationImpl {
   @override
   final Token period;
+
+  @override
+  Token? constKeyword;
 
   SimpleIdentifierImpl _constructorName;
 
@@ -5232,6 +5246,7 @@ final class DotShorthandConstructorInvocationImpl
 
   /// Initializes a newly created dot shorthand constructor invocation.
   DotShorthandConstructorInvocationImpl({
+    required this.constKeyword,
     required this.period,
     required SimpleIdentifierImpl constructorName,
     required super.typeArguments,
@@ -5241,7 +5256,7 @@ final class DotShorthandConstructorInvocationImpl
   }
 
   @override
-  Token get beginToken => period;
+  Token get beginToken => constKeyword ?? period;
 
   @override
   SimpleIdentifierImpl get constructorName => _constructorName;
@@ -5257,11 +5272,17 @@ final class DotShorthandConstructorInvocationImpl
   ExpressionImpl get function => constructorName;
 
   @override
+  bool get isConst {
+    return constKeyword?.keyword == Keyword.CONST || inConstantContext;
+  }
+
+  @override
   Precedence get precedence => Precedence.postfix;
 
   @override
   ChildEntities get _childEntities =>
       ChildEntities()
+        ..addToken('const', constKeyword)
         ..addToken('period', period)
         ..addNode('constructorName', constructorName)
         ..addNode('typeArguments', typeArguments)
@@ -5273,9 +5294,9 @@ final class DotShorthandConstructorInvocationImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError(
-      'DotShorthandConstructorInvocationImpl should only appear in fully'
-      ' resolved ASTs',
+    resolver.visitDotShorthandConstructorInvocation(
+      this,
+      contextType: contextType,
     );
   }
 
@@ -10300,7 +10321,7 @@ abstract final class InstanceCreationExpression implements Expression {
   /// The name of the constructor to be invoked.
   ConstructorName get constructorName;
 
-  /// Whether this creation expression is used to invoke a constant constructor,
+  /// Whether this creation expression will be evaluated at compile-time,
   /// either because the keyword `const` was explicitly provided or because no
   /// keyword was provided and this expression is in a constant context.
   bool get isConst;

@@ -151,9 +151,8 @@ class DotShorthandConstructorInvocationInferrer
   @override
   SimpleIdentifierImpl get _errorEntity => node.constructorName;
 
-  // TODO(kallentu): Implement const constructors.
   @override
-  bool get _isConst => false;
+  bool get _isConst => node.isConst;
 
   @override
   bool get _needsTypeArgumentBoundsCheck => true;

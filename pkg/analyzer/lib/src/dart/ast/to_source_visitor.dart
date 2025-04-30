@@ -352,6 +352,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
+    _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.period);
     _visitNode(node.constructorName);
     _visitNode(node.typeArguments);

@@ -1272,8 +1272,10 @@ class MethodInvocationResolver with ScopeHelpers {
     if (receiver.getNamedConstructor2(name)
         case ConstructorElementImpl2 element?
         when element.isAccessibleIn2(_resolver.definingLibrary)) {
-      nameNode.element = element;
+      // TODO(kallentu): Produce an error if there are type arguments for this
+      // constructor.
       var replacement = DotShorthandConstructorInvocationImpl(
+        constKeyword: null,
         period: node.period,
         constructorName: nameNode,
         typeArguments: node.typeArguments,

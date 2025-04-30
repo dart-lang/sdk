@@ -1619,7 +1619,17 @@ class AstBuilder extends StackListener {
       );
     }
 
-    // TODO(kallentu): Handle dot shorthands.
+    var dotShorthand = pop() as DotShorthandInvocationImpl;
+    // TODO(kallentu): Report error if there are type arguments here.
+    push(
+      DotShorthandConstructorInvocationImpl(
+        constKeyword: token,
+        period: dotShorthand.period,
+        constructorName: dotShorthand.memberName,
+        typeArguments: dotShorthand.typeArguments,
+        argumentList: dotShorthand.argumentList,
+      )..isDotShorthand = dotShorthand.isDotShorthand,
+    );
   }
 
   @override
