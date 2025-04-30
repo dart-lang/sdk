@@ -50,18 +50,17 @@ class ExpectedDiagnostic {
   /// The offset of the beginning of the diagnostic's region.
   final int _offset;
 
-  /// The offset of the beginning of the diagnostic's region.
+  /// The length of the diagnostic's region.
   final int _length;
 
   /// A pattern that should be contained in the diagnostic message or `null` if
   /// the message contents should not be checked.
   final Pattern? _messageContains;
 
-  // A pattern that should be contained in the error's correction message, or
-  // `null` if the correction message contents should not be checked.
+  /// A pattern that should be contained in the error's correction message, or
+  /// `null` if the correction message contents should not be checked.
   final Pattern? _correctionContains;
 
-  /// Initialize a newly created diagnostic description.
   ExpectedDiagnostic(
     this._diagnosticMatcher,
     this._offset,
@@ -96,6 +95,7 @@ mixin LanguageVersion219Mixin on PubPackageResolutionTest {
 }
 
 abstract class LintRuleTest extends PubPackageResolutionTest {
+  /// The name of the lint rule which this test is concerned with.
   String get lintRule;
 
   @override
@@ -107,6 +107,12 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     return [ruleName];
   }
 
+  /// Returns an "expected diagnostic" for [lintRule] (or [name], if given) at
+  /// [offset] and [length].
+  ///
+  /// If given, [messageContains] is used to match against a diagnostic's
+  /// message, and [correctionContains] is used to match against a diagnostic's
+  /// correction message.
   ExpectedDiagnostic lint(
     int offset,
     int length, {
@@ -125,20 +131,41 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
 class PubPackageResolutionTest extends _ContextResolutionTest {
   final List<String> _lintRules = const [];
 
+  /// Adds the 'fixnum' package as a dependency to the package-under-test.
+  ///
+  /// This allows `package:fixnum/fixnum.dart` imports to resolve.
   bool get addFixnumPackageDep => false;
 
+  /// Adds the 'flutter' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:flutter/` imports to resolve.
   bool get addFlutterPackageDep => false;
 
+  /// Adds the 'js' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:js/` imports to resolve.
   bool get addJsPackageDep => false;
 
+  /// Adds the 'kernel' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:kernel/` imports to resolve.
   bool get addKernelPackageDep => false;
 
+  /// Adds the 'meta' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:meta/` imports to resolve.
   bool get addMetaPackageDep => false;
 
+  /// Adds the 'test_reflective_loader' package as a dependency to the
+  /// package-under-test.
+  ///
+  /// This allows various `package:test_reflective_loader/` imports to resolve.
   bool get addTestReflectiveLoaderPackageDep => false;
 
+  /// Whether to print out the syntax tree being tested, on a test failure.
   bool get dumpAstOnFailures => true;
 
+  /// The list of language experiments to be enabled for these tests.
   List<String> get experiments => experimentsForTests;
 
   String get testFileName => 'test.dart';
@@ -146,6 +173,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   @override
   String get testFilePath => '$testPackageLibPath/$testFileName';
 
+  /// The language version for the package-under-test.
+  ///
+  /// Used for writing out a package config file. A `null` value means no
+  /// 'languageVersion' is written to the package config file.
   String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
