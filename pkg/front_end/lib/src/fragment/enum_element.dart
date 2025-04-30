@@ -261,7 +261,11 @@ class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
 
 class EnumElementDeclaration
     with FieldDeclarationMixin
-    implements FieldDeclaration, Inferable, InferredTypeListener {
+    implements
+        FieldDeclaration,
+        GetterDeclaration,
+        Inferable,
+        InferredTypeListener {
   final EnumElementFragment _fragment;
 
   Field? _field;
@@ -323,7 +327,7 @@ class EnumElementDeclaration
   }
 
   @override
-  void buildOutlineExpressions(
+  void buildFieldOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -349,7 +353,7 @@ class EnumElementDeclaration
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
+  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
       NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
       {required List<TypeParameter>? classTypeParameters}) {
     _field = new Field.immutable(dummyName,
@@ -509,16 +513,16 @@ class EnumElementDeclaration
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
+  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkVariance(
+  void checkFieldVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+  int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
     return 0;
   }
 
@@ -529,12 +533,6 @@ class EnumElementDeclaration
       Set<ClassMember>? getterOverrideDependencies,
       Set<ClassMember>? setterOverrideDependencies) {
     inferType(membersBuilder.hierarchyBuilder);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedMemberReferences(FieldReference references) {
-    return [references.fieldGetterReference];
   }
 
   @override
@@ -564,13 +562,7 @@ class EnumElementDeclaration
       [new _EnumElementClassMember(builder, _fragment)];
 
   @override
-  List<ClassMember> get localSetters => const [];
-
-  @override
   Member get readTarget => _field!;
-
-  @override
-  Member? get writeTarget => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -616,6 +608,57 @@ class EnumElementDeclaration
   GetterQuality get getterQuality => GetterQuality.Implicit;
 
   @override
+  void buildGetterOutlineExpressions(
+      {required ClassHierarchy classHierarchy,
+      required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required SourcePropertyBuilder propertyBuilder,
+      required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required bool isClassInstanceMember}) {}
+
+  @override
+  void buildGetterOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required PropertyReferences? references,
+      required List<TypeParameter>? classTypeParameters}) {}
+
+  @override
+  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+
+  @override
   // Coverage-ignore(suite): Not run.
-  SetterQuality get setterQuality => SetterQuality.Absent;
+  void checkGetterVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
+    return 0;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void createGetterEncoding(
+      ProblemReporting problemReporting,
+      SourcePropertyBuilder builder,
+      PropertyEncodingStrategy encodingStrategy,
+      List<NominalParameterBuilder> unboundNominalParameters) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void ensureGetterTypes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required DeclarationBuilder? declarationBuilder,
+      required ClassMembersBuilder membersBuilder,
+      required Set<ClassMember>? getterOverrideDependencies}) {}
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> getExportedGetterReferences(
+      PropertyReferences references) {
+    return [references.getterReference!];
+  }
 }

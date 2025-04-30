@@ -36,9 +36,9 @@ abstract class GetterDeclaration {
 
   List<MetadataBuilder>? get metadata;
 
-  Procedure get readTarget;
+  Member get readTarget;
 
-  void buildOutlineExpressions(
+  void buildGetterOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -47,34 +47,37 @@ abstract class GetterDeclaration {
       required Uri annotatableFileUri,
       required bool isClassInstanceMember});
 
-  void buildOutlineNode(
+  void buildGetterOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required List<TypeParameter>? classTypeParameters});
 
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
+  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder);
 
-  void checkVariance(
+  void checkGetterVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context);
+  int computeGetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createEncoding(
+  void createGetterEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
       List<NominalParameterBuilder> unboundNominalParameters);
 
-  void ensureTypes(
+  void ensureGetterTypes(
       {required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
       required ClassMembersBuilder membersBuilder,
       required Set<ClassMember>? getterOverrideDependencies});
 
-  Iterable<Reference> getExportedMemberReferences(GetterReference references);
+  Iterable<Reference> getExportedGetterReferences(
+      PropertyReferences references);
+
+  List<ClassMember> get localMembers;
 }
 
 class GetterDeclarationImpl
@@ -137,7 +140,7 @@ class GetterDeclarationImpl
   }
 
   @override
-  void buildOutlineExpressions(
+  void buildGetterOutlineExpressions(
       {required ClassHierarchy classHierarchy,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -156,11 +159,11 @@ class GetterDeclarationImpl
   }
 
   @override
-  void buildOutlineNode(
+  void buildGetterOutlineNode(
       {required SourceLibraryBuilder libraryBuilder,
       required NameScheme nameScheme,
       required BuildNodesCallback f,
-      required GetterReference? references,
+      required PropertyReferences? references,
       required List<TypeParameter>? classTypeParameters}) {
     _encoding.buildOutlineNode(
         libraryBuilder: libraryBuilder,
@@ -173,7 +176,7 @@ class GetterDeclarationImpl
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder,
+  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {
     _encoding.checkTypes(libraryBuilder, typeEnvironment, setterBuilder,
         isAbstract: _fragment.modifiers.isAbstract,
@@ -181,13 +184,13 @@ class GetterDeclarationImpl
   }
 
   @override
-  void checkVariance(
+  void checkGetterVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     _encoding.checkVariance(sourceClassBuilder, typeEnvironment);
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+  int computeGetterDefaultTypes(ComputeDefaultTypeContext context) {
     return _encoding.computeDefaultTypes(context);
   }
 
@@ -201,7 +204,7 @@ class GetterDeclarationImpl
   }
 
   @override
-  void createEncoding(
+  void createGetterEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
@@ -220,7 +223,7 @@ class GetterDeclarationImpl
   }
 
   @override
-  void ensureTypes(
+  void ensureGetterTypes(
       {required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
       required ClassMembersBuilder membersBuilder,
@@ -237,13 +240,18 @@ class GetterDeclarationImpl
   }
 
   @override
-  Iterable<Reference> getExportedMemberReferences(GetterReference references) =>
-      [references.getterReference];
+  Iterable<Reference> getExportedGetterReferences(
+          PropertyReferences references) =>
+      [references.getterReference!];
 
   @override
   VariableDeclaration getFormalParameter(int index) {
     return _encoding.getFormalParameter(index);
   }
+
+  @override
+  List<ClassMember> get localMembers =>
+      [new GetterClassMember(_fragment.builder)];
 }
 
 /// Interface for using a [GetterFragment] to create a [BodyBuilderContext].

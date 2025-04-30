@@ -2450,6 +2450,10 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
   final bool isInstanceMember =
       containerType != ContainerType.Library && !fragment.modifiers.isStatic;
 
+  PropertyEncodingStrategy propertyEncodingStrategy =
+      new PropertyEncodingStrategy(declarationBuilder,
+          isInstanceMember: isInstanceMember);
+
   NameScheme nameScheme = new NameScheme(
       isInstanceMember: isInstanceMember,
       containerName: containerName,
@@ -2473,10 +2477,18 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
       declarationBuilder: declarationBuilder,
       nameScheme: nameScheme,
       fieldDeclaration: declaration,
+      getterDeclaration: declaration,
+      setterDeclaration: fragment.hasSetter ? declaration : null,
       modifiers: fragment.modifiers,
       references: references);
   fragment.builder = propertyBuilder;
   declaration.createEncoding(propertyBuilder);
+  declaration.createGetterEncoding(problemReporting, propertyBuilder,
+      propertyEncodingStrategy, unboundNominalParameters);
+  if (fragment.hasSetter) {
+    declaration.createSetterEncoding(problemReporting, propertyBuilder,
+        propertyEncodingStrategy, unboundNominalParameters);
+  }
   references.registerReference(loader, propertyBuilder);
   return new _AddBuilder(
       fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
@@ -2562,10 +2574,10 @@ _AddBuilder _createGetterBuilder(
     augmentations.clear();
   }
 
-  declaration.createEncoding(problemReporting, propertyBuilder,
+  declaration.createGetterEncoding(problemReporting, propertyBuilder,
       propertyEncodingStrategy, unboundNominalParameters);
   for (GetterDeclaration augmentation in augmentationDeclarations) {
-    augmentation.createEncoding(problemReporting, propertyBuilder,
+    augmentation.createGetterEncoding(problemReporting, propertyBuilder,
         propertyEncodingStrategy, unboundNominalParameters);
   }
 
@@ -2655,10 +2667,10 @@ _AddBuilder _createSetterBuilder(
     augmentations.clear();
   }
 
-  declaration.createEncoding(problemReporting, propertyBuilder,
+  declaration.createSetterEncoding(problemReporting, propertyBuilder,
       propertyEncodingStrategy, unboundNominalParameters);
   for (SetterDeclaration augmentation in augmentationDeclarations) {
-    augmentation.createEncoding(problemReporting, propertyBuilder,
+    augmentation.createSetterEncoding(problemReporting, propertyBuilder,
         propertyEncodingStrategy, unboundNominalParameters);
   }
 
@@ -3220,6 +3232,8 @@ _AddBuilder _createEnumElementBuilder(EnumElementFragment fragment,
   FieldReference references = new FieldReference(
       fragment.name, nameScheme, indexedContainer,
       fieldIsLateWithLowering: false, isExternal: false);
+  EnumElementDeclaration enumElementDeclaration =
+      new EnumElementDeclaration(fragment);
   SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
@@ -3227,7 +3241,9 @@ _AddBuilder _createEnumElementBuilder(EnumElementFragment fragment,
       libraryBuilder: enclosingLibraryBuilder,
       declarationBuilder: declarationBuilder,
       nameScheme: nameScheme,
-      fieldDeclaration: new EnumElementDeclaration(fragment),
+      fieldDeclaration: enumElementDeclaration,
+      getterDeclaration: enumElementDeclaration,
+      setterDeclaration: null,
       modifiers: Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
       references: references);
   fragment.builder = propertyBuilder;

@@ -64,7 +64,7 @@ sealed class FieldEncoding {
   /// Returns the field that holds the field value at runtime.
   Field get field;
 
-  /// The [Member] built during [SourceFieldBuilder.buildOutlineExpressions].
+  /// The [Member] built during [FieldDeclaration.buildFieldOutlineExpressions].
   Member get builtMember;
 
   /// Returns the members that holds the field annotations.
@@ -963,7 +963,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, _fragment.name)
           .attachMember(_getter!);
-      if (!_fragment.modifiers.isFinal) {
+      if (_fragment.hasSetter) {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = _fragment.modifiers.isCovariant
@@ -1263,6 +1263,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
   Reference get readTargetReference => _getter.reference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -1284,6 +1285,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
       ];
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters => const [];
 
   @override
