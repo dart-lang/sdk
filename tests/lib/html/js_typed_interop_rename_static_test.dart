@@ -48,9 +48,10 @@ class Foo {
 }
 
 main() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
 window.JSFoo = {
   'JSBar': 42,
   'JSBar2': 80,
@@ -59,7 +60,8 @@ window.JSFoo = {
 window.JSTopLevelField = 91;
 window.topLevelFieldNoRename = 8;
 window.topLevelMethod = function(a) { return a * 2; };
-""");
+""",
+  );
 
   group('rename static', () {
     test('getter', () {
@@ -71,12 +73,16 @@ window.topLevelMethod = function(a) { return a * 2; };
 
     test('setter', () {
       Foo.baz = 100;
-      expect(js_util.getProperty(js_util.getProperty(window, 'JSFoo'), 'JSBaz'),
-          equals(100));
+      expect(
+        js_util.getProperty(js_util.getProperty(window, 'JSFoo'), 'JSBaz'),
+        equals(100),
+      );
       Foo.bar = 30;
       expect(Foo.bar, equals(30));
-      expect(js_util.getProperty(js_util.getProperty(window, 'JSFoo'), 'JSBar'),
-          equals(30));
+      expect(
+        js_util.getProperty(js_util.getProperty(window, 'JSFoo'), 'JSBar'),
+        equals(30),
+      );
       topLevelFieldOnlySetter = 83;
       expect(topLevelFieldOnlyGetter, 83);
       topLevelSetterNoRename = 10;

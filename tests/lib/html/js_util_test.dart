@@ -55,9 +55,12 @@ main() {
   test('callMethod', () {
     var canvas = new CanvasElement();
     expect(
-        identical(canvas.getContext('2d'),
-            js_util.callMethod(canvas, 'getContext', ['2d'])),
-        isTrue);
+      identical(
+        canvas.getContext('2d'),
+        js_util.callMethod(canvas, 'getContext', ['2d']),
+      ),
+      isTrue,
+    );
   });
 
   test('instanceof', () {

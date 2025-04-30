@@ -46,15 +46,24 @@ main() {
 
     // (cx - r/SQRT2, cy - r/SQRT2) should be empty.
     expectPixelFilled(
-        (cx - r / sqrt2).toInt(), (cy + r / sqrt2).toInt(), false);
+      (cx - r / sqrt2).toInt(),
+      (cy + r / sqrt2).toInt(),
+      false,
+    );
 
     // (cx + r/SQRT2, cy + r/SQRT2) should be empty.
     expectPixelFilled(
-        (cx - r / sqrt2).toInt(), (cy - r / sqrt2).toInt(), false);
+      (cx - r / sqrt2).toInt(),
+      (cy - r / sqrt2).toInt(),
+      false,
+    );
 
     // (cx - r/SQRT2, cy - r/SQRT2) should be empty.
     expectPixelFilled(
-        (cx + r / sqrt2).toInt(), (cy - r / sqrt2).toInt(), false);
+      (cx + r / sqrt2).toInt(),
+      (cy - r / sqrt2).toInt(),
+      false,
+    );
   });
 
   test('arc anticlockwise', () {
@@ -89,7 +98,10 @@ main() {
 
     // (cx + r/SQRT2, cy + r/SQRT2) should be empty.
     expectPixelFilled(
-        (cx + r / sqrt2).toInt(), (cy + r / sqrt2).toInt(), false);
+      (cx + r / sqrt2).toInt(),
+      (cy + r / sqrt2).toInt(),
+      false,
+    );
 
     // (cx - r/SQRT2, cy - r/SQRT2) should be filled.
     expectPixelFilled((cx - r / sqrt2).toInt(), (cy + r / sqrt2).toInt(), true);

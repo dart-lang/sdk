@@ -43,21 +43,23 @@ main() {
       loaded.add(f2);
     });
     expect(atLeastOneFont, isTrue);
-    return Future.wait(loaded).then(expectAsync((_) async {
-      document.fonts!.forEach((fontFace, _, __) {
-        expect(fontFace.status, 'loaded');
-      });
-      expect(loaded.length, 3);
-      for (var loadedEntry in loaded) {
-        var fontFace = await loadedEntry;
-        expect(fontFace.status, 'loaded');
-        var fontFamily = fontFace.family!;
-        if (fontFamily.startsWith('"')) {
-          // FF wraps family in quotes - remove the quotes.
-          fontFamily = fontFamily.substring(1, fontFamily.length - 1);
+    return Future.wait(loaded).then(
+      expectAsync((_) async {
+        document.fonts!.forEach((fontFace, _, __) {
+          expect(fontFace.status, 'loaded');
+        });
+        expect(loaded.length, 3);
+        for (var loadedEntry in loaded) {
+          var fontFace = await loadedEntry;
+          expect(fontFace.status, 'loaded');
+          var fontFamily = fontFace.family!;
+          if (fontFamily.startsWith('"')) {
+            // FF wraps family in quotes - remove the quotes.
+            fontFamily = fontFamily.substring(1, fontFamily.length - 1);
+          }
+          expect(fontFamily, 'Ahem');
         }
-        expect(fontFamily, 'Ahem');
-      }
-    }));
+      }),
+    );
   });
 }

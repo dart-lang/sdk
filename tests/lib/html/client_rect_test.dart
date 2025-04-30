@@ -7,14 +7,20 @@ import 'dart:html';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isRectList =
-      predicate((x) => x is DomRectList, 'should be a DomRectList');
-  var isListOfRectangle =
-      predicate((x) => x is List<Rectangle>, 'should be a List<Rectangle>');
+  var isRectList = predicate(
+    (x) => x is DomRectList,
+    'should be a DomRectList',
+  );
+  var isListOfRectangle = predicate(
+    (x) => x is List<Rectangle>,
+    'should be a List<Rectangle>',
+  );
 
   var isRectangle = predicate((x) => x is Rectangle, 'should be a Rectangle');
-  var isDomRectReadOnly =
-      predicate((x) => x is DomRectReadOnly, 'should be a DomRectReadOnly');
+  var isDomRectReadOnly = predicate(
+    (x) => x is DomRectReadOnly,
+    'should be a DomRectReadOnly',
+  );
 
   insertTestDiv() {
     var element = new Element.tag('div');

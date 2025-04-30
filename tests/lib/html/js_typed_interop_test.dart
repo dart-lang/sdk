@@ -11,9 +11,10 @@ import 'package:js/js.dart';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 _injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
   "use strict";
 
   var Foo = {
@@ -93,7 +94,8 @@ _injectJs() {
   }
   window.windowProperty = 42;
   document.documentProperty = 45;
-""");
+""",
+  );
 }
 
 class RegularClass {
@@ -301,9 +303,43 @@ main() {
       // methods.
       expect(untypedFunction(6, 6, "ignored", "ignored"), equals(36));
       expect(
-          untypedFunction(6, 6, "ignored", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-          equals(36));
+        untypedFunction(
+          6,
+          6,
+          "ignored",
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+        ),
+        equals(36),
+      );
       // Calling a JavaScript method with too few arguments is also fine and
       // defaults to JavaScript behavior of setting all unspecified arguments
       // to undefined resulting in multiplying undefined by 2 == NAN.
@@ -341,31 +377,45 @@ main() {
       var wrappedLocalClosure2 = allowInterop(localClosure);
       expect(identical(wrappedLocalClosure2, wrappedLocalClosure), isTrue);
       expect(foo.callClosureWithArg1(wrappedLocalClosure, 10), equals(100));
-      expect(foo.callClosureWithArg1(wrappedLocalClosure, "a"),
-          equals("aaaaaaaaaa"));
-      expect(foo.callClosureWithArg1(allowInterop(addWithDefault), 10),
-          equals(110));
-      expect(foo.callClosureWithArg2(allowInterop(addWithDefault), 10, 20),
-          equals(30));
+      expect(
+        foo.callClosureWithArg1(wrappedLocalClosure, "a"),
+        equals("aaaaaaaaaa"),
+      );
+      expect(
+        foo.callClosureWithArg1(allowInterop(addWithDefault), 10),
+        equals(110),
+      );
+      expect(
+        foo.callClosureWithArg2(allowInterop(addWithDefault), 10, 20),
+        equals(30),
+      );
       addThisXAndArg(Foo that, int arg) {
         return foo.x + arg;
       }
 
-      dynamic wrappedCaptureThisClosure =
-          allowInteropCaptureThis(addThisXAndArg);
+      dynamic wrappedCaptureThisClosure = allowInteropCaptureThis(
+        addThisXAndArg,
+      );
       expect(wrappedCaptureThisClosure is Function, isTrue);
       expect(wrappedCaptureThisClosure is Map, isFalse);
       expect(wrappedCaptureThisClosure is Object, isTrue);
       foo.x = 20;
-      expect(foo.callClosureWithArgAndThis(wrappedCaptureThisClosure, 10),
-          equals(30));
-      foo.x = 50;
-      expect(foo.callClosureWithArgAndThis(wrappedCaptureThisClosure, 10),
-          equals(60));
       expect(
-          identical(allowInteropCaptureThis(addThisXAndArg),
-              wrappedCaptureThisClosure),
-          isTrue);
+        foo.callClosureWithArgAndThis(wrappedCaptureThisClosure, 10),
+        equals(30),
+      );
+      foo.x = 50;
+      expect(
+        foo.callClosureWithArgAndThis(wrappedCaptureThisClosure, 10),
+        equals(60),
+      );
+      expect(
+        identical(
+          allowInteropCaptureThis(addThisXAndArg),
+          wrappedCaptureThisClosure,
+        ),
+        isTrue,
+      );
 
       ExampleLiteral addXValues(that, ExampleLiteral arg) {
         return new ExampleLiteral(x: that.x + arg.x);
@@ -374,19 +424,26 @@ main() {
       // Check to make sure returning a JavaScript value from a Dart closure
       // works as expected.
       expect(
-          foo
-              .callClosureWithArg2(allowInterop(addXValues),
-                  new ExampleLiteral(x: 20), new ExampleLiteral(x: 10))
-              .x,
-          equals(30));
+        foo
+            .callClosureWithArg2(
+              allowInterop(addXValues),
+              new ExampleLiteral(x: 20),
+              new ExampleLiteral(x: 10),
+            )
+            .x,
+        equals(30),
+      );
 
       foo.x = 50;
       expect(
-          foo
-              .callClosureWithArgAndThis(allowInteropCaptureThis(addXValues),
-                  new ExampleLiteral(x: 10))
-              .x,
-          equals(60));
+        foo
+            .callClosureWithArgAndThis(
+              allowInteropCaptureThis(addXValues),
+              new ExampleLiteral(x: 10),
+            )
+            .x,
+        equals(60),
+      );
     });
 
     test('call from dart', () {

@@ -25,11 +25,13 @@ Future testWheelEvent() async {
       done.completeError(e);
     }
   });
-  var event = new WheelEvent(eventType,
-      deltaX: 0,
-      deltaY: 240,
-      deltaMode: WheelEvent.DOM_DELTA_PAGE,
-      screenX: 100);
+  var event = new WheelEvent(
+    eventType,
+    deltaX: 0,
+    deltaY: 240,
+    deltaMode: WheelEvent.DOM_DELTA_PAGE,
+    screenX: 100,
+  );
   element.dispatchEvent(event);
   await done.future;
 }

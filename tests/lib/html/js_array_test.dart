@@ -13,9 +13,10 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 import 'json_helper.dart' as json_helper;
 
 _injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
 ArrayTest = {};
 ArrayTest.Util = {
   callJsMethod: function(jsObj, jsMethodName, args) {
@@ -155,7 +156,8 @@ ArrayTest.Util = {
   newLiteral: function() { return {}; },
 
 };
-""");
+""",
+  );
 }
 
 @JS()
@@ -250,7 +252,11 @@ external setValue(obj, index, value);
 
 @JS()
 external callListMethodOnTarget(
-    List target, object, String methodName, List args);
+  List target,
+  object,
+  String methodName,
+  List args,
+);
 
 @JS()
 external newArray();
@@ -316,8 +322,10 @@ main() {
     var listWithDartClasses = [3, new Foo(), 42, "foo", new Object()];
     test('default', () {
       expect(callJsMethod(list, "join", []), equals("3,42,foo"));
-      expect(callJsMethod(listWithDartClasses, "join", []),
-          equals("3,${new Foo()},42,foo,${new Object()}"));
+      expect(
+        callJsMethod(listWithDartClasses, "join", []),
+        equals("3,${new Foo()},42,foo,${new Object()}"),
+      );
     });
 
     test('custom separator', () {
@@ -547,7 +555,7 @@ main() {
       var ret = callJsMethod(list, "concat", [
         ["c", "d"],
         "e",
-        ["f", "g"]
+        ["f", "g"],
       ]);
       expect(list.length, equals(2));
       expect(ret, equals(["a", "b", "c", "d", "e", "f", "g"]));
@@ -637,8 +645,10 @@ main() {
       callListMethodOnObject(jsObject, 'push', ["c", "d"]);
       callListMethodOnObject(jsObject, 'push', []);
 
-      expect(json_helper.stringify(jsObject),
-          equals('{"0":"a","1":"b","2":"c","3":"d","length":4}'));
+      expect(
+        json_helper.stringify(jsObject),
+        equals('{"0":"a","1":"b","2":"c","3":"d","length":4}'),
+      );
 
       expect(callListMethodOnObject(jsObject, 'pop', []), equals("d"));
       expect(callListMethodOnObject(jsObject, 'join', ["#"]), equals("a#b#c"));

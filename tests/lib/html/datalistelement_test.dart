@@ -7,8 +7,10 @@ import 'dart:html';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isDataListElement =
-      predicate((x) => x is DataListElement, 'is a DataListElement');
+  var isDataListElement = predicate(
+    (x) => x is DataListElement,
+    'is a DataListElement',
+  );
 
   var div;
 

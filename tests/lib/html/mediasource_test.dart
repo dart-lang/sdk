@@ -33,8 +33,10 @@ main() {
     test('media types', () {
       if (MediaSource.supported) {
         expect(MediaSource.isTypeSupported('text/html'), false);
-        expect(MediaSource.isTypeSupported('video/webm;codecs="vp8,vorbis"'),
-            true);
+        expect(
+          MediaSource.isTypeSupported('video/webm;codecs="vp8,vorbis"'),
+          true,
+        );
       }
     });
   });

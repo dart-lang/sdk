@@ -6,8 +6,10 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 import 'dart:html';
 
 main() {
-  var isGamepadList =
-      predicate((x) => x is List<Gamepad?>, 'is a List<Gamepad?>');
+  var isGamepadList = predicate(
+    (x) => x is List<Gamepad?>,
+    'is a List<Gamepad?>',
+  );
 
   insertTestDiv() {
     var element = new Element.tag('div');

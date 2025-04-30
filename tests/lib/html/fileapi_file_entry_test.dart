@@ -25,8 +25,9 @@ main() {
     final fs = await window.requestFileSystem(100);
     var file =
         await fs.root!.createFile('${prefix}file_$testName') as FileEntry;
-    var dir = await fs.root!.createDirectory('${prefix}dir_$testName')
-        as DirectoryEntry;
+    var dir =
+        await fs.root!.createDirectory('${prefix}dir_$testName')
+            as DirectoryEntry;
     return new Future.value(new FileAndDir(file, dir));
   }
 
@@ -44,7 +45,8 @@ main() {
     expect(fileObj.name, fileAndDir.file.name);
     expect(fileObj.relativePath, '');
     expect(
-        new DateTime.now().difference(fileObj.lastModifiedDate).inMinutes < 30,
-        isTrue);
+      new DateTime.now().difference(fileObj.lastModifiedDate).inMinutes < 30,
+      isTrue,
+    );
   });
 }

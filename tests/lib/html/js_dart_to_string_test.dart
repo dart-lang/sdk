@@ -11,14 +11,16 @@ import 'package:js/js.dart';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 _injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
 
   function jsToStringViaCoercion(a) {
     return a + '';
   };
-""");
+""",
+  );
 }
 
 @JS()

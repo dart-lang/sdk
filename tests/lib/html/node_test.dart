@@ -23,10 +23,14 @@ main() {
   var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');
   var isHRElement = predicate((x) => x is HRElement, 'is a HRElement');
   var isNodeList = predicate((x) => x is List<Node>, 'is a List<Node>');
-  var isImageElement =
-      predicate((x) => x is ImageElement, 'is an ImageElement');
-  var isInputElement =
-      predicate((x) => x is InputElement, 'is an InputElement');
+  var isImageElement = predicate(
+    (x) => x is ImageElement,
+    'is an ImageElement',
+  );
+  var isInputElement = predicate(
+    (x) => x is InputElement,
+    'is an InputElement',
+  );
 
   group('functional', () {
     test('toString', () {
@@ -67,8 +71,9 @@ main() {
     });
 
     test('contains', () {
-      final Node node =
-          new Element.html("<div>Foo<span><div>Bar<div></span></div>");
+      final Node node = new Element.html(
+        "<div>Foo<span><div>Bar<div></span></div>",
+      );
       // IE10 returns false for contains of nodes.
       //expect(node.contains(node.nodes.first), isTrue);
       expect(node.contains(node.nodes[1].nodes.first), isTrue);
@@ -143,8 +148,9 @@ main() {
     });
 
     test('where', () {
-      var filtered =
-          makeNodeWithChildren().nodes.where((n) => n is BRElement).toList();
+      var filtered = makeNodeWithChildren().nodes
+          .where((n) => n is BRElement)
+          .toList();
       expect(filtered.length, 1);
       expect(filtered[0], isBRElement);
       expect(filtered, isNodeList);
@@ -209,7 +215,7 @@ main() {
       node.nodes.addAll([
         new Element.tag('hr'),
         new Element.tag('img'),
-        new Element.tag('input')
+        new Element.tag('input'),
       ]);
       expect(node.nodes[0], isText);
       expect(node.nodes[1], isBRElement);

@@ -13,10 +13,14 @@ main() {
   final element = new Element.html("<div><br/><img/><input/><img/></div>");
   document.body!.nodes.addAll([div, canvas, element]);
 
-  var isCanvasElement =
-      predicate((x) => x is CanvasElement, 'is a CanvasElement');
-  var isImageElement =
-      predicate((x) => x is ImageElement, 'is an ImageElement');
+  var isCanvasElement = predicate(
+    (x) => x is CanvasElement,
+    'is a CanvasElement',
+  );
+  var isImageElement = predicate(
+    (x) => x is ImageElement,
+    'is an ImageElement',
+  );
 
   test('query', () {
     Element? e = querySelector('#testcanvas');

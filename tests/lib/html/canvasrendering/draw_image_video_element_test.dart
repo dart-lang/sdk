@@ -78,7 +78,9 @@ Future testWithThreeParams() async {
   if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
     video.src = webmVideoUrl;
   } else if (video.canPlayType(
-          'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+        'video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+        null,
+      ) !=
       '') {
     video.src = mp4VideoUrl;
   } else {
@@ -113,7 +115,9 @@ Future testWithFiveParams() async {
   if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
     video.src = webmVideoUrl;
   } else if (video.canPlayType(
-          'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+        'video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+        null,
+      ) !=
       '') {
     video.src = mp4VideoUrl;
   } else {
@@ -148,7 +152,9 @@ Future testWithNineParams() async {
   if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
     video.src = webmVideoUrl;
   } else if (video.canPlayType(
-          'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+        'video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+        null,
+      ) !=
       '') {
     video.src = mp4VideoUrl;
   } else {
@@ -160,8 +166,11 @@ Future testWithNineParams() async {
   video.muted = true;
   video.autoplay = true;
   await video.play();
-  context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
-      sourceRect: new Rectangle(2, 2, 6, 6));
+  context.drawImageToRect(
+    video,
+    new Rectangle(50, 50, 20, 20),
+    sourceRect: new Rectangle(2, 2, 6, 6),
+  );
 
   expectPixelFilled(50, 50);
   expectPixelFilled(55, 55);
@@ -187,7 +196,9 @@ Future testDataUrlWithNineParams() async {
   if (video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
     video.src = webmVideoDataUrl;
   } else if (video.canPlayType(
-          'video/mp4; codecs="avc1.4D401E, mp4a.40.2"', null) !=
+        'video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+        null,
+      ) !=
       '') {
     video.src = mp4VideoDataUrl;
   } else {
@@ -199,8 +210,11 @@ Future testDataUrlWithNineParams() async {
   video.muted = true;
   video.autoplay = true;
   await video.play();
-  context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
-      sourceRect: new Rectangle(2, 2, 6, 6));
+  context.drawImageToRect(
+    video,
+    new Rectangle(50, 50, 20, 20),
+    sourceRect: new Rectangle(2, 2, 6, 6),
+  );
 
   expectPixelFilled(50, 50);
   expectPixelFilled(55, 55);

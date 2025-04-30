@@ -72,10 +72,14 @@ main() {
     expect(keys, unorderedEquals(['foo', 'bar']));
     expect(values, unorderedEquals(['foo-value', 'bar-value']));
 
-    expect(new List<String>.from(div.dataset.keys),
-        unorderedEquals(['foo', 'bar']));
-    expect(new List<String>.from(div.dataset.values),
-        unorderedEquals(['foo-value', 'bar-value']));
+    expect(
+      new List<String>.from(div.dataset.keys),
+      unorderedEquals(['foo', 'bar']),
+    );
+    expect(
+      new List<String>.from(div.dataset.values),
+      unorderedEquals(['foo-value', 'bar-value']),
+    );
 
     expect(div.dataset.length, 2);
     expect(div.dataset.isEmpty, isFalse);
@@ -93,13 +97,15 @@ main() {
     expect(div.dataset.isEmpty, isTrue);
 
     Element otherDiv = new Element.html(
-        '<div id="dataDiv" data-my-message="Hello World"></div>',
-        treeSanitizer: new NullTreeSanitizer());
+      '<div id="dataDiv" data-my-message="Hello World"></div>',
+      treeSanitizer: new NullTreeSanitizer(),
+    );
     expect(otherDiv.dataset.containsKey('myMessage'), isTrue);
 
     Element anotherDiv = new Element.html(
-        '<div id="dataDiv" data-eggs="bacon"></div>',
-        treeSanitizer: new NullTreeSanitizer());
+      '<div id="dataDiv" data-eggs="bacon"></div>',
+      treeSanitizer: new NullTreeSanitizer(),
+    );
     expect(anotherDiv.dataset.containsKey('eggs'), isTrue);
   });
 }

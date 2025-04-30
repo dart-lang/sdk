@@ -63,8 +63,9 @@ Future<Null> testDirectParallelOptionsNamed(expectation) {
     keepAlive.add(container);
     var div1 = new DivElement();
     var div2 = new DivElement();
-    var mutationObserver =
-        new MutationObserver(mutationCallback(done, 2, equals([div1, div2])));
+    var mutationObserver = new MutationObserver(
+      mutationCallback(done, 2, equals([div1, div2])),
+    );
     mutationObserver.observe(container, childList: true);
 
     container.append(div1);
@@ -80,8 +81,9 @@ Future<Null> testDirectNestedOptionsNamed(expectation) {
     keepAlive.add(container);
     var div1 = new DivElement();
     var div2 = new DivElement();
-    var mutationObserver =
-        new MutationObserver(mutationCallback(done, 1, equals([div1])));
+    var mutationObserver = new MutationObserver(
+      mutationCallback(done, 1, equals([div1])),
+    );
     mutationObserver.observe(container, childList: true);
 
     container.append(div1);
@@ -97,8 +99,9 @@ Future<Null> testSubtreeOptionsNamed(expectation) {
     keepAlive.add(container);
     var div1 = new DivElement();
     var div2 = new DivElement();
-    var mutationObserver =
-        new MutationObserver(mutationCallback(done, 2, equals([div1, div2])));
+    var mutationObserver = new MutationObserver(
+      mutationCallback(done, 2, equals([div1, div2])),
+    );
     mutationObserver.observe(container, childList: true, subtree: true);
 
     container.append(div1);
