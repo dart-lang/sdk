@@ -1393,6 +1393,8 @@ if (!self.deferred_loader) {
     // the runtime.
     hotRestartGeneration = 0;
 
+    hotRestartInProgress = false;
+
     // TODO(nshahan): Set to true at the start of the hot reload process.
     hotReloadInProgress = false;
 
@@ -1425,6 +1427,11 @@ if (!self.deferred_loader) {
       if (this.hotReloadInProgress
         && this.pendingHotReloadLibraryNames.includes(libraryName)) {
         this.pendingHotReloadLibraryInitializers[libraryName] = initializer;
+      } else if (!libraryManager.hotRestartInProgress
+        && libraryName in this.libraryInitializers) {
+        throw 'Library ' + libraryName +
+        ' was previously defined but DDC is not currently executing a hot ' +
+        ' reload or a hot restart. Failed to define the library.'
       } else {
         this.libraryInitializers[libraryName] = initializer;
       }
@@ -1553,7 +1560,7 @@ if (!self.deferred_loader) {
     }
 
     // See docs on `DartDevEmbedder.runMain`.
-    runMain(entryPointLibraryName, dartSdkRuntimeOptions, capturedMainHandler, mainErrorCallback) {
+    runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
       this.setDartSDKRuntimeOptions(dartSdkRuntimeOptions);
       console.log('Starting application from main method in: ' + entryPointLibraryName + '.');
       let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
@@ -1673,6 +1680,7 @@ if (!self.deferred_loader) {
       console.log('Hot restarting application from main method in: ' +
         this.savedEntryPointLibraryName + ' (generation: ' +
         this.hotRestartGeneration + ').');
+      this.hotRestartInProgress = false;
       this._runMain(entryPointLibrary);
     }
   }
@@ -1691,6 +1699,10 @@ if (!self.deferred_loader) {
   function dartRuntimeLibrary() {
     return libraryManager.initializeAndLinkLibrary('dart:_runtime');
   }
+
+  // Map from Dart file path to its stringified source map. It should only be
+  // set or accessed through the `Debugger`.
+  const sourceMaps = {};
 
   /**
      * Common debugging APIs that may be useful for metadata, invocations,
@@ -1980,13 +1992,27 @@ if (!self.deferred_loader) {
     }
 
     /**
-     * Returns the source map path for a given Dart file, if one was registered.
+     * Entrypoint for DDC-generated code to set a source map for a given
+     * library bundle name.
      *
-     * @param {String} url The path of a Dart file.
-     * @returns {?String} The associated source map location if one exists.
+     * @param {String} libraryBundleName The name of a compiled Dart library bundle.
+     * @param {String} sourceMap The stringified source map.
      */
-    getSourceMap(url) {
-      return dartRuntimeLibrary().getSourceMap(url);
+    // TODO(srujzs): If users shouldn't ever need to use this, can we make this
+    // not accessible for them?
+    setSourceMap(libraryBundleName, sourceMap) {
+      sourceMaps[libraryBundleName] = sourceMap;
+    }
+
+    /**
+     * Returns the source map path for a given library bundle name, if one was
+     * registered.
+     *
+     * @param {String} libraryBundleName The name of a compiled Dart library bundle.
+     * @returns {?String} The stringified source map if it was registered.
+     */
+    getSourceMap(libraryBundleName) {
+      return sourceMaps[libraryBundleName];
     }
   }
 
@@ -2098,6 +2124,7 @@ if (!self.deferred_loader) {
      * and running the main method again.
      */
     async hotRestart() {
+      libraryManager.hotRestartInProgress = true;
       await self.$dartReloadModifiedModules(
         libraryManager.savedEntryPointLibraryName,
         () => { libraryManager.hotRestart(); });
