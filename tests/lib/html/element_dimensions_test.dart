@@ -8,8 +8,10 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 
 main() {
   var isElement = predicate((x) => x is Element, 'is an Element');
-  var isCanvasElement =
-      predicate((x) => x is CanvasElement, 'is a CanvasElement');
+  var isCanvasElement = predicate(
+    (x) => x is CanvasElement,
+    'is a CanvasElement',
+  );
   var isDivElement = predicate((x) => x is DivElement, 'is a isDivElement');
 
   var div = new DivElement();
@@ -35,7 +37,7 @@ main() {
     new Text('Hello'),
     new DivElement(),
     new Text('World'),
-    new CanvasElement()
+    new CanvasElement(),
   ]);
 
   group('dimensions', () {
@@ -231,7 +233,9 @@ main() {
       expect(all1.borderEdge.top, all1[0].getBoundingClientRect().top);
 
       expect(
-          all1.contentEdge.left, all1[0].getBoundingClientRect().left + 1 + 5);
+        all1.contentEdge.left,
+        all1[0].getBoundingClientRect().left + 1 + 5,
+      );
       expect(all1.contentEdge.top, all1[0].getBoundingClientRect().top + 1 + 4);
 
       expect(all1.marginEdge.left, all1[0].getBoundingClientRect().left - 7);

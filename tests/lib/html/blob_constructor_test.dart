@@ -29,8 +29,11 @@ main() {
   test('endings2', () {
     // OPTIONALS var b = new Blob(['A\nB\n'], endings: 'native');
     var b = new Blob(['A\nB\n'], null, 'native');
-    expect(b.size, predicate((x) => x == 4 || x == 6),
-        reason: "b.size should be 4 or 6");
+    expect(
+      b.size,
+      predicate((x) => x == 4 || x == 6),
+      reason: "b.size should be 4 or 6",
+    );
   });
 
   test('twoStrings', () {

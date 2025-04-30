@@ -69,10 +69,14 @@ String pixelDataToString(List<int> data, int x, int y) {
 String _filled(bool v) => v ? "filled" : "unfilled";
 
 void expectPixelFilled(int x, int y, [bool filled = true]) {
-  expect(isPixelFilled(x, y), filled,
-      reason: 'Pixel at ($x, $y) was expected to'
-          ' be: <${_filled(filled)}> but was: <${_filled(!filled)}> with data: '
-          '${pixelDataToString(readPixel(x, y), x, y)}');
+  expect(
+    isPixelFilled(x, y),
+    filled,
+    reason:
+        'Pixel at ($x, $y) was expected to'
+        ' be: <${_filled(filled)}> but was: <${_filled(!filled)}> with data: '
+        '${pixelDataToString(readPixel(x, y), x, y)}',
+  );
 }
 
 void expectPixelUnfilled(int x, int y) {

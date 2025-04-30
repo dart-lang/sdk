@@ -1988,11 +1988,10 @@ class _InvalidAccessVerifier {
     }
 
     if (hasProtected) {
-      var libraryFragment = definingClass.firstFragment.libraryFragment!;
       _errorReporter.atEntity(
         errorEntity,
         WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
-        arguments: [name, libraryFragment.source.uri],
+        arguments: [name, definingClass.displayName],
       );
     }
 

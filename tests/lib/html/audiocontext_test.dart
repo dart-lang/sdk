@@ -11,8 +11,10 @@ import 'package:expect/async_helper.dart';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isAudioContext =
-      predicate((x) => x is AudioContext, 'is an AudioContext');
+  var isAudioContext = predicate(
+    (x) => x is AudioContext,
+    'is an AudioContext',
+  );
 
   group('supported', () {
     test('supported', () {
@@ -45,7 +47,9 @@ main() {
         expect(context.createOscillator() is OscillatorNode, isTrue);
         expect(context.createPanner() is PannerNode, isTrue);
         expect(
-            context.createScriptProcessor(4096) is ScriptProcessorNode, isTrue);
+          context.createScriptProcessor(4096) is ScriptProcessorNode,
+          isTrue,
+        );
       }
     });
 
@@ -101,10 +105,11 @@ main() {
       if (AudioContext.supported) {
         final audioSourceUrl = "/root_dart/tests/lib/html/small.mp3";
 
-        Future<void> requestAudioDecode(
-            {bool triggerDecodeError = false,
-            DecodeSuccessCallback? successCallback,
-            DecodeErrorCallback? errorCallback}) async {
+        Future<void> requestAudioDecode({
+          bool triggerDecodeError = false,
+          DecodeSuccessCallback? successCallback,
+          DecodeErrorCallback? errorCallback,
+        }) async {
           HttpRequest audioRequest = HttpRequest();
           audioRequest.open("GET", audioSourceUrl, async: true);
           audioRequest.responseType = "arraybuffer";
@@ -115,10 +120,11 @@ main() {
             context
                 .decodeAudioData(audioData, successCallback, errorCallback)
                 .then((_) {
-              completer.complete();
-            }).catchError((e) {
-              completer.completeError(e);
-            });
+                  completer.complete();
+                })
+                .catchError((e) {
+                  completer.completeError(e);
+                });
           });
           audioRequest.send();
           return completer.future;
@@ -131,10 +137,11 @@ main() {
         // called once.
         var successCallbackCalled = 0;
         await requestAudioDecode(
-            successCallback: (_) {
-              successCallbackCalled += 1;
-            },
-            errorCallback: (_) {});
+          successCallback: (_) {
+            successCallbackCalled += 1;
+          },
+          errorCallback: (_) {},
+        );
         expect(successCallbackCalled, 1);
 
         // Fail decode without callback.
@@ -147,11 +154,12 @@ main() {
         var errorCallbackCalled = 0;
         try {
           await requestAudioDecode(
-              triggerDecodeError: true,
-              successCallback: (_) {},
-              errorCallback: (_) {
-                errorCallbackCalled += 1;
-              });
+            triggerDecodeError: true,
+            successCallback: (_) {},
+            errorCallback: (_) {
+              errorCallbackCalled += 1;
+            },
+          );
           fail('Expected decode failure.');
         } catch (e) {
           // Safari may return a null error. Assuming Safari is version >= 14.1,

@@ -58,9 +58,9 @@ main() {
       expect(childCallCount, 0);
     });
 
-    Element.focusEvent
-        .forTarget(helper.element, useCapture: true)
-        .listen((Event e) {
+    Element.focusEvent.forTarget(helper.element, useCapture: true).listen((
+      Event e,
+    ) {
       ++childCallCount;
       expect(parentCallCount, 1);
     });

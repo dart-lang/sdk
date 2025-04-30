@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -83,6 +84,108 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   staticType: C
 ''');
+  }
+
+  test_const_inConstantContext() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final int x;
+  const C.named(this.x);
+}
+
+void main() {
+  const C c = .named(1);
+  print(c);
+}
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        staticType: int
+    rightParenthesis: )
+  staticType: C
+''');
+  }
+
+  test_const_keyword() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final int x;
+  const C.named(this.x);
+}
+
+void main() {
+  C c = const .named(1);
+  print(c);
+}
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  const: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        staticType: int
+    rightParenthesis: )
+  staticType: C
+''');
+  }
+
+  test_const_nonConst_constructor() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  final int x;
+  C.named(this.x);
+}
+
+void main() {
+  C c = const .named(1);
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 69, 5)],
+    );
+  }
+
+  test_const_nonConst_method() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C fn() => C.named(1);
+  final int x;
+  C.named(this.x);
+}
+
+void main() {
+  C c = const .fn(1);
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 107, 2)],
+    );
   }
 
   test_constructor_named() async {
@@ -227,28 +330,23 @@ DotShorthandConstructorInvocation
 ''');
   }
 
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/59835',
-    reason:
-        'Constant evaluation for dot shorthand constructor invocations needs '
-        'to be implemented.',
-  )
   test_equality_pattern() async {
     await assertNoErrorsInCode(r'''
 class C {
-  int x;
-  C.named(this.x);
+  final int x;
+  const C.named(this.x);
 }
 
 void main() {
   C c = C.named(1);
-  if (c case == .named(2)) print('ok');
+  if (c case == const .named(2)) print('ok');
 }
 ''');
 
     var identifier = findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(identifier, r'''
 DotShorthandConstructorInvocation
+  const: const
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -258,11 +356,10 @@ DotShorthandConstructorInvocation
     leftParenthesis: (
     arguments
       IntegerLiteral
-        literal: 1
+        literal: 2
         correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
         staticType: int
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
   staticType: C
 ''');
   }

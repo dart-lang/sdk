@@ -9,8 +9,10 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 import 'utils.dart';
 
 main() {
-  var isAnchorElement =
-      predicate((x) => x is AnchorElement, 'is an AnchorElement');
+  var isAnchorElement = predicate(
+    (x) => x is AnchorElement,
+    'is an AnchorElement',
+  );
 
   List<String> _nodeStrings(Iterable<Node> input) {
     List<String> out = [];
@@ -81,7 +83,7 @@ main() {
         new Text("2"),
         new Element.tag("I"),
         new Text("3"),
-        new Element.tag("U")
+        new Element.tag("U"),
       ]);
     }
 
@@ -93,24 +95,30 @@ main() {
 
     test('filters out non-element nodes', () {
       init();
-      expect(_nodeStrings(fragment.nodes),
-          equals(["1", "A", "B", "2", "I", "3", "U"]));
+      expect(
+        _nodeStrings(fragment.nodes),
+        equals(["1", "A", "B", "2", "I", "3", "U"]),
+      );
       expect(_nodeStrings(children), equals(["A", "B", "I", "U"]));
     });
 
     test('only indexes children, not other nodes', () {
       init();
       children[1] = new Element.tag("BR");
-      expect(_nodeStrings(fragment.nodes),
-          equals(["1", "A", "BR", "2", "I", "3", "U"]));
+      expect(
+        _nodeStrings(fragment.nodes),
+        equals(["1", "A", "BR", "2", "I", "3", "U"]),
+      );
       expect(_nodeStrings(children), equals(["A", "BR", "I", "U"]));
     });
 
     test('adds to both children and nodes', () {
       init();
       children.add(new Element.tag("UL"));
-      expect(_nodeStrings(fragment.nodes),
-          equals(["1", "A", "B", "2", "I", "3", "U", "UL"]));
+      expect(
+        _nodeStrings(fragment.nodes),
+        equals(["1", "A", "B", "2", "I", "3", "U", "UL"]),
+      );
       expect(_nodeStrings(children), equals(["A", "B", "I", "U", "UL"]));
     });
 
@@ -118,7 +126,9 @@ main() {
       init();
       expect(children.removeLast().tagName, equals('U'));
       expect(
-          _nodeStrings(fragment.nodes), equals(["1", "A", "B", "2", "I", "3"]));
+        _nodeStrings(fragment.nodes),
+        equals(["1", "A", "B", "2", "I", "3"]),
+      );
       expect(_nodeStrings(children), equals(["A", "B", "I"]));
 
       expect(children.removeLast().tagName, "I");
@@ -160,9 +170,12 @@ main() {
 
   test('query searches the fragment', () {
     var fragment = new DocumentFragment.html(
-        "<div class='foo'><a>foo</a><b>bar</b></div>");
+      "<div class='foo'><a>foo</a><b>bar</b></div>",
+    );
     expect(fragment.querySelector(".foo a")!.tagName, "A");
-    expect(_nodeStrings(fragment.querySelectorAll<Element>(".foo *")),
-        equals(["A", "B"]));
+    expect(
+      _nodeStrings(fragment.querySelectorAll<Element>(".foo *")),
+      equals(["A", "B"]),
+    );
   });
 }

@@ -45,16 +45,25 @@ class SourceMapContext extends ChainContextWithCleanupHelper
 class DevCompilerRunner implements CompilerRunner {
   final WithCompilerState context;
   final bool debugging;
+  final String moduleFormat;
+  final bool canary;
 
-  const DevCompilerRunner(this.context, {this.debugging = false});
+  const DevCompilerRunner(this.context,
+      {this.debugging = false, this.moduleFormat = 'es6', this.canary = false});
 
   @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
-    var outDir = outputFile.resolve('.');
-    var outputFilename = outputFile.pathSegments.last;
-
-    var sdkJsFile = findInOutDir('gen/utils/ddc/stable/sdk/es6/dart_sdk.js');
-    var jsSdkPath = sdkJsFile.uri;
+    Uri sdkJsFile;
+    Uri? ddcModuleLoaderFile;
+    if (moduleFormat == 'es6') {
+      sdkJsFile = findInOutDir('gen/utils/ddc/stable/sdk/es6/dart_sdk.js').uri;
+    } else {
+      assert(moduleFormat == 'ddc' && canary);
+      sdkJsFile = findInOutDir('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js').uri;
+      ddcModuleLoaderFile =
+          findInOutDir('dart-sdk/lib/dev_compiler/ddc/ddc_module_loader.js')
+              .uri;
+    }
 
     var ddcSdkSummary = findInOutDir('ddc_outline.dill');
     var packageConfigPath =
@@ -62,7 +71,8 @@ class DevCompilerRunner implements CompilerRunner {
     var args = <String>[
       '--batch',
       '--packages=$packageConfigPath',
-      '--modules=es6',
+      '--modules=$moduleFormat',
+      if (canary) '--canary',
       '--dart-sdk-summary=${ddcSdkSummary.path}',
       '-o',
       outputFile.toFilePath(),
@@ -92,18 +102,26 @@ class DevCompilerRunner implements CompilerRunner {
 
     var jsContent = File.fromUri(outputFile).readAsStringSync();
     File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
-        "from 'dart_sdk.js'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
+        "from 'dart_sdk.js'", "from '${uriPathForwardSlashed(sdkJsFile)}'"));
 
     if (debugging) {
       createHtmlWrapper(
-          sdkJsFile, outputFile, jsContent, outputFilename, outDir);
+          inputFile: inputFile,
+          sdkJsFile: sdkJsFile,
+          outputFile: outputFile,
+          jsContent: jsContent,
+          outputFilename: outputFile.pathSegments.last,
+          moduleFormat: moduleFormat,
+          canary: canary);
     }
 
-    var inputPath = inputFile.path;
-    inputPath = inputPath.substring(0, inputPath.lastIndexOf('.'));
-    var inputFileNameNoExt = pathToJSIdentifier(inputPath);
-    File.fromUri(outWrapperFile).writeAsStringSync(
-        getWrapperContent(jsSdkPath, inputFileNameNoExt, outputFilename));
+    File.fromUri(outWrapperFile).writeAsStringSync(getWrapperContent(
+        sdkJsFile: sdkJsFile,
+        ddcModuleLoaderFile: ddcModuleLoaderFile,
+        inputFile: inputFile,
+        outputFile: outputFile,
+        moduleFormat: moduleFormat,
+        canary: canary));
   }
 }
 

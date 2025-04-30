@@ -2649,7 +2649,9 @@ static Dart_NativeFunction OptExternalByteDataNativeResolver(
 }
 
 TEST_CASE(DartAPI_OptimizedExternalByteDataAccess) {
+  TransitionNativeToVM transition1(thread);
   NoBackgroundCompilerScope no_background_compiler(thread);
+  TransitionVMToNative transition2(thread);
 
   const char* kScriptChars = R"(
 import 'dart:typed_data';

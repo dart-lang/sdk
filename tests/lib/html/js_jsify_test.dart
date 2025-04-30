@@ -40,7 +40,7 @@ main() {
       'a': 1,
       'b': 2,
       'c': 3,
-      'd': allowInteropCaptureThis((that) => 42)
+      'd': allowInteropCaptureThis((that) => 42),
     };
     var jsMap = new JsObject.jsify(map);
     expect(!context.callMethod('isArray', [jsMap]), isTrue);
@@ -53,13 +53,13 @@ main() {
     dynamic object = {
       'a': [
         1,
-        [2, 3]
+        [2, 3],
       ],
       'b': {
         'c': 3,
-        'd': new JsObject(context['Foo'], [42])
+        'd': new JsObject(context['Foo'], [42]),
       },
-      'e': null
+      'e': null,
     };
     var jsObject = new JsObject.jsify(object);
     expect(jsObject['a'][0], equals(object['a'][0]));

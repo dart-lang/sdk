@@ -8,10 +8,20 @@ import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 
 import 'customized_codes.dart';
 
+/// A diagnostic code associated with an `AnalysisError`.
+///
+/// Generally, messages should follow the [Guide for Writing
+/// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+typedef DiagnosticCode = ErrorCode;
+
 /// An error code associated with an `AnalysisError`.
 ///
 /// Generally, messages should follow the [Guide for Writing
 /// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
+///
+/// Note that this class name, `ErrorCode`, is soft-deprecated in favor of the
+/// type alias, `DiagnosticCode`.
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 abstract class ErrorCode {
   /// Regular expression for identifying positional arguments in error messages.
@@ -117,8 +127,15 @@ abstract class ErrorCode {
   String toString() => uniqueName;
 }
 
+/// The severity of a [DiagnosticCode].
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+typedef DiagnosticSeverity = ErrorSeverity;
+
 /**
  * The severity of an [ErrorCode].
+ *
+ * Note that this class name, `ErrorSeverity`, is soft-deprecated in favor of
+ * the type alias, [DiagnosticSeverity].
  */
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 class ErrorSeverity implements Comparable<ErrorSeverity> {
@@ -190,8 +207,15 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   String toString() => name;
 }
 
+/// The type of a [DiagnosticCode].
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
+typedef DiagnosticType = ErrorType;
+
 /**
  * The type of an [ErrorCode].
+ *
+ * Note that this class name, `ErrorType`, is soft-deprecated in favor of
+ * the type alias, [DiagnosticType].
  */
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 class ErrorType implements Comparable<ErrorType> {

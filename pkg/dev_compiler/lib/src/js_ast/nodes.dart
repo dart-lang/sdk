@@ -364,12 +364,11 @@ class LibraryBundle extends Program {
 
   LibraryBundle(
     this.libraries, {
+    super.name,
     super.scriptTag,
     super.header,
   }) : super(
           const [],
-          // TODO(nshahan): Remove and adjust module metadata to not require it.
-          name: 'unused',
         );
 
   @override
@@ -383,8 +382,8 @@ class LibraryBundle extends Program {
   }
 
   @override
-  LibraryBundle _clone() =>
-      LibraryBundle(libraries, scriptTag: scriptTag, header: header);
+  LibraryBundle _clone() => LibraryBundle(libraries,
+      name: name, scriptTag: scriptTag, header: header);
 }
 
 // TODO(nshahan): Rename to convey that this is a single Dart library after

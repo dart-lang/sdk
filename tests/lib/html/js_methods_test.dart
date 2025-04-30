@@ -53,7 +53,7 @@ main() {
     expect(context['Object'].callMethod('keys', [object])['length'], 0);
   });
 
-/* TODO(jacobr): this is another test that is inconsistent with JS semantics.
+  /* TODO(jacobr): this is another test that is inconsistent with JS semantics.
   test('deleteProperty throws if name is not a String or num', () {
     var object = new JsObject.jsify({});
     expect(() => object.deleteProperty(true),
@@ -68,7 +68,7 @@ main() {
     expect(object.hasProperty('b'), isFalse);
   });
 
-/* TODO(jacobr): is this really the correct unchecked mode behavior?
+  /* TODO(jacobr): is this really the correct unchecked mode behavior?
   test('hasProperty throws if name is not a String or num', () {
     var object = new JsObject.jsify({});
     expect(() => object.hasProperty(true),
@@ -89,7 +89,7 @@ main() {
     expect(foo.callMethod('getAge'), equals(10));
   });
 
-/* TODO(jacobr): remove as we should only throw this in checked mode.
+  /* TODO(jacobr): remove as we should only throw this in checked mode.
   test('[] and []= throw if name is not a String or num', () {
     var object = new JsObject.jsify({});
     expect(() => object[true],

@@ -17,11 +17,13 @@ void main() {
 
   test('checkValidityTest', () {
     var form = new FormElement();
-    form.innerHtml = '<label>Google: <input type="search" name="q"></label> '
+    form.innerHtml =
+        '<label>Google: <input type="search" name="q"></label> '
         '<input type="submit" value="Search...">';
     expect(form.checkValidity(), isTrue);
     // TODO(efortuna): Issue 4832.
-    form.innerHtml = '<input type="email" value="notemail" blaber="test"'
+    form.innerHtml =
+        '<input type="email" value="notemail" blaber="test"'
         ' required>';
     expect(form.checkValidity(), isFalse);
   });
@@ -51,7 +53,8 @@ void main() {
 
   test('lengthTest', () {
     expect(form.length, 0);
-    form.innerHtml = '<label>Google: <input type="search" name="q"></label> '
+    form.innerHtml =
+        '<label>Google: <input type="search" name="q"></label> '
         '<input type="submit" value="Search...">';
     expect(form.length, 2);
   });

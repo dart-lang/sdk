@@ -15,38 +15,38 @@ main() {
   injectJs();
 
   foo.bar.nonFunctionStatic();
-//        ^
-// [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
-//^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [error column 3, length 25]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  //                       ^
+  // [cfe] 'nonFunctionStatic' isn't a function or method and can't be invoked.
 
   foo.bar.nonFunctionStatic(0);
-//        ^
-// [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
-//^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [error column 3, length 25]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  //                       ^
+  // [cfe] 'nonFunctionStatic' isn't a function or method and can't be invoked.
 
   foo.bar.nonFunctionStatic(0, 0);
-//        ^
-// [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
-//^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [error column 3, length 25]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  //                       ^
+  // [cfe] 'nonFunctionStatic' isn't a function or method and can't be invoked.
 
   foo.bar.nonFunctionStatic(0, 0, 0, 0, 0, 0);
-//        ^
-// [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
-//^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [error column 3, length 25]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  //                       ^
+  // [cfe] 'nonFunctionStatic' isn't a function or method and can't be invoked.
 
   foo.bar.add(4);
   //         ^
-  // [cfe] Error: Too few positional arguments: 2 required, 1 given.
+  // [cfe] Too few positional arguments: 2 required, 1 given.
   //           ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
 
   foo.bar.add(4, 5, 10);
   //         ^
-  // [cfe] Error: Too many positional arguments: 2 allowed, but 3 found.
+  // [cfe] Too many positional arguments: 2 allowed, but 3 found.
   //                ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
 }

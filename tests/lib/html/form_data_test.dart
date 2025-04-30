@@ -50,9 +50,9 @@ void main() {
 
       test('appendBlob', () {
         var form = new FormData();
-        var blob = new Blob(
-            ['Indescribable... Indestructible! Nothing can stop it!'],
-            'text/plain');
+        var blob = new Blob([
+          'Indescribable... Indestructible! Nothing can stop it!',
+        ], 'text/plain');
         form.appendBlob('theBlob', blob, 'theBlob.txt');
       });
 
@@ -64,12 +64,16 @@ void main() {
         form.appendBlob('theBlob', blob, 'theBlob.txt');
 
         var xhr = new HttpRequest();
-        xhr.open('POST',
-            '${window.location.protocol}//${window.location.host}/echo');
+        xhr.open(
+          'POST',
+          '${window.location.protocol}//${window.location.host}/echo',
+        );
 
-        xhr.onLoad.listen(expectAsync((e) {
-          expect(xhr.responseText!.contains(blobString), isTrue);
-        }));
+        xhr.onLoad.listen(
+          expectAsync((e) {
+            expect(xhr.responseText!.contains(blobString), isTrue);
+          }),
+        );
         xhr.onError.listen((e) {
           fail('$e');
         });

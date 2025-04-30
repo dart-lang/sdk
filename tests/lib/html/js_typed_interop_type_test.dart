@@ -82,9 +82,10 @@ testF(F o) {
 }
 
 _injectJs() {
-  document.body!.append(new ScriptElement()
-    ..type = 'text/javascript'
-    ..innerHtml = r"""
+  document.body!.append(
+    new ScriptElement()
+      ..type = 'text/javascript'
+      ..innerHtml = r"""
 function A(foo) {
   this.foo = foo;
 }
@@ -92,7 +93,8 @@ function A(foo) {
 function B(foo) {
   this.foo = foo;
 }
-""");
+""",
+  );
 }
 
 void expectValueOrTypeError(f(), value) {

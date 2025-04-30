@@ -18,7 +18,7 @@ import 'package:testing/testing.dart';
 import 'common.dart';
 
 abstract class CompilerRunner {
-  Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperPath);
+  Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile);
 }
 
 abstract class WithCompilerState {
@@ -131,14 +131,38 @@ Directory getDdcDir() {
 }
 
 String getWrapperContent(
-    Uri jsSdkPath, String inputFileNameNoExt, String outputFilename) {
-  assert(jsSdkPath.isAbsolute);
-  return """
-    import { dart, _isolate_helper } from '${uriPathForwardSlashed(jsSdkPath)}';
-    import { $inputFileNameNoExt } from '$outputFilename';
-
+    {required Uri sdkJsFile,
+    required Uri? ddcModuleLoaderFile,
+    required Uri inputFile,
+    required Uri outputFile,
+    required String moduleFormat,
+    required bool canary}) {
+  assert(sdkJsFile.isAbsolute);
+  var imports = '';
+  String mainClosure;
+  if (moduleFormat == 'es6') {
+    var inputPath = inputFile.path;
+    inputPath = inputPath.substring(0, inputPath.lastIndexOf('.'));
+    final inputFileNameNoExt = pathToJSIdentifier(inputPath);
+    imports = '''
+    import { dart, _isolate_helper } from '${uriPathForwardSlashed(sdkJsFile)}';
+    import { $inputFileNameNoExt } from '${outputFile.pathSegments.last}';
+    ''';
+    mainClosure = '$inputFileNameNoExt.main';
+  } else {
+    assert(moduleFormat == 'ddc' && canary);
+    imports = '''
+      load('${uriPathForwardSlashed(ddcModuleLoaderFile!)}');
+      load('${uriPathForwardSlashed(sdkJsFile)}');
+      load('${uriPathForwardSlashed(outputFile)}');
+    ''';
+    mainClosure = "() => dartDevEmbedder.runMain('$inputFile', {})";
+  }
+  return '''
     let global = new Function('return this;')();
     $d8Preambles
+
+    $imports
 
     // d8 does not seem to print the `.stack` property like
     // node.js and browsers do, so include that.
@@ -152,17 +176,23 @@ String getWrapperContent(
       Promise.resolve(null).then(callback).catch(e => console.error(e));
     };
 
-    let main = $inputFileNameNoExt.main;
+    let main = $mainClosure;
     try {
       dartMainRunner(main, []);
     } catch(e) {
       console.error(e);
     }
-    """;
+    ''';
 }
 
-void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
-    String outputFilename, Uri outDir) {
+void createHtmlWrapper(
+    {required Uri inputFile,
+    required Uri sdkJsFile,
+    required Uri outputFile,
+    required String jsContent,
+    required String outputFilename,
+    required String moduleFormat,
+    required bool canary}) {
   // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
   var sdkRootPath = sdkRoot!.path;
   var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRootPath));
@@ -171,35 +201,53 @@ void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
       jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));
   File.fromUri(outputFile.resolve('$outputFilename.html.html'))
       .writeAsStringSync(getWrapperHtmlContent(
-          jsRootDart, '/root_build/$outputFilename.html.js'));
+          inputFile: inputFile,
+          jsRootDart: jsRootDart,
+          outFileRootBuild: '/root_build/$outputFilename.html.js',
+          moduleFormat: moduleFormat,
+          canary: canary));
 
   print('You should now be able to run\n\n'
       'dart $sdkRootPath/pkg/test_runner/bin/http_server.dart -p 39550 '
       '--network 127.0.0.1 '
-      '--build-directory=${outDir.toFilePath()}'
+      '--build-directory=${outputFile.resolve('.').toFilePath()}'
       '\n\nand go to\n\n'
       'http://127.0.0.1:39550/root_build/$outputFilename.html.html'
       '\n\nto step through via the browser.');
 }
 
-String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
-  return """
+String getWrapperHtmlContent(
+    {required Uri inputFile,
+    required String jsRootDart,
+    required String outFileRootBuild,
+    required String moduleFormat,
+    required bool canary}) {
+  String callMain;
+  if (moduleFormat == 'es6') {
+    callMain = '''
+      import { dart, _isolate_helper } from '$jsRootDart';
+      import { test } from '$outFileRootBuild';
+      let main = test.main;
+      main();
+    ''';
+  } else {
+    assert(moduleFormat == 'ddc' && canary);
+    callMain = "dartDevEmbedder.runMain('$inputFile', {})";
+  }
+  return '''
 <!DOCTYPE html>
 <html>
   <head>
     <title>ddc test</title>
     <script type="module">
-    import { dart, _isolate_helper } from '$jsRootDart';
-    import { test } from '$outFileRootBuild';
-    let main = test.main;
-    main();
+    $callMain
     </script>
   </head>
   <body>
     <h1>ddc test</h1>
   </body>
 </html>
-""";
+''';
 }
 
 Uri selfUri = currentMirrorSystem()

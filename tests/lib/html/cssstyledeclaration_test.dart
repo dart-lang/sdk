@@ -91,11 +91,14 @@ main() {
     document.body!.children.add(element);
 
     // Need to wait one tick after the element has been added to the page.
-    new Timer(const Duration(milliseconds: 10), expectAsync(() {
-      element.style.textDecoration = 'underline';
-      var style = element.getComputedStyle();
-      expect(style.textDecoration.contains('underline'), isTrue);
-    }));
+    new Timer(
+      const Duration(milliseconds: 10),
+      expectAsync(() {
+        element.style.textDecoration = 'underline';
+        var style = element.getComputedStyle();
+        expect(style.textDecoration.contains('underline'), isTrue);
+      }),
+    );
   });
 
   test('Invalid values', () {
@@ -106,12 +109,13 @@ main() {
 
   test('css multi get', () {
     var listElement = new Element.html(
-        '<ul class="foo">'
-        '<li class="bar" style="background-color: red; border-left: 10px;">'
-        '<li class="baz" style="background-color: black;>'
-        '<li class="baz classy" style="background-color: blue; ">'
-        '</ul>',
-        treeSanitizer: new NullTreeSanitizer());
+      '<ul class="foo">'
+      '<li class="bar" style="background-color: red; border-left: 10px;">'
+      '<li class="baz" style="background-color: black;>'
+      '<li class="baz classy" style="background-color: blue; ">'
+      '</ul>',
+      treeSanitizer: new NullTreeSanitizer(),
+    );
     document.documentElement!.children.add(listElement);
 
     var elements = document.querySelectorAll('li');
@@ -126,12 +130,13 @@ main() {
 
   test('css multi set', () {
     var listElement = new Element.html(
-        '<ul class="foo">'
-        '<li class="bar" style="background-color: red; border-left: 10px;">'
-        '<li class="baz" style="background-color: black;>'
-        '<li class="baz" id="wat" style="background-color: blue; ">'
-        '</ul>',
-        treeSanitizer: new NullTreeSanitizer());
+      '<ul class="foo">'
+      '<li class="bar" style="background-color: red; border-left: 10px;">'
+      '<li class="baz" style="background-color: black;>'
+      '<li class="baz" id="wat" style="background-color: blue; ">'
+      '</ul>',
+      treeSanitizer: new NullTreeSanitizer(),
+    );
     document.documentElement!.children.add(listElement);
 
     var elements = document.querySelectorAll('li');

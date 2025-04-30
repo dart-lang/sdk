@@ -18,12 +18,15 @@ var value = {'name_index': 'one', 'value': 'add_value'};
 
 Future testInit() async {
   await html.window.indexedDB!.deleteDatabase(dbName);
-  db = await html.window.indexedDB!.open(dbName, version: 1,
-      onUpgradeNeeded: (idb.VersionChangeEvent e) {
-    var db = e.target.result;
-    var objectStore = db.createObjectStore(storeName, autoIncrement: true);
-    objectStore.createIndex(indexName, 'name_index', unique: false);
-  });
+  db = await html.window.indexedDB!.open(
+    dbName,
+    version: 1,
+    onUpgradeNeeded: (idb.VersionChangeEvent e) {
+      var db = e.target.result;
+      var objectStore = db.createObjectStore(storeName, autoIncrement: true);
+      objectStore.createIndex(indexName, 'name_index', unique: false);
+    },
+  );
 }
 
 Future testAddDelete() async {

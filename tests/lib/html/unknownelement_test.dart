@@ -7,8 +7,10 @@ import 'dart:html';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
-  var isUnknownElement =
-      predicate((x) => x is UnknownElement, 'is an UnknownELement');
+  var isUnknownElement = predicate(
+    (x) => x is UnknownElement,
+    'is an UnknownELement',
+  );
 
   dynamic foo = new Element.tag('foo');
   foo.id = 'foo';

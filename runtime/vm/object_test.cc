@@ -5811,7 +5811,6 @@ TEST_CASE(DartAPI_BreakpointLockRace) {
                                                  &done);
 
   while (!done) {
-    ReloadParticipationScope allow_reload(thread);
     {
       TransitionNativeToVM transition(thread);
       const String& name = String::Handle(String::New(TestCase::url()));

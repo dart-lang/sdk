@@ -191,7 +191,7 @@ class LibraryBundleCompiler implements old.Compiler {
               name: _extensionSymbolHolderName, librarySelfVar: id));
     }
     return js_ast.LibraryBundle(compiledLibraries,
-        header: _generateCompilationHeader());
+        name: _options.moduleName, header: _generateCompilationHeader());
   }
 
   @override
@@ -1065,10 +1065,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Debugger friendly name for a Dart [library].
   String _jsLibraryDebuggerName(Library library) => '${library.importUri}';
-
-  /// Debugger friendly names for all parts in a Dart [library].
-  Iterable<String> _jsPartDebuggerNames(Library library) =>
-      library.parts.map((part) => part.partUri);
 
   /// True when [library] is the sdk internal library 'dart:_internal'.
   bool _isDartInternal(Library library) => _isDartLibrary(library, '_internal');
@@ -8549,7 +8545,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Example of exports emitted to JavaScript during emitModule:
   ///
   /// ```
-  /// dart.trackLibraries("web/main", { ... });
   /// // Exports:
   /// return {
   ///  web__main: main
@@ -8596,51 +8591,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _emitExtensionSymbols(items, forceExtensionSymbols: forceExtensionSymbols);
   }
 
-  void _emitDebuggerExtensionInfo(String name) {
-    var properties = <js_ast.Property>[];
-    var parts = <js_ast.Property>[];
-    _libraries.forEach((library, value) {
-      // TODO(jacobr): we could specify a short library name instead of the
-      // full library uri if we wanted to save space.
-      var libraryName = js.escapedString(_jsLibraryDebuggerName(library));
-      properties.add(js_ast.Property(libraryName, value));
-
-      // Dynamic modules shouldn't define a library that was previously defined.
-      // We leverage that we track which libraries have been defined via
-      // `trackedLibraries` to query whether a library already exists.
-      // TODO(sigmund): enable when `trackLibraries()` is added again.
-      //if (_options.dynamicModule) {
-      //  _moduleItems.add(js.statement('''if (# != null) {
-      //          throw Error(
-      //              "Dynamic module provides second definition for " + #);
-      //      }''', [
-      //    _runtimeCall('getLibrary(#)', [libraryName]),
-      //    libraryName
-      //  ]));
-      //}
-
-      var partNames = _jsPartDebuggerNames(library);
-      if (partNames.isNotEmpty) {
-        parts.add(js_ast.Property(libraryName, js.stringArray(partNames)));
-      }
-    });
-    // TODO(nshahan) Update `trackLibraries()` in dart:_runtime to support this
-    // new module format.
-    // var module = js_ast.ObjectInitializer(properties, multiline: true);
-    // var partMap = js_ast.ObjectInitializer(parts, multiline: true);
-
-    // Track the module name for each library in the module.
-    // This data is mainly consumed by the debugger and by the stack trace
-    // mapper. It is also used for the experimental dynamic modules feature
-    // to validate that a dynamic module doesn't reintroduce an existing
-    // library.
-    //
-    // See also the implementation of this API in the SDK.
-    //   _moduleItems.add(_runtimeStatement(
-    //       'trackLibraries(#, #, #, $sourceMapLocationID)',
-    //       [js.string(name), module, partMap]));
-  }
-
   /// Returns an accessor for [id] via the symbol container.
   /// E.g., transforms $sym to S$5.$sym.
   ///
@@ -8666,10 +8616,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _symbolContainer[id]!;
   }
 
-  /// Finishes the module created by [_startLibrary], by combining the preamble
+  /// Finishes the library created by [_startLibrary], by combining the preamble
   /// [items] with the [_moduleItems] that have been emitted.
   ///
-  /// The [moduleName] should specify the module's name, and the items should
+  /// The [libraryName] should specify the library's name, and the items should
   /// be the list resulting from [_startLibrary], with additional items added,
   /// but not including the contents of [_moduleItems] (which will be handled
   /// by this method itself).
@@ -8677,11 +8627,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Note, this function mutates the items list and returns it as the `body`
   /// field of the result.
   js_ast.Program _finishLibrary(List<js_ast.ModuleItem> items,
-      String moduleName, js_ast.Identifier libraryId) {
+      String libraryName, js_ast.Identifier libraryId) {
     // TODO(jmesserly): there's probably further consolidation we can do
     // between DDC's two backends, by moving more code into this method, as the
     // code between `_startLibrary` and `_finishLibrary` is very similar in both.
-    _emitDebuggerExtensionInfo(moduleName);
 
     // Emit all top-level JS symbol containers.
     items.addAll(_symbolContainer.emit());
@@ -8694,12 +8643,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           js('var __dynamic_module_entrypoint__ = #', [name])));
     }
 
-    // Add the module's code (produced by visiting compilation units, above)
+    // Add the library's code (produced by visiting compilation units, above)
     _copyAndFlattenBlocks(items, _moduleItems);
     _moduleItems.clear();
 
-    // Build the module.
-    return js_ast.Program(items, name: moduleName, librarySelfVar: libraryId);
+    // Build the library.
+    return js_ast.Program(items, name: libraryName, librarySelfVar: libraryId);
   }
 
   /// Flattens blocks in [items] to a single list.

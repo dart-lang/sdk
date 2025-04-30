@@ -83,11 +83,11 @@ Future primitives() async {
   await go('test_simple_splay', obj4);
   await go('const_array_1', const [
     const [1],
-    const [2]
+    const [2],
   ]);
   await go('const_array_dag', const [
     const [1],
-    const [1]
+    const [1],
   ]);
   await go('array_deferred_copy', [1, 2, 3, obj3, obj3, 6]);
   await go('array_deferred_copy_2', [
@@ -95,7 +95,7 @@ Future primitives() async {
     2,
     3,
     [4, 5, obj3],
-    [obj3, 6]
+    [obj3, 6],
   ]);
   await go('cyclic_list', cyclic_list);
 }

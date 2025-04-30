@@ -647,6 +647,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    if (node.isConst) {
+      _checkForConstWithNonConst(
+        node,
+        node.constructorName.element as ConstructorElement?,
+        node.constKeyword,
+      );
+    }
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(
     covariant EnumConstantDeclarationImpl node,
   ) {
@@ -1081,7 +1095,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _constArgumentsVerifier.visitInstanceCreationExpression(node);
       _checkUseVerifier.checkInstanceCreationExpression(node);
       if (node.isConst) {
-        _checkForConstWithNonConst(node);
+        _checkForConstWithNonConst(
+          node,
+          node.constructorName.element,
+          node.keyword,
+        );
         _checkForConstWithUndefinedConstructor(
           node,
           constructorName,
@@ -2788,16 +2806,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given 'const' instance creation [expression] is not being
   /// invoked on a constructor that is not 'const'.
   ///
-  /// This method assumes that the instance creation was tested to be 'const'
-  /// before being called.
+  /// This method assumes that the instance creation or dot shorthand
+  /// constructor invocation was tested to be 'const' before being called.
   ///
   /// See [CompileTimeErrorCode.CONST_WITH_NON_CONST].
-  void _checkForConstWithNonConst(InstanceCreationExpression expression) {
-    var constructorElement = expression.constructorName.element;
+  void _checkForConstWithNonConst(
+    Expression expression,
+    ConstructorElement? constructorElement,
+    Token? keyword,
+  ) {
     if (constructorElement != null && !constructorElement.isConst) {
-      if (expression.keyword != null) {
+      if (keyword != null) {
         errorReporter.atToken(
-          expression.keyword!,
+          keyword,
           CompileTimeErrorCode.CONST_WITH_NON_CONST,
         );
       } else {

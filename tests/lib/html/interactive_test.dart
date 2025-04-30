@@ -46,8 +46,9 @@ main() {
           'with a value. Keycode and charcode should both have values for the '
           'keypress event.';
       KeyboardEventStream.onKeyDown(document.body!).listen(keydownHandlerTest);
-      KeyboardEventStream.onKeyPress(document.body!)
-          .listen(keypressHandlerTest);
+      KeyboardEventStream.onKeyPress(
+        document.body!,
+      ).listen(keypressHandlerTest);
       KeyboardEventStream.onKeyUp(document.body!).listen(keyupHandlerTest);
       KeyboardEventStream.onKeyUp(document.body!).listen(keyupHandlerTest2);
     });

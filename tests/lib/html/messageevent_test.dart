@@ -8,11 +8,13 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 
 main() {
   test('new MessageEvent', () {
-    final event = new MessageEvent('type',
-        cancelable: true,
-        data: 'data',
-        origin: 'origin',
-        lastEventId: 'lastEventId');
+    final event = new MessageEvent(
+      'type',
+      cancelable: true,
+      data: 'data',
+      origin: 'origin',
+      lastEventId: 'lastEventId',
+    );
 
     expect(event.type, equals('type'));
     expect(event.bubbles, isFalse);

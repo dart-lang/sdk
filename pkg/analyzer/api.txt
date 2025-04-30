@@ -721,7 +721,9 @@ package:analyzer/dart/ast/ast.dart:
     semicolon (getter: Token)
     whileKeyword (getter: Token)
   DotShorthandConstructorInvocation (class extends InvocationExpression implements ConstructorReferenceNode, experimental):
+    constKeyword (getter: Token?)
     constructorName (getter: SimpleIdentifier)
+    isConst (getter: bool)
     period (getter: Token)
   DotShorthandInvocation (class extends InvocationExpression, experimental):
     memberName (getter: SimpleIdentifier)
@@ -4415,6 +4417,9 @@ package:analyzer/error/error.dart:
     type (getter: ErrorType)
     url (getter: String?)
     == (method: bool Function(Object))
+  DiagnosticCode (type alias for ErrorCode)
+  DiagnosticSeverity (type alias for ErrorSeverity)
+  DiagnosticType (type alias for ErrorType)
 package:analyzer/error/listener.dart:
   AnalysisErrorListener (class extends Object):
     NULL_LISTENER (static getter: AnalysisErrorListener)
