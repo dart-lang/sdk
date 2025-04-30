@@ -249,6 +249,8 @@ void main() {
   // [cfe] A comparison expression can't be an operand of another comparison expression.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  //  ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
   //   ^
   // [cfe] The static getter or field 'instance' isn't defined for the type 'dynamic'.
@@ -259,6 +261,8 @@ void main() {
   // [cfe] A comparison expression can't be an operand of another comparison expression.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  //  ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
   //   ^
   // [cfe] The static getter or field 'any' isn't defined for the type 'dynamic'.

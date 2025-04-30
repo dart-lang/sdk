@@ -1392,6 +1392,24 @@ class CompileTimeErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode DOT_SHORTHAND_MISSING_CONTEXT =
+      CompileTimeErrorCode(
+        'DOT_SHORTHAND_MISSING_CONTEXT',
+        "A dot shorthand can't be used where there is no context type.",
+      );
+
+  ///  Parameters:
+  ///  0: the name of the static getter
+  ///  1: the name of the enclosing type where the getter is being looked for
+  static const CompileTimeErrorCode
+  DOT_SHORTHAND_UNDEFINED_GETTER = CompileTimeErrorCode(
+    'DOT_SHORTHAND_UNDEFINED_GETTER',
+    "The static getter '{0}' isn't defined for the context type '{1}'.",
+    correctionMessage:
+        "Try correcting the name to the name of an existing static getter, or "
+        "defining a getter or field named '{0}'.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(

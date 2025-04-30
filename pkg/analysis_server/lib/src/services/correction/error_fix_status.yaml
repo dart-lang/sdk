@@ -514,6 +514,10 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
+CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT:
+  status: needsEvaluation
+CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-

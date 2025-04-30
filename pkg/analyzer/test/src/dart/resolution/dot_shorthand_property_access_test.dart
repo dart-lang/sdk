@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -315,6 +316,62 @@ DotShorthandPropertyAccess
     staticType: Color
   staticType: Color
 ''');
+  }
+
+  test_error_context_invalid() async {
+    await assertErrorsInCode(
+      '''
+class C { }
+
+void main() {
+  C Function() c = .member;
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 46, 7)],
+    );
+  }
+
+  test_error_context_none() async {
+    await assertErrorsInCode(
+      '''
+void main() {
+  var c = .member;
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 24, 7)],
+    );
+  }
+
+  test_error_unresolved() async {
+    await assertErrorsInCode(
+      '''
+class C { }
+
+void main() {
+  C c = .getter;
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 36, 6)],
+    );
+  }
+
+  test_error_unresolved_new() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  C.named();
+}
+
+void main() {
+  C c = .new;
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 48, 4)],
+    );
   }
 
   test_extensionType() async {
