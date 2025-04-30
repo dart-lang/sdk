@@ -30,7 +30,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/utilities/extensions/ast.dart';
 
-/// Produces [CodeAction]s from Dart source commands, fixes, assists and
+/// Produces [CodeActionLiteral]s from Dart source commands, fixes, assists and
 /// refactors from the server.
 class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   ResolvedLibraryResult libraryResult;
@@ -58,9 +58,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   @override
   String get name => 'ServerDartActionsComputer';
 
-  /// Helper to create a [CodeAction] or [Command] for the given arguments in
+  /// Helper to create a [CodeActionLiteral] or [Command] for the given arguments in
   /// the current file based on client capabilities.
-  Either2<CodeAction, Command> createCommand(
+  Either2<CodeActionLiteral, Command> createCommand(
     CodeActionKind actionKind,
     String title,
     String command,
@@ -87,7 +87,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   /// Helper to create refactors that execute commands provided with
   /// the current file, location and document version.
-  Either2<CodeAction, Command> createRefactor(
+  Either2<CodeActionLiteral, Command> createRefactor(
     CodeActionKind actionKind,
     String name,
     RefactoringKind refactorKind, [
@@ -263,7 +263,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<Either2<CodeActionLiteral, Command>>> getRefactorActions(
     OperationPerformance? performance,
   ) async {
     // If the client does not support workspace/applyEdit, we won't be able to
@@ -272,7 +272,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       return const [];
     }
 
-    var refactorActions = <Either2<CodeAction, Command>>[];
+    var refactorActions = <Either2<CodeActionLiteral, Command>>[];
     var performanceTracker = RefactoringPerformance();
 
     try {
@@ -293,7 +293,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         performance: performanceTracker,
       );
       var actions = await processor.compute();
-      refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
+      refactorActions.addAll(
+        actions.map(Either2<CodeActionLiteral, Command>.t1),
+      );
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
@@ -469,7 +471,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
   /// source such as Sort Members and Organise Imports.
   @override
-  Future<List<Either2<CodeAction, Command>>> getSourceActions() async {
+  Future<List<Either2<CodeActionLiteral, Command>>> getSourceActions() async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
     if (!supportsApplyEdit) {
@@ -496,15 +498,15 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
-  Either2<CodeAction, Command> _commandOrCodeAction(
+  Either2<CodeActionLiteral, Command> _commandOrCodeAction(
     CodeActionKind kind,
     Command command,
   ) {
     return supportsLiterals
-        ? Either2<CodeAction, Command>.t1(
-          CodeAction(title: command.title, kind: kind, command: command),
+        ? Either2<CodeActionLiteral, Command>.t1(
+          CodeActionLiteral(title: command.title, kind: kind, command: command),
         )
-        : Either2<CodeAction, Command>.t2(command);
+        : Either2<CodeActionLiteral, Command>.t2(command);
   }
 }
 

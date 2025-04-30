@@ -26,7 +26,7 @@ abstract class AbstractSourceCodeActionsTest extends AbstractCodeActionsTest {
   /// one must be provided), uses [startOfDocPos] to avoid every test needing
   /// to include a '^' marker.
   @override
-  Future<List<Either2<Command, CodeAction>>> getCodeActions(
+  Future<List<Either2<CodeActionLiteral, Command>>> getCodeActions(
     Uri fileUri, {
     Range? range,
     Position? position,
@@ -385,8 +385,8 @@ int minified(int x, int y) => min(x, y);
     var actions = await getCodeActions(mainFileUri);
     var action = findCommand(actions, Commands.organizeImports)!;
     action.map(
-      (command) {},
       (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
+      (command) {},
     );
   }
 
@@ -524,8 +524,8 @@ String b;
     var actions = await getCodeActions(mainFileUri);
     var action = findCommand(actions, Commands.sortMembers)!;
     action.map(
-      (command) {},
       (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
+      (command) {},
     );
   }
 

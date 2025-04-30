@@ -261,8 +261,8 @@ void f() {
       var results = await ofKind(kind);
       for (var result in results) {
         var resultKind = result.map(
-          (cmd) => throw 'Expected CodeAction, got Command: ${cmd.title}',
           (action) => action.kind,
+          (cmd) => throw 'Expected CodeAction, got Command: ${cmd.title}',
         );
         expect('$resultKind', anyOf([equals('$kind'), startsWith('$kind.')]));
       }

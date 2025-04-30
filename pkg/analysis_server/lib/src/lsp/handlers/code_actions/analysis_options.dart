@@ -16,7 +16,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
 
-/// Produces [CodeAction]s from analysis options fixes.
+/// Produces [CodeActionLiteral]s from analysis options fixes.
 class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   AnalysisOptionsCodeActionsProducer(
     super.server,
@@ -111,12 +111,13 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<Either2<CodeActionLiteral, Command>>> getRefactorActions(
     OperationPerformance? performance,
   ) async => [];
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
+  Future<List<Either2<CodeActionLiteral, Command>>> getSourceActions() async =>
+      [];
 
   YamlMap? _getOptions(SourceFactory sourceFactory, String content) {
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);

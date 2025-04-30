@@ -849,7 +849,7 @@ class ClosingLabel implements ToJsonable {
 
 /// Information about one of the arguments needed by the command.
 ///
-/// A list of parameters is sent in the `data` field of the `CodeAction`
+/// A list of parameters is sent in the `data` field of the `CodeActionLiteral`
 /// returned by the server. The values of the parameters should appear in the
 /// `args` field of the `Command` sent to the server in the same order as the
 /// corresponding parameters.

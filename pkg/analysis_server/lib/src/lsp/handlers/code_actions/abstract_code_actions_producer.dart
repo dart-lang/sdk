@@ -20,12 +20,12 @@ import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
 
-typedef CodeActionWithPriority = ({CodeAction action, int priority});
+typedef CodeActionWithPriority = ({CodeActionLiteral action, int priority});
 
 typedef CodeActionWithPriorityAndIndex =
-    ({CodeAction action, int priority, int index});
+    ({CodeActionLiteral action, int priority, int index});
 
-/// A base for classes that produce [CodeAction]s for the LSP handler.
+/// A base for classes that produce [CodeActionLiteral]s for the LSP handler.
 abstract class AbstractCodeActionsProducer
     with RequestHandlerMixin<LspAnalysisServer> {
   final File file;
@@ -68,13 +68,13 @@ abstract class AbstractCodeActionsProducer
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
   @protected
-  CodeAction createAssistAction(
+  CodeActionLiteral createAssistAction(
     protocol.SourceChange change,
     String? loggedAssistId,
     String path,
     LineInfo lineInfo,
   ) {
-    return CodeAction(
+    return CodeActionLiteral(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
       diagnostics: const [],
@@ -111,14 +111,14 @@ abstract class AbstractCodeActionsProducer
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
   @protected
-  CodeAction createFixAction(
+  CodeActionLiteral createFixAction(
     protocol.SourceChange change,
     String? loggedFixId,
     Diagnostic diagnostic,
     String path,
     LineInfo lineInfo,
   ) {
-    return CodeAction(
+    return CodeActionLiteral(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
@@ -180,11 +180,11 @@ abstract class AbstractCodeActionsProducer
     OperationPerformance? performance,
   );
 
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<Either2<CodeActionLiteral, Command>>> getRefactorActions(
     OperationPerformance? performance,
   );
 
-  Future<List<Either2<CodeAction, Command>>> getSourceActions();
+  Future<List<Either2<CodeActionLiteral, Command>>> getSourceActions();
 
   /// Return the contents of the [file], or `null` if the file does not exist or
   /// cannot be read.

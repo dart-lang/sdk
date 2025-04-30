@@ -15,8 +15,8 @@ import 'server_abstract.dart';
 
 abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// Initializes the server with some basic configuration and expects to find
-  /// a [CodeAction] with [kind]/[command]/[title].
-  Future<CodeAction> expectAction(
+  /// a [CodeActionLiteral] with [kind]/[command]/[title].
+  Future<CodeActionLiteral> expectAction(
     String content, {
     CodeActionKind? kind,
     String? command,
@@ -69,7 +69,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   }
 
   /// Initializes the server with some basic configuration and expects not to
-  /// find a [CodeAction] with [kind]/[command]/[title].
+  /// find a [CodeActionLiteral] with [kind]/[command]/[title].
   Future<void> expectNoAction(
     String content, {
     String? filePath,
@@ -106,8 +106,8 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// a matching command/args.
   ///
   /// Throws if zero or more than one actions match.
-  CodeAction? findAction(
-    List<Either2<Command, CodeAction>> actions, {
+  CodeActionLiteral? findAction(
+    List<Either2<CodeActionLiteral, Command>> actions, {
     String? title,
     CodeActionKind? kind,
     String? command,
@@ -122,15 +122,15 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     ).singleOrNull;
   }
 
-  List<CodeAction> findActions(
-    List<Either2<Command, CodeAction>> actions, {
+  List<CodeActionLiteral> findActions(
+    List<Either2<CodeActionLiteral, Command>> actions, {
     String? title,
     CodeActionKind? kind,
     String? command,
     List<Object>? commandArgs,
   }) {
     return actions
-        .map((action) => action.map((cmd) => null, (action) => action))
+        .map((action) => action.map((action) => action, (cmd) => null))
         .where((action) => title == null || action?.title == title)
         .where((action) => kind == null || action?.kind == kind)
         // Some tests filter by only supplying a command, so if there is no
@@ -165,15 +165,15 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         .toList();
   }
 
-  Either2<Command, CodeAction>? findCommand(
-    List<Either2<Command, CodeAction>> actions,
+  Either2<CodeActionLiteral, Command>? findCommand(
+    List<Either2<CodeActionLiteral, Command>> actions,
     String commandID, [
     String? wantedTitle,
   ]) {
     for (var codeAction in actions) {
       var id = codeAction.map(
-        (cmd) => cmd.command,
         (action) => action.command?.command,
+        (cmd) => cmd.command,
       );
       var title = codeAction.map((cmd) => cmd.title, (action) => action.title);
       if (id == commandID && (wantedTitle == null || wantedTitle == title)) {
@@ -199,7 +199,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   }
 
   /// Initializes the server with some basic configuration and expects to find
-  /// a [CodeAction] with [kind]/[title] that applies edits resulting in
+  /// a [CodeActionLiteral] with [kind]/[title] that applies edits resulting in
   /// [expected].
   Future<LspChangeVerifier> verifyActionEdits(
     String content,

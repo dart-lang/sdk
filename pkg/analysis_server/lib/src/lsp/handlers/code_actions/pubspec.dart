@@ -13,7 +13,7 @@ import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:yaml/yaml.dart';
 
-/// Produces [CodeAction]s from Pubspec fixes.
+/// Produces [CodeActionLiteral]s from Pubspec fixes.
 class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   PubspecCodeActionsProducer(
     super.server,
@@ -97,10 +97,11 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<Either2<CodeActionLiteral, Command>>> getRefactorActions(
     OperationPerformance? performance,
   ) async => [];
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
+  Future<List<Either2<CodeActionLiteral, Command>>> getSourceActions() async =>
+      [];
 }

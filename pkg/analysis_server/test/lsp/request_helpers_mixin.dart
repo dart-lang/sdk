@@ -320,7 +320,7 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
-  Future<List<Either2<Command, CodeAction>>> getCodeActions(
+  Future<List<Either2<CodeActionLiteral, Command>>> getCodeActions(
     Uri fileUri, {
     Range? range,
     Position? position,
@@ -352,10 +352,10 @@ mixin LspRequestHelpersMixin {
       request,
       _fromJsonList(
         _generateFromJsonFor(
+          CodeActionLiteral.canParse,
+          CodeActionLiteral.fromJson,
           Command.canParse,
           Command.fromJson,
-          CodeAction.canParse,
-          CodeAction.fromJson,
         ),
       ),
     );
