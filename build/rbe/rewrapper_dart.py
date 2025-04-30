@@ -269,6 +269,9 @@ trace to find the place to insert the appropriate support.
             elif arg.endswith('/dart'):
                 self.dart_subdir = os.path.dirname(arg)
                 return self.parse_dart()
+            elif arg.endswith('/dartaotruntime'):
+                self.dart_subdir = os.path.dirname(arg)
+                return self.parse_dartaotruntime()
             elif arg.endswith('/gen_snapshot') or arg.endswith(
                     '/gen_snapshot_product'):
                 return self.parse_gen_snapshot()
@@ -362,6 +365,18 @@ trace to find the place to insert the appropriate support.
                 return self.parse_kernel_service_snapshot()
             else:
                 self.unsupported('dart', arg)
+
+    def parse_dartaotruntime(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if arg.endswith('/dart2js_aot.dart.snapshot'):
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir,
+                                     'snapshots/dart2js_aot.dart.snapshot')))
+                return self.parse_dart2js()
+            else:
+                self.unsupported('dartaotruntime', arg)
 
     def parse_compile(self):
         while self.has_next_arg:
