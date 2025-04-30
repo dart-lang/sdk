@@ -548,7 +548,7 @@ Object _wrapToDart(o) {
       (o) => JsFunction._fromJs(o),
     );
   }
-  if (JS('bool', '# instanceof Array', o)) {
+  if (JS('bool', 'Array.isArray(#)', o)) {
     return _getDartProxy(
       o,
       _DART_OBJECT_PROPERTY_NAME,

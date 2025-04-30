@@ -440,7 +440,7 @@ JsObject _wrapToDartHelper(Object o) {
   if (JS<bool>('!', 'typeof # == "function"', o)) {
     return JsFunction._fromJs(o);
   }
-  if (JS<bool>('!', '# instanceof Array', o)) {
+  if (JS<bool>('!', 'Array.isArray(#)', o)) {
     return JsArray._fromJs(o);
   }
   return JsObject._fromJs(o);
