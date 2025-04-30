@@ -76,6 +76,13 @@ class _Collector {
       return _identifier(node.propertyName);
     }
 
+    if (node is DotShorthandConstructorInvocation) {
+      if (!node.isConst) {
+        nodes.add(node);
+      }
+      return;
+    }
+
     if (node is StringInterpolation) {
       for (var component in node.elements) {
         if (component is InterpolationExpression) {

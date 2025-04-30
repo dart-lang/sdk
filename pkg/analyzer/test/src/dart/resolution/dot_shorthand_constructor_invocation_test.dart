@@ -86,6 +86,41 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_const_assert() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final int x;
+  const C.named(this.x);
+}
+
+class CAssert {
+  const CAssert.regular(C ctor)
+    : assert(ctor == const .named(1));
+}
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  const: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        staticType: int
+    rightParenthesis: )
+  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  staticType: C
+''');
+  }
+
   test_const_inConstantContext() async {
     await assertNoErrorsInCode(r'''
 class C {
