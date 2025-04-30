@@ -18,7 +18,7 @@ import 'dart:_foreign_helper'
         RAW_DART_FUNCTION_REF,
         TYPE_REF;
 import 'dart:_interceptors'
-    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
+    show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray, JSObject;
 import 'dart:_js_helper'
     as records
     show createRecordTypePredicate, getRtiForRecord;
@@ -1267,6 +1267,9 @@ bool _installSpecializedIsTest(Object? object) {
           RAW_DART_FUNCTION_REF(_isListTestViaProperty),
         );
       }
+      if (_Utils.isIdentical(testRti, TYPE_REF<JSObject>())) {
+        return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isJSObject));
+      }
       return _finishIsFn(
         testRti,
         object,
@@ -1430,6 +1433,40 @@ bool _isListTestViaProperty(Object? object) {
 
   var interceptor = getInterceptor(object);
   return JS('bool', '!!#[#]', interceptor, tag);
+}
+
+/// Specialized test for JSObject that avoids the uncached interceptor for plain
+/// JavaScript objects.
+///
+/// Based on [_isTestViaProperty] to handle mocks and fakes defined in Dart.
+bool _isJSObject(Object? object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _Utils.asRti(JS('', 'this'));
+  if (object == null) return false;
+  if (JS('bool', 'typeof # == "object"', object)) {
+    if (_isDartObject(object)) {
+      // This path includes dart2js functions which are objects that extend
+      // `Closure`.
+      //
+      // Some Dart objects implement a subtype of JSObject, e.g. a Mock that
+      // implements Window from `dart:html`. This test would be unnecessary of
+      // the only form of js_interop was `dart:js_interop`.
+      var tag = Rti._getSpecializedTestResource(testRti);
+      return JS('bool', '!!#[#]', object, tag);
+    }
+    return true;
+  }
+  if (JS('bool', 'typeof # == "function"', object)) {
+    if (JS_GET_FLAG('DEV_COMPILER')) {
+      // DDC functions are JavaScript functions, but have a signature attached.
+      var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+      var signature = JS('', '#[#]', object, signatureName);
+      return signature == null;
+    }
+    return true;
+  }
+  return false;
 }
 
 /// General unspecialized 'as' check that works for any type.
