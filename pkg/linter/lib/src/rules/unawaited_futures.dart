@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_isEnclosedInAsyncFunctionBody(node)) {
       // Future expression statement that isn't awaited in an async function:
       // while this is legal, it's a very frequent sign of an error.
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -111,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if ((expr.staticType?.isDartAsyncFuture ?? false) &&
         _isEnclosedInAsyncFunctionBody(expr) &&
         expr is! AssignmentExpression) {
-      rule.reportLint(expr);
+      rule.reportAtNode(expr);
     }
   }
 }

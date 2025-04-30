@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           try {
             RegExp(source, unicode: unicode);
           } on FormatException {
-            rule.reportLint(sourceExpression);
+            rule.reportAtNode(sourceExpression);
           }
         }
       }

@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _check(InterpolationExpression expression) {
     var bracket = expression.rightBracket;
     if (bracket != null && !isIdentifierPart(bracket.next)) {
-      rule.reportLint(expression);
+      rule.reportAtNode(expression);
     }
   }
 }

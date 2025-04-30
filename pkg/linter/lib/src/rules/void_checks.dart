@@ -155,11 +155,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (expectedType is VoidType && !isTypeAcceptableWhenExpectingVoid(type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     } else if (expectedType.isDartAsyncFutureOr &&
         (expectedType as InterfaceType).typeArguments.first is VoidType &&
         !isTypeAcceptableWhenExpectingFutureOrVoid(type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     } else if (checkedNode is FunctionExpression &&
         checkedNode.body is! ExpressionFunctionBody &&
         expectedType is FunctionType &&

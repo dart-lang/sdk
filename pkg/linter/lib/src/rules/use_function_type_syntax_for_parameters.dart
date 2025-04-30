@@ -40,6 +40,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    rule.reportLint(node, arguments: [node.name.lexeme]);
+    rule.reportAtNode(node, arguments: [node.name.lexeme]);
   }
 }

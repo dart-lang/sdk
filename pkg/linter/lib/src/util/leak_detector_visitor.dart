@@ -44,7 +44,7 @@ _VisitVariableDeclaration _buildVariableReporter(
     return;
   }
 
-  rule.reportLint(variable);
+  rule.reportAtNode(variable);
 };
 
 /// Whether any of the [predicates] applies to [methodName] and holds true for

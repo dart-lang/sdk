@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         (parent is DoStatement && node == parent.condition) ||
         (parent is SwitchStatement && node == parent.expression) ||
         (parent is SwitchExpression && node == parent.expression)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
       return;
     }
 
@@ -155,14 +155,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           return;
         }
       }
-      rule.reportLint(node);
+      rule.reportAtNode(node);
       return;
     }
 
     if (expression is ConstructorReference) {
       if (parent is! FunctionExpressionInvocation ||
           parent.typeArguments == null) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
         return;
       }
     }
@@ -267,7 +267,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // interpreted as a set-or-map literal.
       if (node.wouldBeParsedAsStatementBlock) return;
     }
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }
 

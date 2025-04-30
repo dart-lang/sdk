@@ -34,7 +34,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (node.isRaw && ![r'\', r'$'].any(node.literal.lexeme.contains)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

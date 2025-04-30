@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!onlyClosuresAfterChild) {
       var argument = arguments.firstWhere(isChildArg);
       var name = (argument as NamedExpression).name.label.name;
-      rule.reportLint(argument, arguments: [name]);
+      rule.reportAtNode(argument, arguments: [name]);
     }
   }
 

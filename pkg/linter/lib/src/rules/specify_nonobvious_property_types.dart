@@ -107,10 +107,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (aDeclaredTypeIsNeeded) {
       if (node.variables.length == 1) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       } else {
         // Multiple variables, report each of them separately. No fix.
-        variablesThatNeedAType.forEach(rule.reportLint);
+        variablesThatNeedAType.forEach(rule.reportAtNode);
       }
     }
   }

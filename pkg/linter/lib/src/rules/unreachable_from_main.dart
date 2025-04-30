@@ -531,7 +531,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (member is ConstructorDeclaration) {
         var name = member.name;
         if (name == null) {
-          rule.reportLint(member.returnType, arguments: [member.nameForError]);
+          rule.reportAtNode(
+            member.returnType,
+            arguments: [member.nameForError],
+          );
         } else {
           rule.reportAtToken(name, arguments: [member.nameForError]);
         }

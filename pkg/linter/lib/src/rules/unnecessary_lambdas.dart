@@ -170,7 +170,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 
   void _visitInvocationExpression(
@@ -195,7 +195,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // see: https://github.com/dart-lang/linter/issues/1561
       var checker = _FinalExpressionChecker(parameters);
       if (checker.isFinalNode(node.function)) {
-        rule.reportLint(nodeToLint);
+        rule.reportAtNode(nodeToLint);
       }
     } else if (node is MethodInvocation) {
       if (node.target.mightBeDeferred) return;
@@ -221,7 +221,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           checker.isFinalNode(node.target) &&
           node.methodName.element.isFinal &&
           node.typeArguments == null) {
-        rule.reportLint(nodeToLint);
+        rule.reportAtNode(nodeToLint);
       }
     }
   }

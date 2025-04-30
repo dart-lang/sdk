@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var exceptionParameter =
           catchClause?.exceptionParameter?.declaredElement2;
       if (element == exceptionParameter) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }

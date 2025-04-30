@@ -55,7 +55,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
       if (typeParameterElement is TypeParameterElementImpl2) {
         if (typeParameterElement.firstFragment.isLegacyCovariant &&
             variance != Variance.out) {
-          rule.reportLint(typeAnnotation);
+          rule.reportAtNode(typeAnnotation);
         }
       }
     }

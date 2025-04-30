@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var expressionType = node.expression.staticType;
     if (expressionType != null && expressionType.isDartCoreType) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

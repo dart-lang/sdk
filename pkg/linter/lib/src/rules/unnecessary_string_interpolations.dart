@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (staticType != null &&
             staticType.isDartCoreString &&
             staticType.nullabilitySuffix != NullabilitySuffix.question) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       }
     }

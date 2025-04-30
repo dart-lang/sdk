@@ -70,7 +70,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
     if (visitor is! ClassElement) return;
     if (implements(visitor, 'visit$nodeType')) return;
 
-    rule.reportLint(node.methodName);
+    rule.reportAtNode(node.methodName);
   }
 }
 
