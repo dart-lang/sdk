@@ -43,14 +43,16 @@ void testSameKindConflict() {
   // No error as one of the extension members are implemented for each export
   // name.
   createStaticInteropMock<SameKindConflict, DartSameKindConflict>(
-      DartSameKindConflict());
+    DartSameKindConflict(),
+  );
   // Error as none of them are implemented for each export name.
   createStaticInteropMock<SameKindConflict, IncorrectDartSameKindConflict>(
-//^
-// [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'getter': E1.getter (FunctionType(int Function())), E2.getter (FunctionType(String Function())).
-// [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'method': E1.method (FunctionType(int Function())), E2.method (FunctionType(String Function())).
-// [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'setter': E1.setter= (FunctionType(void Function(int))), E2.setter= (FunctionType(void Function(int))).
-      IncorrectDartSameKindConflict());
+    // [error column 3]
+    // [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'getter': E1.getter (FunctionType(int Function())), E2.getter (FunctionType(String Function())).
+    // [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'method': E1.method (FunctionType(int Function())), E2.method (FunctionType(String Function())).
+    // [web] Dart class 'IncorrectDartSameKindConflict' does not have any members that implement any of the following extension member(s) with export name 'setter': E1.setter= (FunctionType(void Function(int))), E2.setter= (FunctionType(void Function(int))).
+    IncorrectDartSameKindConflict(),
+  );
 }
 
 @JS()
@@ -86,19 +88,23 @@ class ImplementMethod {
 void testDifferentKindConflict() {
   // Missing setter error.
   createStaticInteropMock<DifferentKindConflict, ImplementGetter>(
-//^
-// [web] Dart class 'ImplementGetter' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet': E3.getSet= (FunctionType(void Function(int))).
-      ImplementGetter());
+    // [error column 3]
+    // [web] Dart class 'ImplementGetter' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet': E3.getSet= (FunctionType(void Function(int))).
+    ImplementGetter(),
+  );
   // Missing getter error.
   createStaticInteropMock<DifferentKindConflict, ImplementSetter>(
-//^
-// [web] Dart class 'ImplementSetter' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'getSet': E3.getSet (FunctionType(int Function())).
-      ImplementSetter());
+    // [error column 3]
+    // [web] Dart class 'ImplementSetter' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'getSet': E3.getSet (FunctionType(int Function())).
+    ImplementSetter(),
+  );
   // No error as both getter and setter are there, and we've satisfied an export
   // for `getSet`.
   createStaticInteropMock<DifferentKindConflict, ImplementBoth>(
-      ImplementBoth());
+    ImplementBoth(),
+  );
   // No error as we've satisfied an export for `getSet`.
   createStaticInteropMock<DifferentKindConflict, ImplementMethod>(
-      ImplementMethod());
+    ImplementMethod(),
+  );
 }

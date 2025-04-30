@@ -14,8 +14,7 @@ dynamic confuse(dynamic x) => x;
 external dynamic eval(String script);
 
 void injectJS() {
-  eval(
-    '''
+  eval('''
     self.jsFunction = function(s) {
         if (this == null) {
           throw "`this` is null or undefined";
@@ -46,8 +45,7 @@ void injectJS() {
       }
     }
     self.jsClass = new NamedClass();
-    ''',
-  );
+    ''');
 }
 
 bool jsThisIsNullCheck(e) =>

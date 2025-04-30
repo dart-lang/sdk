@@ -450,7 +450,7 @@ void main() {
     var codeActions = await getCodeActions(mainFileUri, range: range);
     var codeActionKinds = codeActions.map(
       (item) =>
-          item.map((command) => null, (action) => action.kind?.toString()),
+          item.map((action) => action.kind?.toString(), (command) => null),
     );
 
     expect(

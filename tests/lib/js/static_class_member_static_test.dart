@@ -8,8 +8,8 @@ import 'package:js/js.dart';
 class Foo {
   @JS('c.d.plus')
   external static plus1(arg);
-//                ^
-// [web] JS interop static class members cannot have '.' in their JS name.
+  //              ^
+  // [web] JS interop static class members cannot have '.' in their JS name.
 }
 
 main() {}

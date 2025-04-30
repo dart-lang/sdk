@@ -2039,10 +2039,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       return;
     }
 
-    if (localMember is Procedure) {
-      localMember.isErroneous = true;
-    } else if (localMember is Field) {
-      localMember.isErroneous = true;
+    switch (localMember) {
+      case Procedure():
+        localMember.isErroneous = true;
+      case Field():
+        localMember.isErroneous = true;
+      case Constructor():
+        // Coverage-ignore(suite): Not run.
+        unexpected("Procedure|Field", "Constructor", fileOffset, fileUri);
+      case null:
+      // Do nothing.
     }
 
     if (declaredMember.enclosingClass == cls) {

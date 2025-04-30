@@ -7441,7 +7441,8 @@ typedef ProgressToken = Either2<int, String>;
 
 /// Result for a request to provide commands for the given text document and
 /// range.
-typedef TextDocumentCodeActionResult = List<Either2<CodeAction, Command>>?;
+typedef TextDocumentCodeActionResult
+    = List<Either2<CodeActionLiteral, Command>>?;
 
 /// Result for a request to provide code lens for the given text document.
 typedef TextDocumentCodeLensResult = List<CodeLens>?;
@@ -9428,213 +9429,6 @@ class ClientSemanticTokensRequestOptions implements ToJsonable {
   }
 }
 
-/// A code action represents a change that can be performed in code, e.g. to fix
-/// a problem or to refactor code.
-///
-/// A CodeAction must set either `edit` and/or a `command`. If both are
-/// supplied, the `edit` is applied first, then the `command` is executed.
-class CodeAction implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    CodeAction.canParse,
-    CodeAction.fromJson,
-  );
-
-  /// A command this code action executes. If a code action provides an edit and
-  /// a command, first the edit is executed and then the command.
-  final Command? command;
-
-  /// A data entry field that is preserved on a code action between a
-  /// `textDocument/codeAction` and a `codeAction/resolve` request.
-  ///
-  /// @since 3.16.0
-  final LSPAny data;
-
-  /// The diagnostics that this code action resolves.
-  final List<Diagnostic>? diagnostics;
-
-  /// Marks that the code action cannot currently be applied.
-  ///
-  /// Clients should follow the following guidelines regarding disabled code
-  /// actions:
-  ///
-  ///   - Disabled code actions are not shown in automatic
-  /// [lightbulbs](https://code.visualstudio.com/docs/editor/editingevolved#_code-action)
-  ///     code action menus.
-  ///
-  ///   - Disabled actions are shown as faded out in the code action menu when
-  /// the user requests a more specific type
-  ///     of code action, such as refactorings.
-  ///
-  ///   - If the user has a
-  /// [keybinding](https://code.visualstudio.com/docs/editor/refactoring#_keybindings-for-code-actions)
-  ///     that auto applies a code action and only disabled code actions are
-  /// returned, the client should show the user an
-  ///     error message with `reason` in the editor.
-  ///
-  /// @since 3.16.0
-  final CodeActionDisabled? disabled;
-
-  /// The workspace edit this code action performs.
-  final WorkspaceEdit? edit;
-
-  /// Marks this as a preferred action. Preferred actions are used by the `auto
-  /// fix` command and can be targeted by keybindings.
-  ///
-  /// A quick fix should be marked preferred if it properly addresses the
-  /// underlying error. A refactoring should be marked preferred if it is the
-  /// most reasonable choice of actions to take.
-  ///
-  /// @since 3.15.0
-  final bool? isPreferred;
-
-  /// The kind of the code action.
-  ///
-  /// Used to filter code actions.
-  final CodeActionKind? kind;
-
-  /// A short, human-readable, title for this code action.
-  final String title;
-  CodeAction({
-    this.command,
-    this.data,
-    this.diagnostics,
-    this.disabled,
-    this.edit,
-    this.isPreferred,
-    this.kind,
-    required this.title,
-  });
-  @override
-  int get hashCode => Object.hash(
-        command,
-        data,
-        lspHashCode(diagnostics),
-        disabled,
-        edit,
-        isPreferred,
-        kind,
-        title,
-      );
-
-  @override
-  bool operator ==(Object other) {
-    return other is CodeAction &&
-        other.runtimeType == CodeAction &&
-        command == other.command &&
-        data == other.data &&
-        const DeepCollectionEquality().equals(diagnostics, other.diagnostics) &&
-        disabled == other.disabled &&
-        edit == other.edit &&
-        isPreferred == other.isPreferred &&
-        kind == other.kind &&
-        title == other.title;
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    if (command != null) {
-      result['command'] = command?.toJson();
-    }
-    if (data != null) {
-      result['data'] = data;
-    }
-    if (diagnostics != null) {
-      result['diagnostics'] =
-          diagnostics?.map((item) => item.toJson()).toList();
-    }
-    if (disabled != null) {
-      result['disabled'] = disabled?.toJson();
-    }
-    if (edit != null) {
-      result['edit'] = edit?.toJson();
-    }
-    if (isPreferred != null) {
-      result['isPreferred'] = isPreferred;
-    }
-    if (kind != null) {
-      result['kind'] = kind?.toJson();
-    }
-    result['title'] = title;
-    return result;
-  }
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseCommand(obj, reporter, 'command',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseListDiagnostic(obj, reporter, 'diagnostics',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseCodeActionDisabled(obj, reporter, 'disabled',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseWorkspaceEdit(obj, reporter, 'edit',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseBool(obj, reporter, 'isPreferred',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseCodeActionKind(obj, reporter, 'kind',
-          allowsUndefined: true, allowsNull: false)) {
-        return false;
-      }
-      return _canParseString(obj, reporter, 'title',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError('must be of type CodeAction');
-      return false;
-    }
-  }
-
-  static CodeAction fromJson(Map<String, Object?> json) {
-    final commandJson = json['command'];
-    final command = commandJson != null
-        ? Command.fromJson(commandJson as Map<String, Object?>)
-        : null;
-    final dataJson = json['data'];
-    final data = dataJson;
-    final diagnosticsJson = json['diagnostics'];
-    final diagnostics = (diagnosticsJson as List<Object?>?)
-        ?.map((item) => Diagnostic.fromJson(item as Map<String, Object?>))
-        .toList();
-    final disabledJson = json['disabled'];
-    final disabled = disabledJson != null
-        ? CodeActionDisabled.fromJson(disabledJson as Map<String, Object?>)
-        : null;
-    final editJson = json['edit'];
-    final edit = editJson != null
-        ? WorkspaceEdit.fromJson(editJson as Map<String, Object?>)
-        : null;
-    final isPreferredJson = json['isPreferred'];
-    final isPreferred = isPreferredJson as bool?;
-    final kindJson = json['kind'];
-    final kind =
-        kindJson != null ? CodeActionKind.fromJson(kindJson as String) : null;
-    final titleJson = json['title'];
-    final title = titleJson as String;
-    return CodeAction(
-      command: command,
-      data: data,
-      diagnostics: diagnostics,
-      disabled: disabled,
-      edit: edit,
-      isPreferred: isPreferred,
-      kind: kind,
-      title: title,
-    );
-  }
-}
-
 /// The Client Capabilities of a [CodeActionRequest].
 class CodeActionClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -10161,6 +9955,213 @@ class CodeActionKind implements ToJsonable {
   String toString() => _value.toString();
 
   static bool canParse(Object? obj, LspJsonReporter reporter) => obj is String;
+}
+
+/// A code action represents a change that can be performed in code, e.g. to fix
+/// a problem or to refactor code.
+///
+/// A CodeAction must set either `edit` and/or a `command`. If both are
+/// supplied, the `edit` is applied first, then the `command` is executed.
+class CodeActionLiteral implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CodeActionLiteral.canParse,
+    CodeActionLiteral.fromJson,
+  );
+
+  /// A command this code action executes. If a code action provides an edit and
+  /// a command, first the edit is executed and then the command.
+  final Command? command;
+
+  /// A data entry field that is preserved on a code action between a
+  /// `textDocument/codeAction` and a `codeAction/resolve` request.
+  ///
+  /// @since 3.16.0
+  final LSPAny data;
+
+  /// The diagnostics that this code action resolves.
+  final List<Diagnostic>? diagnostics;
+
+  /// Marks that the code action cannot currently be applied.
+  ///
+  /// Clients should follow the following guidelines regarding disabled code
+  /// actions:
+  ///
+  ///   - Disabled code actions are not shown in automatic
+  /// [lightbulbs](https://code.visualstudio.com/docs/editor/editingevolved#_code-action)
+  ///     code action menus.
+  ///
+  ///   - Disabled actions are shown as faded out in the code action menu when
+  /// the user requests a more specific type
+  ///     of code action, such as refactorings.
+  ///
+  ///   - If the user has a
+  /// [keybinding](https://code.visualstudio.com/docs/editor/refactoring#_keybindings-for-code-actions)
+  ///     that auto applies a code action and only disabled code actions are
+  /// returned, the client should show the user an
+  ///     error message with `reason` in the editor.
+  ///
+  /// @since 3.16.0
+  final CodeActionDisabled? disabled;
+
+  /// The workspace edit this code action performs.
+  final WorkspaceEdit? edit;
+
+  /// Marks this as a preferred action. Preferred actions are used by the `auto
+  /// fix` command and can be targeted by keybindings.
+  ///
+  /// A quick fix should be marked preferred if it properly addresses the
+  /// underlying error. A refactoring should be marked preferred if it is the
+  /// most reasonable choice of actions to take.
+  ///
+  /// @since 3.15.0
+  final bool? isPreferred;
+
+  /// The kind of the code action.
+  ///
+  /// Used to filter code actions.
+  final CodeActionKind? kind;
+
+  /// A short, human-readable, title for this code action.
+  final String title;
+  CodeActionLiteral({
+    this.command,
+    this.data,
+    this.diagnostics,
+    this.disabled,
+    this.edit,
+    this.isPreferred,
+    this.kind,
+    required this.title,
+  });
+  @override
+  int get hashCode => Object.hash(
+        command,
+        data,
+        lspHashCode(diagnostics),
+        disabled,
+        edit,
+        isPreferred,
+        kind,
+        title,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is CodeActionLiteral &&
+        other.runtimeType == CodeActionLiteral &&
+        command == other.command &&
+        data == other.data &&
+        const DeepCollectionEquality().equals(diagnostics, other.diagnostics) &&
+        disabled == other.disabled &&
+        edit == other.edit &&
+        isPreferred == other.isPreferred &&
+        kind == other.kind &&
+        title == other.title;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (command != null) {
+      result['command'] = command?.toJson();
+    }
+    if (data != null) {
+      result['data'] = data;
+    }
+    if (diagnostics != null) {
+      result['diagnostics'] =
+          diagnostics?.map((item) => item.toJson()).toList();
+    }
+    if (disabled != null) {
+      result['disabled'] = disabled?.toJson();
+    }
+    if (edit != null) {
+      result['edit'] = edit?.toJson();
+    }
+    if (isPreferred != null) {
+      result['isPreferred'] = isPreferred;
+    }
+    if (kind != null) {
+      result['kind'] = kind?.toJson();
+    }
+    result['title'] = title;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseCommand(obj, reporter, 'command',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseListDiagnostic(obj, reporter, 'diagnostics',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseCodeActionDisabled(obj, reporter, 'disabled',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseWorkspaceEdit(obj, reporter, 'edit',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isPreferred',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseCodeActionKind(obj, reporter, 'kind',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'title',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type CodeActionLiteral');
+      return false;
+    }
+  }
+
+  static CodeActionLiteral fromJson(Map<String, Object?> json) {
+    final commandJson = json['command'];
+    final command = commandJson != null
+        ? Command.fromJson(commandJson as Map<String, Object?>)
+        : null;
+    final dataJson = json['data'];
+    final data = dataJson;
+    final diagnosticsJson = json['diagnostics'];
+    final diagnostics = (diagnosticsJson as List<Object?>?)
+        ?.map((item) => Diagnostic.fromJson(item as Map<String, Object?>))
+        .toList();
+    final disabledJson = json['disabled'];
+    final disabled = disabledJson != null
+        ? CodeActionDisabled.fromJson(disabledJson as Map<String, Object?>)
+        : null;
+    final editJson = json['edit'];
+    final edit = editJson != null
+        ? WorkspaceEdit.fromJson(editJson as Map<String, Object?>)
+        : null;
+    final isPreferredJson = json['isPreferred'];
+    final isPreferred = isPreferredJson as bool?;
+    final kindJson = json['kind'];
+    final kind =
+        kindJson != null ? CodeActionKind.fromJson(kindJson as String) : null;
+    final titleJson = json['title'];
+    final title = titleJson as String;
+    return CodeActionLiteral(
+      command: command,
+      data: data,
+      diagnostics: diagnostics,
+      disabled: disabled,
+      edit: edit,
+      isPreferred: isPreferred,
+      kind: kind,
+      title: title,
+    );
+  }
 }
 
 /// Provider options for a [CodeActionRequest].

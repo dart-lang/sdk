@@ -32,21 +32,21 @@ class Dart {
 void main() {
   createStaticInteropMock<StaticInterop, Dart>(Dart());
   createStaticInteropMock<Dart, StaticInterop>(StaticInterop());
-//^
-// [web] Type argument 'Dart' needs to be a `@staticInterop` type.
-// [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
+  // [error column 3]
+  // [web] Type argument 'Dart' needs to be a `@staticInterop` type.
+  // [web] Type argument 'StaticInterop' needs to be a non-JS interop type.
   createStaticInteropMock<Dart, Js>(Js());
-//^
-// [web] Type argument 'Dart' needs to be a `@staticInterop` type.
-// [web] Type argument 'Js' needs to be a non-JS interop type.
+  // [error column 3]
+  // [web] Type argument 'Dart' needs to be a `@staticInterop` type.
+  // [web] Type argument 'Js' needs to be a non-JS interop type.
   createStaticInteropMock<Dart, Anonymous>(Anonymous());
-//^
-// [web] Type argument 'Anonymous' needs to be a non-JS interop type.
-// [web] Type argument 'Dart' needs to be a `@staticInterop` type.
+  // [error column 3]
+  // [web] Type argument 'Anonymous' needs to be a non-JS interop type.
+  // [web] Type argument 'Dart' needs to be a `@staticInterop` type.
   createStaticInteropMock<StaticInterop, void Function()>(() {});
-//^
-// [web] Type argument 'void Function()' needs to be an interface type.
+  // [error column 3]
+  // [web] Type argument 'void Function()' needs to be an interface type.
   createStaticInteropMock(Dart());
-//^
-// [web] Type argument 'Object' needs to be a `@staticInterop` type.
+  // [error column 3]
+  // [web] Type argument 'Object' needs to be a `@staticInterop` type.
 }

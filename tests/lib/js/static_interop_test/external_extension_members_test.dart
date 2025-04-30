@@ -235,11 +235,10 @@ void main() {
     // methods on it.
     Expect.throws(() => foo.fieldT.toDart.split('foo'));
     Expect.throws(
-      () =>
-          foo
-              .sumFnGeneric<JSNumber, JSString>(value.toJS, value.toJS)
-              .toDartInt
-              .isEven,
+      () => foo
+          .sumFnGeneric<JSNumber, JSString>(value.toJS, value.toJS)
+          .toDartInt
+          .isEven,
     );
     Expect.throws(
       () => foo

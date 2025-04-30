@@ -52,9 +52,13 @@ main() {
       final three = BigInt('3');
       final nine = BigInt('9');
       expect(
-          js_util.strictEqual(js_util.exponentiate(three, two), nine), isTrue);
-      expect(js_util.strictEqual(js_util.exponentiate(three, three), nine),
-          isFalse);
+        js_util.strictEqual(js_util.exponentiate(three, two), nine),
+        isTrue,
+      );
+      expect(
+        js_util.strictEqual(js_util.exponentiate(three, three), nine),
+        isFalse,
+      );
     });
 
     test('exponentiation2', () {
@@ -62,13 +66,19 @@ main() {
       final three = BigInt('3');
       final five = BigInt('5');
       expect(
-          js_util.add(
-              '', js_util.exponentiate(js_util.exponentiate(five, three), two)),
-          '15625');
+        js_util.add(
+          '',
+          js_util.exponentiate(js_util.exponentiate(five, three), two),
+        ),
+        '15625',
+      );
       expect(
-          js_util.add(
-              '', js_util.exponentiate(five, js_util.exponentiate(three, two))),
-          '1953125');
+        js_util.add(
+          '',
+          js_util.exponentiate(five, js_util.exponentiate(three, two)),
+        ),
+        '1953125',
+      );
     });
 
     test('modulo', () {

@@ -566,9 +566,9 @@ List<LspEntity> getCustomClasses() {
           'Information about one of the arguments needed by the command.'
           '\n\n'
           'A list of parameters is sent in the `data` field of the '
-          '`CodeAction` returned by the server. The values of the parameters '
-          'should appear in the `args` field of the `Command` sent to the '
-          'server in the same order as the corresponding parameters.',
+          '`CodeActionLiteral` returned by the server. The values of the '
+          'parameters should appear in the `args` field of the `Command` sent '
+          'to the server in the same order as the corresponding parameters.',
     ),
     interface(
       'SaveUriCommandParameter',

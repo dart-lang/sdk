@@ -81,9 +81,13 @@ complianceModeTest() {
   expect(() => js_util.callConstructor<List>(fConstructor, [1, 2]), throws);
   expect(() => js_util.callConstructor<List>(fConstructor, [1, 2, 3]), throws);
   expect(
-      () => js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4]), throws);
-  expect(() => js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4, 5]),
-      throws);
+    () => js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4]),
+    throws,
+  );
+  expect(
+    () => js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4, 5]),
+    throws,
+  );
 }
 
 omitImplicitChecksTest() {
@@ -105,20 +109,33 @@ omitImplicitChecksTest() {
   var fConstructor = js_util.getProperty(f, 'constructor');
   expect(js_util.callConstructor<Foo>(fConstructor, [7]).a, equals(7));
   expect(
-      (js_util.callConstructor<List>(fConstructor, [7]) as Foo).a, equals(7));
+    (js_util.callConstructor<List>(fConstructor, [7]) as Foo).a,
+    equals(7),
+  );
 
   // Check optimized lowering of callConstructor.
-  expect((js_util.callConstructor<List>(fConstructor, null) as Foo).a,
-      equals(null));
   expect(
-      (js_util.callConstructor<List>(fConstructor, []) as Foo).a, equals(null));
-  expect((js_util.callConstructor<List>(fConstructor, [1, 2]) as Foo).a,
-      equals(1));
-  expect((js_util.callConstructor<List>(fConstructor, [1, 2, 3]) as Foo).a,
-      equals(1));
-  expect((js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4]) as Foo).a,
-      equals(1));
+    (js_util.callConstructor<List>(fConstructor, null) as Foo).a,
+    equals(null),
+  );
   expect(
-      (js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4, 5]) as Foo).a,
-      equals(1));
+    (js_util.callConstructor<List>(fConstructor, []) as Foo).a,
+    equals(null),
+  );
+  expect(
+    (js_util.callConstructor<List>(fConstructor, [1, 2]) as Foo).a,
+    equals(1),
+  );
+  expect(
+    (js_util.callConstructor<List>(fConstructor, [1, 2, 3]) as Foo).a,
+    equals(1),
+  );
+  expect(
+    (js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4]) as Foo).a,
+    equals(1),
+  );
+  expect(
+    (js_util.callConstructor<List>(fConstructor, [1, 2, 3, 4, 5]) as Foo).a,
+    equals(1),
+  );
 }

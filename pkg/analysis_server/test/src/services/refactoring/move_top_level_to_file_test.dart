@@ -32,7 +32,7 @@ class ^A {}
   String get refactoringName => MoveTopLevelToFile.commandName;
 
   /// Replaces the "Save URI" argument in [action].
-  void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
+  void replaceSaveUriArgument(CodeActionLiteral action, Uri newFileUri) {
     var arguments = getRefactorCommandArguments(action);
     // The filename is the first item we prompt for so is first in the
     // arguments.

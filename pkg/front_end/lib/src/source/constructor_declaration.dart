@@ -59,4 +59,11 @@ abstract class ConstructorDeclarationBuilder
   /// variable referring to the class type parameters must be substituted for
   /// the synthesized constructor type parameters.
   DartType substituteFieldType(DartType fieldType);
+
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
+  void markAsErroneous();
 }

@@ -84,7 +84,8 @@ void generalTest() {
     Expect.identical(externalDartReference, dartObject.toExternalReference);
   } else {
     Expect.isFalse(
-        identical(externalDartReference, dartObject.toExternalReference));
+      identical(externalDartReference, dartObject.toExternalReference),
+    );
   }
 
   // We don't validate that the input is a Dart object or a JS value as that may
@@ -97,34 +98,49 @@ void generalTest() {
   // Check that the type is checked when internalized for soundness.
   externalDartReference = dartObject.toExternalReference;
   Expect.throws(
-      () => (externalDartReference as ExternalDartReference<DartSubclass>)
-          // The cast is deferred until `toDartObject` for dart2wasm, so call it
-          // explicitly.
-          .toDartObject);
+    () => (externalDartReference as ExternalDartReference<DartSubclass>)
+        // The cast is deferred until `toDartObject` for dart2wasm, so call it
+        // explicitly.
+        .toDartObject,
+  );
 
-  _identity = ((ExternalDartReference<DartSubclass> et) =>
-      et.toDartObject.toExternalReference).toJS;
+  _identity =
+      ((ExternalDartReference<DartSubclass> et) =>
+              et.toDartObject.toExternalReference)
+          .toJS;
   Expect.throws(() => identity(externalDartReference));
 
   // Check that we do the right thing with nullability still, both in the type
   // parameter and outside it.
-  _identity = ((ExternalDartReference<Object> et) =>
-      et.toDartObject.toExternalReference).toJS;
+  _identity =
+      ((ExternalDartReference<Object> et) =>
+              et.toDartObject.toExternalReference)
+          .toJS;
   nullableExternalDartReference = null?.toExternalReference;
   Expect.isTrue(nullableExternalDartReference == null);
   Expect.throwsWhen(
-      !unsoundNullSafety, () => externalDartReference.toDartObject);
+    !unsoundNullSafety,
+    () => externalDartReference.toDartObject,
+  );
   Expect.throwsWhen(
-      !unsoundNullSafety, () => identity(nullableExternalDartReference));
+    !unsoundNullSafety,
+    () => identity(nullableExternalDartReference),
+  );
   externalDartNullableReference = null.toExternalReference;
   Expect.isTrue(externalDartNullableReference == null);
   Expect.throwsWhen(
-      !unsoundNullSafety, () => externalDartReference.toDartObject);
+    !unsoundNullSafety,
+    () => externalDartReference.toDartObject,
+  );
   Expect.throwsWhen(
-      !unsoundNullSafety, () => identity(externalDartNullableReference));
+    !unsoundNullSafety,
+    () => identity(externalDartNullableReference),
+  );
   // Check that they're both Dart `null`.
   Expect.identical(
-      nullableExternalDartReference, externalDartNullableReference);
+    nullableExternalDartReference,
+    externalDartNullableReference,
+  );
 
   // Functions should not trigger `assertInterop`.
   externalDartReference = () {}.toExternalReference;
@@ -150,13 +166,18 @@ extension type WritableSignal<T>(JSFunction _) {
     // work, but will be slower on the JS backends. See
     // https://github.com/dart-lang/sdk/issues/55342 for more details.
     if (isJSBackend) {
-      _update((function as ExternalDartReference<T> Function(
-              ExternalDartReference<T>))
-          .toJS);
+      _update(
+        (function
+                as ExternalDartReference<T> Function(ExternalDartReference<T>))
+            .toJS,
+      );
     }
     // Should work on all backends.
-    _update(((ExternalDartReference<T> e) =>
-        function(e.toDartObject).toExternalReference).toJS);
+    _update(
+      ((ExternalDartReference<T> e) => function(
+        e.toDartObject,
+      ).toExternalReference).toJS,
+    );
   }
 }
 

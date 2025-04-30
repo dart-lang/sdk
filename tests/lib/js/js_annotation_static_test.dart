@@ -20,19 +20,19 @@ class Foo {
   // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external int get bar;
-  //               ^^^
+  //               ^
   // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external set bar(int val);
-  //           ^^^
+  //           ^
   // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external int baz();
-  //           ^^^
+  //           ^
   // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external static int bazStatic();
-  //                  ^^^^^^^^^
+  //                  ^
   // [web] Member has a JS interop annotation but the enclosing class does not.
 }
 

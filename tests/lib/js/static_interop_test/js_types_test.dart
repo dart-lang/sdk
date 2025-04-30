@@ -180,10 +180,9 @@ void syncTests() {
   Expect.equals(
     'foobar',
     (edf.toDart as JSString Function(JSString, JSString))(
-          'foo'.toJS,
-          'bar'.toJS,
-        )
-        .toDart,
+      'foo'.toJS,
+      'bar'.toJS,
+    ).toDart,
   );
   Expect.identical(edf.toDart, dartFunction);
   // Two wrappers should not be the same.
@@ -731,10 +730,9 @@ Future<void> asyncTests() async {
   // Test resolution.
   {
     var compute = false;
-    final f =
-        Future<void>(() {
-          compute = true;
-        }).toJS.toDart;
+    final f = Future<void>(() {
+      compute = true;
+    }).toJS.toDart;
     await f;
     Expect.isTrue(compute);
   }

@@ -124,16 +124,24 @@ void main() {
   // [web] The argument type 'Uint32List' can't be assigned to the parameter type 'JSUint32Array'.
 
   // [JSFloat32Array] != [Float32List]
-  Float32List af32 =
-      Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]);
+  Float32List af32 = Float32List.fromList([
+    -1000.488,
+    -0.00001,
+    0.0001,
+    10004.888,
+  ]);
   ((JSFloat32Array jsAf32) {})(af32);
   //                           ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [web] The argument type 'Float32List' can't be assigned to the parameter type 'JSFloat32Array'.
 
   // [JSFloat64Array] != [Float64List]
-  Float64List af64 =
-      Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]);
+  Float64List af64 = Float64List.fromList([
+    -1000.488,
+    -0.00001,
+    0.0001,
+    10004.888,
+  ]);
   ((JSFloat64Array jsAf64) {})(af64);
   //                           ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
