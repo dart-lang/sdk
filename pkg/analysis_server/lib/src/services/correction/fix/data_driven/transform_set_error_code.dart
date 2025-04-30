@@ -6,7 +6,7 @@ import 'package:analyzer/error/error.dart';
 
 /// An error code representing a problem in a file containing an encoding of a
 /// transform set.
-class TransformSetErrorCode extends ErrorCode {
+class TransformSetErrorCode extends DiagnosticCode {
   /// Parameters:
   /// 0: the conflicting key
   /// 1: the key that it conflicts with

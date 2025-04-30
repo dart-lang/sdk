@@ -134,7 +134,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
 
   /// A map of all the error codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
-  Map<ErrorCode, List<ProducerGenerator>> get _errorCodesWhereThisIsValid {
+  Map<DiagnosticCode, List<ProducerGenerator>> get _codesWhereThisIsValid {
     var constructors = [RemoveUnnecessaryConst.new, RemoveConst.new];
     var nonLintMultiProducers = registeredFixGenerators.nonLintProducers;
     return {
@@ -171,10 +171,8 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
         if (constantContext != null) {
           var constKeyword = constantContext.$2;
           if (constKeyword != null) {
-            var validErrors = _errorCodesWhereThisIsValid.keys.toList();
-            var validDiagnostics = unitResult.errors.whereErrorCodeIn(
-              validErrors,
-            );
+            var validErrors = _codesWhereThisIsValid.keys.toList();
+            var validDiagnostics = unitResult.errors.whereCodeIn(validErrors);
             switch (constantContext.$1) {
               case InstanceCreationExpression contextNode:
                 var (:constNodes, :nodesWithDiagnostic) = contextNode
@@ -282,10 +280,8 @@ extension on List<AstNode> {
 }
 
 extension on List<AnalysisError> {
-  List<AnalysisError> whereErrorCodeIn(List<ErrorCode> errors) =>
-      where((error) {
-        return errors.contains(error.errorCode);
-      }).toList();
+  List<AnalysisError> whereCodeIn(List<DiagnosticCode> codes) =>
+      where((c) => codes.contains(c.errorCode)).toList();
 }
 
 extension<T> on Iterable<T> {

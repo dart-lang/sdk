@@ -87,7 +87,7 @@ class BulkFixProcessor {
   /// The expectation is that only one of the correction producers will produce
   /// a change for a given fix. If more than one change is produced the result
   /// will almost certainly be invalid code.
-  static const Map<ErrorCode, List<MultiProducerGenerator>>
+  static const Map<DiagnosticCode, List<MultiProducerGenerator>>
   nonLintMultiProducerMap = {
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [DataDriven.new],
@@ -152,10 +152,12 @@ class BulkFixProcessor {
   };
 
   /// Cached results of [_canBulkFix].
-  static final Map<ErrorCode, bool> _bulkFixableErrorCodes = {};
+  static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
-  static final Set<String> _errorCodes =
-      errorCodeValues.map((ErrorCode code) => code.name.toLowerCase()).toSet();
+  static final Set<String> _diagnosticCodes =
+      errorCodeValues
+          .map((DiagnosticCode code) => code.name.toLowerCase())
+          .toSet();
 
   static final Set<String> _lintCodes =
       Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
@@ -487,7 +489,7 @@ class BulkFixProcessor {
     if (_codes != null) {
       var undefinedCodes = <String>[];
       for (var code in _codes) {
-        if (!_errorCodes.contains(code) && !_lintCodes.contains(code)) {
+        if (!_diagnosticCodes.contains(code) && !_lintCodes.contains(code)) {
           undefinedCodes.add(code);
         }
       }
@@ -960,8 +962,8 @@ class BulkFixProcessor {
     return [];
   }
 
-  /// Returns whether [errorCode] is an error that can be fixed in bulk.
-  static bool _canBulkFix(ErrorCode errorCode) {
+  /// Returns whether [diagnosticCode] is an error that can be fixed in bulk.
+  static bool _canBulkFix(DiagnosticCode diagnosticCode) {
     bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
       return generators != null &&
           generators.any(
@@ -972,19 +974,19 @@ class BulkFixProcessor {
           );
     }
 
-    return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {
-      if (errorCode is LintCode) {
-        var producers = registeredFixGenerators.lintProducers[errorCode];
+    return _bulkFixableCodes.putIfAbsent(diagnosticCode, () {
+      if (diagnosticCode is LintCode) {
+        var producers = registeredFixGenerators.lintProducers[diagnosticCode];
         if (hasBulkFixProducers(producers)) {
           return true;
         }
 
         return registeredFixGenerators.lintMultiProducers.containsKey(
-          errorCode,
+          diagnosticCode,
         );
       }
 
-      var producers = registeredFixGenerators.nonLintProducers[errorCode];
+      var producers = registeredFixGenerators.nonLintProducers[diagnosticCode];
       if (hasBulkFixProducers(producers)) {
         return true;
       }
@@ -993,9 +995,9 @@ class BulkFixProcessor {
       // producers may vary depending on the resolved unit (we must configure
       // them before we can determine the producers).
       return registeredFixGenerators.nonLintMultiProducers.containsKey(
-            errorCode,
+            diagnosticCode,
           ) ||
-          BulkFixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
+          BulkFixProcessor.nonLintMultiProducerMap.containsKey(diagnosticCode);
     });
   }
 

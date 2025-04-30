@@ -32,8 +32,8 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
-  /// All the error codes that this fix can be applied to.
-  List<ErrorCode> get _errorCodesWhereThisIsValid {
+  /// All the diagnostic codes that this fix can be applied to.
+  List<DiagnosticCode> get _codesWhereThisIsValid {
     var producerGenerators = [AddMissingRequiredArgument.new];
     var nonLintProducers = registeredFixGenerators.nonLintProducers;
     return [
@@ -71,7 +71,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       return;
     }
 
-    var validErrors = _errorCodesWhereThisIsValid;
+    var validErrors = _codesWhereThisIsValid;
     var errors = unitResult.errors.where(
       (e) => diagnostic.sameRangeAs(e) && validErrors.contains(e.errorCode),
     );

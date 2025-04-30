@@ -29,7 +29,7 @@ import 'package:yaml_edit/yaml_edit.dart';
 
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
-  static const List<ErrorCode> codesWithFixes = [
+  static const List<DiagnosticCode> codesWithFixes = [
     AnalysisOptionsWarningCode.DEPRECATED_LINT,
     AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
     AnalysisOptionsWarningCode.DUPLICATE_RULE,

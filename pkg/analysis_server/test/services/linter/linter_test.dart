@@ -69,7 +69,7 @@ linter:
     );
   }
 
-  void validate(String source, List<ErrorCode> expected) {
+  void validate(String source, List<DiagnosticCode> expected) {
     var options = AnalysisOptionsProvider().getOptionsFromString(source);
     validator.validate(reporter, options);
     expect(
