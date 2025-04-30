@@ -266,13 +266,6 @@ abstract class ClassMember {
   /// source code.
   bool get isSynthesized;
 
-  /// If `true` this member is not part of the interface but only part of the
-  /// class members.
-  ///
-  /// This is `true` for instance for synthesized fields added for the late
-  /// lowering.
-  bool get isInternalImplementation;
-
   /// Returns `true` if this member is a noSuchMethod forwarder.
   bool get isNoSuchMethodForwarder;
 
@@ -374,9 +367,6 @@ abstract class SynthesizedMember extends ClassMember {
 
   @override
   bool get isDuplicate => false;
-
-  @override
-  bool get isInternalImplementation => false;
 
   @override
   bool get isSetter => forSetter;

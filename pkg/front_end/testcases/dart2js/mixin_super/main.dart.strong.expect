@@ -346,14 +346,6 @@ abstract class _Class4b&Class4a&Mixin2 = self::Class4a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::field2};
   synthetic mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  synthetic mixin-super-stub get _#Mixin2#field1#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#AI};
-  synthetic mixin-super-stub set _#Mixin2#field1#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#AI} = value;
-  synthetic mixin-super-stub get _#Mixin2#field2#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#AI};
-  synthetic mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
 abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class5b&Class5a&Mixin2
@@ -379,14 +371,6 @@ abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::field2};
   synthetic mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  synthetic mixin-super-stub get _#Mixin2#field1#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#AI};
-  synthetic mixin-super-stub set _#Mixin2#field1#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#AI} = value;
-  synthetic mixin-super-stub get _#Mixin2#field2#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#AI};
-  synthetic mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
 abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class6b&Class6a&Mixin2
@@ -412,14 +396,6 @@ abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::field2};
   synthetic mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  synthetic mixin-super-stub get _#Mixin2#field1#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#AI};
-  synthetic mixin-super-stub set _#Mixin2#field1#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#AI} = value;
-  synthetic mixin-super-stub get _#Mixin2#field2#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#AI};
-  synthetic mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
 
 library;

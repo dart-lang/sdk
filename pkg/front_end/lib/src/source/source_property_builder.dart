@@ -693,9 +693,6 @@ class _GetterClassMember implements ClassMember {
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
 
   @override
-  bool get isInternalImplementation => false;
-
-  @override
   bool get isNoSuchMethodForwarder => false;
 
   @override
@@ -828,9 +825,6 @@ class _SetterClassMember implements ClassMember {
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isInternalImplementation => false;
 
   @override
   bool get isNoSuchMethodForwarder => false;

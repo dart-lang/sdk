@@ -475,6 +475,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Field get field => _field!;
 
   @override
@@ -635,52 +636,26 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<ClassMember> get localMembers {
-    List<ClassMember> list = [
-      new _SynthesizedFieldClassMember(_fragment.builder, field, field.name,
-          _SynthesizedFieldMemberKind.LateField, ClassMemberKind.Getter),
-      new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateGetter!,
-          _fragment.builder.memberName,
-          _SynthesizedFieldMemberKind.LateGetterSetter,
-          ClassMemberKind.Getter)
-    ];
-    if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateIsSetField!,
-          _lateIsSetField!.name,
-          _SynthesizedFieldMemberKind.LateIsSet,
-          ClassMemberKind.Getter));
-    }
-    return list;
-  }
+  List<ClassMember> get localMembers => [
+        new _SynthesizedFieldClassMember(
+            _fragment.builder,
+            _lateGetter!,
+            _fragment.builder.memberName,
+            _SynthesizedFieldMemberKind.LateGetterSetter,
+            ClassMemberKind.Getter)
+      ];
 
   @override
-  List<ClassMember> get localSetters {
-    List<ClassMember> list = [
-      new _SynthesizedFieldClassMember(_fragment.builder, field, field.name,
-          _SynthesizedFieldMemberKind.LateField, ClassMemberKind.Setter),
-    ];
-    if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateIsSetField!,
-          _lateIsSetField!.name,
-          _SynthesizedFieldMemberKind.LateIsSet,
-          ClassMemberKind.Setter));
-    }
-    if (_lateSetter != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          _fragment.builder,
-          _lateSetter!,
-          _fragment.builder.memberName,
-          _SynthesizedFieldMemberKind.LateGetterSetter,
-          ClassMemberKind.Setter));
-    }
-    return list;
-  }
+  List<ClassMember> get localSetters => _lateSetter != null
+      ? [
+          new _SynthesizedFieldClassMember(
+              _fragment.builder,
+              _lateSetter!,
+              _fragment.builder.memberName,
+              _SynthesizedFieldMemberKind.LateGetterSetter,
+              ClassMemberKind.Setter)
+        ]
+      : const [];
 
   @override
   void registerSuperCall() {

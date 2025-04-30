@@ -104,9 +104,6 @@ class _FieldClassMember implements ClassMember {
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
 
   @override
-  bool get isInternalImplementation => false;
-
-  @override
   bool get isNoSuchMethodForwarder => false;
 
   @override
@@ -173,9 +170,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   _SynthesizedFieldClassMember(
       this._builder, this._member, this._name, this._kind, this.memberKind);
-
-  @override
-  bool get isInternalImplementation => _kind.isInternalImplementation;
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
@@ -307,23 +301,12 @@ class _SynthesizedFieldClassMember implements ClassMember {
 }
 
 enum _SynthesizedFieldMemberKind {
-  /// A `isSet` field used for late lowering.
-  LateIsSet(isInternalImplementation: true),
-
-  /// A field used for the value of a late lowered field.
-  LateField(isInternalImplementation: true),
-
   /// A getter or setter used for late lowering.
-  LateGetterSetter(isInternalImplementation: false),
+  LateGetterSetter,
 
   /// A getter or setter used for abstract or external fields.
-  AbstractExternalGetterSetter(isInternalImplementation: false),
+  AbstractExternalGetterSetter,
 
   /// A getter for an extension type declaration representation field.
-  RepresentationField(isInternalImplementation: false),
-  ;
-
-  final bool isInternalImplementation;
-
-  const _SynthesizedFieldMemberKind({required this.isInternalImplementation});
+  RepresentationField,
 }

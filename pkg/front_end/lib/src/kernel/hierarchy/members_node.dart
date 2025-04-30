@@ -559,36 +559,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
   ///
   void registerAbstractMember(
       List<ClassMember> abstractMembers, ClassMember abstractMember) {
-    if (!abstractMember.isInternalImplementation) {
-      /// If `isInternalImplementation` is `true`, the member is synthesized
-      /// implementation that does not require implementation in other
-      /// classes.
-      ///
-      /// This is for instance used for late lowering where
-      ///
-      ///    class Interface {
-      ///      late int? field;
-      ///    }
-      ///    class Class implements Interface {
-      ///      int? field;
-      ///    }
-      ///
-      /// is encoded as
-      ///
-      ///    class Interface {
-      ///      bool _#field#isSet = false;
-      ///      int? _#field = null;
-      ///      int? get field => _#field#isSet ? _#field : throw ...;
-      ///      void set field(int? value) { ... }
-      ///    }
-      ///    class Class implements Interface {
-      ///      int? field;
-      ///    }
-      ///
-      /// and `Class` should not be required to implement
-      /// `Interface._#field#isSet` and `Interface._#field`.
-      abstractMembers.add(abstractMember);
-    }
+    abstractMembers.add(abstractMember);
   }
 
   /// Set to `true` during [build] if the class needs interfaces, that is, if it
