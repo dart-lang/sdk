@@ -41,7 +41,13 @@ void main() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
+      error(
+        WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
+        56,
+        1,
+        text:
+            "The member 'a' can only be used within instance members of subclasses of 'A'.",
+      ),
     ]);
   }
 
