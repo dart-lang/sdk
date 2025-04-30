@@ -2719,7 +2719,7 @@ class ErrorEncoding {
       length: error.length,
       uniqueName: error.errorCode.uniqueName,
       message: error.message,
-      correction: error.correction ?? '',
+      correction: error.correctionMessage ?? '',
       contextMessages: contextMessages,
     );
   }

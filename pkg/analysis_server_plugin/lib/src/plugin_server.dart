@@ -401,7 +401,7 @@ class PluginServer {
             _locationFor(currentUnit.unit, path, e),
             e.message,
             e.errorCode.name,
-            correction: e.correction,
+            correction: e.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           )

@@ -61,7 +61,7 @@ class AnalyzerConverter {
         error.message,
         errorCode.name.toLowerCase(),
         contextMessages: contextMessages,
-        correction: error.correction,
+        correction: error.correctionMessage,
         hasFix: true);
   }
 

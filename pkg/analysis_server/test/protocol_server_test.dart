@@ -112,7 +112,7 @@ class AnalysisErrorTest {
       offset: 10,
       length: 20,
       message: 'my message',
-      correction: 'my correction',
+      correctionMessage: 'my correction',
     );
     var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
@@ -331,7 +331,7 @@ class MockAnalysisError implements engine.AnalysisError {
   final int? _offset;
   final int? _length;
   final String? _message;
-  final String? _correction;
+
   final DiagnosticMessage? _problemMessage;
   final String? _correctionMessage;
 
@@ -344,7 +344,6 @@ class MockAnalysisError implements engine.AnalysisError {
     int? offset,
     int? length,
     String? message,
-    String? correction,
     DiagnosticMessage? problemMessage,
     String? correctionMessage,
   }) : _source = source,
@@ -352,12 +351,11 @@ class MockAnalysisError implements engine.AnalysisError {
        _offset = offset,
        _length = length,
        _message = message,
-       _correction = correction,
        _problemMessage = problemMessage,
        _correctionMessage = correctionMessage;
 
   @override
-  String? get correction => _correction;
+  String? get correction => null;
 
   @override
   String? get correctionMessage => _correctionMessage;

@@ -6,6 +6,8 @@
 * Remove `ElementLocation` class, its values are not returned anymore.
 * Deprecated `element2.dart` library, import `element.dart`.
 * Deprecated `XyzElement2` classes, use `XyzElement` instead.
+* Deprecate `AnalysisError.correction` field; use
+  `AnalysisError.correctionMessage` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

@@ -350,7 +350,7 @@ class HumanErrorFormatter extends ErrorFormatter {
         message: error.message,
         contextMessages: contextMessages,
         errorCode: error.errorCode.name.toLowerCase(),
-        correction: error.correction,
+        correction: error.correctionMessage,
         url: error.errorCode.url,
       ),
     );
@@ -445,7 +445,8 @@ class JsonErrorFormatter extends ErrorFormatter {
             lineInfo,
           ),
           'problemMessage': problemMessage.messageText(includeUrl: true),
-          if (error.correction != null) 'correctionMessage': error.correction,
+          if (error.correctionMessage != null)
+            'correctionMessage': error.correctionMessage,
           if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
           if (url != null) 'documentation': url,
         });

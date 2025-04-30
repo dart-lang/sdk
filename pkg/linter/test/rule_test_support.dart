@@ -79,8 +79,9 @@ class ExpectedDiagnostic {
       return false;
     }
     if (_correctionContains != null) {
-      if (error.correction == null ||
-          !error.correction!.contains(_correctionContains)) {
+      var correctionMessage = error.correctionMessage;
+      if (correctionMessage == null ||
+          !correctionMessage.contains(_correctionContains)) {
         return false;
       }
     }

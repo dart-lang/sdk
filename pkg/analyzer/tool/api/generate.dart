@@ -46,7 +46,7 @@ Future<String> computeApiTxtContents(String pkgPath) async {
     includedPaths: [packagePath],
     resourceProvider: provider,
   );
-  var context = collection.contexts.single;
+  var context = collection.contexts.first;
   var publicApi = ApiDescription();
   var stringBuffer = StringBuffer();
   printNodes(stringBuffer, await publicApi.build(context));

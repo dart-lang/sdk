@@ -60,16 +60,14 @@ class AnalysisError implements Diagnostic {
   @override
   final DiagnosticMessage problemMessage;
 
-  /// The context messages associated with the problem. This list will be empty
-  /// if there are no context messages.
-  final List<DiagnosticMessage> _contextMessages;
+  @override
+  final List<DiagnosticMessage> contextMessages;
 
   /// Data associated with this error, specific for [errorCode].
   final Object? data;
 
-  /// The correction to be displayed for this error, or `null` if there is no
-  /// correction information for this error.
-  String? _correctionMessage;
+  @override
+  final String? correctionMessage;
 
   /// The source in which the error occurred, or `null` if unknown.
   final Source source;
@@ -81,12 +79,10 @@ class AnalysisError implements Diagnostic {
     required int length,
     required this.errorCode,
     required String message,
-    String? correctionMessage,
-    List<DiagnosticMessage> contextMessages = const [],
+    this.correctionMessage,
+    this.contextMessages = const [],
     this.data,
-  }) : _correctionMessage = correctionMessage,
-       _contextMessages = contextMessages,
-       problemMessage = DiagnosticMessageImpl(
+  }) : problemMessage = DiagnosticMessageImpl(
          filePath: source.fullName,
          length: length,
          message: message,
@@ -135,16 +131,11 @@ class AnalysisError implements Diagnostic {
     );
   }
 
-  @override
-  List<DiagnosticMessage> get contextMessages => _contextMessages;
-
-  /// Return the template used to create the correction to be displayed for this
-  /// error, or `null` if there is no correction information for this error. The
+  /// The template used to create the correction to be displayed for this error,
+  /// or `null` if there is no correction information for this error. The
   /// correction should indicate how the user can fix the error.
-  String? get correction => _correctionMessage;
-
-  @override
-  String? get correctionMessage => _correctionMessage;
+  @Deprecated("Use 'correctionMessage' instead.")
+  String? get correction => correctionMessage;
 
   @override
   int get hashCode {

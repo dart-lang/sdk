@@ -4351,7 +4351,7 @@ package:analyzer/error/error.dart:
     forValues (constructor: AnalysisError Function({List<DiagnosticMessage> contextMessages, String? correctionMessage, Object? data, required ErrorCode errorCode, required int length, required String message, required int offset, required Source source}))
     tmp (constructor: AnalysisError Function({List<Object?> arguments, List<DiagnosticMessage> contextMessages, Object? data, required ErrorCode errorCode, required int length, required int offset, required Source source}))
     contextMessages (getter: List<DiagnosticMessage>)
-    correction (getter: String?)
+    correction (getter: String?, deprecated)
     correctionMessage (getter: String?)
     data (getter: Object?)
     errorCode (getter: ErrorCode)

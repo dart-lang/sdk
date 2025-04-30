@@ -186,7 +186,7 @@ AnalysisError newAnalysisError_fromEngine(
             .map((message) => newDiagnosticMessage(result, message))
             .toList();
   }
-  var correction = error.correction;
+  var correction = error.correctionMessage;
   var url = errorCode.url;
   return AnalysisError(
     severity,
