@@ -50,7 +50,9 @@ void testSubtyping() {
   expect(returnNullableAnon is AnonymousClassA? Function(), true);
   expect(returnNullableJS is JSClassA Function(), hasUnsoundNullSafety);
   expect(
-      returnNullableAnon is AnonymousClassA Function(), hasUnsoundNullSafety);
+    returnNullableAnon is AnonymousClassA Function(),
+    hasUnsoundNullSafety,
+  );
 
   // Subtyping between JS and anonymous classes.
   expect(returnJS is AnonymousClassA Function(), true);
@@ -75,9 +77,13 @@ void testSubtyping() {
   expect(confuse(returnNullableJS) is JSClassA? Function(), true);
   expect(confuse(returnNullableAnon) is AnonymousClassA? Function(), true);
   expect(
-      confuse(returnNullableJS) is JSClassA Function(), hasUnsoundNullSafety);
-  expect(confuse(returnNullableAnon) is AnonymousClassA Function(),
-      hasUnsoundNullSafety);
+    confuse(returnNullableJS) is JSClassA Function(),
+    hasUnsoundNullSafety,
+  );
+  expect(
+    confuse(returnNullableAnon) is AnonymousClassA Function(),
+    hasUnsoundNullSafety,
+  );
 
   expect(confuse(returnJS) is AnonymousClassA Function(), true);
   expect(confuse(returnAnon) is JSClassA Function(), true);

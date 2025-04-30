@@ -104,7 +104,7 @@ class InheritanceRenameOneCollision extends SuperclassCollision
 // [web] The following class members collide with the same export 'finalField': MixinCollision.finalFieldMixin, SuperclassCollision.finalFieldSuper.
 // [web] The following class members collide with the same export 'getSet': MixinCollision.getSetMixin, MixinCollision.getSetMixin, SuperclassCollision.getSetSuper, SuperclassCollision.getSetSuper.
 // [web] The following class members collide with the same export 'method': MixinCollision.methodMixin, SuperclassCollision.methodSuper.
-    with
+        with
         MixinCollision {}
 
 @JSExport()
@@ -114,7 +114,7 @@ class InheritanceRenameTwoCollisions extends SuperclassCollision
 // [web] The following class members collide with the same export 'finalField': MixinCollision.finalFieldMixin, MixinCollision2.finalFieldMixin2, SuperclassCollision.finalFieldSuper.
 // [web] The following class members collide with the same export 'getSet': MixinCollision.getSetMixin, MixinCollision.getSetMixin, MixinCollision2.getSetMixin2, MixinCollision2.getSetMixin2, SuperclassCollision.getSetSuper, SuperclassCollision.getSetSuper.
 // [web] The following class members collide with the same export 'method': MixinCollision.methodMixin, MixinCollision2.methodMixin2, SuperclassCollision.methodSuper.
-    with
+        with
         MixinCollision,
         MixinCollision2 {}
 
@@ -125,7 +125,7 @@ class InheritanceRenameThreeCollisions extends SuperclassCollision
 // [web] The following class members collide with the same export 'finalField': InheritanceRenameThreeCollisions.finalFieldDerived, MixinCollision.finalFieldMixin, MixinCollision2.finalFieldMixin2, SuperclassCollision.finalFieldSuper.
 // [web] The following class members collide with the same export 'getSet': InheritanceRenameThreeCollisions.getSetDerived, InheritanceRenameThreeCollisions.getSetDerived, MixinCollision.getSetMixin, MixinCollision.getSetMixin, MixinCollision2.getSetMixin2, MixinCollision2.getSetMixin2, SuperclassCollision.getSetSuper, SuperclassCollision.getSetSuper.
 // [web] The following class members collide with the same export 'method': InheritanceRenameThreeCollisions.methodDerived, MixinCollision.methodMixin, MixinCollision2.methodMixin2, SuperclassCollision.methodSuper.
-    with
+        with
         MixinCollision,
         MixinCollision2 {
   @JSExport('field')

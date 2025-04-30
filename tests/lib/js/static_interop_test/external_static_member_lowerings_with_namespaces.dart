@@ -14,8 +14,9 @@ import 'dart:js_interop';
 @staticInterop
 class ExternalStatic {
   external factory ExternalStatic(String initialValue);
-  external factory ExternalStatic.named(
-      [String initialValue = 'uninitialized']);
+  external factory ExternalStatic.named([
+    String initialValue = 'uninitialized',
+  ]);
   // External redirecting factories are not allowed.
 
   external static String field;

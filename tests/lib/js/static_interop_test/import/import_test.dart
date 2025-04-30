@@ -13,10 +13,11 @@ extension type Module(JSObject _) implements JSObject {
 
 void main() {
   asyncTest(() async {
-    final module = Module(await importModule(
-            '/root_dart/tests/lib/js/static_interop_test/import/module.mjs'
-                .toJS)
-        .toDart);
+    final module = Module(
+      await importModule(
+        '/root_dart/tests/lib/js/static_interop_test/import/module.mjs'.toJS,
+      ).toDart,
+    );
     Expect.equals('success', module.testModuleFunction());
   });
 }

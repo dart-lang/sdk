@@ -55,18 +55,18 @@ class Anonymous {
 
 void testMethods() {
   topLevel;
-//^
-// [web] Tear-offs of external top-level member 'topLevel' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external top-level member 'topLevel' are disallowed.
   const [topLevel];
-//^
-// [web] Tear-offs of external top-level member 'topLevel' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external top-level member 'topLevel' are disallowed.
 
   ExtensionType.externalStatic;
   //            ^
   // [web] Tear-offs of external extension type interop member 'externalStatic' are disallowed.
   const [ExtensionType.externalStatic];
-//^
-// [web] Tear-offs of external extension type interop member 'externalStatic' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'externalStatic' are disallowed.
   ExtensionType.nonExternalStatic;
   final extensionType = ExtensionType();
   extensionType.externalMethod;
@@ -82,8 +82,8 @@ void testMethods() {
   //            ^
   // [web] Tear-offs of external @staticInterop member 'externalStatic' are disallowed.
   const [StaticInterop.externalStatic];
-//^
-// [web] Tear-offs of external @staticInterop member 'externalStatic' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external @staticInterop member 'externalStatic' are disallowed.
   StaticInterop.nonExternalStatic;
   final staticInterop = StaticInterop();
   staticInterop.externalExtensionMethod;
@@ -94,51 +94,51 @@ void testMethods() {
 
 void testConstructors() {
   ExtensionType.new;
-//^
-// [web] Tear-offs of external extension type interop member 'new' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'new' are disallowed.
   ExtensionType.named;
-//^
-// [web] Tear-offs of external extension type interop member 'named' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'named' are disallowed.
   ExtensionType.literal;
-//^
-// [web] Tear-offs of external extension type interop member 'literal' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'literal' are disallowed.
   ExtensionType.nonExternal;
   const [ExtensionType.new];
-//^
-// [web] Tear-offs of external extension type interop member 'new' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'new' are disallowed.
 
   ExtensionType.fact;
-//^
-// [web] Tear-offs of external extension type interop member 'fact' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'fact' are disallowed.
   ExtensionType.literalFact;
-//^
-// [web] Tear-offs of external extension type interop member 'literalFact' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'literalFact' are disallowed.
   ExtensionType.nonExternalFact;
   const [ExtensionType.fact];
-//^
-// [web] Tear-offs of external extension type interop member 'fact' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external extension type interop member 'fact' are disallowed.
 
   StaticInterop.new;
-//^
-// [web] Tear-offs of external @staticInterop member 'new' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external @staticInterop member 'new' are disallowed.
   StaticInterop.named;
-//^
-// [web] Tear-offs of external @staticInterop member 'named' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external @staticInterop member 'named' are disallowed.
   StaticInterop.nonExternalFact;
   const [StaticInterop.new];
-//^
-// [web] Tear-offs of external @staticInterop member 'new' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external @staticInterop member 'new' are disallowed.
 
   Anonymous.new;
-//^
-// [web] Tear-offs of external @staticInterop member 'new' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external @staticInterop member 'new' are disallowed.
   Anonymous.named;
-//^
-// [web] Tear-offs of external @staticInterop member 'named' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external @staticInterop member 'named' are disallowed.
   Anonymous.nonExternalFact;
   const [Anonymous.new];
-//^
-// [web] Tear-offs of external @staticInterop member 'new' are disallowed.
+  // [error column 3]
+  // [web] Tear-offs of external @staticInterop member 'new' are disallowed.
 }
 
 void main() {

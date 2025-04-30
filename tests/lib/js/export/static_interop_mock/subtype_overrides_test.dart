@@ -55,12 +55,12 @@ extension on IncorrectDart {
 void testMissingOverrides() {
   createStaticInteropMock<StaticInterop, CorrectDart>(CorrectDart());
   createStaticInteropMock<StaticInterop, IncorrectDart>(IncorrectDart());
-//^
-// [web] Dart class 'IncorrectDart' does not have any members that implement any of the following extension member(s) with export name 'finalField': <unnamed>.finalField (FunctionType(int Function())).
-// [web] Dart class 'IncorrectDart' does not have any members that implement any of the following extension member(s) with export name 'method': <unnamed>.method (FunctionType(void Function())).
-// [web] Dart class 'IncorrectDart' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'field': <unnamed>.field= (FunctionType(void Function(int))).
-// [web] Dart class 'IncorrectDart' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet2': <unnamed>.getSet2= (FunctionType(void Function(int))).
-// [web] Dart class 'IncorrectDart' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'getSet1': <unnamed>.getSet1 (FunctionType(int Function())).
+  // [error column 3]
+  // [web] Dart class 'IncorrectDart' does not have any members that implement any of the following extension member(s) with export name 'finalField': <unnamed>.finalField (FunctionType(int Function())).
+  // [web] Dart class 'IncorrectDart' does not have any members that implement any of the following extension member(s) with export name 'method': <unnamed>.method (FunctionType(void Function())).
+  // [web] Dart class 'IncorrectDart' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'field': <unnamed>.field= (FunctionType(void Function(int))).
+  // [web] Dart class 'IncorrectDart' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet2': <unnamed>.getSet2= (FunctionType(void Function(int))).
+  // [web] Dart class 'IncorrectDart' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'getSet1': <unnamed>.getSet1 (FunctionType(int Function())).
 }
 
 // Set up a simple type hierarchy.
@@ -114,7 +114,8 @@ class SubtypeSimpleDart {
 
 void testSimpleSubtyping() {
   createStaticInteropMock<SimpleInterop, SubtypeSimpleDart>(
-      SubtypeSimpleDart());
+    SubtypeSimpleDart(),
+  );
 }
 
 // Implement using supertypes (which shouldn't work).
@@ -130,12 +131,13 @@ class SupertypeSimpleDart {
 
 void testIncorrectSimpleSubtyping() {
   createStaticInteropMock<SimpleInterop, SupertypeSimpleDart>(
-//^
-// [web] Dart class 'SupertypeSimpleDart' does not have any members that implement any of the following extension member(s) with export name 'finalField': SimpleInteropExtension.finalField (FunctionType(B Function())).
-// [web] Dart class 'SupertypeSimpleDart' does not have any members that implement any of the following extension member(s) with export name 'method': SimpleInteropExtension.method (FunctionType(B Function(B))).
-// [web] Dart class 'SupertypeSimpleDart' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet': SimpleInteropExtension.getSet= (FunctionType(void Function(B))).
-// [web] Dart class 'SupertypeSimpleDart' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'field': SimpleInteropExtension.field (FunctionType(B Function())).
-      SupertypeSimpleDart());
+    // [error column 3]
+    // [web] Dart class 'SupertypeSimpleDart' does not have any members that implement any of the following extension member(s) with export name 'finalField': SimpleInteropExtension.finalField (FunctionType(B Function())).
+    // [web] Dart class 'SupertypeSimpleDart' does not have any members that implement any of the following extension member(s) with export name 'method': SimpleInteropExtension.method (FunctionType(B Function(B))).
+    // [web] Dart class 'SupertypeSimpleDart' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet': SimpleInteropExtension.getSet= (FunctionType(void Function(B))).
+    // [web] Dart class 'SupertypeSimpleDart' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'field': SimpleInteropExtension.field (FunctionType(B Function())).
+    SupertypeSimpleDart(),
+  );
 }
 
 @JS()
@@ -157,8 +159,10 @@ class ComplexAndOptionalDart {
 }
 
 void testComplexSubtyping() {
-  createStaticInteropMock<ComplexAndOptionalInteropMethods,
-      ComplexAndOptionalDart>(ComplexAndOptionalDart());
+  createStaticInteropMock<
+    ComplexAndOptionalInteropMethods,
+    ComplexAndOptionalDart
+  >(ComplexAndOptionalDart());
 }
 
 @JSExport()
@@ -174,12 +178,13 @@ class IncorrectComplexAndOptionalDart {
 
 void testIncorrectComplexSubtyping() {
   createStaticInteropMock<
-//^
-// [web] Dart class 'IncorrectComplexAndOptionalDart' does not have any members that implement any of the following extension member(s) with export name 'nestedTypes': ComplexAndOptionalInteropMethodsExtension.nestedTypes (FunctionType(B Function(B) Function(List<B>, Map<Set<B>, B>))).
-// [web] Dart class 'IncorrectComplexAndOptionalDart' does not have any members that implement any of the following extension member(s) with export name 'optional': ComplexAndOptionalInteropMethodsExtension.optional (FunctionType(B Function(B, [B?]))).
-// [web] Dart class 'IncorrectComplexAndOptionalDart' does not have any members that implement any of the following extension member(s) with export name 'optionalSubtype': ComplexAndOptionalInteropMethodsExtension.optionalSubtype (FunctionType(B Function(B, [B]))).
-      ComplexAndOptionalInteropMethods,
-      IncorrectComplexAndOptionalDart>(IncorrectComplexAndOptionalDart());
+    // [error column 3]
+    // [web] Dart class 'IncorrectComplexAndOptionalDart' does not have any members that implement any of the following extension member(s) with export name 'nestedTypes': ComplexAndOptionalInteropMethodsExtension.nestedTypes (FunctionType(B Function(B) Function(List<B>, Map<Set<B>, B>))).
+    // [web] Dart class 'IncorrectComplexAndOptionalDart' does not have any members that implement any of the following extension member(s) with export name 'optional': ComplexAndOptionalInteropMethodsExtension.optional (FunctionType(B Function(B, [B?]))).
+    // [web] Dart class 'IncorrectComplexAndOptionalDart' does not have any members that implement any of the following extension member(s) with export name 'optionalSubtype': ComplexAndOptionalInteropMethodsExtension.optionalSubtype (FunctionType(B Function(B, [B]))).
+    ComplexAndOptionalInteropMethods,
+    IncorrectComplexAndOptionalDart
+  >(IncorrectComplexAndOptionalDart());
 }
 
 void testSubtyping() {
