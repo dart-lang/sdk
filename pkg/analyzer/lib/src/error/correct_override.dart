@@ -45,7 +45,7 @@ class CorrectOverrideHelper {
     required ExecutableElement2OrMember superMember,
     required ErrorReporter errorReporter,
     required SyntacticEntity errorNode,
-    required ErrorCode errorCode,
+    required DiagnosticCode diagnosticCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
@@ -55,7 +55,7 @@ class CorrectOverrideHelper {
         errorReporter.reportError(
           _diagnosticFactory.invalidOverride(
             errorReporter.source,
-            errorCode,
+            diagnosticCode,
             errorNode,
             _thisMember,
             superMember,

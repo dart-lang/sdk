@@ -46,7 +46,7 @@ class DiagnosticFactory {
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
   AnalysisError duplicateDefinition(
-    ErrorCode code,
+    DiagnosticCode code,
     Element duplicateElement,
     Element originalElement,
     List<Object> arguments,
@@ -77,7 +77,7 @@ class DiagnosticFactory {
   /// already used by [originalNode].
   AnalysisError duplicateDefinitionForNodes(
     Source source,
-    ErrorCode code,
+    DiagnosticCode code,
     SyntacticEntity duplicateNode,
     SyntacticEntity originalNode,
     List<Object> arguments,
@@ -314,7 +314,7 @@ class DiagnosticFactory {
   /// [superMember].
   AnalysisError invalidOverride(
     Source source,
-    ErrorCode errorCode,
+    DiagnosticCode code,
     SyntacticEntity errorNode,
     ExecutableElement member,
     ExecutableElement superMember,
@@ -328,7 +328,7 @@ class DiagnosticFactory {
       source: source,
       offset: errorNode.offset,
       length: errorNode.length,
-      errorCode: errorCode,
+      errorCode: code,
       arguments: [
         memberName,
         member.enclosingElement2!.name3,
@@ -342,7 +342,7 @@ class DiagnosticFactory {
         // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
         // if the subclass has an abstract member and the superclass has the
         // concrete).
-        if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE)
+        if (code == CompileTimeErrorCode.INVALID_OVERRIDE)
           DiagnosticMessageImpl(
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The member being overridden.",
@@ -350,7 +350,7 @@ class DiagnosticFactory {
             length: superFragment.name2!.length,
             url: null,
           ),
-        if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
+        if (code == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
           DiagnosticMessageImpl(
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The setter being overridden.",

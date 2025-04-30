@@ -301,7 +301,7 @@ class DuplicateDefinitionVerifier {
       return;
     }
 
-    ErrorCode getError(Element previous, Element current) {
+    DiagnosticCode getDiagnostic(Element previous, Element current) {
       if (previous is FieldFormalParameterElement &&
           current is FieldFormalParameterElement) {
         return CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER;
@@ -316,7 +316,7 @@ class DuplicateDefinitionVerifier {
           _reportedTokens.add(identifier);
           _errorReporter.reportError(
             _diagnosticFactory.duplicateDefinition(
-              getError(previous, element),
+              getDiagnostic(previous, element),
               element,
               previous,
               [lookupName],
@@ -332,7 +332,7 @@ class DuplicateDefinitionVerifier {
         _reportedTokens.add(identifier);
         _errorReporter.reportError(
           _diagnosticFactory.duplicateDefinition(
-            getError(previous, element),
+            getDiagnostic(previous, element),
             element,
             previous,
             [lookupName],

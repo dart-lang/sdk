@@ -31,36 +31,36 @@ class NullableDereferenceVerifier {
        _resolver = resolver;
 
   bool expression(
-    ErrorCode errorCode,
+    DiagnosticCode diagnosticCode,
     Expression expression, {
     DartType? type,
   }) {
     type ??= expression.typeOrThrow;
-    return _check(errorCode, expression, type);
+    return _check(diagnosticCode, expression, type);
   }
 
   void report(
-    ErrorCode errorCode,
+    DiagnosticCode diagnosticCode,
     SyntacticEntity errorEntity,
     DartType receiverType, {
     List<String> arguments = const <String>[],
     List<DiagnosticMessage>? messages,
   }) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
-      errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
+      diagnosticCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
       arguments = [];
     }
     if (errorEntity is AstNode) {
       _errorReporter.atNode(
         errorEntity,
-        errorCode,
+        diagnosticCode,
         arguments: arguments,
         contextMessages: messages,
       );
     } else if (errorEntity is Token) {
       _errorReporter.atToken(
         errorEntity,
-        errorCode,
+        diagnosticCode,
         arguments: arguments,
         contextMessages: messages,
       );
@@ -75,7 +75,11 @@ class NullableDereferenceVerifier {
   /// receiver is the implicit `this`, the name of the invocation.
   ///
   /// Returns whether [receiverType] was reported.
-  bool _check(ErrorCode errorCode, AstNode errorNode, DartType receiverType) {
+  bool _check(
+    DiagnosticCode diagnosticCode,
+    AstNode errorNode,
+    DartType receiverType,
+  ) {
     if (receiverType is DynamicType ||
         receiverType is InvalidType ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
@@ -89,7 +93,7 @@ class NullableDereferenceVerifier {
         _resolver.flowAnalysis.flow?.whyNotPromoted(errorNode)(),
       );
     }
-    report(errorCode, errorNode, receiverType, messages: messages);
+    report(diagnosticCode, errorNode, receiverType, messages: messages);
     return true;
   }
 }

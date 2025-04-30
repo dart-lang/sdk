@@ -557,7 +557,7 @@ class TypeArgumentsVerifier {
   /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET].
   void _checkTypeArgumentConst(
     TypeAnnotation typeAnnotation,
-    ErrorCode errorCode,
+    DiagnosticCode errorCode,
   ) {
     switch (typeAnnotation) {
       case NamedType(:var type, :var typeArguments):
@@ -608,17 +608,16 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Verify that the given list of [typeArguments] contains exactly the
-  /// [expectedCount] of elements, reporting an error with the [errorCode]
-  /// if not.
+  /// Verifies that the given list of [typeArguments] contains exactly the
+  /// [expectedCount] of elements, reporting an error with the [code] if not.
   void _checkTypeArgumentCount(
     TypeArgumentList typeArguments,
     int expectedCount,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     int actualCount = typeArguments.arguments.length;
     if (actualCount != expectedCount) {
-      _errorReporter.atNode(typeArguments, errorCode, arguments: [actualCount]);
+      _errorReporter.atNode(typeArguments, code, arguments: [actualCount]);
     }
   }
 

@@ -354,7 +354,7 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameToken,
-          errorCode:
+          diagnosticCode:
               concreteElement is SetterElement2OrMember
                   ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
                   : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
@@ -408,7 +408,7 @@ class _ClassVerifier {
         superMember: superMember.asElement2,
         errorReporter: reporter,
         errorNode: node,
-        errorCode:
+        diagnosticCode:
             member is SetterElement
                 ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
                 : CompileTimeErrorCode.INVALID_OVERRIDE,
@@ -481,7 +481,10 @@ class _ClassVerifier {
 
   /// Verify that the given [namedType] does not extend, implement, or mixes-in
   /// types such as `num` or `String`.
-  bool _checkDirectSuperTypeNode(NamedType namedType, ErrorCode errorCode) {
+  bool _checkDirectSuperTypeNode(
+    NamedType namedType,
+    DiagnosticCode diagnosticCode,
+  ) {
     if (namedType.isSynthetic) {
       return false;
     }
@@ -496,7 +499,7 @@ class _ClassVerifier {
         );
       },
       notSubtypable: () {
-        reporter.atNode(namedType, errorCode, arguments: [type]);
+        reporter.atNode(namedType, diagnosticCode, arguments: [type]);
       },
     );
   }
@@ -746,7 +749,7 @@ class _ClassVerifier {
 
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
-  ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
+  DiagnosticCode _getRecursiveErrorCode(InterfaceElement element) {
     if (element.supertype?.element3 == classElement.asElement2) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }

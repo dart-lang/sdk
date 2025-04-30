@@ -1087,7 +1087,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvariantNanComparison(BinaryExpression node) {
     void reportStartEnd(
-      ErrorCode errorCode,
+      DiagnosticCode diagnosticCode,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
@@ -1095,15 +1095,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.atOffset(
         offset: offset,
         length: endEntity.end - offset,
-        errorCode: errorCode,
+        errorCode: diagnosticCode,
       );
     }
 
-    void checkLeftRight(ErrorCode errorCode) {
+    void checkLeftRight(DiagnosticCode diagnosticCode) {
       if (node.leftOperand.isDoubleNan) {
-        reportStartEnd(errorCode, node.leftOperand, node.operator);
+        reportStartEnd(diagnosticCode, node.leftOperand, node.operator);
       } else if (node.rightOperand.isDoubleNan) {
-        reportStartEnd(errorCode, node.operator, node.rightOperand);
+        reportStartEnd(diagnosticCode, node.operator, node.rightOperand);
       }
     }
 

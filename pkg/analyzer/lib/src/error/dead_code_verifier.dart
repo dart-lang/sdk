@@ -17,14 +17,6 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-typedef _CatchClausesVerifierReporter =
-    void Function(
-      CatchClause first,
-      CatchClause last,
-      ErrorCode,
-      List<Object> arguments,
-    );
-
 /// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
 /// for later use by [NullSafetyDeadCodeVerifier.for_updaterBegin].
 class DeadCodeForPartsState {
@@ -150,7 +142,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       library,
     );
     NodeList<SimpleIdentifier> names;
-    ErrorCode warningCode;
+    DiagnosticCode warningCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
       warningCode = WarningCode.UNDEFINED_HIDDEN_NAME;
@@ -525,7 +517,13 @@ class _BreakDoStatementVisitor extends RecursiveAstVisitor<void> {
 
 class _CatchClausesVerifier {
   final TypeSystemImpl _typeSystem;
-  final _CatchClausesVerifierReporter _errorReporter;
+  final void Function(
+    CatchClause first,
+    CatchClause last,
+    DiagnosticCode,
+    List<Object> arguments,
+  )
+  _reportDiagnostic;
   final List<CatchClause> catchClauses;
 
   bool _done = false;
@@ -533,7 +531,7 @@ class _CatchClausesVerifier {
 
   _CatchClausesVerifier(
     this._typeSystem,
-    this._errorReporter,
+    this._reportDiagnostic,
     this.catchClauses,
   );
 
@@ -545,7 +543,7 @@ class _CatchClausesVerifier {
     if (currentType == null || currentType.isDartCoreObject) {
       if (catchClause != catchClauses.last) {
         var index = catchClauses.indexOf(catchClause);
-        _errorReporter(
+        _reportDiagnostic(
           catchClauses[index + 1],
           catchClauses.last,
           WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
@@ -560,7 +558,7 @@ class _CatchClausesVerifier {
     // subtype of a previous on-catch exception type.
     for (var type in _visitedTypes) {
       if (_typeSystem.isSubtypeOf(currentType, type)) {
-        _errorReporter(
+        _reportDiagnostic(
           catchClause,
           catchClauses.last,
           WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE,
