@@ -80,14 +80,14 @@ class MockSource extends BasicSource {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class TestErrorCode extends ErrorCode {
+class TestDiagnosticCode extends DiagnosticCode {
   @override
   late ErrorSeverity errorSeverity;
 
   @override
   late DiagnosticType type;
 
-  TestErrorCode(String name, String message)
+  TestDiagnosticCode(String name, String message)
     : super(
         problemMessage: message,
         name: name,

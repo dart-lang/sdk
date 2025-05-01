@@ -35,7 +35,7 @@ export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 export 'package:linter/src/lint_names.dart';
 
 ExpectedDiagnostic error(
-  ErrorCode code,
+  DiagnosticCode code,
   int offset,
   int length, {
   Pattern? messageContains,
@@ -518,7 +518,9 @@ abstract class _ContextResolutionTest
   late ResolvedUnitResult result;
 
   /// Error codes that by default should be ignored in test expectations.
-  List<ErrorCode> get ignoredErrorCodes => [WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<DiagnosticCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   /// The path to the root of the external packages.
   @override
@@ -609,7 +611,7 @@ abstract class _ContextResolutionTest
 
 /// A description of an expected error.
 final class _ExpectedError extends ExpectedDiagnostic {
-  final ErrorCode _code;
+  final DiagnosticCode _code;
 
   _ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
     : super(

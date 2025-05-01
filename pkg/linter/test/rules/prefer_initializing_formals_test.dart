@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class PreferInitializingFormalsTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_LOCAL_VARIABLE,
     WarningCode.UNUSED_FIELD,
   ];

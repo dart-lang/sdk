@@ -34,7 +34,7 @@ void defineTests() {
 
         var type = MockDiagnosticType()..displayName = 'test';
 
-        var code = TestErrorCode('mock_code', 'MSG')..type = type;
+        var code = TestDiagnosticCode('mock_code', 'MSG')..type = type;
 
         await d.dir('project', [
           d.file('foo.dart', '''

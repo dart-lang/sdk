@@ -1205,6 +1205,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
       {required bool isSynthetic}) {
     return <Initializer>[
       new ExtensionTypeRepresentationFieldInitializer(_getter, value)
+        ..fileOffset = fileOffset
     ];
   }
 

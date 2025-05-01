@@ -19,7 +19,7 @@ class StrictTopLevelInferenceTest extends LintRuleTest {
   bool get addTestReflectiveLoaderPackageDep => true;
 
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_LOCAL_VARIABLE,
   ];

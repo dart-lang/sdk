@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiEnumTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_LOCAL_VARIABLE,
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_FIELD,
@@ -96,7 +96,7 @@ sealed class E {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_LOCAL_VARIABLE,
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_FIELD,
@@ -245,7 +245,7 @@ extension type E(Object o) {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_LOCAL_VARIABLE,
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_FIELD,
@@ -306,7 +306,7 @@ class B extends A {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_LOCAL_VARIABLE,
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_FIELD,
