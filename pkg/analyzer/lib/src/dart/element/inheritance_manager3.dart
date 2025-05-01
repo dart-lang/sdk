@@ -96,7 +96,6 @@ class InheritanceManager3 {
   ExecutableElementOrMember? combineSignatures({
     required InterfaceFragmentImpl targetClass,
     required List<ExecutableElementOrMember> candidates,
-    required bool doTopMerge,
     required Name name,
     List<Conflict>? conflicts,
   }) {
@@ -132,12 +131,7 @@ class InheritanceManager3 {
     (_combinedSignatures[targetClass] ??= {})[name] =
         candidates.map((e) => e.asElement2).toList();
 
-    if (doTopMerge) {
-      var typeSystem = targetClass.library.typeSystem;
-      return _topMerge(typeSystem, targetClass, validOverrides);
-    } else {
-      return validOverrides.first;
-    }
+    return _topMerge(typeSystem, targetClass, validOverrides);
   }
 
   /// Return the result of [getInherited2] with [type] substitution.
@@ -247,7 +241,6 @@ class InheritanceManager3 {
         element is ExtensionTypeFragmentImpl
             ? interface.redeclared
             : interface.overridden,
-        doTopMerge: false,
       );
     }
     return inheritedMap;
@@ -554,9 +547,8 @@ class InheritanceManager3 {
   List<Conflict> _findMostSpecificFromNamedCandidates(
     InterfaceFragmentImpl targetClass,
     Map<Name, ExecutableElementOrMember> map,
-    Map<Name, List<ExecutableElementOrMember>> namedCandidates, {
-    required bool doTopMerge,
-  }) {
+    Map<Name, List<ExecutableElementOrMember>> namedCandidates,
+  ) {
     var conflicts = <Conflict>[];
 
     for (var entry in namedCandidates.entries) {
@@ -579,7 +571,6 @@ class InheritanceManager3 {
       var combinedSignature = combineSignatures(
         targetClass: targetClass,
         candidates: candidates,
-        doTopMerge: doTopMerge,
         name: name,
         conflicts: conflicts,
       );
@@ -682,7 +673,6 @@ class InheritanceManager3 {
           fragment,
           map,
           candidatesFromSuperAndMixin,
-          doTopMerge: true,
         );
         for (var entry in map.entries) {
           namedCandidates[entry.key] = [entry.value];
@@ -727,7 +717,6 @@ class InheritanceManager3 {
       fragment,
       interface,
       namedCandidates,
-      doTopMerge: true,
     );
 
     var noSuchMethodForwarders = <Name>{};
@@ -940,7 +929,6 @@ class InheritanceManager3 {
       var combinedSignature = combineSignatures(
         targetClass: fragment,
         candidates: notPrecluded,
-        doTopMerge: true,
         name: name,
       );
 
@@ -1019,7 +1007,6 @@ class InheritanceManager3 {
       fragment,
       superInterface,
       superCandidates,
-      doTopMerge: true,
     );
 
     var interfaceCandidates = Map.of(superCandidates);
@@ -1038,7 +1025,6 @@ class InheritanceManager3 {
       fragment,
       interface,
       interfaceCandidates,
-      doTopMerge: true,
     );
 
     var implemented = <Name, ExecutableElementOrMember>{};

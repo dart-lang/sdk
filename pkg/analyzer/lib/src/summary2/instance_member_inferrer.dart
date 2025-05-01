@@ -135,7 +135,6 @@ class InstanceMemberInferrer {
       var combinedGetter = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenGetters!,
-        doTopMerge: true,
         name: getterName,
       );
       if (combinedGetter != null) {
@@ -148,7 +147,6 @@ class InstanceMemberInferrer {
       var combinedSetter = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenSetters!,
-        doTopMerge: true,
         name: setterName,
       );
       if (combinedSetter != null) {
@@ -421,7 +419,6 @@ class InstanceMemberInferrer {
       var combinedSignature = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenElements,
-        doTopMerge: true,
         name: name,
         conflicts: conflicts,
       );
