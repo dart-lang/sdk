@@ -437,12 +437,12 @@ class ManifestValidatorTest with ResourceProviderMixin {
   late final ManifestValidator validator;
 
   /// Assert that when the validator is used on the given [content] the
-  /// [expectedErrorCodes] are produced.
-  void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
+  /// [expectedCodes] are produced.
+  void assertErrors(String content, List<DiagnosticCode> expectedCodes) {
     List<AnalysisError> errors = validator.validate(content, true);
     GatheringErrorListener listener = GatheringErrorListener();
     listener.addAll(errors);
-    listener.assertErrorsWithCodes(expectedErrorCodes);
+    listener.assertErrorsWithCodes(expectedCodes);
   }
 
   /// Assert that when the validator is used on the given [content] no errors

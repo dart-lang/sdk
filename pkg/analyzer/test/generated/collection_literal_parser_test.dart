@@ -20,7 +20,7 @@ main() {
 class CollectionLiteralParserTest extends FastaParserTestCase {
   Expression parseCollectionLiteral(
     String source, {
-    List<ErrorCode>? codes,
+    List<DiagnosticCode>? codes,
     List<ExpectedError>? errors,
     int? expectedEndOffset,
     bool inAsync = false,

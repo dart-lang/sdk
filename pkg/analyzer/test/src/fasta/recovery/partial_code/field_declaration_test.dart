@@ -34,7 +34,7 @@ class MethodTest extends PartialCodeTest {
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'const _s_;',
           failing: allExceptAnnotationAndEof,
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           ],
         ),
@@ -47,7 +47,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'const f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           ],
         ),
@@ -188,7 +188,7 @@ class MethodTest extends PartialCodeTest {
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'static const _s_;',
           failing: allExceptAnnotationAndEof,
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           ],
         ),
@@ -201,7 +201,7 @@ class MethodTest extends PartialCodeTest {
           ],
           'static const f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           ],
         ),

@@ -23,7 +23,9 @@ class BreakStatementTest extends PartialCodeTest {
             ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
           ],
           "break;",
-          expectedErrorsInValidCode: [ParserErrorCode.BREAK_OUTSIDE_OF_LOOP],
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
+          ],
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor('label', 'break a', [

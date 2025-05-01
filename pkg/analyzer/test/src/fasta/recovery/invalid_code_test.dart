@@ -39,7 +39,7 @@ const default = const Object();
       '''
 const default = const Object();
 ''',
-      expectedErrorsInValidCode: [
+      expectedDiagnosticsInValidCode: [
         ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
       ],
     );
@@ -114,7 +114,7 @@ g() {
   f(with: 3);
 }
 ''',
-      expectedErrorsInValidCode: [
+      expectedDiagnosticsInValidCode: [
         ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
       ],
     );

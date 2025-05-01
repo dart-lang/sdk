@@ -82,41 +82,41 @@ const LintCode customCode = LintCode(
 );
 
 class CollectingReporter extends ErrorReporter {
-  ErrorCode? code;
+  DiagnosticCode? code;
 
   CollectingReporter(super.listener, super.source);
 
   @override
   void atElement2(
     Element element,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    code = errorCode;
+    code = diagnosticCode;
   }
 
   @override
   void atNode(
     AstNode node,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    code = errorCode;
+    code = diagnosticCode;
   }
 
   @override
   void atToken(
     Token token,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    code = errorCode;
+    code = diagnosticCode;
   }
 }
 

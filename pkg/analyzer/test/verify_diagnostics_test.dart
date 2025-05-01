@@ -472,7 +472,7 @@ class VerifyDiagnosticsTest {
   test_published() {
     // Verify that if _any_ error code is marked as having published docs then
     // _all_ codes with the same name are also marked that way.
-    var nameToCodeMap = <String, List<ErrorCode>>{};
+    var nameToCodeMap = <String, List<DiagnosticCode>>{};
     var nameToPublishedMap = <String, bool>{};
     for (var code in errorCodeValues) {
       var name = code.name;
@@ -480,7 +480,7 @@ class VerifyDiagnosticsTest {
       nameToPublishedMap[name] =
           (nameToPublishedMap[name] ?? false) || code.hasPublishedDocs;
     }
-    var unpublished = <ErrorCode>[];
+    var unpublished = <DiagnosticCode>[];
     for (var entry in nameToCodeMap.entries) {
       var name = entry.key;
       if (nameToPublishedMap[name]!) {

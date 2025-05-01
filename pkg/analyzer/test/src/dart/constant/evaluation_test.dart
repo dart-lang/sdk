@@ -5298,14 +5298,14 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl _evaluateConstant(
     String name, {
-    List<ErrorCode>? errorCodes,
+    List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
     Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
     var expression = findNode.topVariableDeclarationByName(name).initializer!;
     return _evaluateExpression(
       expression,
-      errorCodes: errorCodes,
+      diagnosticCodes: diagnosticCodes,
       declaredVariables: declaredVariables,
       lexicalEnvironment: lexicalEnvironment,
     )!;
@@ -5313,7 +5313,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl? _evaluateExpression(
     Expression expression, {
-    List<ErrorCode>? errorCodes,
+    List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
     Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
@@ -5336,10 +5336,10 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     );
     var result =
         expressionConstant is DartObjectImpl ? expressionConstant : null;
-    if (errorCodes == null) {
+    if (diagnosticCodes == null) {
       errorListener.assertNoErrors();
     } else {
-      errorListener.assertErrorsWithCodes(errorCodes);
+      errorListener.assertErrorsWithCodes(diagnosticCodes);
     }
     return result;
   }

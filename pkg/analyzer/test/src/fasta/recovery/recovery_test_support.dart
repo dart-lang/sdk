@@ -18,11 +18,11 @@ import '../../../generated/test_support.dart';
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
     String invalidCode,
-    List<ErrorCode>? errorCodes,
+    List<DiagnosticCode>? diagnosticCodes,
     String validCode, {
     CompilationUnitImpl Function(CompilationUnitImpl unit)?
     adjustValidUnitBeforeComparison,
-    List<ErrorCode>? expectedErrorsInValidCode,
+    List<DiagnosticCode>? expectedDiagnosticsInValidCode,
     FeatureSet? featureSet,
   }) {
     CompilationUnitImpl validUnit;
@@ -31,7 +31,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
     try {
       validUnit = parseCompilationUnit(
         validCode,
-        codes: expectedErrorsInValidCode,
+        codes: expectedDiagnosticsInValidCode,
         featureSet: featureSet,
       );
       validateTokenStream(validUnit.beginToken);
@@ -58,8 +58,8 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
     ResultComparator.compare(invalidUnit, validUnit);
 
     // Assert valid errors.
-    if (errorCodes != null) {
-      listener.assertErrorsWithCodes(errorCodes);
+    if (diagnosticCodes != null) {
+      listener.assertErrorsWithCodes(diagnosticCodes);
     } else {
       listener.assertNoErrors();
     }

@@ -121,7 +121,7 @@ f<T>>() => null;
       '''
 f<T> > () => null;
 ''',
-      expectedErrorsInValidCode: [
+      expectedDiagnosticsInValidCode: [
         ParserErrorCode.TOP_LEVEL_OPERATOR,
         ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
         ParserErrorCode.MISSING_FUNCTION_BODY,

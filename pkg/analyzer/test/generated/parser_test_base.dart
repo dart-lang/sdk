@@ -51,8 +51,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   analyzer.Parser get parser;
 
   /// Assert that the number and codes of errors occurred during parsing is the
-  /// same as the [expectedErrorCodes].
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes);
+  /// same as the [expectedCodes].
+  void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes);
 
   /// Asserts that no errors occurred during parsing.
   void assertNoErrors();
@@ -72,7 +72,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
     FeatureSet featureSet,
   });
 
-  ExpectedError expectedError(ErrorCode code, int offset, int length);
+  ExpectedError expectedError(DiagnosticCode code, int offset, int length);
 
   void expectNotNullIfNoErrors(Object result);
 
@@ -103,7 +103,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   CompilationUnit parseCompilationUnit(
     String source, {
-    List<ErrorCode> codes,
+    List<DiagnosticCode> codes,
     List<ExpectedError> errors,
   });
 
@@ -124,14 +124,14 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   ///           the result would have been `null`
   CompilationUnit parseDirectives(
     String source, [
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   ]);
 
   BinaryExpression parseEqualityExpression(String code);
 
   Expression parseExpression(
     String source, {
-    List<ErrorCode> codes,
+    List<DiagnosticCode> codes,
     List<ExpectedError> errors,
     int expectedEndOffset,
   });
@@ -143,13 +143,13 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   FormalParameter parseFormalParameter(
     String code,
     ParameterKind kind, {
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   });
 
   FormalParameterList parseFormalParameterList(
     String code, {
     bool inFunctionType = false,
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
     List<ExpectedError> errors,
   });
 
@@ -195,7 +195,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   NormalFormalParameter parseNormalFormalParameter(
     String code, {
     bool inFunctionType = false,
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   });
 
   Expression parsePostfixExpression(String code);
@@ -243,7 +243,7 @@ abstract class AbstractParserViaProxyTestCase
 class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
-  static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
+  static final List<DiagnosticCode> NO_ERROR_COMPARISON = <DiagnosticCode>[];
 
   late ParserProxy parserProxy;
 
@@ -258,7 +258,10 @@ class FastaParserTestCase
   @override
   ParserProxy get parser => parserProxy;
 
-  void assertErrors({List<ErrorCode>? codes, List<ExpectedError>? errors}) {
+  void assertErrors({
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+  }) {
     if (codes != null) {
       if (!identical(codes, NO_ERROR_COMPARISON)) {
         assertErrorsWithCodes(codes);
@@ -271,8 +274,8 @@ class FastaParserTestCase
   }
 
   @override
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    parserProxy.errorListener.assertErrorsWithCodes(expectedErrorCodes);
+  void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes) {
+    parserProxy.errorListener.assertErrorsWithCodes(expectedCodes);
   }
 
   @override
@@ -315,7 +318,7 @@ class FastaParserTestCase
   }
 
   @override
-  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+  ExpectedError expectedError(DiagnosticCode code, int offset, int length) =>
       ExpectedError(code, offset, length);
 
   @override
@@ -405,7 +408,7 @@ class FastaParserTestCase
   @override
   CompilationUnitImpl parseCompilationUnit(
     String content, {
-    List<ErrorCode>? codes,
+    List<DiagnosticCode>? codes,
     List<ExpectedError>? errors,
     FeatureSet? featureSet,
   }) {
@@ -502,7 +505,7 @@ class FastaParserTestCase
   @override
   CompilationUnit parseDirectives(
     String source, [
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   ]) {
     createParser(source);
     CompilationUnit unit = parserProxy.parseDirectives(
@@ -510,7 +513,7 @@ class FastaParserTestCase
     );
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(0));
-    listener.assertErrorsWithCodes(errorCodes);
+    listener.assertErrorsWithCodes(diagnosticCodes);
     return unit;
   }
 
@@ -522,7 +525,7 @@ class FastaParserTestCase
   @override
   Expression parseExpression(
     String source, {
-    List<ErrorCode>? codes,
+    List<DiagnosticCode>? codes,
     List<ExpectedError>? errors,
     int? expectedEndOffset,
     bool inAsync = false,
@@ -557,7 +560,7 @@ class FastaParserTestCase
   FormalParameter parseFormalParameter(
     String code,
     ParameterKind kind, {
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
     FeatureSet? featureSet,
   }) {
     String parametersCode;
@@ -572,7 +575,7 @@ class FastaParserTestCase
     }
     FormalParameterList list = parseFormalParameterList(
       parametersCode,
-      errorCodes: errorCodes,
+      diagnosticCodes: diagnosticCodes,
       featureSet: featureSet,
     );
     return list.parameters.single;
@@ -582,7 +585,7 @@ class FastaParserTestCase
   FormalParameterList parseFormalParameterList(
     String code, {
     bool inFunctionType = false,
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
     List<ExpectedError>? errors,
     FeatureSet? featureSet,
   }) {
@@ -590,7 +593,10 @@ class FastaParserTestCase
     FormalParameterList result = parserProxy.parseFormalParameterList(
       inFunctionType: inFunctionType,
     );
-    assertErrors(codes: errors != null ? null : errorCodes, errors: errors);
+    assertErrors(
+      codes: errors != null ? null : diagnosticCodes,
+      errors: errors,
+    );
     return result;
   }
 
@@ -687,12 +693,12 @@ class FastaParserTestCase
   NormalFormalParameter parseNormalFormalParameter(
     String code, {
     bool inFunctionType = false,
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   }) {
     FormalParameterList list = parseFormalParameterList(
       '($code)',
       inFunctionType: inFunctionType,
-      errorCodes: errorCodes,
+      diagnosticCodes: diagnosticCodes,
     );
     return list.parameters.single as NormalFormalParameter;
   }
@@ -1083,8 +1089,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   late final analyzer.Parser parser;
 
   @override
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    listener.assertErrorsWithCodes(expectedErrorCodes);
+  void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes) {
+    listener.assertErrorsWithCodes(expectedCodes);
   }
 
   @override
@@ -1135,7 +1141,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   @override
-  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+  ExpectedError expectedError(DiagnosticCode code, int offset, int length) =>
       ExpectedError(code, offset, length);
 
   @override
@@ -1239,7 +1245,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   @override
   CompilationUnit parseCompilationUnit(
     String content, {
-    List<ErrorCode>? codes,
+    List<DiagnosticCode>? codes,
     List<ExpectedError>? errors,
   }) {
     Source source = TestSource();
@@ -1340,13 +1346,13 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   @override
   CompilationUnit parseDirectives(
     String source, [
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   ]) {
     createParser(source);
     CompilationUnit unit = parser.parseDirectives2();
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(0));
-    listener.assertErrorsWithCodes(errorCodes);
+    listener.assertErrorsWithCodes(diagnosticCodes);
     return unit;
   }
 
@@ -1363,7 +1369,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   @override
   Expression parseExpression(
     String source, {
-    List<ErrorCode>? codes,
+    List<DiagnosticCode>? codes,
     List<ExpectedError>? errors,
     int? expectedEndOffset,
   }) {
@@ -1398,7 +1404,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   FormalParameter parseFormalParameter(
     String code,
     ParameterKind kind, {
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   }) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
@@ -1412,7 +1418,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     }
     FormalParameterList list = parseFormalParameterList(
       parametersCode,
-      errorCodes: errorCodes,
+      diagnosticCodes: diagnosticCodes,
     );
     return list.parameters.single;
   }
@@ -1421,7 +1427,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   FormalParameterList parseFormalParameterList(
     String code, {
     bool inFunctionType = false,
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
     List<ExpectedError>? errors,
   }) {
     createParser(code);
@@ -1429,9 +1435,9 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       inFunctionType: inFunctionType,
     );
     if (errors != null) {
-      errorCodes = errors.map((e) => e.code).toList();
+      diagnosticCodes = errors.map((e) => e.code).toList();
     }
-    assertErrorsWithCodes(errorCodes);
+    assertErrorsWithCodes(diagnosticCodes);
     return list;
   }
 
@@ -1538,12 +1544,12 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   NormalFormalParameter parseNormalFormalParameter(
     String code, {
     bool inFunctionType = false,
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
   }) {
     FormalParameterList list = parseFormalParameterList(
       '($code)',
       inFunctionType: inFunctionType,
-      errorCodes: errorCodes,
+      diagnosticCodes: diagnosticCodes,
     );
     return list.parameters.single as NormalFormalParameter;
   }
@@ -1679,7 +1685,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 /// Intended to be mixed into parser test case classes.
 mixin ParserTestHelpers {
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     Pattern? correctionContains,

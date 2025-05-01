@@ -25,7 +25,7 @@ class WhileStatementTest extends PartialCodeTest {
             ParserErrorCode.EXPECTED_TOKEN,
           ],
           "while (_s_)",
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
@@ -40,7 +40,7 @@ class WhileStatementTest extends PartialCodeTest {
             ParserErrorCode.EXPECTED_TOKEN,
           ],
           "while (_s_)",
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
@@ -54,7 +54,7 @@ class WhileStatementTest extends PartialCodeTest {
             ParserErrorCode.EXPECTED_TOKEN,
           ],
           "while (a)",
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],

@@ -160,10 +160,10 @@ $snippet
       var results = await context.currentSession.getErrors(snippetPath);
       if (results is ErrorsResult) {
         Iterable<AnalysisError> errors = results.errors.where((error) {
-          ErrorCode errorCode = error.errorCode;
+          DiagnosticCode diagnosticCode = error.errorCode;
           // TODO(brianwilkerson): .
-          return errorCode != WarningCode.UNUSED_IMPORT &&
-              errorCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
+          return diagnosticCode != WarningCode.UNUSED_IMPORT &&
+              diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
               !isAllowedLint(error);
         });
         if (errors.isNotEmpty) {

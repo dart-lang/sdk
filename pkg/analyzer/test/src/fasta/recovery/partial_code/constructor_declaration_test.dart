@@ -97,7 +97,7 @@ class ConstructorTest extends PartialCodeTest {
             ParserErrorCode.MISSING_FUNCTION_BODY,
           ],
           'C() : super?._s_() {}',
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
           ],
           failing: ['methodNonVoid', 'getter', 'setter'],

@@ -21,14 +21,14 @@ class AnnotationTest extends PartialCodeTest {
           ParserErrorCode.EXPECTED_EXECUTABLE,
         ],
         '@_s_',
-        expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE],
+        expectedDiagnosticsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE],
       ),
       TestDescriptor(
         'leftParen',
         '@a(',
         [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_EXECUTABLE],
         '@a()',
-        expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE],
+        expectedDiagnosticsInValidCode: [ParserErrorCode.EXPECTED_EXECUTABLE],
       ),
     ], []);
     buildTests(
@@ -64,7 +64,9 @@ class AnnotationTest extends PartialCodeTest {
             ParserErrorCode.EXPECTED_CLASS_MEMBER,
           ],
           '@_s_',
-          expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_CLASS_MEMBER],
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          ],
         ),
         TestDescriptor(
           'leftParen',
@@ -74,7 +76,9 @@ class AnnotationTest extends PartialCodeTest {
             ParserErrorCode.EXPECTED_CLASS_MEMBER,
           ],
           '@a()',
-          expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_CLASS_MEMBER],
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          ],
         ),
       ],
       [],
@@ -117,7 +121,7 @@ class AnnotationTest extends PartialCodeTest {
             ParserErrorCode.MISSING_IDENTIFIER,
           ],
           '@_s_',
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
@@ -131,7 +135,7 @@ class AnnotationTest extends PartialCodeTest {
             ParserErrorCode.MISSING_IDENTIFIER,
           ],
           '@a()',
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
@@ -193,7 +197,7 @@ class AnnotationTest extends PartialCodeTest {
             ParserErrorCode.MISSING_IDENTIFIER,
           ],
           '@_s_',
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
@@ -208,7 +212,7 @@ class AnnotationTest extends PartialCodeTest {
             ParserErrorCode.MISSING_IDENTIFIER,
           ],
           '@a()',
-          expectedErrorsInValidCode: [
+          expectedDiagnosticsInValidCode: [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
