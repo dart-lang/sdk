@@ -708,9 +708,9 @@ class LibraryManifestBuilder {
 
   /// Returns either the existing item from [declaredItems], or builds a new one.
   Item _getOrBuildElementItem<
-    Element extends ElementImpl2,
+    E extends ElementImpl2,
     Item extends ManifestItem
-  >(Element element, Item Function() build) {
+  >(E element, Item Function() build) {
     // We assume that when matching elements against the structure of
     // the item, we put into [itemMap] only the type of the item that
     // corresponds the type of the element.

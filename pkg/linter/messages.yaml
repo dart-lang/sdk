@@ -2347,11 +2347,17 @@ LintCode:
         return getThingFromDatabase(key: myThing.thingTypeKey);
       }
       ```
-  avoid_types_as_parameter_names:
+  avoid_types_as_parameter_names_formal_parameter:
+    sharedName: avoid_types_as_parameter_names
     problemMessage: "The parameter name '{0}' matches a visible type name."
     correctionMessage: "Try adding a name for the parameter or changing the parameter name to not match an existing type."
+    hasPublishedDocs: true
+  avoid_types_as_parameter_names_type_parameter:
+    sharedName: avoid_types_as_parameter_names
+    problemMessage: "The type parameter name '{0}' matches a visible type name."
     state:
       stable: "2.0"
+    correctionMessage: "Try changing the type parameter name to not match an existing type."
     categories: [unintentional]
     hasPublishedDocs: true
     documentation: |-
@@ -2367,6 +2373,11 @@ LintCode:
       name of the parameter is intentional), the name of the parameter will
       shadow the existing type, which can lead to bugs that are difficult to
       diagnose.
+
+      The analyzer also produces this diagnostic when the name of a type
+      parameter in a type parameter list is the same as a type whose name is
+      in scope. It is again recommended that the type parameter is renamed
+      such that the error-prone shadowing is avoided.
 
       #### Example
 

@@ -311,7 +311,9 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
     //  diagnostics and should also be available as an assist.
     ReplaceCascadeWithDot.new,
   ],
-  LinterLintCode.avoid_types_as_parameter_names: [ConvertToOnType.new],
+  LinterLintCode.avoid_types_as_parameter_names_formal_parameter: [
+    ConvertToOnType.new,
+  ],
   LinterLintCode.avoid_types_on_closure_parameters: [
     ReplaceWithIdentifier.new,
     RemoveTypeAnnotation.other,

@@ -1985,7 +1985,11 @@ LintCode.avoid_type_to_string:
   notes: |-
     Theoretically we could replace some uses with `is` checks, but it's probably
     uncommon enough to not be worth the cost.
-LintCode.avoid_types_as_parameter_names:
+LintCode.avoid_types_as_parameter_names_type_parameter:
+  status: noFix
+  notes: |-
+    The type variable needs to be renamed, but that's a refactoring.
+LintCode.avoid_types_as_parameter_names_formal_parameter:
   status: hasFix
 LintCode.avoid_types_on_closure_parameters:
   status: hasFix
