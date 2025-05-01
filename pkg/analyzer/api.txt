@@ -140,8 +140,13 @@ package:analyzer/dart/analysis/features.dart:
     values (static getter: List<FeatureStatus>)
 package:analyzer/dart/analysis/formatter_options.dart:
   FormatterOptions (class extends Object):
-    new (constructor: FormatterOptions Function({int? pageWidth}))
+    new (constructor: FormatterOptions Function({int? pageWidth, TrailingCommas? trailingCommas}))
     pageWidth (getter: int?)
+    trailingCommas (getter: TrailingCommas?)
+  TrailingCommas (enum):
+    automate (static getter: TrailingCommas)
+    preserve (static getter: TrailingCommas)
+    values (static getter: List<TrailingCommas>)
 package:analyzer/dart/analysis/results.dart:
   AnalysisResult (class extends Object):
     new (constructor: AnalysisResult Function())

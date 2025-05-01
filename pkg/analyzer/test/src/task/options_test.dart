@@ -396,6 +396,44 @@ formatter:
 ''', []);
   }
 
+  test_formatter_trailingCommas_invalid_map() {
+    validate(
+      '''
+formatter:
+  trailing_commas:
+    a: b
+''',
+      [AnalysisOptionsWarningCode.INVALID_OPTION],
+    );
+  }
+
+  test_formatter_trailingCommas_invalid_numeric() {
+    validate(
+      '''
+formatter:
+  trailing_commas: 1
+''',
+      [AnalysisOptionsWarningCode.INVALID_OPTION],
+    );
+  }
+
+  test_formatter_trailingCommas_invalid_string() {
+    validate(
+      '''
+formatter:
+  trailing_commas: foo
+''',
+      [AnalysisOptionsWarningCode.INVALID_OPTION],
+    );
+  }
+
+  test_formatter_trailingCommas_valid() {
+    validate('''
+formatter:
+  trailing_commas: automate
+''', []);
+  }
+
   test_formatter_valid_empty() {
     validate('''
 formatter:

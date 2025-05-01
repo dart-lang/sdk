@@ -161,6 +161,16 @@ formatter:
   ^
 ''');
     assertSuggestion('${AnalysisOptionsFile.pageWidth}: ');
+    assertSuggestion('${AnalysisOptionsFile.trailingCommas}: ');
+  }
+
+  void test_formatter_trailingCommas() {
+    getCompletions('''
+formatter:
+  trailing_commas: ^
+''');
+    assertSuggestion('automate');
+    assertSuggestion('preserve');
   }
 
   void test_linter() {

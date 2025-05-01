@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -292,6 +293,7 @@ final class AnalysisOptionsFile {
 
   // Formatter options.
   static const String pageWidth = 'page_width';
+  static const String trailingCommas = 'trailing_commas';
 
   // Linter options.
   static const String rules = 'rules';
@@ -748,6 +750,8 @@ class _FormatterOptionsValidator extends OptionsValidator {
           in formatter.nodeMap.entries) {
         if (keyNode.value == AnalysisOptionsFile.pageWidth) {
           _validatePageWidth(keyNode, valueNode, reporter);
+        } else if (keyNode.value == AnalysisOptionsFile.trailingCommas) {
+          _validateTrailingCommas(keyNode, valueNode, reporter);
         } else {
           reporter.atSourceSpan(
             keyNode.span,
@@ -778,6 +782,25 @@ class _FormatterOptionsValidator extends OptionsValidator {
         arguments: [
           keyNode.toString(),
           '"page_width" must be a positive integer.',
+        ],
+      );
+    }
+  }
+
+  void _validateTrailingCommas(
+    YamlNode keyNode,
+    YamlNode valueNode,
+    ErrorReporter reporter,
+  ) {
+    var value = valueNode.value;
+
+    if (!TrailingCommas.values.any((item) => item.name == value)) {
+      reporter.atSourceSpan(
+        valueNode.span,
+        AnalysisOptionsWarningCode.INVALID_OPTION,
+        arguments: [
+          keyNode.toString(),
+          '"trailing_commas" must be "automate" or "preserve".',
         ],
       );
     }
