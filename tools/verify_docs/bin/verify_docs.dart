@@ -115,7 +115,7 @@ Future<bool> verifyFile(
 
   // Throw if there are syntactic errors.
   var syntacticErrors = parseResult.errors.where((error) {
-    return error.errorCode.type == ErrorType.SYNTACTIC_ERROR;
+    return error.errorCode.type == DiagnosticType.SYNTACTIC_ERROR;
   }).toList();
   if (syntacticErrors.isNotEmpty) {
     throw Exception(syntacticErrors);

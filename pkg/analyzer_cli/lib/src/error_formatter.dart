@@ -300,8 +300,8 @@ class HumanErrorFormatter extends ErrorFormatter {
     // Get display name; translate INFOs into LINTS and HINTS.
     var errorType = severity.displayName;
     if (severity == ErrorSeverity.INFO) {
-      if (error.errorCode.type == ErrorType.HINT ||
-          error.errorCode.type == ErrorType.LINT) {
+      if (error.errorCode.type == DiagnosticType.HINT ||
+          error.errorCode.type == DiagnosticType.LINT) {
         errorType = error.errorCode.type.displayName;
       }
     }
@@ -492,9 +492,9 @@ class MachineErrorFormatter extends ErrorFormatter {
       stats.errorCount++;
     } else if (severity == ErrorSeverity.WARNING) {
       stats.warnCount++;
-    } else if (error.errorCode.type == ErrorType.HINT) {
+    } else if (error.errorCode.type == DiagnosticType.HINT) {
       stats.hintCount++;
-    } else if (error.errorCode.type == ErrorType.LINT) {
+    } else if (error.errorCode.type == DiagnosticType.LINT) {
       stats.lintCount++;
     }
 

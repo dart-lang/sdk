@@ -447,7 +447,7 @@ class ErrorClassInfo {
   }
 
   /// Generates the code to compute the type of errors of this class.
-  String get typeCode => 'ErrorType.$type';
+  String get typeCode => 'DiagnosticType.$type';
 }
 
 /// In-memory representation of error code information obtained from either the

@@ -487,7 +487,7 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+      errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT,
     );
   }
 
@@ -498,7 +498,7 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+      errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT,
     );
   }
 
@@ -509,7 +509,7 @@ void f(List<int> list, bool b) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+      errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT,
     );
   }
 
@@ -525,6 +525,6 @@ void f(List<int> list) {
     <int>{x};
   }
 }
-''', errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+''', errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT);
   }
 }

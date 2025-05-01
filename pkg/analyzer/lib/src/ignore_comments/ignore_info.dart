@@ -65,9 +65,9 @@ class IgnoredDiagnosticType implements IgnoredElement {
   bool _matches(ErrorCode errorCode, {String? pluginName}) {
     // Ignore 'pluginName'; it is irrelevant in an IgnoredDiagnosticType.
     return switch (errorCode.type) {
-      ErrorType.HINT => type == 'hint',
-      ErrorType.LINT => type == 'lint',
-      ErrorType.STATIC_WARNING => type == 'warning',
+      DiagnosticType.HINT => type == 'hint',
+      DiagnosticType.LINT => type == 'lint',
+      DiagnosticType.STATIC_WARNING => type == 'warning',
       // Only errors with one of the above types can be ignored via the type.
       _ => false,
     };

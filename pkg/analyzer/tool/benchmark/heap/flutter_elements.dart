@@ -104,7 +104,8 @@ Future<void> _analyzeFiles(AnalysisContextCollectionImpl collection) async {
               errorsResult.errors
                   .where(
                     (element) =>
-                        element.errorCode.type == ErrorType.COMPILE_TIME_ERROR,
+                        element.errorCode.type ==
+                        DiagnosticType.COMPILE_TIME_ERROR,
                   )
                   .toList();
           if (errors.isNotEmpty) {

@@ -173,7 +173,7 @@ library;
       );
       out.writeln();
       out.writeln('@override');
-      out.writeln('ErrorType get type => ${errorClass.typeCode};');
+      out.writeln('DiagnosticType get type => ${errorClass.typeCode};');
       out.writeln('}');
     }
   }

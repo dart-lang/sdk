@@ -1394,7 +1394,7 @@ class LspServerContextManagerCallbacks
 
   bool _shouldSendError(protocol.AnalysisError error) {
     // Non-TODOs are always shown.
-    if (error.type.name != ErrorType.TODO.name) {
+    if (error.type.name != DiagnosticType.TODO.name) {
       return true;
     }
 

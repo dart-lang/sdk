@@ -35,7 +35,7 @@ class LintCode extends ErrorCode {
   int get hashCode => uniqueName.hashCode;
 
   @override
-  ErrorType get type => ErrorType.LINT;
+  DiagnosticType get type => DiagnosticType.LINT;
 
   @override
   String? get url => null;

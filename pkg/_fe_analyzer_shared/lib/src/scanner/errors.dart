@@ -205,5 +205,5 @@ class ScannerErrorCode extends ErrorCode {
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
 
   @override
-  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
+  DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;
 }

@@ -18,6 +18,8 @@ export 'package:_fe_analyzer_shared/src/base/errors.dart'
         DiagnosticType,
         ErrorCode,
         ErrorSeverity,
+        // Continue exporting the deleted element until it is removed.
+        // ignore: deprecated_member_use
         ErrorType;
 export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
 export 'package:analyzer/src/error/error_code_values.g.dart';

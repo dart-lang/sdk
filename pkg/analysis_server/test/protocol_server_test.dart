@@ -236,8 +236,8 @@ class EnumTest {
   }
 
   void test_AnalysisErrorType() {
-    EnumTester<engine.ErrorType, AnalysisErrorType>().run(
-      (engine.ErrorType engineErrorType) =>
+    EnumTester<engine.DiagnosticType, AnalysisErrorType>().run(
+      (engine.DiagnosticType engineErrorType) =>
           AnalysisErrorType.values.byName(engineErrorType.name),
     );
   }
@@ -387,7 +387,7 @@ class MockAnalysisError implements engine.AnalysisError {
 
 class MockDiagnosticCode implements engine.DiagnosticCode {
   @override
-  engine.ErrorType type;
+  engine.DiagnosticType type;
 
   @override
   engine.ErrorSeverity errorSeverity;
@@ -399,7 +399,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   String? url;
 
   MockDiagnosticCode({
-    this.type = engine.ErrorType.COMPILE_TIME_ERROR,
+    this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
     this.errorSeverity = engine.ErrorSeverity.ERROR,
     this.name = 'TEST_ERROR',
     this.url,
