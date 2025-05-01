@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import '../language_server_benchmark.dart';
@@ -233,6 +234,7 @@ Future<void> runHelper(
   bool includePlugin = false,
 }) async {
   int verbosity = 0;
+  bool jsonOutput = false;
   for (String arg in args) {
     if (arg.startsWith('--files=')) {
       numberOfFileOptions =
@@ -249,86 +251,116 @@ Future<void> runHelper(
       }
     } else if (arg.startsWith('--verbosity=')) {
       verbosity = int.parse(arg.substring('--verbosity='.length));
+    } else if (arg == '--json') {
+      jsonOutput = true;
     }
   }
+  if (jsonOutput) {
+    verbosity = -1;
+  }
   StringBuffer sb = StringBuffer();
+  Map<String, int> jsonData = {};
   for (CodeType codeType in codeTypes) {
     for (int numFiles in numberOfFileOptions) {
-      Directory tmpDir = Directory.systemTemp.createTempSync('lsp_benchmark');
       try {
-        Directory cacheDir = Directory.fromUri(tmpDir.uri.resolve('cache/'))
-          ..createSync(recursive: true);
-        Directory dartDir = Directory.fromUri(tmpDir.uri.resolve('dart/'))
-          ..createSync(recursive: true);
-        var runDetails = copyData(
-          dartDir.uri,
-          tmpDir.uri,
-          numFiles,
-          codeType,
-          args,
-          includePlugin: includePlugin,
-        );
-        var benchmark = benchmarkCreator(
-          args,
-          dartDir.uri,
-          cacheDir.uri,
-          runDetails,
-        );
+        Directory tmpDir = Directory.systemTemp.createTempSync('lsp_benchmark');
         try {
-          benchmark.verbosity = verbosity;
-          await benchmark.run();
-        } finally {
-          benchmark.exit();
-        }
+          Directory cacheDir = Directory.fromUri(tmpDir.uri.resolve('cache/'))
+            ..createSync(recursive: true);
+          Directory dartDir = Directory.fromUri(tmpDir.uri.resolve('dart/'))
+            ..createSync(recursive: true);
+          var runDetails = copyData(
+            dartDir.uri,
+            tmpDir.uri,
+            numFiles,
+            codeType,
+            args,
+            includePlugin: includePlugin,
+          );
+          var benchmark = benchmarkCreator(
+            args,
+            dartDir.uri,
+            cacheDir.uri,
+            runDetails,
+          );
+          try {
+            benchmark.verbosity = verbosity;
+            await benchmark.run();
+          } finally {
+            benchmark.exit();
+          }
 
-        if (verbosity >= 0) print('====================');
-        if (verbosity >= 0) print('$numFiles files / $codeType:');
-        sb.writeln('$numFiles files / $codeType:');
-        for (var durationInfo in benchmark.durationInfo) {
-          if (verbosity >= 0) {
-            print(
-              '${durationInfo.name}: '
-              '${formatDuration(durationInfo.duration)}',
-            );
+          var caption = '$numFiles files / $codeType';
+          if (jsonOutput) {
+            for (var durationInfo in benchmark.durationInfo) {
+              var key = '$caption: ${durationInfo.name} (ms)';
+              if (jsonData.containsKey(key)) {
+                throw 'Already contains data for $key';
+              }
+              jsonData[key] = durationInfo.duration.inMilliseconds;
+            }
+            for (var memoryInfo in benchmark.memoryInfo) {
+              jsonData['$caption: ${memoryInfo.name} (kb)'] = memoryInfo.kb;
+            }
+          } else {
+            if (verbosity >= 0) print('====================');
+            if (verbosity >= 0) print('$caption:');
+            sb.writeln('$caption:');
+            for (var durationInfo in benchmark.durationInfo) {
+              if (verbosity >= 0) {
+                print(
+                  '${durationInfo.name}: '
+                  '${formatDuration(durationInfo.duration)}',
+                );
+              }
+              sb.writeln(
+                '${durationInfo.name}: '
+                '${formatDuration(durationInfo.duration)}',
+              );
+            }
+            for (var memoryInfo in benchmark.memoryInfo) {
+              if (verbosity >= 0) {
+                print(
+                  '${memoryInfo.name}: '
+                  '${formatKb(memoryInfo.kb)}',
+                );
+              }
+              sb.writeln(
+                '${memoryInfo.name}: '
+                '${formatKb(memoryInfo.kb)}',
+              );
+            }
+            if (verbosity >= 0) print('====================');
+            sb.writeln();
           }
-          sb.writeln(
-            '${durationInfo.name}: '
-            '${formatDuration(durationInfo.duration)}',
-          );
-        }
-        for (var memoryInfo in benchmark.memoryInfo) {
-          if (verbosity >= 0) {
-            print(
-              '${memoryInfo.name}: '
-              '${formatKb(memoryInfo.kb)}',
-            );
-          }
-          sb.writeln(
-            '${memoryInfo.name}: '
-            '${formatKb(memoryInfo.kb)}',
-          );
-        }
-        if (verbosity >= 0) print('====================');
-        sb.writeln();
-      } finally {
-        try {
-          tmpDir.deleteSync(recursive: true);
-        } catch (e) {
-          // Wait a little and retry.
-          sleep(const Duration(milliseconds: 42));
+        } finally {
           try {
             tmpDir.deleteSync(recursive: true);
           } catch (e) {
-            if (verbosity >= 0) print('Warning: $e');
+            // Wait a little and retry.
+            sleep(const Duration(milliseconds: 42));
+            try {
+              tmpDir.deleteSync(recursive: true);
+            } catch (e) {
+              if (verbosity >= 0) print('Warning: $e');
+            }
           }
         }
+      } catch (e) {
+        stderr.writeln(
+          'Error while processing $numFiles files / $codeType: $e',
+        );
       }
     }
   }
 
-  print('==================================');
-  print(sb.toString().trim());
-  print('==================================');
+  if (jsonOutput) {
+    print(json.encode(jsonData));
+  } else {
+    print('==================================');
+    print(sb.toString().trim());
+    print('==================================');
+  }
 }
 
 enum CodeType {
