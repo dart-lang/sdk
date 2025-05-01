@@ -20,8 +20,10 @@
 !/pkg/
 /pkg/*
 
-!/pkg/native_assets_builder.status
-!/pkg/native_assets_cli.status
+!/pkg/code_assets.status
+!/pkg/data_assets.status
+!/pkg/hooks_runner.status
+!/pkg/hooks.status
 !/pkg/native_toolchain_c.status
 
 # These packages are authored in third_party.

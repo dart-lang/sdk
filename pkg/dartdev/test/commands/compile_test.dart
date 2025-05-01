@@ -5,10 +5,10 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:code_assets/code_assets.dart';
 import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
-import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/code_assets.dart';
+import 'package:hooks_runner/hooks_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

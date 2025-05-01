@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:dart2native/dart2native.dart' hide platformDill, genSnapshot;
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
-import 'package:native_assets_cli/code_assets.dart' show OS;
+import 'package:code_assets/code_assets.dart' show OS;
 
 import 'snapshot_test_helper.dart';
 

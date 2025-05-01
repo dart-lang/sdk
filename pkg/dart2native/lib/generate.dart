@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:native_assets_cli/code_assets.dart' show OS;
+import 'package:code_assets/code_assets.dart' show OS;
 import 'package:path/path.dart' as path;
 
 import 'dart2native.dart';
