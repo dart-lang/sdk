@@ -1440,6 +1440,8 @@ class AnalysisDriver {
         }
 
         if (withFineDependencies && requirements != null) {
+          requirements.removeReqForLibs({library.file.uri});
+
           performance.run('writeResolvedLibrary', (_) {
             var mapSink = BufferedSink();
             mapSink.writeMap(
