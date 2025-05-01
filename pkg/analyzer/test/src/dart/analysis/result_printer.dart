@@ -935,6 +935,20 @@ class LibraryManifestPrinter {
             }
           });
         }
+
+        var combinedIds = item.interface.combinedIds;
+        if (combinedIds.isNotEmpty) {
+          sink.writelnWithIndent('combinedIds');
+          sink.withIndent(() {
+            for (var entry in combinedIds.entries) {
+              var idListStr = entry.key.ids
+                  .map((id) => idProvider.manifestId(id))
+                  .join(', ');
+              var idStr = idProvider.manifestId(entry.value);
+              sink.writelnWithIndent('[$idListStr]: $idStr');
+            }
+          });
+        }
       });
     }
   }

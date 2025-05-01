@@ -25342,6 +25342,85 @@ class B with A<int> {}
     );
   }
 
+  test_manifest_class_getter_combinedSignatures_merged_addUnrelated() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  num get foo;
+}
+
+abstract class B {
+  int get foo;
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  num get foo;
+}
+
+abstract class B {
+  int get foo;
+}
+
+abstract class C implements A, B {
+  void zzz();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        declaredMembers
+          zzz.method: #M6
+        interface
+          map
+            foo: #M5
+            zzz: #M6
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+    );
+  }
+
   test_manifest_class_getter_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -26413,6 +26492,362 @@ class B with A<int> {}
           map
             bar: #M3
             foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_conflict_removeOne() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B {
+  double foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+''',
+      updatedCode: r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B {}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+      C: #M4
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_addUnrelated() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+  void zzz();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M6
+        interface
+          map
+            foo: #M3
+            zzz: #M6
+      C: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M6
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_removeOne() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_sameBase() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A<T> {
+  T foo();
+}
+
+abstract class B implements A<dynamic> {}
+
+abstract class C implements A<void> {}
+
+abstract class D implements B, C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+      C: #M3
+        interface
+          map
+            foo: #M1
+      D: #M4
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+abstract class A<T> {
+  T foo();
+}
+
+abstract class B implements A<dynamic> {}
+
+abstract class C implements A<void> {}
+
+abstract class D implements B, C {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+      C: #M3
+        interface
+          map
+            foo: #M1
+      D: #M4
+        declaredMembers
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_updateOne() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  int foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M6
+        interface
+          map
+            foo: #M6
+      C: #M4
+        interface
+          map
+            foo: #M7
+          combinedIds
+            [#M1, #M6]: #M7
 ''',
     );
   }
@@ -28150,6 +28585,85 @@ class B with A<int> {}
     );
   }
 
+  test_manifest_class_setter_combinedSignatures_merged_addUnrelated() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  set foo(num _);
+}
+
+abstract class B {
+  set foo(int _);
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M3
+      C: #M4
+        interface
+          map
+            foo=: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  set foo(num _);
+}
+
+abstract class B {
+  set foo(int _);
+}
+
+abstract class C implements A, B {
+  void zzz();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M3
+      C: #M4
+        declaredMembers
+          zzz.method: #M6
+        interface
+          map
+            foo=: #M5
+            zzz: #M6
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+    );
+  }
+
   test_manifest_class_setter_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -28626,6 +29140,101 @@ class A {
       A: #M0
         declaredMembers
           foo.conflict: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_topMerge() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  set foo(List _);
+}
+
+abstract class B {
+  set foo(List<void> _);
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M1
+            valueType: List @ dart:core
+              dynamic
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M3
+            valueType: List @ dart:core
+              void
+        interface
+          map
+            foo=: #M3
+      C: #M4
+        supertype: Object @ dart:core
+        interfaces
+          A @ package:test/test.dart
+          B @ package:test/test.dart
+        interface
+          map
+            foo=: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  set foo(List _);
+}
+
+abstract class B {
+  set foo(List<int> _);
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M1
+            valueType: List @ dart:core
+              dynamic
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M6
+            valueType: List @ dart:core
+              int @ dart:core
+        interface
+          map
+            foo=: #M6
+      C: #M4
+        supertype: Object @ dart:core
+        interfaces
+          A @ package:test/test.dart
+          B @ package:test/test.dart
+        interface
+          map
+            foo=: #M7
+          combinedIds
+            [#M1, #M6]: #M7
 ''',
     );
   }

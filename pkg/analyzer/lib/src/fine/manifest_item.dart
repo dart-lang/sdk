@@ -493,22 +493,48 @@ class ManifestInterface {
   /// The map of names to their IDs in the interface.
   final Map<LookupName, ManifestItemId> map;
 
-  ManifestInterface({required this.map});
+  /// Key: IDs of method declarations.
+  /// Value: ID assigned last time.
+  /// When the same signatures merge, the result is the same.
+  Map<ManifestItemIdList, ManifestItemId> combinedIds = {};
+
+  /// We move [combinedIds] into here during building the manifest, so that
+  /// we can fill [combinedIds] with new entries.
+  Map<ManifestItemIdList, ManifestItemId> combinedIdsTemp = {};
+
+  ManifestInterface({required this.map, required this.combinedIds});
 
   factory ManifestInterface.empty() {
-    return ManifestInterface(map: {});
+    return ManifestInterface(map: {}, combinedIds: {});
   }
 
   factory ManifestInterface.read(SummaryDataReader reader) {
-    return ManifestInterface(map: LookupNameIdMapExtension.read(reader));
+    return ManifestInterface(
+      map: LookupNameIdMapExtension.read(reader),
+      combinedIds: reader.readMap(
+        readKey: () => ManifestItemIdList.read(reader),
+        readValue: () => ManifestItemId.read(reader),
+      ),
+    );
   }
 
-  void clear() {
+  void afterUpdate() {
+    combinedIdsTemp = {};
+  }
+
+  void beforeUpdating() {
     map.clear();
+    combinedIdsTemp = combinedIds;
+    combinedIds = {};
   }
 
   void write(BufferedSink sink) {
     map.write(sink);
+    sink.writeMap(
+      combinedIds,
+      writeKey: (key) => key.write(sink),
+      writeValue: (id) => id.write(sink),
+    );
   }
 }
 

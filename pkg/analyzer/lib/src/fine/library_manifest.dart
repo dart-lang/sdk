@@ -137,7 +137,6 @@ class LibraryManifestBuilder {
       typeParameters,
     ) {
       classItem.declaredMembers.clear();
-      classItem.interface.clear();
       _addInterfaceElementExecutables(
         encodingContext: encodingContext,
         instanceElement: element,
@@ -374,7 +373,6 @@ class LibraryManifestBuilder {
       typeParameters,
     ) {
       mixinItem.declaredMembers.clear();
-      mixinItem.interface.clear();
       _addInterfaceElementExecutables(
         encodingContext: encodingContext,
         instanceElement: element,
@@ -575,6 +573,7 @@ class LibraryManifestBuilder {
 
     // Must be created already.
     var item = declaredItems[element] as InterfaceItem;
+    item.interface.beforeUpdating();
 
     var interface = element.inheritanceManager.getInterface2(element);
     for (var entry in interface.map2.entries) {
@@ -591,9 +590,34 @@ class LibraryManifestBuilder {
         continue;
       }
 
+      var combinedCandidates = interface.combinedSignatures[entry.key];
+      if (combinedCandidates != null) {
+        var candidateElements =
+            combinedCandidates
+                .map((candidate) => candidate.baseElement)
+                .toSet()
+                .toList();
+        if (candidateElements.length == 1) {
+          executable = candidateElements[0];
+        } else {
+          var candidateIds =
+              candidateElements.map((candidate) {
+                return _getInterfaceElementMemberId(candidate);
+              }).toList();
+          var idList = ManifestItemIdList(candidateIds);
+          var id = item.interface.combinedIdsTemp[idList];
+          id ??= ManifestItemId.generate();
+          item.interface.map[lookupName] = id;
+          item.interface.combinedIds[idList] = id;
+          continue;
+        }
+      }
+
       var id = _getInterfaceElementMemberId(executable);
       item.interface.map[lookupName] = id;
     }
+
+    item.interface.afterUpdate();
   }
 
   void _fillInterfaceElementsInterface() {

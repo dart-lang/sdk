@@ -6,6 +6,7 @@ import 'dart:math';
 
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:collection/collection.dart';
 
 /// The globally unique identifier.
 ///
@@ -51,8 +52,43 @@ class ManifestItemId {
     sink.writeUInt32(randomBits);
   }
 
+  static List<ManifestItemId> readList(SummaryDataReader reader) {
+    return reader.readTypedList(() => ManifestItemId.read(reader));
+  }
+
   static ManifestItemId? readOptional(SummaryDataReader reader) {
     return reader.readOptionalObject(() => ManifestItemId.read(reader));
+  }
+}
+
+class ManifestItemIdList {
+  final List<ManifestItemId> ids;
+
+  ManifestItemIdList(this.ids);
+
+  factory ManifestItemIdList.read(SummaryDataReader reader) {
+    return ManifestItemIdList(ManifestItemId.readList(reader));
+  }
+
+  @override
+  int get hashCode {
+    return const ListEquality<ManifestItemId>().hash(ids);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ManifestItemIdList &&
+        const ListEquality<ManifestItemId>().equals(other.ids, ids);
+  }
+
+  @override
+  String toString() {
+    return '[${ids.join(', ')}]';
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeList(ids, (id) => id.write(sink));
   }
 }
 
