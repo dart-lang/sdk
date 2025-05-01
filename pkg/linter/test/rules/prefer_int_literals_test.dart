@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class PreferIntLiteralsTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_FIELD,
     WarningCode.UNUSED_LOCAL_VARIABLE,

@@ -242,7 +242,7 @@ const BB = (x: 1);
 @reflectiveTest
 class NonConstantIdentifierNamesTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_LOCAL_VARIABLE,
     WarningCode.UNUSED_FIELD,
     WarningCode.UNUSED_ELEMENT,

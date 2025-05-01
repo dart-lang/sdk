@@ -196,28 +196,28 @@ class _Visitor extends SimpleAstVisitor<void> {
       var singleType = types.length == 1;
 
       List<Object> arguments;
-      ErrorCode errorCode;
+      DiagnosticCode lintCode;
       if (types.isEmpty) {
         arguments = [];
-        errorCode = LinterLintCode.always_specify_types_add_type;
+        lintCode = LinterLintCode.always_specify_types_add_type;
       } else if (keyword.type == Keyword.VAR) {
         if (singleType) {
           arguments = [keyword.lexeme, types.first];
-          errorCode = LinterLintCode.always_specify_types_replace_keyword;
+          lintCode = LinterLintCode.always_specify_types_replace_keyword;
         } else {
           arguments = [];
-          errorCode = LinterLintCode.always_specify_types_split_to_types;
+          lintCode = LinterLintCode.always_specify_types_split_to_types;
         }
       } else {
         if (singleType) {
           arguments = [types.first];
-          errorCode = LinterLintCode.always_specify_types_specify_type;
+          lintCode = LinterLintCode.always_specify_types_specify_type;
         } else {
           arguments = [];
-          errorCode = LinterLintCode.always_specify_types_add_type;
+          lintCode = LinterLintCode.always_specify_types_add_type;
         }
       }
-      rule.reportAtToken(keyword, arguments: arguments, errorCode: errorCode);
+      rule.reportAtToken(keyword, arguments: arguments, errorCode: lintCode);
     }
   }
 
