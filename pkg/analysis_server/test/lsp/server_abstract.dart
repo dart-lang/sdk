@@ -1048,6 +1048,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     return executeCommand(command);
   }
 
+  @override
   Future<T> executeCommand<T>(
     Command command, {
     T Function(Map<String, Object?>)? decoder,
@@ -1061,17 +1062,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
         'Is it missing from serverSupportedCommands?',
       );
     }
-    var request = makeRequest(
-      Method.workspace_executeCommand,
-      ExecuteCommandParams(
-        command: command.command,
-        arguments: command.arguments,
-        workDoneToken: workDoneToken,
-      ),
-    );
-    return expectSuccessfulResponseTo<T, Map<String, Object?>>(
-      request,
-      decoder ?? (result) => result as T,
+    return super.executeCommand(
+      command,
+      decoder: decoder,
+      workDoneToken: workDoneToken,
     );
   }
 

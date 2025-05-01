@@ -756,7 +756,7 @@ class LibraryManifestPrinter {
   void _writeBaseNameMembers(BaseName name, BaseNameMembers items) {
     void writeDeclaredId(String property, ManifestItem item) {
       var idStr = idProvider.manifestId(item.id);
-      sink.writelnWithIndent('$name.$property.declared: $idStr');
+      sink.writelnWithIndent('$name.$property: $idStr');
     }
 
     void writeInheritedId(String property, ManifestItemId id) {
@@ -779,63 +779,43 @@ class LibraryManifestPrinter {
       }
     }
 
-    void writeIndexEq(DeclaredOrInheritedMethod method) {
-      switch (method) {
-        case DeclaredMethod(:var item):
-          writeDeclaredId('indexEq', item);
-          if (configuration.withElementManifests) {
-            sink.withIndent(() {
-              _writeMetadata(item);
-              _writeNamedType('functionType', item.functionType);
-            });
-          }
-        case InheritedMethod():
-          writeInheritedId('indexEq', method.id);
+    void writeIndexEq(InstanceItemMethodItem item) {
+      writeDeclaredId('indexEq', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('functionType', item.functionType);
+        });
       }
     }
 
-    void writeMethod(DeclaredOrInheritedMethod method) {
-      switch (method) {
-        case DeclaredMethod(:var item):
-          writeDeclaredId('method', item);
-          if (configuration.withElementManifests) {
-            sink.withIndent(() {
-              _writeMetadata(item);
-              _writeNamedType('functionType', item.functionType);
-            });
-          }
-        case InheritedMethod():
-          writeInheritedId('method', method.id);
+    void writeMethod(InstanceItemMethodItem item) {
+      writeDeclaredId('method', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('functionType', item.functionType);
+        });
       }
     }
 
-    void writeGetter(DeclaredOrInheritedGetter getter) {
-      switch (getter) {
-        case DeclaredGetter(:var item):
-          writeDeclaredId('getter', item);
-          if (configuration.withElementManifests) {
-            sink.withIndent(() {
-              _writeMetadata(item);
-              _writeNamedType('returnType', item.returnType);
-            });
-          }
-        case InheritedGetter():
-          writeInheritedId('getter', getter.id);
+    void writeGetter(InstanceItemGetterItem item) {
+      writeDeclaredId('getter', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('returnType', item.returnType);
+        });
       }
     }
 
-    void writeSetter(DeclaredOrInheritedSetter setter) {
-      switch (setter) {
-        case DeclaredSetter(:var item):
-          writeDeclaredId('setter', item);
-          if (configuration.withElementManifests) {
-            sink.withIndent(() {
-              _writeMetadata(item);
-              _writeNamedType('valueType', item.valueType);
-            });
-          }
-        case InheritedSetter():
-          writeInheritedId('setter', setter.id);
+    void writeSetter(InstanceItemSetterItem item) {
+      writeDeclaredId('setter', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('valueType', item.valueType);
+        });
       }
     }
 
@@ -910,27 +890,65 @@ class LibraryManifestPrinter {
       });
     }
 
-    _writeInstanceItemMembers(item);
+    sink.withIndent(() {
+      _writeInstanceItemMembers(item);
+      _writeInterfaceItemInterface(item);
+    });
   }
 
   void _writeInstanceItemMembers(InstanceItem item) {
-    var members = item.members.sorted;
+    var ignored = configuration.ignoredManifestInstanceMemberNames;
 
-    members =
-        members.whereNot((entry) {
-          return configuration.ignoredManifestInstanceMemberNames.contains(
-            entry.key.asString,
-          );
+    var declaredMembers =
+        item.declaredMembers.sorted.whereNot((entry) {
+          return ignored.contains(entry.key.asString);
         }).toList();
 
-    if (members.isNotEmpty) {
+    if (declaredMembers.isNotEmpty) {
+      sink.writelnWithIndent('declaredMembers');
       sink.withIndent(() {
-        sink.writelnWithIndent('members');
-        sink.withIndent(() {
-          for (var entry in members) {
-            _writeBaseNameMembers(entry.key, entry.value);
-          }
-        });
+        for (var entry in declaredMembers) {
+          _writeBaseNameMembers(entry.key, entry.value);
+        }
+      });
+    }
+  }
+
+  void _writeInterfaceItemInterface(InterfaceItem item) {
+    var ignored = configuration.ignoredManifestInstanceMemberNames;
+
+    List<MapEntry<LookupName, V>> notIgnored<V>(Map<LookupName, V> map) {
+      return map.sorted.whereNot((entry) {
+        return ignored.contains(entry.key.asString);
+      }).toList();
+    }
+
+    var mapEntries = notIgnored(item.interface.map);
+    if (mapEntries.isNotEmpty) {
+      sink.writelnWithIndent('interface');
+      sink.withIndent(() {
+        if (mapEntries.isNotEmpty) {
+          sink.writelnWithIndent('map');
+          sink.withIndent(() {
+            for (var entry in mapEntries) {
+              _writeNamedId(entry.key, entry.value);
+            }
+          });
+        }
+
+        var combinedIds = item.interface.combinedIds;
+        if (combinedIds.isNotEmpty) {
+          sink.writelnWithIndent('combinedIds');
+          sink.withIndent(() {
+            for (var entry in combinedIds.entries) {
+              var idListStr = entry.key.ids
+                  .map((id) => idProvider.manifestId(id))
+                  .join(', ');
+              var idStr = idProvider.manifestId(entry.value);
+              sink.writelnWithIndent('[$idListStr]: $idStr');
+            }
+          });
+        }
       });
     }
   }
@@ -967,7 +985,10 @@ class LibraryManifestPrinter {
       });
     }
 
-    _writeInstanceItemMembers(item);
+    sink.withIndent(() {
+      _writeInstanceItemMembers(item);
+      _writeInterfaceItemInterface(item);
+    });
   }
 
   void _writeNamedId(LookupName name, ManifestItemId id) {

@@ -48,8 +48,8 @@ class MockSdkTest extends PubPackageResolutionTest {
         resolvedUnit.errors
             .where(
               (element) =>
-                  element.errorCode.type != ErrorType.HINT &&
-                  element.errorCode.type != ErrorType.STATIC_WARNING,
+                  element.errorCode.type != DiagnosticType.HINT &&
+                  element.errorCode.type != DiagnosticType.STATIC_WARNING,
             )
             .toList();
     assertErrorsInList(notHints, []);

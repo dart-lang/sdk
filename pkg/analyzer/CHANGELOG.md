@@ -3,9 +3,12 @@
 * Remove deprecated `DartType.isStructurallyEqualTo`.
 * Remove deprecated `RecordType.positionalTypes`.
 * Remove deprecated `RecordType.sortedNamedTypes`.
-* Remove `ElementLocation` class, its values are not returned anymore.
-* Deprecated `element2.dart` library, import `element.dart`.
-* Deprecated `XyzElement2` classes, use `XyzElement` instead.
+* Remove `ElementLocation` class; its values are not returned anymore.
+* Deprecate `element2.dart` library; import `element.dart`.
+* Deprecate `XyzElement2` classes; use `XyzElement` instead.
+* Deprecate `AnalysisError.correction` field; use
+  `AnalysisError.correctionMessage` instead.
+* Deprecate `ErrorType`; use `DiagnosticType` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

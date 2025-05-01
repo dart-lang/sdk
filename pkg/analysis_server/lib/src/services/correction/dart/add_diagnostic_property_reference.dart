@@ -331,7 +331,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     var endOffset = startOffset + declaration.length;
     for (var error in unitResult.errors) {
       var errorCode = error.errorCode;
-      if (errorCode.type == ErrorType.LINT &&
+      if (errorCode.type == DiagnosticType.LINT &&
           errorCode == LinterLintCode.diagnostic_describe_all_properties &&
           error.offset > startOffset &&
           error.offset < endOffset) {

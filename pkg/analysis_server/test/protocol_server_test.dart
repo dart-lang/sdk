@@ -112,7 +112,7 @@ class AnalysisErrorTest {
       offset: 10,
       length: 20,
       message: 'my message',
-      correction: 'my correction',
+      correctionMessage: 'my correction',
     );
     var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
@@ -236,8 +236,8 @@ class EnumTest {
   }
 
   void test_AnalysisErrorType() {
-    EnumTester<engine.ErrorType, AnalysisErrorType>().run(
-      (engine.ErrorType engineErrorType) =>
+    EnumTester<engine.DiagnosticType, AnalysisErrorType>().run(
+      (engine.DiagnosticType engineErrorType) =>
           AnalysisErrorType.values.byName(engineErrorType.name),
     );
   }
@@ -331,7 +331,7 @@ class MockAnalysisError implements engine.AnalysisError {
   final int? _offset;
   final int? _length;
   final String? _message;
-  final String? _correction;
+
   final DiagnosticMessage? _problemMessage;
   final String? _correctionMessage;
 
@@ -344,7 +344,6 @@ class MockAnalysisError implements engine.AnalysisError {
     int? offset,
     int? length,
     String? message,
-    String? correction,
     DiagnosticMessage? problemMessage,
     String? correctionMessage,
   }) : _source = source,
@@ -352,12 +351,11 @@ class MockAnalysisError implements engine.AnalysisError {
        _offset = offset,
        _length = length,
        _message = message,
-       _correction = correction,
        _problemMessage = problemMessage,
        _correctionMessage = correctionMessage;
 
   @override
-  String? get correction => _correction;
+  String? get correction => null;
 
   @override
   String? get correctionMessage => _correctionMessage;
@@ -389,7 +387,7 @@ class MockAnalysisError implements engine.AnalysisError {
 
 class MockDiagnosticCode implements engine.DiagnosticCode {
   @override
-  engine.ErrorType type;
+  engine.DiagnosticType type;
 
   @override
   engine.ErrorSeverity errorSeverity;
@@ -401,7 +399,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   String? url;
 
   MockDiagnosticCode({
-    this.type = engine.ErrorType.COMPILE_TIME_ERROR,
+    this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
     this.errorSeverity = engine.ErrorSeverity.ERROR,
     this.name = 'TEST_ERROR',
     this.url,

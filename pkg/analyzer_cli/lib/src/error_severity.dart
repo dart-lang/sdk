@@ -34,7 +34,7 @@ ErrorSeverity? determineProcessedSeverity(
 ) {
   var severity = computeSeverity(error, commandLineOptions, analysisOptions);
   // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
-  if (error.errorCode.type == ErrorType.TODO &&
+  if (error.errorCode.type == DiagnosticType.TODO &&
       severity == ErrorSeverity.INFO) {
     return null;
   }

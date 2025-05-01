@@ -32,7 +32,7 @@ void defineTests() {
       setUp(() async {
         var lineInfo = LineInfo([3, 6, 9]);
 
-        var type = MockErrorType()..displayName = 'test';
+        var type = MockDiagnosticType()..displayName = 'test';
 
         var code = TestErrorCode('mock_code', 'MSG')..type = type;
 

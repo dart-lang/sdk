@@ -9,7 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-class MockErrorType implements ErrorType {
+class MockDiagnosticType implements DiagnosticType {
   @override
   late String displayName;
 
@@ -23,7 +23,7 @@ class MockErrorType implements ErrorType {
   late ErrorSeverity severity;
 
   @override
-  int compareTo(ErrorType other) => 0;
+  int compareTo(DiagnosticType other) => 0;
 
   @override
   String toString() => 'MockErrorType';
@@ -85,7 +85,7 @@ class TestErrorCode extends ErrorCode {
   late ErrorSeverity errorSeverity;
 
   @override
-  late ErrorType type;
+  late DiagnosticType type;
 
   TestErrorCode(String name, String message)
     : super(

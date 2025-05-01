@@ -80,6 +80,11 @@ class InheritanceManager3 {
   /// Cached instance interfaces for [InterfaceFragmentImpl].
   final Map<InterfaceFragmentImpl, Interface> _interfaces = {};
 
+  /// Tracks signatures from superinterfaces that were combined.
+  /// It is used to track dependencies in manifests.
+  final Map<InterfaceFragmentImpl, Map<Name, List<ExecutableElement2OrMember>>>
+  _combinedSignatures = {};
+
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
   final Set<InterfaceFragmentImpl> _processingClasses = {};
@@ -123,6 +128,9 @@ class InheritanceManager3 {
       conflicts?.add(CandidatesConflict(name: name, candidates: candidates));
       return null;
     }
+
+    (_combinedSignatures[targetClass] ??= {})[name] =
+        candidates.map((e) => e.asElement2).toList();
 
     if (doTopMerge) {
       var typeSystem = targetClass.library.typeSystem;
@@ -326,10 +334,6 @@ class InheritanceManager3 {
     int forMixinIndex = -1,
     bool forSuper = false,
   }) {
-    globalResultRequirements?.notifyInterfaceRequest(
-      element: element.asElement2,
-      nameObj: name,
-    );
     var interface = getInterface(element);
     if (forSuper) {
       if (element is ExtensionTypeFragmentImpl) {
@@ -349,7 +353,14 @@ class InheritanceManager3 {
     if (concrete) {
       return interface.implemented[name];
     }
-    return interface.map[name];
+
+    var result = interface.map[name];
+    globalResultRequirements?.notifyInterfaceRequest(
+      element: element.asElement2,
+      nameObj: name,
+      methodElement: result?.asElement2,
+    );
+    return result;
   }
 
   /// Returns the result of [getMember4] with [type] substitution.
@@ -783,6 +794,7 @@ class InheritanceManager3 {
       superImplemented: superImplemented,
       superImplemented2: superImplemented2,
       conflicts: conflicts.toFixedList(),
+      combinedSignatures: _combinedSignatures.remove(fragment) ?? {},
     );
   }
 
@@ -982,6 +994,7 @@ class InheritanceManager3 {
       superImplemented: const [],
       superImplemented2: const [],
       conflicts: conflicts.toFixedList(),
+      combinedSignatures: _combinedSignatures.remove(fragment) ?? {},
     );
   }
 
@@ -1054,6 +1067,7 @@ class InheritanceManager3 {
       superImplemented2: [superInterface2],
       conflicts:
           <Conflict>[...superConflicts, ...interfaceConflicts].toFixedList(),
+      combinedSignatures: _combinedSignatures.remove(fragment) ?? {},
     );
   }
 
@@ -1274,6 +1288,7 @@ class Interface {
     superImplemented: const [{}],
     superImplemented2: const [{}],
     conflicts: const [],
+    combinedSignatures: const {},
   );
 
   /// The map of names to their signature in the interface.
@@ -1324,6 +1339,10 @@ class Interface {
   /// members of the class.
   final List<Conflict> conflicts;
 
+  /// Tracks signatures from superinterfaces that were combined.
+  /// It is used to track dependencies in manifests.
+  final Map<Name, List<ExecutableElement2OrMember>> combinedSignatures;
+
   /// The map of names to the most specific signatures from the mixins,
   /// superclasses, or interfaces.
   Map<Name, ExecutableElementOrMember>? inheritedMap;
@@ -1341,6 +1360,7 @@ class Interface {
     required this.superImplemented,
     required this.superImplemented2,
     required this.conflicts,
+    required this.combinedSignatures,
   });
 
   /// The map of declared names to their signatures.

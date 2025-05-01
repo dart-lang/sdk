@@ -629,7 +629,7 @@ typedef A<T> = Map<int, T>;
   }
 
   void test_convertErrorType() {
-    for (var type in analyzer.ErrorType.values) {
+    for (var type in analyzer.DiagnosticType.values) {
       expect(converter.convertErrorType(type), isNotNull, reason: type.name);
     }
   }

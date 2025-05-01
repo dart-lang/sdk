@@ -110,7 +110,7 @@ abstract class ErrorCode {
   /**
    * The type of the error.
    */
-  ErrorType get type;
+  DiagnosticType get type;
 
   /**
    * Return a URL that can be used to access documentation for diagnostics with
@@ -207,66 +207,67 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   String toString() => name;
 }
 
-/// The type of a [DiagnosticCode].
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-typedef DiagnosticType = ErrorType;
+@Deprecated("Use 'DiagnosticType' instead.")
+typedef ErrorType = DiagnosticType;
 
 /**
- * The type of an [ErrorCode].
- *
- * Note that this class name, `ErrorType`, is soft-deprecated in favor of
- * the type alias, [DiagnosticType].
+ * The type of a [DiagnosticCode].
  */
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-class ErrorType implements Comparable<ErrorType> {
+class DiagnosticType implements Comparable<DiagnosticType> {
   /**
    * Task (todo) comments in user code.
    */
-  static const ErrorType TODO = const ErrorType('TODO', 0, ErrorSeverity.INFO);
+  static const DiagnosticType TODO =
+      const DiagnosticType('TODO', 0, ErrorSeverity.INFO);
 
   /**
    * Extra analysis run over the code to follow best practices, which are not in
    * the Dart Language Specification.
    */
-  static const ErrorType HINT = const ErrorType('HINT', 1, ErrorSeverity.INFO);
+  static const DiagnosticType HINT =
+      const DiagnosticType('HINT', 1, ErrorSeverity.INFO);
 
   /**
    * Compile-time errors are errors that preclude execution. A compile time
    * error must be reported by a Dart compiler before the erroneous code is
    * executed.
    */
-  static const ErrorType COMPILE_TIME_ERROR =
-      const ErrorType('COMPILE_TIME_ERROR', 2, ErrorSeverity.ERROR);
+  static const DiagnosticType COMPILE_TIME_ERROR =
+      const DiagnosticType('COMPILE_TIME_ERROR', 2, ErrorSeverity.ERROR);
 
   /**
    * Checked mode compile-time errors are errors that preclude execution in
    * checked mode.
    */
-  static const ErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const ErrorType(
-      'CHECKED_MODE_COMPILE_TIME_ERROR', 3, ErrorSeverity.ERROR);
+  static const DiagnosticType CHECKED_MODE_COMPILE_TIME_ERROR =
+      const DiagnosticType(
+          'CHECKED_MODE_COMPILE_TIME_ERROR', 3, ErrorSeverity.ERROR);
 
   /**
    * Static warnings are those warnings reported by the static checker. They
    * have no effect on execution. Static warnings must be provided by Dart
    * compilers used during development.
    */
-  static const ErrorType STATIC_WARNING =
-      const ErrorType('STATIC_WARNING', 4, ErrorSeverity.WARNING);
+  static const DiagnosticType STATIC_WARNING =
+      const DiagnosticType('STATIC_WARNING', 4, ErrorSeverity.WARNING);
 
   /**
    * Syntactic errors are errors produced as a result of input that does not
    * conform to the grammar.
    */
-  static const ErrorType SYNTACTIC_ERROR =
-      const ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
+  static const DiagnosticType SYNTACTIC_ERROR =
+      const DiagnosticType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
 
   /**
    * Lint warnings describe style and best practice recommendations that can be
    * used to formalize a project's style guidelines.
    */
-  static const ErrorType LINT = const ErrorType('LINT', 7, ErrorSeverity.INFO);
+  static const DiagnosticType LINT =
+      const DiagnosticType('LINT', 7, ErrorSeverity.INFO);
 
-  static const List<ErrorType> values = const [
+  static const List<DiagnosticType> values = const [
     TODO,
     HINT,
     COMPILE_TIME_ERROR,
@@ -295,7 +296,7 @@ class ErrorType implements Comparable<ErrorType> {
    * Initialize a newly created error type to have the given [name] and
    * [severity].
    */
-  const ErrorType(this.name, this.ordinal, this.severity);
+  const DiagnosticType(this.name, this.ordinal, this.severity);
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
 
@@ -303,7 +304,7 @@ class ErrorType implements Comparable<ErrorType> {
   int get hashCode => ordinal;
 
   @override
-  int compareTo(ErrorType other) => ordinal - other.ordinal;
+  int compareTo(DiagnosticType other) => ordinal - other.ordinal;
 
   @override
   String toString() => name;

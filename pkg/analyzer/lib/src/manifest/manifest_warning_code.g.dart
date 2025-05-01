@@ -130,5 +130,5 @@ class ManifestWarningCode extends ErrorCode {
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
 
   @override
-  ErrorType get type => ErrorType.STATIC_WARNING;
+  DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 }

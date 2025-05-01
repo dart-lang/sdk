@@ -69,7 +69,7 @@ class MockCommandLineOptions implements CommandLineOptions {
 
 class MockErrorCode implements ErrorCode {
   @override
-  ErrorType type;
+  DiagnosticType type;
 
   @override
   ErrorSeverity errorSeverity;

@@ -191,5 +191,5 @@ class TransformSetErrorCode extends DiagnosticCode {
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
 
   @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
+  DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 }

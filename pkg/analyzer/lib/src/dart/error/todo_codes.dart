@@ -89,5 +89,5 @@ class TodoCode extends ErrorCode {
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
 
   @override
-  ErrorType get type => ErrorType.TODO;
+  DiagnosticType get type => DiagnosticType.TODO;
 }

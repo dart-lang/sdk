@@ -61,7 +61,7 @@ class AnalyzerConverter {
         error.message,
         errorCode.name.toLowerCase(),
         contextMessages: contextMessages,
-        correction: error.correction,
+        correction: error.correctionMessage,
         hasFix: true);
   }
 
@@ -181,7 +181,7 @@ class AnalyzerConverter {
 
   /// Convert the error [type] from the 'analyzer' package to an analysis error
   /// type defined by the plugin API.
-  plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
+  plugin.AnalysisErrorType convertErrorType(analyzer.DiagnosticType type) =>
       plugin.AnalysisErrorType.values.byName(type.name);
 
   String getElementDisplayName(analyzer.Element element) {
