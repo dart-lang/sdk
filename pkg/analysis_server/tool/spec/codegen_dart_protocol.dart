@@ -903,7 +903,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           ),
         ]);
         writeln(
-          'static String applySequence(String code, Iterable<SourceEdit> edits) =>',
+          'static String applySequence(String code, List<SourceEdit> edits) =>',
         );
         writeln('    applySequenceOfEdits(code, edits);');
         return true;
