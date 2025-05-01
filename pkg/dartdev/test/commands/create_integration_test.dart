@@ -122,8 +122,8 @@ void defineCreateTests() {
 
         if (isLastCommand && (isServerTemplate || isWebTemplate)) {
           final completer = Completer<void>();
-          late StreamSubscription stdoutSub;
-          late StreamSubscription stderrSub;
+          late final StreamSubscription<String> stdoutSub;
+          late final StreamSubscription<String> stderrSub;
           // Listen for well-known output from specific templates to determine
           // if they've executed correctly. These templates won't exit on their
           // own, so we'll need to terminate the process once we've verified it

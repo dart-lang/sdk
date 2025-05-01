@@ -500,6 +500,55 @@ class B {}
 ''', () => findNode.constructorReference('B.new'));
   }
 
+  test_dotShorthandConstructorInvocation_const() async {
+    await _assertConst(r'''
+class A {
+  const A();
+}
+
+const A x = .new();
+''', () => findNode.dotShorthandConstructorInvocation('.new()'));
+  }
+
+  test_dotShorthandConstructorInvocation_nonConst() async {
+    await _assertNotConst(
+      r'''
+class A {
+  const A();
+}
+
+A x = .new();
+''',
+      () => _xInitializer(),
+      () => [findNode.dotShorthandConstructorInvocation('.new()')],
+    );
+  }
+
+  test_dotShorthandPropertyAccess_const() async {
+    await _assertConst(r'''
+class A {
+  static const A a = A();
+  const A();
+}
+
+const A x = .a;
+''', () => findNode.dotShorthandPropertyAccess('.a'));
+  }
+
+  test_dotShorthandPropertyAccess_nonConst() async {
+    await _assertNotConst(
+      r'''
+class A {
+  static A a = A();
+}
+
+A x = .a;
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a;')],
+    );
+  }
+
   test_functionReference_explicitTypeArguments() async {
     await _assertConst('''
 class A {

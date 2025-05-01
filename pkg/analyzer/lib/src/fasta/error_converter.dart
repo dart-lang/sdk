@@ -295,7 +295,7 @@ class FastaErrorReporter {
         _reportByCode(
           offset: offset,
           length: length,
-          errorCode: CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+          code: CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
           message: message,
         );
         return;
@@ -303,7 +303,7 @@ class FastaErrorReporter {
         _reportByCode(
           offset: offset,
           length: length,
-          errorCode: ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+          code: ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
           message: message,
         );
         return;
@@ -597,7 +597,7 @@ class FastaErrorReporter {
   void _reportByCode({
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    required DiagnosticCode code,
     required Message message,
   }) {
     if (errorReporter != null) {
@@ -606,7 +606,7 @@ class FastaErrorReporter {
           source: errorReporter!.source,
           offset: offset,
           length: length,
-          errorCode: errorCode,
+          errorCode: code,
           arguments: message.arguments.values.toList(),
         ),
       );

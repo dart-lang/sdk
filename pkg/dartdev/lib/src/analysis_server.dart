@@ -290,7 +290,7 @@ class AnalysisServer {
           _streamController(event).add(params.cast<String, dynamic>());
         }
       } else if (response case {'id': final String id}) {
-        if (response case {'error': final Map error}) {
+        if (response case {'error': final Map<String, Object?> error}) {
           _requestCompleters.remove(id)?.completeError(
               RequestError.parse(error.cast<String, dynamic>()));
         } else {

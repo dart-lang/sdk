@@ -1021,8 +1021,12 @@ class Thread : public ThreadState {
   }
   void SetBlockedForSafepoint(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
-    safepoint_state_ =
-        BlockedForSafepointField::update(value, safepoint_state_);
+    const uword mask = BlockedForSafepointField::mask_in_place();
+    if (value) {
+      safepoint_state_.fetch_or(mask);
+    } else {
+      safepoint_state_.fetch_and(~mask);
+    }
   }
   bool BypassSafepoints() const {
     return BypassSafepointsField::decode(safepoint_state_);

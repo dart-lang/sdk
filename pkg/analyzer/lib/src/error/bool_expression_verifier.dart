@@ -40,16 +40,17 @@ class BoolExpressionVerifier {
   }) {
     checkForNonBoolExpression(
       condition,
-      errorCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
+      diagnosticCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
       whyNotPromoted: whyNotPromoted,
     );
   }
 
   /// Verify that the given [expression] is of type 'bool', and report
-  /// [errorCode] if not, or a nullability error if its improperly nullable.
+  /// [diagnosticCode] if not, or a nullability error if its improperly
+  /// nullable.
   void checkForNonBoolExpression(
     Expression expression, {
-    required ErrorCode errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object> arguments = const [],
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
@@ -71,7 +72,7 @@ class BoolExpressionVerifier {
           ),
         );
       } else {
-        _errorReporter.atNode(expression, errorCode, arguments: arguments);
+        _errorReporter.atNode(expression, diagnosticCode, arguments: arguments);
       }
     }
   }
@@ -83,7 +84,7 @@ class BoolExpressionVerifier {
   }) {
     checkForNonBoolExpression(
       expression,
-      errorCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
+      diagnosticCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
       whyNotPromoted: whyNotPromoted,
     );
   }

@@ -1915,7 +1915,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
+      diagnosticCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis.flow?.assert_afterCondition(node.condition);
@@ -1938,7 +1938,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
+      diagnosticCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis.flow?.assert_afterCondition(node.condition);

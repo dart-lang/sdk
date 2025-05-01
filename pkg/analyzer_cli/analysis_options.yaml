@@ -17,7 +17,6 @@ linter:
     - avoid_unused_constructor_parameters
     - directives_ordering
     - flutter_style_todos
-    - library_annotations
     - omit_local_variable_types
     - prefer_single_quotes
     - unawaited_futures

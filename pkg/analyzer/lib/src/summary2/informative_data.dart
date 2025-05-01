@@ -2175,6 +2175,28 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _tokenOrNull(node.constKeyword);
+    _tokenOrNull(node.period);
+    node.constructorName.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  /// When we read from bytes, [DotShorthandInvocation]s are not rewritten to
+  /// [DotShorthandConstructorInvocation]s when they're resolved to be
+  /// constructor invocations. However, since the tokens happen to be the same
+  /// between the two in this case, we have the same offsets.
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _tokenOrNull(node.period);
+    node.memberName.accept(this);
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _tokenOrNull(node.period);
     node.propertyName.accept(this);

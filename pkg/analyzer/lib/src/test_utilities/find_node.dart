@@ -363,6 +363,12 @@ class FindNode {
     return _node(search, (n) => n is DoStatement);
   }
 
+  DotShorthandConstructorInvocation dotShorthandConstructorInvocation(
+    String search,
+  ) {
+    return _node(search, (n) => n is DotShorthandConstructorInvocation);
+  }
+
   DotShorthandInvocation dotShorthandInvocation(String search) {
     return _node(search, (n) => n is DotShorthandInvocation);
   }

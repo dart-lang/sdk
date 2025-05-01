@@ -54,7 +54,6 @@ linter:
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters
     - flutter_style_todos
-    - library_annotations
     - unawaited_futures
     - unnecessary_breaks
     - unnecessary_final

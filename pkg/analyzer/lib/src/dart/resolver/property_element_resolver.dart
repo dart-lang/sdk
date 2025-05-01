@@ -42,10 +42,13 @@ class PropertyElementResolver with ScopeHelpers {
     DotShorthandPropertyAccessImpl node,
   ) {
     if (_resolver.isDotShorthandContextEmpty) {
-      // TODO(kallentu): Produce an error here for not being able to find a
-      // context type.
-      return PropertyElementResolverResult();
+      assert(
+        false,
+        'DotShorthandPropertyAccessImpl is not enclosed in an expression for '
+        'which DotShorthandMixin.isDotShorthand is true',
+      );
     }
+
     TypeImpl context =
         _resolver.getDotShorthandContext().unwrapTypeSchemaView();
 
@@ -61,26 +64,36 @@ class PropertyElementResolver with ScopeHelpers {
           identifier.name,
           _definingLibrary,
         );
-        if (element != null) {
-          return PropertyElementResolverResult(
-            readElementRequested2: element,
-            getType: element.returnType,
+        // We didn't resolve to any static getter or static field using the
+        // context type.
+        if (element == null) {
+          errorReporter.atNode(
+            node,
+            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER,
+            arguments: [node.propertyName.name, context.getDisplayString()],
           );
+          return PropertyElementResolverResult();
         }
-      } else {
-        var contextElement = context.element3;
-        return _resolveTargetInterfaceElement(
-          typeReference: contextElement,
-          isCascaded: false,
-          propertyName: identifier,
-          hasRead: true,
-          hasWrite: false,
+        return PropertyElementResolverResult(
+          readElementRequested2: element,
+          getType: element.returnType,
         );
       }
+      var contextElement = context.element3;
+      return _resolveTargetInterfaceElement(
+        typeReference: contextElement,
+        isCascaded: false,
+        propertyName: identifier,
+        hasRead: true,
+        hasWrite: false,
+        resolvingDotShorthand: true,
+      );
     }
 
-    // TODO(kallentu): Produce an error here for not being able to find a
-    // property.
+    errorReporter.atNode(
+      node,
+      CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
+    );
     return PropertyElementResolverResult();
   }
 
@@ -714,6 +727,7 @@ class PropertyElementResolver with ScopeHelpers {
     required SimpleIdentifier propertyName,
     required bool hasRead,
     required bool hasWrite,
+    bool resolvingDotShorthand = false,
   }) {
     if (isCascaded) {
       typeReference = _resolver.typeProvider.typeType.element3;
@@ -742,15 +756,25 @@ class PropertyElementResolver with ScopeHelpers {
           readElement = null;
         }
       } else {
-        var code =
-            typeReference is EnumElement
-                ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
-                : CompileTimeErrorCode.UNDEFINED_GETTER;
-        errorReporter.atNode(
-          propertyName,
-          code,
-          arguments: [propertyName.name, typeReference.name3!],
-        );
+        if (resolvingDotShorthand) {
+          // We didn't resolve to any static getter or static field using the
+          // context type.
+          errorReporter.atNode(
+            propertyName,
+            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER,
+            arguments: [propertyName.name, typeReference.name3!],
+          );
+        } else {
+          var code =
+              typeReference is EnumElement
+                  ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
+                  : CompileTimeErrorCode.UNDEFINED_GETTER;
+          errorReporter.atNode(
+            propertyName,
+            code,
+            arguments: [propertyName.name, typeReference.name3!],
+          );
+        }
       }
     }
 

@@ -20,10 +20,10 @@ class IgnoreValidator {
   /// Error codes used to report `unnecessary_ignore`s.
   /// These codes are set when the `UnnecessaryIgnore` lint rule is instantiated and
   /// registered by the linter.
-  static late ErrorCode unnecessaryIgnoreLocationLintCode;
-  static late ErrorCode unnecessaryIgnoreFileLintCode;
-  static late ErrorCode unnecessaryIgnoreNameLocationLintCode;
-  static late ErrorCode unnecessaryIgnoreNameFileLintCode;
+  static late DiagnosticCode unnecessaryIgnoreLocationLintCode;
+  static late DiagnosticCode unnecessaryIgnoreFileLintCode;
+  static late DiagnosticCode unnecessaryIgnoreNameLocationLintCode;
+  static late DiagnosticCode unnecessaryIgnoreNameFileLintCode;
 
   /// The error reporter to which errors are to be reported.
   final ErrorReporter _errorReporter;
@@ -260,7 +260,7 @@ class IgnoreValidator {
           }
         }
 
-        late ErrorCode lintCode;
+        late DiagnosticCode lintCode;
         if (forFile) {
           lintCode =
               diagnosticsOnLine > 1

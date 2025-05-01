@@ -82,10 +82,10 @@ class ReturnTypeVerifier {
       return;
     }
 
-    void checkElement(ClassElementImpl2 expectedElement, ErrorCode errorCode) {
+    void checkElement(ClassElementImpl2 expectedElement, DiagnosticCode code) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
-        _errorReporter.atNode(returnType, errorCode);
+        _errorReporter.atNode(returnType, code);
       }
 
       // It is a compile-time error if the declared return type of

@@ -103,21 +103,6 @@ DEFINE_FLAG(bool,
 #define I (isolate())
 #define IG (isolate_group())
 
-#if defined(DEBUG)
-// Helper class to ensure that a live origin_id is never reused
-// and assigned to an isolate.
-class VerifyOriginId : public IsolateVisitor {
- public:
-  explicit VerifyOriginId(Dart_Port id) : id_(id) {}
-
-  void VisitIsolate(Isolate* isolate) { ASSERT(isolate->group()->id() != id_); }
-
- private:
-  Dart_Port id_;
-  DISALLOW_COPY_AND_ASSIGN(VerifyOriginId);
-};
-#endif
-
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
   return WriteMessage(/* same_group */ false, obj, dest_port,
@@ -1939,11 +1924,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   result->message_handler_ = new IsolateMessageHandler(result);
 
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
-#if defined(DEBUG)
-  // Verify that we are never reusing a live origin id.
-  VerifyOriginId id_verifier(result->main_port());
-  Isolate::VisitIsolates(&id_verifier);
-#endif
 
   // First we ensure we enter the isolate. This will ensure we're participating
   // in any safepointing requests from this point on. Other threads requesting a

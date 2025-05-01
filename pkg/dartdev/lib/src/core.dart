@@ -71,7 +71,7 @@ abstract class DartdevCommand extends Command<int> {
       ArgParser(usageLineLength: dartdevUsageLineLength);
 }
 
-extension DartDevCommand on Command {
+extension DartDevCommand<T> on Command<T> {
   /// Return whether commands should emit verbose output.
   bool get verbose => globalResults!.flag('verbose');
 
@@ -105,7 +105,7 @@ Future<int> runProcess(
   void Function(String str)? listener,
   String? cwd,
 }) async {
-  Future forward(Stream<List<int>> output, bool isStderr) {
+  Future<void> forward(Stream<List<int>> output, bool isStderr) {
     return _streamLineTransform(output, (line) {
       final trimmed = line.trimRight();
       logToTrace
@@ -129,7 +129,7 @@ Future<int> runProcess(
   return exitCode;
 }
 
-Future _streamLineTransform(
+Future<void> _streamLineTransform(
   Stream<List<int>> stream,
   Function(String line) handler,
 ) {

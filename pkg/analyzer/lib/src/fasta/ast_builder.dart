@@ -2870,7 +2870,7 @@ class AstBuilder extends StackListener {
     ImplementsClauseImpl? implementsClause;
     if (implementsKeyword != null) {
       var interfaces = _popNamedTypeList(
-        errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS,
+        code: ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS,
       );
       implementsClause = ImplementsClauseImpl(
         implementsKeyword: implementsKeyword,
@@ -4252,7 +4252,7 @@ class AstBuilder extends StackListener {
   void handleClassWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
     var mixinTypes = _popNamedTypeList(
-      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+      code: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
     );
     push(WithClauseImpl(withKeyword: withKeyword, mixinTypes: mixinTypes));
   }
@@ -4534,7 +4534,7 @@ class AstBuilder extends StackListener {
   void handleEnumWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
     var mixinTypes = _popNamedTypeList(
-      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+      code: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
     );
     push(WithClauseImpl(withKeyword: withKeyword, mixinTypes: mixinTypes));
   }
@@ -4842,7 +4842,7 @@ class AstBuilder extends StackListener {
     if (implementsKeyword != null) {
       endTypeList(interfacesCount);
       var interfaces = _popNamedTypeList(
-        errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS,
+        code: ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS,
       );
       push(
         ImplementsClauseImpl(
@@ -5269,7 +5269,7 @@ class AstBuilder extends StackListener {
     if (onKeyword != null) {
       endTypeList(typeCount);
       var onTypes = _popNamedTypeList(
-        errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_ON,
+        code: ParserErrorCode.EXPECTED_NAMED_TYPE_ON,
       );
       push(
         MixinOnClauseImpl(onKeyword: onKeyword, superclassConstraints: onTypes),
@@ -5284,7 +5284,7 @@ class AstBuilder extends StackListener {
     assert(optional('with', withKeyword));
     // This is an error case. An error has been issued already.
     // Possibly the data could be used for help though.
-    _popNamedTypeList(errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH);
+    _popNamedTypeList(code: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH);
   }
 
   @override
@@ -5318,7 +5318,7 @@ class AstBuilder extends StackListener {
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     assert(optionalOrNull('with', withKeyword));
     var mixinTypes = _popNamedTypeList(
-      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+      code: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
     );
     push(WithClauseImpl(withKeyword: withKeyword, mixinTypes: mixinTypes));
   }
@@ -6352,14 +6352,14 @@ class AstBuilder extends StackListener {
     );
   }
 
-  List<NamedTypeImpl> _popNamedTypeList({required ErrorCode errorCode}) {
+  List<NamedTypeImpl> _popNamedTypeList({required DiagnosticCode code}) {
     var types = pop() as List<TypeAnnotationImpl>;
     var namedTypes = <NamedTypeImpl>[];
     for (var type in types) {
       if (type is NamedTypeImpl) {
         namedTypes.add(type);
       } else {
-        errorReporter.errorReporter?.atNode(type, errorCode);
+        errorReporter.errorReporter?.atNode(type, code);
       }
     }
     return namedTypes;

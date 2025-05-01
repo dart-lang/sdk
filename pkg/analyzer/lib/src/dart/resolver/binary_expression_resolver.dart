@@ -85,7 +85,7 @@ class BinaryExpressionResolver {
   }) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      errorCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
+      diagnosticCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
       arguments: [operator],
       whyNotPromoted: whyNotPromoted,
     );

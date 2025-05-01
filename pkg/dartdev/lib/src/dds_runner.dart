@@ -34,9 +34,8 @@ class DDSRunner {
     if (!isAot) {
       // On ia32 sdks we do not have an AOT runtime and so we would be
       // using the regular executable.
-      snapshotName = fullSdk
-          ? sdk.ddsSnapshot
-          : absolute(sdkDir, 'dds.dart.snapshot');
+      snapshotName =
+          fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
       if (!Sdk.checkArtifactExists(snapshotName)) {
         return false;
       }
@@ -64,7 +63,7 @@ class DDSRunner {
     const devToolsMessagePrefix =
         'The Dart DevTools debugger and profiler is available at:';
     if (debugDds) {
-      late final StreamSubscription stdoutSub;
+      late final StreamSubscription<String> stdoutSub;
       stdoutSub = process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter())

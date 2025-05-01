@@ -14,21 +14,24 @@ import '../dot_shorthand_helper.dart';
 
 void extendsInteger<X extends Integer>() {
   X x = .one;
-  //     ^^^
-  // [analyzer] unspecified
+  //    ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //     ^
   // [cfe] The static getter or field 'one' isn't defined for the type 'X'.
 }
 
 void extendsIntegerNullable<X extends Integer?>() {
   X x = .one;
-  //     ^^^
-  // [analyzer] unspecified
+  //    ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //     ^
   // [cfe] The static getter or field 'one' isn't defined for the type 'X'.
 }
 
 void extendsFutureOrInteger<X extends FutureOr<Integer>>() {
   X x = .one;
-  //     ^^^
-  // [analyzer] unspecified
+  //    ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //     ^
   // [cfe] The static getter or field 'one' isn't defined for the type 'X'.
 }
