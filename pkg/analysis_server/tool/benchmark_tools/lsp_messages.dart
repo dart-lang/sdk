@@ -42,6 +42,30 @@ class LspMessages {
     };
   }
 
+  static Map<String, dynamic> codeActionRange(
+    int id,
+    Uri uri, {
+    required int lineFrom,
+    required int characterFrom,
+    required int lineTo,
+    required int characterTo,
+  }) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'textDocument/codeAction',
+      'params': {
+        'textDocument': {'uri': '$uri'},
+        'range': {
+          'start': {'line': lineFrom, 'character': characterFrom},
+          'end': {'line': lineTo, 'character': characterTo},
+        },
+        'context': {'diagnostics': [], 'triggerKind': 2},
+      },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
   static Map<String, dynamic> completion(
     Uri uri,
     int id, {
