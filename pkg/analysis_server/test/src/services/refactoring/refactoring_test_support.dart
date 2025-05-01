@@ -7,6 +7,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../../../lsp/code_actions_abstract.dart';
+import '../../../utils/lsp_protocol_extensions.dart';
 import '../../../utils/test_code_extensions.dart';
 
 abstract class RefactoringTest extends AbstractCodeActionsTest {
@@ -43,46 +44,37 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     expect(actual, expected);
   }
 
-  /// Executes the refactor in [action].
-  Future<void> executeRefactor(CodeActionLiteral action) async {
-    await executeCommandForEdits(action.command!);
-  }
-
-  /// Expects to find a refactor [CodeActionLiteral] in [mainFileUri] at the offset of
-  /// the marker with the title [title].
-  Future<CodeActionLiteral> expectCodeAction(String title) async {
-    var action = await getCodeAction(title);
+  /// Expects to find a refactor [CodeAction] with the title [title] in
+  /// [mainFileUri] at the offset of the marker .
+  Future<CodeAction> expectCodeActionWithTitle(String title) async {
+    var action = await getCodeActionWithTitle(title);
     expect(action, isNotNull, reason: "Action '$title' should be included");
     return action!;
   }
 
-  /// Expects to not find a refactor [CodeActionLiteral] in [mainFileUri] at the offset
-  /// of the marker with the title [title].
-  Future<void> expectNoCodeAction(String? title) async {
-    expect(await getCodeAction(title), isNull);
+  /// Expects to not find a refactor [CodeActionLiteral] with the title [title]
+  /// in [mainFileUri] at the offset of the marker .
+  Future<void> expectNoCodeActionWithTitle(String? title) async {
+    expect(await getCodeActionWithTitle(title), isNull);
   }
 
-  /// Attempts to find a refactor [CodeActionLiteral] in [mainFileUri] at the offset of
-  /// the marker with the title [title].
-  Future<CodeActionLiteral?> getCodeAction(String? title) async {
+  /// Attempts to find a refactor Code Action with the title [title] in
+  /// [mainFileUri] at the offset of the marker .
+  Future<CodeAction?> getCodeActionWithTitle(String? title) async {
     var codeActions = await getCodeActions(
       mainFileUri,
       position: _position,
       range: _range,
       kinds: const [CodeActionKind.Refactor],
     );
-    var commandOrCodeAction = findCommand(codeActions, refactoringName, title);
-    var codeAction = commandOrCodeAction?.map(
-      (codeAction) => codeAction,
-      (command) => throw 'Expected CodeAction, got Command',
-    );
-    return codeAction;
+    return findCommand(codeActions, refactoringName, title);
   }
 
   /// Unwraps the 'arguments' field from the arguments object (which is the
   /// single argument for the command).
-  List<Object?> getRefactorCommandArguments(CodeActionLiteral action) {
-    var commandArguments = action.command!.arguments as List<Object?>;
+  List<Object?> getRefactorCommandArguments(CodeAction action) {
+    var command = action.command!;
+    var commandArguments = command.arguments as List<Object?>;
 
     // Our refactor command uses a single object in its arguments so we can have
     // named fields instead of having the client have to know which index

@@ -460,13 +460,13 @@ class A native 'something' {
   }
 
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    var errorCodes = <ErrorCode>[];
+    var diagnosticCodes = <DiagnosticCode>[];
     // This used to be deferred to later in the pipeline, but is now being
     // reported by the parser.
-    errorCodes.add(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
+    diagnosticCodes.add(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
     CompilationUnit unit = parseCompilationUnit(
       'abstract<dynamic> _abstract = new abstract.A();',
-      codes: errorCodes,
+      codes: diagnosticCodes,
     );
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));

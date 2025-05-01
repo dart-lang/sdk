@@ -118,10 +118,7 @@ void f() {
 ''';
 
     newFile(mainFilePath, content);
-    // await initialize();
-    // var code = TestCode.parse(content);
-    // await openFile(mainFileUri, code.code);
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,
@@ -308,7 +305,7 @@ void f() {
 }
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,

@@ -26,7 +26,9 @@ class TopLevelVariableTest extends PartialCodeTest {
           'getter',
           'setter',
         ],
-        expectedErrorsInValidCode: [CompileTimeErrorCode.CONST_NOT_INITIALIZED],
+        expectedDiagnosticsInValidCode: [
+          CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+        ],
       ),
       TestDescriptor(
         'constName',
@@ -37,7 +39,9 @@ class TopLevelVariableTest extends PartialCodeTest {
         ],
         "const a;",
         failing: ['functionNonVoid', 'getter', 'setter', 'mixin'],
-        expectedErrorsInValidCode: [CompileTimeErrorCode.CONST_NOT_INITIALIZED],
+        expectedDiagnosticsInValidCode: [
+          CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+        ],
       ),
       TestDescriptor(
         'constTypeName',
@@ -47,7 +51,9 @@ class TopLevelVariableTest extends PartialCodeTest {
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
         ],
         "const int a;",
-        expectedErrorsInValidCode: [CompileTimeErrorCode.CONST_NOT_INITIALIZED],
+        expectedDiagnosticsInValidCode: [
+          CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+        ],
       ),
       TestDescriptor(
         'constNameComma',
@@ -59,7 +65,7 @@ class TopLevelVariableTest extends PartialCodeTest {
         ],
         "const a, _s_;",
         failing: ['functionNonVoid', 'getter'],
-        expectedErrorsInValidCode: [
+        expectedDiagnosticsInValidCode: [
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
         ],
@@ -74,7 +80,7 @@ class TopLevelVariableTest extends PartialCodeTest {
         ],
         "const int a, _s_;",
         failing: ['functionNonVoid', 'getter'],
-        expectedErrorsInValidCode: [
+        expectedDiagnosticsInValidCode: [
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
         ],
@@ -88,7 +94,7 @@ class TopLevelVariableTest extends PartialCodeTest {
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
         ],
         "const a, b;",
-        expectedErrorsInValidCode: [
+        expectedDiagnosticsInValidCode: [
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
         ],
@@ -102,7 +108,7 @@ class TopLevelVariableTest extends PartialCodeTest {
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
         ],
         "const int a, b;",
-        expectedErrorsInValidCode: [
+        expectedDiagnosticsInValidCode: [
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
           CompileTimeErrorCode.CONST_NOT_INITIALIZED,
         ],
@@ -121,7 +127,9 @@ class TopLevelVariableTest extends PartialCodeTest {
           'mixin',
           'setter',
         ],
-        expectedErrorsInValidCode: [CompileTimeErrorCode.FINAL_NOT_INITIALIZED],
+        expectedDiagnosticsInValidCode: [
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+        ],
       ),
       TestDescriptor(
         'finalName',
@@ -132,7 +140,9 @@ class TopLevelVariableTest extends PartialCodeTest {
         ],
         "final a;",
         failing: ['functionNonVoid', 'getter', 'setter', 'mixin'],
-        expectedErrorsInValidCode: [CompileTimeErrorCode.FINAL_NOT_INITIALIZED],
+        expectedDiagnosticsInValidCode: [
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+        ],
       ),
       TestDescriptor(
         'finalTypeName',
@@ -142,7 +152,9 @@ class TopLevelVariableTest extends PartialCodeTest {
           CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
         ],
         "final int a;",
-        expectedErrorsInValidCode: [CompileTimeErrorCode.FINAL_NOT_INITIALIZED],
+        expectedDiagnosticsInValidCode: [
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+        ],
       ),
       TestDescriptor(
         'type',

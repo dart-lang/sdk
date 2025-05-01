@@ -330,19 +330,6 @@ abstract class LintRule {
       );
     }
   }
-
-  // TODO(srawlins): Deprecate this in favor of [reportNode].
-  void reportLint(
-    AstNode? node, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
-  }) => reportAtNode(
-    node,
-    arguments: arguments,
-    contextMessages: contextMessages,
-    errorCode: errorCode,
-  );
 }
 
 /// Provides access to information needed by lint rules that is not available

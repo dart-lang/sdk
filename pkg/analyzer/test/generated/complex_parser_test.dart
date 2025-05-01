@@ -593,10 +593,9 @@ void f() {
 
   void _validate_assignableExpression_arguments_normal_chain_typeArguments(
     String code, [
-    List<ErrorCode> errorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> codes = const <DiagnosticCode>[],
   ]) {
-    var propertyAccess1 =
-        parseExpression(code, codes: errorCodes) as PropertyAccess;
+    var propertyAccess1 = parseExpression(code, codes: codes) as PropertyAccess;
     expect(propertyAccess1.propertyName.name, "f");
     //
     // a<E>(b)<F>(c).d<G>(e)

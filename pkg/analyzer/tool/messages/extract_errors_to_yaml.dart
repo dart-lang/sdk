@@ -26,7 +26,7 @@ import 'error_code_info.dart';
 
 void main() {
   var errorDeclarations = _findErrorDeclarations();
-  var errorCodesByClass = _findErrorCodesByClass();
+  var errorCodesByClass = _findDiagnosticCodesByClass();
   _generateYaml(errorCodesByClass, errorDeclarations);
 }
 
@@ -140,11 +140,13 @@ _CommentInfo _extractCommentInfo(FieldDeclaration fieldDeclaration) {
   );
 }
 
-/// Computes a map from class name to a list of all the error codes defined by
-/// that class.  Uses the analyzer's global variable `errorCodeValues` to find
-/// all the error codes.
-Map<String, List<ErrorCode>> _findErrorCodesByClass() {
-  var errorCodesByClass = <String, List<ErrorCode>>{};
+/// Computes a map from class name to a list of all the diagnostic codes defined
+/// by that class.
+///
+/// Uses the analyzer's global variable `errorCodeValues` to find all the error
+/// codes.
+Map<String, List<DiagnosticCode>> _findDiagnosticCodesByClass() {
+  var codesByClass = <String, List<DiagnosticCode>>{};
   for (var errorCode in errorCodeValues) {
     if (errorCode is ScannerErrorCode) {
       continue; // Will deal with later
@@ -153,9 +155,9 @@ Map<String, List<ErrorCode>> _findErrorCodesByClass() {
       continue; // It's not worth converting these to YAML.
     }
     var className = errorCode.runtimeType.toString();
-    (errorCodesByClass[className] ??= []).add(errorCode);
+    (codesByClass[className] ??= []).add(errorCode);
   }
-  return errorCodesByClass;
+  return codesByClass;
 }
 
 /// Finds all the variable declaration ASTs in the analyzer that might represent
@@ -218,16 +220,16 @@ Map<String, Map<String, VariableDeclaration>> _findErrorDeclarations() {
   return result;
 }
 
-/// Combines the information in [errorCodesByClass] (obtained from
-/// [_findErrorCodesByClass]) and [errorDeclarations] (obtained from
+/// Combines the information in [codesByClass] (obtained from
+/// [_findDiagnosticCodesByClass]) and [errorDeclarations] (obtained from
 /// [_findErrorDeclarations]) into a YAML representation of the errors, and
 /// prints the resulting YAML.
 void _generateYaml(
-  Map<String, List<ErrorCode>> errorCodesByClass,
+  Map<String, List<DiagnosticCode>> codesByClass,
   Map<String, Map<String, VariableDeclaration>> errorDeclarations,
 ) {
   var yaml = <String, Map<String, Object?>>{};
-  for (var entry in errorCodesByClass.entries) {
+  for (var entry in codesByClass.entries) {
     var yamlCodes = <String, Object?>{};
     var className = entry.key;
     yaml[className] = yamlCodes;

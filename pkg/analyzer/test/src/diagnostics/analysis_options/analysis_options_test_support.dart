@@ -39,7 +39,7 @@ abstract class AbstractAnalysisOptionsTest
   }
 
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     Pattern? correctionContains,

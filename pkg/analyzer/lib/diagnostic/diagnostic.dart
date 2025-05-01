@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+
 /// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
 ///
 /// > An indication of a specific problem at a specific location within the
@@ -10,20 +15,166 @@
 /// Clients may not extend, implement or mix-in this class.
 ///
 /// [guidelines]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/diagnostics.md
-abstract class Diagnostic {
+class Diagnostic {
+  /// The error code associated with the diagnostic.
+  final ErrorCode errorCode;
+
   /// A list of messages that provide context for understanding the problem
   /// being reported. The list will be empty if there are no such messages.
-  List<DiagnosticMessage> get contextMessages;
+  final List<DiagnosticMessage> contextMessages;
+
+  /// Data associated with this diagnostic, specific for [errorCode].
+  final Object? data;
 
   /// A description of how to fix the problem, or `null` if there is no such
   /// description.
-  String? get correctionMessage;
+  final String? correctionMessage;
 
   /// A message describing what is wrong and why.
-  DiagnosticMessage get problemMessage;
+  final DiagnosticMessage problemMessage;
 
-  /// The severity associated with the diagnostic.
-  Severity get severity;
+  /// The source in which the diagnostic occurred, or `null` if unknown.
+  final Source source;
+
+  Diagnostic.forValues({
+    required this.source,
+    required int offset,
+    required int length,
+    required this.errorCode,
+    required String message,
+    this.correctionMessage,
+    this.contextMessages = const [],
+    this.data,
+  }) : problemMessage = DiagnosticMessageImpl(
+         filePath: source.fullName,
+         length: length,
+         message: message,
+         offset: offset,
+         url: null,
+       );
+
+  /// Initialize a newly created diagnostic.
+  ///
+  /// The diagnostic is associated with the given [source] and is located at the
+  /// given [offset] with the given [length]. The diagnostic will have the given
+  /// [errorCode] and the list of [arguments] will be used to complete the
+  /// message and correction. If any [contextMessages] are provided, they will
+  /// be recorded with the diagnostic.
+  factory Diagnostic.tmp({
+    required Source source,
+    required int offset,
+    required int length,
+    required ErrorCode errorCode,
+    List<Object?> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+    Object? data,
+  }) {
+    assert(
+      arguments.length == errorCode.numParameters,
+      'Message $errorCode requires ${errorCode.numParameters} '
+      'argument${errorCode.numParameters == 1 ? '' : 's'}, but '
+      '${arguments.length} '
+      'argument${arguments.length == 1 ? ' was' : 's were'} '
+      'provided',
+    );
+    String message = formatList(errorCode.problemMessage, arguments);
+    String? correctionTemplate = errorCode.correctionMessage;
+    String? correctionMessage;
+    if (correctionTemplate != null) {
+      correctionMessage = formatList(correctionTemplate, arguments);
+    }
+
+    return Diagnostic.forValues(
+      source: source,
+      offset: offset,
+      length: length,
+      errorCode: errorCode,
+      message: message,
+      correctionMessage: correctionMessage,
+      contextMessages: contextMessages,
+      data: data,
+    );
+  }
+
+  /// The template used to create the correction to be displayed for this
+  /// diagnostic, or `null` if there is no correction information for this
+  /// error. The correction should indicate how the user can fix the error.
+  @Deprecated("Use 'correctionMessage' instead.")
+  String? get correction => correctionMessage;
+
+  @override
+  int get hashCode {
+    int hashCode = offset;
+    hashCode ^= message.hashCode;
+    hashCode ^= source.hashCode;
+    return hashCode;
+  }
+
+  /// The number of characters from the offset to the end of the source which
+  /// encompasses the compilation error.
+  int get length => problemMessage.length;
+
+  /// The message to be displayed for this diagnostic.
+  ///
+  /// The message indicates what is wrong and why it is wrong.
+  String get message => problemMessage.messageText(includeUrl: true);
+
+  /// The character offset from the beginning of the source (zero based) where
+  /// the diagnostic occurred.
+  int get offset => problemMessage.offset;
+
+  Severity get severity {
+    switch (errorCode.errorSeverity) {
+      case ErrorSeverity.ERROR:
+        return Severity.error;
+      case ErrorSeverity.WARNING:
+        return Severity.warning;
+      case ErrorSeverity.INFO:
+        return Severity.info;
+      default:
+        throw StateError('Invalid error severity: ${errorCode.errorSeverity}');
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
+      return true;
+    }
+    // prepare the other Diagnostic.
+    if (other is Diagnostic) {
+      // Quick checks.
+      if (!identical(errorCode, other.errorCode)) {
+        return false;
+      }
+      if (offset != other.offset || length != other.length) {
+        return false;
+      }
+      // Deep checks.
+      if (message != other.message) {
+        return false;
+      }
+      if (source != other.source) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    StringBuffer buffer = StringBuffer();
+    buffer.write(source.fullName);
+    buffer.write("(");
+    buffer.write(offset);
+    buffer.write("..");
+    buffer.write(offset + length - 1);
+    buffer.write("): ");
+    //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
+    buffer.write(message);
+    return buffer.toString();
+  }
 }
 
 /// A single message associated with a [Diagnostic], consisting of the text of

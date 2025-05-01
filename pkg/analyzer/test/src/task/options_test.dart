@@ -32,15 +32,16 @@ class ErrorCodeValuesTest {
     // Now that we're using unique names for comparison, the only reason to
     // split the codes by class is to find all of the classes that need to be
     // checked against `errorCodeValues`.
-    var errorTypeMap = <Type, List<ErrorCode>>{};
-    for (ErrorCode code in errorCodeValues) {
+    var errorTypeMap = <Type, List<DiagnosticCode>>{};
+    for (DiagnosticCode code in errorCodeValues) {
       Type type = code.runtimeType;
-      errorTypeMap.putIfAbsent(type, () => <ErrorCode>[]).add(code);
+      errorTypeMap.putIfAbsent(type, () => <DiagnosticCode>[]).add(code);
     }
 
     StringBuffer missingCodes = StringBuffer();
-    errorTypeMap.forEach((Type errorType, List<ErrorCode> codes) {
-      var listedNames = codes.map((ErrorCode code) => code.uniqueName).toSet();
+    errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
+      var listedNames =
+          codes.map((DiagnosticCode code) => code.uniqueName).toSet();
 
       var declaredNames =
           reflectClass(errorType).declarations.values
@@ -55,7 +56,7 @@ class ErrorCodeValuesTest {
               })
               .toList();
 
-      // Assert that all declared names are in errorCodeValues
+      // Assert that all declared names are in errorCodeValues.
 
       for (String declaredName in declaredNames) {
         if (!listedNames.contains(declaredName)) {
@@ -579,7 +580,7 @@ plugins:
 ''', []);
   }
 
-  List<AnalysisError> validate(String source, List<ErrorCode> expected) {
+  List<AnalysisError> validate(String source, List<DiagnosticCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     var errors = validator.validate(options);
     expect(
@@ -624,7 +625,7 @@ class OptionsProviderTest with ResourceProviderMixin {
   }
 
   ExpectedError error(
-    ErrorCode code,
+    DiagnosticCode code,
     int offset,
     int length, {
     Pattern? correctionContains,
@@ -796,7 +797,7 @@ analyzer:
     );
   }
 
-  List<AnalysisError> validate(String code, List<ErrorCode> expected) {
+  List<AnalysisError> validate(String code, List<DiagnosticCode> expected) {
     newFile(optionsFilePath, code);
     var errors = analyzeAnalysisOptions(
       sourceFactory.forUri('file://$optionsFilePath')!,

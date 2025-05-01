@@ -90,19 +90,19 @@ class ErrorReporter {
     }
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
+  /// Report an error with the given [diagnosticCode] and [arguments].
   /// The [element] is used to compute the location of the error.
   @experimental
   void atElement2(
     Element element2,
-    ErrorCode errorCode, {
+    ErrorCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     var nonSynthetic = element2.nonSynthetic2;
     atOffset(
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
       length: nonSynthetic.name3?.length ?? 0,
       arguments: arguments,
@@ -130,17 +130,17 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
+  /// Report an error with the given [diagnosticCode] and [arguments].
   /// The [node] is used to compute the location of the error.
   void atNode(
     AstNode node,
-    ErrorCode errorCode, {
+    ErrorCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       offset: node.offset,
       length: node.length,
       arguments: arguments,
@@ -213,17 +213,17 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments]. The [token] is
+  /// Report an error with the given [diagnosticCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
   void atToken(
     Token token,
-    ErrorCode errorCode, {
+    ErrorCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       offset: token.offset,
       length: token.length,
       arguments: arguments,

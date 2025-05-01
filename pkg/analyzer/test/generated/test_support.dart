@@ -75,8 +75,8 @@ class ExpectedError {
   /// An empty array of error descriptors used when no errors are expected.
   static List<ExpectedError> NO_ERRORS = <ExpectedError>[];
 
-  /// The error code associated with the error.
-  final ErrorCode code;
+  /// The diagnostic code associated with the error.
+  final DiagnosticCode code;
 
   // A pattern that should be contained in the error's correction message, or
   // `null` if the correction message contents should not be checked.
@@ -305,18 +305,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
   }
 
-  /// Assert that the number of errors that have been gathered matches the
-  /// number of [expectedErrorCodes] and that they have the expected error
-  /// codes. The order in which the errors were gathered is ignored.
+  /// Asserts that the number of diagnostics that have been gathered matches the
+  /// number of [expectedCodes] and that they have the expected diagnostic
+  /// codes.
+  ///
+  /// The order in which the diagnostics were gathered is ignored.
   void assertErrorsWithCodes([
-    List<ErrorCode> expectedErrorCodes = const <ErrorCode>[],
+    List<DiagnosticCode> expectedCodes = const <DiagnosticCode>[],
   ]) {
     StringBuffer buffer = StringBuffer();
-    //
-    // Compute the expected number of each type of error.
-    //
-    Map<ErrorCode, int> expectedCounts = <ErrorCode, int>{};
-    for (ErrorCode code in expectedErrorCodes) {
+    // Compute the expected number of each type of diagnostic.
+    Map<DiagnosticCode, int> expectedCounts = <DiagnosticCode, int>{};
+    for (DiagnosticCode code in expectedCodes) {
       var count = expectedCounts[code];
       if (count == null) {
         count = 1;
@@ -328,8 +328,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compute the actual number of each type of error.
     //
-    Map<ErrorCode, List<AnalysisError>> errorsByCode =
-        <ErrorCode, List<AnalysisError>>{};
+    Map<DiagnosticCode, List<AnalysisError>> errorsByCode =
+        <DiagnosticCode, List<AnalysisError>>{};
     for (AnalysisError error in _errors) {
       errorsByCode
           .putIfAbsent(error.errorCode, () => <AnalysisError>[])
@@ -338,7 +338,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compare the expected and actual number of each type of error.
     //
-    expectedCounts.forEach((ErrorCode code, int expectedCount) {
+    expectedCounts.forEach((DiagnosticCode code, int expectedCount) {
       int actualCount;
       var list = errorsByCode.remove(code);
       if (list == null) {
@@ -363,7 +363,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
     // Check that there are no more errors in the actual-errors map,
     // otherwise record message.
     //
-    errorsByCode.forEach((ErrorCode code, List<AnalysisError> actualErrors) {
+    errorsByCode.forEach((
+      DiagnosticCode code,
+      List<AnalysisError> actualErrors,
+    ) {
       int actualCount = actualErrors.length;
       if (buffer.length == 0) {
         buffer.write("Expected ");
@@ -431,16 +434,6 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// Return the line information associated with the given [source], or `null`
   /// if no line information has been associated with the source.
   LineInfo? getLineInfo(Source source) => _lineInfoMap[source];
-
-  /// Return `true` if an error with the given [errorCode] has been gathered.
-  bool hasError(ErrorCode errorCode) {
-    for (AnalysisError error in _errors) {
-      if (identical(error.errorCode, errorCode)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   @override
   void onError(AnalysisError error) {

@@ -31,7 +31,7 @@ class VarianceParserTest extends FastaParserTestCase {
   @override
   CompilationUnitImpl parseCompilationUnit(
     String content, {
-    List<ErrorCode>? codes,
+    List<DiagnosticCode>? codes,
     List<ExpectedError>? errors,
     FeatureSet? featureSet,
   }) {

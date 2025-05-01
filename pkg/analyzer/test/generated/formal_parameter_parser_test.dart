@@ -1065,7 +1065,7 @@ class C {
   void test_parseNormalFormalParameter_field_const_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const this.a',
-      errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
     );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
@@ -1079,7 +1079,7 @@ class C {
   void test_parseNormalFormalParameter_field_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const A this.a',
-      errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
     );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
@@ -1347,7 +1347,7 @@ class C {
   void test_parseNormalFormalParameter_simple_const_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const a',
-      errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
     );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);
@@ -1360,7 +1360,7 @@ class C {
   void test_parseNormalFormalParameter_simple_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const A a',
-      errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      diagnosticCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER],
     );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);

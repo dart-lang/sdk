@@ -264,10 +264,10 @@ linter:
 
 mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
   /// Assert that when the validator is used on the given [content] the
-  /// [expectedErrorCodes] are produced.
+  /// [expectedCodes] are produced.
   void assertErrors(
     String content,
-    List<ErrorCode> expectedErrorCodes, {
+    List<DiagnosticCode> expectedCodes, {
     VersionConstraint? sdk,
   }) {
     GatheringErrorListener listener = GatheringErrorListener();
@@ -277,7 +277,7 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     );
     var validator = LinterRuleOptionsValidator(sdkVersionConstraint: sdk);
     validator.validate(reporter, loadYamlNode(content) as YamlMap);
-    listener.assertErrorsWithCodes(expectedErrorCodes);
+    listener.assertErrorsWithCodes(expectedCodes);
   }
 
   @override

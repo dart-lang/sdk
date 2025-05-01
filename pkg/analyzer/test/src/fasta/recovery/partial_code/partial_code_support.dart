@@ -189,7 +189,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       //
       GatheringErrorListener listener = GatheringErrorListener();
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
-      var baseErrorCodes = <ErrorCode>[];
+      var baseErrorCodes = <DiagnosticCode>[];
       for (var error in listener.errors) {
         if (error.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
             error.errorCode == ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
@@ -198,17 +198,15 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         }
       }
 
-      var expectedValidCodeErrors = <ErrorCode>[];
-      expectedValidCodeErrors.addAll(baseErrorCodes);
-      if (descriptor.expectedErrorsInValidCode != null) {
-        expectedValidCodeErrors.addAll(descriptor.expectedErrorsInValidCode!);
-      }
+      var expectedValidCodeDiagnostics = <DiagnosticCode>[
+        ...baseErrorCodes,
+        ...?descriptor.expectedDiagnosticsInValidCode,
+      ];
 
-      var expectedInvalidCodeErrors = <ErrorCode>[];
-      expectedInvalidCodeErrors.addAll(baseErrorCodes);
-      if (descriptor.errorCodes != null) {
-        expectedInvalidCodeErrors.addAll(descriptor.errorCodes!);
-      }
+      var expectedInvalidCodeErrors = <DiagnosticCode>[
+        ...baseErrorCodes,
+        ...?descriptor.diagnosticCodes,
+      ];
       //
       // Run the test.
       //
@@ -223,7 +221,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
             valid.toString(),
             adjustValidUnitBeforeComparison:
                 descriptor.adjustValidUnitBeforeComparison,
-            expectedErrorsInValidCode: expectedValidCodeErrors,
+            expectedDiagnosticsInValidCode: expectedValidCodeDiagnostics,
           );
           failed = true;
         } catch (e) {
@@ -239,7 +237,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
           valid.toString(),
           adjustValidUnitBeforeComparison:
               descriptor.adjustValidUnitBeforeComparison,
-          expectedErrorsInValidCode: expectedValidCodeErrors,
+          expectedDiagnosticsInValidCode: expectedValidCodeDiagnostics,
           featureSet: featureSet,
         );
       }
@@ -255,15 +253,15 @@ class TestDescriptor {
   /// Invalid code that the parser is expected to recover from.
   final String invalid;
 
-  /// Error codes that the parser is expected to produce.
-  final List<ErrorCode>? errorCodes;
+  /// Diagnostic codes that the parser is expected to produce.
+  final List<DiagnosticCode>? diagnosticCodes;
 
   /// Valid code that is equivalent to what the parser should produce as part of
   /// recovering from the invalid code.
   final String valid;
 
-  /// Error codes that the parser is expected to produce in the valid code.
-  final List<ErrorCode>? expectedErrorsInValidCode;
+  /// Diagnostic codes that the parser is expected to produce in the valid code.
+  final List<DiagnosticCode>? expectedDiagnosticsInValidCode;
 
   /// A flag indicating whether all of the tests are expected to fail.
   final bool allFailing;
@@ -280,11 +278,11 @@ class TestDescriptor {
   TestDescriptor(
     this.name,
     this.invalid,
-    this.errorCodes,
+    this.diagnosticCodes,
     this.valid, {
     this.allFailing = false,
     this.failing,
-    this.expectedErrorsInValidCode,
+    this.expectedDiagnosticsInValidCode,
     this.adjustValidUnitBeforeComparison,
   });
 }

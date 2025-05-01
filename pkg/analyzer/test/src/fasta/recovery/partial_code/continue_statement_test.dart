@@ -23,7 +23,9 @@ class ContinueStatementTest extends PartialCodeTest {
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
           ],
           "continue;",
-          expectedErrorsInValidCode: [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP],
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+          ],
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor(
@@ -34,7 +36,9 @@ class ContinueStatementTest extends PartialCodeTest {
             ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
           ],
           "continue a;",
-          expectedErrorsInValidCode: [ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP],
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+          ],
         ),
       ],
       PartialCodeTest.statementSuffixes,

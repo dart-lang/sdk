@@ -1038,16 +1038,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     await sendNotificationToServer(notification);
   }
 
-  Future<Object?> executeCodeAction(
-    Either2<CodeActionLiteral, Command> codeAction,
-  ) {
-    var command = codeAction.map(
-      (codeAction) => codeAction.command!,
-      (command) => command,
-    );
-    return executeCommand(command);
-  }
-
   @override
   Future<T> executeCommand<T>(
     Command command, {

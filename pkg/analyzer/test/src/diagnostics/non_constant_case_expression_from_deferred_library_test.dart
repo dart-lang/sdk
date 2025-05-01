@@ -97,14 +97,14 @@ mixin NonConstantCaseExpressionFromDeferredLibraryTestCases
 const int c = 0;
 ''');
 
-    ErrorCode expectedErrorCode;
+    DiagnosticCode expectedDiagnosticCode;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrorCode =
+        expectedDiagnosticCode =
             CompileTimeErrorCode
                 .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
       case _Variant.patterns:
-        expectedErrorCode =
+        expectedDiagnosticCode =
             CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
     }
 
@@ -119,7 +119,7 @@ void f(int e) {
   }
 }
 ''',
-      [error(expectedErrorCode, 74, 1)],
+      [error(expectedDiagnosticCode, 74, 1)],
     );
   }
 
@@ -128,14 +128,14 @@ void f(int e) {
 class A {}
 ''');
 
-    ErrorCode expectedErrorCode;
+    DiagnosticCode expectedDiagnosticCode;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrorCode =
+        expectedDiagnosticCode =
             CompileTimeErrorCode
                 .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
       case _Variant.patterns:
-        expectedErrorCode =
+        expectedDiagnosticCode =
             CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
     }
 
@@ -150,7 +150,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(expectedErrorCode, 78, 1)],
+      [error(expectedDiagnosticCode, 78, 1)],
     );
   }
 }

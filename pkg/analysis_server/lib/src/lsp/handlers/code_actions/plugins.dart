@@ -71,13 +71,12 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeActionLiteral, Command>>> getRefactorActions(
+  Future<List<CodeAction>> getRefactorActions(
     OperationPerformance? performance,
   ) async => [];
 
   @override
-  Future<List<Either2<CodeActionLiteral, Command>>> getSourceActions() async =>
-      [];
+  Future<List<CodeAction>> getSourceActions() async => [];
 
   CodeActionWithPriority _convertAssist(plugin.PrioritizedSourceChange assist) {
     return (

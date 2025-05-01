@@ -219,7 +219,7 @@ class CodeActionHandler
         ];
         var sorter = _CodeActionSorter(params.range, shouldIncludeKind);
 
-        var allActions = <Either2<CodeActionLiteral, Command>>[
+        var allActions = <CodeAction>[
           // Like-kinded actions are grouped (and prioritized) together
           // regardless of which producer they came from.
 
@@ -306,9 +306,7 @@ class _CodeActionSorter {
 
   _CodeActionSorter(this.range, this.shouldIncludeKind);
 
-  List<Either2<CodeActionLiteral, Command>> sort(
-    List<CodeActionWithPriority> actions,
-  ) {
+  List<CodeAction> sort(List<CodeActionWithPriority> actions) {
     var dedupedActions = _dedupeActions(actions, range.start);
 
     // Add each index so we can do a stable sort on priority.
@@ -325,7 +323,7 @@ class _CodeActionSorter {
 
     return dedupedActionsWithIndex
         .where((action) => shouldIncludeKind(action.action.kind))
-        .map((action) => Either2<CodeActionLiteral, Command>.t1(action.action))
+        .map((action) => CodeAction.t1(action.action))
         .toList();
   }
 

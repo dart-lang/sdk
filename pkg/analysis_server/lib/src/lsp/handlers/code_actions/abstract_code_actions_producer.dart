@@ -180,11 +180,11 @@ abstract class AbstractCodeActionsProducer
     OperationPerformance? performance,
   );
 
-  Future<List<Either2<CodeActionLiteral, Command>>> getRefactorActions(
+  Future<List<CodeAction>> getRefactorActions(
     OperationPerformance? performance,
   );
 
-  Future<List<Either2<CodeActionLiteral, Command>>> getSourceActions();
+  Future<List<CodeAction>> getSourceActions();
 
   /// Return the contents of the [file], or `null` if the file does not exist or
   /// cannot be read.
