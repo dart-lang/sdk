@@ -58,9 +58,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   @override
   String get name => 'ServerDartActionsComputer';
 
-  /// Helper to create a [CodeActionLiteral] or [Command] for the given arguments in
-  /// the current file based on client capabilities.
-  Either2<CodeActionLiteral, Command> createCommand(
+  /// Helper to create a [CodeAction] for the given arguments in the current
+  /// file based on client capabilities.
+  CodeAction createAction(
     CodeActionKind actionKind,
     String title,
     String command,
@@ -69,7 +69,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       (() => Commands.serverSupportedCommands.contains(command))(),
       'serverSupportedCommands did not contain $command',
     );
-    return _commandOrCodeAction(
+    return _commandOrCodeActionLiteral(
       actionKind,
       Command(
         title: title,
@@ -87,7 +87,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   /// Helper to create refactors that execute commands provided with
   /// the current file, location and document version.
-  Either2<CodeActionLiteral, Command> createRefactor(
+  CodeAction createRefactor(
     CodeActionKind actionKind,
     String name,
     RefactoringKind refactorKind, [
@@ -99,7 +99,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       'serverSupportedCommands did not contain $command',
     );
 
-    return _commandOrCodeAction(
+    return _commandOrCodeActionLiteral(
       actionKind,
       Command(
         title: name,
@@ -263,7 +263,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeActionLiteral, Command>>> getRefactorActions(
+  Future<List<CodeAction>> getRefactorActions(
     OperationPerformance? performance,
   ) async {
     // If the client does not support workspace/applyEdit, we won't be able to
@@ -272,7 +272,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       return const [];
     }
 
-    var refactorActions = <Either2<CodeActionLiteral, Command>>[];
+    var refactorActions = <CodeAction>[];
     var performanceTracker = RefactoringPerformance();
 
     try {
@@ -293,9 +293,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         performance: performanceTracker,
       );
       var actions = await processor.compute();
-      refactorActions.addAll(
-        actions.map(Either2<CodeActionLiteral, Command>.t1),
-      );
+      refactorActions.addAll(actions.map(CodeAction.t1));
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
@@ -471,7 +469,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
   /// source such as Sort Members and Organise Imports.
   @override
-  Future<List<Either2<CodeActionLiteral, Command>>> getSourceActions() async {
+  Future<List<CodeAction>> getSourceActions() async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
     if (!supportsApplyEdit) {
@@ -480,33 +478,30 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
     return [
       if (shouldIncludeKind(DartCodeActionKind.SortMembers))
-        createCommand(
+        createAction(
           DartCodeActionKind.SortMembers,
           'Sort Members',
           Commands.sortMembers,
         ),
       if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
-        createCommand(
+        createAction(
           CodeActionKind.SourceOrganizeImports,
           'Organize Imports',
           Commands.organizeImports,
         ),
       if (shouldIncludeKind(DartCodeActionKind.FixAll))
-        createCommand(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
+        createAction(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
     ];
   }
 
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
-  Either2<CodeActionLiteral, Command> _commandOrCodeAction(
-    CodeActionKind kind,
-    Command command,
-  ) {
+  CodeAction _commandOrCodeActionLiteral(CodeActionKind kind, Command command) {
     return supportsLiterals
-        ? Either2<CodeActionLiteral, Command>.t1(
+        ? CodeAction.t1(
           CodeActionLiteral(title: command.title, kind: kind, command: command),
         )
-        : Either2<CodeActionLiteral, Command>.t2(command);
+        : CodeAction.t2(command);
   }
 }
 

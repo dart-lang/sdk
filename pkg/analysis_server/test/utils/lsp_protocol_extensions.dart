@@ -1,5 +1,39 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 
+extension CodeActionExtensions on CodeAction {
+  /// A helper to assert (and return) that a this [CodeAction] is a
+  /// [CodeActionLiteral] and not just a bare [Command].
+  CodeActionLiteral get asCodeActionLiteral {
+    return map(
+      (literal) => literal,
+      (command) =>
+          throw 'Expected CodeActionLiteral, but got Command (${command.title})',
+    );
+  }
+
+  /// A helper to assert (and return) that a this [CodeAction] is just a
+  /// bare [Command] and not a [CodeActionLiteral].
+  Command get asCommand {
+    return map(
+      (literal) =>
+          throw 'Expected Command, but for CodeAction literal (${literal.title})',
+      (command) => command,
+    );
+  }
+
+  /// The [Command] for this [CodeAction], whether it's a [CodeActionLiteral]
+  /// or a [Command].
+  Command? get command {
+    return map((literal) => literal.command, (command) => command);
+  }
+
+  /// The title for this [CodeAction], whether it's a [CodeActionLiteral]
+  /// or a [Command].
+  String get title {
+    return map((literal) => literal.title, (command) => command.title);
+  }
+}
+
 extension RangeExtension on Range {
   /// Checks whether the range covers [position] (inclusive).
   bool containsPosition(Position position) {

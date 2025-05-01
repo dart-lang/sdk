@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 
@@ -43,7 +44,7 @@ import 'dart:async' show Future;
 
 Future? f;
 ''';
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.add.showCombinator'),
@@ -66,7 +67,7 @@ Future? f;
 ''';
 
     setDocumentChangesSupport(false);
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.add.showCombinator'),
@@ -141,7 +142,7 @@ Widget build() {
 ''';
 
     setSnippetTextEditSupport();
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.flutter.wrap.center'),
@@ -156,7 +157,7 @@ import '[!dart:async!]';
 Future? f;
 ''';
 
-    var action = await expectAction(
+    var action = await expectCodeActionLiteral(
       content,
       kind: CodeActionKind('refactor.add.showCombinator'),
       title: "Add explicit 'show' combinator",
@@ -211,7 +212,7 @@ bar
               request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.fooToBar'),
@@ -249,10 +250,7 @@ bar
       mainFileUri,
       range: code.range.range,
     );
-    var codeActionTitles = codeActions.map(
-      (action) =>
-          action.map((command) => command.title, (action) => action.title),
-    );
+    var codeActionTitles = codeActions.map((action) => action.title);
 
     expect(
       codeActionTitles,
@@ -297,7 +295,7 @@ build() {
 ''';
 
     setSnippetTextEditSupport();
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.flutter.wrap.generic'),
@@ -351,7 +349,7 @@ build() {
 ''';
 
     setSnippetTextEditSupport();
-    var verifier = await verifyActionEdits(
+    var verifier = await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.flutter.wrap.generic'),
@@ -395,7 +393,7 @@ build() {
 }
 ''';
 
-    var assist = await expectAction(
+    var assist = await expectCodeActionLiteral(
       content,
       kind: CodeActionKind('refactor.flutter.wrap.generic'),
       title: 'Wrap with widget...',
@@ -435,12 +433,10 @@ build() => Contai^ner(child: Container());
       mainFileUri,
       position: code.position.position,
     );
-    var names = codeActions.map(
-      (e) => e.map((command) => command.title, (action) => action.title),
-    );
+    var codeActionTitles = codeActions.map((action) => action.title);
 
     expect(
-      names,
+      codeActionTitles,
       containsAllInOrder([
         // Check the ordering for two well-known assists that should always be
         // sorted this way.
@@ -467,7 +463,7 @@ void f() {
 ''';
 
     setSnippetTextEditSupport();
-    var verifier = await verifyActionEdits(
+    var verifier = await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.surround.if'),

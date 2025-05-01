@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -340,7 +341,7 @@ void f() {
   Future<void> verifyRefactoring(String expected) async {
     await initializeServer();
 
-    var codeAction = await expectCodeAction(
+    var codeAction = await expectCodeActionWithTitle(
       MoveSelectedFormalParametersLeft.constTitle,
     );
 
@@ -350,6 +351,8 @@ void f() {
   Future<void> _assertNoRefactoring() async {
     await initializeServer();
 
-    await expectNoCodeAction(MoveSelectedFormalParametersLeft.constTitle);
+    await expectNoCodeActionWithTitle(
+      MoveSelectedFormalParametersLeft.constTitle,
+    );
   }
 }

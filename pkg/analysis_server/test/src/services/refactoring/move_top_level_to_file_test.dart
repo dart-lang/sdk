@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../lsp/request_helpers_mixin.dart';
+import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -32,7 +33,7 @@ class ^A {}
   String get refactoringName => MoveTopLevelToFile.commandName;
 
   /// Replaces the "Save URI" argument in [action].
-  void replaceSaveUriArgument(CodeActionLiteral action, Uri newFileUri) {
+  void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
     var arguments = getRefactorCommandArguments(action);
     // The filename is the first item we prompt for so is first in the
     // arguments.
@@ -135,7 +136,7 @@ class A {}
 ''';
 
     await initializeServer();
-    var action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
     await verifyCommandEdits(action.command!, expected);
   }
 
@@ -162,7 +163,7 @@ class A {}
 ''';
 
     await initializeServer();
-    var action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
     await verifyCommandEdits(action.command!, expected);
   }
 
@@ -189,7 +190,7 @@ class A {}
 ''';
 
     await initializeServer();
-    var action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
     await verifyCommandEdits(action.command!, expected);
   }
 
@@ -1139,8 +1140,8 @@ class B {}
   Future<void> test_logsAction() async {
     addTestSource(simpleClassContent);
     await initializeServer();
-    var action = await expectCodeAction(simpleClassRefactorTitle);
-    await executeRefactor(action);
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
+    await executeCommandForEdits(action.command!);
 
     expectCommandLogged('dart.refactor.move_top_level_to_file');
   }
@@ -1209,7 +1210,7 @@ class A {}
 
 ''');
     await initializeServer();
-    await expectNoCodeAction(null);
+    await expectNoCodeActionWithTitle(null);
   }
 
   Future<void> test_none_directive() async {
@@ -1220,7 +1221,7 @@ class A {}
 
 ''');
     await initializeServer();
-    await expectNoCodeAction(null);
+    await expectNoCodeActionWithTitle(null);
   }
 
   /// Test that references to getter/setters in different libraries used in
@@ -1332,7 +1333,7 @@ class A {}<<<<<<<<<<
   test_protocol_available_withClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
     await initializeServer();
-    await expectCodeAction(simpleClassRefactorTitle);
+    await expectCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
   Future<void>
@@ -1341,13 +1342,13 @@ class A {}<<<<<<<<<<
     await initializeServer();
     // This refactor is available without command parameter support because
     // it has defaults.
-    await expectCodeAction(simpleClassRefactorTitle);
+    await expectCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
   Future<void> test_protocol_available_withoutExperimentalOptIn() async {
     addTestSource(simpleClassContent);
     await initializeServer(experimentalOptInFlag: false);
-    await expectCodeAction(simpleClassRefactorTitle);
+    await expectCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
   Future<void> test_protocol_clientModifiedValues() async {
@@ -1365,7 +1366,7 @@ class A {}
 ''';
 
     await initializeServer();
-    var action = await expectCodeAction(simpleClassRefactorTitle);
+    var action = await expectCodeActionWithTitle(simpleClassRefactorTitle);
     // Replace the file URI argument with our custom path.
     replaceSaveUriArgument(action, newFileUri);
     await verifyCommandEdits(action.command!, expected);
@@ -1375,7 +1376,7 @@ class A {}
     addTestSource(simpleClassContent);
     setFileCreateSupport(false);
     await initializeServer();
-    await expectNoCodeAction(simpleClassRefactorTitle);
+    await expectNoCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
   Future<void> test_sealedClass_extends() async {
@@ -1416,7 +1417,7 @@ class Right extends Either {}
 ''');
 
     await initializeServer();
-    await expectNoCodeAction(null);
+    await expectNoCodeActionWithTitle(null);
   }
 
   Future<void>
@@ -1436,7 +1437,7 @@ class Left extends Either {}
     newFile(otherFilePath, otherFileContent);
 
     await initializeServer();
-    await expectNoCodeAction(null);
+    await expectNoCodeActionWithTitle(null);
   }
 
   Future<void>
@@ -2001,7 +2002,7 @@ class B {}
     }
 
     await initializeServer();
-    var action = await expectCodeAction(actionTitle);
+    var action = await expectCodeActionWithTitle(actionTitle);
     await verifyCommandEdits(
       action.command!,
       expected,
