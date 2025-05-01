@@ -11,18 +11,10 @@
 
 namespace dart {
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // Scan the stack until we hit the first function in the _AssertionError
 // class. We then return the next frame's script taking inlining into account.
 static ScriptPtr FindScript(DartFrameIterator* iterator) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // The precompiled runtime faces two issues in recovering the correct
-  // assertion text. First, the precompiled runtime does not include
-  // the inlining meta-data so we cannot walk the inline-aware stack trace.
-  // Second, the script text itself is missing so whatever script is returned
-  // from here will be missing the assertion expression text.
-  iterator->NextFrame();  // Skip _AssertionError._evaluateAssertion frame
-  return Exceptions::GetCallerScript(iterator);
-#else
   StackFrame* stack_frame = iterator->NextFrame();
   Code& code = Code::Handle();
   Function& func = Function::Handle();
@@ -60,8 +52,8 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
   }
   UNREACHABLE();
   return Script::null();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
@@ -69,6 +61,9 @@ static ScriptPtr FindScript(DartFrameIterator* iterator) {
 // Arg2: Message object or null.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   const TokenPosition assertion_start = TokenPosition::Deserialize(
@@ -114,6 +109,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   Exceptions::ThrowByType(Exceptions::kAssertion, args);
   UNREACHABLE();
   return Object::null();
+#endif
 }
 
 // Allocate and throw a new AssertionError.

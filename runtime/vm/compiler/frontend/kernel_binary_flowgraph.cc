@@ -1521,10 +1521,6 @@ Fragment StreamingFlowGraphBuilder::Return(TokenPosition position) {
                                      /*omit_result_type_check=*/false);
 }
 
-Fragment StreamingFlowGraphBuilder::EvaluateAssertion() {
-  return flow_graph_builder_->EvaluateAssertion();
-}
-
 Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
                                                      int catch_try_index) {
   return flow_graph_builder_->RethrowException(position, catch_try_index);
@@ -4626,13 +4622,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   TargetEntryInstr* otherwise;
 
   Fragment instructions;
-  // Asserts can be of the following two kinds:
-  //
-  //    * `assert(expr)`
-  //    * `assert(() { ... })`
-  //
-  // The call to `_AssertionError._evaluateAssertion()` will take care of both
-  // and returns a boolean.
   instructions += BuildExpression(position);  // read condition.
 
   const TokenPosition condition_start_offset =
@@ -4640,7 +4629,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   const TokenPosition condition_end_offset =
       ReadPosition();  // read condition end offset.
 
-  instructions += EvaluateAssertion();
   instructions += RecordCoverage(condition_start_offset);
   instructions += Constant(Bool::True());
   instructions += BranchIfEqual(&then, &otherwise);
@@ -4648,6 +4636,8 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(thread());
+  ASSERT(error == Error::null());
 
   Fragment otherwise_fragment(otherwise);
   if (CompilerState::Current().is_aot()) {
