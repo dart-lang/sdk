@@ -69,7 +69,7 @@ This information can then be accessed in a link hook as follows:
 ```dart
 import 'dart:convert';
 
-import 'package:native_assets_cli/native_assets_cli.dart';
+import 'package:hooks/hooks.dart';
 import 'package:record_use/record_use_internal.dart';
 
 final methodId = Identifier(

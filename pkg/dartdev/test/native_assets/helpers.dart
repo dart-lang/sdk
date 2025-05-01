@@ -8,9 +8,8 @@ import 'dart:io';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:file/local.dart';
+import 'package:hooks_runner/src/utils/run_process.dart' as run_process;
 import 'package:logging/logging.dart';
-import 'package:native_assets_builder/src/utils/run_process.dart'
-    as run_process;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
@@ -101,16 +100,17 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
     await sourceFile.copy(targetUri.toFilePath());
   }
   final dependencyOverrides = {
-    'native_assets_cli': {
-      'path': sdkRoot
-          .resolve('third_party/pkg/native/pkgs/native_assets_cli/')
-          .toFilePath(),
-    },
-    'native_toolchain_c': {
-      'path': sdkRoot
-          .resolve('third_party/pkg/native/pkgs/native_toolchain_c/')
-          .toFilePath(),
-    },
+    for (final package in [
+      'code_assets',
+      'data_assets',
+      'hooks',
+      'native_toolchain_c'
+    ])
+      package: {
+        'path': sdkRoot
+            .resolve('third_party/pkg/native/pkgs/$package/')
+            .toFilePath(),
+      },
     'meta': {
       'path': sdkRoot.resolve('pkg/meta/').toFilePath(),
     },
@@ -263,7 +263,7 @@ Future<void> nativeAssetsTest(
         'treeshaking_native_libs',
         'user_defines',
       ],
-      sdkRootUri.resolve('third_party/pkg/native/pkgs/native_assets_builder/'),
+      sdkRootUri.resolve('third_party/pkg/native/pkgs/hooks_runner/'),
       sdkRootUri,
       usePubWorkspace,
     );

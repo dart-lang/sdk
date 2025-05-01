@@ -188,7 +188,7 @@
       "pkg/kernel/",
       "pkg/meta/",
       "pkg/native_stack_traces/",
-      "pkg/native_assets_builder/",
+      "pkg/hooks_runner/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
@@ -3131,8 +3131,10 @@
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
             "dart_style",
-            "native_assets_builder",
-            "native_assets_cli",
+            "code_assets",
+            "data_assets",
+            "hooks_runner",
+            "hooks",
             "native_toolchain_c",
             "package_config",
             "pkg/pkg/dartdev/test/native_assets"
@@ -3277,8 +3279,10 @@
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
             "dart_style",
-            "native_assets_builder",
-            "native_assets_cli",
+            "code_assets",
+            "data_assets",
+            "hooks_runner",
+            "hooks",
             "native_toolchain_c",
             "package_config",
             "pkg/pkg/dartdev/test/native_assets"

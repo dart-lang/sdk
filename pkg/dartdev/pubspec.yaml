@@ -15,22 +15,24 @@ dependencies:
   analyzer: any
   args: any
   cli_util: any
+  code_assets: any
   collection: any
   dart2native: any
   dart_style: any
   dartdoc: any
+  data_assets: any
   dds: any
   dds_service_extensions: any
   dtd_impl: any
   file: any
   front_end: any
   frontend_server: any
+  hooks: any
+  hooks_runner: any
   http: any
   kernel: any
   logging: any
   meta: any
-  native_assets_builder: any
-  native_assets_cli: any
   package_config: any
   path: any
   pub: any

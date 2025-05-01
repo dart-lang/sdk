@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
+import 'package:code_assets/code_assets.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
-import 'package:native_assets_cli/code_assets.dart';
 
 final _rpathUri = Uri.file('@rpath/');
 
