@@ -281,6 +281,18 @@ class MethodInvocationResolver with ScopeHelpers {
         contextType: contextType,
       );
     }
+
+    _resolver.errorReporter.atNode(
+      node.memberName,
+      CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION,
+      arguments: [node.memberName.name, contextType.getDisplayString()],
+    );
+    _setInvalidTypeResolutionForDotShorthand(
+      node,
+      setNameTypeToDynamic: false,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      contextType: contextType,
+    );
     return null;
   }
 
@@ -1256,13 +1268,17 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType,
         );
       } else {
+        _resolver.errorReporter.atNode(
+          nameNode,
+          CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION,
+          arguments: [nameNode.name, receiver.displayName],
+        );
         _setInvalidTypeResolutionForDotShorthand(
           node,
           setNameTypeToDynamic: false,
           whyNotPromotedArguments: whyNotPromotedArguments,
           contextType: contextType,
         );
-        _reportInvocationOfNonFunction(nameNode);
       }
       return null;
     }
@@ -1286,12 +1302,16 @@ class MethodInvocationResolver with ScopeHelpers {
       return replacement;
     }
 
+    _resolver.errorReporter.atNode(
+      nameNode,
+      CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION,
+      arguments: [nameNode.name, receiver.displayName],
+    );
     _setInvalidTypeResolutionForDotShorthand(
       node,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     );
-    _reportUndefinedMethodOrNew(receiver, nameNode);
     return null;
   }
 

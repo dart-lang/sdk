@@ -1403,11 +1403,25 @@ class CompileTimeErrorCode extends ErrorCode {
   ///  1: the name of the enclosing type where the getter is being looked for
   static const CompileTimeErrorCode
   DOT_SHORTHAND_UNDEFINED_GETTER = CompileTimeErrorCode(
-    'DOT_SHORTHAND_UNDEFINED_GETTER',
+    'DOT_SHORTHAND_UNDEFINED_MEMBER',
     "The static getter '{0}' isn't defined for the context type '{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing static getter, or "
         "defining a getter or field named '{0}'.",
+    uniqueName: 'DOT_SHORTHAND_UNDEFINED_GETTER',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the static method or constructor
+  ///  1: the name of the enclosing type where the method or constructor is being looked for
+  static const CompileTimeErrorCode
+  DOT_SHORTHAND_UNDEFINED_INVOCATION = CompileTimeErrorCode(
+    'DOT_SHORTHAND_UNDEFINED_MEMBER',
+    "The static method or constructor '{0}' isn't defined for the type '{1}'.",
+    correctionMessage:
+        "Try correcting the name to the name of an existing static method or "
+        "constructor, or defining a static method or constructor named '{0}'.",
+    uniqueName: 'DOT_SHORTHAND_UNDEFINED_INVOCATION',
   );
 
   ///  No parameters.
