@@ -1,0 +1,19 @@
+extension type E1(dynamic it) {
+  E1.named(dynamic value) : this(value, value);
+}
+
+extension type E2(num it) {
+  E2.named(super.it) : this(it);
+}
+
+extension type E3(String it) {
+  E3.named(String it1, String it2)
+      : this(it1),
+        this(it2);
+}
+
+extension type E4(bool it) {
+  E4.named(bool it)
+      : it = false,
+        this(it);
+}

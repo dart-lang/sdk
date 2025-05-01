@@ -456,7 +456,15 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
           _initializers.add(initializer..parent = parent);
         }
       }
-    } else if (initializer is RedirectingInitializer) {
+    } else if (initializer
+        case RedirectingInitializer(
+              target: Member initializerTarget,
+              arguments: var initializerArguments
+            ) ||
+            ExtensionTypeRedirectingInitializer(
+              target: Member initializerTarget,
+              arguments: var initializerArguments
+            )) {
       if (superInitializer != null) {
         // Point to the existing super initializer.
         _injectInvalidInitializer(
@@ -465,6 +473,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
             "super".length,
             helper,
             parent);
+        markAsErroneous();
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
             messageRedirectingConstructorWithMultipleRedirectInitializers,
@@ -472,6 +481,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
             noLength,
             helper,
             parent);
+        markAsErroneous();
       } else if (_initializers.isNotEmpty) {
         // Error on all previous ones.
         for (int i = 0; i < _initializers.length; i++) {
@@ -488,22 +498,30 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
         }
         inferenceResult?.applyResult(_initializers, parent);
         _initializers.add(initializer..parent = parent);
-        redirectingInitializer = initializer;
+        if (initializer is RedirectingInitializer) {
+          redirectingInitializer = initializer;
+        }
+        markAsErroneous();
       } else {
         inferenceResult?.applyResult(_initializers, parent);
-        redirectingInitializer = initializer;
+        if (initializer is RedirectingInitializer) {
+          redirectingInitializer = initializer;
+        }
 
         LocatedMessage? message = helper.checkArgumentsForFunction(
-            initializer.target.function,
-            initializer.arguments,
-            initializer.arguments.fileOffset, const <TypeParameter>[]);
+            initializerTarget.function!,
+            initializerArguments,
+            initializerArguments.fileOffset,
+            initializer is ExtensionTypeRedirectingInitializer
+                ? initializerTarget.function!.typeParameters
+                : const <TypeParameter>[]);
         if (message != null) {
           _initializers.add(helper.buildInvalidInitializer(
               helper.buildUnresolvedError(
                   helper.constructorNameForDiagnostics(
-                      initializer.target.name.text),
+                      initializerTarget.name.text),
                   initializer.fileOffset,
-                  arguments: initializer.arguments,
+                  arguments: initializerArguments,
                   isSuper: false,
                   message: message,
                   kind: UnresolvedKind.Constructor))
@@ -522,9 +540,11 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
           length,
           helper,
           parent);
+      markAsErroneous();
     } else if (superInitializer != null) {
       _injectInvalidInitializer(messageSuperInitializerNotLast,
           initializer.fileOffset, noLength, helper, parent);
+      markAsErroneous();
     } else {
       inferenceResult?.applyResult(_initializers, parent);
       _initializers.add(initializer..parent = parent);

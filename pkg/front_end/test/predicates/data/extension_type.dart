@@ -3,9 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*member: ExtensionType|constructor#:extensionName=ExtensionType.new*/
-extension type ExtensionType(int it) {
+extension type ExtensionType(int /*
+ extensionThis,
+ name=this
+*/it) {
   /*member: ExtensionType|constructor#constructor:extensionName=ExtensionType.constructor*/
-  ExtensionType.constructor(this.it);
+  ExtensionType.constructor(this./*
+   extensionThis,
+   name=this
+  */it);
 
   /*member: ExtensionType|constructor#factory:extensionName=ExtensionType.factory*/
   factory ExtensionType.factory(int value) => ExtensionType(value);

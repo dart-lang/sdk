@@ -26,7 +26,7 @@ class A extends core::Object {
     ;
 }
 class C extends self::A {
-  constructor •(wildcard core::int _#wc0#formal) → self::C
+  erroneous constructor •(wildcard core::int _#wc0#formal) → self::C
     : super self::A::•(_#wc0#formal)
     ;
   constructor r(wildcard core::int _#wc1#formal) → self::C
