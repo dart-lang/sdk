@@ -154,7 +154,7 @@ package:analyzer/dart/analysis/results.dart:
     session (getter: AnalysisSession)
   AnalysisResultWithErrors (class extends Object implements FileResult):
     new (constructor: AnalysisResultWithErrors Function())
-    errors (getter: List<AnalysisError>)
+    errors (getter: List<Diagnostic>)
   CannotResolveUriResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: CannotResolveUriResult Function())
   DisposedAnalysisContextResult (class extends Object implements InvalidResult, SomeErrorsResult, SomeFileResult, SomeParsedLibraryResult, SomeParsedUnitResult, SomeResolvedLibraryResult, SomeResolvedUnitResult, SomeUnitElementResult):
@@ -199,7 +199,7 @@ package:analyzer/dart/analysis/results.dart:
   ParseStringResult (class extends Object):
     new (constructor: ParseStringResult Function())
     content (getter: String)
-    errors (getter: List<AnalysisError>)
+    errors (getter: List<Diagnostic>)
     lineInfo (getter: LineInfo)
     unit (getter: CompilationUnit)
   ParsedLibraryResult (class extends Object implements SomeParsedLibraryResult, AnalysisResult):
@@ -3080,7 +3080,7 @@ package:analyzer/dart/element/element.dart:
     visitChildren2 (method: void Function<T>(ElementVisitor2<T>))
   ElementAnnotation (class extends Object implements ConstantEvaluationTarget):
     new (constructor: ElementAnnotation Function())
-    constantEvaluationErrors (getter: List<AnalysisError>?)
+    constantEvaluationErrors (getter: List<Diagnostic>?)
     element2 (getter: Element?)
     isAlwaysThrows (getter: bool)
     isAwaitNotRequired (getter: bool)
@@ -4327,11 +4327,22 @@ package:analyzer/dart/sdk/build_sdk_summary.dart:
   buildSdkSummary (function: Future<Uint8List> Function({String? embedderYamlPath, required ResourceProvider resourceProvider, required String sdkPath}))
 package:analyzer/diagnostic/diagnostic.dart:
   Diagnostic (class extends Object):
-    new (constructor: Diagnostic Function())
+    forValues (constructor: Diagnostic Function({List<DiagnosticMessage> contextMessages, String? correctionMessage, Object? data, required ErrorCode errorCode, required int length, required String message, required int offset, required Source source}))
+    tmp (constructor: Diagnostic Function({List<Object?> arguments, List<DiagnosticMessage> contextMessages, Object? data, required ErrorCode errorCode, required int length, required int offset, required Source source}))
     contextMessages (getter: List<DiagnosticMessage>)
+    correction (getter: String?, deprecated)
     correctionMessage (getter: String?)
+    data (getter: Object?)
+    errorCode (getter: ErrorCode)
+    hashCode (getter: int)
+    length (getter: int)
+    message (getter: String)
+    offset (getter: int)
     problemMessage (getter: DiagnosticMessage)
     severity (getter: Severity)
+    source (getter: Source)
+    == (method: bool Function(Object))
+    toString (method: String Function())
   DiagnosticMessage (class extends Object):
     new (constructor: DiagnosticMessage Function())
     filePath (getter: String)
@@ -4347,23 +4358,6 @@ package:analyzer/diagnostic/diagnostic.dart:
 package:analyzer/error/error.dart:
   errorCodeValues (static getter: List<ErrorCode>)
   errorCodeByUniqueName (function: ErrorCode? Function(String))
-  AnalysisError (class extends Object implements Diagnostic):
-    forValues (constructor: AnalysisError Function({List<DiagnosticMessage> contextMessages, String? correctionMessage, Object? data, required ErrorCode errorCode, required int length, required String message, required int offset, required Source source}))
-    tmp (constructor: AnalysisError Function({List<Object?> arguments, List<DiagnosticMessage> contextMessages, Object? data, required ErrorCode errorCode, required int length, required int offset, required Source source}))
-    contextMessages (getter: List<DiagnosticMessage>)
-    correction (getter: String?, deprecated)
-    correctionMessage (getter: String?)
-    data (getter: Object?)
-    errorCode (getter: ErrorCode)
-    hashCode (getter: int)
-    length (getter: int)
-    message (getter: String)
-    offset (getter: int)
-    problemMessage (getter: DiagnosticMessage)
-    severity (getter: Severity)
-    source (getter: Source)
-    == (method: bool Function(Object))
-    toString (method: String Function())
   DiagnosticType (class extends Object implements Comparable<DiagnosticType>):
     CHECKED_MODE_COMPILE_TIME_ERROR (static getter: DiagnosticType)
     COMPILE_TIME_ERROR (static getter: DiagnosticType)
@@ -4417,6 +4411,7 @@ package:analyzer/error/error.dart:
     type (getter: DiagnosticType)
     url (getter: String?)
     == (method: bool Function(Object))
+  AnalysisError (type alias for Diagnostic)
   DiagnosticCode (type alias for ErrorCode)
   DiagnosticSeverity (type alias for ErrorSeverity)
   ErrorType (type alias for DiagnosticType, deprecated)
@@ -4424,11 +4419,11 @@ package:analyzer/error/listener.dart:
   AnalysisErrorListener (class extends Object):
     NULL_LISTENER (static getter: AnalysisErrorListener)
     new (constructor: AnalysisErrorListener Function())
-    onError (method: void Function(AnalysisError))
+    onError (method: void Function(Diagnostic))
   BooleanErrorListener (class extends Object implements AnalysisErrorListener):
     new (constructor: BooleanErrorListener Function())
     errorReported (getter: bool)
-    onError (method: void Function(AnalysisError))
+    onError (method: void Function(Diagnostic))
   ErrorReporter (class extends Object):
     new (constructor: ErrorReporter Function(AnalysisErrorListener, Source))
     lockLevel (getter: int)
@@ -4441,12 +4436,12 @@ package:analyzer/error/listener.dart:
     atOffset (method: void Function({List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data, required ErrorCode errorCode, required int length, required int offset}))
     atSourceSpan (method: void Function(SourceSpan, ErrorCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     atToken (method: void Function(Token, ErrorCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
-    reportError (method: void Function(AnalysisError))
+    reportError (method: void Function(Diagnostic))
   RecordingErrorListener (class extends Object implements AnalysisErrorListener):
     new (constructor: RecordingErrorListener Function())
-    errors (getter: List<AnalysisError>)
-    getErrorsForSource (method: List<AnalysisError> Function(Source))
-    onError (method: void Function(AnalysisError))
+    errors (getter: List<Diagnostic>)
+    getErrorsForSource (method: List<Diagnostic> Function(Source))
+    onError (method: void Function(Diagnostic))
 package:analyzer/exception/exception.dart:
   AnalysisException (class extends Object implements Exception):
     new (constructor: AnalysisException Function([String, CaughtException?]))
@@ -4701,13 +4696,13 @@ package:analyzer/source/error_processor.dart:
     new (constructor: ErrorConfig Function(YamlNode?))
     processors (getter: List<ErrorProcessor>)
   ErrorProcessor (class extends Object):
-    getProcessor (static method: ErrorProcessor? Function(AnalysisOptions?, AnalysisError))
+    getProcessor (static method: ErrorProcessor? Function(AnalysisOptions?, Diagnostic))
     ignore (constructor: ErrorProcessor Function(String))
     new (constructor: ErrorProcessor Function(String, [ErrorSeverity?]))
     code (getter: String)
     description (getter: String)
     severity (getter: ErrorSeverity?)
-    appliesTo (method: bool Function(AnalysisError))
+    appliesTo (method: bool Function(Diagnostic))
     toString (method: String Function())
 package:analyzer/source/file_source.dart:
   FileSource (class extends Source):
