@@ -2,6 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Whether [_debugPrint] is printing to stdout.UnsupportedError
+///
+/// Change this to `false` during development/debugging to temporarily disable
+/// the debug printing without having to remove calls to [debugPrint],
+/// [debugPrintStart], [debugPrintEnd] and [inDebugPrint].
+const bool _debugPrintEnabled = true;
+
+/// The current indentation level used in [_debugPrint].
 int _indentLevel = 0;
 
 /// Prints the `toString()` of [value] to stdout.
@@ -12,15 +20,15 @@ void debugPrint(Object value) {
   _debugPrint(value);
 }
 
-/// Prints the `toString()` of [value] using [debugPrint] and increases the
-/// indentation level used by [debugPrint].
+/// Decreases the indentation level used by [debugPrint] and prints the
+/// `toString()` of [value] using [debugPrint].
 void debugPrintEnd(Object value) {
   _indentLevel--;
   _debugPrint(value);
 }
 
-/// Decreases the indentation level used by [debugPrint] and prints the
-/// `toString()` of [value] using [debugPrint].
+/// Prints the `toString()` of [value] using [debugPrint] and increases the
+/// indentation level used by [debugPrint].
 void debugPrintStart(Object value) {
   _debugPrint(value);
   _indentLevel++;
@@ -40,6 +48,10 @@ void inDebugPrint(Object value, void Function() f) {
   }
 }
 
+/// Prints the `toString()` of [value] at the current [_indentLevel] if
+/// [_debugPrintEnabled] is `true`.
 void _debugPrint(Object value) {
-  print('${'  ' * _indentLevel}${value}');
+  if (_debugPrintEnabled) {
+    print('${'  ' * _indentLevel}${value}');
+  }
 }

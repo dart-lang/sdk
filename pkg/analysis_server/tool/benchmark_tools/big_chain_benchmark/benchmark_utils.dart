@@ -4,17 +4,18 @@
 
 import 'dart:io';
 
-import '../language_server_benchmark.dart';
 import '../utils.dart';
 
 RunDetails copyData(
   Uri packageDirUri,
   Uri outerDirForAdditionalData,
   int numFiles,
-  CodeType copyType,
+  CodeType? copyType,
   List<String> args, {
-  required bool includePlugin,
+  required ({bool includePlugin})? extraInformation,
 }) {
+  bool includePlugin = extraInformation?.includePlugin ?? false;
+  if (copyType == null) throw 'Unsupported.';
   Uri filesUri = Platform.script.resolve('files/');
   Uri libDirUri = packageDirUri.resolve('lib/');
   Directory.fromUri(libDirUri).createSync();
@@ -200,44 +201,10 @@ analyzer:
   );
 }
 
-String formatDuration(Duration duration) {
-  int seconds = duration.inSeconds;
-  int ms = duration.inMicroseconds - seconds * Duration.microsecondsPerSecond;
-  return '$seconds.${ms.toString().padLeft(6, '0')}';
-}
-
-String formatKb(int kb) {
-  if (kb > 1024) {
-    return '${kb ~/ 1024} MB';
-  } else {
-    return '$kb KB';
-  }
-}
-
-String getFilenameFor(int i) {
-  return "file${i.toString().padLeft(5, '0')}.dart";
-}
-
-Future<void> runHelper(
-  List<String> args,
-  DartLanguageServerBenchmark Function(
-    List<String> args,
-    Uri rootUri,
-    Uri cacheFolder,
-    RunDetails runDetails,
-  )
-  benchmarkCreator, {
-  required bool runAsLsp,
-  List<int> numberOfFileOptions = const [16, 32, 64, 128, 256, 512, 1024],
-  List<CodeType> codeTypes = CodeType.values,
-  bool includePlugin = false,
-}) async {
-  int verbosity = 0;
+List<CodeType?> getExtraIterations(List<String> args) {
+  var codeTypes = CodeType.values;
   for (String arg in args) {
-    if (arg.startsWith('--files=')) {
-      numberOfFileOptions =
-          arg.substring('--files='.length).split(',').map(int.parse).toList();
-    } else if (arg.startsWith('--types=')) {
+    if (arg.startsWith('--types=')) {
       codeTypes = [];
       for (var type in arg.substring('--types='.length).split(',')) {
         type = type.toLowerCase();
@@ -247,88 +214,13 @@ Future<void> runHelper(
           }
         }
       }
-    } else if (arg.startsWith('--verbosity=')) {
-      verbosity = int.parse(arg.substring('--verbosity='.length));
     }
   }
-  StringBuffer sb = StringBuffer();
-  for (CodeType codeType in codeTypes) {
-    for (int numFiles in numberOfFileOptions) {
-      Directory tmpDir = Directory.systemTemp.createTempSync('lsp_benchmark');
-      try {
-        Directory cacheDir = Directory.fromUri(tmpDir.uri.resolve('cache/'))
-          ..createSync(recursive: true);
-        Directory dartDir = Directory.fromUri(tmpDir.uri.resolve('dart/'))
-          ..createSync(recursive: true);
-        var runDetails = copyData(
-          dartDir.uri,
-          tmpDir.uri,
-          numFiles,
-          codeType,
-          args,
-          includePlugin: includePlugin,
-        );
-        var benchmark = benchmarkCreator(
-          args,
-          dartDir.uri,
-          cacheDir.uri,
-          runDetails,
-        );
-        try {
-          benchmark.verbosity = verbosity;
-          await benchmark.run();
-        } finally {
-          benchmark.exit();
-        }
+  return codeTypes;
+}
 
-        if (verbosity >= 0) print('====================');
-        if (verbosity >= 0) print('$numFiles files / $codeType:');
-        sb.writeln('$numFiles files / $codeType:');
-        for (var durationInfo in benchmark.durationInfo) {
-          if (verbosity >= 0) {
-            print(
-              '${durationInfo.name}: '
-              '${formatDuration(durationInfo.duration)}',
-            );
-          }
-          sb.writeln(
-            '${durationInfo.name}: '
-            '${formatDuration(durationInfo.duration)}',
-          );
-        }
-        for (var memoryInfo in benchmark.memoryInfo) {
-          if (verbosity >= 0) {
-            print(
-              '${memoryInfo.name}: '
-              '${formatKb(memoryInfo.kb)}',
-            );
-          }
-          sb.writeln(
-            '${memoryInfo.name}: '
-            '${formatKb(memoryInfo.kb)}',
-          );
-        }
-        if (verbosity >= 0) print('====================');
-        sb.writeln();
-      } finally {
-        try {
-          tmpDir.deleteSync(recursive: true);
-        } catch (e) {
-          // Wait a little and retry.
-          sleep(const Duration(milliseconds: 42));
-          try {
-            tmpDir.deleteSync(recursive: true);
-          } catch (e) {
-            if (verbosity >= 0) print('Warning: $e');
-          }
-        }
-      }
-    }
-  }
-
-  print('==================================');
-  print(sb.toString().trim());
-  print('==================================');
+String getFilenameFor(int i) {
+  return "file${i.toString().padLeft(5, '0')}.dart";
 }
 
 enum CodeType {
