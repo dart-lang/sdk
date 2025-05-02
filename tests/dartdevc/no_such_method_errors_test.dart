@@ -15,10 +15,10 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 expectThrowsNSMWithExactError(
   void Function() computation,
   String expectedErrorMessage,
-) => Expect.throws<NoSuchMethodError>(
-  computation,
-  (error) => error.toString() == expectedErrorMessage,
-);
+) => Expect.throws<NoSuchMethodError>(computation, (error) {
+  Expect.equals(expectedErrorMessage, error.toString());
+  return true;
+});
 
 class A {
   String arity1(int val) {
@@ -69,7 +69,8 @@ void main() {
       expectThrowsNSMWithExactError(
         () => instanceOfA(),
         "NoSuchMethodError: 'call'\n"
-        "Dynamic call of object has no instance method 'call'.\n"
+        "Dynamic call failed.\n"
+        "Object has no instance method 'call'.\n"
         "Receiver: ${Error.safeToString(instanceOfA)}\n"
         "Arguments: []",
       );
@@ -106,7 +107,8 @@ void main() {
           expectThrowsNSMWithExactError(
             () => instanceOfA.doesNotExist(),
             "NoSuchMethodError: 'doesNotExist'\n"
-            "Dynamic call of null.\n"
+            "Dynamic call failed.\n"
+            "Tried to invoke `null` like a method.\n"
             "Receiver: ${Error.safeToString(instanceOfA)}\n"
             "Arguments: []",
           );
@@ -116,7 +118,8 @@ void main() {
           expectThrowsNSMWithExactError(
             () => instanceOfA.doesNotExist<String, bool>(),
             "NoSuchMethodError: 'doesNotExist'\n"
-            "Dynamic call of null.\n"
+            "Dynamic call failed.\n"
+            "Tried to invoke `null` like a method.\n"
             "Receiver: ${Error.safeToString(instanceOfA)}\n"
             "Arguments: []",
           );
@@ -155,7 +158,8 @@ void main() {
         expectThrowsNSMWithExactError(
           () => arity1Tearoff<bool>(42),
           "NoSuchMethodError: 'arity1'\n"
-          "Dynamic call with unexpected type arguments. "
+          "Dynamic call failed.\n"
+          "Incorrect number of type arguments. "
           "Expected: 0 Actual: 1\n"
           "Receiver: ${Error.safeToString(arity1Tearoff)}\n"
           "Arguments: [42]",
@@ -166,7 +170,8 @@ void main() {
         expectThrowsNSMWithExactError(
           () => genericArity2Tearoff<int, double, String>(),
           "NoSuchMethodError: 'genericArity2'\n"
-          "Dynamic call with incorrect number of type arguments. "
+          "Dynamic call failed.\n"
+          "Incorrect number of type arguments. "
           "Expected: 2 Actual: 3\n"
           "Receiver: ${Error.safeToString(genericArity2Tearoff)}\n"
           "Arguments: []",
@@ -177,7 +182,8 @@ void main() {
         expectThrowsNSMWithExactError(
           () => genericArity2Tearoff<int>(),
           "NoSuchMethodError: 'genericArity2'\n"
-          "Dynamic call with incorrect number of type arguments. "
+          "Dynamic call failed.\n"
+          "Incorrect number of type arguments. "
           "Expected: 2 Actual: 1\n"
           "Receiver: ${Error.safeToString(genericArity2Tearoff)}\n"
           "Arguments: []",
@@ -188,7 +194,8 @@ void main() {
         expectThrowsNSMWithExactError(
           () => instantiatedTearoff<int, double>(),
           "NoSuchMethodError: 'result'\n"
-          "Dynamic call with unexpected type arguments. "
+          "Dynamic call failed.\n"
+          "Incorrect number of type arguments. "
           "Expected: 0 Actual: 2\n"
           "Receiver: ${Error.safeToString(instantiatedTearoff)}\n"
           "Arguments: []",
@@ -206,7 +213,8 @@ void main() {
         expectThrowsNSMWithExactError(
           () => Function.apply(arity1Tearoff, [42, false]),
           "NoSuchMethodError: 'arity1'\n"
-          "Dynamic call with too many positional arguments. "
+          "Dynamic call failed.\n"
+          "Too many positional arguments. "
           "Expected: 1 Actual: 2\n"
           "Receiver: ${Error.safeToString(arity1Tearoff)}\n"
           "Arguments: [42, false]",
@@ -216,7 +224,8 @@ void main() {
         expectThrowsNSMWithExactError(
           () => Function.apply(arity1Tearoff, []),
           "NoSuchMethodError: 'arity1'\n"
-          "Dynamic call with missing positional arguments. "
+          "Dynamic call failed.\n"
+          "Missing positional arguments. "
           "Expected: 1 Actual: 0\n"
           "Receiver: ${Error.safeToString(arity1Tearoff)}\n"
           "Arguments: []",
@@ -229,7 +238,8 @@ void main() {
             #cello: true,
           }),
           "NoSuchMethodError: 'requiredNamedArity1'\n"
-          "Dynamic call with unexpected named argument 'cello'.\n"
+          "Dynamic call failed.\n"
+          "Unexpected named argument 'cello'.\n"
           "Receiver: ${Error.safeToString(requiredNamedArity1Tearoff)}\n"
           "Arguments: [fosse: true, cello: true]",
         );
@@ -241,7 +251,8 @@ void main() {
         expectThrowsNSMWithExactError(
           () => Function.apply(requiredNamedArity1Tearoff, null),
           "NoSuchMethodError: 'requiredNamedArity1'\n"
-          "Dynamic call with missing required named arguments: fosse.\n"
+          "Dynamic call failed.\n"
+          "Missing required named arguments: fosse.\n"
           "Receiver: ${Error.safeToString(requiredNamedArity1Tearoff)}\n"
           "Arguments: []",
         );

@@ -24,14 +24,31 @@ class HotReloadDeltaInspector {
   /// Attaches metadata to the [delta] component to be consumed by DDC when
   /// compiling.
   List<String> compareGenerations(Component lastAccepted, Component delta) {
-    final hotReloadLibraryMetadata =
-        lastAccepted.metadata[hotReloadLibraryMetadataTag]
-                as HotReloadLibraryMetadataRepository? ??
-            HotReloadLibraryMetadataRepository();
-    _partialLastAcceptedLibraryIndex = LibraryIndex(lastAccepted,
-        [for (var library in delta.libraries) '${library.importUri}']);
+    final deltaLibraryImportUris = [
+      for (var library in delta.libraries) '${library.importUri}'
+    ];
+    _partialLastAcceptedLibraryIndex =
+        LibraryIndex(lastAccepted, deltaLibraryImportUris);
+    final deltaLibraryIndex = LibraryIndex(delta, deltaLibraryImportUris);
+    final metadataRepo = lastAccepted.metadata[hotReloadLibraryMetadataTag]
+            as HotReloadLibraryMetadataRepository? ??
+        HotReloadLibraryMetadataRepository();
+    metadataRepo.generation++;
     _rejectionMessages.clear();
     for (var deltaLibrary in delta.libraries) {
+      final acceptedLibrary = _partialLastAcceptedLibraryIndex
+          .tryGetLibrary('${deltaLibrary.importUri}');
+      if (acceptedLibrary == null) {
+        // No previous version of the library to compare with.
+        continue;
+      }
+      var libraryMetadata = metadataRepo.mapping
+          .putIfAbsent(deltaLibrary, HotReloadLibraryMetadata.new);
+      // TODO(60281): Handle members when an entire library has been deleted
+      // from the delta.
+      libraryMetadata.deletedStaticProcedureNames.clear();
+      libraryMetadata.deletedStaticProcedureNames.addAll(
+          _findDeletedLibraryProcedures(acceptedLibrary, deltaLibraryIndex));
       for (var deltaClass in deltaLibrary.classes) {
         final acceptedClass = _partialLastAcceptedLibraryIndex.tryGetClass(
             '${deltaLibrary.importUri}', deltaClass.name);
@@ -48,14 +65,13 @@ class HotReloadDeltaInspector {
           _checkConstClassDeletedFields(acceptedClass, deltaClass);
         }
       }
-      hotReloadLibraryMetadata.mapping[deltaLibrary] = true;
     }
     // Finalize the metadata written in this comparison.
-    hotReloadLibraryMetadata.encodeMapping();
+    metadataRepo.encodeMapping();
     // Attaching the metadata to the delta node simplifies the stateless server
     // approach used by dartpad. Ideally in the future the frontend server can
     // rely on this being attached to the delta component as well.
-    delta.addMetadataRepository(hotReloadLibraryMetadata);
+    delta.addMetadataRepository(metadataRepo);
     return _rejectionMessages;
   }
 
@@ -128,17 +144,28 @@ class HotReloadDeltaInspector {
           'Class: ${deltaClass.name}');
     }
   }
+
+  /// Returns the names of library methods, getters, and setters that were
+  /// present in [acceptedLibrary] but do not appear in [deltaLibraryIndex].
+  List<String> _findDeletedLibraryProcedures(
+      Library acceptedLibrary, LibraryIndex deltaLibraryIndex) {
+    final acceptedLibraryImportUri = '${acceptedLibrary.importUri}';
+    return [
+      for (var acceptedProcedure in acceptedLibrary.procedures)
+        if (deltaLibraryIndex.tryGetProcedure(acceptedLibraryImportUri,
+                LibraryIndex.topLevel, acceptedProcedure.indexName) ==
+            null)
+          acceptedProcedure.name.text,
+    ];
+  }
 }
 
 const hotReloadLibraryMetadataTag = 'ddc.hot-reload-library.metadata';
 
 /// Metadata repository implementation that tracks hot reload information
 /// associated to [Library] nodes.
-///
-/// Currently only tracks if the library should be compiled with the intention
-/// to be hot reloaded.
-// TODO(nshahan): Expand to track more useful information.
-class HotReloadLibraryMetadataRepository extends MetadataRepository<bool> {
+class HotReloadLibraryMetadataRepository
+    extends MetadataRepository<HotReloadLibraryMetadata> {
   @override
   String get tag => hotReloadLibraryMetadataTag;
 
@@ -157,21 +184,25 @@ class HotReloadLibraryMetadataRepository extends MetadataRepository<bool> {
   ///  `var data = mapping[lib]` but know that this only contains data that was
   ///   available to be linked in the previous step.
   @override
-  Map<Library, bool> mapping = <Library, bool>{};
+  final Map<Library, HotReloadLibraryMetadata> mapping = {};
 
   @override
-  void writeToBinary(bool metadata, Node node, BinarySink sink) {
+  void writeToBinary(
+      HotReloadLibraryMetadata metadata, Node node, BinarySink sink) {
     // TODO(nshahan): How to write all metadata even when there are no
     // associated nodes.
   }
 
   @override
-  bool readFromBinary(Node node, BinarySource source) {
+  HotReloadLibraryMetadata readFromBinary(Node node, BinarySource source) {
     // TODO(nshahan): Read metadata when it is available.
-    return false;
+    return HotReloadLibraryMetadata();
   }
 
-  final _reloadedLibraries = <String, bool>{};
+  /// The current hot reload generation.
+  int generation = 0;
+
+  final _encodedMetadata = <String, HotReloadLibraryMetadata>{};
 
   /// Modifies [mapping] to contain metadata associated with the [Node]s present
   /// in [index].
@@ -181,10 +212,10 @@ class HotReloadLibraryMetadataRepository extends MetadataRepository<bool> {
   /// Clears [mapping] before adding the [Node] to metadata mappings.
   void mapToIndexedNodes(LibraryIndex index) {
     mapping.clear();
-    for (var identifier in _reloadedLibraries.keys) {
+    for (var identifier in _encodedMetadata.keys) {
       final library = index.tryGetLibrary(identifier);
       if (library == null) continue;
-      final metadata = _reloadedLibraries[identifier];
+      final metadata = _encodedMetadata[identifier];
       if (metadata == null) continue;
 
       mapping[library] = metadata;
@@ -198,10 +229,27 @@ class HotReloadLibraryMetadataRepository extends MetadataRepository<bool> {
   ///
   /// Clears [mapping] after encoding.
   void encodeMapping() {
-    _reloadedLibraries.addAll({
+    _encodedMetadata.addAll({
       for (var library in mapping.keys)
         '${library.importUri}': mapping[library]!
     });
     mapping.clear();
+  }
+}
+
+class HotReloadLibraryMetadata {
+  /// Names of library methods, getters, and setters that have been deleted
+  /// from the library in the latest delta.
+  ///
+  /// These members should be deleted from the library in the next compile.
+  final Set<String> deletedStaticProcedureNames = {};
+}
+
+extension ProcedureExtension on Procedure {
+  /// Returns the name used to lookup this [Procedure] in a [LibraryIndex].
+  String get indexName {
+    if (isGetter) return '${LibraryIndex.getterPrefix}${name.text}';
+    if (isSetter) return '${LibraryIndex.setterPrefix}${name.text}';
+    return name.text;
   }
 }

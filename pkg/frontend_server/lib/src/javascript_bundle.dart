@@ -57,9 +57,8 @@ class IncrementalJavaScriptBundler {
   final Map<Uri, String> _summaryToLibraryBundleJSPath = <Uri, String>{};
   final String _fileSystemScheme;
   final HotReloadDeltaInspector _deltaInspector = new HotReloadDeltaInspector();
-  final HotReloadLibraryMetadataRepository _libraryMetadataRepository =
-      new HotReloadLibraryMetadataRepository();
 
+  late HotReloadLibraryMetadataRepository _libraryMetadataRepository;
   late Component _lastFullComponent;
   late Component _currentComponent;
   late StrongComponents _strongComponents;
@@ -75,6 +74,9 @@ class IncrementalJavaScriptBundler {
       mainUri,
       _fileSystem,
     );
+    // Initialize fresh hot reload metadata for this compile and throw out all
+    // information collected from any previous series of hot reloads compiles.
+    _libraryMetadataRepository = new HotReloadLibraryMetadataRepository();
     await _strongComponents.computeLibraryBundles();
     _updateSummaries(
         _strongComponents.libraryBundleImportToLibraries.keys, packageConfig);

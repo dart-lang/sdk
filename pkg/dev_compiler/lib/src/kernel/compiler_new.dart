@@ -147,16 +147,12 @@ class LibraryBundleCompiler implements old.Compiler {
     var compiledLibraries = <js_ast.Program>[];
     for (var library in component.libraries) {
       var libraryCompiler = LibraryCompiler(
-        component,
-        _hierarchy,
-        _options,
-        _importToSummary,
-        _summaryToModule,
-        coreTypes: _coreTypes,
-        ticker: _ticker,
-        symbolData: _symbolData,
-        compileForHotReload: metadata?[library],
-      );
+          component, _hierarchy, _options, _importToSummary, _summaryToModule,
+          coreTypes: _coreTypes,
+          ticker: _ticker,
+          symbolData: _symbolData,
+          hotReloadLibraryMetadata: metadata?[library],
+          hotReloadGeneration: repo?.generation);
       _libraryCompilers[library] = libraryCompiler;
       compiledLibraries.add(libraryCompiler.emitLibrary(library));
     }
@@ -629,8 +625,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Supports verbose logging with a timer.
   Ticker? _ticker;
 
+  /// The hot reload generation for the current compile.
+  ///
+  /// Initial compiles are treated as generation 0.
+  int _hotReloadGeneration;
+
+  /// The hot reload metadata for the current compile.
+  ///
+  /// Will be `null` on the initial compile.
+  final HotReloadLibraryMetadata? _hotReloadLibraryMetadata;
+
   /// Whether the library is being compiled for a hot reload.
-  bool _compileForHotReload;
+  bool get _compileForHotReload => _hotReloadGeneration > 0;
 
   factory LibraryCompiler(
     Component component,
@@ -641,7 +647,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     CoreTypes? coreTypes,
     Ticker? ticker,
     required SymbolData symbolData,
-    bool? compileForHotReload,
+    HotReloadLibraryMetadata? hotReloadLibraryMetadata,
+    int? hotReloadGeneration,
   }) {
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
@@ -650,22 +657,22 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return LibraryCompiler._(
-      ticker,
-      coreTypes,
-      coreTypes.index,
-      nativeTypes,
-      constants,
-      types,
-      hierarchy,
-      jsTypeRep,
-      NullableInference(jsTypeRep, staticTypeContext, options: options),
-      staticTypeContext,
-      options,
-      importToSummary,
-      summaryToModule,
-      symbolData,
-      compileForHotReload ?? false,
-    );
+        ticker,
+        coreTypes,
+        coreTypes.index,
+        nativeTypes,
+        constants,
+        types,
+        hierarchy,
+        jsTypeRep,
+        NullableInference(jsTypeRep, staticTypeContext, options: options),
+        staticTypeContext,
+        options,
+        importToSummary,
+        summaryToModule,
+        symbolData,
+        hotReloadLibraryMetadata,
+        hotReloadGeneration ?? 0);
   }
 
   LibraryCompiler._(
@@ -683,7 +690,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       this._importToSummary,
       this._summaryToModule,
       this._symbolData,
-      this._compileForHotReload)
+      this._hotReloadLibraryMetadata,
+      this._hotReloadGeneration)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
         _privateSymbolClass = sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
         _linkedHashMapImplClass = sdk.getClass('dart:_js_helper', 'LinkedMap'),
@@ -747,6 +755,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _coreTypes.nonNullableRawType(_coreTypes.internalSymbolClass);
 
   final FutureOrNormalizer _futureOrNormalizer;
+
+  bool _inFunctionExpression = false;
 
   /// Module can be emitted only once, and the compiler can be reused after
   /// only in incremental mode, for expression compilation only.
@@ -975,6 +985,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Additional method used by the module system to link class hierarchies.
     _moduleItems.add(_emitLibraryLinkMethod(_currentLibrary!));
     _ticker?.logMs('Emitted library link method');
+
+    // Attach the import Uri to the library object for use in error messages
+    // and debugging.
+    _moduleItems.add(js.statement('#[#] = #', [
+      _emitLibraryName(library),
+      _runtimeCall('libraryImportUri'),
+      js.string('${library.importUri}')
+    ]));
 
     // Visit directives (for exports)
     _emitExports(library);
@@ -3548,6 +3566,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 p.function.computeThisFunctionType(Nullability.nonNullable),
                 asLazy: true)
             .toStatement());
+      }
+    }
+    if (_hotReloadLibraryMetadata != null) {
+      // Remove any top level procedures that were deleted in this hot reload
+      // generation.
+      for (var deletedProcedureName
+          in _hotReloadLibraryMetadata.deletedStaticProcedureNames) {
+        // The name used here must match the name used when creating top level
+        // members. See [getTopLevelName].
+        var methodName = _propertyName(deletedProcedureName);
+        _moduleItems.add(js.statement('delete #',
+            [js_ast.PropertyAccess(_emitLibraryName(library), methodName)]));
       }
     }
     var accessors =
@@ -6756,9 +6786,128 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments, target: target);
     var staticCall = js_ast.Call(fn, args);
+    if (_inFunctionExpression &&
+        !usesJSInterop(node.target) &&
+        !_isBuildingSdk) {
+      var checkedCall = _rewriteInvocationWithHotReloadChecks(
+          target, node.arguments, node.getStaticType(_staticTypeContext));
+      // As an optimization, avoid extra checks when the invocation code was
+      // compiled in the same generation that it is running.
+      return js.call('# === # ? # : #', [
+        js.number(_hotReloadGeneration),
+        _runtimeCall('global.dartDevEmbedder.hotReloadGeneration'),
+        staticCall,
+        checkedCall
+      ]);
+    }
     return _isNullCheckableJsInterop(target)
         ? _wrapWithJsInteropNullCheck(staticCall)
         : staticCall;
+  }
+
+  /// Rewrites an invocation of [target] that is statically sound at compile
+  /// time to include checks to preserve soundness in the presence of hot
+  /// reloads at runtime.
+  ///
+  /// The checks are similar to the those performed when making a dynamic call.
+  /// The [arguments] are checked for the correct shape and runtime types.
+  /// Additionally after the invocation, the returned value is checked against
+  /// the [expectedReturnType].
+  ///
+  /// Invokes `noSuchMethod` if the check fails. If that also returns a value,
+  /// it's cast to the [expectedReturnType].
+  js_ast.Expression _rewriteInvocationWithHotReloadChecks(
+      Member target, Arguments arguments, DartType expectedReturnType) {
+    var hoistedPositionalVariables = <js_ast.Expression>[];
+    var hoistedNamedVariables = <String, js_ast.Expression>{};
+    js_ast.Expression? letAssignments;
+    for (var i = 0; i < arguments.positional.length; i++) {
+      var argument = arguments.positional[i];
+      var argumentExpression = _visitExpression(argument);
+      if (argument is VariableGet || argument is BasicLiteral) {
+        // No need to create new let variables, it is safe to repeat these
+        // expressions.
+        hoistedPositionalVariables.add(argumentExpression);
+        continue;
+      }
+      // Hoist the passed positional argument expressions into let variables.
+      var hoistedVariable = _emitScopedId('\$p$i');
+      _letVariables!.add(hoistedVariable);
+      var assignment = js.call('# = #', [hoistedVariable, argumentExpression]);
+      hoistedPositionalVariables.add(hoistedVariable);
+      letAssignments = letAssignments == null
+          ? assignment
+          : js_ast.Binary(',', letAssignments, assignment);
+    }
+    for (var i = 0; i < arguments.named.length; i++) {
+      var argument = arguments.named[i];
+      var argumentName = argument.name;
+      var argumentValue = _visitExpression(argument.value);
+      if (argument is VariableGet || argument is BasicLiteral) {
+        // No need to create new let variables, it is safe to repeat these
+        // expressions.
+        hoistedNamedVariables[argumentName] = argumentValue;
+        continue;
+      }
+      // Hoist the passed named argument expressions into let variables.
+      var hoistedVariable = _emitScopedId('\$n$i');
+      _letVariables!.add(hoistedVariable);
+      var assignment = js.call('# = #', [hoistedVariable, argumentValue]);
+      hoistedNamedVariables[argumentName] = hoistedVariable;
+      letAssignments = letAssignments == null
+          ? assignment
+          : js_ast.Binary(',', letAssignments, assignment);
+    }
+    // Create an invocation of the correctness checks to verify the call is
+    // still valid.
+    var checkResult = _emitScopedId('\$result');
+    _letVariables!.add(checkResult);
+    var jsTarget = _emitStaticTarget(target);
+    var jsTypeArguments = [
+      // TODO(nshahan): Remove this check if we stop rewriting calls to SDK
+      // functions.
+      if (_reifyGenericFunction(target))
+        for (var typeArgument in arguments.types) _emitType(typeArgument)
+    ];
+    var correctnessCheck =
+        _runtimeCall('hotReloadCorrectnessChecks(#, #, #, #, #)', [
+      jsTarget.receiver,
+      jsTarget.selector,
+      js_ast.ArrayInitializer(jsTypeArguments),
+      js_ast.ArrayInitializer(hoistedPositionalVariables),
+      hoistedNamedVariables.isEmpty
+          ? js_ast.LiteralNull()
+          : js_ast.ObjectInitializer([
+              for (var e in hoistedNamedVariables.entries)
+                js_ast.Property(js.string(e.key), e.value)
+            ])
+    ]);
+    var checkAssignment = js.call('# = #', [checkResult, correctnessCheck]);
+    letAssignments = letAssignments == null
+        ? checkAssignment
+        : js_ast.Binary(',', letAssignments, checkAssignment);
+    // Create a new invocation of the original target but passing all the
+    // arguments via their let variables.
+    var validatedCallSite = js_ast.Call(jsTarget, [
+      ...jsTypeArguments,
+      ...hoistedPositionalVariables,
+      if (hoistedNamedVariables.isNotEmpty)
+        js_ast.ObjectInitializer([
+          for (var e in hoistedNamedVariables.entries)
+            js_ast.Property(js.string(e.key), e.value)
+        ])
+    ]);
+    // Cast the result of the checked call or the value returned from a
+    // `NoSuchMethod` invocation.
+    return js_ast.Binary(
+        ',',
+        letAssignments,
+        js.call('# == # ? # : #', [
+          checkResult,
+          _runtimeCall('validArgumentsSentinel'),
+          _emitCast(validatedCallSite, expectedReturnType),
+          _emitCast(checkResult, expectedReturnType)
+        ]));
   }
 
   js_ast.Expression _emitJSObjectGetPrototypeOf(js_ast.Expression obj,
@@ -7636,7 +7785,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFunctionExpression(FunctionExpression node) {
+    var savedInFunctionExpression = _inFunctionExpression;
+    _inFunctionExpression = true;
     var fn = _emitArrowFunction(node);
+    _inFunctionExpression = savedInFunctionExpression;
     if (!_reifyFunctionType(node.function)) return fn;
     return _emitFunctionTagged(
         fn, node.getStaticType(_staticTypeContext) as FunctionType);
