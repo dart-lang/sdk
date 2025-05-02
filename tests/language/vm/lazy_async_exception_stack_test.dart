@@ -33,14 +33,15 @@ main() async {
       fail("Did not throw");
     } catch (e, st) {
       expect(
-          h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:10', // no auto-format.
-            'generator', '.dart:19', // no auto-format.
-            '<asynchronous suspension>', // no auto-format.
-            'foo', '.dart', // no auto-format.
-            'main',
-          ]),
-          isTrue);
+        h.stringContainsInOrder(st.toString(), [
+          'thrower', '.dart:10', // no auto-format.
+          'generator', '.dart:19', // no auto-format.
+          '<asynchronous suspension>', // no auto-format.
+          'foo', '.dart', // no auto-format.
+          'main',
+        ]),
+        isTrue,
+      );
     }
 
     inner() async {
@@ -56,14 +57,15 @@ main() async {
       await inner();
     } catch (e, st) {
       expect(
-          h.stringContainsInOrder(st.toString(), [
-            'thrower',
-            'main.<anonymous closure>.inner.deep',
-            'main.<anonymous closure>.inner',
-            'main',
-            '<asynchronous suspension>',
-          ]),
-          isTrue);
+        h.stringContainsInOrder(st.toString(), [
+          'thrower',
+          'main.<anonymous closure>.inner.deep',
+          'main.<anonymous closure>.inner',
+          'main',
+          '<asynchronous suspension>',
+        ]),
+        isTrue,
+      );
     }
 
     // Test for correct linkage.
@@ -71,11 +73,12 @@ main() async {
       await thrower();
     } catch (e, st) {
       expect(
-          h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:10', // no auto-format.
-            'main.<anonymous closure>', '.dart:71', // no auto-format.
-          ]),
-          isTrue);
+        h.stringContainsInOrder(st.toString(), [
+          'thrower', '.dart:10', // no auto-format.
+          'main.<anonymous closure>', '.dart:73', // no auto-format.
+        ]),
+        isTrue,
+      );
     }
   });
 }

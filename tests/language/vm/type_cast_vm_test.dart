@@ -6,7 +6,10 @@
 import "package:expect/expect.dart";
 
 checkSecondFunction(
-    String expectedFileAndLine, int expectedColum, StackTrace stacktrace) {
+  String expectedFileAndLine,
+  int expectedColum,
+  StackTrace stacktrace,
+) {
   var topLine = stacktrace.toString().split("\n")[0];
   int startPos = topLine.lastIndexOf("/");
   int endPos = topLine.lastIndexOf(")");
@@ -31,7 +34,10 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-          "type_cast_vm_test.dart:26", 23, (error as dynamic).stackTrace);
+        "type_cast_vm_test.dart:29",
+        23,
+        (error as dynamic).stackTrace,
+      );
     }
     return result;
   }
@@ -69,7 +75,10 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-          "type_cast_vm_test.dart:64", 25, (error as dynamic).stackTrace);
+        "type_cast_vm_test.dart:70",
+        25,
+        (error as dynamic).stackTrace,
+      );
     }
     return result;
   }
@@ -89,7 +98,10 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-          "type_cast_vm_test.dart:80", 16, (error as dynamic).stackTrace);
+        "type_cast_vm_test.dart:89",
+        16,
+        (error as dynamic).stackTrace,
+      );
     }
     return result;
   }
@@ -107,7 +119,10 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-          "type_cast_vm_test.dart:103", 13, (error as dynamic).stackTrace);
+        "type_cast_vm_test.dart:115",
+        13,
+        (error as dynamic).stackTrace,
+      );
     }
     return result;
   }
@@ -126,7 +141,10 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("() => Null")); // srcType
       checkSecondFunction(
-          "type_cast_vm_test.dart:122", 17, (error as dynamic).stackTrace);
+        "type_cast_vm_test.dart:137",
+        17,
+        (error as dynamic).stackTrace,
+      );
     }
     return result;
   }

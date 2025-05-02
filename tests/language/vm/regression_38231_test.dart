@@ -24,22 +24,26 @@ import 'dart:typed_data';
 Map<int, String> var0 = {
   41: 'V\u2665Y\u2665#Xs',
   for (int loc0 in {
-    if (true) for (int loc0 in {-2147483649}) -4294967167 else if (false) -1,
+    if (true)
+      for (int loc0 in {-2147483649}) -4294967167
+    else if (false)
+      -1,
     -60,
     -82,
     -21,
     for (int loc0 in [
       -9223372036854771712,
-      for (int loc0 = 0; loc0 < 53; loc0++) 96
+      for (int loc0 = 0; loc0 < 53; loc0++) 96,
     ])
       1,
     -58,
-    77
+    77,
   })
     95: '',
   5: 'z2\u2665e',
-  if (false) for (int loc0 in [-87, -2147483649, 0, 97, -53, 95]) 10: '#synP3',
-  22: ''
+  if (false)
+    for (int loc0 in [-87, -2147483649, 0, 97, -53, 95]) 10: '#synP3',
+  22: '',
 };
 String var1 = ')LIpwG';
 double var2 = 0.30016980633333135;
@@ -60,14 +64,14 @@ Set<int> var9 = {
     -26,
     -38,
     9223372032559808513,
-    60
+    60,
   })
     for (int loc1 in {
       for (int loc1 in {19, 60}) -4294967280,
       -17,
-      -62
+      -62,
     }) ...{23, 11},
-  for (int loc0 = 0; loc0 < 30; loc0++) -44
+  for (int loc0 = 0; loc0 < 30; loc0++) -44,
 };
 Map<int, String> var10 = {
   for (int loc0 in {
@@ -77,18 +81,18 @@ Map<int, String> var10 = {
       if (true) 82,
       ...{76, 5, 9223372032559841279, 98, 58, 97, -127, 72},
       for (int loc0 in [-97]) -14,
-      for (int loc0 = 0; loc0 < 21; loc0++) 88
+      for (int loc0 = 0; loc0 < 21; loc0++) 88,
     },
     -52,
     for (int loc0 = 0; loc0 < 63; loc0++) ...{64, 0},
-    for (int loc0 = 0; loc0 < 67; loc0++) ...{67}
+    for (int loc0 = 0; loc0 < 67; loc0++) ...{67},
   })
     54: '',
   41: 'cvokV0',
   4: '9\u2665',
   35: 'vRkv',
   41: '\u2665',
-  63: 'Nu+u\u26659S'
+  63: 'Nu+u\u26659S',
 };
 
 mixin class X0 {}
@@ -108,18 +112,19 @@ main() {
   }
   try {
     X1().foo1_1(
-        {
-          32,
-          -94,
-          -2147483649,
-          -43,
-          for (int loc0 in {56, -31}) -9223372032559775745,
-          53,
-          86,
-          4294967296
-        },
-        var4,
-        {1, 2});
+      {
+        32,
+        -94,
+        -2147483649,
+        -43,
+        for (int loc0 in {56, -31}) -9223372032559775745,
+        53,
+        86,
+        4294967296,
+      },
+      var4,
+      {1, 2},
+    );
   } catch (exception, stackTrace) {
     print('X1().foo1_1() throws');
   }

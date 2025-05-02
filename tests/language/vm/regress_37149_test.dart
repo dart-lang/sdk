@@ -9,12 +9,18 @@
 import 'dart:async' show FutureOr;
 
 typedef ComputeCallback<Q, R> = FutureOr<R> Function(Q message);
-typedef _ComputeImpl = Future<R?> Function<Q, R>(
-    ComputeCallback<Q, R>? callback, Q? message,
-    {String debugLabel});
+typedef _ComputeImpl =
+    Future<R?> Function<Q, R>(
+      ComputeCallback<Q, R>? callback,
+      Q? message, {
+      String debugLabel,
+    });
 
-Future<R?> isolatesCompute<Q, R>(ComputeCallback<Q, R>? callback, Q? message,
-    {String? debugLabel}) async {
+Future<R?> isolatesCompute<Q, R>(
+  ComputeCallback<Q, R>? callback,
+  Q? message, {
+  String? debugLabel,
+}) async {
   return null;
 }
 

@@ -246,13 +246,11 @@ class C14 {
   //    ^^^
   // [context 14] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
   // [context 63] 'bad' refers to a public property so it couldn't be promoted.
-  C14.assertInitializerCondition(C14 c)
-      : bad = c.bad!,
-        assert(c.bad);
-        //     ^^^^^
-        // [analyzer 14] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-        //       ^
-        // [cfe 63] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
+  C14.assertInitializerCondition(C14 c) : bad = c.bad!, assert(c.bad);
+  //                                                           ^^^^^
+  // [analyzer 14] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  //                                                             ^
+  // [cfe 63] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 }
 
 class C15 {
@@ -434,13 +432,11 @@ class C23 {
   // [context 78] 'bad' refers to a public property so it couldn't be promoted.
   final int x;
   final int y;
-  C23.constructorInitializer(C23 c)
-      : x = c.bad!,
-        y = c.bad;
-        //  ^^^^^
-        // [analyzer 29] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
-        //    ^
-        // [cfe 78] A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+  C23.constructorInitializer(C23 c) : x = c.bad!, y = c.bad;
+  //                                                  ^^^^^
+  // [analyzer 29] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
+  //                                                    ^
+  // [cfe 78] A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
 }
 
 class C24 {
@@ -674,13 +670,11 @@ class C34 {
 
 class D34 extends C34 {
   int other;
-  D34(C34 c)
-      : other = c.bad!,
-        super(c.bad);
-        //    ^^^^^
-        // [analyzer 48] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-        //      ^
-        // [cfe 97] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.
+  D34(C34 c) : other = c.bad!, super(c.bad);
+  //                                 ^^^^^
+  // [analyzer 48] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //                                   ^
+  // [cfe 97] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.
 }
 
 class C35 {

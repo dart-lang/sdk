@@ -10,16 +10,14 @@ main() {
     if (n == 0) {
       return 0;
     } else {
-      return 1
-          + foo(n - 1)
-          //^^^
-          // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-          // [cfe] Local variable 'foo' can't be referenced before it is declared.
-          // [cfe] Method not found: 'foo'.
-          ;
+      return 1 + foo(n - 1);
+      //         ^^^
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'foo' can't be referenced before it is declared.
+      // [cfe] Method not found: 'foo'.
     }
   };
   foo(1);
-//^
-// [cfe] Method not found: 'foo'.
+  // [error column 3]
+  // [cfe] Method not found: 'foo'.
 }

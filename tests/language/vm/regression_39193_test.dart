@@ -10,7 +10,8 @@
 Map<int, Set<int>> var75 = {};
 
 main() {
-  try {} catch (e, st) {} finally {
+  try {} catch (e, st) {
+  } finally {
     print('before');
     var75[42] = (false
         ? const {}
