@@ -2665,9 +2665,9 @@ abstract class DriverWatcher {
 class ErrorEncoding {
   static AnalysisError? decode(Source source, AnalysisDriverUnitError error) {
     String errorName = error.uniqueName;
-    ErrorCode? errorCode =
+    DiagnosticCode? diagnosticCode =
         errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
-    if (errorCode == null) {
+    if (diagnosticCode == null) {
       // This could fail because the error code is no longer defined, or, in
       // the case of a lint rule, if the lint rule has been disabled since the
       // errors were written.
@@ -2695,7 +2695,7 @@ class ErrorEncoding {
       source: source,
       offset: error.offset,
       length: error.length,
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       message: error.message,
       correctionMessage: error.correction.isEmpty ? null : error.correction,
       contextMessages: contextMessages,
@@ -2726,10 +2726,10 @@ class ErrorEncoding {
     );
   }
 
-  /// Return the lint code with the given [errorName], or `null` if there is no
-  /// lint registered with that name.
-  static ErrorCode? _lintCodeByUniqueName(String errorName) {
-    return linter.Registry.ruleRegistry.codeForUniqueName(errorName);
+  /// Returns the lint code with the given [diagnosticName], or `null` if there
+  /// is no lint registered with that name.
+  static DiagnosticCode? _lintCodeByUniqueName(String diagnosticName) {
+    return linter.Registry.ruleRegistry.codeForUniqueName(diagnosticName);
   }
 }
 

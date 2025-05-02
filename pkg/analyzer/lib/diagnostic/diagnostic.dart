@@ -16,8 +16,9 @@ import 'package:analyzer/src/generated/java_core.dart';
 ///
 /// [guidelines]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/diagnostics.md
 class Diagnostic {
-  /// The error code associated with the diagnostic.
-  final ErrorCode errorCode;
+  /// The diagnostic code associated with the diagnostic.
+  // TODO(srawlins): Rename this to `diagnosticCode`.
+  final DiagnosticCode errorCode;
 
   /// A list of messages that provide context for understanding the problem
   /// being reported. The list will be empty if there are no such messages.

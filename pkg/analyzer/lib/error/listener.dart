@@ -69,7 +69,7 @@ class ErrorReporter {
   /// The location of the diagnostic will be the name of the [node].
   void atConstructorDeclaration(
     ConstructorDeclaration node,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -95,7 +95,7 @@ class ErrorReporter {
   @experimental
   void atElement2(
     Element element2,
-    ErrorCode diagnosticCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -115,7 +115,7 @@ class ErrorReporter {
   /// The [entity] is used to compute the location of the error.
   void atEntity(
     SyntacticEntity entity,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -134,7 +134,7 @@ class ErrorReporter {
   /// The [node] is used to compute the location of the error.
   void atNode(
     AstNode node,
-    ErrorCode diagnosticCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -154,7 +154,7 @@ class ErrorReporter {
   void atOffset({
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    required DiagnosticCode errorCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -198,7 +198,7 @@ class ErrorReporter {
   /// The [span] is used to compute the location of the error.
   void atSourceSpan(
     SourceSpan span,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -217,7 +217,7 @@ class ErrorReporter {
   /// used to compute the location of the error.
   void atToken(
     Token token,
-    ErrorCode diagnosticCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,

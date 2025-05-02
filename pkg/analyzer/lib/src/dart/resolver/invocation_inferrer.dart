@@ -86,7 +86,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
 
   @override
-  ErrorCode get _wrongNumberOfTypeArgumentsErrorCode =>
+  DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
 
   @override
@@ -132,7 +132,7 @@ class AugmentedInvocationInferrer
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
 
   @override
-  ErrorCode get _wrongNumberOfTypeArgumentsErrorCode =>
+  DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
 }
 
@@ -213,7 +213,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
   TypeArgumentListImpl? get _typeArguments;
 
-  ErrorCode get _wrongNumberOfTypeArgumentsErrorCode =>
+  DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD;
 
   @override

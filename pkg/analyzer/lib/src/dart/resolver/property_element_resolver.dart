@@ -424,7 +424,7 @@ class PropertyElementResolver with ScopeHelpers {
 
   void _reportUnresolvedIndex(
     IndexExpression node,
-    ErrorCode errorCode, [
+    DiagnosticCode diagnosticCode, [
     List<Object> arguments = const [],
   ]) {
     var leftBracket = node.leftBracket;
@@ -435,7 +435,7 @@ class PropertyElementResolver with ScopeHelpers {
     errorReporter.atOffset(
       offset: offset,
       length: length,
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       arguments: arguments,
     );
   }

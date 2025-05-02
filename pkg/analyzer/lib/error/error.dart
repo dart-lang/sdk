@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/error/listener.dart';
+library;
+
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
@@ -21,30 +24,30 @@ export 'package:_fe_analyzer_shared/src/base/errors.dart'
 export 'package:analyzer/src/dart/error/lint_codes.dart' show LintCode;
 export 'package:analyzer/src/error/error_code_values.g.dart';
 
-/// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
-/// instance.
-final HashMap<String, ErrorCode> _uniqueNameToCodeMap =
+/// The lazy initialized map from [ErrorCode.uniqueName] to the
+/// [DiagnosticCode] instance.
+final HashMap<String, DiagnosticCode> _uniqueNameToCodeMap =
     _computeUniqueNameToCodeMap();
 
-/// Return the [ErrorCode] with the given [uniqueName], or `null` if not
+/// Return the [DiagnosticCode] with the given [uniqueName], or `null` if not
 /// found.
-ErrorCode? errorCodeByUniqueName(String uniqueName) {
+DiagnosticCode? errorCodeByUniqueName(String uniqueName) {
   return _uniqueNameToCodeMap[uniqueName];
 }
 
-/// Return the map from [ErrorCode.uniqueName] to the [ErrorCode] instance
+/// Return the map from [ErrorCode.uniqueName] to the [DiagnosticCode] instance
 /// for all [errorCodeValues].
-HashMap<String, ErrorCode> _computeUniqueNameToCodeMap() {
-  var result = HashMap<String, ErrorCode>();
-  for (ErrorCode errorCode in errorCodeValues) {
-    var uniqueName = errorCode.uniqueName;
+HashMap<String, DiagnosticCode> _computeUniqueNameToCodeMap() {
+  var result = HashMap<String, DiagnosticCode>();
+  for (DiagnosticCode diagnosticCode in errorCodeValues) {
+    var uniqueName = diagnosticCode.uniqueName;
     assert(() {
       if (result.containsKey(uniqueName)) {
         throw StateError('Not unique: $uniqueName');
       }
       return true;
     }());
-    result[uniqueName] = errorCode;
+    result[uniqueName] = diagnosticCode;
   }
   return result;
 }
