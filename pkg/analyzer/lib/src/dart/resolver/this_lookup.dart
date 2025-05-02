@@ -33,6 +33,8 @@ class ThisLookup {
       receiver: null,
       receiverType: thisType,
       name: id,
+      hasRead: true,
+      hasWrite: false,
       propertyErrorEntity: node,
       nameErrorEntity: node,
     );
@@ -74,6 +76,8 @@ class ThisLookup {
       receiver: null,
       receiverType: thisType,
       name: id,
+      hasRead: false,
+      hasWrite: true,
       propertyErrorEntity: node,
       nameErrorEntity: node,
     );

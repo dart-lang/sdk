@@ -1612,6 +1612,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       receiver: null,
       receiverType: receiverType.unwrapTypeView(),
       name: nameToken.lexeme,
+      hasRead: true,
+      hasWrite: false,
       propertyErrorEntity: objectPattern.type,
       nameErrorEntity: nameToken,
     );
@@ -1665,6 +1667,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       receiver: null,
       receiverType: matchedType.unwrapTypeView(),
       name: methodName,
+      hasRead: true,
+      hasWrite: false,
       propertyErrorEntity: node.operator,
       nameErrorEntity: node,
       parentNode: node,

@@ -431,6 +431,8 @@ class BinaryExpressionResolver {
       receiver: leftOperand,
       receiverType: leftType,
       name: methodName,
+      hasRead: true,
+      hasWrite: false,
       propertyErrorEntity: node.operator,
       nameErrorEntity: node,
     );

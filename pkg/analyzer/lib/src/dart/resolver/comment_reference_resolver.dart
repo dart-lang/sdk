@@ -185,6 +185,8 @@ class CommentReferenceResolver {
         receiver: null,
         receiverType: enclosingType,
         name: identifier.name,
+        hasRead: true,
+        hasWrite: true,
         propertyErrorEntity: identifier,
         nameErrorEntity: identifier,
       );

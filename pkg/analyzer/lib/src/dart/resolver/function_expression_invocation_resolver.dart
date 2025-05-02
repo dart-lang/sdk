@@ -92,6 +92,8 @@ class FunctionExpressionInvocationResolver {
       receiver: function,
       receiverType: receiverType,
       name: MethodElement.CALL_METHOD_NAME,
+      hasRead: true,
+      hasWrite: false,
       propertyErrorEntity: function,
       nameErrorEntity: function,
     );

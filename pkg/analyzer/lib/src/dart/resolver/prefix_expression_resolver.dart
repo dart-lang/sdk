@@ -186,6 +186,8 @@ class PrefixExpressionResolver {
         receiver: operand,
         receiverType: readType,
         name: methodName,
+        hasRead: true,
+        hasWrite: false,
         propertyErrorEntity: node.operator,
         nameErrorEntity: operand,
       );

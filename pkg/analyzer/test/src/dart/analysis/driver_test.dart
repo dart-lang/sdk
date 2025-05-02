@@ -5914,7 +5914,6 @@ void f() {
             foo: #M1
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -5972,7 +5971,6 @@ class A {
             foo: #M5
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -6039,7 +6037,6 @@ void f() {
             foo: #M1
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -6097,7 +6094,6 @@ class A {
             foo: #M1
           methods
             foo: #M5
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -6843,7 +6839,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -6915,7 +6910,6 @@ class B extends A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -6989,7 +6983,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7061,7 +7054,6 @@ class B implements A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -7135,7 +7127,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7207,7 +7198,6 @@ class B with A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -7380,7 +7370,6 @@ void f(A a) {
         A
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -7438,7 +7427,6 @@ class A {
         A
           methods
             foo: #M4
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -7513,7 +7501,6 @@ void f(A a) {
         A
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8253,7 +8240,6 @@ class A {
         A
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -8333,7 +8319,6 @@ void f(C c) {
         C
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8411,7 +8396,6 @@ class C extends B {}
         C
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -8485,7 +8469,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8557,7 +8540,6 @@ class B extends A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -8631,7 +8613,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8703,7 +8684,6 @@ class B implements A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -8777,7 +8757,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -8849,7 +8828,6 @@ class B with A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -9236,7 +9214,6 @@ void f(A a) {
         A
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -9353,7 +9330,6 @@ void f(A a) {
         A
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -9411,7 +9387,6 @@ class A {
         A
           methods
             foo: #M4
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -9486,7 +9461,6 @@ void f(A a) {
         A
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -9645,7 +9619,6 @@ class A {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M2
 [status] idle
 ''',
@@ -9719,7 +9692,6 @@ void f(B b) {
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -9791,7 +9763,6 @@ class B extends A<double> {}
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -9865,7 +9836,6 @@ void f(B b) {
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -9937,7 +9907,6 @@ class B implements A<double> {}
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -10011,7 +9980,6 @@ void f(B b) {
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -10083,7 +10051,6 @@ class B with A<double> {}
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -10256,7 +10223,6 @@ void f(A a) {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -10380,7 +10346,6 @@ void f(A a) {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -10438,7 +10403,6 @@ class A {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M4
 [status] idle
 ''',
@@ -11578,7 +11542,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11650,7 +11613,6 @@ mixin B on A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -11722,7 +11684,6 @@ void f(A a) {
         A
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -11780,7 +11741,6 @@ mixin A {
         A
           methods
             foo: #M4
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -11855,7 +11815,6 @@ void f(A a) {
         A
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -12595,7 +12554,6 @@ mixin A {
         A
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -12669,7 +12627,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -12741,7 +12698,6 @@ mixin B implements A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -12815,7 +12771,6 @@ void f(B b) {
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -12887,7 +12842,6 @@ mixin B on A<double> {}
         B
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -12952,7 +12906,6 @@ void f(A a) {
         A
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -13069,7 +13022,6 @@ void f(A a) {
         A
           methods
             foo: #M1
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -13127,7 +13079,6 @@ mixin A {
         A
           methods
             foo: #M4
-            foo=: <null>
 [status] idle
 ''',
     );
@@ -13202,7 +13153,6 @@ void f(A a) {
         A
           methods
             foo: #M2
-            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -13361,7 +13311,6 @@ mixin A {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M2
 [status] idle
 ''',
@@ -13435,7 +13384,6 @@ void f(B b) {
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -13507,7 +13455,6 @@ mixin B on A<double> {}
       package:test/a.dart
         B
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -13579,7 +13526,6 @@ void f(A a) {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -13703,7 +13649,6 @@ void f(A a) {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M1
 [status] idle
 ''',
@@ -13761,7 +13706,6 @@ mixin A {
       package:test/a.dart
         A
           methods
-            foo: <null>
             foo=: #M4
 [status] idle
 ''',

@@ -265,6 +265,8 @@ class AssignmentExpressionResolver {
       receiver: left,
       receiverType: leftType,
       name: methodName,
+      hasRead: operatorType != TokenType.EQ,
+      hasWrite: true,
       propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
