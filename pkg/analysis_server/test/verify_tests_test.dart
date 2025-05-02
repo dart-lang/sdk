@@ -23,7 +23,10 @@ class _VerifyTests extends VerifyTests {
   _VerifyTests(super.testDirPath, {super.excludedPaths});
 
   @override
-  bool isExpensive(Resource resource) => resource.shortName == 'integration';
+  bool isExpensive(Resource resource) {
+    return resource.shortName == 'integration' ||
+        resource.shortName == 'benchmarks_test.dart';
+  }
 
   @override
   bool isOkAsAdditionalTestAllImport(Folder folder, String uri) {

@@ -3489,7 +3489,7 @@ class SourceChange implements HasToJson {
 class SourceEdit implements HasToJson {
   /// Get the result of applying a set of [edits] to the given [code]. Edits
   /// are applied in the order they appear in [edits].
-  static String applySequence(String code, Iterable<SourceEdit> edits) =>
+  static String applySequence(String code, List<SourceEdit> edits) =>
       applySequenceOfEdits(code, edits);
 
   /// The offset of the region to be modified.

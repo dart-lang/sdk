@@ -113,7 +113,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
         linesRange,
       );
       movedNode.accept(visitor);
-      return SourceEdit.applySequence(text, visitor.edits.reversed);
+      return SourceEdit.applySequence(text, visitor.edits.reversed.toList());
     }
 
     var statefulWidgetClass = await sessionHelper.getFlutterClass(
