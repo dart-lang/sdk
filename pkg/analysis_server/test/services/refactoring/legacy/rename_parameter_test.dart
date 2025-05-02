@@ -444,6 +444,23 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_parameterParameter() async {
+    await indexTestUnit('''
+void f(void Function(int myParameter) f) {
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('myParameter');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(void Function(int newName) f) {
+}
+''');
+  }
+
   Future<void> test_createChange_super() async {
     await indexTestUnit('''
 class A {
