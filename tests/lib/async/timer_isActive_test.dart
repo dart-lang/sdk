@@ -10,8 +10,10 @@ main() {
   test("timer isActive test", () {
     late Timer t;
 
-    t = new Timer(const Duration(seconds: 1),
-        expectAsync0(() => expect(t.isActive, equals(false))));
+    t = new Timer(
+      const Duration(seconds: 1),
+      expectAsync0(() => expect(t.isActive, equals(false))),
+    );
     expect(t.isActive, equals(true));
   });
 
@@ -29,17 +31,23 @@ main() {
     }
 
     t = new Timer.periodic(
-        new Duration(milliseconds: 1), expectAsync1(checkActive, count: 3));
+      new Duration(milliseconds: 1),
+      expectAsync1(checkActive, count: 3),
+    );
     expect(t.isActive, equals(true));
   });
 
   test("timer cancel test", () {
     Timer timer = new Timer(
-        const Duration(seconds: 15), () => fail("Should not be reached."));
-    Timer.run(expectAsync0(() {
-      expect(timer.isActive, equals(true));
-      timer.cancel();
-      expect(timer.isActive, equals(false));
-    }));
+      const Duration(seconds: 15),
+      () => fail("Should not be reached."),
+    );
+    Timer.run(
+      expectAsync0(() {
+        expect(timer.isActive, equals(true));
+        timer.cancel();
+        expect(timer.isActive, equals(false));
+      }),
+    );
   });
 }

@@ -21,30 +21,35 @@ main() {
   // counts is the zone where `listen` was invoked.
   catchErrors(() {
     catchErrors(() {
-      controller = new StreamController();
+          controller = new StreamController();
 
-      // Assignment to "global" `stream`.
-      stream = controller.stream.map((x) {
-        events.add("map $x");
-        return x + 100;
-      }).asBroadcastStream();
+          // Assignment to "global" `stream`.
+          stream = controller.stream.map((x) {
+            events.add("map $x");
+            return x + 100;
+          }).asBroadcastStream();
 
-      // Consume stream in the nested zone.
-      stream.transform(
-          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
-        sink.add("error $e");
-      })).listen((x) {
-        events.add("stream $x");
-      });
+          // Consume stream in the nested zone.
+          stream
+              .transform(
+                new StreamTransformer.fromHandlers(
+                  handleError: (e, st, sink) {
+                    sink.add("error $e");
+                  },
+                ),
+              )
+              .listen((x) {
+                events.add("stream $x");
+              });
 
-      // Feed the controller in the nested zone.
-      scheduleMicrotask(() {
-        controller.add(1);
-        controller.addError(2);
-        controller.close();
-        new Future.error("done");
-      });
-    })
+          // Feed the controller in the nested zone.
+          scheduleMicrotask(() {
+            controller.add(1);
+            controller.addError(2);
+            controller.close();
+            new Future.error("done");
+          });
+        })
         .listen((x) {
           events.add("listen: $x");
           if (x == "done") done.complete(true);
@@ -58,11 +63,14 @@ main() {
     stream.listen((x) {
       events.add("stream2 $x");
     });
-  }).listen((x) {
-    events.add("outer: $x");
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add("outer: $x");
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give handlers time to run.

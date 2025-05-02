@@ -28,15 +28,7 @@ main() {
   });
 
   done.future.whenComplete(() {
-    Expect.listEquals([
-      "main exit",
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-    ], events);
+    Expect.listEquals(["main exit", 1, 2, 3, 4, 5, 6], events);
     asyncEnd();
   });
   events.add("main exit");

@@ -17,17 +17,20 @@ main() {
   late Completer completer2;
   late Future future;
   late Future future2;
-  runZonedScheduleMicrotask(() {
-    completer = new Completer();
-    completer.complete(499);
-    completer2 = new Completer.sync();
-    completer2.complete(-499);
-    future = new Future.value(42);
-    future2 = new Future.error(11);
-  }, onScheduleMicrotask: (f) {
-    scheduleMicrotaskCount++;
-    scheduleMicrotask(f);
-  });
+  runZonedScheduleMicrotask(
+    () {
+      completer = new Completer();
+      completer.complete(499);
+      completer2 = new Completer.sync();
+      completer2.complete(-499);
+      future = new Future.value(42);
+      future2 = new Future.error(11);
+    },
+    onScheduleMicrotask: (f) {
+      scheduleMicrotaskCount++;
+      scheduleMicrotask(f);
+    },
+  );
   int openCallbackCount = 0;
 
   openCallbackCount++;

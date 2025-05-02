@@ -28,10 +28,13 @@ main() {
       });
     });
     return 'allDone';
-  }).listen((x) {
-    Expect.fail("Unexpected callback");
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      Expect.fail("Unexpected callback");
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
   done.future.whenComplete(asyncEnd);
 }

@@ -19,19 +19,25 @@ main() {
   // Test `StreamController.broadcast` streams.
   catchErrors(() {
     catchErrors(() {
-      controller = new StreamController.broadcast();
+          controller = new StreamController.broadcast();
 
-      // Listen to the stream from the inner zone.
-      controller.stream.map((x) {
-        events.add("map $x");
-        return x + 100;
-      }).transform(
-          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
-        sink.add("error $e");
-      })).listen((x) {
-        events.add("stream $x");
-      });
-    })
+          // Listen to the stream from the inner zone.
+          controller.stream
+              .map((x) {
+                events.add("map $x");
+                return x + 100;
+              })
+              .transform(
+                new StreamTransformer.fromHandlers(
+                  handleError: (e, st, sink) {
+                    sink.add("error $e");
+                  },
+                ),
+              )
+              .listen((x) {
+                events.add("stream $x");
+              });
+        })
         .listen((x) {
           events.add(x);
         })
@@ -41,23 +47,29 @@ main() {
         });
 
     // Listen to the stream from the outer zone.
-    controller.stream.listen((x) {
-      events.add("stream2 $x");
-    }, onError: (x) {
-      events.add("stream2 error $x");
-    });
+    controller.stream.listen(
+      (x) {
+        events.add("stream2 $x");
+      },
+      onError: (x) {
+        events.add("stream2 error $x");
+      },
+    );
 
     // Feed the controller.
     controller.add(1);
     controller.addError("inner stream");
     new Future.error("outer error");
     controller.close();
-  }).listen((x) {
-    events.add("outer: $x");
-    if (x == "outer error") done.complete(true);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add("outer: $x");
+      if (x == "outer error") done.complete(true);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give handlers time to run.

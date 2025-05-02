@@ -27,10 +27,13 @@ main() {
     Events expected = new Events.fromIterable([10, 12]);
     Events input = new Events.fromIterable([1, 2, 3, 4, 5, 6, 7]);
     Events actual = new Events.capture(
-        c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2));
-    actual.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual.events);
-    }));
+      c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2),
+    );
+    actual.onDone(
+      expectAsync(() {
+        Expect.listEquals(expected.events, actual.events);
+      }),
+    );
     input.replay(c);
   });
 
@@ -39,10 +42,13 @@ main() {
     Events expected = new Events.fromIterable([10, 12]);
     Events input = new Events.fromIterable([1, 2, 3, 4, 5, 6, 7]);
     Events actual = new Events.capture(
-        c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2));
-    actual.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual.events);
-    }));
+      c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2),
+    );
+    actual.onDone(
+      expectAsync(() {
+        Expect.listEquals(expected.events, actual.events);
+      }),
+    );
     actual.pause();
     input.replay(c);
     actual.resume();
@@ -53,11 +59,15 @@ main() {
     controller.stream
         .map((e) => e)
         .transform(
-            new StreamTransformer.fromHandlers(handleData: (element, sink) {
-          sink.add(element);
-        }, handleDone: (sink) {
-          sink.close();
-        }))
+          new StreamTransformer.fromHandlers(
+            handleData: (element, sink) {
+              sink.add(element);
+            },
+            handleDone: (sink) {
+              sink.close();
+            },
+          ),
+        )
         .listen(expectAsync((e) => expect(e, equals("foo"))));
 
     controller.add("foo");

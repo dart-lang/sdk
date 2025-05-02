@@ -39,8 +39,11 @@ main() {
 
   // Test that runZonedScheduleMicrotask works when async, error and done
   // are used.
-  var result = runZonedScheduleMicrotask(body,
-      onScheduleMicrotask: onAsyncHandler, onError: onErrorHandler);
+  var result = runZonedScheduleMicrotask(
+    body,
+    onScheduleMicrotask: onAsyncHandler,
+    onError: onErrorHandler,
+  );
   events.add("after");
   Timer.run(() {
     Expect.listEquals([
@@ -49,7 +52,7 @@ main() {
       "async handler done",
       "after",
       "run async body",
-      "error: foo"
+      "error: foo",
     ], events);
     asyncEnd();
   });

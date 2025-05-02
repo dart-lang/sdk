@@ -12,34 +12,45 @@ main() {
 
   Expect.identical(Zone.root, Zone.current);
   Zone forked;
-  forked = Zone.current.fork(specification: new ZoneSpecification(fork:
-      (Zone self,
-          ZoneDelegate parent,
-          Zone origin,
-          ZoneSpecification? zoneSpecification,
-          Map<Object?, Object?>? mapValues) {
-    // The zone is still the same as when origin.run was invoked, which
-    // is the root zone. (The origin zone hasn't been set yet).
-    Expect.identical(Zone.root, Zone.current);
-    events.add("forked.fork");
-    var descriptionRun = zoneSpecification!.run!;
-    ZoneSpecification modified = new ZoneSpecification.from(zoneSpecification,
-        run: <R>(self, parent, origin, R f()) {
-      events.add("wrapped run");
-      return descriptionRun(self, parent, origin, () {
-        events.add("wrapped f");
-        return f();
-      });
-    });
-    return parent.fork(origin, modified, mapValues);
-  }));
+  forked = Zone.current.fork(
+    specification: new ZoneSpecification(
+      fork:
+          (
+            Zone self,
+            ZoneDelegate parent,
+            Zone origin,
+            ZoneSpecification? zoneSpecification,
+            Map<Object?, Object?>? mapValues,
+          ) {
+            // The zone is still the same as when origin.run was invoked, which
+            // is the root zone. (The origin zone hasn't been set yet).
+            Expect.identical(Zone.root, Zone.current);
+            events.add("forked.fork");
+            var descriptionRun = zoneSpecification!.run!;
+            ZoneSpecification modified = new ZoneSpecification.from(
+              zoneSpecification,
+              run: <R>(self, parent, origin, R f()) {
+                events.add("wrapped run");
+                return descriptionRun(self, parent, origin, () {
+                  events.add("wrapped f");
+                  return f();
+                });
+              },
+            );
+            return parent.fork(origin, modified, mapValues);
+          },
+    ),
+  );
 
   events.add("start");
-  Zone forkedChild = forked.fork(specification: new ZoneSpecification(
+  Zone forkedChild = forked.fork(
+    specification: new ZoneSpecification(
       run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
-    events.add("executing child run");
-    return parent.run(origin, f);
-  }));
+        events.add("executing child run");
+        return parent.run(origin, f);
+      },
+    ),
+  );
 
   events.add("after child fork");
   Expect.identical(Zone.root, Zone.current);
@@ -58,6 +69,6 @@ main() {
     "executing child run",
     "wrapped f",
     "child run",
-    "after child run"
+    "after child run",
   ], events);
 }

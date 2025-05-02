@@ -11,14 +11,18 @@ import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member
 
 main() {
   test("stream-periodic2", () {
-    Stream stream =
-        new Stream.periodic(const Duration(milliseconds: 1), (x) => x);
+    Stream stream = new Stream.periodic(
+      const Duration(milliseconds: 1),
+      (x) => x,
+    );
     int receivedCount = 0;
     var subscription;
-    subscription = stream.listen(expectAsync((data) {
-      expect(data, receivedCount);
-      receivedCount++;
-      if (receivedCount == 5) subscription.cancel();
-    }, count: 5));
+    subscription = stream.listen(
+      expectAsync((data) {
+        expect(data, receivedCount);
+        receivedCount++;
+        if (receivedCount == 5) subscription.cancel();
+      }, count: 5),
+    );
   });
 }

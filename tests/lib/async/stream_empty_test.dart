@@ -13,17 +13,22 @@ main() async {
     // Can be called with optional boolean to say whether broadcast or not.
     await asyncTest(() => emptyTest(const Stream<int>.empty(), true));
     await asyncTest(
-        () => emptyTest(const Stream<int>.empty(broadcast: true), true));
+      () => emptyTest(const Stream<int>.empty(broadcast: true), true),
+    );
     await asyncTest(
-        () => emptyTest(const Stream<int>.empty(broadcast: false), false));
+      () => emptyTest(const Stream<int>.empty(broadcast: false), false),
+    );
 
     // Check that the behavior is consistent with other empty multi-subscription
     // streams.
     await asyncTest(() => emptyTest(Stream<int>.fromIterable(<int>[]), false));
-    await asyncTest(() =>
-        emptyTest((StreamController<int>.broadcast()..close()).stream, true));
     await asyncTest(
-        () => emptyTest(Stream<int>.multi((c) => c.close()), false));
+      () =>
+          emptyTest((StreamController<int>.broadcast()..close()).stream, true),
+    );
+    await asyncTest(
+      () => emptyTest(Stream<int>.multi((c) => c.close()), false),
+    );
   });
   await flushMicrotasks();
 }
@@ -50,8 +55,11 @@ Future<void> emptyTest(Stream<int> s, bool broadcast) async {
   // Has the expected `isBroadcast`.
   Expect.equals(broadcast, s.isBroadcast);
 
-  StreamSubscription<int> sub =
-      s.listen(unreachable, onError: unreachable, onDone: checker.check);
+  StreamSubscription<int> sub = s.listen(
+    unreachable,
+    onError: unreachable,
+    onDone: checker.check,
+  );
   // Type parameter of subscription respects stream.
   // Not a `StreamSubscription<Never>`.
   Expect.isFalse(sub is StreamSubscription<String>);
@@ -66,8 +74,11 @@ Future<void> emptyTest(Stream<int> s, bool broadcast) async {
 
   // Can listen more than once, whether broadcast stream or not.
   checker = Checker();
-  StreamSubscription<int> sub2 =
-      s.listen(unreachable, onError: unreachable, onDone: checker.check);
+  StreamSubscription<int> sub2 = s.listen(
+    unreachable,
+    onError: unreachable,
+    onDone: checker.check,
+  );
   // Respects pauses.
   sub2.pause();
   Expect.isTrue(sub2.isPaused);
@@ -141,15 +152,19 @@ Future<void> emptyTest(Stream<int> s, bool broadcast) async {
   }
 
   zone = Zone.current.fork(
-      specification: ZoneSpecification(registerCallback: <R>(s, p, z, f) {
-    if (f == callback1) log.add("reg1");
-    if (f == callback2) log.add("reg2");
-    return p.registerCallback<R>(z, f);
-  }, run: <R>(s, p, z, f) {
-    if (f == callback1) log.add("run1");
-    if (f == callback2) log.add("run2");
-    return p.run<R>(z, f);
-  }));
+    specification: ZoneSpecification(
+      registerCallback: <R>(s, p, z, f) {
+        if (f == callback1) log.add("reg1");
+        if (f == callback2) log.add("reg2");
+        return p.registerCallback<R>(z, f);
+      },
+      run: <R>(s, p, z, f) {
+        if (f == callback1) log.add("run1");
+        if (f == callback2) log.add("run2");
+        return p.run<R>(z, f);
+      },
+    ),
+  );
 
   await zone.run(() async {
     var s = Stream<int>.empty();

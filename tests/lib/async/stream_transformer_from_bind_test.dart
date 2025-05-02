@@ -11,8 +11,9 @@ import 'event_helper.dart';
 
 void main() {
   asyncStart();
-  var transformer =
-      new StreamTransformer<int, String>.fromBind((s) => s.map((v) => '$v'));
+  var transformer = new StreamTransformer<int, String>.fromBind(
+    (s) => s.map((v) => '$v'),
+  );
   var controller = new StreamController<int>(sync: true);
   Events expected = new Events.fromIterable(['1', '2']);
   Events input = new Events.fromIterable([1, 2]);

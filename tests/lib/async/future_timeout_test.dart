@@ -12,8 +12,10 @@ main() {
   Future timeoutNoComplete() async {
     asyncStart();
     Completer completer = new Completer();
-    Future timedOut = completer.future
-        .timeout(const Duration(milliseconds: 5), onTimeout: () => 42);
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () => 42,
+    );
     timedOut.then((v) {
       Expect.isTrue(v == 42);
       asyncEnd();
@@ -23,8 +25,10 @@ main() {
   Future timeoutCompleteAfterTimeout() async {
     asyncStart();
     Completer completer = new Completer();
-    Future timedOut = completer.future
-        .timeout(const Duration(milliseconds: 5), onTimeout: () => 42);
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () => 42,
+    );
     Timer timer = new Timer(const Duration(seconds: 1), () {
       asyncStart();
       completer.complete(-1);
@@ -42,8 +46,10 @@ main() {
       asyncStart();
       completer.complete(42);
     });
-    Future timedOut = completer.future
-        .timeout(const Duration(seconds: 1), onTimeout: () => -1);
+    Future timedOut = completer.future.timeout(
+      const Duration(seconds: 1),
+      onTimeout: () => -1,
+    );
     timedOut.then((v) {
       Expect.isTrue(v == 42);
       asyncEnd();
@@ -54,8 +60,10 @@ main() {
     asyncStart();
     Completer completer = new Completer.sync();
     completer.complete(42);
-    Future timedOut = completer.future
-        .timeout(const Duration(milliseconds: 5), onTimeout: () => -1);
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () => -1,
+    );
     timedOut.then((v) {
       Expect.isTrue(v == 42);
       asyncEnd();
@@ -65,10 +73,12 @@ main() {
   Future timeoutThrows() async {
     asyncStart();
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5),
-        onTimeout: () {
-      throw "EXN1";
-    });
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () {
+        throw "EXN1";
+      },
+    );
     timedOut.catchError((e, s) {
       Expect.isTrue(e == "EXN1");
     });
@@ -77,8 +87,10 @@ main() {
   Future timeoutThrowAfterTimeout() async {
     asyncStart();
     Completer completer = new Completer();
-    Future timedOut = completer.future
-        .timeout(const Duration(milliseconds: 5), onTimeout: () => 42);
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () => 42,
+    );
     Timer timer = new Timer(const Duration(seconds: 1), () {
       asyncStart();
       completer.completeError("EXN2");
@@ -96,8 +108,10 @@ main() {
       asyncStart();
       completer.completeError("EXN3");
     });
-    Future timedOut = completer.future
-        .timeout(const Duration(seconds: 1), onTimeout: () => -1);
+    Future timedOut = completer.future.timeout(
+      const Duration(seconds: 1),
+      onTimeout: () => -1,
+    );
     timedOut.catchError((e, s) {
       Expect.isTrue(e == "EXN3");
     });
@@ -108,8 +122,10 @@ main() {
     // Prevent uncaught error when we create the error.
     Completer completer = new Completer.sync()..future.catchError((e) {});
     completer.completeError("EXN4");
-    Future timedOut = completer.future
-        .timeout(const Duration(milliseconds: 5), onTimeout: () => -1);
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () => -1,
+    );
     timedOut.catchError((e, s) {
       Expect.isTrue(e == "EXN4");
     });
@@ -119,8 +135,10 @@ main() {
     asyncStart();
     Future result = new Future.value(42);
     Completer completer = new Completer();
-    Future timedOut = completer.future
-        .timeout(const Duration(milliseconds: 5), onTimeout: () => result);
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () => result,
+    );
     timedOut.then((v) {
       Expect.isTrue(v == 42);
       asyncEnd();
@@ -131,8 +149,10 @@ main() {
     asyncStart();
     Future result = new Future.error("EXN5")..catchError((e) {});
     Completer completer = new Completer();
-    Future timedOut = completer.future
-        .timeout(const Duration(milliseconds: 5), onTimeout: () => result);
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () => result,
+    );
     timedOut.catchError((e, s) {
       Expect.isTrue(e == "EXN5");
     });
@@ -142,11 +162,13 @@ main() {
     asyncStart();
     Completer result = new Completer();
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5),
-        onTimeout: () {
-      result.complete(42);
-      return result.future;
-    });
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () {
+        result.complete(42);
+        return result.future;
+      },
+    );
     timedOut.then((v) {
       Expect.isTrue(v == 42);
       asyncEnd();
@@ -157,11 +179,13 @@ main() {
     asyncStart();
     Completer result = new Completer();
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5),
-        onTimeout: () {
-      result.completeError("EXN6");
-      return result.future;
-    });
+    Future timedOut = completer.future.timeout(
+      const Duration(milliseconds: 5),
+      onTimeout: () {
+        result.completeError("EXN6");
+        return result.future;
+      },
+    );
     timedOut.catchError((e, s) {
       Expect.isTrue(e == "EXN6");
     });
@@ -181,28 +205,33 @@ main() {
     }
 
     ;
-    forked = Zone.current.fork(specification: new ZoneSpecification(
+    forked = Zone.current.fork(
+      specification: new ZoneSpecification(
         registerCallback:
             <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
-      R Function() result;
-      if (!identical(f, callback)) {
-        result = f;
-      } else {
-        registerCallDelta++; // Increment calls to register.
-        Expect.isTrue(origin == forked);
-        Expect.isTrue(self == forked);
-        result = () {
-          registerCallDelta--;
-          return f();
-        };
-      }
-      return f;
-    }));
+              R Function() result;
+              if (!identical(f, callback)) {
+                result = f;
+              } else {
+                registerCallDelta++; // Increment calls to register.
+                Expect.isTrue(origin == forked);
+                Expect.isTrue(self == forked);
+                result = () {
+                  registerCallDelta--;
+                  return f();
+                };
+              }
+              return f;
+            },
+      ),
+    );
     Completer completer = new Completer();
     late Future timedOut;
     forked.run(() {
-      timedOut = completer.future
-          .timeout(const Duration(milliseconds: 5), onTimeout: callback);
+      timedOut = completer.future.timeout(
+        const Duration(milliseconds: 5),
+        onTimeout: callback,
+      );
     });
     timedOut.then((v) {
       Expect.isTrue(callbackCalled);
