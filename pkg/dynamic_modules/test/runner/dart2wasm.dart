@@ -65,10 +65,10 @@ class Dart2wasmExecutor implements TargetExecutor {
       // This is required while binaryen lacks support for partially closed
       // world optimizations.
       '-O0',
+      '--extra-compiler-option=--dynamic-module-type=${isMain ? "main" : "submodule"}',
       '--extra-compiler-option=--dynamic-module-main=main.dart.dill',
-      if (isMain)
-        '--extra-compiler-option=--dynamic-module-interface='
-            '$rootScheme:/data/$testName/dynamic_interface.yaml',
+      '--extra-compiler-option=--dynamic-module-interface='
+          '$rootScheme:/data/$testName/dynamic_interface.yaml',
       '$rootScheme:/data/$testName/$source',
       '$source.wasm',
     ];

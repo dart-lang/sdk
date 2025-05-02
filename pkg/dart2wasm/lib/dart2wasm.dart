@@ -8,6 +8,7 @@ import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
+import 'dynamic_modules.dart' show DynamicModuleType;
 import 'generate_wasm.dart';
 import 'option.dart';
 
@@ -103,23 +104,31 @@ final List<Option> options = [
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),
+
   // Flags for dynamic modules
-  // The modified dill file produced by the main module compilation for dynamic
-  // modules. Providing this and not "dynamic-module-interface" indicates that
-  // this is a compilation of a dynamic module. The dill will contain the AST
-  // for the main module as well as some annotations to help identify entities
-  // when compiling dynamic modules.
+  StringOption("dynamic-module-type",
+      (o, value) => o.dynamicModuleType = DynamicModuleType.parse(value)),
+
+  // The modified dill file to be output by the main module compilation for
+  // dynamic modules. The dill will contain the AST for the main module as well
+  // as some annotations to help identify entities when compiling dynamic
+  // modules.
   UriOption(
       "dynamic-module-main", (o, value) => o.dynamicModuleMainUri = value),
+
   // A yaml file describing the interface of the main module accessible from
-  // dynamic modules. Providing this indicates to the dart2wasm that the module
-  // produced should support dynamic modules.
+  // dynamic modules.
   UriOption(
       "dynamic-module-interface", (o, value) => o.dynamicInterfaceUri = value),
+
   // A binary metadata file produced by the main module compilation for dynamic
   // modules.
   UriOption("dynamic-module-metadata",
       (o, value) => o.dynamicModuleMetadataFile = value),
+
+  Flag("validate-dynamic-modules",
+      (o, value) => o.validateDynamicModules = value,
+      defaultsTo: true, negatable: true),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

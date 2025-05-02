@@ -36,6 +36,17 @@ import 'util.dart';
 const String _mainModLibPragma = 'wasm:mainMod';
 const String _dynamicModuleEntryPointName = '\$invokeEntryPoint';
 
+enum DynamicModuleType {
+  main,
+  submodule;
+
+  static DynamicModuleType parse(String s) => switch (s) {
+        "main" => main,
+        "submodule" => submodule,
+        _ => throw ArgumentError("Unrecognized dynamic module type $s."),
+      };
+}
+
 extension DynamicModuleComponent on Component {
   static final Expando<Procedure> _dynamicModuleEntryPoint =
       Expando<Procedure>();
