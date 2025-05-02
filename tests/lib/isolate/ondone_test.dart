@@ -39,20 +39,22 @@ void testExit() {
     if (!mayComplete) throw "COMPLETED EARLY";
     asyncEnd();
   });
-  Isolate.spawn(isomain, reply.sendPort).then((Isolate isolate) {
-    isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE");
-    return completer.future;
-  }).then((echoPort) {
-    int counter = 4;
-    reply.handler = (v) {
-      if (v != counter) throw "WRONG REPLY";
-      if (v == 0) throw "REPLY INSTEAD OF SHUTDOWN";
-      counter--;
-      mayComplete = (counter == 0);
-      echoPort.send(counter);
-    };
-    echoPort.send(counter);
-  });
+  Isolate.spawn(isomain, reply.sendPort)
+      .then((Isolate isolate) {
+        isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE");
+        return completer.future;
+      })
+      .then((echoPort) {
+        int counter = 4;
+        reply.handler = (v) {
+          if (v != counter) throw "WRONG REPLY";
+          if (v == 0) throw "REPLY INSTEAD OF SHUTDOWN";
+          counter--;
+          mayComplete = (counter == 0);
+          echoPort.send(counter);
+        };
+        echoPort.send(counter);
+      });
 }
 
 void testCancelExit() {
@@ -107,19 +109,21 @@ void testOverrideResponse() {
     if (!mayComplete) throw "COMPLETED EARLY";
     asyncEnd();
   });
-  Isolate.spawn(isomain, reply.sendPort).then((Isolate isolate) {
-    isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE");
-    isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE2");
-    return completer.future;
-  }).then((echoPort) {
-    int counter = 4;
-    reply.handler = (v) {
-      if (v != counter) throw "WRONG REPLY";
-      if (v == 0) throw "REPLY INSTEAD OF SHUTDOWN";
-      counter--;
-      mayComplete = (counter == 0);
-      echoPort.send(counter);
-    };
-    echoPort.send(counter);
-  });
+  Isolate.spawn(isomain, reply.sendPort)
+      .then((Isolate isolate) {
+        isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE");
+        isolate.addOnExitListener(onExitPort.sendPort, response: "RESPONSE2");
+        return completer.future;
+      })
+      .then((echoPort) {
+        int counter = 4;
+        reply.handler = (v) {
+          if (v != counter) throw "WRONG REPLY";
+          if (v == 0) throw "REPLY INSTEAD OF SHUTDOWN";
+          counter--;
+          mayComplete = (counter == 0);
+          echoPort.send(counter);
+        };
+        echoPort.send(counter);
+      });
 }

@@ -12,8 +12,10 @@ main() {
   // send back a "literal" like list object.
   var receive1 = new ReceivePort();
   Isolate.spawnUri(
-          Uri.parse('issue_24243_child1_isolate.dart'), [], receive1.sendPort)
-      .then((isolate) {
+    Uri.parse('issue_24243_child1_isolate.dart'),
+    [],
+    receive1.sendPort,
+  ).then((isolate) {
     receive1.listen((msg) {
       var list0 = <int>[1, 2, 3];
       var list1 = <int>[4, 5, 6];
@@ -31,8 +33,10 @@ main() {
   // send back a "literal" like map object.
   var receive2 = new ReceivePort();
   Isolate.spawnUri(
-          Uri.parse('issue_24243_child2_isolate.dart'), [], receive2.sendPort)
-      .then((isolate) {
+    Uri.parse('issue_24243_child2_isolate.dart'),
+    [],
+    receive2.sendPort,
+  ).then((isolate) {
     receive2.listen((msg) {
       var map0 = <int, String>{1: 'one', 2: 'two', 3: 'three'};
       var map1 = <int, String>{4: 'four', 5: 'five', 6: 'six'};

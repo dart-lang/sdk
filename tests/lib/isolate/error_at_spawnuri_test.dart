@@ -21,8 +21,12 @@ main() {
     asyncEnd();
   };
 
-  Isolate.spawnUri(Uri.parse("error_at_spawnuri_iso.dart"), [], null,
-      // Setup handler as part of spawn.
-      errorsAreFatal: false,
-      onError: errorPort.sendPort);
+  Isolate.spawnUri(
+    Uri.parse("error_at_spawnuri_iso.dart"),
+    [],
+    null,
+    // Setup handler as part of spawn.
+    errorsAreFatal: false,
+    onError: errorPort.sendPort,
+  );
 }

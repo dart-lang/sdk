@@ -16,33 +16,33 @@ void toplevel(port, message) {
 }
 
 Function createFuncToplevel() => (p, m) {
-      p.send(m);
-    };
+  p.send(m);
+};
 
 class C {
   Function initializer;
   Function body;
   C()
-      : initializer = ((p, m) {
-          throw "initializer";
-        }),
-        body = ((p, m) {
-          throw "body";
-        }) {}
+    : initializer = ((p, m) {
+        throw "initializer";
+      }),
+      body = ((p, m) {
+        throw "body";
+      }) {}
   static void staticFunc(port, message) {
     port.send("static:$message");
   }
 
   static Function createFuncStatic() => (p, m) {
-        throw "static expr";
-      };
+    throw "static expr";
+  };
   void instanceMethod(p, m) {
     throw "instanceMethod";
   }
 
   Function createFuncMember() => (p, m) {
-        throw "instance expr";
-      };
+    throw "instance expr";
+  };
   void call(n, p) {
     throw "C";
   }
@@ -127,8 +127,10 @@ Future<SendPort> echoPort(callback(value)) {
     completer.complete(p);
     initPort.close();
   });
-  return Isolate.spawn(_echo, [replyPort, initPort.sendPort])
-      .then((isolate) => completer.future);
+  return Isolate.spawn(_echo, [
+    replyPort,
+    initPort.sendPort,
+  ]).then((isolate) => completer.future);
 }
 
 void _echo(msg) {

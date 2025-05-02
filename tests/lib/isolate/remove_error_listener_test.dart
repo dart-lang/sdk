@@ -14,10 +14,13 @@ void main(List<String> args) {
     final result = Process.runSync(Platform.executable, [
       ...Platform.executableArguments,
       Platform.script.toFilePath(),
-      'child'
+      'child',
     ]);
-    Expect.isTrue(result.stderr.contains(
-        "Unhandled exception:${Platform.lineTerminator}Exception: Oops!"));
+    Expect.isTrue(
+      result.stderr.contains(
+        "Unhandled exception:${Platform.lineTerminator}Exception: Oops!",
+      ),
+    );
     return;
   }
   {

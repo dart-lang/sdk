@@ -21,23 +21,14 @@ class MessageTest {
   static const List list1 = const ["Hello", "World", "Hello", 0xfffffffffff];
   static const List list2 = const [null, list1, list1, list1, list1];
   static const List list3 = const [list2, 2.0, true, false, 0xfffffffffff];
-  static const Map map1 = const {
-    "a=1": 1,
-    "b=2": 2,
-    "c=3": 3,
-  };
+  static const Map map1 = const {"a=1": 1, "b=2": 2, "c=3": 3};
   static const Map map2 = const {
     "list1": list1,
     "list2": list2,
     "list3": list3,
   };
   static const List list4 = const [map1, map2];
-  static const List elms = const [
-    list1,
-    list2,
-    list3,
-    list4,
-  ];
+  static const List elms = const [list1, list2, list3, list4];
 
   static void VerifyMap(Map expected, Map actual) {
     Expect.equals(actual.length, expected.length);

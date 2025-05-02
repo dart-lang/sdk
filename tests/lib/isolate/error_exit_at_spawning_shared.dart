@@ -32,7 +32,8 @@ isomain(replyPort) {
 }
 
 testIsolate(
-    void spawnIsolate(SendPort reply, SendPort errorPort, SendPort exitPort)) {
+  void spawnIsolate(SendPort reply, SendPort errorPort, SendPort exitPort),
+) {
   asyncStart();
   // Setup the port for communication with the newly spawned isolate.
   RawReceivePort reply = new RawReceivePort(null);

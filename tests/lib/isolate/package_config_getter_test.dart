@@ -22,8 +22,10 @@ main() async {
     // Setup ".dart_tool/package_config.json".
     final dotDartToolDir = path.join(tempDir, '.dart_tool');
     await Directory(dotDartToolDir).create();
-    final packageConfigJsonPath =
-        path.join(dotDartToolDir, 'package_config.json');
+    final packageConfigJsonPath = path.join(
+      dotDartToolDir,
+      'package_config.json',
+    );
     final packageConfigJsonFile = File(packageConfigJsonPath);
     await packageConfigJsonFile.writeAsString(buildPackageConfig('foo', true));
 
