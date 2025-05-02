@@ -12,27 +12,32 @@ void main() {
   // Using a constructor shorthand without any context.
 
   var ctorNew = .new();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //             ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [cfe] No type was provided to find the dot shorthand 'new'.
 
   const ctorConstNew = .new();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                   ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  //                    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [cfe] No type was provided to find the dot shorthand 'new'.
 
   var ctorNamed = .regular();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //               ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   const ctorConstNamed = .regular();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                     ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  //                      ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   UnnamedConstructor Function() ctorTearoff = .new;
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                                          ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                                           ^
+  // [cfe] The static getter or field 'new' isn't defined for the type 'UnnamedConstructor Function()'.
 }

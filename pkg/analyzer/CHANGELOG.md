@@ -9,6 +9,9 @@
 * Deprecate `AnalysisError.correction` field; use
   `AnalysisError.correctionMessage` instead.
 * Deprecate `ErrorType`; use `DiagnosticType` instead.
+* Change `ElementDirective` from `sealed` to `abstract`.
+  This allows the analyzer to have an internal implementation
+  class corresponding to `ElementDirective`.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

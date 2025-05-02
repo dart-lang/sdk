@@ -85,6 +85,12 @@ class BundleRequirementsPrinter {
 
   void _writeInterfaces(RequirementsManifest requirements) {
     var libEntries = requirements.interfaces.sorted;
+
+    libEntries.removeWhere((entry) {
+      var ignored = configuration.requirements.ignoredLibraries;
+      return ignored.contains(entry.key);
+    });
+
     sink.writeElements('interfaces', libEntries, (libEntry) {
       var interfaceEntries = libEntry.value.sorted;
       sink.writeElements('${libEntry.key}', interfaceEntries, (interfaceEntry) {
@@ -587,6 +593,7 @@ class DriverEventsPrinterConfiguration {
   var withLinkBundleEvents = false;
   var withSchedulerStatus = true;
   var withStreamResolvedUnitResults = true;
+  var requirements = RequirementPrinterConfiguration();
 
   var ignoredManifestInstanceMemberNames = <String>{
     '==',
@@ -1159,6 +1166,10 @@ class LibraryManifestPrinter {
       _writeNamedType('bound', typeParameter.bound);
     });
   }
+}
+
+class RequirementPrinterConfiguration {
+  var ignoredLibraries = <Uri>{Uri.parse('dart:core')};
 }
 
 class ResolvedLibraryResultPrinter {

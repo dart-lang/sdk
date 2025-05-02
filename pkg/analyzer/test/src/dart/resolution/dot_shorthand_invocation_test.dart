@@ -17,6 +17,23 @@ main() {
 
 @reflectiveTest
 class DotShorthandInvocationResolutionTest extends PubPackageResolutionTest {
+  test_assert_lhs() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  final int x;
+  const C.named(this.x);
+}
+
+class CAssert {
+  const CAssert.regular(C ctor)
+    : assert(const .named(1) == ctor);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 114, 15)],
+    );
+  }
+
   test_basic() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -348,6 +365,62 @@ DotShorthandInvocation
   staticInvokeType: List<C> Function()
   staticType: List<C>
 ''');
+  }
+
+  test_error_context_invalid() async {
+    await assertErrorsInCode(
+      r'''
+class C { }
+
+void main() {
+  C Function() c = .member();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 47, 6)],
+    );
+  }
+
+  test_error_context_none() async {
+    await assertErrorsInCode(
+      r'''
+void main() {
+  var c = .member();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 25, 6)],
+    );
+  }
+
+  test_error_unresolved() async {
+    await assertErrorsInCode(
+      r'''
+class C { }
+
+void main() {
+  C c = .member();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 36, 6)],
+    );
+  }
+
+  test_error_unresolved_new() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.named();
+}
+
+void main() {
+  C c = .new();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 49, 3)],
+    );
   }
 
   test_extensionType() async {

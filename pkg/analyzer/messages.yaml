@@ -3863,12 +3863,21 @@ CompileTimeErrorCode:
   DOT_SHORTHAND_MISSING_CONTEXT:
     problemMessage: "A dot shorthand can't be used where there is no context type."
   DOT_SHORTHAND_UNDEFINED_GETTER:
+    sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
     problemMessage: "The static getter '{0}' isn't defined for the context type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '{0}'."
     comment: |-
       Parameters:
       0: the name of the static getter
       1: the name of the enclosing type where the getter is being looked for
+  DOT_SHORTHAND_UNDEFINED_INVOCATION:
+    sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
+    problemMessage: "The static method or constructor '{0}' isn't defined for the type '{1}'."
+    correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the static method or constructor
+      1: the name of the enclosing type where the method or constructor is being looked for
   DUPLICATE_CONSTRUCTOR_DEFAULT:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: The unnamed constructor is already defined.

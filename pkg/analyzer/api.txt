@@ -3115,7 +3115,8 @@ package:analyzer/dart/element/element.dart:
     isWidgetFactory (getter: bool)
     computeConstantValue (method: DartObject? Function())
     toSource (method: String Function())
-  ElementDirective (class extends Object implements Annotatable, sealed (immediate subtypes: LibraryExport, LibraryImport, PartInclude)):
+  ElementDirective (class extends Object implements Annotatable):
+    new (constructor: ElementDirective Function())
     libraryFragment (getter: LibraryFragment)
     uri (getter: DirectiveUri)
   ElementKind (class extends Object implements Comparable<ElementKind>):

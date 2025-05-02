@@ -91,15 +91,18 @@ class InstanceCreationExpressionResolver {
           );
         }
       }
-
-      _resolveDotShorthandConstructorInvocation(
+    } else {
+      _resolver.errorReporter.atNode(
         node,
-        contextType: contextType,
-        dotShorthandContextType: dotShorthandContextType,
+        CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
       );
     }
 
-    // TODO(kallentu): Report error.
+    _resolveDotShorthandConstructorInvocation(
+      node,
+      contextType: contextType,
+      dotShorthandContextType: dotShorthandContextType,
+    );
   }
 
   void _resolveDotShorthandConstructorInvocation(

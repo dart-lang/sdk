@@ -2281,19 +2281,6 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
   return false;
 }
 
-Fragment FlowGraphBuilder::EvaluateAssertion() {
-  const Class& klass =
-      Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
-  ASSERT(!klass.IsNull());
-  const auto& error = klass.EnsureIsFinalized(H.thread());
-  ASSERT(error == Error::null());
-  const Function& target = Function::ZoneHandle(
-      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::EvaluateAssertion()));
-  ASSERT(!target.IsNull());
-  return StaticCall(TokenPosition::kNoSource, target, /* argument_count = */ 1,
-                    ICData::kStatic);
-}
-
 Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
                                            const String& dst_name,
                                            AssertAssignableInstr::Kind kind,

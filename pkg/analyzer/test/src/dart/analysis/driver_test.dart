@@ -7263,16 +7263,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
-    interfaces
-      dart:core
-        int
-          methods
-            isEven: #M5
-            isEven=: <null>
-      package:test/test.dart
-        A
-          constructors
-            new: #M6
 [status] idle
 ''',
       updateFiles: () {
@@ -7296,13 +7286,13 @@ void f (B b) {
     manifest
       A: #M0
         declaredMembers
-          _foo.getter: #M7
+          _foo.getter: #M5
       B: #M2
       f: #M3
   requirements
     topLevels
       dart:core
-        String: #M8
+        String: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -7318,21 +7308,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        String: #M8
-    interfaces
-      dart:core
-        Object
-          methods
-            isEven: <null>
-            isEven=: <null>
-        String
-          methods
-            isEven: <null>
-            isEven=: <null>
-      package:test/test.dart
-        A
-          constructors
-            new: #M6
+        String: #M6
 [status] idle
 ''',
     );
@@ -8220,11 +8196,6 @@ void f(A a) {
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods
@@ -8934,16 +8905,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
-    interfaces
-      dart:core
-        int
-          methods
-            isEven: #M5
-            isEven=: <null>
-      package:test/test.dart
-        A
-          constructors
-            new: #M6
 [status] idle
 ''',
       updateFiles: () {
@@ -8967,13 +8928,13 @@ void f (B b) {
     manifest
       A: #M0
         declaredMembers
-          _foo.method: #M7
+          _foo.method: #M5
       B: #M2
       f: #M3
   requirements
     topLevels
       dart:core
-        String: #M8
+        String: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -8989,21 +8950,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        String: #M8
-    interfaces
-      dart:core
-        Object
-          methods
-            isEven: <null>
-            isEven=: <null>
-        String
-          methods
-            isEven: <null>
-            isEven=: <null>
-      package:test/test.dart
-        A
-          constructors
-            new: #M6
+        String: #M6
 [status] idle
 ''',
     );
@@ -9061,11 +9008,6 @@ void f(B b) {
     topLevels
       dart:core
         int: #M4
-    interfaces
-      package:test/test.dart
-        A
-          constructors
-            new: #M5
 [status] idle
 ''',
       updateFiles: () {
@@ -9089,13 +9031,13 @@ void f(B b) {
     manifest
       A: #M0
         declaredMembers
-          _foo.method: #M6
+          _foo.method: #M5
       B: #M2
       f: #M3
   requirements
     topLevels
       dart:core
-        double: #M7
+        double: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -9109,12 +9051,7 @@ void f(B b) {
   requirements
     topLevels
       dart:core
-        double: #M7
-    interfaces
-      package:test/test.dart
-        A
-          constructors
-            new: #M5
+        double: #M6
 [status] idle
 ''',
     );
@@ -9340,11 +9277,6 @@ class A {}
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods
@@ -9652,11 +9584,6 @@ void f(A a) {
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods
@@ -10213,11 +10140,6 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
-    interfaces
-      package:test/test.dart
-        A
-          constructors
-            new: #M5
 [status] idle
 ''',
       updateFiles: () {
@@ -10241,13 +10163,13 @@ void f (B b) {
     manifest
       A: #M0
         declaredMembers
-          _foo.setter: #M6
+          _foo.setter: #M5
       B: #M2
       f: #M3
   requirements
     topLevels
       dart:core
-        String: #M7
+        String: #M6
 [future] getErrors T2
   ErrorsResult #1
     path: /home/test/lib/test.dart
@@ -10263,12 +10185,7 @@ void f (B b) {
   requirements
     topLevels
       dart:core
-        String: #M7
-    interfaces
-      package:test/test.dart
-        A
-          constructors
-            new: #M5
+        String: #M6
 [status] idle
 ''',
     );
@@ -10388,11 +10305,6 @@ class A {}
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods
@@ -12626,11 +12538,6 @@ void f(A a) {
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods
@@ -13086,11 +12993,6 @@ mixin A {}
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods
@@ -13398,11 +13300,6 @@ void f(A a) {
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods
@@ -13731,11 +13628,6 @@ mixin A {}
       package:test/a.dart
         A: #M0
     interfaces
-      dart:core
-        Object
-          methods
-            foo: <null>
-            foo=: <null>
       package:test/a.dart
         A
           methods

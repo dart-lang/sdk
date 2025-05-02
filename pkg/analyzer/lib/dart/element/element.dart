@@ -845,7 +845,7 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 /// A directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-sealed class ElementDirective implements Annotatable {
+abstract class ElementDirective implements Annotatable {
   /// The library fragment that contains this object.
   LibraryFragment get libraryFragment;
 
