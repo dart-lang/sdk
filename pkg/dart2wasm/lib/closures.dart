@@ -203,11 +203,11 @@ class ClosureLayouter extends RecursiveVisitor {
   late final List<List<ClosureRepresentationsForParameterCount>>
       representations;
 
-  // Dynamic modules invoke closures dynamically so they use the base structs
+  // Dynamic submodules invoke closures dynamically so they use the base structs
   // in all cases. Therefore, We only need one global copy of the
   // ClosureRepresentation for generic and one for non-generic functions.
-  ClosureRepresentation? _dynamicModuleRepresentation;
-  ClosureRepresentation? _dynamicModuleGenericRepresentation;
+  ClosureRepresentation? _dynamicSubmoduleRepresentation;
+  ClosureRepresentation? _dynamicSubmoduleGenericRepresentation;
 
   Set<Constant> visitedConstants = Set.identity();
 
@@ -327,7 +327,7 @@ class ClosureLayouter extends RecursiveVisitor {
     final type = translator.typesBuilder
         .defineStruct(name, fields: fields, superType: superType);
     if (translator.dynamicModuleSupportEnabled) {
-      // Pessimistically assume there will be subtypes in a dynamic module. This
+      // Pessimistically assume there will be subtypes in a submodule. This
       // ensures the struct is not final in all modules so the types are equal.
       type.hasAnySubtypes = true;
     }
@@ -406,10 +406,10 @@ class ClosureLayouter extends RecursiveVisitor {
       int typeCount, int positionalCount, List<String> names) {
     if (translator.dynamicModuleSupportEnabled) {
       if (typeCount == 0) {
-        return _dynamicModuleRepresentation ??=
+        return _dynamicSubmoduleRepresentation ??=
             _createRepresentation(typeCount, 0, const [], null, null, const []);
       }
-      return _dynamicModuleGenericRepresentation ??=
+      return _dynamicSubmoduleGenericRepresentation ??=
           _createRepresentation(typeCount, 0, const [], null, null, const []);
     }
     final representations =
@@ -524,7 +524,7 @@ class ClosureLayouter extends RecursiveVisitor {
       // generation, after the imports have been added.
 
       representation._instantiationTrampolinesGenerator = (module) {
-        // Dynamic modules do not have any trampolines, only a dynamic call
+        // Dynamic submodules do not have any trampolines, only a dynamic call
         // entry point.
         if (translator.dynamicModuleSupportEnabled) return const [];
         List<w.BaseFunction> instantiationTrampolines = [

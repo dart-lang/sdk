@@ -121,8 +121,8 @@ class SelectorMetadata {
   final int callCount;
   final bool isSetter;
   final bool useMultipleEntryPoints;
-  final bool isDynamicModuleOverrideable;
-  final bool isDynamicModuleCallable;
+  final bool isDynamicSubmoduleOverridable;
+  final bool isDynamicSubmoduleCallable;
   final bool isNoSuchMethod;
   final SelectorTargets? checked;
   final SelectorTargets? unchecked;
@@ -135,8 +135,8 @@ class SelectorMetadata {
       this.callCount,
       this.isSetter,
       this.useMultipleEntryPoints,
-      this.isDynamicModuleOverrideable,
-      this.isDynamicModuleCallable,
+      this.isDynamicSubmoduleOverridable,
+      this.isDynamicSubmoduleCallable,
       this.isNoSuchMethod,
       this.checked,
       this.unchecked,
@@ -150,8 +150,8 @@ class SelectorMetadata {
     sink.writeBoolList([
       isSetter,
       useMultipleEntryPoints,
-      isDynamicModuleOverrideable,
-      isDynamicModuleCallable,
+      isDynamicSubmoduleOverridable,
+      isDynamicSubmoduleCallable,
       isNoSuchMethod
     ]);
     sink.writeNullable(checked, (targets) => targets.serialize(sink));
@@ -167,8 +167,8 @@ class SelectorMetadata {
     final [
       isSetter,
       useMultipleEntryPoints,
-      isDynamicModuleOverrideable,
-      isDynamicModuleCallable,
+      isDynamicSubmoduleOverridable,
+      isDynamicSubmoduleCallable,
       isNoSuchMethod
     ] = source.readBoolList();
     final checked =
@@ -185,8 +185,8 @@ class SelectorMetadata {
         callCount,
         isSetter,
         useMultipleEntryPoints,
-        isDynamicModuleOverrideable,
-        isDynamicModuleCallable,
+        isDynamicSubmoduleOverridable,
+        isDynamicSubmoduleCallable,
         isNoSuchMethod,
         checked,
         unchecked,
@@ -200,7 +200,7 @@ class DispatchTableMetadata {
   final List<Reference?> table;
 
   // Ignore dynamic selectors since dynamic calls are not allowed from
-  // dynamic modules.
+  // submodules.
 
   DispatchTableMetadata(this.selectors, this.table);
 }
@@ -208,8 +208,8 @@ class DispatchTableMetadata {
 /// Metadata produced by the main module.
 ///
 /// This data will get serialized as part of the main module compilation process
-/// and will be provided as an input to be deserialized by subsequent dynamic
-/// module compilations.
+/// and will be provided as an input to be deserialized by subsequent submodule
+/// compilations.
 class MainModuleMetadata {
   /// Class to metadata about the class.
   final Map<Class, ClassMetadata> classMetadata;
@@ -221,7 +221,7 @@ class MainModuleMetadata {
   late final DispatchTable dispatchTable;
 
   /// Contains each invoked reference that targets an updateable function.
-  final Set<Reference> invokedOverrideableReferences;
+  final Set<Reference> invokedOverridableReferences;
 
   /// Maps invocation keys (either selector or builtin) to the implementation's
   /// index in the runtime table. Key includes whether the key was invoked
@@ -232,7 +232,7 @@ class MainModuleMetadata {
   final List<Class> dfsOrderClassIds;
 
   /// Saved flags from the main module to verify that settings have not changed
-  /// between main module invocation and dynamic module invocation.
+  /// between main module invocation and submodule invocation.
   final TranslatorOptions mainModuleTranslatorOptions;
   final Map<String, String> mainModuleEnvironment;
 
@@ -240,7 +240,7 @@ class MainModuleMetadata {
       this.classMetadata,
       this.callableReferenceIds,
       this.dispatchTable,
-      this.invokedOverrideableReferences,
+      this.invokedOverridableReferences,
       this.keyInvocationToIndex,
       this.dfsOrderClassIds,
       this.mainModuleTranslatorOptions,
@@ -250,7 +250,7 @@ class MainModuleMetadata {
       this.mainModuleTranslatorOptions, this.mainModuleEnvironment)
       : classMetadata = {},
         callableReferenceIds = {},
-        invokedOverrideableReferences = {},
+        invokedOverridableReferences = {},
         keyInvocationToIndex = {},
         dfsOrderClassIds = [];
 
@@ -299,7 +299,7 @@ class MainModuleMetadata {
 
     dispatchTable.serialize(sink);
 
-    sink.writeList(invokedOverrideableReferences, sink.writeReference);
+    sink.writeList(invokedOverridableReferences, sink.writeReference);
 
     sink.writeMap(keyInvocationToIndex, sink.writeInt, sink.writeInt);
 
@@ -357,16 +357,16 @@ class MainModuleMetadata {
     }
   }
 
-  void verifyDynamicModuleOptions(WasmCompilerOptions options) {
+  void verifyDynamicSubmoduleOptions(WasmCompilerOptions options) {
     final translatorOptions = options.translatorOptions;
 
     Never fail(String optionName) {
       throw StateError(
-          'Inconsistent flag for dynamic module compilation: $optionName');
+          'Inconsistent flag for dynamic submodule compilation: $optionName');
     }
 
     // TODO(natebiggs): Disallow certain flags from being used in conjunction
-    // with dynamic modules.
+    // with submodules.
 
     if (translatorOptions.enableAsserts !=
         mainModuleTranslatorOptions.enableAsserts) {
@@ -457,20 +457,20 @@ Future<void> serializeMainModuleComponent(
       includeSource: false);
 }
 
-Future<(Component, JSMethods)> generateDynamicModuleComponent(
+Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
     Component component,
     CoreTypes coreTypes,
     Uri dynamicModuleMainUri,
     JSMethods jsInteropMethods) async {
-  final dynamicModuleComponentBytes = writeComponentToBytes(
-      Component(libraries: component.getDynamicModuleLibraries(coreTypes)));
+  final submoduleComponentBytes = writeComponentToBytes(
+      Component(libraries: component.getDynamicSubmoduleLibraries(coreTypes)));
   final optimizedMainComponentBytes =
       await File(_makeOptDillPath(dynamicModuleMainUri.path)).readAsBytes();
   final concatenatedComponentBytes = Uint8List(
-      dynamicModuleComponentBytes.length + optimizedMainComponentBytes.length);
+      submoduleComponentBytes.length + optimizedMainComponentBytes.length);
   concatenatedComponentBytes.setAll(0, optimizedMainComponentBytes);
   concatenatedComponentBytes.setAll(
-      optimizedMainComponentBytes.length, dynamicModuleComponentBytes);
+      optimizedMainComponentBytes.length, submoduleComponentBytes);
   final newComponent = Component()
     ..addMetadataRepository(DynamicModuleGlobalIdRepository())
     ..addMetadataRepository(DynamicModuleConstantRepository())
@@ -499,7 +499,7 @@ Future<MainModuleMetadata> deserializeMainModuleMetadata(
     Component component, WasmCompilerOptions options) async {
   final filename = options.dynamicModuleMetadataFile ??
       Uri.parse(path.setExtension(
-          options.dynamicModuleMainUri!.toFilePath(), '.dyndata'));
+          options.dynamicMainModuleUri!.toFilePath(), '.dyndata'));
   final dynamicModuleMetadataBytes = await File.fromUri(filename).readAsBytes();
   final source = DataDeserializer(dynamicModuleMetadataBytes, component);
   return MainModuleMetadata.deserialize(source);
@@ -509,7 +509,7 @@ Future<void> serializeMainModuleMetadata(Component component,
     Translator translator, WasmCompilerOptions options) async {
   final filename = options.dynamicModuleMetadataFile ??
       Uri.parse(path.setExtension(
-          options.dynamicModuleMainUri!.toFilePath(), '.dyndata'));
+          options.dynamicMainModuleUri!.toFilePath(), '.dyndata'));
   final serializer = DataSerializer(component);
   translator.dynamicModuleInfo!.metadata.serialize(serializer, translator);
   await File.fromUri(filename).writeAsBytes(serializer.takeBytes());

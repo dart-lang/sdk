@@ -1722,30 +1722,30 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    ErrorCode? errorCode;
+    DiagnosticCode? diagnosticCode;
     switch (clause) {
       case null:
         if (declaration is ClassTypeAlias) {
-          errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
+          diagnosticCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
         }
       case ExtendsClause():
         if (declaration is ClassDeclaration) {
-          errorCode =
+          diagnosticCode =
               declaration.withClause == null
                   ? CompileTimeErrorCode.EXTENDS_NON_CLASS
                   : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
         }
       case ImplementsClause():
-        errorCode = CompileTimeErrorCode.IMPLEMENTS_NON_CLASS;
+        diagnosticCode = CompileTimeErrorCode.IMPLEMENTS_NON_CLASS;
       case MixinOnClause():
-        errorCode =
+        diagnosticCode =
             CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE;
       case WithClause():
-        errorCode = CompileTimeErrorCode.MIXIN_OF_NON_CLASS;
+        diagnosticCode = CompileTimeErrorCode.MIXIN_OF_NON_CLASS;
     }
 
     // Should not happen.
-    if (errorCode == null) {
+    if (diagnosticCode == null) {
       assert(false);
       return;
     }
@@ -1756,7 +1756,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _errorReporter.atOffset(
       offset: offset,
       length: length,
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
     );
   }
 

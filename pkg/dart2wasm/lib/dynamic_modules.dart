@@ -34,14 +34,24 @@ import 'util.dart';
 
 // Pragmas used to annotate the kernel during main module compilation.
 const String _mainModLibPragma = 'wasm:mainMod';
-const String _dynamicModuleEntryPointName = '\$invokeEntryPoint';
+const String _submoduleEntryPointName = '\$invokeEntryPoint';
 
-extension DynamicModuleComponent on Component {
-  static final Expando<Procedure> _dynamicModuleEntryPoint =
-      Expando<Procedure>();
+enum DynamicModuleType {
+  main,
+  submodule;
 
-  Procedure? get dynamicModuleEntryPoint => _dynamicModuleEntryPoint[this];
-  List<Library> getDynamicModuleLibraries(CoreTypes coreTypes) =>
+  static DynamicModuleType parse(String s) => switch (s) {
+        "main" => main,
+        "submodule" => submodule,
+        _ => throw ArgumentError("Unrecognized dynamic module type $s."),
+      };
+}
+
+extension DynamicSubmoduleComponent on Component {
+  static final Expando<Procedure> _submoduleEntryPoint = Expando<Procedure>();
+
+  Procedure? get dynamicSubmoduleEntryPoint => _submoduleEntryPoint[this];
+  List<Library> getDynamicSubmoduleLibraries(CoreTypes coreTypes) =>
       [...libraries.where((l) => !l.isFromMainModule(coreTypes))];
 }
 
@@ -51,37 +61,37 @@ extension DynamicModuleLibrary on Library {
 }
 
 extension DynamicModuleClass on Class {
-  bool isDynamicModuleExtendable(CoreTypes coreTypes) =>
+  bool isDynamicSubmoduleExtendable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleExtendablePragmaName) ||
       hasPragma(coreTypes, this, kDynModuleImplicitlyExtendablePragmaName);
 }
 
 extension DynamicModuleMember on Member {
-  bool isDynamicModuleCallable(CoreTypes coreTypes) =>
+  bool isDynamicSubmoduleCallable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleCallablePragmaName) ||
       hasPragma(coreTypes, this, kDynModuleImplicitlyCallablePragmaName);
 
-  bool isDynamicModuleCallableNoTearOff(CoreTypes coreTypes) =>
+  bool isDynamicSubmoduleCallableNoTearOff(CoreTypes coreTypes) =>
       getPragma(coreTypes, this, kDynModuleCallablePragmaName,
           defaultValue: '') ==
       'call';
 
-  bool isDynamicModuleOverrideable(CoreTypes coreTypes) =>
+  bool isDynamicSubmoduleOverridable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenPragmaName) ||
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenImplicitlyPragmaName);
 }
 
-class DynamicModuleOutputData extends ModuleOutputData {
+class DynamicSubmoduleOutputData extends ModuleOutputData {
   final CoreTypes coreTypes;
-  final ModuleOutput _dynamicModule;
-  DynamicModuleOutputData(this.coreTypes, super.modules, super.importMap)
-      : _dynamicModule = modules[1];
+  final ModuleOutput _submodule;
+  DynamicSubmoduleOutputData(this.coreTypes, super.modules, super.importMap)
+      : _submodule = modules[1];
 
   @override
   ModuleOutput moduleForReference(Reference reference) {
     // Rather than create tear-offs for all dynamic callable methods in the main
-    // module, we create them as needed in the dynamic modules.
-    if (reference.isTearOffReference) return _dynamicModule;
+    // module, we create them as needed in the submodules.
+    if (reference.isTearOffReference) return _submodule;
 
     return super.moduleForReference(reference);
   }
@@ -139,7 +149,7 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
     }
 
     // These members don't have normal bodies and should therefore not be
-    // considered directly callable from dynamic modules.
+    // considered directly callable from submodules.
     final Set<Member> excludedIntrinsics = {
       coreTypes.index.getProcedure("dart:_wasm", "WasmFunction", "get:call"),
       coreTypes.index.getConstructor("dart:_boxed_int", "BoxedInt", "_"),
@@ -153,9 +163,9 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
               coreTypes, member, kWasmEntryPointPragmaName,
               defaultValue: '') !=
           null;
-      final isDynamicModuleCallable = member.isDynamicModuleCallable(coreTypes);
+      final isSubmoduleCallable = member.isDynamicSubmoduleCallable(coreTypes);
 
-      if (isEntryPoint && !isDynamicModuleCallable) {
+      if (isEntryPoint && !isSubmoduleCallable) {
         add(member, kDynModuleCallablePragmaName);
       }
     }
@@ -189,35 +199,35 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
   }
 }
 
-class DynamicModuleStrategy extends ModuleStrategy {
+class DynamicSubmoduleStrategy extends ModuleStrategy {
   final Component component;
   final WasmCompilerOptions options;
   final WasmTarget kernelTarget;
   final Uri mainModuleComponentUri;
   final CoreTypes coreTypes;
 
-  DynamicModuleStrategy(this.component, this.options, this.kernelTarget,
+  DynamicSubmoduleStrategy(this.component, this.options, this.kernelTarget,
       this.coreTypes, this.mainModuleComponentUri);
 
   @override
   void prepareComponent() {
-    final dynamicEntryPoint = _findDynamicEntryPoint(component, coreTypes);
-    addWasmEntryPointPragma(dynamicEntryPoint, coreTypes);
-    DynamicModuleComponent._dynamicModuleEntryPoint[component] =
-        dynamicEntryPoint;
+    final submoduleEntryPoint = _findSubmoduleEntryPoint(component, coreTypes);
+    addWasmEntryPointPragma(submoduleEntryPoint, coreTypes);
+    DynamicSubmoduleComponent._submoduleEntryPoint[component] =
+        submoduleEntryPoint;
 
     _registerLibraries();
-    _prepareWasmEntryPoint(dynamicEntryPoint);
+    _prepareWasmEntryPoint(submoduleEntryPoint);
     _addTfaMetadata();
   }
 
-  void _prepareWasmEntryPoint(Procedure dynamicEntryPoint) {
-    dynamicEntryPoint.function.returnType = const DynamicType();
+  void _prepareWasmEntryPoint(Procedure submoduleEntryPoint) {
+    submoduleEntryPoint.function.returnType = const DynamicType();
 
     // Export the entry point so that the JS runtime can get the function and
     // pass it to the main module.
-    addPragma(dynamicEntryPoint, 'wasm:export', coreTypes,
-        value: StringConstant(_dynamicModuleEntryPointName));
+    addPragma(submoduleEntryPoint, 'wasm:export', coreTypes,
+        value: StringConstant(_submoduleEntryPointName));
   }
 
   void _registerLibraries() {
@@ -225,10 +235,10 @@ class DynamicModuleStrategy extends ModuleStrategy {
     // libraries are included across dynamic modules.
     final registerLibraryUris = coreTypes.index
         .getTopLevelProcedure('dart:_internal', 'registerLibraryUris');
-    final entryPoint = component.dynamicModuleEntryPoint!;
+    final entryPoint = component.dynamicSubmoduleEntryPoint!;
     final libraryUris = ListLiteral([
       ...component
-          .getDynamicModuleLibraries(coreTypes)
+          .getDynamicSubmoduleLibraries(coreTypes)
           .where((l) => '${l.importUri}' != dynamicModulesRecordsLibraryUri)
           .map((l) => StringLiteral(l.importUri.toString()))
     ], typeArgument: coreTypes.stringNonNullableRawType);
@@ -240,7 +250,7 @@ class DynamicModuleStrategy extends ModuleStrategy {
       ..parent = entryPoint.function;
   }
 
-  static Procedure _findDynamicEntryPoint(
+  static Procedure _findSubmoduleEntryPoint(
       Component component, CoreTypes coreTypes) {
     for (final library in component.libraries) {
       for (final procedure in library.procedures) {
@@ -253,7 +263,7 @@ class DynamicModuleStrategy extends ModuleStrategy {
         }
       }
     }
-    throw StateError('Entry point not found for dynamic module.');
+    throw StateError('Entry point not found for dynamic submodule.');
   }
 
   void _addTfaMetadata() {
@@ -303,16 +313,16 @@ class DynamicModuleStrategy extends ModuleStrategy {
   ModuleOutputData buildModuleOutputData() {
     final moduleBuilder = ModuleOutputBuilder();
     final mainModule = moduleBuilder.buildModule(skipEmit: true);
-    final dynamicModule = moduleBuilder.buildModule(emitAsMain: true);
+    final submodule = moduleBuilder.buildModule(emitAsMain: true);
     for (final library in component.libraries) {
       final module = hasPragma(coreTypes, library, _mainModLibPragma)
           ? mainModule
-          : dynamicModule;
+          : submodule;
       module.libraries.add(library);
     }
 
-    return DynamicModuleOutputData(
-        coreTypes, [mainModule, dynamicModule], const {});
+    return DynamicSubmoduleOutputData(
+        coreTypes, [mainModule, submodule], const {});
   }
 }
 
@@ -326,9 +336,9 @@ void _recordIdMain(w.FunctionBuilder f, Translator translator) {
   ib.end();
 }
 
-void _recordIdDynamic(w.FunctionBuilder f, Translator translator) {
+void _recordIdSubmodule(w.FunctionBuilder f, Translator translator) {
   final ranges = translator.classIdNumbering
-      .getConcreteClassIdRangeForDynamicModule(
+      .getConcreteClassIdRangeForDynamicSubmodule(
           translator.coreTypes.recordClass);
 
   final ib = f.body;
@@ -348,28 +358,28 @@ w.FunctionType _recordIdBuildType(Translator translator) {
 }
 
 enum BuiltinUpdatableFunctions {
-  recordId(_recordIdMain, _recordIdDynamic, _recordIdBuildType);
+  recordId(_recordIdMain, _recordIdSubmodule, _recordIdBuildType);
 
   final void Function(w.FunctionBuilder, Translator) _buildMain;
-  final void Function(w.FunctionBuilder, Translator) _buildDynamic;
+  final void Function(w.FunctionBuilder, Translator) _buildSubmodule;
   final w.FunctionType Function(Translator) _buildType;
 
   const BuiltinUpdatableFunctions(
-      this._buildMain, this._buildDynamic, this._buildType);
+      this._buildMain, this._buildSubmodule, this._buildType);
 }
 
 class DynamicModuleInfo {
   final Translator translator;
-  Procedure? get dynamicEntryPoint =>
-      translator.component.dynamicModuleEntryPoint;
-  bool get isDynamicModule => dynamicEntryPoint != null;
+  Procedure? get submoduleEntryPoint =>
+      translator.component.dynamicSubmoduleEntryPoint;
+  bool get isSubmodule => submoduleEntryPoint != null;
   late final w.FunctionBuilder initFunction;
   late final MainModuleMetadata metadata;
 
   late final w.Global moduleIdGlobal;
 
   // null is used to indicate that skipDynamic was passed for this key.
-  final Map<int, w.BaseFunction?> overrideableFunctions = {};
+  final Map<int, w.BaseFunction?> overridableFunctions = {};
 
   final Map<ClassInfo, Map<w.ModuleBuilder, w.BaseFunction>>
       _constantCacheCheckers = {};
@@ -378,28 +388,27 @@ class DynamicModuleInfo {
   final Map<w.StorageType, Map<w.ModuleBuilder, w.BaseFunction>>
       _immutableArrayConstantCacheCheckers = {};
 
-  late final w.ModuleBuilder dynamicModule =
+  late final w.ModuleBuilder submodule =
       translator.modules.firstWhere((m) => m != translator.mainModule);
 
   DynamicModuleInfo(this.translator, this.metadata);
 
-  void initDynamicModule() {
-    dynamicModule.functions.start = initFunction = dynamicModule.functions
-        .define(translator.typesBuilder.defineFunction(const [], const []),
-            "#init");
+  void initSubmodule() {
+    submodule.functions.start = initFunction = submodule.functions.define(
+        translator.typesBuilder.defineFunction(const [], const []), "#init");
 
     // Make sure the exception tag is exported from the main module.
-    translator.getExceptionTag(dynamicModule);
+    translator.getExceptionTag(submodule);
 
-    if (isDynamicModule) {
-      _initDynamicModuleId();
+    if (isSubmodule) {
+      _initSubmoduleId();
       _initModuleRtt();
     } else {
-      _initializeDynamicAllocatableClasses();
+      _initializeSubmoduleAllocatableClasses();
       _initializeCallableReferences();
     }
 
-    _initializeOverrideableReferences();
+    _initializeOverridableReferences();
   }
 
   void _initModuleRtt() {
@@ -412,8 +421,8 @@ class DynamicModuleInfo {
     b.drop();
   }
 
-  void _initDynamicModuleId() {
-    final global = moduleIdGlobal = dynamicModule.globals
+  void _initSubmoduleId() {
+    final global = moduleIdGlobal = submodule.globals
         .define(w.GlobalType(w.NumType.i64, mutable: true), '#_moduleId');
     global.initializer
       ..i64_const(0)
@@ -421,8 +430,8 @@ class DynamicModuleInfo {
 
     final b = initFunction.body;
 
-    final rangeSize = translator.classIdNumbering.maxDynamicModuleClassId! -
-        translator.classIdNumbering.firstDynamicModuleClassId +
+    final rangeSize = translator.classIdNumbering.maxDynamicSubmoduleClassId! -
+        translator.classIdNumbering.firstDynamicSubmoduleClassId +
         1;
 
     b.i32_const(rangeSize);
@@ -430,18 +439,18 @@ class DynamicModuleInfo {
     b.global_set(moduleIdGlobal);
   }
 
-  bool _isClassDynamicModuleInstantiable(Class cls) {
-    return cls.isDynamicModuleExtendable(translator.coreTypes) ||
+  bool _isClassSubmoduleInstantiable(Class cls) {
+    return cls.isDynamicSubmoduleExtendable(translator.coreTypes) ||
         cls.constructors
-            .any((e) => e.isDynamicModuleCallable(translator.coreTypes)) ||
+            .any((e) => e.isDynamicSubmoduleCallable(translator.coreTypes)) ||
         cls.procedures.any((e) =>
-            e.isFactory && e.isDynamicModuleCallable(translator.coreTypes));
+            e.isFactory && e.isDynamicSubmoduleCallable(translator.coreTypes));
   }
 
   void _initializeCallableReferences() {
     for (final lib in translator.component.libraries) {
       for (final member in lib.members) {
-        if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
+        if (!member.isDynamicSubmoduleCallable(translator.coreTypes)) continue;
         _forEachMemberReference(member, _registerStaticCallableTarget);
       }
     }
@@ -452,7 +461,7 @@ class DynamicModuleInfo {
 
       // Register any callable functions defined within this class.
       for (final member in cls.members) {
-        if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
+        if (!member.isDynamicSubmoduleCallable(translator.coreTypes)) continue;
 
         if (!member.isInstanceMember) {
           // Generate static members immediately since they are unconditionally
@@ -462,10 +471,10 @@ class DynamicModuleInfo {
         }
 
         // Consider callable references invoked and therefore if they're
-        // overrideable include them in the runtime dispatch table.
-        if (member.isDynamicModuleOverrideable(translator.coreTypes)) {
+        // overridable include them in the runtime dispatch table.
+        if (member.isDynamicSubmoduleOverridable(translator.coreTypes)) {
           _forEachMemberReference(
-              member, metadata.invokedOverrideableReferences.add);
+              member, metadata.invokedOverridableReferences.add);
         }
       }
 
@@ -473,7 +482,7 @@ class DynamicModuleInfo {
       // directly allocatable.
       if (cls.isAnonymousMixin) continue;
 
-      if (cls.isAbstract && !_isClassDynamicModuleInstantiable(cls)) {
+      if (cls.isAbstract && !_isClassSubmoduleInstantiable(cls)) {
         continue;
       }
 
@@ -482,7 +491,7 @@ class DynamicModuleInfo {
       final targets = translator.hierarchy.getDispatchTargets(cls).followedBy(
           translator.hierarchy.getDispatchTargets(cls, setters: true));
       for (final member in targets) {
-        if (!member.isDynamicModuleCallable(translator.coreTypes)) continue;
+        if (!member.isDynamicSubmoduleCallable(translator.coreTypes)) continue;
 
         _forEachMemberReference(member,
             (reference) => _registerCallableDispatchTarget(reference, cls));
@@ -493,7 +502,7 @@ class DynamicModuleInfo {
   /// If class [cls] is marked allocated then ensure we compile [target].
   ///
   /// The [cls] may be marked allocated in
-  /// [_initializeDynamicAllocatableClasses] which (together with this) will
+  /// [_initializeSubmoduleAllocatableClasses] which (together with this) will
   /// enqueue the [target] for compilation. Otherwise the [cls] must be
   /// allocated via a constructor call in the program itself.
   void _registerCallableDispatchTarget(Reference target, Class cls) {
@@ -530,27 +539,27 @@ class DynamicModuleInfo {
     translator.functions.getFunction(target);
   }
 
-  void _initializeDynamicAllocatableClasses() {
+  void _initializeSubmoduleAllocatableClasses() {
     for (final classInfo in translator.classesSupersFirst) {
       final cls = classInfo.cls;
       if (cls == null) continue;
       if (cls.isAnonymousMixin) continue;
 
-      if (_isClassDynamicModuleInstantiable(cls)) {
+      if (_isClassSubmoduleInstantiable(cls)) {
         translator.functions.recordClassAllocation(classInfo.classId);
       }
     }
   }
 
-  void _initializeOverrideableReferences() {
+  void _initializeOverridableReferences() {
     for (final builtin in BuiltinUpdatableFunctions.values) {
       _createUpdateableFunction(builtin.index, builtin._buildType(translator),
           buildMain: (f) => builtin._buildMain(f, translator),
-          buildDynamic: (f) => builtin._buildDynamic(f, translator),
+          buildSubmodule: (f) => builtin._buildSubmodule(f, translator),
           name: '#r_${builtin.name}');
     }
 
-    for (final reference in metadata.invokedOverrideableReferences) {
+    for (final reference in metadata.invokedOverridableReferences) {
       final selector = translator.dispatchTable.selectorForTarget(reference);
       translator.functions.recordSelectorUse(selector, false);
 
@@ -559,12 +568,12 @@ class DynamicModuleInfo {
           .selectorForTarget(reference);
       final signature = _getGeneralizedSignature(mainSelector);
       final buildMain = buildSelectorBranch(reference, mainSelector);
-      final buildDynamic = buildSelectorBranch(reference, mainSelector);
+      final buildSubmodule = buildSelectorBranch(reference, mainSelector);
 
       _createUpdateableFunction(
           mainSelector.id + BuiltinUpdatableFunctions.values.length, signature,
           buildMain: buildMain,
-          buildDynamic: buildDynamic,
+          buildSubmodule: buildSubmodule,
           name: '#s${mainSelector.id}_${mainSelector.name}');
     }
   }
@@ -584,8 +593,7 @@ class DynamicModuleInfo {
 
     if (member is Procedure) {
       passReference(member.reference);
-      // We ignore the tear-off and let each dynamic module generate it for
-      // itself.
+      // We ignore the tear-off and let each submodule generate it for itself.
     } else if (member is Field) {
       passReference(member.getterReference);
       if (member.hasSetter) {
@@ -604,15 +612,15 @@ class DynamicModuleInfo {
 
   void finishDynamicModule() {
     _registerModuleRefs(
-        isDynamicModule ? initFunction.body : translator.initFunction.body);
+        isSubmodule ? initFunction.body : translator.initFunction.body);
 
     initFunction.body.end();
   }
 
   void _registerModuleRefs(w.InstructionsBuilder b) {
-    final numKeys = overrideableFunctions.length;
+    final numKeys = overridableFunctions.length;
     assert(numKeys < maxArrayNewFixedLength);
-    final orderedFunctions = ([...overrideableFunctions.entries]
+    final orderedFunctions = ([...overridableFunctions.entries]
           ..sort((a, b) => a.key.compareTo(b.key)))
         .map((e) => e.value);
 
@@ -632,26 +640,26 @@ class DynamicModuleInfo {
 
   int _createUpdateableFunction(int key, w.FunctionType type,
       {required void Function(w.FunctionBuilder function) buildMain,
-      required void Function(w.FunctionBuilder function) buildDynamic,
-      bool skipDynamic = false,
+      required void Function(w.FunctionBuilder function) buildSubmodule,
+      bool skipSubmodule = false,
       required String name}) {
     final mapKey = key;
     final index = metadata.keyInvocationToIndex[mapKey] ??=
         metadata.keyInvocationToIndex.length;
-    overrideableFunctions.putIfAbsent(index, () {
-      if (!isDynamicModule) {
+    overridableFunctions.putIfAbsent(index, () {
+      if (!isSubmodule) {
         final mainFunction = translator.mainModule.functions.define(type, name);
         translator.mainModule.functions.declare(mainFunction);
         buildMain(mainFunction);
         return mainFunction;
       }
 
-      if (skipDynamic) return null;
+      if (skipSubmodule) return null;
 
-      final dynamicModuleFunction = dynamicModule.functions.define(type, name);
-      dynamicModule.functions.declare(dynamicModuleFunction);
-      buildDynamic(dynamicModuleFunction);
-      return dynamicModuleFunction;
+      final submoduleFunction = submodule.functions.define(type, name);
+      submodule.functions.declare(submoduleFunction);
+      buildSubmodule(submoduleFunction);
+      return submoduleFunction;
     });
 
     return index;
@@ -660,26 +668,25 @@ class DynamicModuleInfo {
   void _callClassIdBranch(
       int key, w.InstructionsBuilder b, w.FunctionType signature,
       {required void Function(w.FunctionBuilder b) buildMainMatch,
-      required void Function(w.FunctionBuilder b) buildDynamicMatch,
-      bool skipDynamic = false,
+      required void Function(w.FunctionBuilder b) buildSubmoduleMatch,
+      bool skipSubmodule = false,
       required String name}) {
-    // No new types declared in the dynamic module so the branch would always
-    // miss.
-    final canSkipDynamicBranch = skipDynamic ||
-        translator.classIdNumbering.maxDynamicModuleClassId ==
+    // No new types declared in the submodule so the branch would always miss.
+    final canSkipSubmoduleBranch = skipSubmodule ||
+        translator.classIdNumbering.maxDynamicSubmoduleClassId ==
             translator.classIdNumbering.maxClassId;
     final callIndex = _createUpdateableFunction(key, signature,
         buildMain: buildMainMatch,
-        buildDynamic: buildDynamicMatch,
-        skipDynamic: canSkipDynamicBranch,
+        buildSubmodule: buildSubmoduleMatch,
+        skipSubmodule: canSkipSubmoduleBranch,
         name: name);
 
     translator.callReference(translator.classIdToModuleId.reference, b);
     b.i64_const(callIndex);
 
-    // getUpdateableFuncRef allows for null entries since a dynamic module may
-    // not implement every key. However, only keys that cannot be queried should
-    // be unimplemented so it's safe to cast to a non-nullable function here.
+    // getUpdateableFuncRef allows for null entries since a submodule may not
+    // implement every key. However, only keys that cannot be queried should be
+    // unimplemented so it's safe to cast to a non-nullable function here.
     translator.callReference(translator.getUpdateableFuncRef.reference, b);
     translator.convertType(b, w.RefType.func(nullable: true),
         w.RefType(signature, nullable: false));
@@ -688,12 +695,12 @@ class DynamicModuleInfo {
 
   void callClassIdBranchBuiltIn(
       BuiltinUpdatableFunctions key, w.InstructionsBuilder b,
-      {bool skipDynamic = false}) {
+      {bool skipSubmodule = false}) {
     _callClassIdBranch(key.index, b, key._buildType(translator),
         buildMainMatch: (f) => key._buildMain(f, translator),
-        buildDynamicMatch: (f) => key._buildDynamic(f, translator),
+        buildSubmoduleMatch: (f) => key._buildSubmodule(f, translator),
         name: '#r_${key.name}',
-        skipDynamic: skipDynamic);
+        skipSubmodule: skipSubmodule);
   }
 
   w.FunctionType _getGeneralizedSignature(SelectorInfo mainSelector) {
@@ -793,7 +800,7 @@ class DynamicModuleInfo {
       }
 
       ib.local_get(ib.locals[function.type.inputs.length - 2]);
-      if (isDynamicModule) {
+      if (isSubmodule) {
         translator.callReference(translator.scopeClassId.reference, ib);
       }
       if (checkedOffset == uncheckedOffset) {
@@ -828,10 +835,10 @@ class DynamicModuleInfo {
     };
   }
 
-  void callOverrideableDispatch(
+  void callOverridableDispatch(
       w.InstructionsBuilder b, SelectorInfo selector, Reference interfaceTarget,
       {required bool useUncheckedEntry}) {
-    metadata.invokedOverrideableReferences.add(interfaceTarget);
+    metadata.invokedOverridableReferences.add(interfaceTarget);
 
     final localSignature = selector.signature;
     // If any input is not a RefType (i.e. it's an unboxed value) then wrap it
@@ -871,9 +878,9 @@ class DynamicModuleInfo {
         name: '#s${mainModuleSelector.id}_${mainModuleSelector.name}',
         buildMainMatch:
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
-        buildDynamicMatch:
+        buildSubmoduleMatch:
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
-        skipDynamic: selector.targets(unchecked: false).targetRanges.isEmpty);
+        skipSubmodule: selector.targets(unchecked: false).targetRanges.isEmpty);
     translator.convertType(
         b, generalizedSignature.outputs.single, localSignature.outputs.single);
   }
@@ -898,8 +905,8 @@ class DynamicModuleInfo {
 ///
 /// Only classes defined in the main module require canonicalization because
 /// these are the only classes that can have identical constants instantiated in
-/// different dynamic modules. A class defined a dynamic module cannot be
-/// accessed from a different dynamic module.
+/// different submodules. A class defined in a submodule cannot be accessed from
+/// a different submodule.
 class ConstantCanonicalizer extends ConstantVisitor<void> {
   final Translator translator;
   final w.InstructionsBuilder b;
@@ -979,8 +986,8 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     b.i64_const((classId as AbsoluteClassId).value);
     translator.callReference(translator.constCacheGetter.reference, b);
 
-    // Get the equality checker for the class. Import it into the dynamic module
-    // and use the import if this is in a dynamic module.
+    // Get the equality checker for the class. Import it into the submodule and
+    // use the import if this is in a submodule.
     w.BaseFunction checker = _getCanonicalChecker(cls, b.module);
 
     // Declare the function so it can be used as a ref_func in a constant
@@ -1012,8 +1019,8 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
     translator.callReference(cacheField.getterReference, b);
 
-    // Get the equality checker for the class. Import it into the dynamic module
-    // and use the import if this is in a dynamic module.
+    // Get the equality checker for the class. Import it into the submodule and
+    // use the import if this is in a submodule.
     w.BaseFunction checker = _getCanonicalArrayChecker(
         translator.translateStorageType(elementType), mutable, b.module);
 
@@ -1346,7 +1353,9 @@ class _Devirtualization extends CHADevirtualization {
   @override
   void makeDirectCall(
       TreeNode node, Member? target, DirectCallMetadata directCall) {
-    if (target != null && target.isDynamicModuleOverrideable(coreTypes)) return;
+    if (target != null && target.isDynamicSubmoduleOverridable(coreTypes)) {
+      return;
+    }
     super.makeDirectCall(node, target, directCall);
   }
 }

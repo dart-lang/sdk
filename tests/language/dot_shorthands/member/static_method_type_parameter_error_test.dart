@@ -11,22 +11,22 @@ import '../dot_shorthand_helper.dart';
 
 void main() {
   StaticMember<bool> s = .member();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                     ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'StaticMember<int>' can't be assigned to a variable of type 'StaticMember<bool>'.
 
   StaticMember<int> sTypeParameters = .memberType("s");
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                                              ^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 
   StaticMemberExt<bool> sExt = .member();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                           ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'StaticMemberExt<int>' can't be assigned to a variable of type 'StaticMemberExt<bool>'.
 
   StaticMemberExt<int> sTypeParametersExt = .memberType("s");
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //                                                    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 }

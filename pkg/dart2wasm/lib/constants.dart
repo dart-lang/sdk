@@ -480,7 +480,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   final w.ModuleBuilder targetModule;
 
   ConstantCreator(this.constants, w.ModuleBuilder module)
-      : targetModule = constants.translator.isDynamicModule
+      : targetModule = constants.translator.isDynamicSubmodule
             ? module
             : constants.translator.mainModule;
 
@@ -517,8 +517,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       {bool lazy = false}) {
     assert(!type.nullable);
 
-    // This function is only called once per [Constant]. If we compile a
-    // dynamic module then the [dynamicModuleConstantIdMap] is pre-populated and
+    // This function is only called once per [Constant]. If we compile a dynamic
+    // submodule then the [dynamicModuleConstantIdMap] is pre-populated and
     // we may find an export name. If we compile the main module, then the id
     // will be `null`.
     final dynamicModuleConstantIdMap = constants.dynamicMainModuleConstantId;
@@ -526,7 +526,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     final isShareableAcrossModules = dynamicModuleConstantIdMap != null &&
         constant.accept(_ConstantDynamicModuleSharedChecker(translator));
     final needsRuntimeCanonicalization = isShareableAcrossModules &&
-        translator.isDynamicModule &&
+        translator.isDynamicSubmodule &&
         mainModuleExportId == null;
 
     if (lazy || needsRuntimeCanonicalization) {
@@ -718,7 +718,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         constants.instantiateConstant(
             b, subConstant, info.struct.fields[i].type.unpacked);
         if (isRelativeInterfaceType && i == FieldIndex.interfaceTypeClassId) {
-          assert(translator.isDynamicModule);
+          assert(translator.isDynamicSubmodule);
           translator.pushModuleId(b);
           translator.callReference(translator.globalizeClassId.reference, b);
         }
@@ -1219,12 +1219,13 @@ List<int> _intToLittleEndianBytes(int i) {
 
 String _intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
 
-/// Resolves to true if the visited Constant is accessible from dynamic modules.
+/// Resolves to true if the visited Constant is accessible from dynamic
+/// submodules.
 ///
-/// Constants that are accessible from dynamic modules should be:
+/// Constants that are accessible from dynamic submodules should be:
 /// (1) Exported from the main module if they exist there and then imported
-/// into dynamic modules.
-/// (2) Runtime canonicalized by dynamic modules if they are not in the main
+/// into dynamic submodules.
+/// (2) Runtime canonicalized by dynamic submodules if they are not in the main
 /// module.
 class _ConstantDynamicModuleSharedChecker extends ConstantVisitor<bool>
     with ConstantVisitorDefaultMixin<bool> {
@@ -1248,6 +1249,6 @@ class _ConstantDynamicModuleSharedChecker extends ConstantVisitor<bool>
       return true;
     }
     return constant.classNode.constructors.any(
-        (c) => c.isConst && c.isDynamicModuleCallable(translator.coreTypes));
+        (c) => c.isConst && c.isDynamicSubmoduleCallable(translator.coreTypes));
   }
 }

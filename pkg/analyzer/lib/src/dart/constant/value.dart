@@ -1390,14 +1390,14 @@ class DoubleState extends NumState {
 
 /// Exception that would be thrown during the evaluation of Dart code.
 class EvaluationException {
-  /// The error code associated with the exception.
-  final ErrorCode errorCode;
+  /// The diagnostic code associated with the exception.
+  final DiagnosticCode diagnosticCode;
 
   /// Returns `true` if the evaluation exception is a runtime exception.
   final bool isRuntimeException;
 
-  /// Initialize a newly created exception to have the given [errorCode].
-  EvaluationException(this.errorCode, {this.isRuntimeException = false});
+  /// Initialize a newly created exception to have the given [diagnosticCode].
+  EvaluationException(this.diagnosticCode, {this.isRuntimeException = false});
 }
 
 /// The state of an object representing a function.
@@ -2469,8 +2469,8 @@ class InvalidConstant implements Constant {
   /// The length of the entity that the evaluation error is reported at.
   final int length;
 
-  /// The error code that is being reported.
-  final ErrorCode errorCode;
+  /// The diagnostic code that is being reported.
+  final DiagnosticCode diagnosticCode;
 
   /// The arguments required to complete the message.
   final List<Object> arguments;
@@ -2507,7 +2507,7 @@ class InvalidConstant implements Constant {
   }) {
     return InvalidConstant.forEntity(
       entity: entity,
-      errorCode: other.errorCode,
+      diagnosticCode: other.diagnosticCode,
       arguments: other.arguments,
       contextMessages: other.contextMessages,
       avoidReporting: other.avoidReporting,
@@ -2519,7 +2519,7 @@ class InvalidConstant implements Constant {
   /// Creates a constant evaluation error associated with an [element].
   InvalidConstant.forElement({
     required Element element,
-    required ErrorCode errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     bool avoidReporting = false,
@@ -2528,7 +2528,7 @@ class InvalidConstant implements Constant {
   }) : this._(
          length: element.name3!.length,
          offset: element.firstFragment.nameOffset2 ?? -1,
-         errorCode: errorCode,
+         diagnosticCode: diagnosticCode,
          arguments: arguments,
          contextMessages: contextMessages,
          avoidReporting: avoidReporting,
@@ -2540,7 +2540,7 @@ class InvalidConstant implements Constant {
   /// [entity].
   InvalidConstant.forEntity({
     required SyntacticEntity entity,
-    required ErrorCode errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     bool avoidReporting = false,
@@ -2549,7 +2549,7 @@ class InvalidConstant implements Constant {
   }) : this._(
          offset: entity.offset,
          length: entity.length,
-         errorCode: errorCode,
+         diagnosticCode: diagnosticCode,
          arguments: arguments,
          contextMessages: contextMessages,
          avoidReporting: avoidReporting,
@@ -2569,13 +2569,13 @@ class InvalidConstant implements Constant {
         parent2.isConst) {
       return InvalidConstant.forEntity(
         entity: node,
-        errorCode: CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+        diagnosticCode: CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
         isUnresolved: isUnresolved,
       );
     }
     return InvalidConstant.forEntity(
       entity: node,
-      errorCode: CompileTimeErrorCode.INVALID_CONSTANT,
+      diagnosticCode: CompileTimeErrorCode.INVALID_CONSTANT,
       isUnresolved: isUnresolved,
     );
   }
@@ -2583,7 +2583,7 @@ class InvalidConstant implements Constant {
   InvalidConstant._({
     required this.offset,
     required this.length,
-    required this.errorCode,
+    required this.diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     this.avoidReporting = false,

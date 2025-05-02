@@ -1116,8 +1116,8 @@ class Intrinsifier {
         assert(ranges.length <= 1);
 
         if (translator.dynamicModuleSupportEnabled) {
-          final dynamicModuleRanges = translator.classIdNumbering
-              .getConcreteClassIdRangeForDynamicModule(
+          final submoduleRanges = translator.classIdNumbering
+              .getConcreteClassIdRangeForDynamicSubmodule(
                   translator.coreTypes.recordClass);
           final classIdLocal = b.addLocal(w.NumType.i32);
           codeGen.translateExpression(classId, w.NumType.i32);
@@ -1125,7 +1125,7 @@ class Intrinsifier {
           b.local_get(classIdLocal);
           translator.dynamicModuleInfo!.callClassIdBranchBuiltIn(
               BuiltinUpdatableFunctions.recordId, b,
-              skipDynamic: dynamicModuleRanges.isEmpty);
+              skipSubmodule: submoduleRanges.isEmpty);
         } else {
           codeGen.translateExpression(classId, w.NumType.i32);
           b.emitClassIdRangeCheck(ranges);

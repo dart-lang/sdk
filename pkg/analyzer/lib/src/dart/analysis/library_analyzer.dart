@@ -1003,11 +1003,15 @@ class LibraryAnalyzer {
     directive?.element = partElement;
 
     void reportOnDirectiveUri(
-      ErrorCode errorCode, {
+      DiagnosticCode diagnosticCode, {
       List<Object>? arguments = const [],
     }) {
       if (directive != null) {
-        errorReporter.atNode(directive.uri, errorCode, arguments: arguments);
+        errorReporter.atNode(
+          directive.uri,
+          diagnosticCode,
+          arguments: arguments,
+        );
       }
     }
 
@@ -1036,15 +1040,15 @@ class LibraryAnalyzer {
     var includedKind = includedFile.kind;
 
     if (includedKind is! PartFileKind) {
-      ErrorCode errorCode;
+      DiagnosticCode diagnosticCode;
       if (includedFile.exists) {
-        errorCode = CompileTimeErrorCode.PART_OF_NON_PART;
+        diagnosticCode = CompileTimeErrorCode.PART_OF_NON_PART;
       } else if (isGeneratedSource(includedFile.source)) {
-        errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
+        diagnosticCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
       } else {
-        errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        diagnosticCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
       }
-      reportOnDirectiveUri(errorCode, arguments: [includedFile.uriStr]);
+      reportOnDirectiveUri(diagnosticCode, arguments: [includedFile.uriStr]);
       return;
     }
 

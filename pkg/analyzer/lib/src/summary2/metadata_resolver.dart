@@ -97,10 +97,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     node.metadata.accept(this);
-    // We might have already accessed metadata flags, e.g. `hasDeprecated`,
-    // before we finished metadata resolution, during `PrefixScope` building.
-    // So, these flags are not accurate anymore, and we need to reset them.
-    node.libraryExport!.resetMetadataFlags();
   }
 
   @override

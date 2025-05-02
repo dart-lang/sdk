@@ -466,27 +466,27 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       // Report if this type is used as a class in hierarchy.
-      ErrorCode? errorCode;
+      DiagnosticCode? diagnosticCode;
       if (parent is ExtendsClause) {
-        errorCode =
+        diagnosticCode =
             CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       } else if (parent is ImplementsClause) {
-        errorCode =
+        diagnosticCode =
             CompileTimeErrorCode
                 .IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       } else if (parent is MixinOnClause) {
-        errorCode =
+        diagnosticCode =
             CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       } else if (parent is WithClause) {
-        errorCode =
+        diagnosticCode =
             CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       }
-      if (errorCode != null) {
+      if (diagnosticCode != null) {
         var errorRange = _ErrorHelper._getErrorRange(node);
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          errorCode: errorCode,
+          errorCode: diagnosticCode,
         );
         hasErrorReported = true;
         return InvalidTypeImpl.instance;

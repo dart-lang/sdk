@@ -34,7 +34,7 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
       LibraryIndex libraryIndex)
       : _checkBounds = !options.translatorOptions.omitBoundsChecks,
         _minify = options.translatorOptions.minify,
-        _hasDynamicModuleSupport = options.dynamicModuleMainUri != null,
+        _hasDynamicModuleSupport = options.enableDynamicModules,
         _deferredLoadingEnabled =
             options.translatorOptions.enableDeferredLoading ||
                 options.translatorOptions.enableMultiModuleStressTestMode,

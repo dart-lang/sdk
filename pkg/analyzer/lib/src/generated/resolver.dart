@@ -2467,22 +2467,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           whyNotPromotedArguments,
           contextType: contextType,
         );
-
-        var replacement = insertGenericFunctionInstantiation(
-          node,
-          contextType: contextType,
-        );
-        checkForArgumentTypesNotAssignableInList(
-          node.argumentList,
-          whyNotPromotedArguments,
-        );
-        _insertImplicitCallReference(replacement, contextType: contextType);
-
       case DotShorthandConstructorInvocationImpl():
         _instanceCreationExpressionResolver.resolveDotShorthand(
           rewrittenExpression,
           contextType: contextType,
         );
+    }
+
+    if (rewrittenExpression is FunctionExpressionInvocationImpl ||
+        rewrittenExpression == null) {
+      var replacement = insertGenericFunctionInstantiation(
+        node,
+        contextType: contextType,
+      );
+      checkForArgumentTypesNotAssignableInList(
+        node.argumentList,
+        whyNotPromotedArguments,
+      );
+      _insertImplicitCallReference(replacement, contextType: contextType);
     }
 
     if (isDotShorthand(node)) {

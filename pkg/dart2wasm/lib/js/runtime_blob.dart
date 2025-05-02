@@ -210,7 +210,7 @@ final moduleLoadingHelperTemplate = Template(r'''
     };
 ''');
 
-final dynamicModuleJsImportTemplate = Template(r'''
+final dynamicSubmoduleJsImportTemplate = Template(r'''
 export function imports(finalizeWrapper) {
   const dart2wasm = {
     <<JS_METHODS>>

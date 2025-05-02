@@ -394,8 +394,8 @@ class Translator with KernelNodes {
 
   DynamicModuleInfo? dynamicModuleInfo;
   bool get dynamicModuleSupportEnabled => dynamicModuleInfo != null;
-  bool get isDynamicModule => dynamicModuleInfo?.isDynamicModule ?? false;
-  w.ModuleBuilder get dynamicModule => dynamicModuleInfo!.dynamicModule;
+  bool get isDynamicSubmodule => dynamicModuleInfo?.isSubmodule ?? false;
+  w.ModuleBuilder get dynamicSubmodule => dynamicModuleInfo!.submodule;
 
   w.ModuleBuilder moduleForReference(Reference reference) =>
       _outputToBuilder[_moduleOutputData.moduleForReference(reference)]!;
@@ -429,9 +429,9 @@ class Translator with KernelNodes {
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
     staticTablesPerType = StaticDispatchTables(this);
-    dispatchTable = DispatchTable(isDynamicModuleTable: isDynamicModule)
+    dispatchTable = DispatchTable(isDynamicSubmoduleTable: isDynamicSubmodule)
       ..translator = this;
-    if (isDynamicModule) {
+    if (isDynamicSubmodule) {
       dynamicMainModuleDispatchTable = mainModuleMetadata.dispatchTable
         ..translator = this;
     }
@@ -509,7 +509,7 @@ class Translator with KernelNodes {
 
     functions.initialize();
 
-    dynamicModuleInfo?.initDynamicModule();
+    dynamicModuleInfo?.initSubmodule();
 
     drainCompletionQueue();
 
@@ -597,8 +597,8 @@ class Translator with KernelNodes {
     table ??= dispatchTable;
     functions.recordSelectorUse(selector, useUncheckedEntry);
 
-    if (dynamicModuleSupportEnabled && selector.isDynamicModuleOverrideable) {
-      dynamicModuleInfo!.callOverrideableDispatch(b, selector, interfaceTarget!,
+    if (dynamicModuleSupportEnabled && selector.isDynamicSubmoduleOverridable) {
+      dynamicModuleInfo!.callOverridableDispatch(b, selector, interfaceTarget!,
           useUncheckedEntry: useUncheckedEntry);
     } else {
       b.struct_get(topInfo.struct, FieldIndex.classId);
@@ -655,7 +655,7 @@ class Translator with KernelNodes {
   }
 
   void pushModuleId(w.InstructionsBuilder b) {
-    if (!isDynamicModule || b.module != dynamicModule) {
+    if (!isDynamicSubmodule || b.module != dynamicSubmodule) {
       b.i64_const(0);
     } else {
       b.global_get(dynamicModuleInfo!.moduleIdGlobal);
@@ -1336,9 +1336,9 @@ class Translator with KernelNodes {
   }
 
   DispatchTable dispatchTableForTarget(Reference target) {
-    if (!isDynamicModule) return dispatchTable;
-    if (moduleForReference(target) == dynamicModule) return dispatchTable;
-    assert(target.asMember.isDynamicModuleCallable(coreTypes));
+    if (!isDynamicSubmodule) return dispatchTable;
+    if (moduleForReference(target) == dynamicSubmodule) return dispatchTable;
+    assert(target.asMember.isDynamicSubmoduleCallable(coreTypes));
     return dynamicMainModuleDispatchTable!;
   }
 
@@ -1429,7 +1429,7 @@ class Translator with KernelNodes {
   Member? singleTarget(TreeNode node) {
     final member = directCallMetadata[node]?.targetMember;
     if (!dynamicModuleSupportEnabled || member == null) return member;
-    return member.isDynamicModuleOverrideable(coreTypes) ? null : member;
+    return member.isDynamicSubmoduleOverridable(coreTypes) ? null : member;
   }
 
   /// Direct call information of a [FunctionInvocation] based on TFA's direct
@@ -1830,8 +1830,8 @@ class CompilationQueue {
 
   bool get isEmpty => _pending.isEmpty;
   void add(CompilationTask entry) {
-    assert(!translator.isDynamicModule ||
-        entry.function.enclosingModule == translator.dynamicModule);
+    assert(!translator.isDynamicSubmodule ||
+        entry.function.enclosingModule == translator.dynamicSubmodule);
     _pending.add(entry);
   }
 
@@ -2377,7 +2377,7 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
 
   PolymorphicDispatcherCallTarget(this.translator, this.selector,
       this.callingModule, this.useUncheckedEntry)
-      : assert(!selector.isDynamicModuleOverrideable),
+      : assert(!selector.isDynamicSubmoduleOverridable),
         super(selector.signature);
 
   @override
@@ -2416,7 +2416,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
 
   PolymorphicDispatcherCodeGenerator(
       this.translator, this.selector, this.useUncheckedEntry)
-      : assert(!selector.isDynamicModuleOverrideable);
+      : assert(!selector.isDynamicSubmoduleOverridable);
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,

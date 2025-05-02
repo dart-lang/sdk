@@ -557,7 +557,7 @@ abstract class _TypeCheckers {
       return (null, checkArguments: false);
     }
     if (testedAgainstType.classNode
-        .isDynamicModuleExtendable(rtt.translator.coreTypes)) {
+        .isDynamicSubmoduleExtendable(rtt.translator.coreTypes)) {
       return (null, checkArguments: false);
     }
 
@@ -737,7 +737,7 @@ class IsCheckerCallTarget extends CallTarget {
       this.checkArguments,
       this.argumentCount)
       : assert(!testedAgainstType.classNode
-            .isDynamicModuleExtendable(translator.coreTypes));
+            .isDynamicSubmoduleExtendable(translator.coreTypes));
 
   @override
   String get name {
@@ -968,7 +968,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
       this.checkArguments,
       this.argumentCount)
       : assert(!testedAgainstType.classNode
-            .isDynamicModuleExtendable(translator.coreTypes));
+            .isDynamicSubmoduleExtendable(translator.coreTypes));
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
@@ -1273,20 +1273,20 @@ class RuntimeTypeInformation {
 
     final emptyString = StringConstant('');
     List<StringConstant> nameConstants = [];
-    List<StringConstant> dynamicModuleNameConstants = [];
+    List<StringConstant> dynamicSubmoduleNameConstants = [];
     for (ClassInfo classInfo in translator.classes) {
       Class? cls = classInfo.cls;
       if (cls == null || cls.isAnonymousMixin) {
         nameConstants.add(emptyString);
       } else {
         final constantList = classInfo.classId is RelativeClassId
-            ? dynamicModuleNameConstants
+            ? dynamicSubmoduleNameConstants
             : nameConstants;
         constantList.add(StringConstant(cls.name));
       }
     }
-    return translator.constants.makeArrayOf(
-        stringType, isMainModule ? nameConstants : dynamicModuleNameConstants);
+    return translator.constants.makeArrayOf(stringType,
+        isMainModule ? nameConstants : dynamicSubmoduleNameConstants);
   }
 
   Map<int, List<(Range, int)>> _buildRanges(Map<int, Map<int, int>> map) {

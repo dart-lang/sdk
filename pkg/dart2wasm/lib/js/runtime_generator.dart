@@ -135,11 +135,11 @@ class RuntimeFinalizer {
     });
   }
 
-  String generateDynamicModule(
+  String generateDynamicSubmodule(
       Iterable<Procedure> translatedProcedures, List<String> constantStrings) {
     final jsMethods = generateJsMethods(translatedProcedures);
 
-    return dynamicModuleJsImportTemplate.instantiate({
+    return dynamicSubmoduleJsImportTemplate.instantiate({
       'JS_METHODS': jsMethods,
       'IMPORTED_JS_STRINGS_IN_MJS':
           _generateInternalizedStrings(constantStrings),
