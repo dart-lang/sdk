@@ -174,7 +174,7 @@ class LibraryBundleCompiler implements old.Compiler {
             js.string('$_extensionSymbolHolderName.${entry.key}')
           ]),
         js.statement('# = #', [
-          js_ast.PropertyAccess.field(id, 'link'),
+          js_ast.PropertyAccess(id, js.call('dartDevEmbedder.linkSymbol')),
           js_ast.NamedFunction(
               js_ast.ScopedId('link__$_extensionSymbolHolderName'),
               js_ast.Fun(const [], js_ast.Block(const [])))
@@ -1026,7 +1026,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// so they can walk the prototype chain.
   js_ast.Statement _emitLibraryLinkMethod(Library library) {
     var libraryName = _emitLibraryName(library);
-    var nameExpr = js_ast.PropertyAccess.field(libraryName, 'link');
+    var nameExpr = js_ast.PropertyAccess(
+        libraryName, js.call('dartDevEmbedder.linkSymbol'));
     var functionName = _emitScopedId('link__${_jsLibraryName(library)}');
 
     var parameters = const <js_ast.Parameter>[];
