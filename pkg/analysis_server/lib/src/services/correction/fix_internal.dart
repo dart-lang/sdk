@@ -434,7 +434,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.prefer_if_elements_to_conditional_expressions: [
     ConvertConditionalExpressionToIfElement.new,
   ],
-  LinterLintCode.prefer_if_null_operators: [ConvertToIfNull.new],
+  LinterLintCode.prefer_if_null_operators: [ConvertToIfNull.preferIfNull],
   LinterLintCode.prefer_initializing_formals: [ConvertToInitializingFormal.new],
   LinterLintCode.prefer_inlined_adds_single: [
     ConvertAddAllToSpread.new,
@@ -538,6 +538,9 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.use_function_type_syntax_for_parameters: [
     ConvertToGenericFunctionSyntax.new,
+  ],
+  LinterLintCode.use_if_null_to_convert_nulls_to_bools: [
+    ConvertToIfNull.useToConvertNullsToBools,
   ],
   LinterLintCode.use_key_in_widget_constructors: [AddKeyToConstructors.new],
   LinterLintCode.use_named_constants: [ReplaceWithNamedConstant.new],
