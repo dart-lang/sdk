@@ -302,12 +302,6 @@ _nightly_builder(
     "vm-aot-dwarf-linux-product-x64",
     category = "vm|aot|dw",
 )
-_nightly_builder(
-    "vm-aot-dyn-linux-debug-x64",
-    category = "vm|aot|dm",
-    channels = ["try"],
-    location_filters = paths.to_location_filters(paths.dart2bytecode),
-)
 
 # vm|misc
 _nightly_builder(
@@ -452,6 +446,18 @@ _nightly_builder(
     category = "vm|misc|m",
     dimensions = windows,
     rbe = False,
+)
+
+_nightly_builder(
+    "vm-aot-dyn-linux-debug-x64",
+    category = "vm|misc|dm",
+    channels = ["try"],
+    location_filters = paths.to_location_filters(paths.dart2bytecode),
+)
+_nightly_builder(
+    "vm-dyn-linux-debug-x64",
+    category = "vm|misc|dm",
+    channels = ["try"],
 )
 
 # vm|ffi
