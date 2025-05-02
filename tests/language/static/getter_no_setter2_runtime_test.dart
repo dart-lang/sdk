@@ -10,9 +10,7 @@ import 'package:expect/expect.dart';
 class Class {
   static int get getter => 0;
 
-  method() {
-
-  }
+  method() {}
 
   noSuchMethod(i) => 42;
 }

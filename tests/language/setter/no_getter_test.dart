@@ -10,8 +10,8 @@ class Example {
 
 main() {
   print(topLevel++);
-  //    ^
-  // [analyzer] unspecified
+  //    ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Getter not found: 'topLevel'.
 
   Example ex = new Example();

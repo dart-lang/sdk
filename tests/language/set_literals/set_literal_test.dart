@@ -79,12 +79,17 @@ void test() {
     entries.add(entry);
     return value;
   }
+
   checkSet<Equality>(
-      {log(e1a, 1), log(e2b, 2), log(e1b, 3), log(e2a, 4)}, [e1a, e2b]);
+    {log(e1a, 1), log(e2b, 2), log(e1b, 3), log(e2a, 4)},
+    [e1a, e2b],
+  );
   Expect.listEquals([1, 2, 3, 4], entries);
 
   // Nested literals.
-  Object o = {{2}};
+  Object o = {
+    {2},
+  };
   Expect.type<LinkedHashSet<Set<int>>>(o);
   Expect.type<LinkedHashSet<int>>((o as Set).first);
   Set<Set<int>> set = o as Set<Set<int>>;
@@ -92,7 +97,10 @@ void test() {
   Expect.equals(1, set.first.length);
   Expect.equals(2, set.first.first);
 
-  o = {{2}, <int>{}};
+  o = {
+    {2},
+    <int>{},
+  };
   Expect.type<LinkedHashSet<Set<int>>>(o);
   Expect.type<LinkedHashSet<int>>((o as Set).first);
   set = o as Set<Set<int>>;
@@ -105,17 +113,26 @@ void test() {
   Expect.equals(1, set2.length);
   Expect.equals(0, set2.first.length);
 
-  var set3 = {{1}, {}};  // Set<Object>
+  var set3 = {
+    {1},
+    {},
+  }; // Set<Object>
   Expect.type<Set<Object>>(set3);
   Expect.notType<Set<Set<Object>>>(set3);
 
   // Trailing comma.
   Iterable<Object> i;
+  // Don't let the formatter remove the trailing commas.
+  // dart format off
   i = {1,};
+  // dart format on
   Expect.type<Set<Object>>(i);
   Expect.equals(1, i.length);
 
+  // Don't let the formatter remove the trailing commas.
+  // dart format off
   Object o2 = {1, 2, 3,};
+  // dart format on
   Expect.type<Set<int>>(o2);
   Set<Object> set4 = o2 as Set<Object>;
   Expect.equals(3, set4.length);
@@ -126,6 +143,6 @@ class Equality {
   final String name;
   const Equality(this.id, this.name);
   int get hashCode => id;
-  bool operator==(Object other) => other is Equality && id == other.id;
+  bool operator ==(Object other) => other is Equality && id == other.id;
   String toString() => "$id:$name";
 }

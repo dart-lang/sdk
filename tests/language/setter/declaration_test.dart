@@ -18,18 +18,18 @@ set tooMany(var value, var extra) {}
 //         ^
 // [cfe] A setter should have exactly one formal parameter.
 
-/*space*/ int? set wrongReturnType1(_) => 1;
-//        ^^^^
+int? set wrongReturnType1(_) => 1;
+// [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] The return type of the setter must be 'void' or absent.
 
-/*space*/ FutureOr<void> set wrongReturnType2(_) {}
-//        ^^^^^^^^^^^^^^
+FutureOr<void> set wrongReturnType2(_) {}
+// [error column 1, length 14]
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] The return type of the setter must be 'void' or absent.
 
-/*space*/ Never set wrongReturnType3(_) => throw 1;
-//        ^^^^^
+Never set wrongReturnType3(_) => throw 1;
+// [error column 1, length 5]
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] The return type of the setter must be 'void' or absent.
 
@@ -73,18 +73,18 @@ class C {
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] The return type of the setter must be 'void' or absent.
 
-  /*space*/ int? set wrongReturnType1(_) => 1;
-  //        ^^^^
+  int? set wrongReturnType1(_) => 1;
+  // [error column 3, length 4]
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] The return type of the setter must be 'void' or absent.
 
-  /*space*/ FutureOr<void> set wrongReturnType2(_) {}
-  //        ^^^^^^^^^^^^^^
+  FutureOr<void> set wrongReturnType2(_) {}
+  // [error column 3, length 14]
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] The return type of the setter must be 'void' or absent.
 
-  /*space*/ Never set wrongReturnType3(_) => throw 1;
-  //        ^^^^^
+  Never set wrongReturnType3(_) => throw 1;
+  // [error column 3, length 5]
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] The return type of the setter must be 'void' or absent.
 

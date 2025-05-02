@@ -46,7 +46,6 @@ class B extends A {
   }
 }
 
-
 main() {
   var a = new A();
   a = a + "William"; // operator + of class A.

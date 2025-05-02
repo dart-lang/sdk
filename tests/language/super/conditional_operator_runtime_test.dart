@@ -15,29 +15,9 @@ class B {
 }
 
 class C extends B {
-  C()
+  C();
 
-  ;
-
-  test() {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  }
+  test() {}
 }
 
 main() {

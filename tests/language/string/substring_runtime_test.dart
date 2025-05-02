@@ -9,10 +9,7 @@
 import "package:expect/expect.dart";
 
 main() {
-  try {
-
-
-  } on TypeError catch (e) {
+  try {} on TypeError catch (e) {
     // OK.
   } on ArgumentError catch (e) {
     // OK.

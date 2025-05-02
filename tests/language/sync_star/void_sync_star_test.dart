@@ -4,31 +4,35 @@
 
 // It is an error for a `sync*` function to have return type `void`.
 
-/*space*/ void f1() sync* {
-  //      ^^^^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+void f1() sync* {
+  // [error column 1, length 4]
+  // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
+  // ^
+  // [cfe] Functions marked 'sync*' can't have return type 'void'.
 }
 
 class C {
   static void f2() sync* {
     //   ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
+    //        ^
+    // [cfe] Functions marked 'sync*' can't have return type 'void'.
   }
 
-  /*space*/ void f3() sync* {
-    //      ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+  void f3() sync* {
+    // [error column 3, length 4]
+    // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
+    // ^
+    // [cfe] Functions marked 'sync*' can't have return type 'void'.
   }
 }
 
 void main() {
-  /*space*/ void f4() sync* {
-    //      ^^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+  void f4() sync* {
+    // [error column 3, length 4]
+    // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
+    // ^
+    // [cfe] Functions marked 'sync*' can't have return type 'void'.
   }
 
   // No function literal: It is probably not possible to infer the

@@ -32,9 +32,9 @@ class _JSON native 'JSON' {}
 // [cfe] expect cfe to report an error here
 
 class ListFactory<E> implements List<E> native "Array" {
-//                                      ^^^^^^^^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
-// [cfe] expect cfe to report an error here
+  //                                    ^^^^^^^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.NATIVE_CLAUSE_IN_NON_SDK_CODE
+  // [cfe] expect cfe to report an error here
   noSuchMethod(_) => null; // Allow unimplemented methods
 }
 

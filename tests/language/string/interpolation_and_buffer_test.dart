@@ -47,13 +47,23 @@ void main() {
 
   // Throws immediately when adding object that doesn't return a String.
   Expect.equals(
-      (StringBuffer()..write(s)..write(s)).toString(), "StringString");
+    (StringBuffer()
+          ..write(s)
+          ..write(s))
+        .toString(),
+    "StringString",
+  );
   Expect.throws<String>(
-      () => StringBuffer()..write(t)..write(throw "unreachable"),
-      (e) => e == "Throw");
+    () => StringBuffer()
+      ..write(t)
+      ..write(throw "unreachable"),
+    (e) => e == "Throw",
+  );
 
   // Same behavior for constructor argument as if adding it to buffer later.
   Expect.equals((StringBuffer(s)..write(s)).toString(), "StringString");
   Expect.throws<String>(
-      () => StringBuffer(t)..write(throw "unreachable"), (e) => e == "Throw");
+    () => StringBuffer(t)..write(throw "unreachable"),
+    (e) => e == "Throw",
+  );
 }
