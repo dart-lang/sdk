@@ -1442,7 +1442,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               !declaredMember.isConst) ||
           declaredMember is Procedure && declaredMember.isSetter;
       bool interfaceMemberHasSetter = (interfaceMember is Field &&
-              !interfaceMember.isFinal &&
+              !(interfaceMember.isFinal && !interfaceMember.isLate) &&
               !interfaceMember.isConst) ||
           interfaceMember is Procedure && interfaceMember.isSetter;
       if (declaredMemberHasGetter && interfaceMemberHasGetter) {
