@@ -135,7 +135,7 @@ vars = {
   "ecosystem_rev": "815d4ba2e7d11f8695a26f6cbe1262e3b8ff8d0d",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "http_rev": "63c477b466f650e8f5505d6d78dc283c2c2f9845",
-  "i18n_rev": "de1943629469719bf34269bf90fcdbe9334a73f3",
+  "i18n_rev": "e44af5483a051d546716b6aa3a57e478c59a5d8d",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "b324678c5a469e933f30693e5648947d5bfd5e9e", # rolled manually while native assets are experimental
@@ -144,10 +144,10 @@ vars = {
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "dc54465f07d9652875deeade643256dafa2fbc6c",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "3ac991fa5ea406474e4d8d6c823fc078a6c6c6b4",
-  "tools_rev": "11f4cf7ee79632be370062dad67b7dd81bc28d55",
+  "test_rev": "c3755d8057f29318e31f55e86b3a74d1a48f5d0a",
+  "tools_rev": "92f10a9ace39fceff212c64cbb2c10fae99ca7b8",
   "vector_math_rev": "39cafd45346f355a6e4c38a17c89fcd199dc1c96",
-  "web_rev": "553c14d5365dc51433d4c3f4a04028f88a462ab8",
+  "web_rev": "f1becf07db9faa56559d2844c3c6d430dc9b37de",
   "webdev_rev": "5bf833d0c277a384ab8bbfc10e7d3d71b8022560",
   "webdriver_rev": "f52afbf72895ae980bd4129d877305c2182d6cbc",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
