@@ -1952,7 +1952,7 @@ abstract class AstCodeGenerator
     List<({Range range, Reference target})> targetRanges = targets.targetRanges;
     List<({Range range, Reference target})> staticDispatchRanges =
         targets.staticDispatchRanges;
-    if (!selector.isDynamicModuleOverrideable) {
+    if (!selector.isDynamicSubmoduleOverridable) {
       if (targetRanges.length == 1) {
         final target = translator.getFunctionEntry(targetRanges[0].target,
             uncheckedEntry: useUncheckedEntry);

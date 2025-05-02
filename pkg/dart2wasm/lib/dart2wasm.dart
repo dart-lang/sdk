@@ -109,20 +109,18 @@ final List<Option> options = [
   StringOption("dynamic-module-type",
       (o, value) => o.dynamicModuleType = DynamicModuleType.parse(value)),
 
-  // The modified dill file to be output by the main module compilation for
-  // dynamic modules. The dill will contain the AST for the main module as well
-  // as some annotations to help identify entities when compiling dynamic
-  // modules.
+  // The modified dill file to be output by the dynamic main module compilation.
+  // The dill will contain the AST for the main module as well as some
+  // annotations to help identify entities when compiling dynamic submodules.
   UriOption(
-      "dynamic-module-main", (o, value) => o.dynamicModuleMainUri = value),
+      "dynamic-module-main", (o, value) => o.dynamicMainModuleUri = value),
 
   // A yaml file describing the interface of the main module accessible from
-  // dynamic modules.
+  // dynamic submodules.
   UriOption(
       "dynamic-module-interface", (o, value) => o.dynamicInterfaceUri = value),
 
-  // A binary metadata file produced by the main module compilation for dynamic
-  // modules.
+  // A binary metadata file produced by the dynamic main module compilation.
   UriOption("dynamic-module-metadata",
       (o, value) => o.dynamicModuleMetadataFile = value),
 

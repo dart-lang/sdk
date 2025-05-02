@@ -84,10 +84,10 @@ const String dynamicModulesRecordsLibraryUri = 'dart:_dyn_mod_records';
 /// ```
 Map<RecordShape, Class> generateRecordClasses(
     Component component, CoreTypes coreTypes,
-    {bool isDynamicMainModule = false, bool isDynamicModule = false}) {
+    {bool isDynamicMainModule = false, bool isDynamicSubmodule = false}) {
   final Map<RecordShape, Class> recordClasses = {};
   Library library;
-  if (isDynamicModule) {
+  if (isDynamicSubmodule) {
     // Put new record classes in their own library so downstream we know to load
     // them as new classes.
     library = Library(Uri.parse(dynamicModulesRecordsLibraryUri),
@@ -98,7 +98,7 @@ Map<RecordShape, Class> generateRecordClasses(
     library = coreTypes.coreLibrary;
   }
   final recordClassGenerator = _RecordClassGenerator(recordClasses, library,
-      coreTypes, isDynamicMainModule || isDynamicModule);
+      coreTypes, isDynamicMainModule || isDynamicSubmodule);
   final visitor = _RecordVisitor(recordClassGenerator);
   component.libraries.forEach(visitor.visitLibrary);
   return recordClasses;
@@ -222,7 +222,7 @@ class _RecordClassGenerator {
       className = '${className}_${shape.names.join('_')}';
     }
 
-    // If this is a dynamic module the loaded main module may already contain
+    // If this is a dynamic submodule the loaded main module may already contain
     // this class.
     final existingClass = _existingCoreClassNames[className];
     if (existingClass != null) return existingClass;

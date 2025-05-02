@@ -78,7 +78,7 @@ class Forwarder {
       w.ModuleBuilder module)
       : function = module.functions.define(_kind.functionType(translator),
             "$_kind forwarder for '$memberName'"),
-        assert(!translator.isDynamicModule ||
+        assert(!translator.isDynamicSubmodule ||
             (memberName == 'call' && _kind == _ForwarderKind.Getter));
 
   void _generateCode(Translator translator) {

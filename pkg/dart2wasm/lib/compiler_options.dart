@@ -17,7 +17,7 @@ class WasmCompilerOptions {
   String outputFile;
   String? depFile;
   DynamicModuleType? dynamicModuleType;
-  Uri? dynamicModuleMainUri;
+  Uri? dynamicMainModuleUri;
   Uri? dynamicInterfaceUri;
   Uri? dynamicModuleMetadataFile;
   bool validateDynamicModules = true;
@@ -45,7 +45,7 @@ class WasmCompilerOptions {
     }
 
     if (enableDynamicModules) {
-      if (dynamicModuleMainUri == null) {
+      if (dynamicMainModuleUri == null) {
         throw ArgumentError("--dynamic-module-main must be specified if "
             "compiling dynamic modules.");
       }

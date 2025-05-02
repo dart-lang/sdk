@@ -174,14 +174,14 @@ Future<CompilationResult> compileToModule(
     compilerOptions.compileSdk = true;
   }
 
-  final dynamicModuleMainUri = await resolveUri(options.dynamicModuleMainUri);
+  final dynamicMainModuleUri = await resolveUri(options.dynamicMainModuleUri);
   final dynamicInterfaceUri = await resolveUri(options.dynamicInterfaceUri);
   final isDynamicMainModule =
       options.dynamicModuleType == DynamicModuleType.main;
   final isDynamicSubmodule =
       options.dynamicModuleType == DynamicModuleType.submodule;
   if (isDynamicSubmodule) {
-    compilerOptions.additionalDills.add(dynamicModuleMainUri!);
+    compilerOptions.additionalDills.add(dynamicMainModuleUri!);
 
     if (options.validateDynamicModules) {
       // We must pass the unresolved URI here to be compatible with the CFE
@@ -218,16 +218,16 @@ Future<CompilationResult> compileToModule(
   }
 
   var jsInteropMethods = js.performJSInteropTransformations(
-      component.getDynamicModuleLibraries(coreTypes),
+      component.getDynamicSubmoduleLibraries(coreTypes),
       coreTypes,
       classHierarchy);
 
   if (isDynamicSubmodule) {
-    // Join the dynamic module libraries with the TFAed component from the main
+    // Join the submodule libraries with the TFAed component from the main
     // module compilation. JS interop transformer must be run before this since
     // some methods it uses may have been tree-shaken from the TFAed component.
-    (component, jsInteropMethods) = await generateDynamicModuleComponent(
-        component, coreTypes, dynamicModuleMainUri!, jsInteropMethods);
+    (component, jsInteropMethods) = await generateDynamicSubmoduleComponent(
+        component, coreTypes, dynamicMainModuleUri!, jsInteropMethods);
     coreTypes = CoreTypes(component);
     classHierarchy =
         ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
@@ -235,7 +235,7 @@ Future<CompilationResult> compileToModule(
   }
 
   final librariesToTransform = isDynamicSubmodule
-      ? component.getDynamicModuleLibraries(coreTypes)
+      ? component.getDynamicSubmoduleLibraries(coreTypes)
       : component.libraries;
   final constantEvaluator = ConstantEvaluator(
       options, target, component, coreTypes, classHierarchy, libraryIndex);
@@ -245,7 +245,7 @@ Future<CompilationResult> compileToModule(
   final Map<RecordShape, Class> recordClasses = generateRecordClasses(
       component, coreTypes,
       isDynamicMainModule: isDynamicMainModule,
-      isDynamicModule: isDynamicSubmodule);
+      isDynamicSubmodule: isDynamicSubmodule);
   target.recordClasses = recordClasses;
 
   if (options.dumpKernelBeforeTfa != null) {
@@ -268,8 +268,8 @@ Future<CompilationResult> compileToModule(
         File.fromUri(dynamicInterfaceUri!).readAsStringSync(),
         options.dynamicInterfaceUri!);
   } else if (isDynamicSubmodule) {
-    moduleStrategy = DynamicModuleStrategy(
-        component, options, target, coreTypes, dynamicModuleMainUri!);
+    moduleStrategy = DynamicSubmoduleStrategy(
+        component, options, target, coreTypes, dynamicMainModuleUri!);
   } else {
     moduleStrategy = DefaultModuleStrategy(component);
   }
@@ -282,10 +282,10 @@ Future<CompilationResult> compileToModule(
   if (isDynamicSubmodule) {
     mainModuleMetadata =
         await deserializeMainModuleMetadata(component, options);
-    mainModuleMetadata.verifyDynamicModuleOptions(options);
+    mainModuleMetadata.verifyDynamicSubmoduleOptions(options);
   } else if (isDynamicMainModule) {
     MainModuleMetadata.verifyMainModuleOptions(options);
-    await serializeMainModuleComponent(component, dynamicModuleMainUri!,
+    await serializeMainModuleComponent(component, dynamicMainModuleUri!,
         optimized: false);
   }
 
@@ -340,7 +340,7 @@ Future<CompilationResult> compileToModule(
   final jsRuntimeFinalizer = js.RuntimeFinalizer(jsInteropMethods);
 
   final jsRuntime = isDynamicSubmodule
-      ? jsRuntimeFinalizer.generateDynamicModule(
+      ? jsRuntimeFinalizer.generateDynamicSubmodule(
           translator.functions.translatedProcedures,
           translator.internalizedStringsForJSRuntime)
       : jsRuntimeFinalizer.generate(
@@ -354,7 +354,7 @@ Future<CompilationResult> compileToModule(
   final supportJs = _generateSupportJs(options.translatorOptions);
   if (isDynamicMainModule) {
     await serializeMainModuleMetadata(component, translator, options);
-    await serializeMainModuleComponent(component, dynamicModuleMainUri!,
+    await serializeMainModuleComponent(component, dynamicMainModuleUri!,
         optimized: true);
   }
 
