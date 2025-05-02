@@ -1427,7 +1427,7 @@ class DynamicElementImpl2 extends TypeDefiningElementImpl2 {
 
   @override
   Metadata get metadata2 {
-    return MetadataImpl(0, const []);
+    return MetadataImpl(const []);
   }
 
   @override
@@ -3567,16 +3567,13 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     return buffer.toString();
   }
 
-  List<ElementAnnotation> get metadata {
-    var result = <ElementAnnotation>[];
+  MetadataImpl get metadata2 {
+    var annotations = <ElementAnnotationImpl>[];
     for (var fragment in _fragments) {
-      result.addAll(fragment.metadataOrEmpty.annotations);
+      annotations.addAll((fragment as FragmentImpl).metadata);
     }
-    return result;
+    return MetadataImpl(annotations);
   }
-
-  MetadataImpl get metadata2 =>
-      MetadataImpl(-1, metadata.cast<ElementAnnotationImpl>());
 
   Version? get sinceSdkVersion {
     if (this is Element) {
@@ -3723,10 +3720,6 @@ mixin FragmentedTypeParameterizedElementMixin<
 }
 
 abstract class FragmentImpl implements ElementOrMember {
-  static const _metadataFlag_isReady = 1 << 0;
-  static const _metadataFlag_hasDeprecated = 1 << 1;
-  static const _metadataFlag_hasOverride = 1 << 2;
-
   static int _NEXT_ID = 0;
 
   @override
@@ -3756,9 +3749,6 @@ abstract class FragmentImpl implements ElementOrMember {
 
   /// A list containing all of the metadata associated with this element.
   List<ElementAnnotationImpl> _metadata = const [];
-
-  /// Cached flags denoting presence of specific annotations in [_metadata].
-  int _metadataFlags = 0;
 
   /// The documentation comment for this element.
   String? _docComment;
@@ -3806,12 +3796,6 @@ abstract class FragmentImpl implements ElementOrMember {
   /// `null` if this element is not contained in any compilation unit.
   LibraryFragmentImpl get enclosingUnit {
     return enclosingElement3!.enclosingUnit;
-  }
-
-  /// Whether the element has an annotation of the form `@deprecated`
-  /// or `@Deprecated('..')`.
-  bool get hasDeprecated {
-    return (_getMetadataFlags() & _metadataFlag_hasDeprecated) != 0;
   }
 
   /// Return an identifier that uniquely identifies this element among the
@@ -3866,7 +3850,7 @@ abstract class FragmentImpl implements ElementOrMember {
     _metadata = metadata;
   }
 
-  MetadataImpl get metadata2 => MetadataImpl(_getMetadataFlags(), metadata);
+  MetadataImpl get metadata2 => MetadataImpl(metadata);
 
   @override
   String? get name => _name;
@@ -3959,10 +3943,6 @@ abstract class FragmentImpl implements ElementOrMember {
   /// Return `true` if this element has the given [modifier] associated with it.
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
-  void resetMetadataFlags() {
-    _metadataFlags = 0;
-  }
-
   /// Set the code range for this element.
   void setCodeRange(int offset, int length) {
     _codeOffset = offset;
@@ -3978,29 +3958,6 @@ abstract class FragmentImpl implements ElementOrMember {
   @override
   String toString() {
     return getDisplayString();
-  }
-
-  /// Return flags that denote presence of a few specific annotations.
-  int _getMetadataFlags() {
-    var result = _metadataFlags;
-
-    // Has at least `_metadataFlag_isReady`.
-    if (result != 0) {
-      return result;
-    }
-
-    var metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isDeprecated) {
-        result |= _metadataFlag_hasDeprecated;
-      } else if (annotation.isOverride) {
-        result |= _metadataFlag_hasOverride;
-      }
-    }
-
-    result |= _metadataFlag_isReady;
-    return _metadataFlags = result;
   }
 }
 
@@ -5976,7 +5933,7 @@ class LibraryElementImpl extends FragmentImpl
     if (reference is ExportedReferenceExported) {
       for (var location in reference.locations) {
         var export = location.exportOf(this);
-        if (!export.hasDeprecated) {
+        if (!export.metadata2.hasDeprecated) {
           return false;
         }
       }
@@ -6902,12 +6859,17 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 }
 
 final class MetadataImpl implements Metadata {
-  final int _metadataFlags;
+  static const _isReady = 1 << 0;
+  static const _hasDeprecated = 1 << 1;
+  static const _hasOverride = 1 << 2;
+
+  /// Cached flags denoting presence of specific annotations.
+  int _metadataFlags2 = 0;
 
   @override
   final List<ElementAnnotationImpl> annotations;
 
-  MetadataImpl(this._metadataFlags, this.annotations);
+  MetadataImpl(this.annotations);
 
   @override
   bool get hasAlwaysThrows {
@@ -6935,18 +6897,7 @@ final class MetadataImpl implements Metadata {
 
   @override
   bool get hasDeprecated {
-    if (_metadataFlags < 0) {
-      // TODO(augmentations): Consider optimizing this similar to `ElementImpl`.
-      var annotations = this.annotations;
-      for (var i = 0; i < annotations.length; i++) {
-        var annotation = annotations[i];
-        if (annotation.isDeprecated) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return (_metadataFlags & FragmentImpl._metadataFlag_hasDeprecated) != 0;
+    return (_getMetadataFlags() & _hasDeprecated) != 0;
   }
 
   @override
@@ -7119,18 +7070,7 @@ final class MetadataImpl implements Metadata {
 
   @override
   bool get hasOverride {
-    if (_metadataFlags < 0) {
-      // TODO(augmentations): Consider optimizing this similar to `ElementImpl`.
-      var annotations = this.annotations;
-      for (var i = 0; i < annotations.length; i++) {
-        var annotation = annotations[i];
-        if (annotation.isOverride) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return (_metadataFlags & FragmentImpl._metadataFlag_hasOverride) != 0;
+    return (_getMetadataFlags() & _hasOverride) != 0;
   }
 
   /// Return `true` if this element has an annotation of the form
@@ -7276,6 +7216,28 @@ final class MetadataImpl implements Metadata {
       }
     }
     return false;
+  }
+
+  /// Return flags that denote presence of a few specific annotations.
+  int _getMetadataFlags() {
+    var result = _metadataFlags2;
+
+    // Has at least `_metadataFlag_isReady`.
+    if (result != 0) {
+      return result;
+    }
+
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isDeprecated) {
+        result |= _hasDeprecated;
+      } else if (annotation.isOverride) {
+        result |= _hasOverride;
+      }
+    }
+
+    result |= _isReady;
+    return _metadataFlags2 = result;
   }
 }
 
@@ -7888,7 +7850,7 @@ class NeverElementImpl2 extends TypeDefiningElementImpl2 {
 
   @override
   Metadata get metadata2 {
-    return MetadataImpl(0, const []);
+    return MetadataImpl(const []);
   }
 
   @override
@@ -10532,21 +10494,6 @@ extension on Fragment {
     return switch (this) {
       Annotatable(:var documentationComment) => documentationComment,
       _ => null,
-    };
-  }
-
-  /// The metadata associated with the element or fragment.
-  ///
-  /// If the receiver is an element that has fragments, the list will include
-  /// all of the metadata from all of the fragments.
-  ///
-  /// The list will be empty if the receiver does not have any metadata, does
-  /// not support metadata, or if the library containing this element has not
-  /// yet been fully resolved.
-  Metadata get metadataOrEmpty {
-    return switch (this) {
-      Annotatable(:var metadata2) => metadata2,
-      _ => MetadataImpl(-1, const []),
     };
   }
 }

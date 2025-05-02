@@ -139,7 +139,7 @@ Element convertLibraryFragment(LibraryFragmentImpl fragment) {
     path.basename(fragment.source.fullName),
     Element.makeFlags(
       isPrivate: fragment.isPrivate,
-      isDeprecated: fragment.hasDeprecated,
+      isDeprecated: fragment.library.metadata2.hasDeprecated,
     ),
     location: newLocation_fromFragment(fragment),
   );
