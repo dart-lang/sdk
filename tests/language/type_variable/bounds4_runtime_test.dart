@@ -7,25 +7,21 @@
 
 // Test instantiation of object with malbounded types.
 
-class A<
-    T
-
-    > {}
+class A<T> {}
 
 class B<T> implements A<T> {}
 
-class C<
-    T
-
-    > implements B<T> {}
+class C<T> implements B<T> {}
 
 class Class<T> {
   newA() {
     new A<T>();
   }
+
   newB() {
     new B<T>();
   }
+
   newC() {
     new C<T>();
   }

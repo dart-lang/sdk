@@ -15,6 +15,7 @@ class Bar<T> {
     T local() {
       throw "uncalled";
     }
+
     return local;
   }
 }

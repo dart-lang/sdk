@@ -101,50 +101,49 @@ void test(A a1) {
   }
 
   var o1 = a1 is B && a2 is C
-          ? '${a1.a}'
-              '${a1.b}'
-      '${a1.c}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'c' isn't defined for the class 'B'.
-      '${a1.d}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'B'.
-              '${a2.a}'
-              '${a2.b}'
-              '${a2.c}'
-      '${a2.d}'
-      //    ^
+      ? '${a1.a}'
+            '${a1.b}'
+            '${a1.c}'
+            //    ^
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [cfe] The getter 'c' isn't defined for the class 'B'.
+            '${a1.d}'
+            //    ^
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [cfe] The getter 'd' isn't defined for the class 'B'.
+            '${a2.a}'
+            '${a2.b}'
+            '${a2.c}'
+            '${a2.d}'
+      //          ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'd' isn't defined for the class 'C'.
-          : '${a1.a}'
-      '${a1.b}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'b' isn't defined for the class 'A'.
-      '${a1.c}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'c' isn't defined for the class 'A'.
-      '${a1.d}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'A'.
-          '${a2.a}'
-      '${a2.b}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'b' isn't defined for the class 'A'.
-      '${a2.c}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'c' isn't defined for the class 'A'.
-      '${a2.d}'
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'd' isn't defined for the class 'A'.
-      ;
+      : '${a1.a}'
+            '${a1.b}'
+            //    ^
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [cfe] The getter 'b' isn't defined for the class 'A'.
+            '${a1.c}'
+            //    ^
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [cfe] The getter 'c' isn't defined for the class 'A'.
+            '${a1.d}'
+            //    ^
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [cfe] The getter 'd' isn't defined for the class 'A'.
+            '${a2.a}'
+            '${a2.b}'
+            //    ^
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [cfe] The getter 'b' isn't defined for the class 'A'.
+            '${a2.c}'
+            //    ^
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [cfe] The getter 'c' isn't defined for the class 'A'.
+            '${a2.d}';
+  //              ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'd' isn't defined for the class 'A'.
 
   if (a2 is C && a1 is B && a1 is C && a2 is B && a2 is D) {
     print(a1.a);

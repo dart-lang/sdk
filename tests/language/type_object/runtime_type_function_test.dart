@@ -18,7 +18,10 @@ main() {
   var s = new Xyzzy().runtimeType.toString();
   if (!s.startsWith('minified')) {
     Expect.equals(
-        'Xyzzy', s, 'runtime type of plain class prints as class name');
+      'Xyzzy',
+      s,
+      'runtime type of plain class prints as class name',
+    );
   }
 
   check(fn('void', 'String, dynamic'), check);

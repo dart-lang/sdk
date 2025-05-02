@@ -9,9 +9,9 @@ import "package:expect/expect.dart";
 class Foo<T> {
   // T is not in scope for a static method.
   static Foo<T> m() {
-  //         ^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
-  // [cfe] Type variables can't be used in static members.
+    //       ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
     return new Foo();
   }
 }

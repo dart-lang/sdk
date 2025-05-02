@@ -7,8 +7,11 @@ import "package:expect/expect.dart";
 typedef String F(String returns, String arguments, [Map<String, String> named]);
 
 /// Formats a type like `(String, [int], {bool name}) => double`.
-String fn(String returns, String positional,
-    [Map<String, String> named = const {}]) {
+String fn(
+  String returns,
+  String positional, [
+  Map<String, String> named = const {},
+]) {
   var result = new StringBuffer();
   result.write("($positional");
   if (positional != "" && named.isNotEmpty) result.write(", ");
