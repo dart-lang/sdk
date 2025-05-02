@@ -193,6 +193,7 @@ class ElementResolver {
     return _methodInvocationResolver.resolveDotShorthand(
       node,
       whyNotPromotedArguments,
+      contextType: contextType,
     );
   }
 

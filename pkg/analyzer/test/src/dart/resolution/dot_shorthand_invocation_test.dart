@@ -618,4 +618,57 @@ DotShorthandInvocation
     dynamic
 ''');
   }
+
+  test_typeParameters_inference() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  static C<X> foo<X>(X x) => new C<X>();
+  C<U> cast<U>() => new C<U>();
+}
+void main() {
+  C<bool> c = .foo("String").cast();
+  print(c);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <testLibraryFragment>::@class::C::@method::foo#element
+    staticType: C<X> Function<X>(X)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: "String"
+    rightParenthesis: )
+  staticInvokeType: C<String> Function(String)
+  staticType: C<String>
+  typeArgumentTypes
+    String
+''');
+  }
+
+  test_typeParameters_notAssignable() async {
+    await assertErrorsInCode(
+      r'''
+class C<T> {
+  static C<int> member() => C(1);
+
+  final T t;
+  C(this.t);
+}
+
+void main() {
+  C<bool> c = .member();
+  print(c);
+}
+
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 105, 9)],
+    );
+  }
 }

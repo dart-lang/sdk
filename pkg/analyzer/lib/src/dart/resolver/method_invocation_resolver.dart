@@ -258,23 +258,26 @@ class MethodInvocationResolver with ScopeHelpers {
   /// node. Otherwise, returns `null`.
   RewrittenMethodInvocationImpl? resolveDotShorthand(
     DotShorthandInvocationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+  }) {
     _invocation = node;
 
-    TypeImpl contextType =
+    TypeImpl dotShorthandContextType =
         _resolver.getDotShorthandContext().unwrapTypeSchemaView();
 
     // The static namespace denoted by `S` is also the namespace denoted by
     // `FutureOr<S>`.
-    contextType = _resolver.typeSystem.futureOrBase(contextType);
+    dotShorthandContextType = _resolver.typeSystem.futureOrBase(
+      dotShorthandContextType,
+    );
 
     // TODO(kallentu): Dot shorthands work - Support other context types
-    if (contextType is InterfaceTypeImpl) {
-      var contextElement = contextType.element3;
+    if (dotShorthandContextType is InterfaceTypeImpl) {
+      var receiver = dotShorthandContextType.element3;
       return _resolveReceiverTypeLiteralForDotShorthand(
         node,
-        contextElement,
+        receiver,
         node.memberName,
         node.memberName.name,
         whyNotPromotedArguments,
