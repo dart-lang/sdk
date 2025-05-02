@@ -320,11 +320,18 @@ WasmExternRef? jsifyRaw(Object? o) {
     if (o is js_types.JSDataViewImpl) return jsifyJSDataViewImpl(o);
     if (o is ByteData) return jsifyByteData(o);
   } else if (o is List<Object?>) {
+    // TODO(srujzs): Once `package:js` support is fully removed, we should
+    // remove this as it'll be dead code. `jsify` will convert iterables
+    // differently, and `dart:js_interop` `external` conversions shouldn't come
+    // across this code.
     return _jsifyRawList(o);
   } else if (o is ByteBuffer) {
     if (o is js_types.JSArrayBufferImpl) return jsifyJSArrayBufferImpl(o);
     return jsArrayBufferFromDartByteBuffer(o);
   } else if (o is Function) {
+    // TODO(srujzs): Once `package:js` support is fully removed, we should
+    // remove this to unify with the JS backends, which don't do this
+    // conversion.
     return jsifyFunction(o);
   } else {
     return jsObjectFromDartObject(o);
