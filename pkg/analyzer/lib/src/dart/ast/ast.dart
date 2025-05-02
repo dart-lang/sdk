@@ -8700,9 +8700,10 @@ abstract final class FunctionReference
   ///
   /// In error-free code, this is either a [SimpleIdentifier] (indicating a
   /// function that is in scope), a [PrefixedIdentifier] (indicating a either
-  /// function imported via prefix or a static method in a class), or a
+  /// function imported via prefix or a static method in a class), a
   /// [PropertyAccess] (indicating a static method in a class imported via
-  /// prefix). In code with errors, this could be other kinds of expressions.
+  /// prefix), or a [DotShorthandPropertyAccess] (indicating a static method in
+  /// a class). In code with errors, this could be other kinds of expressions.
   /// For example, `(...)<int>` parses as a [FunctionReference] whose referent
   /// is a [ParenthesizedExpression].
   Expression get function;
@@ -8720,6 +8721,7 @@ abstract final class FunctionReference
 }
 
 final class FunctionReferenceImpl extends CommentReferableExpressionImpl
+    with DotShorthandMixin
     implements FunctionReference {
   ExpressionImpl _function;
 

@@ -2967,11 +2967,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitFunctionReference(
-    FunctionReference node, {
+    covariant FunctionReferenceImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    _functionReferenceResolver.resolve(node as FunctionReferenceImpl);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    _functionReferenceResolver.resolve(node);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
     inferenceLogWriter?.exitExpression(node);
   }
 
