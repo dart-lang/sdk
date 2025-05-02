@@ -2480,6 +2480,10 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
+LintCode.unnecessary_unawaited:
+  status: needsFix
+  notes: |-
+    A fix can be made to remove the 'unawaited' call.
 LintCode.unnecessary_underscores:
   status: hasFix  
 LintCode.unreachable_from_main:

@@ -329,9 +329,14 @@ extension ElementExtension on Element? {
   };
 
   /// Whether this is an [Annotatable] which is annotated with `@awaitNotRequired`.
-  bool get hasAwaitNotRequired =>
-      this is Annotatable &&
-      (this! as Annotatable).metadata2.hasAwaitNotRequired;
+  bool get hasAwaitNotRequired {
+    var self = this;
+    if (self == null || self is! Annotatable) {
+      return false;
+    }
+    return (self as Annotatable).metadata2.hasAwaitNotRequired ||
+        (self is PropertyAccessorElement && self.variable3.hasAwaitNotRequired);
+  }
 
   bool get isDartCorePrint {
     var self = this;

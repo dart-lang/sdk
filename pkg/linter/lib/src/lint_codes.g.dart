@@ -1827,6 +1827,14 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode unnecessary_unawaited = LinterLintCode(
+    LintNames.unnecessary_unawaited,
+    "Unnecessary use of 'unawaited'.",
+    correctionMessage:
+        "Try removing the use of 'unawaited', as the unawaited element is "
+        "annotated with '@awaitNotRequired'.",
+  );
+
   static const LintCode unnecessary_underscores = LinterLintCode(
     LintNames.unnecessary_underscores,
     "Unnecessary use of multiple underscores.",
