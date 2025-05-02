@@ -127,8 +127,11 @@ main() {
 
   // Test int->bool converter individually.
   Converter<int, bool> int2boolConverter = new IntBoolConverter1();
-  Expect.listEquals(
-      [true, false, true], [2, -2, 2].map(int2boolConverter.convert).toList());
+  Expect.listEquals([
+    true,
+    false,
+    true,
+  ], [2, -2, 2].map(int2boolConverter.convert).toList());
   var hasExecuted = false;
   boolSink = new MyChunkedBoolSink.withCallback((value) {
     hasExecuted = true;
@@ -146,8 +149,11 @@ main() {
 
   // Test bool->int converter individually.
   Converter<bool, int> bool2intConverter = new BoolIntConverter1();
-  Expect.listEquals(
-      [1, 0, 1], [true, false, true].map(bool2intConverter.convert).toList());
+  Expect.listEquals([
+    1,
+    0,
+    1,
+  ], [true, false, true].map(bool2intConverter.convert).toList());
   hasExecuted = false;
   intSink = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;
@@ -237,8 +243,9 @@ main() {
   hasExecuted = false;
 
   // With identity between the two converters.
-  fused =
-      int2boolConverter.fuse(new IdentityConverter()).fuse(bool2intConverter);
+  fused = int2boolConverter
+      .fuse(new IdentityConverter())
+      .fuse(bool2intConverter);
   Expect.listEquals([1, 0, 1], [2, -2, 2].map(fused.convert).toList());
   hasExecuted = false;
   intSink2 = new MyChunkedIntSink.withCallback((value) {
