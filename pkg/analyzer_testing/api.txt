@@ -1,0 +1,4 @@
+package:analyzer_testing/package_root.dart:
+  packageRoot (static getter: String)
+dart:core:
+  String (referenced)

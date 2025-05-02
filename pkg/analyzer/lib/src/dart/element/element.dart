@@ -1511,6 +1511,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// used (for ephemeral testing and debugging only).
   static const String _doNotSubmitVariableName = 'doNotSubmit';
 
+  /// The name of the top-level variable used to mark a declaration as experimental.
+  static const String _experimentalVariableName = 'experimental';
+
   /// The name of the top-level variable used to mark a method as being a
   /// factory.
   static const String _factoryVariableName = 'factory';
@@ -1722,6 +1725,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDoNotSubmit => _isPackageMetaGetter(_doNotSubmitVariableName);
+
+  @override
+  bool get isExperimental => _isPackageMetaGetter(_experimentalVariableName);
 
   @override
   bool get isFactory => _isPackageMetaGetter(_factoryVariableName);
@@ -6918,6 +6924,18 @@ final class MetadataImpl implements Metadata {
     for (var i = 0; i < annotations.length; i++) {
       var annotation = annotations[i];
       if (annotation.isDoNotSubmit) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasExperimental {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isExperimental) {
         return true;
       }
     }

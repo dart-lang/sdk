@@ -13,8 +13,8 @@ import 'generate.dart';
 
 Future<void> main() async {
   await GeneratedContent.checkAll(
-    analyzerPkgPath,
-    join(analyzerPkgPath, 'tool', 'api', 'generate.dart'),
+    analyzerTestingPkgPath,
+    join(analyzerTestingPkgPath, 'tool', 'api', 'generate.dart'),
     allTargets,
   );
 }
