@@ -392,7 +392,20 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       // Erroneous case.
       return;
     }
-    FormalParameterBuilder parameter = formals.first;
+
+    // Only infer the parameter type if it's the first required positional.
+    FormalParameterBuilder? parameter;
+    for (FormalParameterBuilder formal in formals) {
+      if (formal.isRequiredPositional) {
+        parameter = formal;
+        break;
+      }
+    }
+    if (parameter == null) {
+      // Erroneous case.
+      return;
+    }
+
     if (parameter.type is InferableTypeBuilder) {
       DartType? inferredType;
 
