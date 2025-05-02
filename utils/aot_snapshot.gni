@@ -98,6 +98,9 @@ template("aot_snapshot") {
     if (product_mode) {
       args += [ "-Ddart.vm.product=true" ]
     }
+    if (defined(invoker.args)) {
+      args += invoker.args
+    }
   }
 
   # Whether to build an AOT snapshot, which can be opened by dlopen.

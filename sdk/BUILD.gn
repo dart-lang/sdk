@@ -42,6 +42,7 @@ declare_args() {
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
+# ........analysis_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dart2bytecode.snapshot (AOT snapshot, for selected targets)
 # ........dart2js_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dart2js.dart.snapshot (JIT snapshot only on ia32)
