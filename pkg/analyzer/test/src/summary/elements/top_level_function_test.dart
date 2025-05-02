@@ -126,6 +126,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -138,6 +140,10 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+          combinators
+            hide: main
 ''');
   }
 
@@ -152,6 +158,10 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -1014,6 +1024,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1026,6 +1038,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1068,6 +1082,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1099,6 +1115,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1157,6 +1175,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 

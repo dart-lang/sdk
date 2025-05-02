@@ -1643,6 +1643,16 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/foo.dart
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: a @1
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: null
+              element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         hasInitializer a @28
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -2709,6 +2719,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: deprecated @1
+                element: dart:core::<fragment>::@getter::deprecated#element
+                staticType: null
+              element2: dart:core::<fragment>::@getter::deprecated#element
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -2728,6 +2750,17 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      parts
+        part_0
+          uri: source 'dart:math'
+          metadata
+            Annotation
+              atSign: @ @0
+              name: SimpleIdentifier
+                token: deprecated @1
+                element: dart:core::<fragment>::@getter::deprecated#element
+                staticType: null
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
 
@@ -4770,6 +4803,29 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @17
+              name: SimpleIdentifier
+                token: foo @18
+                element: <testLibraryFragment>::@getter::foo#element
+                staticType: null
+              element2: <testLibraryFragment>::@getter::foo#element
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          metadata
+            Annotation
+              atSign: @ @38
+              name: SimpleIdentifier
+                token: foo @39
+                element: <testLibraryFragment>::@getter::foo#element
+                staticType: null
+              element2: <testLibraryFragment>::@getter::foo#element
+          unit: <testLibrary>::@fragment::package:test/b.dart
       topLevelVariables
         hasInitializer foo @65
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -5242,6 +5298,18 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo.dart
+      parts
+        part_0
+          uri: package:test/foo.dart
+          metadata
+            Annotation
+              atSign: @ @11
+              name: SimpleIdentifier
+                token: a @12
+                element: <testLibraryFragment>::@getter::a#element
+                staticType: null
+              element2: <testLibraryFragment>::@getter::a#element
+          unit: <testLibrary>::@fragment::package:test/foo.dart
       topLevelVariables
         hasInitializer a @37
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -5308,6 +5376,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -5347,10 +5419,24 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
+      libraryExports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                element: dart:core::<fragment>::@getter::deprecated#element
+                staticType: null
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
 
@@ -5370,6 +5456,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -5409,11 +5499,27 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
+      parts
+        part_0
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_1
+          uri: package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                element: dart:core::<fragment>::@getter::deprecated#element
+                staticType: null
+              element2: dart:core::<fragment>::@getter::deprecated#element
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibrary>::@fragment::package:test/b.dart

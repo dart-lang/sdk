@@ -41,10 +41,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      libraryExports
+        dart:io
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
+      libraryExports
+        dart:math
 ''');
   }
 
@@ -66,10 +74,24 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
+      libraryExports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @21
+              name: SimpleIdentifier
+                token: deprecated @22
+                element: dart:core::<fragment>::@getter::deprecated#element
+                staticType: null
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
 
@@ -93,6 +115,10 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       libraryImports
         dart:io
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -120,6 +146,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>

@@ -1281,6 +1281,18 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
+  void _writeLibraryExport(LibraryExportElementImpl e) {
+    _sink.writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
+
+    _sink.withIndent(() {
+      _writeReference(e);
+      _writeMetadata(e.metadata2);
+      _writeNamespaceCombinators(e.combinators);
+    });
+  }
+
   void _writeLibraryFragment(LibraryFragmentImpl f) {
     var reference = f.reference!;
     _sink.writeIndentedLine(() {
@@ -1305,9 +1317,8 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeList('libraryImports', imports, _writeLibraryImport);
       }
       _writeElementList('prefixes', f.element, f.prefixes, _writePrefixElement);
-      // _writeList(
-      //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
-      // _writeList('parts', f.parts, _writePartElement);
+      _writeList('libraryExports', f.libraryExports, _writeLibraryExport);
+      _writeList('parts', f.parts, _writePartInclude);
 
       _writeFragmentList('classes', f, f.classes2, _writeInstanceFragment);
       _writeFragmentList('enums', f, f.enums2, _writeInstanceFragment);
@@ -1356,7 +1367,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeMetadata(e.metadata2);
-      // _writeNamespaceCombinators(e.combinators);
+      _writeNamespaceCombinators(e.combinators);
     });
   }
 
@@ -1478,8 +1489,43 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
+  void _writeNamespaceCombinator(NamespaceCombinator e) {
+    _sink.writeIndentedLine(() {
+      switch (e) {
+        case ShowElementCombinator():
+          _sink.write('show: ');
+          _sink.write(e.shownNames.join(', '));
+        case HideElementCombinator():
+          _sink.write('hide: ');
+          _sink.write(e.hiddenNames.join(', '));
+      }
+    });
+  }
+
+  void _writeNamespaceCombinators(List<NamespaceCombinator> elements) {
+    _writeList('combinators', elements, _writeNamespaceCombinator);
+  }
+
   void _writeNotSimplyBounded(InterfaceElementImpl2 e) {
     _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+  }
+
+  void _writePartInclude(PartElementImpl e) {
+    _sink.writelnWithIndent(_idMap[e]);
+
+    _sink.withIndent(() {
+      var uri = e.uri;
+      _sink.writeIndentedLine(() {
+        _sink.write('uri: ');
+        _writeDirectiveUri(e.uri);
+      });
+
+      _writeMetadata(e.metadata2);
+
+      if (uri is DirectiveUriWithUnitImpl) {
+        _elementPrinter.writeNamedFragment('unit', uri.libraryFragment);
+      }
+    });
   }
 
   void _writePrefixElement(PrefixElementImpl2 e) {
