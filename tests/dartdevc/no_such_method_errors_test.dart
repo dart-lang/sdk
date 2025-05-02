@@ -41,6 +41,22 @@ class A {
     val += 10;
     return val.toString();
   };
+
+  Function get getterArity1 => (int val) {
+    val += 10;
+    return val.toString();
+  };
+
+  Function fieldArity1Tearoff = A.staticArity1;
+
+  Function get getterArity1Tearoff => A.staticArity1;
+}
+
+class B {
+  String call(int val) {
+    val += 10;
+    return val.toString();
+  }
 }
 
 String arity1(int val) {
@@ -55,6 +71,15 @@ Function fieldArity1 = (int val) {
   return val.toString();
 };
 
+Function get getterArity1 => (int val) {
+  val += 10;
+  return val.toString();
+};
+
+Function fieldArity1Tearoff = arity1;
+
+Function get getterArity1Tearoff => arity1;
+
 String requiredNamedArity1({required bool fosse}) {
   return fosse.toString();
 }
@@ -63,6 +88,19 @@ int? x;
 
 void main() {
   group('Dynamic call of', () {
+    test('instance of class with a `call()` method', () {
+      dynamic d = B();
+      Expect.throws<NoSuchMethodError>(
+        () => d(),
+        (error) => error.toString().contains(
+          "NoSuchMethodError: 'call'\n"
+          "Dynamic call with missing positional arguments. "
+          "Expected: 1 Actual: 0\n"
+          "Receiver: Instance of 'B'\n"
+          "Arguments: []",
+        ),
+      );
+    });
     dynamic instanceOfA = A();
     test('instance of a class with no `call()` method', () {
       // Compiled as `dcall()`.
@@ -193,6 +231,8 @@ void main() {
         // Compiled as `dgcall()` and throws from `checkAndCall()`.
         expectThrowsNSMWithExactError(
           () => instantiatedTearoff<int, double>(),
+          // TODO(60654): Improve error message to include the actual name of
+          // the method.
           "NoSuchMethodError: 'result'\n"
           "Dynamic call failed.\n"
           "Incorrect number of type arguments. "
@@ -277,6 +317,22 @@ void main() {
         (error) => error.toString().contains("NoSuchMethodError: 'arity1'"),
       );
     });
+    test('class instance getter that returns tearoff', () {
+      Expect.throws<NoSuchMethodError>(
+        () => A().getterArity1Tearoff(),
+        (error) => error.toString().contains(
+          "NoSuchMethodError: 'getterArity1Tearoff'",
+        ),
+      );
+    });
+    test('class instance field that stores a tearoff', () {
+      Expect.throws<NoSuchMethodError>(
+        () => A().fieldArity1Tearoff(),
+        (error) => error.toString().contains(
+          "NoSuchMethodError: 'fieldArity1Tearoff'",
+        ),
+      );
+    });
     test('class instance generic method', () {
       dynamic instanceOfA = A();
       Expect.throws<NoSuchMethodError>(
@@ -297,15 +353,27 @@ void main() {
       dynamic tearoff = A().genericArity2<int, String>;
       Expect.throws<NoSuchMethodError>(
         () => tearoff(10),
-        (error) => error.toString().contains("NoSuchMethodError: 'result'"),
+        (error) => error.toString().contains(
+          // TODO(60654): Improve error message to include the actual name of
+          // the method.
+          "NoSuchMethodError: 'result'",
+        ),
       );
     });
-    test('class instance field', () {
+    test('class instance field that stores a closure', () {
       dynamic instanceOfA = A();
       Expect.throws<NoSuchMethodError>(
         () => instanceOfA.fieldArity1(),
         (error) =>
             error.toString().contains("NoSuchMethodError: 'fieldArity1'"),
+      );
+    });
+    test('class instance getter that stores a closure', () {
+      dynamic instanceOfA = A();
+      Expect.throws<NoSuchMethodError>(
+        () => instanceOfA.getterArity1(),
+        (error) =>
+            error.toString().contains("NoSuchMethodError: 'getterArity1'"),
       );
     });
     test('class static method tearoff', () {
@@ -329,7 +397,11 @@ void main() {
       dynamic tearoff = A.staticGenericArity2<int, double>;
       Expect.throws<NoSuchMethodError>(
         () => tearoff(10),
-        (error) => error.toString().contains("NoSuchMethodError: 'result'"),
+        (error) => error.toString().contains(
+          // TODO(60654): Improve error message to include the actual name of
+          // the method.
+          "NoSuchMethodError: 'result'",
+        ),
       );
     });
     test('top level method tearoff', () {
@@ -352,13 +424,39 @@ void main() {
       dynamic tearoff = genericArity2<int, String>;
       Expect.throws<NoSuchMethodError>(
         () => tearoff(10),
-        (error) => error.toString().contains("NoSuchMethodError: 'result'"),
+        (error) => error.toString().contains(
+          // TODO(60654): Improve error message to include the actual name of
+          // the method.
+          "NoSuchMethodError: 'result'",
+        ),
       );
     });
-    test('top level field', () {
+    test('top level field storing a closure', () {
       Expect.throws<NoSuchMethodError>(
         () => fieldArity1(),
-        (error) => error.toString().contains("NoSuchMethodError: ''"),
+        (error) => error.toString().contains(
+          "NoSuchMethodError: '<anonymous closure>'",
+        ),
+      );
+    });
+    test('top level getter that returns a closure', () {
+      Expect.throws<NoSuchMethodError>(
+        () => getterArity1(),
+        (error) => error.toString().contains(
+          "NoSuchMethodError: '<anonymous closure>'",
+        ),
+      );
+    });
+    test('top level field storing a tearoff', () {
+      Expect.throws<NoSuchMethodError>(
+        () => fieldArity1Tearoff(),
+        (error) => error.toString().contains("NoSuchMethodError: 'arity1'"),
+      );
+    });
+    test('top level getter that returns a tearoff', () {
+      Expect.throws<NoSuchMethodError>(
+        () => getterArity1Tearoff(),
+        (error) => error.toString().contains("NoSuchMethodError: 'arity1'"),
       );
     });
   });

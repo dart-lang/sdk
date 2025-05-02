@@ -553,10 +553,14 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
   var originalTarget = JS<bool>('!', '# === void 0', obj) ? f : obj;
 
   callNSM(@notNull String errorMessage) {
+    var name = displayName;
+    if (name is String && name.isEmpty) {
+      name = '<anonymous closure>';
+    }
     return noSuchMethod(
       originalTarget,
       InvocationImpl(
-        displayName,
+        name,
         JS<List<Object?>>('!', '#', args),
         namedArguments: named,
         // Repeated the default value here in JS to preserve the historic
