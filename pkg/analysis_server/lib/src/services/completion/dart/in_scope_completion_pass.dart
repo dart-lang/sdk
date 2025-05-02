@@ -18,7 +18,6 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -2211,7 +2210,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (name.name == null) {
       collector.completionLocation = 'PatternField_pattern';
-      _forVariablePattern();
+      var parent = node.thisOrAncestorOfType<PatternVariableDeclarationImpl>();
+      if (parent == null) {
+        _forVariablePattern();
+      }
       _forPatternFieldName(name);
     } else {
       collector.completionLocation = 'PatternField_pattern';
@@ -3627,15 +3629,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // Might be a start of a ObjectPattern.
     // Might be a ConstantPattern.
     if (coveringNode case SimpleIdentifier identifier) {
-      if (!identifier.isSynthetic) {
-        if (identifier.parent is ConstantPattern) {
-          keywordHelper.addPatternKeywords();
-          // TODO(scheglov): Actually we need constructors, but only const.
-          // And not-yet imported contributors does not work well yet.
+      if (identifier.isSynthetic) {
+        if (coveringNode.parent?.parent case PatternField _) {
+          keywordHelper.addVariablePatternKeywords();
           collector.preferConstants = true;
-          declarationHelper(mustBeNonVoid: true).addLexicalDeclarations(node);
+          declarationHelper(
+            mustBeConstant: mustBeConst,
+            mustBeStatic: node.inStaticContext,
+            objectPatternAllowed: true,
+          ).addLexicalDeclarations(node);
           return;
         }
+      } else if (identifier.parent is ConstantPattern) {
+        keywordHelper.addPatternKeywords();
+        // TODO(scheglov): Actually we need constructors, but only const.
+        // And not-yet imported contributors does not work well yet.
+        collector.preferConstants = true;
+        declarationHelper(mustBeNonVoid: true).addLexicalDeclarations(node);
+        return;
       }
     }
 

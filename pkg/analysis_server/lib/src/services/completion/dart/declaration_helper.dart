@@ -302,7 +302,6 @@ class DeclarationHelper {
       );
     } else if (type is RecordType) {
       _addFieldsOfRecordType(type: type, excludedFields: excludedGetters);
-      _addMembersOfDartCoreObject();
     }
   }
 
