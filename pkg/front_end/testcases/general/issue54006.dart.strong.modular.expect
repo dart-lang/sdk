@@ -59,16 +59,6 @@ library;
 //   get field(a) => 0;
 //            ^
 //
-// pkg/front_end/testcases/general/issue54006.dart:27:14: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
-// Try adding either an explicit non-'null' default value or the 'required' modifier.
-//   set field([a]) {}
-//              ^
-//
-// pkg/front_end/testcases/general/issue54006.dart:32:14: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
-// Try adding either an explicit non-'null' default value or the 'required' modifier.
-//   set field({a}) {}
-//              ^
-//
 // pkg/front_end/testcases/general/issue54006.dart:12:13: Error: Expected a function body or '=>'.
 // Try adding {}.
 //   set field = 0;
@@ -161,7 +151,7 @@ class E extends core::Object implements self::A {
   set field([a]) {}
            ^";
     {
-      core::int a = null;
+      dynamic a = null;
       {}
     }
   }
@@ -177,7 +167,7 @@ class F extends core::Object implements self::A {
   set field({a}) {}
            ^";
     {
-      core::int a = null;
+      dynamic a = null;
       {}
     }
   }
