@@ -15,13 +15,19 @@ main() {
     late Future nullFuture;
     late Future falseFuture;
 
-    runZoned(() {
-      nullFuture = (new StreamController()..stream.listen(null).cancel()).done;
-      falseFuture = it.moveNext();
-    }, zoneSpecification: new ZoneSpecification(scheduleMicrotask:
-        (Zone self, ZoneDelegate parent, Zone zone, void f()) {
-      Expect.fail("Should not be called");
-    }));
+    runZoned(
+      () {
+        nullFuture =
+            (new StreamController()..stream.listen(null).cancel()).done;
+        falseFuture = it.moveNext();
+      },
+      zoneSpecification: new ZoneSpecification(
+        scheduleMicrotask:
+            (Zone self, ZoneDelegate parent, Zone zone, void f()) {
+              Expect.fail("Should not be called");
+            },
+      ),
+    );
 
     nullFuture.then((value) {
       Expect.isNull(value);

@@ -16,8 +16,9 @@ main(List<String> args, message) {
     port2.close();
   });
 
-  Isolate.spawnUri(Uri.parse('spawn_uri_nested_child2_vm_isolate.dart'), ['hi'],
-      port2.sendPort);
+  Isolate.spawnUri(Uri.parse('spawn_uri_nested_child2_vm_isolate.dart'), [
+    'hi',
+  ], port2.sendPort);
 
   var data = message[0];
   var replyTo = message[1];

@@ -85,7 +85,8 @@ main() {
     final num doDeopt = (i < 120 ? 1 : 2.0);
     final result = foo(3.0, doDeopt);
     Expect.equals(
-        "v1: [1,hi], v2: [1.0,2.0], v3: [4.0,5.0], v4: [11.0, 12.0], sum: 9.0",
-        result);
+      "v1: [1,hi], v2: [1.0,2.0], v3: [4.0,5.0], v4: [11.0, 12.0], sum: 9.0",
+      result,
+    );
   }
 }

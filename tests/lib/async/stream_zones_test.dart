@@ -14,9 +14,11 @@ test1() {
   runZonedGuarded(() {
     runZonedGuarded(() {
       var c = new StreamController();
-      c.stream.listen((x) => events.add("stream: $x"),
-          onError: (x) => events.add("stream: error $x"),
-          onDone: done.complete);
+      c.stream.listen(
+        (x) => events.add("stream: $x"),
+        onError: (x) => events.add("stream: error $x"),
+        onDone: done.complete,
+      );
       c.add(1);
       c.addError(2);
       c.close();
@@ -26,7 +28,7 @@ test1() {
     done.future,
     () {
       Expect.listEquals(["stream: 1", "stream: error 2"], events);
-    }
+    },
   ];
 }
 
@@ -38,9 +40,11 @@ test2() {
     var c;
     runZonedGuarded(() {
       c = new StreamController();
-      c.stream.listen((x) => events.add("stream: $x"),
-          onError: (x) => events.add("stream: error $x"),
-          onDone: done.complete);
+      c.stream.listen(
+        (x) => events.add("stream: $x"),
+        onError: (x) => events.add("stream: error $x"),
+        onDone: done.complete,
+      );
     }, (e, s) => events.add("rza: error $e"));
     c.add(1);
     c.addError(2);
@@ -50,7 +54,7 @@ test2() {
     done.future,
     () {
       Expect.listEquals(["stream: 1", "stream: error 2"], events);
-    }
+    },
   ];
 }
 
@@ -60,8 +64,11 @@ test3() {
   var done = new Completer();
   runZonedGuarded(() {
     var c = new StreamController();
-    c.stream.listen((x) => events.add("stream: $x"),
-        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
+    c.stream.listen(
+      (x) => events.add("stream: $x"),
+      onError: (x) => events.add("stream: error $x"),
+      onDone: done.complete,
+    );
     runZonedGuarded(() {
       c.add(1);
       c.addError(2);
@@ -72,7 +79,7 @@ test3() {
     done.future,
     () {
       Expect.listEquals(["stream: 1", "stream: error 2"], events);
-    }
+    },
   ];
 }
 
@@ -82,8 +89,11 @@ test4() {
   var done = new Completer();
   runZonedGuarded(() {
     var c = new StreamController();
-    c.stream.listen((x) => events.add("stream: $x"),
-        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
+    c.stream.listen(
+      (x) => events.add("stream: $x"),
+      onError: (x) => events.add("stream: error $x"),
+      onDone: done.complete,
+    );
     runZonedGuarded(() {
       var c2 = new StreamController();
       c.addStream(c2.stream).whenComplete(c.close);
@@ -96,7 +106,7 @@ test4() {
     done.future,
     () {
       Expect.listEquals(["stream: 1", "stream: error 2"], events);
-    }
+    },
   ];
 }
 
@@ -109,9 +119,11 @@ test5() {
     var c;
     runZonedGuarded(() {
       c = new StreamController();
-      c.stream.listen((x) => events.add("stream: $x"),
-          onError: (x) => events.add("stream: error $x"),
-          onDone: done.complete);
+      c.stream.listen(
+        (x) => events.add("stream: $x"),
+        onError: (x) => events.add("stream: error $x"),
+        onDone: done.complete,
+      );
     }, (e, s) => events.add("rza: error $e"));
     var c2 = new StreamController();
     c.addStream(c2.stream).whenComplete(c.close);
@@ -123,7 +135,7 @@ test5() {
     done.future,
     () {
       Expect.listEquals(["stream: 1", "stream: error 2"], events);
-    }
+    },
   ];
 }
 
@@ -133,8 +145,11 @@ test6() {
   var c;
   runZonedGuarded(() {
     c = new StreamController();
-    c.stream.listen((x) => events.add("stream: $x"),
-        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
+    c.stream.listen(
+      (x) => events.add("stream: $x"),
+      onError: (x) => events.add("stream: error $x"),
+      onDone: done.complete,
+    );
   }, (e, s) => events.add("rza: error $e"));
   runZonedGuarded(() {
     var c2 = new StreamController();
@@ -147,7 +162,7 @@ test6() {
     done.future,
     () {
       Expect.listEquals(["stream: 1", "stream: error 2"], events);
-    }
+    },
   ];
 }
 
@@ -158,8 +173,11 @@ test7() {
   var c;
   runZonedGuarded(() {
     c = new StreamController();
-    c.stream.listen((x) => events.add("stream: $x"),
-        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
+    c.stream.listen(
+      (x) => events.add("stream: $x"),
+      onError: (x) => events.add("stream: error $x"),
+      onDone: done.complete,
+    );
   }, (e, s) => events.add("rza: error $e"));
   runZonedGuarded(() {
     c.add(1);
@@ -170,22 +188,14 @@ test7() {
     done.future,
     () {
       Expect.listEquals(["stream: 1", "stream: error 2"], events);
-    }
+    },
   ];
 }
 
 main() {
   asyncStart();
 
-  var tests = [
-    test1(),
-    test2(),
-    test3(),
-    test4(),
-    test5(),
-    test6(),
-    test7(),
-  ];
+  var tests = [test1(), test2(), test3(), test4(), test5(), test6(), test7()];
 
   Future.wait(tests.map((l) => l.first as Future)).then((_) {
     // Give time to complete all pending actions.

@@ -13,8 +13,6 @@ class A {
   A(this.a, [this.b = 0]);
   factory A.f(int a) = A;
 
-
-
   int a;
   int b;
 }
@@ -23,6 +21,4 @@ main() {
   var x = new A.f(42);
   Expect.equals(x.a, 42);
   Expect.equals(x.b, 0);
-
-
 }

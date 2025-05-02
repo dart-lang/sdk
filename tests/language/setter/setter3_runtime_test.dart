@@ -12,8 +12,6 @@
 class A {
   set foo(x) {}
   void set bar(x) {}
-
-
 }
 
 main() {

@@ -8,9 +8,7 @@ class C {
   final bool bar;
   final bool fn;
 
-  C(String str)
-      : bar = str.bar,
-        fn = str.fn;
+  C(String str) : bar = str.bar, fn = str.fn;
 }
 
 extension StringExtension on String {

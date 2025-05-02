@@ -8,8 +8,8 @@
 
 class C {
   C.n() {}
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
+  //^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
 
   static set n(int x) {}
   //         ^

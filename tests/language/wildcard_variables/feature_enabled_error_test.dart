@@ -7,7 +7,7 @@
 main() {
   int _ = 1;
   _ = 2;
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Setter not found: '_'.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Setter not found: '_'.
 }

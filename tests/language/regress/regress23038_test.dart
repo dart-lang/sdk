@@ -3,15 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C<T> {
-  const
-    factory
-  C()
-//^
-// [cfe] Cyclic definition of factory 'C'.
-    = C<C<T>>
-    //^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
-  ;
+  const factory C() = C<C<T>>;
+  //            ^
+  // [cfe] Cyclic definition of factory 'C'.
+  //                  ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
 }
 
 main() {

@@ -30,10 +30,4 @@ class Derived extends Object with Mixin {
 
 main() {
   var d = new Derived();
-
-
-
-
-
-
 }

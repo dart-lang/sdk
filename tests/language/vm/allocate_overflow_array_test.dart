@@ -26,7 +26,9 @@ main() {
 
       Expect.throws(() {
         var array = new List<dynamic>.filled(
-            interestingLength ~/ elementLength, null);
+          interestingLength ~/ elementLength,
+          null,
+        );
         print(array.first);
       }, (e) => e is OutOfMemoryError);
     }

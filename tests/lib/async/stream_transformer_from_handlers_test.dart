@@ -34,27 +34,38 @@ main() {
   var stackTrace = currentStackTrace;
   var events = [];
   var controller;
-  controller = new StreamController<int>(onListen: () {
-    controller.add(499);
-    controller.addError(42, stackTrace);
-    controller.close();
-  });
+  controller = new StreamController<int>(
+    onListen: () {
+      controller.add(499);
+      controller.addError(42, stackTrace);
+      controller.close();
+    },
+  );
   controller.stream
-      .transform(new StreamTransformer<int, String>.fromHandlers(
+      .transform(
+        new StreamTransformer<int, String>.fromHandlers(
           handleData: (int data, EventSink<String> sink) {
-    sink.add(data.toString());
-  }, handleError: (e, st, EventSink<String> sink) {
-    sink.add(e.toString());
-    sink.addError(e, st);
-  }, handleDone: (EventSink<String> sink) {
-    sink.add("done");
-    sink.close();
-  }))
-      .listen((data) => events.add(data), onError: (e, st) {
-    events.add(e);
-    events.add(st);
-  }, onDone: () {
-    Expect.listEquals(["499", "42", 42, stackTrace, "done"], events);
-    delayCycles(asyncEnd, 3);
-  });
+            sink.add(data.toString());
+          },
+          handleError: (e, st, EventSink<String> sink) {
+            sink.add(e.toString());
+            sink.addError(e, st);
+          },
+          handleDone: (EventSink<String> sink) {
+            sink.add("done");
+            sink.close();
+          },
+        ),
+      )
+      .listen(
+        (data) => events.add(data),
+        onError: (e, st) {
+          events.add(e);
+          events.add(st);
+        },
+        onDone: () {
+          Expect.listEquals(["499", "42", 42, stackTrace, "done"], events);
+          delayCycles(asyncEnd, 3);
+        },
+      );
 }

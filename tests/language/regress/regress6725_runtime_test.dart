@@ -9,8 +9,4 @@
 
 library crash_6725;
 
-
-
-main() {
-
-}
+main() {}

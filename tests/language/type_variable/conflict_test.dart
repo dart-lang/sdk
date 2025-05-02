@@ -8,64 +8,64 @@
 import "package:expect/expect.dart";
 
 class G1<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   var T;
   //  ^
   // [cfe] Conflicts with type variable 'T'.
 }
 
 class G2<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   get T {}
   //  ^
   // [cfe] Conflicts with type variable 'T'.
 }
 
 class G3<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   T() {}
-//^
-// [cfe] Conflicts with type variable 'T'.
+  // [error column 3]
+  // [cfe] Conflicts with type variable 'T'.
 }
 
 class G4<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   static var T;
   //         ^
   // [cfe] Conflicts with type variable 'T'.
 }
 
 class G5<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   static get T {}
   //         ^
   // [cfe] Conflicts with type variable 'T'.
 }
 
 class G6<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   static T() {}
   //     ^
   // [cfe] Conflicts with type variable 'T'.
 }
 
 class G7<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   set T(_) {}
   //  ^
   // [cfe] Conflicts with type variable 'T'.
 }
 
 class G8<T> {
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  //     ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_TYPE_VARIABLE_AND_MEMBER
   static set T(x) {}
   //         ^
   // [cfe] Conflicts with type variable 'T'.

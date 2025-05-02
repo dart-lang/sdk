@@ -22,8 +22,13 @@ main() {
   // !ok iff asserts are enabled.
 
   asyncStart();
-  test().then((_) => Expect.isTrue(ok), onError: (error) {
-    // !ok implies error is AssertionError.
-    Expect.isTrue(ok || error is AssertionError);
-  }).whenComplete(asyncEnd);
+  test()
+      .then(
+        (_) => Expect.isTrue(ok),
+        onError: (error) {
+          // !ok implies error is AssertionError.
+          Expect.isTrue(ok || error is AssertionError);
+        },
+      )
+      .whenComplete(asyncEnd);
 }

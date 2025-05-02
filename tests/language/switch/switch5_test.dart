@@ -15,9 +15,9 @@ main() {
     case 6:
       x = 2;
       break L;
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.BREAK_LABEL_ON_SWITCH_MEMBER
-      // [cfe] Can't break to 'L'.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.BREAK_LABEL_ON_SWITCH_MEMBER
+    // [cfe] Can't break to 'L'.
     default:
       break;
   }

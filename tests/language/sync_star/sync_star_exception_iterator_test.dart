@@ -89,8 +89,9 @@ main() {
     Expect.isTrue(iterator.moveNext());
     Expect.equals(100, iterator.current);
     Expect.equals(
-        '[main.f2.p.y*1][main.f2.p.f1.a][main.f2.catch:iterator@main.f2.p.f1.a]',
-        log);
+      '[main.f2.p.y*1][main.f2.p.f1.a][main.f2.catch:iterator@main.f2.p.f1.a]',
+      log,
+    );
     log = '';
     Expect.isFalse(iterator.moveNext());
     Expect.equals('[main.f2.done]', log);
@@ -101,7 +102,9 @@ main() {
     final iterator = f3('main').iterator;
     Expect.isFalse(iterator.moveNext());
     Expect.equals(
-        '[main.f3.f][main.f3.catch:iterator@main.f3.f][main.f3.done]', log);
+      '[main.f3.f][main.f3.catch:iterator@main.f3.f][main.f3.done]',
+      log,
+    );
   }
 
   {
@@ -110,11 +113,12 @@ main() {
     Expect.isTrue(iterator.moveNext());
     Expect.equals(200, iterator.current);
     Expect.equals(
-        '[M.f4.s.y*1]'
-        '[M.f4.s.f3.f][M.f4.s.f3.catch:iterator@M.f4.s.f3.f][M.f4.s.f3.done]'
-        '[M.f4.s.y*2]'
-        '[M.f4.t.f3.f][M.f4.t.f3.catch:iterator@M.f4.t.f3.f][M.f4.t.f3.done]',
-        log);
+      '[M.f4.s.y*1]'
+      '[M.f4.s.f3.f][M.f4.s.f3.catch:iterator@M.f4.s.f3.f][M.f4.s.f3.done]'
+      '[M.f4.s.y*2]'
+      '[M.f4.t.f3.f][M.f4.t.f3.catch:iterator@M.f4.t.f3.f][M.f4.t.f3.done]',
+      log,
+    );
     log = '';
     Expect.isFalse(iterator.moveNext());
     Expect.equals('[M.f4.done]', log);

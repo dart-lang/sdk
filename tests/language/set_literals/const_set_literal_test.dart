@@ -70,18 +70,25 @@ void test() {
   checkSet<Symbol>(const {#foo, #bar}, [#foo, #bar]);
   checkSet<Symbol>(const {#_foo, #_bar}, [#_foo, #_bar]);
   const object = Object();
-  checkSet<Object>(const {#foo, 1, "string", object, true},
-      [#foo, 1, "string", object, true]);
+  checkSet<Object>(
+    const {#foo, 1, "string", object, true},
+    [#foo, 1, "string", object, true],
+  );
 
   // Nested constant literals.
-  const Object o = {{2}};
+  const Object o = {
+    {2},
+  };
   Expect.type<Set<Set<int>>>(o);
   Set<Set<int>> set = o as Set<Set<int>>;
   Expect.equals(1, set.length);
   Expect.equals(1, set.first.length);
   Expect.equals(2, set.first.first);
 
-  const Object o2 = {{2}, <int>{}};
+  const Object o2 = {
+    {2},
+    <int>{},
+  };
   Expect.type<Set<Set<int>>>(o);
   set = o2 as Set<Set<int>>;
   Expect.equals(2, set.length);
@@ -97,7 +104,10 @@ void test() {
   Expect.equals(1, o4.length);
   Expect.equals(0, o4.first.length);
 
-  const o5 = {{1}, {}};  // Set<Object>
+  const o5 = {
+    {1},
+    {},
+  }; // Set<Object>
   Expect.type<Set<Object>>(o5);
   Expect.notType<Set<Set<Object>>>(o5);
 

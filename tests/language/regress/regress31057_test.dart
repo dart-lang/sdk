@@ -18,6 +18,8 @@ class Foo<T> {
 }
 
 main() {
-  Expect.equals('bool int double String',
-      ((new Foo<bool>().a<int>())<double>())<String>());
+  Expect.equals(
+    'bool int double String',
+    ((new Foo<bool>().a<int>())<double>())<String>(),
+  );
 }

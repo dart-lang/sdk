@@ -10,10 +10,7 @@ class Foo<T> {
   Foo.create() {}
 }
 
-class Bar<
-    T
-
-    > extends Foo<T> {
+class Bar<T> extends Foo<T> {
   factory Bar() {
     return new Bar<T>.create();
   }

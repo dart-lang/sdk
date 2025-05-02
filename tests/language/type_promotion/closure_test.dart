@@ -175,12 +175,10 @@ void test7() {
 
 void test8() {
   A a = new E();
-  if (a is B
-      && func(() => a.b)
-      //              ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'b' isn't defined for the class 'A'.
-      ) {
+  if (a is B && func(() => a.b)) {
+    //                       ^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [cfe] The getter 'b' isn't defined for the class 'A'.
     print(a.a);
   }
   a = A();

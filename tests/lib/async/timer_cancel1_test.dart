@@ -22,9 +22,13 @@ main() {
       canceleeTimer.cancel();
     }
 
-    cancelerTimer =
-        new Timer(const Duration(milliseconds: 1), expectAsync(handler));
+    cancelerTimer = new Timer(
+      const Duration(milliseconds: 1),
+      expectAsync(handler),
+    );
     canceleeTimer = new Timer(
-        const Duration(milliseconds: 1000), expectAsync(unreachable, count: 0));
+      const Duration(milliseconds: 1000),
+      expectAsync(unreachable, count: 0),
+    );
   });
 }

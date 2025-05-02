@@ -77,35 +77,67 @@ value_negate(x) {
 }
 
 value_and(x, y) {
-  return x ? y ? true : false : false;
+  return x
+      ? y
+            ? true
+            : false
+      : false;
 }
 
 value_or(x, y) {
-  return x ? true : y ? true : false;
+  return x
+      ? true
+      : y
+      ? true
+      : false;
 }
 
 value_and_not(x, y) {
-  return x ? y ? false : true : false;
+  return x
+      ? y
+            ? false
+            : true
+      : false;
 }
 
 value_not_and(x, y) {
-  return x ? false : y ? true : false;
+  return x
+      ? false
+      : y
+      ? true
+      : false;
 }
 
 value_not_and_not(x, y) {
-  return x ? false : y ? false : true;
+  return x
+      ? false
+      : y
+      ? false
+      : true;
 }
 
 value_or_not(x, y) {
-  return x ? true : y ? false : true;
+  return x
+      ? true
+      : y
+      ? false
+      : true;
 }
 
 value_not_or(x, y) {
-  return x ? y ? true : false : true;
+  return x
+      ? y
+            ? true
+            : false
+      : true;
 }
 
 value_not_or_not(x, y) {
-  return x ? y ? false : true : true;
+  return x
+      ? y
+            ? false
+            : true
+      : true;
 }
 
 if_negate(x) {
@@ -117,7 +149,11 @@ if_negate(x) {
 }
 
 if_and(x, y) {
-  if (x ? y ? true : false : false) {
+  if (x
+      ? y
+            ? true
+            : false
+      : false) {
     return 1;
   } else {
     return 0;
@@ -133,7 +169,11 @@ if_or(x, y) {
 }
 
 if_and_not(x, y) {
-  if (x ? y ? false : true : false) {
+  if (x
+      ? y
+            ? false
+            : true
+      : false) {
     return 1;
   } else {
     return 0;
@@ -149,7 +189,11 @@ if_not_and(x, y) {
 }
 
 if_not_and_not(x, y) {
-  if (x ? false : y ? false : true) {
+  if (x
+      ? false
+      : y
+      ? false
+      : true) {
     return 1;
   } else {
     return 0;
@@ -157,7 +201,11 @@ if_not_and_not(x, y) {
 }
 
 if_or_not(x, y) {
-  if (x ? true : y ? false : true) {
+  if (x
+      ? true
+      : y
+      ? false
+      : true) {
     return 1;
   } else {
     return 0;
@@ -173,7 +221,11 @@ if_not_or(x, y) {
 }
 
 if_not_or_not(x, y) {
-  if (x ? y ? false : true : true) {
+  if (x
+      ? y
+            ? false
+            : true
+      : true) {
     return 1;
   } else {
     return 0;

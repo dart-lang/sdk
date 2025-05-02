@@ -38,7 +38,7 @@ main() {
     new A(),
     new B(),
     new C(),
-    new D()
+    new D(),
   ];
 
   check(things[inscrutable(0)], false, false); // List

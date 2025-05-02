@@ -19,8 +19,12 @@ main() {
   };
 
   // Ignore returned Future.
-  Isolate.spawnUri(Uri.parse("exit_at_spawnuri_iso.dart"), [], null,
-      // Setup handler as part of spawn.
-      errorsAreFatal: false,
-      onExit: exitPort.sendPort);
+  Isolate.spawnUri(
+    Uri.parse("exit_at_spawnuri_iso.dart"),
+    [],
+    null,
+    // Setup handler as part of spawn.
+    errorsAreFatal: false,
+    onExit: exitPort.sendPort,
+  );
 }

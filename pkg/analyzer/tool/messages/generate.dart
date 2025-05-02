@@ -20,7 +20,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';

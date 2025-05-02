@@ -33,11 +33,13 @@ class D implements A {
 
 main() {
   switch (new B()) {
-    case const A.B() as B: Expect.fail("bad switch"); break;
-    //   ^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    //               ^
-    // [cfe] Case expression 'B {}' does not have a primitive operator '=='.
+    case const A.B() as B:
+      // ^^^^^^^^^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+      //             ^
+      // [cfe] Case expression 'B {}' does not have a primitive operator '=='.
+      Expect.fail("bad switch");
+      break;
   }
 
   switch (new C()) {
@@ -50,21 +52,25 @@ main() {
     case const A.C2() as C:
       Expect.fail("bad switch");
       break;
-    case const A(): Expect.fail("bad switch"); break;
-    //   ^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE
-    //         ^
-    // [cfe] Type 'A' of the case expression is not a subtype of type 'C' of this switch expression.
+    case const A():
+      // ^^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE
+      //       ^
+      // [cfe] Type 'A' of the case expression is not a subtype of type 'C' of this switch expression.
+      Expect.fail("bad switch");
+      break;
   }
 
   switch (new A()) {
     case const A():
       Expect.fail("bad switch");
       break;
-    case const A.B(): Expect.fail("bad switch"); break;
-    //   ^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-    //         ^
-    // [cfe] Case expression 'B {}' does not have a primitive operator '=='.
+    case const A.B():
+      // ^^^^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+      //       ^
+      // [cfe] Case expression 'B {}' does not have a primitive operator '=='.
+      Expect.fail("bad switch");
+      break;
   }
 }

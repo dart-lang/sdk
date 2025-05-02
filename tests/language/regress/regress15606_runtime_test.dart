@@ -15,13 +15,12 @@ main() {
   while (false) {
     // Comply to inlining heuristics.
     // Use an unresolved prefix.
-    var foo =
-
-        bar(
+    var foo = bar(
       // Make dart2js generate a call to setRuntimeTypeInfo.
       new Foo<int>(),
       // Use a one-shot interceptor.
-      a[0].toString());
+      a[0].toString(),
+    );
 
     // Do an is test on `Foo` to require setRuntimeTypeInfo.
     print(foo is Foo<int>);

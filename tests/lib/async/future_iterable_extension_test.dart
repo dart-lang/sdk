@@ -12,7 +12,8 @@ void main() async {
   var futures = [for (var i = 0; i < 5; i++) Future<int>.value(i)];
   var errors = [
     for (var i = 0; i < 5; i++)
-      Future<int>.error("error $i", StackTrace.fromString("stack $i"))..ignore()
+      Future<int>.error("error $i", StackTrace.fromString("stack $i"))
+        ..ignore(),
   ];
 
   // Empty list.
@@ -89,31 +90,56 @@ void main() async {
 
     var toString = e.toString();
     Expect.contains("ParallelWaitError(5 errors):", toString);
-    Expect.containsAny(
-        ["error 0", "error 1", "error 2", "error 3", "error 4"], toString);
-    Expect.containsAny(["stack 0", "stack 1", "stack 2", "stack 3", "stack 4"],
-        e.stackTrace.toString());
+    Expect.containsAny([
+      "error 0",
+      "error 1",
+      "error 2",
+      "error 3",
+      "error 4",
+    ], toString);
+    Expect.containsAny([
+      "stack 0",
+      "stack 1",
+      "stack 2",
+      "stack 3",
+      "stack 4",
+    ], e.stackTrace.toString());
   }
 
   // Direct tests of `ParallelWaitError`.
 
-  Expect.equals("ParallelWaitError",
-      ParallelWaitError<Null, Null>(null, null, errorCount: null).toString());
-  Expect.equals("ParallelWaitError",
-      ParallelWaitError<Null, Null>(null, null, errorCount: 0).toString());
-  Expect.equals("ParallelWaitError",
-      ParallelWaitError<Null, Null>(null, null, errorCount: 1).toString());
-  Expect.equals("ParallelWaitError(2 errors)",
-      ParallelWaitError<Null, Null>(null, null, errorCount: 2).toString());
-  Expect.equals("ParallelWaitError(9999 errors)",
-      ParallelWaitError<Null, Null>(null, null, errorCount: 9999).toString());
+  Expect.equals(
+    "ParallelWaitError",
+    ParallelWaitError<Null, Null>(null, null, errorCount: null).toString(),
+  );
+  Expect.equals(
+    "ParallelWaitError",
+    ParallelWaitError<Null, Null>(null, null, errorCount: 0).toString(),
+  );
+  Expect.equals(
+    "ParallelWaitError",
+    ParallelWaitError<Null, Null>(null, null, errorCount: 1).toString(),
+  );
+  Expect.equals(
+    "ParallelWaitError(2 errors)",
+    ParallelWaitError<Null, Null>(null, null, errorCount: 2).toString(),
+  );
+  Expect.equals(
+    "ParallelWaitError(9999 errors)",
+    ParallelWaitError<Null, Null>(null, null, errorCount: 9999).toString(),
+  );
 
   var defaultError = AsyncError(
-      StateError("default error"), StackTrace.fromString("default stack"));
+    StateError("default error"),
+    StackTrace.fromString("default stack"),
+  );
   final ParallelWaitError unthrownWithoutDefault =
       ParallelWaitError<Null, Null>(null, null);
-  final ParallelWaitError unthrownWithDefault =
-      ParallelWaitError<Null, Null>(null, null, defaultError: defaultError);
+  final ParallelWaitError unthrownWithDefault = ParallelWaitError<Null, Null>(
+    null,
+    null,
+    defaultError: defaultError,
+  );
   final ParallelWaitError thrownWithoutDefault;
   final StackTrace thrownWithoutDefaultStack;
   try {
@@ -132,21 +158,31 @@ void main() async {
   Expect.equals("ParallelWaitError", thrownWithoutDefault.toString());
   Expect.equals("ParallelWaitError", unthrownWithoutDefault.toString());
   Expect.equals(
-      "ParallelWaitError: ${defaultError.error}", thrownWithDefault.toString());
-  Expect.equals("ParallelWaitError: ${defaultError.error}",
-      unthrownWithDefault.toString());
+    "ParallelWaitError: ${defaultError.error}",
+    thrownWithDefault.toString(),
+  );
+  Expect.equals(
+    "ParallelWaitError: ${defaultError.error}",
+    unthrownWithDefault.toString(),
+  );
 
   Expect.identical(unthrownWithDefault.stackTrace, defaultError.stackTrace);
   Expect.identical(thrownWithDefault.stackTrace, defaultError.stackTrace);
-  Expect.equals(thrownWithoutDefault.stackTrace.toString(),
-      thrownWithoutDefaultStack.toString());
+  Expect.equals(
+    thrownWithoutDefault.stackTrace.toString(),
+    thrownWithoutDefaultStack.toString(),
+  );
   Expect.isNull(unthrownWithoutDefault.stackTrace);
 
   // Both default and count.
   Expect.equals(
-      "ParallelWaitError(25 errors): ${defaultError.error}",
-      ParallelWaitError<Null, Null>(null, null,
-              errorCount: 25, defaultError: defaultError)
-          .toString());
+    "ParallelWaitError(25 errors): ${defaultError.error}",
+    ParallelWaitError<Null, Null>(
+      null,
+      null,
+      errorCount: 25,
+      defaultError: defaultError,
+    ).toString(),
+  );
   asyncEnd();
 }

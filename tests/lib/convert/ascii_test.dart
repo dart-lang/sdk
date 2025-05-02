@@ -8,14 +8,14 @@ import 'dart:convert';
 var asciiStrings = [
   "pure ascii",
   "\x00 with control characters \n",
-  "\x01 edge cases \x7f"
+  "\x01 edge cases \x7f",
 ];
 
 var nonAsciiStrings = [
   "\x80 edge case first",
   "Edge case ASCII \u{80}",
   "Edge case byte \u{ff}",
-  "Edge case super-BMP \u{10000}"
+  "Edge case super-BMP \u{10000}",
 ];
 
 void main() {
@@ -50,9 +50,13 @@ void testDirectConversions() {
     }
 
     for (var nonAsciiString in nonAsciiStrings) {
-      Expect.throws(() {
-        print(codec.encoder.convert(nonAsciiString));
-      }, (_) => true, nonAsciiString);
+      Expect.throws(
+        () {
+          print(codec.encoder.convert(nonAsciiString));
+        },
+        (_) => true,
+        nonAsciiString,
+      );
     }
 
     var encode = codec.encoder.convert;
@@ -113,7 +117,10 @@ void testDirectConversions() {
 }
 
 List<int> encode(
-    String str, int chunkSize, Converter<String, List<int>> converter) {
+  String str,
+  int chunkSize,
+  Converter<String, List<int>> converter,
+) {
   List<int> bytes = <int>[];
   var byteSink = new ByteConversionSink.withCallback(bytes.addAll);
   var stringConversionSink = converter.startChunkedConversion(byteSink);
@@ -129,7 +136,10 @@ List<int> encode(
 }
 
 String decode(
-    List<int> bytes, int chunkSize, Converter<List<int>, String> converter) {
+  List<int> bytes,
+  int chunkSize,
+  Converter<List<int>, String> converter,
+) {
   StringBuffer buf = new StringBuffer();
   var stringSink = new StringConversionSink.fromStringSink(buf);
   var byteConversionSink = converter.startChunkedConversion(stringSink);
@@ -149,7 +159,7 @@ void testChunkedConversions() {
   for (var converter in [
     ascii.encoder,
     new AsciiCodec().encoder,
-    new AsciiEncoder()
+    new AsciiEncoder(),
   ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var asciiString in asciiStrings) {
@@ -168,7 +178,7 @@ void testChunkedConversions() {
   for (var converter in [
     ascii.decoder,
     new AsciiCodec().decoder,
-    new AsciiDecoder()
+    new AsciiDecoder(),
   ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var asciiString in asciiStrings) {

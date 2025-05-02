@@ -37,175 +37,114 @@ void main() {
 void test(A a) {
   print(a.a);
 
-
-
-
   if (a is B) {
     print(a.a);
     print(a.b);
-
-
 
     if (a is C) {
       print(a.a);
       print(a.b);
       print(a.c);
-
     }
 
     print(a.a);
     print(a.b);
-
-
   }
   if (a is C) {
     print(a.a);
     print(a.b);
     print(a.c);
 
-
     if (a is B) {
       print(a.a);
       print(a.b);
       print(a.c);
-
     }
     if (a is D) {
       print(a.a);
       print(a.b);
       print(a.c);
-
     }
 
     print(a.a);
     print(a.b);
     print(a.c);
-
   }
 
   print(a.a);
 
-
-
-
   if (a is D) {
     print(a.a);
-
 
     print(a.d);
   }
 
   print(a.a);
 
-
-
-
   var o1 = a is B
-          ? '${a.a}'
-              '${a.b}'
-
-
-          : '${a.a}'
-
-
-
-      ;
+      ? '${a.a}'
+            '${a.b}'
+      : '${a.a}';
 
   var o2 = a is C
-          ? '${a.a}'
-              '${a.b}'
-              '${a.c}'
-
-          : '${a.a}'
-
-
-
-      ;
+      ? '${a.a}'
+            '${a.b}'
+            '${a.c}'
+      : '${a.a}';
 
   var o3 = a is D
-          ? '${a.a}'
-
-
-              '${a.d}'
-          : '${a.a}'
-
-
-
-      ;
+      ? '${a.a}'
+            '${a.d}'
+      : '${a.a}';
 
   if (a is B && a is B) {
     print(a.a);
     print(a.b);
-
-
   }
   if (a is B && a is C) {
     print(a.a);
     print(a.b);
     print(a.c);
-
   }
   if (a is C && a is B) {
     print(a.a);
     print(a.b);
     print(a.c);
-
   }
   if (a is C && a is D) {
     print(a.a);
     print(a.b);
     print(a.c);
-
   }
   if (a is D && a is C) {
     print(a.a);
 
-
     print(a.d);
   }
-  if (a is D &&
-      a.a == ""
-
-
-      &&
-      a.d == "") {
+  if (a is D && a.a == "" && a.d == "") {
     print(a.a);
 
-
     print(a.d);
   }
-  if (a.a == ""
-
-
-
-          &&
-          a is B &&
-          a.a == "" &&
-          a.b == ""
-
-
-          &&
-          a is C &&
-          a.a == "" &&
-          a.b == "" &&
-          a.c == ""
-
-      ) {
+  if (a.a == "" &&
+      a is B &&
+      a.a == "" &&
+      a.b == "" &&
+      a is C &&
+      a.a == "" &&
+      a.b == "" &&
+      a.c == "") {
     print(a.a);
     print(a.b);
     print(a.c);
-
   }
   if ((a is B)) {
     print(a.a);
     print(a.b);
-
-
   }
   if ((a is B && (a) is C) && a is B) {
     print(a.a);
     print(a.b);
     print(a.c);
-
   }
 }

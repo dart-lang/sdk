@@ -43,9 +43,10 @@ void main() {
 
     final stringSink = StringSink();
     Expect.throwsFormatException(
-        () => utf8.decoder.startChunkedConversion(stringSink)
-          ..add(bytes)
-          ..close());
+      () => utf8.decoder.startChunkedConversion(stringSink)
+        ..add(bytes)
+        ..close(),
+    );
   }
 }
 

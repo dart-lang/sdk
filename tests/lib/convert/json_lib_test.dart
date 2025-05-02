@@ -27,37 +27,61 @@ void testParsing() {
   // Lists.
   Expect.deepEquals([], json.decode(' [] '));
   Expect.deepEquals([], json.decode('[ ]'));
-  Expect.deepEquals([3, -4.5, true, 'hi', false],
-      json.decode(' [3, -4.5, true, "hi", false] '));
+  Expect.deepEquals([
+    3,
+    -4.5,
+    true,
+    'hi',
+    false,
+  ], json.decode(' [3, -4.5, true, "hi", false] '));
   // Nulls are tricky.
   Expect.deepEquals([null], json.decode('[null]'));
-  Expect.deepEquals([3, -4.5, null, true, 'hi', false],
-      json.decode(' [3, -4.5, null, true, "hi", false] '));
   Expect.deepEquals([
-    [null]
+    3,
+    -4.5,
+    null,
+    true,
+    'hi',
+    false,
+  ], json.decode(' [3, -4.5, null, true, "hi", false] '));
+  Expect.deepEquals([
+    [null],
   ], json.decode('[[null]]'));
   Expect.deepEquals([
     [3],
     [],
     [null],
-    ['hi', true]
+    ['hi', true],
   ], json.decode(' [ [3], [], [null], ["hi", true]] '));
 
   // Maps.
   Expect.deepEquals({}, json.decode(' {} '));
   Expect.deepEquals({}, json.decode('{ }'));
 
-  Expect.deepEquals({"x": 3, "y": -4.5, "z": "hi", "u": true, "v": false},
-      json.decode(' {"x":3, "y": -4.5,  "z" : "hi","u" : true, "v": false } '));
+  Expect.deepEquals({
+    "x": 3,
+    "y": -4.5,
+    "z": "hi",
+    "u": true,
+    "v": false,
+  }, json.decode(' {"x":3, "y": -4.5,  "z" : "hi","u" : true, "v": false } '));
 
-  Expect.deepEquals({"x": 3, "y": -4.5, "z": "hi"},
-      json.decode(' {"x":3, "y": -4.5,  "z" : "hi" } '));
+  Expect.deepEquals({
+    "x": 3,
+    "y": -4.5,
+    "z": "hi",
+  }, json.decode(' {"x":3, "y": -4.5,  "z" : "hi" } '));
 
-  Expect.deepEquals({"y": -4.5, "z": "hi", "x": 3},
-      json.decode(' {"y": -4.5,  "z" : "hi" ,"x":3 } '));
+  Expect.deepEquals({
+    "y": -4.5,
+    "z": "hi",
+    "x": 3,
+  }, json.decode(' {"y": -4.5,  "z" : "hi" ,"x":3 } '));
 
-  Expect.deepEquals(
-      {" hi bob ": 3, "": 4.5}, json.decode('{ " hi bob " :3, "": 4.5}'));
+  Expect.deepEquals({
+    " hi bob ": 3,
+    "": 4.5,
+  }, json.decode('{ " hi bob " :3, "": 4.5}'));
 
   Expect.deepEquals({'x': {}}, json.decode(' { "x" : { } } '));
   Expect.deepEquals({'x': {}}, json.decode('{"x":{}}'));
@@ -66,24 +90,30 @@ void testParsing() {
   Expect.deepEquals({'w': null}, json.decode('{"w":null}'));
 
   Expect.deepEquals({
-    "x": {"w": null}
+    "x": {"w": null},
   }, json.decode('{"x":{"w":null}}'));
 
   Expect.deepEquals(
-      {"x": 3, "y": -4.5, "z": "hi", "w": null, "u": true, "v": false},
-      json.decode(' {"x":3, "y": -4.5,  "z" : "hi",'
-          '"w":null, "u" : true, "v": false } '));
+    {"x": 3, "y": -4.5, "z": "hi", "w": null, "u": true, "v": false},
+    json.decode(
+      ' {"x":3, "y": -4.5,  "z" : "hi",'
+      '"w":null, "u" : true, "v": false } ',
+    ),
+  );
 
   Expect.deepEquals(
-      {
-        "x": {"a": 3, "b": -4.5},
-        "y": [{}],
-        "z": "hi",
-        "w": {"c": null, "d": true},
-        "v": null
-      },
-      json.decode('{"x": {"a":3, "b": -4.5}, "y":[{}], '
-          '"z":"hi","w":{"c":null,"d":true}, "v":null}'));
+    {
+      "x": {"a": 3, "b": -4.5},
+      "y": [{}],
+      "z": "hi",
+      "w": {"c": null, "d": true},
+      "v": null,
+    },
+    json.decode(
+      '{"x": {"a":3, "b": -4.5}, "y":[{}], '
+      '"z":"hi","w":{"c":null,"d":true}, "v":null}',
+    ),
+  );
 }
 
 void testStringify() {
@@ -108,28 +138,36 @@ void testStringify() {
   Expect.equals('[null,null,null]', json.encode(new List.filled(3, null)));
   validateRoundTrip([3, -4.5, null, true, 'hi', false]);
   Expect.equals(
-      '[[3],[],[null],["hi",true]]',
-      json.encode([
-        [3],
-        [],
-        [null],
-        ['hi', true]
-      ]));
+    '[[3],[],[null],["hi",true]]',
+    json.encode([
+      [3],
+      [],
+      [null],
+      ['hi', true],
+    ]),
+  );
 
   // Maps.
   Expect.equals('{}', json.encode({}));
   Expect.equals('{}', json.encode(new Map()));
   Expect.equals('{"x":{}}', json.encode({'x': {}}));
   Expect.equals(
-      '{"x":{"a":3}}',
-      json.encode({
-        'x': {'a': 3}
-      }));
+    '{"x":{"a":3}}',
+    json.encode({
+      'x': {'a': 3},
+    }),
+  );
 
   // Dart does not guarantee an order on the keys
   // of a map literal, so reparse and compare to the original Map.
-  validateRoundTrip(
-      {'x': 3, 'y': -4.5, 'z': 'hi', 'w': null, 'u': true, 'v': false});
+  validateRoundTrip({
+    'x': 3,
+    'y': -4.5,
+    'z': 'hi',
+    'w': null,
+    'u': true,
+    'v': false,
+  });
   validateRoundTrip({"x": 3, "y": -4.5, "z": 'hi'});
   validateRoundTrip({' hi bob ': 3, '': 4.5});
   validateRoundTrip({
@@ -137,17 +175,20 @@ void testStringify() {
     'y': [{}],
     'z': 'hi',
     'w': {'c': null, 'd': true},
-    'v': null
+    'v': null,
   });
 
   Expect.equals("4", json.encode(new ToJson(4)));
   Expect.equals('[4,"a"]', json.encode(new ToJson([4, "a"])));
   Expect.equals(
-      '[4,{"x":42}]',
-      json.encode(new ToJson([
+    '[4,{"x":42}]',
+    json.encode(
+      new ToJson([
         4,
-        new ToJson({"x": 42})
-      ])));
+        new ToJson({"x": 42}),
+      ]),
+    ),
+  );
 
   expectThrowsJsonError(() => json.encode([new ToJson(new ToJson(4))]));
   expectThrowsJsonError(() => json.encode([new Object()]));
@@ -161,8 +202,7 @@ void testStringifyErrors() {
   expectThrowsJsonError(() => json.encode(new ToJsoner("bad", throws: true)));
 
   // Throws if toJson returns non-serializable value.
-  expectThrowsJsonError(
-      () => json.encode(new ToJsoner(new TestClass())));
+  expectThrowsJsonError(() => json.encode(new ToJsoner(new TestClass())));
 
   // Throws on cyclic values.
   var a = [];
@@ -182,9 +222,7 @@ class TestClass {
   int x;
   String y;
 
-  TestClass()
-      : x = 3,
-        y = 'joe' {}
+  TestClass() : x = 3, y = 'joe' {}
 }
 
 class ToJsoner {

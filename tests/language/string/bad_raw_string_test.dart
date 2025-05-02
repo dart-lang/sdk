@@ -11,7 +11,7 @@ main() {
 //   ^
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 '
-// [error line 13, column 1, length 1]
+// [error column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 // [cfe] String starting with ' must end with '.
     r"
@@ -20,7 +20,7 @@ main() {
 //   ^
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 "
-// [error line 22, column 1, length 1]
+// [error column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 // [cfe] String starting with " must end with ".
 
@@ -35,7 +35,7 @@ main() {
 //   ^
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 '
-// [error line 37, column 1, length 1]
+// [error column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 // [cfe] String starting with ' must end with '.
     '''

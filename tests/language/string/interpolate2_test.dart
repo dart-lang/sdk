@@ -9,7 +9,7 @@ class StringInterpolate2Test {
   static var F1;
 
   static void testMain() {
-    F1 = "1 + 5 = ${1+5}";
+    F1 = "1 + 5 = ${1 + 5}";
 
     Expect.equals("1 + 5 = 6", F1);
 
@@ -23,17 +23,14 @@ class StringInterpolate2Test {
     Expect.equals("fib(5) = 8", s);
 
     i = 5;
-    s = "$i squared is ${((x) => x*x)(i)}";
+    s = "$i squared is ${((x) => x * x)(i)}";
     Expect.equals("5 squared is 25", s);
 
     Expect.equals("8", "${fib.length}");
     // test single quote
     Expect.equals("8", '${fib.length}');
     // test multi-line
-    Expect.equals(
-        "8",
-        '${fib.
-    length}');
+    Expect.equals("8", '${fib.length}');
 
     var map = {"red": 1, "green": 2, "blue": 3};
     s = "green has value ${map["green"]}";
@@ -46,8 +43,13 @@ class StringInterpolate2Test {
 
     // test multiple levels of nesting, including changing quotes and
     // multiline string types
-    s = "a ${(){ return 'b ${(){ return """
-c""";}()}'; }()} d";
+    s =
+        "a ${() {
+          return 'b ${() {
+            return """
+c""";
+          }()}';
+        }()} d";
     Expect.equals("a b c d", s);
   }
 }

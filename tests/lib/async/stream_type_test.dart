@@ -56,11 +56,17 @@ main() {
       testIntStream(() => stream().distinct(f), "$name.distinct", n);
       testIntStream(() => stream().handleError(f), "$name.handleError", n);
       testIntStream(
-          () => stream().asBroadcastStream(), "$name.asBroadcastStream", n);
+        () => stream().asBroadcastStream(),
+        "$name.asBroadcastStream",
+        n,
+      );
     }
   }
 
   testIntStream(() => new StreamController<int>().stream, "Stream<int>", 3);
-  testIntStream(() => new StreamController<int>.broadcast().stream,
-      "BroadcastStream<int>", 3);
+  testIntStream(
+    () => new StreamController<int>.broadcast().stream,
+    "BroadcastStream<int>",
+    3,
+  );
 }

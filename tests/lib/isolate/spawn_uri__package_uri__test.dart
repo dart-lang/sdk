@@ -23,46 +23,67 @@ main() async {
           runWithPackagesArg || !spawnWithPackageConfig;
       for (final optionalPackageUri in const [true, false]) {
         print('TEST optionalPackageUri = $optionalPackageUri');
-        futures.add(runPackageConfigTest(runWithPackagesArg,
-            spawnWithPackageConfig, optionalPackageUri, checkForResolveUri));
+        futures.add(
+          runPackageConfigTest(
+            runWithPackagesArg,
+            spawnWithPackageConfig,
+            optionalPackageUri,
+            checkForResolveUri,
+          ),
+        );
       }
     }
   }
   await Future.wait(futures);
 }
 
-Future runPackageConfigTest(bool withPackagesArg, bool spawnWithArg,
-    bool optionalPackageUri, bool checkForResolveUri) async {
+Future runPackageConfigTest(
+  bool withPackagesArg,
+  bool spawnWithArg,
+  bool optionalPackageUri,
+  bool checkForResolveUri,
+) async {
   await withApplicationDirAndDotDartToolPackageConfig(
-      (String tempDir, String packageJson, String mainFile) async {
-    final args = [if (withPackagesArg) '--packages=$packageJson', mainFile];
-    await run(executable, args);
-  }, spawnWithArg, optionalPackageUri, checkForResolveUri);
+    (String tempDir, String packageJson, String mainFile) async {
+      final args = [if (withPackagesArg) '--packages=$packageJson', mainFile];
+      await run(executable, args);
+    },
+    spawnWithArg,
+    optionalPackageUri,
+    checkForResolveUri,
+  );
 }
 
 Future withApplicationDirAndDotDartToolPackageConfig(
-    Future fn(String tempDir, String packageJson, String mainFile),
-    bool spawnWithArg,
-    bool optionalPackageUri,
-    bool checkForResolveUri) async {
+  Future fn(String tempDir, String packageJson, String mainFile),
+  bool spawnWithArg,
+  bool optionalPackageUri,
+  bool checkForResolveUri,
+) async {
   await withTempDir((String tempDir) async {
     // Setup ".dart_tool/package_config.json"
     final dotDartToolDir = path.join(tempDir, '.dart_tool');
     await Directory(dotDartToolDir).create();
     final packageConfigJsonFile = path.join(
-        dotDartToolDir, spawnWithArg ? 'baz.packages' : 'package_config.json');
-    await File(packageConfigJsonFile)
-        .writeAsString(buildPackageConfig('foo', optionalPackageUri));
+      dotDartToolDir,
+      spawnWithArg ? 'baz.packages' : 'package_config.json',
+    );
+    await File(
+      packageConfigJsonFile,
+    ).writeAsString(buildPackageConfig('foo', optionalPackageUri));
 
     // Setup actual application
     final mainFile = path.join(tempDir, 'main.dart');
     final childIsolateFile = path.join(tempDir, 'child_isolate.dart');
     final importUri = 'package:foo/child_isolate.dart';
     await File(childIsolateFile).writeAsString(buildChildIsolate());
-    await File(mainFile).writeAsString(buildMainIsolate(
+    await File(mainFile).writeAsString(
+      buildMainIsolate(
         importUri,
         spawnWithArg ? packageConfigJsonFile : null,
-        checkForResolveUri ? childIsolateFile : null));
+        checkForResolveUri ? childIsolateFile : null,
+      ),
+    );
 
     await fn(tempDir, packageConfigJsonFile, mainFile);
   });
@@ -77,12 +98,17 @@ Future withTempDir(Future fn(String dir)) async {
   }
 }
 
-Future<ProcessResult> run(String executable, List<String> args,
-    {String? cwd}) async {
+Future<ProcessResult> run(
+  String executable,
+  List<String> args, {
+  String? cwd,
+}) async {
   print('Running $executable ${args.join(' ')}');
   final String workingDirectory = cwd ?? Directory.current.absolute.path;
-  final result = await Process.run(executable, ['--trace-loading', ...args],
-      workingDirectory: workingDirectory);
+  final result = await Process.run(executable, [
+    '--trace-loading',
+    ...args,
+  ], workingDirectory: workingDirectory);
   print('exitCode:\n${result.exitCode}');
   print('stdout:\n${result.stdout}');
   print('stdout:\n${result.stderr}');
@@ -92,7 +118,8 @@ Future<ProcessResult> run(String executable, List<String> args,
 
 String buildDotPackages(String packageName) => '$packageName:.';
 
-String buildPackageConfig(String packageName, bool optionalPackageUri) => '''
+String buildPackageConfig(String packageName, bool optionalPackageUri) =>
+    '''
 {
   "configVersion": 2,
   "packages": [
@@ -114,7 +141,10 @@ String buildChildIsolate() => '''
 ''';
 
 String buildMainIsolate(
-        String spawnUri, String? packageConfigUri, String? childIsolatePath) =>
+  String spawnUri,
+  String? packageConfigUri,
+  String? childIsolatePath,
+) =>
     '''
   import 'dart:isolate';
   import 'dart:io' as io;

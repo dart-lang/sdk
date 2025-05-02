@@ -11,8 +11,7 @@ class Base {
 class M1 {
   void foo(
       // Prevent formatter from joining the line below to the one above
-      {x}
-      ) {}
+      {x}) {}
 }
 
 class BaseWithM1 = Base with M1;
@@ -22,7 +21,7 @@ class M2 {
 }
 
 class Derived extends BaseWithM1 with M2 {}
-//    ^^^^^^^
+//    ^
 // [cfe] Applying the mixin 'M2' to 'BaseWithM1' introduces an erroneous override of 'foo'.
 //                                    ^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE

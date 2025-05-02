@@ -21,24 +21,31 @@ bethIsolate(init) {
   ReceivePort port = initIsolate(init);
   // TODO(sigmund): use expectAsync when it is OK to use it within an isolate
   // (issue #6856)
-  port.first.then((msg) => msg[1]
-      .send(['${msg[0]}\nBeth says: Tim are you coming? And Bob?', msg[2]]));
+  port.first.then(
+    (msg) => msg[1].send([
+      '${msg[0]}\nBeth says: Tim are you coming? And Bob?',
+      msg[2],
+    ]),
+  );
 }
 
 timIsolate(init) {
   ReceivePort port = initIsolate(init);
   spawnFunction(bobIsolate).then((bob) {
-    port.first.then((msg) => bob.send([
-          '${msg[0]}\nTim says: Can you tell "main" that we are all coming?',
-          msg[1]
-        ]));
+    port.first.then(
+      (msg) => bob.send([
+        '${msg[0]}\nTim says: Can you tell "main" that we are all coming?',
+        msg[1],
+      ]),
+    );
   });
 }
 
 bobIsolate(init) {
   ReceivePort port = initIsolate(init);
-  port.first
-      .then((msg) => msg[1].send('${msg[0]}\nBob says: we are all coming!'));
+  port.first.then(
+    (msg) => msg[1].send('${msg[0]}\nBob says: we are all coming!'),
+  );
 }
 
 Future spawnFunction(function) {
@@ -59,11 +66,12 @@ baseTest({bool failForNegativeTest = false}) {
   asyncStart();
   port.listen((msg) {
     Expect.equals(
-        msg,
-        'main says: Beth, find out if Tim is coming.'
-        '\nBeth says: Tim are you coming? And Bob?'
-        '\nTim says: Can you tell "main" that we are all coming?'
-        '\nBob says: we are all coming!');
+      msg,
+      'main says: Beth, find out if Tim is coming.'
+      '\nBeth says: Tim are you coming? And Bob?'
+      '\nTim says: Can you tell "main" that we are all coming?'
+      '\nBob says: we are all coming!',
+    );
     Expect.isFalse(failForNegativeTest);
     port.close();
     asyncEnd();
@@ -71,8 +79,11 @@ baseTest({bool failForNegativeTest = false}) {
 
   spawnFunction(timIsolate).then((tim) {
     spawnFunction(bethIsolate).then((beth) {
-      beth.send(
-          ['main says: Beth, find out if Tim is coming.', tim, port.sendPort]);
+      beth.send([
+        'main says: Beth, find out if Tim is coming.',
+        tim,
+        port.sendPort,
+      ]);
     });
   });
 }

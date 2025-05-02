@@ -14,7 +14,9 @@ void originalError() {
   map.putIfAbsent(key, () {
     wasAbsent = true;
     Expect.isFalse(
-        map.containsKey(key), 'containsKey should be false in putIfAbsent');
+      map.containsKey(key),
+      'containsKey should be false in putIfAbsent',
+    );
     return key;
   });
   Expect.isTrue(wasAbsent);
@@ -39,7 +41,7 @@ class Dumb {
 final keys = [
   123,
   3.14,
-  10.0,  // int or double depending on platform.
+  10.0, // int or double depending on platform.
   'aString',
   #someSymbol,
   true,
@@ -66,8 +68,10 @@ void testMap(Map<Object?, Object?> map) {
     bool wasAbsent = false;
     map.putIfAbsent(key, () {
       wasAbsent = true;
-      Expect.isFalse(map.containsKey(key),
-          'containsKey should be false in putIfAbsent. key = $key');
+      Expect.isFalse(
+        map.containsKey(key),
+        'containsKey should be false in putIfAbsent. key = $key',
+      );
       return key;
     });
     Expect.isTrue(wasAbsent);
@@ -88,12 +92,18 @@ void main() {
   testMap(LinkedHashMap.identity()); // Should be same as `Map.identity()`.
 
   // Custom maps:
-  testMap(HashMap(
+  testMap(
+    HashMap(
       equals: (k1, k2) => k2 == k1,
       hashCode: (key) => key.hashCode + 1,
-      isValidKey: (_) => true));
-  testMap(LinkedHashMap(
+      isValidKey: (_) => true,
+    ),
+  );
+  testMap(
+    LinkedHashMap(
       equals: (k1, k2) => k2 == k1,
       hashCode: (key) => key.hashCode + 1,
-      isValidKey: (_) => true));
+      isValidKey: (_) => true,
+    ),
+  );
 }

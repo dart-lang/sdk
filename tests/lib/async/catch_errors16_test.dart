@@ -23,17 +23,22 @@ main() {
     events.add(x);
   });
   stream
-      .transform(new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
-    sink.add("error $e");
-  })).listen((x) {
-    events.add("stream $x");
-  }, onDone: () {
-    Expect.listEquals([
-      "stream 101",
-      "stream error 2",
-    ], events);
-    asyncEnd();
-  });
+      .transform(
+        new StreamTransformer.fromHandlers(
+          handleError: (e, st, sink) {
+            sink.add("error $e");
+          },
+        ),
+      )
+      .listen(
+        (x) {
+          events.add("stream $x");
+        },
+        onDone: () {
+          Expect.listEquals(["stream 101", "stream error 2"], events);
+          asyncEnd();
+        },
+      );
   controller.add(1);
   controller.addError(2);
   controller.close();

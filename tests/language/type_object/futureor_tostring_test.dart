@@ -32,8 +32,9 @@ void main() {
   // That is the case for all current implementations, in all modes,
   // even if `Type.toString()` doesn't document it.
 
-  Match match = RegExp(r"^(.+)<(.+)<(.+)>>$")
-      .matchAsPrefix((A<FutureOr<String>>).toString())!;
+  Match match = RegExp(
+    r"^(.+)<(.+)<(.+)>>$",
+  ).matchAsPrefix((A<FutureOr<String>>).toString())!;
   String a = match[1]!;
   String fo = match[2]!;
 

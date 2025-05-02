@@ -9,11 +9,9 @@
 
 import 'package:expect/expect.dart';
 
-
 class A {
   call(x) => x;
 }
-
 
 main() {
   print(new A()(499));

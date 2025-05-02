@@ -17,7 +17,7 @@ main() {
 
   // In the initialization and increment expressions of a for-loop,
   // `for (e1; e2; e3) {..}`, `e1` and `e3` may have type void.
-  for (x;; x) {
+  for (x; ; x) {
     break;
   }
 

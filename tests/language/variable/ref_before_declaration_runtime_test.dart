@@ -21,14 +21,12 @@ class C {
 
   void test1() {
     use(f); // Refers to instance field f.
-
   }
 
   void test2() {
     void localFunc() {
       use(f); // Refers to instance field f.
     }
-
 
     if (true) {
       var f = 1; // ok, shadows outer f and instance field f.
@@ -40,19 +38,10 @@ class C {
       use(x); // Refers to top-level x.
       use(y); // Refers to top-level y.
     }
-
-
   }
 
   void test4() {
-    void Q() {
-
-    }
-
-
-
-
-
+    void Q() {}
   }
 
   test() {
@@ -65,12 +54,10 @@ class C {
 
 void testTypeRef() {
   String s = 'Can vegetarians eat animal crackers?';
-
 }
 
 void testLibPrefix() {
   var pie = math.pi;
-
 }
 
 void noErrorsExpected() {

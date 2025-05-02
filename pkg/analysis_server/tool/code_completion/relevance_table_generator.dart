@@ -24,7 +24,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:args/args.dart';
 

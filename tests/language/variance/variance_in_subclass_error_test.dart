@@ -136,9 +136,7 @@ class S<in T> = Contravariant<T> with MCovariant<T>;
 class T<in X> = Invariant<X> with MInvariant<X>;
 //    ^
 // [cfe] Can't use 'in' type variable 'X' in an 'inout' position in supertype 'Invariant'.
-//    ^
 // [cfe] Can't use 'in' type variable 'X' in an 'inout' position in supertype 'MInvariant'.
 //         ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
-//         ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE

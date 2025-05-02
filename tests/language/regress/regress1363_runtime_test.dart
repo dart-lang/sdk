@@ -25,6 +25,5 @@ class C {
     libCup = new lib.Cup<lib.C>(new lib.C());
 
     C contents = myCup.getContents(); // expect no warning or error
-
   }
 }

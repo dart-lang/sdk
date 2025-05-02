@@ -21,22 +21,28 @@ main() {
   // zone the subscription lives.
   catchErrors(() {
     catchErrors(() {
-      controller = new StreamController();
+          controller = new StreamController();
 
-      // Assign to "global" `stream`.
-      stream = controller.stream.map((x) {
-        events.add("map $x");
-        return x + 100;
-      }).transform(
-          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
-        sink.add("error $e");
-      })).asBroadcastStream();
+          // Assign to "global" `stream`.
+          stream = controller.stream
+              .map((x) {
+                events.add("map $x");
+                return x + 100;
+              })
+              .transform(
+                new StreamTransformer.fromHandlers(
+                  handleError: (e, st, sink) {
+                    sink.add("error $e");
+                  },
+                ),
+              )
+              .asBroadcastStream();
 
-      // Listen to `stream` in the inner zone.
-      stream.listen((x) {
-        events.add("stream $x");
-      });
-    })
+          // Listen to `stream` in the inner zone.
+          stream.listen((x) {
+            events.add("stream $x");
+          });
+        })
         .listen((x) {
           events.add(x);
         })
@@ -57,12 +63,15 @@ main() {
     controller.addError("inner error");
     new Future.error("caught by outer");
     controller.close();
-  }).listen((x) {
-    events.add("outer: $x");
-    if (x == "caught by outer") done.complete(true);
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add("outer: $x");
+      if (x == "caught by outer") done.complete(true);
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give handlers time to run.

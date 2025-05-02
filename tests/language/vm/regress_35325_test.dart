@@ -18,10 +18,9 @@ bar(List<int> par1, double par2) {
 
 bool foo(double par1) {
   return (bar(
-          [81, 17],
-          ((!(var1))
-              ? double.maxFinite
-              : (var1 ? (80).floorToDouble() : par1))) ==
+        [81, 17],
+        ((!(var1)) ? double.maxFinite : (var1 ? (80).floorToDouble() : par1)),
+      ) ==
       (((~(var2))).roundToDouble()).sign);
 }
 

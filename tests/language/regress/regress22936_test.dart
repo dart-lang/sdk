@@ -17,9 +17,9 @@ main() {
   final x = null;
   try {
     x = foo();
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Can't assign to the final variable 'x'.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Can't assign to the final variable 'x'.
   } on NoSuchMethodError {}
   Expect.isTrue(fooCalled);
 }
