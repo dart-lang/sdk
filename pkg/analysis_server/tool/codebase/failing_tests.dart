@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

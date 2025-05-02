@@ -18,7 +18,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/todo_codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 

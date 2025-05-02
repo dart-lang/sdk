@@ -9,6 +9,7 @@ resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  analyzer_testing: any
   analyzer: any
   dart_style: any
   package_config: any

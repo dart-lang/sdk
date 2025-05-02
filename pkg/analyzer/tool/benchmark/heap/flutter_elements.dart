@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:args/args.dart';
 import 'package:heap_snapshot/analysis.dart';
 import 'package:heap_snapshot/format.dart';

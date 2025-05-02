@@ -9,7 +9,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_utilities/verify_tests.dart';
 
 void main() {

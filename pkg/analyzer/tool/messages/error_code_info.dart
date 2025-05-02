@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
