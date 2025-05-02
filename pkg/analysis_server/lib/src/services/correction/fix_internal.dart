@@ -64,6 +64,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_constant
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_flutter_style_todo.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_for_each.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
@@ -423,6 +424,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.prefer_for_elements_to_map_fromIterable: [
     ConvertMapFromIterableToForLiteral.new,
   ],
+  LinterLintCode.prefer_foreach: [ConvertToForEach.new],
   LinterLintCode.prefer_function_declarations_over_variables: [
     ConvertToFunctionDeclaration.new,
   ],

@@ -1214,9 +1214,10 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_foreach = LinterLintCode(
     LintNames.prefer_foreach,
-    "Use 'forEach' rather than a 'for' loop to apply a function to every "
-    "element.",
-    correctionMessage: "Try using 'forEach' rather than a 'for' loop.",
+    "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function "
+    "to every element.",
+    correctionMessage:
+        "Try using 'forEach' and a tear-off rather than a 'for' loop.",
     hasPublishedDocs: true,
   );
 

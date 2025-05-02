@@ -83,6 +83,7 @@ import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_flutter_style_todo_test.dart'
     as convert_to_flutter_style_todo;
+import 'convert_to_for_each_test.dart' as convert_to_for_each;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_function_declaration_test.dart'
     as convert_to_function_declaration;
@@ -385,6 +386,7 @@ void main() {
     convert_to_double_quoted_string.main();
     convert_to_flutter_style_todo.main();
     convert_to_for_element.main();
+    convert_to_for_each.main();
     convert_to_function_declaration.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();

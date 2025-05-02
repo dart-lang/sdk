@@ -9142,8 +9142,8 @@ LintCode:
       };
       ```
   prefer_foreach:
-    problemMessage: "Use 'forEach' rather than a 'for' loop to apply a function to every element."
-    correctionMessage: "Try using 'forEach' rather than a 'for' loop."
+    problemMessage: "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function to every element."
+    correctionMessage: "Try using 'forEach' and a tear-off rather than a 'for' loop."
     state:
       experimental: "2.0"
       stable: "2.2"
