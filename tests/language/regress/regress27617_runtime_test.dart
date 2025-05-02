@@ -10,9 +10,6 @@ class Foo {
   Foo._(this.greeting) {}
 
   // Const constructor must not redirect to non-const constructor.
-
 }
 
-main() {
-
-}
+main() {}

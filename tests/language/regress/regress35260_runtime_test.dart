@@ -7,7 +7,6 @@
 
 class Supertype {
   factory Supertype() = X;
-
 }
 
 class X implements Supertype {

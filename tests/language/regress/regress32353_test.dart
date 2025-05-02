@@ -14,16 +14,23 @@ class _LocalDirectory
   noSuchMethod(invocation) => null;
 }
 
-abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
-    D extends io_FileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+abstract class _LocalFileSystemEntity<
+  T extends FileSystemEntity,
+  D extends io_FileSystemEntity
+>
+    extends ForwardingFileSystemEntity<T, D> {}
 
 abstract class FileSystemEntity implements io_FileSystemEntity {}
 
-abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
-    D extends io_FileSystemEntity> implements FileSystemEntity {}
+abstract class ForwardingFileSystemEntity<
+  T extends FileSystemEntity,
+  D extends io_FileSystemEntity
+>
+    implements FileSystemEntity {}
 
 mixin ForwardingDirectory<T extends Directory>
-    on ForwardingFileSystemEntity<T, io_Directory> implements Directory {
+    on ForwardingFileSystemEntity<T, io_Directory>
+    implements Directory {
   get t => T;
 }
 

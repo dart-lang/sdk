@@ -46,10 +46,14 @@ checkNotEquals(Object? a, Object? b) {
 main() {
   checkEqualsAndHash((1, 2), (1, 2));
   checkEqualsAndHash((1, 2), const (1, 2));
-  checkEqualsAndHash(const (42, foo: "hello3"),
-      (foo: "hello${int.parse("3")}", 40 + int.parse("2")));
-  checkEqualsAndHash((1, 2, 3, foo: 4, bar: 5, baz: 6),
-      (baz: 6, 1, bar: 5, 2, foo: 4, int.parse("3")));
+  checkEqualsAndHash(
+    const (42, foo: "hello3"),
+    (foo: "hello${int.parse("3")}", 40 + int.parse("2")),
+  );
+  checkEqualsAndHash(
+    (1, 2, 3, foo: 4, bar: 5, baz: 6),
+    (baz: 6, 1, bar: 5, 2, foo: 4, int.parse("3")),
+  );
   checkEqualsAndHash((foo: 1, 2), (2, foo: 1));
   checkEqualsAndHash((foo: 3), (foo: 3));
 

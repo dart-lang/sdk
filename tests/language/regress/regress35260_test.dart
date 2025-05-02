@@ -5,10 +5,9 @@
 class Supertype {
   factory Supertype() = X;
   factory Supertype() = X;
-//        ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
-//        ^
-// [cfe] 'Supertype' is already declared in this scope.
+  //      ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
+  // [cfe] 'Supertype' is already declared in this scope.
 }
 
 class X implements Supertype {

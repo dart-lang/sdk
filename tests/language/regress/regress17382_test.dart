@@ -16,9 +16,9 @@ m(x) {
 main() {
   try {
     tl(m(0));
-//  ^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
-// [cfe] Method not found: 'tl'.
+    // [error column 5, length 2]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+    // [cfe] Method not found: 'tl'.
   } catch (e) {}
   Expect.isTrue(mCalled);
 }

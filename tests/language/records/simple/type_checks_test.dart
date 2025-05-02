@@ -38,22 +38,43 @@ verifyIsTests() {
   Expect.isFalse(getN2(<int>[], 10) is ({List foo, num bar, int baz}));
   Expect.isFalse(getN2(<int>[], 10) is (List foo, {num bar}));
 
-  Expect.isTrue(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (List<int>, Map<int, String>, {A<num> foo, int bar}));
-  Expect.isTrue(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (List<int?>, Map<int?, String?>, {A<num?> foo, int? bar}));
-  Expect.isTrue(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (List<dynamic>, Map<dynamic, dynamic>, {A<dynamic> foo, dynamic bar}));
-  Expect.isTrue(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (dynamic, dynamic, {dynamic foo, dynamic bar}));
-  Expect.isFalse(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (dynamic, dynamic, {dynamic foo, dynamic baz}));
-  Expect.isFalse(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (dynamic, dynamic, dynamic, {dynamic foo, dynamic bar}));
-  Expect.isFalse(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (dynamic, dynamic, dynamic foo, dynamic bar));
-  Expect.isFalse(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      is (dynamic, dynamic, {dynamic foo, dynamic bar, dynamic baz}));
+  Expect.isTrue(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (List<int>, Map<int, String>, {A<num> foo, int bar}),
+  );
+  Expect.isTrue(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (List<int?>, Map<int?, String?>, {A<num?> foo, int? bar}),
+  );
+  Expect.isTrue(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (
+          List<dynamic>,
+          Map<dynamic, dynamic>, {
+          A<dynamic> foo,
+          dynamic bar,
+        }),
+  );
+  Expect.isTrue(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (dynamic, dynamic, {dynamic foo, dynamic bar}),
+  );
+  Expect.isFalse(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (dynamic, dynamic, {dynamic foo, dynamic baz}),
+  );
+  Expect.isFalse(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (dynamic, dynamic, dynamic, {dynamic foo, dynamic bar}),
+  );
+  Expect.isFalse(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (dynamic, dynamic, dynamic foo, dynamic bar),
+  );
+  Expect.isFalse(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        is (dynamic, dynamic, {dynamic foo, dynamic bar, dynamic baz}),
+  );
 }
 
 verifyAsChecks() {
@@ -77,47 +98,51 @@ verifyAsChecks() {
   Expect.throwsTypeError(() => getN2(<int>[], 10) as ({List bar, num foo}));
   Expect.throwsTypeError(() => getN2(<int>[], 10) as ({List foo}));
   Expect.throwsTypeError(
-      () => getN2(<int>[], 10) as ({List foo, num bar, int baz}));
+    () => getN2(<int>[], 10) as ({List foo, num bar, int baz}),
+  );
   Expect.throwsTypeError(() => getN2(<int>[], 10) as (List foo, {num bar}));
 
-  results.add(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      as (List<int>, Map<int, String>, {A<num> foo, int bar}));
-  results.add(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      as (List<int?>, Map<int?, String?>, {A<num?> foo, int? bar}));
-  results.add(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      as (List<dynamic>, Map<dynamic, dynamic>, {A<dynamic> foo, dynamic bar}));
-  results.add(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
-      as (dynamic, dynamic, {dynamic foo, dynamic bar}));
-  Expect.throwsTypeError(() =>
-      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10) as (
-        dynamic,
-        dynamic, {
-        dynamic foo,
-        dynamic baz
-      }));
-  Expect.throwsTypeError(() =>
-      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10) as (
-        dynamic,
-        dynamic,
-        dynamic, {
-        dynamic foo,
-        dynamic bar
-      }));
-  Expect.throwsTypeError(() =>
-      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10) as (
-        dynamic,
-        dynamic,
-        dynamic foo,
-        dynamic bar
-      ));
-  Expect.throwsTypeError(() =>
-      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10) as (
-        dynamic,
-        dynamic, {
-        dynamic foo,
-        dynamic bar,
-        dynamic baz
-      }));
+  results.add(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        as (List<int>, Map<int, String>, {A<num> foo, int bar}),
+  );
+  results.add(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        as (List<int?>, Map<int?, String?>, {A<num?> foo, int? bar}),
+  );
+  results.add(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        as (
+          List<dynamic>,
+          Map<dynamic, dynamic>, {
+          A<dynamic> foo,
+          dynamic bar,
+        }),
+  );
+  results.add(
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+        as (dynamic, dynamic, {dynamic foo, dynamic bar}),
+  );
+  Expect.throwsTypeError(
+    () =>
+        getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+            as (dynamic, dynamic, {dynamic foo, dynamic baz}),
+  );
+  Expect.throwsTypeError(
+    () =>
+        getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+            as (dynamic, dynamic, dynamic, {dynamic foo, dynamic bar}),
+  );
+  Expect.throwsTypeError(
+    () =>
+        getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+            as (dynamic, dynamic, dynamic foo, dynamic bar),
+  );
+  Expect.throwsTypeError(
+    () =>
+        getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)
+            as (dynamic, dynamic, {dynamic foo, dynamic bar, dynamic baz}),
+  );
 
   return results;
 }
@@ -139,60 +164,67 @@ verifyParameterTypeChecks() {
   checkParameterType<(int foo, String bar)>(getP2(10, 'abc'));
   checkParameterType<(int bar, String foo)>(getP2(10, 'abc'));
   Expect.throwsTypeError(
-      () => checkParameterType<(String bar, int foo)>(getP2(10, 'abc')));
+    () => checkParameterType<(String bar, int foo)>(getP2(10, 'abc')),
+  );
   Expect.throwsTypeError(
-      () => checkParameterType<({int foo, String bar})>(getP2(10, 'abc')));
+    () => checkParameterType<({int foo, String bar})>(getP2(10, 'abc')),
+  );
   Expect.throwsTypeError(
-      () => checkParameterType<(int foo, {String bar})>(getP2(10, 'abc')));
+    () => checkParameterType<(int foo, {String bar})>(getP2(10, 'abc')),
+  );
 
   checkParameterType<({List foo, num bar})>(getN2(<int>[], 10));
   checkParameterType<({List<int> foo, Object bar})>(getN2(<int>[], 10));
   checkParameterType<({List<num> foo, int bar})>(getN2(<int>[], 10));
   checkParameterType<({num bar, List foo})>(getN2(<int>[], 10));
   Expect.throwsTypeError(
-      () => checkParameterType<({List bar, num foo})>(getN2(<int>[], 10)));
+    () => checkParameterType<({List bar, num foo})>(getN2(<int>[], 10)),
+  );
   Expect.throwsTypeError(
-      () => checkParameterType<({List foo})>(getN2(<int>[], 10)));
-  Expect.throwsTypeError(() =>
-      checkParameterType<({List foo, num bar, int baz})>(getN2(<int>[], 10)));
+    () => checkParameterType<({List foo})>(getN2(<int>[], 10)),
+  );
   Expect.throwsTypeError(
-      () => checkParameterType<(List foo, {num bar})>(getN2(<int>[], 10)));
+    () =>
+        checkParameterType<({List foo, num bar, int baz})>(getN2(<int>[], 10)),
+  );
+  Expect.throwsTypeError(
+    () => checkParameterType<(List foo, {num bar})>(getN2(<int>[], 10)),
+  );
 
   checkParameterType<(List<int>, Map<int, String>, {A<num> foo, int bar})>(
-      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10));
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10),
+  );
   checkParameterType<(List<int?>, Map<int?, String?>, {A<num?> foo, int? bar})>(
-      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10));
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10),
+  );
   checkParameterType<
-      (
-        List<dynamic>,
-        Map<dynamic, dynamic>, {
-        A<dynamic> foo,
-        dynamic bar
-      })>(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10));
+    (List<dynamic>, Map<dynamic, dynamic>, {A<dynamic> foo, dynamic bar})
+  >(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10));
   checkParameterType<(dynamic, dynamic, {dynamic foo, dynamic bar})>(
-      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10));
-  Expect.throwsTypeError(() =>
-      checkParameterType<(dynamic, dynamic, {dynamic foo, dynamic baz})>(
-          getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)));
-  Expect.throwsTypeError(() => checkParameterType<
-      (
-        dynamic,
-        dynamic,
-        dynamic, {
-        dynamic foo,
-        dynamic bar
-      })>(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)));
-  Expect.throwsTypeError(() =>
-      checkParameterType<(dynamic, dynamic, dynamic foo, dynamic bar)>(
-          getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)));
-  Expect.throwsTypeError(() => checkParameterType<
-      (
-        dynamic,
-        dynamic, {
-        dynamic foo,
-        dynamic bar,
-        dynamic baz
-      })>(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)));
+    getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10),
+  );
+  Expect.throwsTypeError(
+    () => checkParameterType<(dynamic, dynamic, {dynamic foo, dynamic baz})>(
+      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10),
+    ),
+  );
+  Expect.throwsTypeError(
+    () =>
+        checkParameterType<
+          (dynamic, dynamic, dynamic, {dynamic foo, dynamic bar})
+        >(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)),
+  );
+  Expect.throwsTypeError(
+    () => checkParameterType<(dynamic, dynamic, dynamic foo, dynamic bar)>(
+      getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10),
+    ),
+  );
+  Expect.throwsTypeError(
+    () =>
+        checkParameterType<
+          (dynamic, dynamic, {dynamic foo, dynamic bar, dynamic baz})
+        >(getP2N2(const <int>[42], <int, String>{1: 'hi'}, A<num>(), 10)),
+  );
 }
 
 checkTypeParameterBound<T, Bound>() {
@@ -206,33 +238,48 @@ void verifyTypeParameterBoundsChecks() {
   checkTypeParameterBound<(int, int), (int, int?)>();
   checkTypeParameterBound<(int, int), (int, int)?>();
   Expect.throwsTypeError(
-      () => checkTypeParameterBound<(int, Object), (int, int)>());
+    () => checkTypeParameterBound<(int, Object), (int, int)>(),
+  );
   if (!unsoundNullSafety) {
     Expect.throwsTypeError(
-        () => checkTypeParameterBound<(int, int?), (int, int)>());
+      () => checkTypeParameterBound<(int, int?), (int, int)>(),
+    );
     Expect.throwsTypeError(
-        () => checkTypeParameterBound<(int, int)?, (int, int)>());
+      () => checkTypeParameterBound<(int, int)?, (int, int)>(),
+    );
   }
 
   checkTypeParameterBound<(String, {int foo}), (String, {int foo})>();
-  Expect.throwsTypeError(() =>
-      checkTypeParameterBound<(String, {int foo}), (String, {int bar})>());
-  Expect.throwsTypeError(() =>
-      checkTypeParameterBound<(String, {num foo}), (String, {int foo})>());
+  Expect.throwsTypeError(
+    () => checkTypeParameterBound<(String, {int foo}), (String, {int bar})>(),
+  );
+  Expect.throwsTypeError(
+    () => checkTypeParameterBound<(String, {num foo}), (String, {int foo})>(),
+  );
   if (!unsoundNullSafety) {
-    Expect.throwsTypeError(() =>
-        checkTypeParameterBound<(String, {int? foo}), (String, {int foo})>());
+    Expect.throwsTypeError(
+      () =>
+          checkTypeParameterBound<(String, {int? foo}), (String, {int foo})>(),
+    );
   }
 
   checkTypeParameterBound<({int foo, Object bar}), ({Object bar, int foo})>();
-  checkTypeParameterBound<({int foo, Object bar}),
-      ({Object foo, Object? bar})>();
-  Expect.throwsTypeError(() => checkTypeParameterBound<({int foo, Object bar}),
-      ({Object foo, int bar})>());
+  checkTypeParameterBound<
+    ({int foo, Object bar}),
+    ({Object foo, Object? bar})
+  >();
+  Expect.throwsTypeError(
+    () =>
+        checkTypeParameterBound<
+          ({int foo, Object bar}),
+          ({Object foo, int bar})
+        >(),
+  );
 
   checkTypeParameterBound<(int, String, double), (num, String, num)>();
-  Expect.throwsTypeError(() =>
-      checkTypeParameterBound<(int, String, Object), (num, String, num)>());
+  Expect.throwsTypeError(
+    () => checkTypeParameterBound<(int, String, Object), (num, String, num)>(),
+  );
 }
 
 doTests() {

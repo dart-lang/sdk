@@ -57,16 +57,18 @@ main() {
       contextType(1)..expectStaticType<Exactly<int>>(),
       contextType('')..expectStaticType<Exactly<String>>(),
       f1: contextType(1.0)..expectStaticType<Exactly<double>>(),
-      f2: contextType(1)..expectStaticType<Exactly<num>>()
+      f2: contextType(1)..expectStaticType<Exactly<num>>(),
     ));
 
     // Check that unknown contexts are properly propagated down:
     // - Positional field
     contextRecordListOfUnknown(
-        ([1, 2],)..expectStaticType<Exactly<(List<int>,)>>());
+      ([1, 2],)..expectStaticType<Exactly<(List<int>,)>>(),
+    );
     // - Named field
     contextRecordNamedListOfUnknown(
-        (f1: [1, 2])..expectStaticType<Exactly<({List<int> f1})>>());
+      (f1: [1, 2])..expectStaticType<Exactly<({List<int> f1})>>(),
+    );
   }
 
   //   - Let Ri be the greatest closure of Ki
@@ -77,56 +79,73 @@ main() {
     // - Ki=Iterable<_> and Si=List<int>, so Ri=Iterable<Object?> and Si <: Ri;
     //   thus Ti=Si=List<int>.
     contextRecordIterableOfUnknown(
-        (<int>[],)..expectStaticType<Exactly<(List<int>,)>>());
+      (<int>[],)..expectStaticType<Exactly<(List<int>,)>>(),
+    );
     contextRecordNamedIterableOfUnknown(
-        (f1: <int>[])..expectStaticType<Exactly<({List<int> f1})>>());
+      (f1: <int>[])..expectStaticType<Exactly<({List<int> f1})>>(),
+    );
 
     // - Ki=_ and Si=dynamic, so Ri=Object? and Si <: Ri; thus Ti=Si=dynamic.
     var d = 0 as dynamic;
-    contextRecordUnknown((d,)
-      ..expectStaticType<Exactly<(dynamic,)>>()
-      // Double check that it's truly `dynamic` (and not `Object?`) using a
-      // dynamic invocation.
-      ..$1.abs());
-    contextRecordNamedUnknown((f1: d)
-      ..expectStaticType<Exactly<({dynamic f1})>>()
-      ..f1.abs());
+    contextRecordUnknown(
+      (d,)
+        ..expectStaticType<Exactly<(dynamic,)>>()
+        // Double check that it's truly `dynamic` (and not `Object?`) using a
+        // dynamic invocation.
+        ..$1.abs(),
+    );
+    contextRecordNamedUnknown(
+      (f1: d)
+        ..expectStaticType<Exactly<({dynamic f1})>>()
+        ..f1.abs(),
+    );
 
     // - Ki=_ and Si=Object?, so Ri=Object? and Si <: Ri; thus Ti=Si=Object?.
     var objQ = 0 as Object?;
     contextRecordUnknown((objQ,)..expectStaticType<Exactly<(Object?,)>>());
     contextRecordNamedUnknown(
-        (f1: objQ)..expectStaticType<Exactly<({Object? f1})>>());
+      (f1: objQ)..expectStaticType<Exactly<({Object? f1})>>(),
+    );
 
     // - Ki=dynamic and Si=dynamic, so Ri=dynamic and Si <: Ri; thus
     //   Ti=Si=dynamic.
-    context<(dynamic,)>((d,)
-      ..expectStaticType<Exactly<(dynamic,)>>()
-      ..$1.abs());
-    context<({dynamic f1})>((f1: d)
-      ..expectStaticType<Exactly<({dynamic f1})>>()
-      ..f1.abs());
+    context<(dynamic,)>(
+      (d,)
+        ..expectStaticType<Exactly<(dynamic,)>>()
+        ..$1.abs(),
+    );
+    context<({dynamic f1})>(
+      (f1: d)
+        ..expectStaticType<Exactly<({dynamic f1})>>()
+        ..f1.abs(),
+    );
 
     // - Ki=dynamic and Si=Object?, so Ri=dynamic and Si <: Ri; thus
     //   Ti=Si=Object?.
     context<(dynamic,)>((objQ,)..expectStaticType<Exactly<(Object?,)>>());
     context<({dynamic f1})>(
-        (f1: objQ)..expectStaticType<Exactly<({Object? f1})>>());
+      (f1: objQ)..expectStaticType<Exactly<({Object? f1})>>(),
+    );
 
     // - Ki=Object? and Si=dynamic, so Ri=Object? and Si <: Ri; thus
     //   Ti=Si=dynamic.
-    context<(Object?,)>((d,)
-      ..expectStaticType<Exactly<(dynamic,)>>()
-      ..$1.abs());
-    context<({Object? f1})>((f1: d)
-      ..expectStaticType<Exactly<({dynamic f1})>>()
-      ..f1.abs());
+    context<(Object?,)>(
+      (d,)
+        ..expectStaticType<Exactly<(dynamic,)>>()
+        ..$1.abs(),
+    );
+    context<({Object? f1})>(
+      (f1: d)
+        ..expectStaticType<Exactly<({dynamic f1})>>()
+        ..f1.abs(),
+    );
 
     // - Ki=Object? and Si=Object?, so Ri=Object? and Si <: Ri; thus
     //   Ti=Si=Object?.
     context<(Object?,)>((objQ,)..expectStaticType<Exactly<(Object?,)>>());
     context<({Object? f1})>(
-        (f1: objQ)..expectStaticType<Exactly<({Object? f1})>>());
+      (f1: objQ)..expectStaticType<Exactly<({Object? f1})>>(),
+    );
   }
 
   //   - Otherwise, if Si is dynamic, then we insert an implicit cast on ei to
@@ -135,9 +154,11 @@ main() {
     // - Ki=List<_> and Si=dynamic, so Ri=List<Object?>; thus Ti=List<Object?>.
     var d = [1] as dynamic;
     contextRecordListOfUnknown(
-        (d,)..expectStaticType<Exactly<(List<Object?>,)>>());
+      (d,)..expectStaticType<Exactly<(List<Object?>,)>>(),
+    );
     contextRecordNamedListOfUnknown(
-        (f1: d)..expectStaticType<Exactly<({List<Object?> f1})>>());
+      (f1: d)..expectStaticType<Exactly<({List<Object?> f1})>>(),
+    );
   }
 
   //   - Otherwise, if Si is coercible to Ri (via some sequence of call method
@@ -149,9 +170,11 @@ main() {
     // - Ki=_ Function() and Si=C, so Ri=Object? Function(); thus Ti=int
     //   Function().
     contextRecordFunctionReturningUnknown(
-        (C(),)..expectStaticType<Exactly<(int Function(),)>>());
+      (C(),)..expectStaticType<Exactly<(int Function(),)>>(),
+    );
     contextRecordNamedFunctionReturningUnknown(
-        (f1: C())..expectStaticType<Exactly<({int Function() f1})>>());
+      (f1: C())..expectStaticType<Exactly<({int Function() f1})>>(),
+    );
   }
 
   //   - Otherwise, let Ti be Si.

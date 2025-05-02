@@ -17,9 +17,10 @@ main() {
   Completer pauseEventReceived = new Completer();
   Completer resumeEventReceived = new Completer();
   StreamController controller = new StreamController(
-      onListen: () => listenEventReceived.complete(),
-      onPause: () => pauseEventReceived.complete(),
-      onResume: () => resumeEventReceived.complete());
+    onListen: () => listenEventReceived.complete(),
+    onPause: () => pauseEventReceived.complete(),
+    onResume: () => resumeEventReceived.complete(),
+  );
 
   Completer forLoopEntered = new Completer();
 

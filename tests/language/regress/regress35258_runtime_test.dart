@@ -12,6 +12,5 @@ main() {
 class C {
   final d;
 
-
   C(this.d) {}
 }

@@ -18,8 +18,14 @@ void main() {
   // it includes the empty match at the end position.
   exp = new RegExp("a?");
   str = "babba";
-  Expect.listEquals(["", "a", "", "", "a", ""],
-      exp.allMatches(str).map((x) => x[0]).toList());
+  Expect.listEquals([
+    "",
+    "a",
+    "",
+    "",
+    "a",
+    "",
+  ], exp.allMatches(str).map((x) => x[0]).toList());
 
   // Check that allMatches works with optional start index.
   exp = new RegExp("as{2}");

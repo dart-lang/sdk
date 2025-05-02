@@ -12,9 +12,9 @@ class A<T> {
 
 class B<T> extends A<T> {
   B({void f(T foo)?})
-      : super((T a) {
-          f = (a) => 42;
-        });
+    : super((T a) {
+        f = (a) => 42;
+      });
 }
 
 main() {

@@ -13,12 +13,7 @@
 import 'package:expect/expect.dart';
 
 class A {
-
-
   var a, b;
 }
 
-main() {
-
-
-}
+main() {}

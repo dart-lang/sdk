@@ -17,7 +17,7 @@ mixin M2 {
 }
 
 class Derived extends BaseWithM1 with M2 {}
-//    ^^^^^^^
+//    ^
 // [cfe] Applying the mixin 'M2' to 'BaseWithM1' introduces an erroneous override of 'foo'.
 //                                    ^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE

@@ -6,9 +6,7 @@
 
 class C {
   var x, y;
-  C()
-      : x = null ?? <int, int>{},
-        y = 0 {}
+  C() : x = null ?? <int, int>{}, y = 0 {}
 }
 
 main() {

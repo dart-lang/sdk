@@ -14,9 +14,10 @@ typedef A BToA(B x);
 
 void main() {
   test(
-      Function2<Function2<A, B>, Function2<B, A>> t1,
-      Function2<AToB, BToA> t2,
-      Function2<Function2<int, double>, Function2<int, double>> left) {
+    Function2<Function2<A, B>, Function2<B, A>> t1,
+    Function2<AToB, BToA> t2,
+    Function2<Function2<int, double>, Function2<int, double>> left,
+  ) {
     left = t1;
     //     ^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT

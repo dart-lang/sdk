@@ -13,17 +13,11 @@ class A {
   int get n => 42;
 }
 
-class B extends A {
+class B extends A {}
 
-}
-
-abstract class B2 implements A {
-
-}
+abstract class B2 implements A {}
 
 class C {
-
-
   int get n => 42;
 }
 

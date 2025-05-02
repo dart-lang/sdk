@@ -7,6 +7,4 @@
 
 import "package:expect/expect.dart";
 
-void main() {
-
-}
+void main() {}

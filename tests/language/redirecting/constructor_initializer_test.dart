@@ -27,9 +27,7 @@ class B extends A {
   var w;
 
   // Call the redirecting constructor using super.
-  B()
-      : w = append('w'),
-        super();
+  B() : w = append('w'), super();
 }
 
 main() {
