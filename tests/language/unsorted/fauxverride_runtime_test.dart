@@ -82,7 +82,6 @@ class Sub extends Super {
   // name. Furthermore, according to 7.7 a static variable induces an
   // implicit getter function (a static method).
 
-
   foo() => 'foo';
 }
 

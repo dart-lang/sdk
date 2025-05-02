@@ -26,7 +26,10 @@ Future<void> main(List<String> args) async {
     return; // No disassembler in product mode.
   }
 
-  final result = await runBinary(Platform.executable,
-      ['--disassemble', Platform.script.toFilePath(), '--child']);
+  final result = await runBinary(Platform.executable, [
+    '--disassemble',
+    Platform.script.toFilePath(),
+    '--child',
+  ]);
   Expect.equals(0, result.exitCode);
 }

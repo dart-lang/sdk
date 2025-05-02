@@ -71,10 +71,14 @@ testOSR() {
   // Foul up  IC data in integer's unary minus.
   var y = -0x80000000;
   Expect.equals(
-      (0x7fffffffffffffff + 2) * 10, testLoop(10, 0x7fffffffffffffff));
+    (0x7fffffffffffffff + 2) * 10,
+    testLoop(10, 0x7fffffffffffffff),
+  );
   // Second time no deoptimization can occur, since runtime feedback has been collected.
   Expect.equals(
-      (0x7fffffffffffffff + 2) * 10, testLoop(10, 0x7fffffffffffffff));
+    (0x7fffffffffffffff + 2) * 10,
+    testLoop(10, 0x7fffffffffffffff),
+  );
 }
 
 testLoop(N, int x) {
