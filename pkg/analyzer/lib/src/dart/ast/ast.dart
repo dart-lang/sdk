@@ -1053,17 +1053,13 @@ sealed class AstNodeImpl implements AstNode {
       _childEntities.syntacticEntities;
 
   @override
-  int get end => offset + length;
+  int get end => endToken.end;
 
   @override
   bool get isSynthetic => false;
 
   @override
-  int get length {
-    var beginToken = this.beginToken;
-    var endToken = this.endToken;
-    return endToken.offset + endToken.length - beginToken.offset;
-  }
+  int get length => end - offset;
 
   /// The properties (tokens and nodes) of this node, with names, in the order
   /// in which these entities should normally appear, not necessarily in the
@@ -1071,10 +1067,7 @@ sealed class AstNodeImpl implements AstNode {
   Iterable<ChildEntity> get namedChildEntities => _childEntities.entities;
 
   @override
-  int get offset {
-    var beginToken = this.beginToken;
-    return beginToken.offset;
-  }
+  int get offset => beginToken.offset;
 
   @override
   AstNode? get parent => _parent;
