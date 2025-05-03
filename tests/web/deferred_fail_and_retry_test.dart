@@ -40,19 +40,28 @@ main() {
       }
       load = replacement;
     }
-  """
+  """,
   ]);
 
   asyncStart();
-  lib.loadLibrary().then((_) {
-    Expect.fail("Library should not have loaded");
-  }, onError: (error) {
-    lib.loadLibrary().then((_) {
-      Expect.equals("loaded", lib.foo());
-    }, onError: (error) {
-      Expect.fail("Library should have loaded this time");
-    }).whenComplete(() {
-      asyncEnd();
-    });
-  });
+  lib.loadLibrary().then(
+    (_) {
+      Expect.fail("Library should not have loaded");
+    },
+    onError: (error) {
+      lib
+          .loadLibrary()
+          .then(
+            (_) {
+              Expect.equals("loaded", lib.foo());
+            },
+            onError: (error) {
+              Expect.fail("Library should have loaded this time");
+            },
+          )
+          .whenComplete(() {
+            asyncEnd();
+          });
+    },
+  );
 }

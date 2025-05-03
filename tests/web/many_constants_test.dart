@@ -12,8 +12,14 @@ enum E { A, B, C, D }
 
 class Z {
   final a, b, c, d, e, f;
-  const Z(
-      {this.a = 1, this.b = 1, this.c = 1, this.d = 1, this.e = 1, this.f = 1});
+  const Z({
+    this.a = 1,
+    this.b = 1,
+    this.c = 1,
+    this.d = 1,
+    this.e = 1,
+    this.f = 1,
+  });
 }
 
 const c1 = const {};
@@ -60,49 +66,49 @@ const z5 = const Z(d: 3);
 const z6 = const Z(d: 2);
 
 makeAll() => {
-      'E.A': E.A,
-      'E.B': E.B,
-      'E.C': E.C,
-      'E.D': E.D,
-      'c1': c1,
-      'c2': c2,
-      'c3': c3,
-      'c4': c4,
-      'l1': l1,
-      'l2': l2,
-      'l3': l3,
-      'l4': l4,
-      'll1': ll1,
-      'll2': ll2,
-      'll3': ll3,
-      'l4': ll4,
-      'm1': m1,
-      'm2': m2,
-      'm3': m3,
-      'm4': m4,
-      'm5': m5,
-      'm6': m6,
-      'm7': m7,
-      'm8': m8,
-      'm9': m9,
-      'mA': mA,
-      'mB': mB,
-      'mC': mC,
-      'mE1': mE1,
-      'mE2': mE2,
-      'mE3': mE3,
-      'mE4': mE4,
-      'mE5': mE5,
-      'mE6': mE6,
-      'mE7': mE7,
-      'mE8': mE8,
-      'z1': z1,
-      'z2': z2,
-      'z3': z3,
-      'z4': z4,
-      'z5': z5,
-      'z6': z6,
-    };
+  'E.A': E.A,
+  'E.B': E.B,
+  'E.C': E.C,
+  'E.D': E.D,
+  'c1': c1,
+  'c2': c2,
+  'c3': c3,
+  'c4': c4,
+  'l1': l1,
+  'l2': l2,
+  'l3': l3,
+  'l4': l4,
+  'll1': ll1,
+  'll2': ll2,
+  'll3': ll3,
+  'l4': ll4,
+  'm1': m1,
+  'm2': m2,
+  'm3': m3,
+  'm4': m4,
+  'm5': m5,
+  'm6': m6,
+  'm7': m7,
+  'm8': m8,
+  'm9': m9,
+  'mA': mA,
+  'mB': mB,
+  'mC': mC,
+  'mE1': mE1,
+  'mE2': mE2,
+  'mE3': mE3,
+  'mE4': mE4,
+  'mE5': mE5,
+  'mE6': mE6,
+  'mE7': mE7,
+  'mE8': mE8,
+  'z1': z1,
+  'z2': z2,
+  'z3': z3,
+  'z4': z4,
+  'z5': z5,
+  'z6': z6,
+};
 
 main() {
   var all1 = makeAll();
@@ -114,7 +120,9 @@ main() {
       if (name1 == name2) continue;
       var e2 = all2[name2];
       Expect.isFalse(
-          identical(e1, e2), 'Different instances  $name1: $e1  $name2: $e2');
+        identical(e1, e2),
+        'Different instances  $name1: $e1  $name2: $e2',
+      );
     }
   }
 }

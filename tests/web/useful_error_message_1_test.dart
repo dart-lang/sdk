@@ -24,7 +24,7 @@ main() {
   var instanceString = confuse(c).toString();
   bool isMinified =
       instanceString.contains(new RegExp("Instance of '..?.?'")) ||
-          instanceString.contains('minified:');
+      instanceString.contains('minified:');
   if (!isMinified) {
     Expect.equals("Instance of 'CCCC'", instanceString);
   }
@@ -36,9 +36,10 @@ main() {
       }
       // When minified we will accept quoted names up to 3 characters.
       Expect.isTrue(
-          message.contains(new RegExp("'..?.?'")) ||
-              message.contains("'minified:"),
-          '"$message" should contain minified name');
+        message.contains(new RegExp("'..?.?'")) ||
+            message.contains("'minified:"),
+        '"$message" should contain minified name',
+      );
     }
   }
 
@@ -46,15 +47,19 @@ main() {
   // Error.safeToString.
   var e1 = new ArgumentError.value(c);
   var s1 = '$e1';
-  Expect.isTrue(s1.contains(instanceString),
-      'Error message "$s1" should contain "$instanceString"');
+  Expect.isTrue(
+    s1.contains(instanceString),
+    'Error message "$s1" should contain "$instanceString"',
+  );
 
   // Instance method tear-off.
   var e2 = new ArgumentError.value(confuse(c).instanceMethod);
   var s2 = '$e2';
   // Instance method tear-off should contain instance string.
-  Expect.isTrue(s2.contains(instanceString),
-      'Error message "$s2" should contain "$instanceString"');
+  Expect.isTrue(
+    s2.contains(instanceString),
+    'Error message "$s2" should contain "$instanceString"',
+  );
   // Instance method tear-off should also name the method.
   checkContains(s2.replaceAll(instanceString, '*'), "instanceMethod");
 

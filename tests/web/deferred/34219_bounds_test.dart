@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Tests that generic function type bounds are walked as dependencies of a
 // closure. If the generic function bounds are not visited, SystemMessage is
 // placed in the main unit while it's superclass GeneratedMessage is placed in a

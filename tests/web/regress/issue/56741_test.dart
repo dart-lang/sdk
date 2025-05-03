@@ -29,29 +29,35 @@ void main() {
 // !! If I change parameters to `Iterable<T1> it1, Iterable<T2> it2` and
 // create `(it1, it2)` in this function, it avoids the error.
 Iterable<(T1, T2)> zip2<T1, T2>((Iterable<T1>, Iterable<T2>) its) =>
-    _ComputedIterable<(Iterable<T1>, Iterable<T2>),
-        (Iterator<T1>, Iterator<T2>)>(_IterationStrategy2<T1, T2>(), its);
+    _ComputedIterable<
+      (Iterable<T1>, Iterable<T2>),
+      (Iterator<T1>, Iterator<T2>)
+    >(_IterationStrategy2<T1, T2>(), its);
 
 Iterable<(T1, T2, T3)> zip3<T1, T2, T3>(
-        (Iterable<T1>, Iterable<T2>, Iterable<T3>) its) =>
-    _ComputedIterable(_IterationStrategy3<T1, T2, T3>(), its);
+  (Iterable<T1>, Iterable<T2>, Iterable<T3>) its,
+) => _ComputedIterable(_IterationStrategy3<T1, T2, T3>(), its);
 
 class _IterationStrategy2<T1, T2>
     implements
-        _IterationStrategy<(Iterable<T1>, Iterable<T2>),
-            (Iterator<T1>, Iterator<T2>)> {
+        _IterationStrategy<
+          (Iterable<T1>, Iterable<T2>),
+          (Iterator<T1>, Iterator<T2>)
+        > {
   (Iterator<T1>, Iterator<T2>) iterator(
-          (Iterable<T1>, Iterable<T2>) iterables) =>
-      (iterables.$1.iterator, iterables.$2.iterator);
+    (Iterable<T1>, Iterable<T2>) iterables,
+  ) => (iterables.$1.iterator, iterables.$2.iterator);
 }
 
 class _IterationStrategy3<T1, T2, T3>
     implements
-        _IterationStrategy<(Iterable<T1>, Iterable<T2>, Iterable<T3>),
-            (Iterator<T1>, Iterator<T2>, Iterator<T3>)> {
+        _IterationStrategy<
+          (Iterable<T1>, Iterable<T2>, Iterable<T3>),
+          (Iterator<T1>, Iterator<T2>, Iterator<T3>)
+        > {
   (Iterator<T1>, Iterator<T2>, Iterator<T3>) iterator(
-          (Iterable<T1>, Iterable<T2>, Iterable<T3>) iterables) =>
-      (iterables.$1.iterator, iterables.$2.iterator, iterables.$3.iterator);
+    (Iterable<T1>, Iterable<T2>, Iterable<T3>) iterables,
+  ) => (iterables.$1.iterator, iterables.$2.iterator, iterables.$3.iterator);
 }
 
 class _ComputedIterable<S, I extends Object> extends Iterable<Never> {

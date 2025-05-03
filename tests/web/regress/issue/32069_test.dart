@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 main() {
   var m1 = {
     'hello': <String>['hi', 'howdy'],
-    'bye': <String>[]
+    'bye': <String>[],
   };
   var m = new Map<String, List<String>>.unmodifiable(m1);
   print(m);

@@ -5,7 +5,11 @@
 void main() {
   print(3 + 4 + 5);
   print(3.0 + 4.0 + 5.0);
-  print("fisk" " " "hest");
+  print(
+    "fisk"
+    " "
+    "hest",
+  );
   print(true);
   print(false);
 }

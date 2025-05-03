@@ -30,8 +30,10 @@ void test(dynamic object, Type type, {required bool expectTypeArguments}) {
       expected = expected.substring(0, expected.indexOf('<'));
     }
     expected = '$expected';
-    Expect.isTrue(e.toString().contains(expected),
-        'Expected "$expected" in the message: $e');
+    Expect.isTrue(
+      e.toString().contains(expected),
+      'Expected "$expected" in the message: $e',
+    );
     caught = true;
     print(e);
   }

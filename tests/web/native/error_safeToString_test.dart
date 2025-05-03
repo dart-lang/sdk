@@ -83,20 +83,22 @@ expectTypeName(expectedName, s) {
   Expect.isNotNull(m);
   var name = m!.group(1);
   Expect.isTrue(
-      expectedName == name ||
-          name!.length <= 3 ||
-          name!.startsWith('minified:'),
-      "Is '$expectedName' or minified: '$name'");
+    expectedName == name || name!.length <= 3 || name!.startsWith('minified:'),
+    "Is '$expectedName' or minified: '$name'",
+  );
 }
 
-final plainJsString =
-    Error.safeToString(JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject));
+final plainJsString = Error.safeToString(
+  JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject),
+);
 
-final unknownJsString =
-    Error.safeToString(JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject));
+final unknownJsString = Error.safeToString(
+  JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject),
+);
 
-final interceptorString =
-    Error.safeToString(JS_INTERCEPTOR_CONSTANT(Interceptor));
+final interceptorString = Error.safeToString(
+  JS_INTERCEPTOR_CONSTANT(Interceptor),
+);
 
 testDistinctInterceptors() {
   // Test invariants needed for the other tests.
@@ -150,8 +152,10 @@ testNative() {
   print('Q:  $x  ${Error.safeToString(x)}');
   // We are going to get either the general interceptor or the JavaScript
   // constructor.
-  Expect.isTrue("Instance of 'QQQQ'" == Error.safeToString(x) ||
-      interceptorString == Error.safeToString(x));
+  Expect.isTrue(
+    "Instance of 'QQQQ'" == Error.safeToString(x) ||
+        interceptorString == Error.safeToString(x),
+  );
 
   x = makeR();
 

@@ -8,15 +8,15 @@
 import "package:expect/expect.dart";
 
 final _a = {
-  ...{1}
+  ...{1},
 };
 
 class B {
   static Set _b = {
-    ...{2}
+    ...{2},
   };
   Set _c = {
-    ...{3}
+    ...{3},
   };
 }
 

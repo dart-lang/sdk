@@ -4,12 +4,29 @@
 
 #### Dart Development Compiler (dartdevc)
 
-Outstanding async code now checks and cancels itself after a hot restart if
-it was started in a different generation of the application before the restart.
-This includes outstanding `Future`s created by calling `JSPromise.toDart` from
-`dart:js_interop` and the underlying the `dart:js_util` helper
-`promiseToFuture`. Dart callbacks will not be run, but callbacks on the
-JavaScript side will still be executed.
+- Outstanding async code now checks and cancels itself after a hot restart if
+  it was started in a different generation of the application before the
+  restart. This includes outstanding `Future`s created by calling
+  `JSPromise.toDart` from the`dart:js_interop` and the underlying the
+  `dart:js_util` helper `promiseToFuture`. Dart callbacks will not be run, but
+  callbacks on the JavaScript side will still be executed.
+- Fixed a soundness issue that allowed direct invocation of the value returned
+  from a getter without any runtime checks when the getter's return type was a
+  generic type argument instantiated as `dynamic` or `Function`.
+
+  A getter defined as:
+
+  ```dart
+  class Container<T> {
+    T get value => _value;
+    ...
+  }
+  ```
+  Could trigger the issue with a direct invocation:
+
+  ```dart
+  Container<dynamic>().value('Invocation with missing runtime checks!');
+  ```
 
 ## 3.8.0
 

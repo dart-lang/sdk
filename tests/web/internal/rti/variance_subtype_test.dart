@@ -16,7 +16,8 @@ const typeRulesJson = r'''
 ''';
 final typeRules = JS('=Object', 'JSON.parse(#)', typeRulesJson);
 
-const typeParameterVariancesJson = '''
+const typeParameterVariancesJson =
+    '''
 {
   "Covariant": [${rti.Variance.covariant}],
   "Contravariant": [${rti.Variance.contravariant}],
@@ -25,8 +26,11 @@ const typeParameterVariancesJson = '''
   ${rti.Variance.contravariant}, ${rti.Variance.covariant}]
 }
 ''';
-final typeParameterVariances =
-    JS('=Object', 'JSON.parse(#)', typeParameterVariancesJson);
+final typeParameterVariances = JS(
+  '=Object',
+  'JSON.parse(#)',
+  typeParameterVariancesJson,
+);
 
 main() {
   rti.testingAddRules(universe, typeRules);
@@ -43,5 +47,7 @@ void testInterfacesWithVariance() {
   unrelated('Invariant<int>', 'Invariant<num>');
   unrelated('Invariant<num>', 'Invariant<int>');
   strictSubtype(
-      'MultiVariant<int,num,num,int>', 'MultiVariant<num,num,int,num>');
+    'MultiVariant<int,num,num,int>',
+    'MultiVariant<num,num,int,num>',
+  );
 }

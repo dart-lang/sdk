@@ -14,12 +14,14 @@ void main() {
 
   final obj = int.parse('1') == 1 ? Foo<Bar>() : Foo<Baz>();
   final runtimeType = obj.runtimeType.toString();
-  final match = RegExp(r'^minified:[A-Za-z0-9]+<minified:[A-Za-z0-9]+>$')
-      .matchAsPrefix(runtimeType);
+  final match = RegExp(
+    r'^minified:[A-Za-z0-9]+<minified:[A-Za-z0-9]+>$',
+  ).matchAsPrefix(runtimeType);
   Expect.isNotNull(
-      match,
-      'Foo<Bar>().runtimeType should have format '
-      'minified:XXX<minified:YYY> but was $runtimeType');
+    match,
+    'Foo<Bar>().runtimeType should have format '
+    'minified:XXX<minified:YYY> but was $runtimeType',
+  );
   Expect.isTrue(obj.isT(Bar()));
   Expect.isTrue(!obj.isT(Baz()));
 }

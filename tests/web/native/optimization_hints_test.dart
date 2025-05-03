@@ -196,18 +196,31 @@ check(func) {
   print(source);
   Expect.isTrue(source.contains('"in main function"'), "should contain 'main'");
   Expect.isTrue(
-      source.contains('"in simple function"'), "should inline 'simple'");
+    source.contains('"in simple function"'),
+    "should inline 'simple'",
+  );
   Expect.isTrue(source.contains('"in foo function"'), "should inline 'foo'");
   Expect.isFalse(
-      source.contains('"in bar function"'), "should not inline 'bar'");
+    source.contains('"in bar function"'),
+    "should not inline 'bar'",
+  );
   Expect.isFalse(
-      source.contains('"in check function"'), "should not inline 'check'");
-  Expect.isFalse(source.contains('"in noinline function"'),
-      "should not inline 'noinline'");
-  Expect.equals(2, new RegExp(r'\.c_field').allMatches(source).length,
-      "should contain r'\.c_field' exactly twice");
+    source.contains('"in check function"'),
+    "should not inline 'check'",
+  );
   Expect.isFalse(
-      source.contains('.d_field'), "should not contain r'\.d_field'");
+    source.contains('"in noinline function"'),
+    "should not inline 'noinline'",
+  );
+  Expect.equals(
+    2,
+    new RegExp(r'\.c_field').allMatches(source).length,
+    "should contain r'\.c_field' exactly twice",
+  );
+  Expect.isFalse(
+    source.contains('.d_field'),
+    "should not contain r'\.d_field'",
+  );
   Expect.isTrue(source.contains('"in gee function"'), "must inline 'gee'");
 }
 

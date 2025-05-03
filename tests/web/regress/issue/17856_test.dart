@@ -22,9 +22,7 @@ class A {
 class B {
   Loader _loader = new Loader();
 
-  load() => _loader.loadAll({
-        'a2': new DateTime.now(),
-      });
+  load() => _loader.loadAll({'a2': new DateTime.now()});
 }
 
 class Loader {

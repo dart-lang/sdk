@@ -22,12 +22,17 @@ void main() {
   Expect.equals('C<num>', new C<num>().runtimeType.toString());
   Expect.equals('C<bool>', new C<bool>().runtimeType.toString());
   Expect.equals('D<dynamic, dynamic, dynamic>', new D().runtimeType.toString());
-  Expect.equals('D<dynamic, int, dynamic>',
-      new D<dynamic, int, dynamic>().runtimeType.toString());
+  Expect.equals(
+    'D<dynamic, int, dynamic>',
+    new D<dynamic, int, dynamic>().runtimeType.toString(),
+  );
   D d = new D<dynamic, D, D<dynamic, dynamic, int>>();
   Expect.equals(
-      'D<dynamic, D<dynamic, dynamic, dynamic>, D<dynamic, dynamic, int>>',
-      d.runtimeType.toString());
-  Expect.equals(r'C<Class$With$Dollar>',
-      new C<Class$With$Dollar>().runtimeType.toString());
+    'D<dynamic, D<dynamic, dynamic, dynamic>, D<dynamic, dynamic, int>>',
+    d.runtimeType.toString(),
+  );
+  Expect.equals(
+    r'C<Class$With$Dollar>',
+    new C<Class$With$Dollar>().runtimeType.toString(),
+  );
 }

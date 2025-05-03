@@ -11,7 +11,9 @@ class DoubleLinkedQueueEntry<E> {
   DoubleLinkedQueueEntry(this.element);
 
   void _link(
-      DoubleLinkedQueueEntry<E>? previous, DoubleLinkedQueueEntry<E>? next) {
+    DoubleLinkedQueueEntry<E>? previous,
+    DoubleLinkedQueueEntry<E>? next,
+  ) {
     _nextLink = next;
     _previousLink = previous;
     previous?._nextLink = this;

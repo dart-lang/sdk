@@ -32,7 +32,10 @@ final typeRules = JS('=Object', 'JSON.parse(#)', typeRulesJson);
 main() {
   rti.testingAddRules(universe, typeRules);
   rti.testingUniverseEvalOverride(
-      universe, nullableObject, TYPE_REF<Object?>());
+    universe,
+    nullableObject,
+    TYPE_REF<Object?>(),
+  );
   rti.testingUniverseEvalOverride(universe, objectName, TYPE_REF<Object>());
   rti.testingUniverseEvalOverride(universe, nullName, TYPE_REF<Null>());
   runTests();
