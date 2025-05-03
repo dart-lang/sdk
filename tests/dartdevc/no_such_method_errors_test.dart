@@ -94,8 +94,8 @@ void main() {
         () => d(),
         (error) => error.toString().contains(
           "NoSuchMethodError: 'call'\n"
-          "Dynamic call with missing positional arguments. "
-          "Expected: 1 Actual: 0\n"
+          "Dynamic call failed.\n"
+          "Missing positional arguments. Expected: 1 Actual: 0\n"
           "Receiver: Instance of 'B'\n"
           "Arguments: []",
         ),
