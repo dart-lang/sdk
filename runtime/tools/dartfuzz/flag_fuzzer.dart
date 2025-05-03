@@ -124,8 +124,10 @@ Stopwatch stopwatch = new Stopwatch();
 taskStart() {
   if (pendingTaskCount++ == 0) {
     pendingTimer = new Timer.periodic(statusTimeout, (timer) {
-      print("$pendingTaskCount tasks still running after "
-          "${stopwatch.elapsed.inMinutes} minutes");
+      print(
+        "$pendingTaskCount tasks still running after "
+        "${stopwatch.elapsed.inMinutes} minutes",
+      );
     });
   }
 }
@@ -158,11 +160,7 @@ test(int taskIndex) async {
         "--no-source-maps", // Otherwise output includes path
         "pkg/compiler/lib/src/util/memory_compiler.dart",
       ],
-      [
-        "diff",
-        "out/dartfuzz/expected.js",
-        "out/dartfuzz/$taskIndex.js",
-      ],
+      ["diff", "out/dartfuzz/expected.js", "out/dartfuzz/$taskIndex.js"],
     ];
   } else {
     // AOT
@@ -195,11 +193,7 @@ test(int taskIndex) async {
         "--no-source-maps", // Otherwise output includes path
         "pkg/compiler/lib/src/util/memory_compiler.dart",
       ],
-      [
-        "diff",
-        "out/dartfuzz/expected.js",
-        "out/dartfuzz/$taskIndex.js",
-      ],
+      ["diff", "out/dartfuzz/expected.js", "out/dartfuzz/$taskIndex.js"],
     ];
   }
 

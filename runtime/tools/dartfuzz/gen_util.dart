@@ -37,10 +37,11 @@ class GenUtil {
     // class in order to pass in the sdkPath directly.
     final provider = PhysicalResourceProvider.INSTANCE;
     final collection = AnalysisContextCollectionImpl(
-        includedPaths: <String>[packageRoot],
-        excludedPaths: <String>[packageRoot + '/pkg/front_end/test'],
-        resourceProvider: provider,
-        sdkPath: sdkPath);
+      includedPaths: <String>[packageRoot],
+      excludedPaths: <String>[packageRoot + '/pkg/front_end/test'],
+      resourceProvider: provider,
+      sdkPath: sdkPath,
+    );
     return collection.contexts[0].currentSession;
   }
 }

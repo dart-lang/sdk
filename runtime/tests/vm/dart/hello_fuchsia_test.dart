@@ -77,56 +77,63 @@ testSimpleReadWriteClose() async {
     bool doneReading = false;
 
     client.writeEventsEnabled = false;
-    client.listen((event) {
-      switch (event) {
-        case RawSocketEvent.read:
-          if (doneReading) {
+    client.listen(
+      (event) {
+        switch (event) {
+          case RawSocketEvent.read:
+            if (doneReading) {
+              break;
+            }
+            print("client READ event bytesRead = $bytesRead");
+            assert(bytesWritten == 0);
+            assert(client.available() > 0);
+            var buffer = client.read(200)!;
+            print("client READ event: read ${buffer.length} more bytes");
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+            if (bytesRead == data.length) {
+              verifyTestData(data);
+              print("client READ event. Done reading, enabling writes");
+              client.writeEventsEnabled = true;
+              doneReading = true;
+            }
             break;
-          }
-          print("client READ event bytesRead = $bytesRead");
-          assert(bytesWritten == 0);
-          assert(client.available() > 0);
-          var buffer = client.read(200)!;
-          print("client READ event: read ${buffer.length} more bytes");
-          data.setRange(bytesRead, bytesRead + buffer.length, buffer);
-          bytesRead += buffer.length;
-          if (bytesRead == data.length) {
-            verifyTestData(data);
-            print("client READ event. Done reading, enabling writes");
-            client.writeEventsEnabled = true;
-            doneReading = true;
-          }
-          break;
-        case RawSocketEvent.write:
-          assert(!client.writeEventsEnabled);
-          bytesWritten +=
-              client.write(data, bytesWritten, data.length - bytesWritten);
-          print("client WRITE event: $bytesWritten written");
-          if (bytesWritten < data.length) {
-            client.writeEventsEnabled = true;
-          }
-          if (bytesWritten == data.length) {
-            print("client WRITE event: done writing.");
-          }
-          break;
-        case RawSocketEvent.readClosed:
-          print("client READ_CLOSED event");
-          client.close();
-          server.close();
-          break;
-        case RawSocketEvent.closed:
-          assert(!closedEventReceived);
-          print("client CLOSED event");
-          closedEventReceived = true;
-          break;
-        default:
-          throw "Unexpected event $event";
-      }
-    }, onError: (e) {
-      print("client ERROR $e");
-    }, onDone: () {
-      assert(closedEventReceived);
-    });
+          case RawSocketEvent.write:
+            assert(!client.writeEventsEnabled);
+            bytesWritten += client.write(
+              data,
+              bytesWritten,
+              data.length - bytesWritten,
+            );
+            print("client WRITE event: $bytesWritten written");
+            if (bytesWritten < data.length) {
+              client.writeEventsEnabled = true;
+            }
+            if (bytesWritten == data.length) {
+              print("client WRITE event: done writing.");
+            }
+            break;
+          case RawSocketEvent.readClosed:
+            print("client READ_CLOSED event");
+            client.close();
+            server.close();
+            break;
+          case RawSocketEvent.closed:
+            assert(!closedEventReceived);
+            print("client CLOSED event");
+            closedEventReceived = true;
+            break;
+          default:
+            throw "Unexpected event $event";
+        }
+      },
+      onError: (e) {
+        print("client ERROR $e");
+      },
+      onDone: () {
+        assert(closedEventReceived);
+      },
+    );
   });
 
   {
@@ -137,52 +144,59 @@ testSimpleReadWriteClose() async {
     bool closedEventReceived = false;
     List<int> data = createTestData();
 
-    socket.listen((event) {
-      switch (event) {
-        case RawSocketEvent.read:
-          assert(socket.available() > 0);
-          print("server READ event: ${bytesRead} read");
-          var buffer = socket.read()!;
-          print("server READ event: read ${buffer.length} more bytes");
-          data.setRange(bytesRead, bytesRead + buffer.length, buffer);
-          bytesRead += buffer.length;
-          if (bytesRead == messageSize) {
-            print("server READ event: done reading");
+    socket.listen(
+      (event) {
+        switch (event) {
+          case RawSocketEvent.read:
+            assert(socket.available() > 0);
+            print("server READ event: ${bytesRead} read");
+            var buffer = socket.read()!;
+            print("server READ event: read ${buffer.length} more bytes");
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+            if (bytesRead == messageSize) {
+              print("server READ event: done reading");
+              socket.close();
+            }
+            break;
+          case RawSocketEvent.write:
+            assert(bytesRead == 0);
+            assert(!socket.writeEventsEnabled);
+            bytesWritten += socket.write(
+              data,
+              bytesWritten,
+              data.length - bytesWritten,
+            );
+            print("server WRITE event: ${bytesWritten} written");
+            if (bytesWritten < data.length) {
+              socket.writeEventsEnabled = true;
+            } else {
+              print("server WRITE event: done writing");
+              data = new List<int>.filled(messageSize, -1);
+            }
+            break;
+          case RawSocketEvent.readClosed:
+            print("server READ_CLOSED event");
+            verifyTestData(data);
             socket.close();
-          }
-          break;
-        case RawSocketEvent.write:
-          assert(bytesRead == 0);
-          assert(!socket.writeEventsEnabled);
-          bytesWritten +=
-              socket.write(data, bytesWritten, data.length - bytesWritten);
-          print("server WRITE event: ${bytesWritten} written");
-          if (bytesWritten < data.length) {
-            socket.writeEventsEnabled = true;
-          } else {
-            print("server WRITE event: done writing");
-            data = new List<int>.filled(messageSize, -1);
-          }
-          break;
-        case RawSocketEvent.readClosed:
-          print("server READ_CLOSED event");
-          verifyTestData(data);
-          socket.close();
-          break;
-        case RawSocketEvent.closed:
-          assert(!closedEventReceived);
-          print("server CLOSED event");
-          closedEventReceived = true;
-          break;
-        default:
-          throw "Unexpected event $event";
-      }
-    }, onError: (e) {
-      print("server ERROR $e");
-    }, onDone: () {
-      assert(closedEventReceived);
-      completer.complete(null);
-    });
+            break;
+          case RawSocketEvent.closed:
+            assert(!closedEventReceived);
+            print("server CLOSED event");
+            closedEventReceived = true;
+            break;
+          default:
+            throw "Unexpected event $event";
+        }
+      },
+      onError: (e) {
+        print("server ERROR $e");
+      },
+      onDone: () {
+        assert(closedEventReceived);
+        completer.complete(null);
+      },
+    );
 
     return completer.future;
   }
@@ -219,62 +233,68 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
     bool doneReading = false;
 
     client.writeEventsEnabled = false;
-    client.listen((event) {
-      switch (event) {
-        case RawSocketEvent.read:
-          if (doneReading) {
-            break;
-          }
-          if (dropReads) {
-            if (serverReadCount != 10) {
-              serverReadCount++;
+    client.listen(
+      (event) {
+        switch (event) {
+          case RawSocketEvent.read:
+            if (doneReading) {
               break;
-            } else {
-              serverReadCount = 0;
             }
-          }
-          print("client READ event bytesRead = $bytesRead");
-          assert(bytesWritten == 0);
-          assert(client.available() > 0);
-          var buffer = client.read(200)!;
-          print("client READ event: read ${buffer.length} more bytes");
-          data.setRange(bytesRead, bytesRead + buffer.length, buffer);
-          bytesRead += buffer.length;
-          if (bytesRead == data.length) {
-            verifyTestData(data);
-            print("client READ event. Done reading, enabling writes");
-            client.writeEventsEnabled = true;
-            doneReading = true;
-          }
-          break;
-        case RawSocketEvent.write:
-          assert(!client.writeEventsEnabled);
-          bytesWritten +=
-              client.write(data, bytesWritten, data.length - bytesWritten);
-          print("client WRITE event: $bytesWritten written");
-          if (bytesWritten < data.length) {
-            client.writeEventsEnabled = true;
-          }
-          if (bytesWritten == data.length) {
-            print("client WRITE event: done writing.");
-            client.shutdown(SocketDirection.send);
-          }
-          break;
-        case RawSocketEvent.readClosed:
-          print("client READ_CLOSED event");
-          server.close();
-          break;
-        case RawSocketEvent.closed:
-          assert(!closedEventReceived);
-          print("client CLOSED event");
-          closedEventReceived = true;
-          break;
-        default:
-          throw "Unexpected event $event";
-      }
-    }, onDone: () {
-      assert(closedEventReceived);
-    });
+            if (dropReads) {
+              if (serverReadCount != 10) {
+                serverReadCount++;
+                break;
+              } else {
+                serverReadCount = 0;
+              }
+            }
+            print("client READ event bytesRead = $bytesRead");
+            assert(bytesWritten == 0);
+            assert(client.available() > 0);
+            var buffer = client.read(200)!;
+            print("client READ event: read ${buffer.length} more bytes");
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+            if (bytesRead == data.length) {
+              verifyTestData(data);
+              print("client READ event. Done reading, enabling writes");
+              client.writeEventsEnabled = true;
+              doneReading = true;
+            }
+            break;
+          case RawSocketEvent.write:
+            assert(!client.writeEventsEnabled);
+            bytesWritten += client.write(
+              data,
+              bytesWritten,
+              data.length - bytesWritten,
+            );
+            print("client WRITE event: $bytesWritten written");
+            if (bytesWritten < data.length) {
+              client.writeEventsEnabled = true;
+            }
+            if (bytesWritten == data.length) {
+              print("client WRITE event: done writing.");
+              client.shutdown(SocketDirection.send);
+            }
+            break;
+          case RawSocketEvent.readClosed:
+            print("client READ_CLOSED event");
+            server.close();
+            break;
+          case RawSocketEvent.closed:
+            assert(!closedEventReceived);
+            print("client CLOSED event");
+            closedEventReceived = true;
+            break;
+          default:
+            throw "Unexpected event $event";
+        }
+      },
+      onDone: () {
+        assert(closedEventReceived);
+      },
+    );
   });
 
   {
@@ -285,54 +305,60 @@ testSimpleReadWriteShutdown({required bool dropReads}) async {
     bool closedEventReceived = false;
     List<int> data = createTestData();
 
-    socket.listen((event) {
-      switch (event) {
-        case RawSocketEvent.read:
-          assert(socket.available() > 0);
-          if (dropReads) {
-            if (clientReadCount != 10) {
-              clientReadCount++;
-              break;
-            } else {
-              clientReadCount = 0;
+    socket.listen(
+      (event) {
+        switch (event) {
+          case RawSocketEvent.read:
+            assert(socket.available() > 0);
+            if (dropReads) {
+              if (clientReadCount != 10) {
+                clientReadCount++;
+                break;
+              } else {
+                clientReadCount = 0;
+              }
             }
-          }
-          print("server READ event: ${bytesRead} read");
-          var buffer = socket.read()!;
-          print("server READ event: read ${buffer.length} more bytes");
-          data.setRange(bytesRead, bytesRead + buffer.length, buffer);
-          bytesRead += buffer.length;
-          break;
-        case RawSocketEvent.write:
-          assert(bytesRead == 0);
-          assert(!socket.writeEventsEnabled);
-          bytesWritten +=
-              socket.write(data, bytesWritten, data.length - bytesWritten);
-          print("server WRITE event: ${bytesWritten} written");
-          if (bytesWritten < data.length) {
-            socket.writeEventsEnabled = true;
-          } else {
-            print("server WRITE event: done writing");
-            data = new List<int>.filled(messageSize, -1);
-          }
-          break;
-        case RawSocketEvent.readClosed:
-          print("server READ_CLOSED event");
-          verifyTestData(data);
-          socket.close();
-          break;
-        case RawSocketEvent.closed:
-          assert(!closedEventReceived);
-          print("server CLOSED event");
-          closedEventReceived = true;
-          break;
-        default:
-          throw "Unexpected event $event";
-      }
-    }, onDone: () {
-      assert(closedEventReceived);
-      completer.complete(null);
-    });
+            print("server READ event: ${bytesRead} read");
+            var buffer = socket.read()!;
+            print("server READ event: read ${buffer.length} more bytes");
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+            break;
+          case RawSocketEvent.write:
+            assert(bytesRead == 0);
+            assert(!socket.writeEventsEnabled);
+            bytesWritten += socket.write(
+              data,
+              bytesWritten,
+              data.length - bytesWritten,
+            );
+            print("server WRITE event: ${bytesWritten} written");
+            if (bytesWritten < data.length) {
+              socket.writeEventsEnabled = true;
+            } else {
+              print("server WRITE event: done writing");
+              data = new List<int>.filled(messageSize, -1);
+            }
+            break;
+          case RawSocketEvent.readClosed:
+            print("server READ_CLOSED event");
+            verifyTestData(data);
+            socket.close();
+            break;
+          case RawSocketEvent.closed:
+            assert(!closedEventReceived);
+            print("server CLOSED event");
+            closedEventReceived = true;
+            break;
+          default:
+            throw "Unexpected event $event";
+        }
+      },
+      onDone: () {
+        assert(closedEventReceived);
+        completer.complete(null);
+      },
+    );
 
     return completer.future;
   }
@@ -446,7 +472,7 @@ Future testListInterfaces() async {
 main(List<String> args) async {
   if (args.length >= 1) {
     if (args[0] == "infinite-loop") {
-      while (true);
+      while (true) ;
     }
   }
 

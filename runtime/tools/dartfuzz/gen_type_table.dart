@@ -501,8 +501,11 @@ void printTypeSet(
   final subclass = !fp || flatTp;
   final prefix = "${subclass ? "DartType." : ""}";
   stdout.write('  static const Set<DartType> $name = {');
-  for (var typName
-      in filterTypesSet(types, fp: fp, flatTp: flatTp).toList()..sort()) {
+  for (var typName in filterTypesSet(
+    types,
+    fp: fp,
+    flatTp: flatTp,
+  ).toList()..sort()) {
     stdout.write('$prefix$typName, ');
     stdout.write('$prefix${typName}_NULLABLE, ');
   }
@@ -1554,20 +1557,19 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
 }
 
 void main(List<String> arguments) async {
-  final parser =
-      ArgParser()
-        ..addOption('dart-top', help: 'explicit value for \$DART_TOP')
-        ..addOption(
-          'depth',
-          help:
-              'Nesting depth, e.g. List<String> is depth 0, '
-              'List<List<String>>'
-              'is depth 1. Remark: dart type tables grow '
-              'exponentially with this, '
-              'therefore types with higher nesting '
-              'depth are partially filtered.',
-          defaultsTo: '1',
-        );
+  final parser = ArgParser()
+    ..addOption('dart-top', help: 'explicit value for \$DART_TOP')
+    ..addOption(
+      'depth',
+      help:
+          'Nesting depth, e.g. List<String> is depth 0, '
+          'List<List<String>>'
+          'is depth 1. Remark: dart type tables grow '
+          'exponentially with this, '
+          'therefore types with higher nesting '
+          'depth are partially filtered.',
+      defaultsTo: '1',
+    );
   ArgResults results;
   try {
     results = parser.parse(arguments);

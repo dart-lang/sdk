@@ -10,9 +10,7 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 main() {
-  final list1 = <double>[
-    1, 2, 3, 4,
-  ];
+  final list1 = <double>[1, 2, 3, 4];
   var list = new Float64List(list1.length);
   list.setRange(0, list1.length, list1);
   Expect.equals(1.0, list[0]);

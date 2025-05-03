@@ -20,12 +20,14 @@ typedef GetCurrentThreadNFT = IntPtr Function();
 typedef GetThreadPriorityFT = int Function(int handle);
 typedef GetThreadPriorityNFT = Int32 Function(IntPtr handle);
 
-final getCurrentThread =
-    kernel32.lookupFunction<GetCurrentThreadNFT, GetCurrentThreadFT>(
-        'GetCurrentThread');
-final getThreadPriority =
-    kernel32.lookupFunction<GetThreadPriorityNFT, GetThreadPriorityFT>(
-        'GetThreadPriority');
+final getCurrentThread = kernel32
+    .lookupFunction<GetCurrentThreadNFT, GetCurrentThreadFT>(
+      'GetCurrentThread',
+    );
+final getThreadPriority = kernel32
+    .lookupFunction<GetThreadPriorityNFT, GetThreadPriorityFT>(
+      'GetThreadPriority',
+    );
 
 main(args) {
   if (Platform.isWindows) {

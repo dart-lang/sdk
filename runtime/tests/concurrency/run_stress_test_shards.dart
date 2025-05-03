@@ -17,10 +17,9 @@ int crashCounter = 0;
 
 void forwardStream(Stream<List<int>> input, IOSink output) {
   // Print the information line-by-line.
-  input
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen((String line) {
+  input.transform(utf8.decoder).transform(const LineSplitter()).listen((
+    String line,
+  ) {
     output.writeln(line);
   });
 }
@@ -33,10 +32,16 @@ class PotentialCrash {
 }
 
 Future<bool> run(
-    String executable, List<String> args, List<PotentialCrash> crashes) async {
+  String executable,
+  List<String> args,
+  List<PotentialCrash> crashes,
+) async {
   print('Running "$executable ${args.join(' ')}"');
-  final Process process = await Process.start(executable, args,
-      environment: sanitizerEnvironmentVariables);
+  final Process process = await Process.start(
+    executable,
+    args,
+    environment: sanitizerEnvironmentVariables,
+  );
   forwardStream(process.stdout, stdout);
   forwardStream(process.stderr, stderr);
   final int exitCode = await process.exitCode;
@@ -81,12 +86,15 @@ class AotTestRunner extends TestRunner {
     await withTempDir((String dir) async {
       final elfFile = path.join(dir, 'app.elf');
 
-      if (await run(
-          '$buildDir/gen_snapshot',
-          ['--snapshot-kind=app-aot-elf', '--elf=$elfFile', ...arguments],
-          crashes)) {
-        await run(
-            '$buildDir/dartaotruntime', [...aotArguments, elfFile], crashes);
+      if (await run('$buildDir/gen_snapshot', [
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$elfFile',
+        ...arguments,
+      ], crashes)) {
+        await run('$buildDir/dartaotruntime', [
+          ...aotArguments,
+          elfFile,
+        ], crashes);
       }
     });
   }
@@ -141,13 +149,21 @@ main(List<String> arguments) async {
   final parser = ArgParser()
     ..addOption('shards', help: 'number of shards used', defaultsTo: '1')
     ..addOption('shard', help: 'shard id', defaultsTo: '1')
-    ..addOption('output-directory',
-        help: 'unused parameter to make sharding infra work', defaultsTo: '')
-    ..addFlag('copy-coredumps',
-        help: 'whether to copy binaries for coredumps', defaultsTo: false)
-    ..addOption('previous-results',
-        help: 'An earlier results.json for balancing tests across shards.')
-    ..addOption('arch', help:'architecture to be tested', defaultsTo: 'X64');
+    ..addOption(
+      'output-directory',
+      help: 'unused parameter to make sharding infra work',
+      defaultsTo: '',
+    )
+    ..addFlag(
+      'copy-coredumps',
+      help: 'whether to copy binaries for coredumps',
+      defaultsTo: false,
+    )
+    ..addOption(
+      'previous-results',
+      help: 'An earlier results.json for balancing tests across shards.',
+    )
+    ..addOption('arch', help: 'architecture to be tested', defaultsTo: 'X64');
 
   final options = parser.parse(arguments);
   final shards = int.parse(options['shards']);
@@ -155,36 +171,32 @@ main(List<String> arguments) async {
   final copyCoredumps = options['copy-coredumps'] as bool;
   final arch = options['arch'].toUpperCase();
   configurations = <TestRunner>[
-      JitTestRunner('out/Debug$arch', [
+    JitTestRunner('out/Debug$arch', [
+      '--disable-dart-dev',
+      'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+    ]),
+    JitTestRunner('out/Release$arch', [
+      '--disable-dart-dev',
+      '--no-inline-alloc',
+      '--use-slow-path',
+      '--deoptimize-on-runtime-call-every=3',
+      'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+    ]),
+    for (int i = 0; i < tsanShards; ++i)
+      JitTestRunner('out/ReleaseTSAN$arch', [
         '--disable-dart-dev',
+        '-Drepeat=4',
+        '-Dshard=$i',
+        '-Dshards=$tsanShards',
         'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
       ]),
-      JitTestRunner('out/Release$arch', [
-        '--disable-dart-dev',
-        '--no-inline-alloc',
-        '--use-slow-path',
-        '--deoptimize-on-runtime-call-every=3',
-        'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
-      ]),
-      for (int i = 0; i < tsanShards; ++i)
-        JitTestRunner('out/ReleaseTSAN$arch', [
-          '--disable-dart-dev',
-          '-Drepeat=4',
-          '-Dshard=$i',
-          '-Dshards=$tsanShards',
-          'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
-        ]),
-      AotTestRunner(
-        'out/Release$arch',
-        ['runtime/tests/concurrency/generated_stress_test.dart.aot.dill'],
-        [],
-      ),
-      AotTestRunner(
-        'out/Debug$arch',
-        ['runtime/tests/concurrency/generated_stress_test.dart.aot.dill'],
-        [],
-      )];
-
+    AotTestRunner('out/Release$arch', [
+      'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
+    ], []),
+    AotTestRunner('out/Debug$arch', [
+      'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
+    ], []),
+  ];
 
   // Tasks will eventually be killed if they do not have any output for some
   // time. So we'll explicitly print something every 4 minutes.

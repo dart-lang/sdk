@@ -21,8 +21,13 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  final String sourcePath =
-      path.join('runtime', 'tests', 'vm', 'dart', 'sdk_hash_test.dart');
+  final String sourcePath = path.join(
+    'runtime',
+    'tests',
+    'vm',
+    'dart',
+    'sdk_hash_test.dart',
+  );
 
   await withTempDir((String tmp) async {
     final String dillPath = path.join(tmp, 'test.dill');

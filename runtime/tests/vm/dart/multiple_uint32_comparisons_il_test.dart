@@ -11,7 +11,7 @@ import 'package:vm/testing/il_matchers.dart';
 
 class Token {
   Token(TokenType type, int offset)
-      : typeAndOffset = ((offset << 8) | type.index);
+    : typeAndOffset = ((offset << 8) | type.index);
 
   int typeAndOffset;
 
@@ -66,44 +66,41 @@ void matchIL$looksLikeExpressionStart(FlowGraph graph) {
           match.IntConverter('typeAndOffset', from: 'int64', to: 'uint32'),
       'typeIndex' <<
           match.BinaryUint32Op('typeAndOffset_u32', 'int 255', op_kind: '&'),
-      match.Branch(match.EqualityCompare('typeIndex', 'int 10', kind: '=='),
-          ifTrue: 'B9', ifFalse: 'B4'),
+      match.Branch(
+        match.EqualityCompare('typeIndex', 'int 10', kind: '=='),
+        ifTrue: 'B9',
+        ifFalse: 'B4',
+      ),
     ]),
-    'B9' <<
-        match.block('Target', [
-          match.Goto('B8'),
-        ]),
+    'B9' << match.block('Target', [match.Goto('B8')]),
     'B4' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare('typeIndex', 'int 20', kind: '=='),
-              ifTrue: 'B10', ifFalse: 'B5'),
+          match.Branch(
+            match.EqualityCompare('typeIndex', 'int 20', kind: '=='),
+            ifTrue: 'B10',
+            ifFalse: 'B5',
+          ),
         ]),
-    'B10' <<
-        match.block('Target', [
-          match.Goto('B8'),
-        ]),
+    'B10' << match.block('Target', [match.Goto('B8')]),
     'B5' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare('typeIndex', 'int 30', kind: '=='),
-              ifTrue: 'B11', ifFalse: 'B6'),
+          match.Branch(
+            match.EqualityCompare('typeIndex', 'int 30', kind: '=='),
+            ifTrue: 'B11',
+            ifFalse: 'B6',
+          ),
         ]),
-    'B11' <<
-        match.block('Target', [
-          match.Goto('B8'),
-        ]),
+    'B11' << match.block('Target', [match.Goto('B8')]),
     'B6' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare('typeIndex', 'int 40', kind: '=='),
-              ifTrue: 'B12', ifFalse: 'B7'),
+          match.Branch(
+            match.EqualityCompare('typeIndex', 'int 40', kind: '=='),
+            ifTrue: 'B12',
+            ifFalse: 'B7',
+          ),
         ]),
-    'B12' <<
-        match.block('Target', [
-          match.Goto('B8'),
-        ]),
-    'B8' <<
-        match.block('Join', [
-          match.Goto('B3'),
-        ]),
+    'B12' << match.block('Target', [match.Goto('B8')]),
+    'B8' << match.block('Join', [match.Goto('B3')]),
     'B7' <<
         match.block('Target', [
           'v23' << match.EqualityCompare('typeIndex', 'int 50', kind: '=='),

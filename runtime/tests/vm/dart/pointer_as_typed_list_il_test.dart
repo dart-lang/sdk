@@ -38,19 +38,25 @@ void matchIL$copyPointerContents(FlowGraph graph) {
     match.block('Function', [
       'dest' << match.Parameter(index: 0),
       'src' << match.Parameter(index: 1),
-      match.Branch(match.StrictCompare('dest', 'cnull'),
-          ifTrue: 'B4', ifFalse: 'B96'),
+      match.Branch(
+        match.StrictCompare('dest', 'cnull'),
+        ifTrue: 'B4',
+        ifFalse: 'B96',
+      ),
     ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn('cnull'),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn('cnull')]),
     'B96' <<
         match.block('Target', [
           'dest.data' << match.LoadField('dest', slot: 'PointerBase.data'),
           'src.data' << match.LoadField('src', slot: 'PointerBase.data'),
-          match.MemoryCopy('src.data', 'dest.data', 'c0', 'c0', 'c25',
-              element_size: 4),
+          match.MemoryCopy(
+            'src.data',
+            'dest.data',
+            'c0',
+            'c0',
+            'c25',
+            element_size: 4,
+          ),
           match.DartReturn('cnull'),
         ]),
   ]);

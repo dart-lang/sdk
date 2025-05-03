@@ -63,8 +63,7 @@ class Payload {
 
   static generate(depth, tag) {
     if (depth == 0) return new Leaf(tag);
-    return new Payload(generate(depth - 1, tag),
-                       generate(depth - 1, tag));
+    return new Payload(generate(depth - 1, tag), generate(depth - 1, tag));
   }
 }
 

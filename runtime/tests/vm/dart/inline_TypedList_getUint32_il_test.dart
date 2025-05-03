@@ -64,5 +64,6 @@ void matchIL$calculateRetainers(FlowGraph graph) {
 void main() {
   // To ensure _calculateRetainers is compiled.
   Expect.throws(
-      () => calculateRetainers(HeapSnapshotGraph.fromChunks(<ByteData>[])));
+    () => calculateRetainers(HeapSnapshotGraph.fromChunks(<ByteData>[])),
+  );
 }

@@ -16,9 +16,10 @@ import '../../../../tests/ffi/dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific('ffi_test_functions');
 
-final setAtExit =
-    ffiTestFunctions.lookupFunction<Void Function(Int64), void Function(int)>(
-        'Regress216834909_SetAtExit');
+final setAtExit = ffiTestFunctions
+    .lookupFunction<Void Function(Int64), void Function(int)>(
+      'Regress216834909_SetAtExit',
+    );
 
 main(List<String> args) async {
   // We only care about platforms which use fork/exec.

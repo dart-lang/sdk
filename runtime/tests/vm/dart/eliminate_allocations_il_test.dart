@@ -39,21 +39,11 @@ void main() {
 void matchIL$bar(FlowGraph graph) {
   graph.dump();
   graph.match([
-    match.block('Graph', [
-      'c_42' << match.UnboxedConstant(value: 42),
-    ]),
-    match.block('Function', [
-      match.Goto('B3', skipUntilMatched: false),
-    ]),
+    match.block('Graph', ['c_42' << match.UnboxedConstant(value: 42)]),
+    match.block('Function', [match.Goto('B3', skipUntilMatched: false)]),
     'B3' << match.tryBlock(tryBody: 'B4', catches: 'B7'),
-    'B4' <<
-        match.block('Join', [
-          match.Goto('B6', skipUntilMatched: false),
-        ]),
-    'B6' <<
-        match.block('Join', [
-          match.DartReturn('c_42'),
-        ]),
+    'B4' << match.block('Join', [match.Goto('B6', skipUntilMatched: false)]),
+    'B6' << match.block('Join', [match.DartReturn('c_42')]),
     'B7' << match.block('CatchBlock'),
   ]);
 }

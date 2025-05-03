@@ -15,7 +15,9 @@ void foo1_Extension0() {
   int loc2 = 0;
   do {
     var10 = var9.sublist(
-        ((!((-87).isNegative) ? false : true) ? 0 : ~15) | var61--, 19);
+      ((!((-87).isNegative) ? false : true) ? 0 : ~15) | var61--,
+      19,
+    );
   } while (++loc2 < 28);
 }
 

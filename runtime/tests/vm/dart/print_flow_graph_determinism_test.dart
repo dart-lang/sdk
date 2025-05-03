@@ -33,7 +33,7 @@ Future<void> main(List<String> args) async {
     '--deterministic',
     '--print-flow-graph',
     Platform.script.toFilePath(),
-    '--child'
+    '--child',
   ]);
   final cfg1 = result1.processResult.stderr;
 
@@ -41,11 +41,13 @@ Future<void> main(List<String> args) async {
     '--deterministic',
     '--print-flow-graph',
     Platform.script.toFilePath(),
-    '--child'
+    '--child',
   ]);
   final cfg2 = result2.processResult.stderr;
 
   Expect.isTrue(
-      cfg1.contains("*** BEGIN CFG"), "Printed at least one function");
+    cfg1.contains("*** BEGIN CFG"),
+    "Printed at least one function",
+  );
   Expect.stringEquals(cfg1, cfg2);
 }

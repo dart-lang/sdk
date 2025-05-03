@@ -320,10 +320,9 @@ class ExtensionMethod extends Method {
     // using a variable of the Dart type or using explicit extension
     // application.
     if (fuzzer.currentClassIndex == null || type != null) {
-      var invokingObject =
-          type != null
-              ? fuzzer.pickScalarVar(type!.toNonNullable())
-              : '$className()';
+      var invokingObject = type != null
+          ? fuzzer.pickScalarVar(type!.toNonNullable())
+          : '$className()';
 
       if (fuzzer.coinFlip()) {
         outputName = '$extensionName($invokingObject).$name';
@@ -764,10 +763,9 @@ class DartFuzz {
     return ifMayFallThrough || elseMayFallThrough;
   }
 
-  void emitImport(String library, {String? asName}) =>
-      (asName == null)
-          ? emitLn("import '$library';")
-          : emitLn("import '$library' as $asName;");
+  void emitImport(String library, {String? asName}) => (asName == null)
+      ? emitLn("import '$library';")
+      : emitLn("import '$library' as $asName;");
 
   void emitBinaryComparison(
     Function e1,
@@ -1175,11 +1173,10 @@ class DartFuzz {
         late String outputName;
         emitNewline();
         emitTryCatchFinally(
-          () =>
-              outputName = classMethods[i][j].emitCall(
-                1,
-                includeSemicolon: true,
-              ),
+          () => outputName = classMethods[i][j].emitCall(
+            1,
+            includeSemicolon: true,
+          ),
           () => emitPrint('$outputName throws'),
         );
       }
@@ -1195,11 +1192,10 @@ class DartFuzz {
             late String outputName;
             emitNewline();
             emitTryCatchFinally(
-              () =>
-                  outputName = classMethods[parentClass][j].emitCall(
-                    1,
-                    includeSemicolon: true,
-                  ),
+              () => outputName = classMethods[parentClass][j].emitCall(
+                1,
+                includeSemicolon: true,
+              ),
               () => emitPrint('$outputName throws'),
             );
           }
@@ -2155,8 +2151,9 @@ class DartFuzz {
       // If recursion is allowed on the current method, the last parameter is
       // the recursion depth parameter. We should avoid reassigning the
       // recursion depth parameter to prevent infinite recursion.
-      final endIndex =
-          currentMethod!.recursionAllowed ? proto.length - 1 : proto.length;
+      final endIndex = currentMethod!.recursionAllowed
+          ? proto.length - 1
+          : proto.length;
       for (var i = 1; i < endIndex; i++) {
         if (tp == proto[i]) choices.add('$paramName$i');
       }
@@ -2240,8 +2237,8 @@ class DartFuzz {
             // collection type, only constant collections are used
             // to avoid rehashing the same value into many entries.
             DartType.isCollectionType(indexType)
-                ? emitConstCollection(depth + 1, indexType)
-                : emitExpr(depth + 1, indexType),
+            ? emitConstCollection(depth + 1, indexType)
+            : emitExpr(depth + 1, indexType),
       );
       // Map.[] and Expando.[] have a nullable result, but we should not write
       // map[key]! = value.
@@ -2592,8 +2589,8 @@ class DartFuzz {
   // Get a library method that returns given type.
   DartLib? getLibraryMethod(DartType tp) =>
       api.typeToLibraryMethods.containsKey(tp)
-          ? oneOf(api.typeToLibraryMethods[tp]!)
-          : null;
+      ? oneOf(api.typeToLibraryMethods[tp]!)
+      : null;
 
   // Emit a library argument, possibly subject to restrictions.
   void emitArg(
@@ -2865,48 +2862,43 @@ void main(List<String> arguments) {
   const kMini = 'mini';
   const kSMask = 'smask';
   const kEMask = 'emask';
-  final parser =
-      ArgParser()
-        ..addOption(
-          kSeed,
-          help: 'random seed (0 forces time-based seed)',
-          defaultsTo: '0',
-        )
-        ..addFlag(
-          kFp,
-          help: 'enables floating-point operations',
-          defaultsTo: true,
-        )
-        ..addFlag(
-          kFfi,
-          help: 'enables FFI method calls (default: off)',
-          defaultsTo: false,
-        )
-        ..addFlag(
-          kFlat,
-          help: 'enables flat types (default: off)',
-          defaultsTo: false,
-        )
-        // Minimization mode extensions.
-        ..addFlag(
-          kMini,
-          help: 'enables minimization mode (default: off)',
-          defaultsTo: false,
-        )
-        ..addOption(
-          kSMask,
-          help:
-              'Bitmask indicating which statements to omit'
-              '(Bit=1 omits)',
-          defaultsTo: '0',
-        )
-        ..addOption(
-          kEMask,
-          help:
-              'Bitmask indicating which expressions to omit'
-              '(Bit=1 omits)',
-          defaultsTo: '0',
-        );
+  final parser = ArgParser()
+    ..addOption(
+      kSeed,
+      help: 'random seed (0 forces time-based seed)',
+      defaultsTo: '0',
+    )
+    ..addFlag(kFp, help: 'enables floating-point operations', defaultsTo: true)
+    ..addFlag(
+      kFfi,
+      help: 'enables FFI method calls (default: off)',
+      defaultsTo: false,
+    )
+    ..addFlag(
+      kFlat,
+      help: 'enables flat types (default: off)',
+      defaultsTo: false,
+    )
+    // Minimization mode extensions.
+    ..addFlag(
+      kMini,
+      help: 'enables minimization mode (default: off)',
+      defaultsTo: false,
+    )
+    ..addOption(
+      kSMask,
+      help:
+          'Bitmask indicating which statements to omit'
+          '(Bit=1 omits)',
+      defaultsTo: '0',
+    )
+    ..addOption(
+      kEMask,
+      help:
+          'Bitmask indicating which expressions to omit'
+          '(Bit=1 omits)',
+      defaultsTo: '0',
+    );
   final ArgResults results;
   try {
     results = parser.parse(arguments);

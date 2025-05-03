@@ -13,4 +13,5 @@ import 'dart:io' show Platform;
 import 'snapshot_test_helper.dart';
 
 Future<void> main() => runAppJitTest(
-    Platform.script.resolve('appjit_load_static_licm_test_body.dart'));
+  Platform.script.resolve('appjit_load_static_licm_test_body.dart'),
+);

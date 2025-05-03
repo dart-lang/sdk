@@ -19,9 +19,13 @@ void matchIL$compareUnboxedToConstant(FlowGraph graph) {
       'value' << match.Parameter(index: 0),
       if (is32BitConfiguration)
         'value_32' << match.IntConverter('value', from: 'int64', to: 'int32'),
-      match.Branch(match.EqualityCompare(
-          is32BitConfiguration ? 'value_32' : 'value', match.any,
-          kind: '==')),
+      match.Branch(
+        match.EqualityCompare(
+          is32BitConfiguration ? 'value_32' : 'value',
+          match.any,
+          kind: '==',
+        ),
+      ),
     ]),
   ]);
 }
@@ -39,9 +43,13 @@ void matchIL$compareUnboxedToSmi(FlowGraph graph) {
       'value' << match.Parameter(index: 0),
       if (is32BitConfiguration)
         'value_32' << match.IntConverter('value', from: 'int64', to: 'int32'),
-      match.Branch(match.EqualityCompare(
-          is32BitConfiguration ? 'value_32' : 'value', match.any,
-          kind: '==')),
+      match.Branch(
+        match.EqualityCompare(
+          is32BitConfiguration ? 'value_32' : 'value',
+          match.any,
+          kind: '==',
+        ),
+      ),
     ]),
   ]);
 }
@@ -63,7 +71,8 @@ void matchIL$compareTwoBoxedSmis(FlowGraph graph) {
       'list2.length' <<
           match.LoadField('list2', slot: 'GrowableObjectArray.length'),
       match.Branch(
-          match.StrictCompare('list1.length', 'list2.length', kind: '===')),
+        match.StrictCompare('list1.length', 'list2.length', kind: '==='),
+      ),
     ]),
   ]);
 }
@@ -88,7 +97,8 @@ void matchIL$compareBoxedSmiToBoxedInt(FlowGraph graph) {
           match.LoadField('list2', slot: 'GrowableObjectArray.data'),
       'list2.data[0]' << match.LoadIndexed('list2.data', match.any),
       match.Branch(
-          match.StrictCompare('list1.length', 'list2.data[0]', kind: '===')),
+        match.StrictCompare('list1.length', 'list2.data[0]', kind: '==='),
+      ),
     ]),
   ]);
 }

@@ -93,6 +93,6 @@ final currentExpectations = [
 #3    runTest (harness.dart)
 <asynchronous suspension>
 #4    main (%test%)
-<asynchronous suspension>"""
+<asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END
