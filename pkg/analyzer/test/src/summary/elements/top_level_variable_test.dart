@@ -1169,6 +1169,10 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic x (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -1237,6 +1241,10 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         synthetic x (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -1304,6 +1312,13 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -1984,6 +1999,10 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         hasInitializer b @34
           reference: <testLibraryFragment>::@topLevelVariable::b
@@ -2109,6 +2128,13 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>

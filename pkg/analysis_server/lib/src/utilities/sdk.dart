@@ -30,14 +30,7 @@ class Sdk {
 
   /// Path to the 'dart' executable in the Dart SDK.
   String get dart {
-    var basename = path.basename(Platform.executable);
-    // It's possible that `Platform.executable` won't include the '.exe'
-    // extension on Windows (e.g., launching `dart` from `cmd.exe` where `dart`
-    // is on the `PATH`). Append '.exe' in this case so the
-    // `checkArtifactExists` check won't fail.
-    if (Platform.isWindows && !basename.endsWith('.exe')) {
-      basename += '.exe';
-    }
+    var basename = Platform.isWindows ? 'dart.exe' : 'dart';
     return path.absolute(
       _runFromBuildRoot ? sdkPath : path.absolute(sdkPath, 'bin'),
       basename,

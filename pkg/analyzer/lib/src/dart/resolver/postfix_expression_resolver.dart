@@ -143,6 +143,8 @@ class PostfixExpressionResolver {
       receiver: operand,
       receiverType: receiverType,
       name: methodName,
+      hasRead: true,
+      hasWrite: false,
       propertyErrorEntity: node.operator,
       nameErrorEntity: operand,
     );

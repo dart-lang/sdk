@@ -41,21 +41,12 @@ void f(({int f01, int f02, int g01}) x0) {
   (f01: ^) = x0;
 }
 ''');
-    // TODO(scheglov): This is wrong.
     assertResponse(r'''
 suggestions
   v01
     kind: localVariable
   x0
     kind: parameter
-  false
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  const
-    kind: keyword
   final
     kind: keyword
   var
@@ -109,12 +100,8 @@ suggestions
     kind: identifier
   f02
     kind: identifier
-  final
-    kind: keyword
   g01
     kind: identifier
-  var
-    kind: keyword
 ''');
   }
 
@@ -277,6 +264,33 @@ suggestions
     kind: identifier
   f02
     kind: identifier
+''');
+  }
+
+  Future<void> test_noObjectGetters() async {
+    allowedIdentifiers = {'hashCode'};
+    await computeSuggestions('''
+void f(({int f01, int f02}) record) {
+  var (:^) = record;
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: identifier
+  f02
+    kind: identifier
+''');
+  }
+
+  Future<void> test_noVarKeyword_afterVar() async {
+    await computeSuggestions('''
+void f((int, int) record) {
+  var (:^) = record;
+}
+''');
+    assertResponse(r'''
+suggestions
 ''');
   }
 }

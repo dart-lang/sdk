@@ -2289,9 +2289,7 @@ LintCode.prefer_final_parameters:
 LintCode.prefer_for_elements_to_map_fromIterable:
   status: hasFix
 LintCode.prefer_foreach:
-  status: needsFix
-  notes: |-
-    The fix is to rewrite the loop.
+  status: hasFix
 LintCode.prefer_function_declarations_over_variables:
   status: hasFix
 LintCode.prefer_generic_function_type_aliases:
@@ -2480,6 +2478,10 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
+LintCode.unnecessary_unawaited:
+  status: needsFix
+  notes: |-
+    A fix can be made to remove the 'unawaited' call.
 LintCode.unnecessary_underscores:
   status: hasFix  
 LintCode.unreachable_from_main:
@@ -2513,7 +2515,7 @@ LintCode.use_full_hex_values_for_flutter_colors:
 LintCode.use_function_type_syntax_for_parameters:
   status: hasFix
 LintCode.use_if_null_to_convert_nulls_to_bools:
-  status: needsFix
+  status: hasFix
 LintCode.use_is_even_rather_than_modulo:
   status: needsFix
 LintCode.use_key_in_widget_constructors:

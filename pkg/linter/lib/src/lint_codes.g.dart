@@ -1214,9 +1214,10 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_foreach = LinterLintCode(
     LintNames.prefer_foreach,
-    "Use 'forEach' rather than a 'for' loop to apply a function to every "
-    "element.",
-    correctionMessage: "Try using 'forEach' rather than a 'for' loop.",
+    "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function "
+    "to every element.",
+    correctionMessage:
+        "Try using 'forEach' and a tear-off rather than a 'for' loop.",
     hasPublishedDocs: true,
   );
 
@@ -1825,6 +1826,14 @@ class LinterLintCode extends LintCode {
     "Unnecessary use of 'toList' in a spread.",
     correctionMessage: "Try removing the invocation of 'toList'.",
     hasPublishedDocs: true,
+  );
+
+  static const LintCode unnecessary_unawaited = LinterLintCode(
+    LintNames.unnecessary_unawaited,
+    "Unnecessary use of 'unawaited'.",
+    correctionMessage:
+        "Try removing the use of 'unawaited', as the unawaited element is "
+        "annotated with '@awaitNotRequired'.",
   );
 
   static const LintCode unnecessary_underscores = LinterLintCode(

@@ -9142,8 +9142,8 @@ LintCode:
       };
       ```
   prefer_foreach:
-    problemMessage: "Use 'forEach' rather than a 'for' loop to apply a function to every element."
-    correctionMessage: "Try using 'forEach' rather than a 'for' loop."
+    problemMessage: "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function to every element."
+    correctionMessage: "Try using 'forEach' and a tear-off rather than a 'for' loop."
     state:
       experimental: "2.0"
       stable: "2.2"
@@ -13585,6 +13585,38 @@ LintCode:
       children: <Widget>[
         ...['foo', 'bar', 'baz'].map((String s) => Text(s)),
       ]
+      ```
+  unnecessary_unawaited:
+    problemMessage: "Unnecessary use of 'unawaited'."
+    correctionMessage: "Try removing the use of 'unawaited', as the unawaited element is annotated with '@awaitNotRequired'."
+    state:
+      stable: "3.9"
+    categories: [brevity, unintentional, unusedCode]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      A call to a function, method, or operator, or a reference to a field,
+      getter, or top-level variable which is annotated with `@awaitNotRequired`
+      does not necessarily need to be awaited, nor does it need to be wrapped in
+      a call to `unawaited()`.
+
+      **BAD:**
+      ```dart
+      @awaitNotRequired
+      Future<LogMessage> log(String message) { ... }
+
+      void f() {
+        unawaited(log('Message.'));
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      @awaitNotRequired
+      Future<LogMessage> log(String message) { ... }
+
+      void f() {
+        log('Message.');
+      }
       ```
   unnecessary_underscores:
     problemMessage: "Unnecessary use of multiple underscores."

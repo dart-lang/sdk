@@ -1474,7 +1474,7 @@ if (!self.deferred_loader) {
         this.libraries[libraryName] = currentLibrary;
         // Link the library. This action will trigger the initialization and
         // linking of dependency libraries as needed.
-        currentLibrary.link();
+        currentLibrary[linkSymbol]();
       }
       if (installFn != null) {
         installFn(currentLibrary);
@@ -1660,7 +1660,7 @@ if (!self.deferred_loader) {
       // requires for all library initializers to be up to date.
       for (let name in this.pendingHotReloadLibraryInitializers) {
         if (previouslyLoaded[name]) {
-          this.libraries[name].link();
+          this.libraries[name][linkSymbol]();
         }
       }
       // Cleanup.
@@ -2057,6 +2057,11 @@ if (!self.deferred_loader) {
 
   const dartDevEmbedderConfig = new DartDevEmbedderConfiguration();
 
+  /**
+   * A symbol used to store the 'link' function on libraries.
+   */
+  const linkSymbol = Symbol('link');
+
   /** The API for embedding a Dart application in the page at development time
    *  that supports stateful hot reloading.
    */
@@ -2066,6 +2071,13 @@ if (!self.deferred_loader) {
      */
     get config() {
       return dartDevEmbedderConfig;
+    }
+
+    /**
+     * Expose the 'link' symbol for library compilation.
+     */
+    get linkSymbol() {
+      return linkSymbol;
     }
 
     /**

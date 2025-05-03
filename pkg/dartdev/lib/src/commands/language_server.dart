@@ -35,7 +35,7 @@ For more information about the server's capabilities and configuration, see:
       usageLineLength: dartdevUsageLineLength,
       includeHelpFlag: false,
       defaultToLsp: true,
-    )..addFlag(_useAotSnapshotFlag,
+    )..addFlag(useAotSnapshotFlag,
         help: 'Use the AOT analysis server snapshot', hide: true);
   }
 
@@ -49,11 +49,11 @@ For more information about the server's capabilities and configuration, see:
       args = [...args, '--$protocol=$lsp'];
     }
     try {
-      if (argResults!.flag(_useAotSnapshotFlag)) {
+      if (argResults!.flag(useAotSnapshotFlag)) {
         if (!Sdk.checkArtifactExists(sdk.dartAotRuntime)) {
           return _genericErrorExitCode;
         }
-        args.remove('--$_useAotSnapshotFlag');
+        args.remove('--$useAotSnapshotFlag');
         VmInteropHandler.run(
           sdk.dartAotRuntime,
           [sdk.analysisServerAotSnapshot, ...args],
@@ -76,8 +76,6 @@ For more information about the server's capabilities and configuration, see:
       return 255;
     }
   }
-
-  static const _useAotSnapshotFlag = 'use-aot-snapshot';
 
   static const _genericErrorExitCode = 255;
 }

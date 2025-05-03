@@ -328,6 +328,47 @@ dput(obj, field, value) {
   return value;
 }
 
+/// Returns an error message if the provided [typeArguments] are invalid when
+/// calling a method with the provided [functionType].
+///
+/// Returns `null` when the type arguments are valid.
+String? _typeArgumentErrors(
+  Object functionType,
+  JSArray<Object> typeArguments,
+) {
+  var typeParameterBounds = rti.getGenericFunctionBounds(functionType);
+  var typeParameterCount = JS<int>('!', '#.length', typeParameterBounds);
+  var typeArgumentCount = JS<int>('!', '#.length', typeArguments);
+  if (typeArgumentCount != typeParameterCount) {
+    return 'Incorrect number of type arguments. '
+        'Expected: $typeParameterCount Actual: $typeArgumentCount';
+  } else {
+    // Check the provided type arguments against the instantiated bounds.
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = JS<rti.Rti>('!', '#[#]', typeParameterBounds, i);
+      var typeArg = JS<rti.Rti>('!', '#[#]', typeArguments, i);
+      if (bound != typeArg && !rti.isTopType(bound)) {
+        var instantiatedBound = rti.substitute(bound, typeArguments);
+        var validSubtype = rti.isSubtype(
+          JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
+          typeArg,
+          instantiatedBound,
+        );
+        if (!validSubtype) {
+          throwTypeError(
+            "The type '${rti.rtiToString(typeArg)}' "
+            "is not a subtype of the type variable bound "
+            "'${rti.rtiToString(instantiatedBound)}' "
+            "of type variable 'T${i + 1}' "
+            "in '${rti.rtiToString(functionType)}'.",
+          );
+        }
+      }
+    }
+  }
+  return null;
+}
+
 /// Returns an error message if function of a given [type] can't be applied to
 /// [actuals] and [namedActuals].
 ///
@@ -340,7 +381,7 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
   var requiredCount = JS<int>('!', '#.length', requiredPositional);
   var actualsCount = actuals.length;
   if (actualsCount < requiredCount) {
-    return 'Dynamic call with missing positional arguments. '
+    return 'Missing positional arguments. '
         'Expected: $requiredCount Actual: $actualsCount';
   }
   // Check for too many positional arguments.
@@ -352,9 +393,8 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
     var expected = requiredCount == maxPositionalCount
         ? '$maxPositionalCount'
         : '$requiredCount - $maxPositionalCount';
-    return 'Dynamic call with too many positional arguments. '
-        'Expected: $expected '
-        'Actual: $actualsCount';
+    return 'Too many positional arguments. '
+        'Expected: $expected Actual: $actualsCount';
   }
   // Check if we have invalid named arguments.
   Iterable? names;
@@ -371,7 +411,7 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
         optionalNamed,
         name,
       )) {
-        return "Dynamic call with unexpected named argument '$name'.";
+        return "Unexpected named argument '$name'.";
       }
     }
   }
@@ -386,7 +426,7 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
     if (missingRequired.isNotEmpty) {
       var argNames = JS<String>('!', '#.join(", ")', missingRequired);
       var error =
-          "Dynamic call with missing required named arguments: "
+          "Missing required named arguments: "
           "$argNames.";
       return error;
     }
@@ -513,22 +553,26 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
   var originalTarget = JS<bool>('!', '# === void 0', obj) ? f : obj;
 
   callNSM(@notNull String errorMessage) {
+    var name = displayName;
+    if (name is String && name.isEmpty) {
+      name = '<anonymous closure>';
+    }
     return noSuchMethod(
       originalTarget,
       InvocationImpl(
-        displayName,
+        name,
         JS<List<Object?>>('!', '#', args),
         namedArguments: named,
         // Repeated the default value here in JS to preserve the historic
         // behavior.
         typeArguments: JS('!', '# || []', typeArgs),
         isMethod: true,
-        failureMessage: errorMessage,
+        failureMessage: 'Dynamic call failed.\n$errorMessage',
       ),
     );
   }
 
-  if (f == null) return callNSM('Dynamic call of null.');
+  if (f == null) return callNSM('Tried to invoke `null` like a method.');
   if (!JS<bool>('!', '# instanceof Function', f)) {
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
@@ -545,7 +589,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
     }
     if (f == null ||
         JS<bool>('', '#._boundObject[#._boundName] == null', f, f)) {
-      return callNSM("Dynamic call of object has no instance method 'call'.");
+      return callNSM("Object has no instance method 'call'.");
     }
   }
   // If f is a function, but not a method (no method type)
@@ -578,8 +622,6 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
 
   // Apply type arguments if needed.
   if (rti.isGenericFunctionType(ftype)) {
-    var typeParameterBounds = rti.getGenericFunctionBounds(ftype);
-    var typeParameterCount = JS<int>('!', '#.length', typeParameterBounds);
     if (typeArgs == null) {
       // No type arguments were provided so they will take on their default
       // values that are attached to generic function tearoffs for this
@@ -593,36 +635,11 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
       // like any other type arguments.
       typeArgs = JS('!', '#._defaultTypeArgs', f);
     }
-    var typeArgCount = JS<int>('!', '#.length', typeArgs);
-    if (typeArgCount != typeParameterCount) {
-      return callNSM(
-        'Dynamic call with incorrect number of type arguments. '
-        'Expected: $typeParameterCount Actual: $typeArgCount',
-      );
-    } else {
-      // Check the provided type arguments against the instantiated bounds.
-      for (var i = 0; i < typeParameterCount; i++) {
-        var bound = JS<rti.Rti>('!', '#[#]', typeParameterBounds, i);
-        var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
-        if (bound != typeArg && !rti.isTopType(bound)) {
-          var instantiatedBound = rti.substitute(bound, typeArgs);
-          var validSubtype = rti.isSubtype(
-            JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
-            typeArg,
-            instantiatedBound,
-          );
-          if (!validSubtype) {
-            throwTypeError(
-              "The type '${rti.rtiToString(typeArg)}' "
-              "is not a subtype of the type variable bound "
-              "'${rti.rtiToString(instantiatedBound)}' "
-              "of type variable 'T${i + 1}' "
-              "in '${rti.rtiToString(ftype)}'.",
-            );
-          }
-        }
-      }
-    }
+    var errorMessage = _typeArgumentErrors(
+      JS<Object>('!', '#', ftype),
+      JS<JSArray<Object>>('!', '#', typeArgs),
+    );
+    if (errorMessage != null) return callNSM(errorMessage);
     var instantiationBinding = rti.bindingRtiFromList(
       JS<JSArray>('!', '#', typeArgs),
     );
@@ -632,11 +649,15 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
     );
   } else if (typeArgs != null) {
     return callNSM(
-      'Dynamic call with unexpected type arguments. '
+      'Incorrect number of type arguments. '
       'Expected: 0 Actual: ${JS<int>('!', '#.length', typeArgs)}',
     );
   }
-  var errorMessage = _argumentErrors(ftype, JS<List>('!', '#', args), named);
+  var errorMessage = _argumentErrors(
+    JS<Object>('!', '#', ftype),
+    JS<List>('!', '#', args),
+    named,
+  );
   if (errorMessage == null) {
     if (typeArgs != null) args = JS('', '#.concat(#)', typeArgs, args);
     if (named != null) JS('', '#.push(#)', args, named);
@@ -669,6 +690,116 @@ validateFunctionToJSArgs(f, List args) {
     );
   }
   return null;
+}
+
+/// Sentinel value returned from [hotReloadCorrectnessChecks] to signal the
+/// provided arguments have been checked against the current method signature
+/// and they are valid.
+final Object validArgumentsSentinel = JS('', 'Symbol("validArguments")');
+
+/// Checks the intended method call defined by [receiver] and [name] is valid
+/// with the provided arguments.
+///
+/// Used to support calling methods after potential changes to their signature
+/// from a hot reload. This check gets inserted at call sites that could
+/// potentially be retained and executed across hot reload generations.
+///
+/// The [typeArguments], [positionalArguments], and [namedArguments] are checked
+/// against the current argument signature.
+///
+/// Returns [validArgumentsSentinel] when the provided arguments are valid.
+/// Otherwise the result of invoking [noSuchMethod] is returned.
+///
+/// Invokes [noSuchMethod] when the provided arguments don't match the current
+/// shape of the signature or if the method no longer exists at all.
+///
+/// Throws a [TypeError] when the shape is valid but an argument does not have
+/// the correct runtime type.
+///
+/// Finding [validArgumentsSentinel] as the returned value signals that the
+/// method can be called with the arguments that were provided. Otherwise,
+/// any other value must have been returned from a [noSuchMethod] override so it
+/// should be treated as the result of the intended method call.
+///
+/// Called from generated code.
+Object? hotReloadCorrectnessChecks(
+  Object? receiver,
+  Object name,
+  JSArray<Object> typeArguments,
+  JSArray<Object?> positionalArguments,
+  Object? namedArguments,
+) {
+  var function = JS<Object?>('', '#[#]', receiver, name);
+  if (function == null) {
+    return noSuchMethod(
+      receiver,
+      InvocationImpl(
+        name,
+        positionalArguments,
+        namedArguments: namedArguments,
+        typeArguments: typeArguments,
+        isMethod: true,
+        failureMessage:
+            'Method was deleted during a hot reload and is no longer callable.',
+      ),
+    );
+  }
+  var functionType = JS<Object?>(
+    '',
+    '#[#][#]',
+    receiver,
+    name,
+    JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+  );
+  if (functionType == null) {
+    // Allow JavaScript interop calls without checking arguments.
+    // TODO(nshahan): Potentially we should be checking arguments to static
+    // interop calls.
+    return validArgumentsSentinel;
+  }
+  // TODO: would it be better to just pass the expected function type and test
+  // that the current function type is a subtype of the expected?
+  String? errorMessage;
+  // Check the provided type arguments.
+  if (rti.isGenericFunctionType(functionType)) {
+    // TODO(nshahan): Recover if no type arguments were passed but some are
+    // expected.
+    errorMessage = _typeArgumentErrors(functionType, typeArguments);
+    if (errorMessage == null) {
+      var instantiationBinding = rti.bindingRtiFromList(
+        JS<JSArray>('!', '#', typeArguments),
+      );
+      functionType = rti.instantiatedGenericFunctionType(
+        JS<rti.Rti>('!', '#', functionType),
+        instantiationBinding,
+      )!;
+    }
+  } else if (JS<int>('!', '#.length', typeArguments) > 0) {
+    errorMessage =
+        'Incorrect number of type arguments. '
+        'Expected: 0 Actual: ${JS<int>('!', '#.length', typeArguments)}';
+  }
+  // Check the other provided arguments.
+  errorMessage ??= _argumentErrors(
+    functionType,
+    positionalArguments,
+    namedArguments,
+  );
+  if (errorMessage == null) return validArgumentsSentinel;
+
+  return noSuchMethod(
+    receiver,
+    InvocationImpl(
+      name,
+      positionalArguments,
+      namedArguments: namedArguments,
+      typeArguments: typeArguments,
+      isMethod: true,
+      failureMessage:
+          'The signature changed during a hot reload and is no longer '
+          'callable with the provided arguments.\n$errorMessage',
+    ),
+  );
 }
 
 dcall(f, args, [named]) => _checkAndCall(

@@ -9,13 +9,14 @@ aot_snapshot("analysis_server_aot") {
   main_dart = "../../pkg/analysis_server/bin/server.dart"
   name = "analysis_server_aot"
   output = "$root_gen_dir/analysis_server_aot.dart.snapshot"
-  vm_args = [ "-Dbuilt_as_aot=true" ]
+  args = [ "-Dbuilt_as_aot=true" ]
 }
 
 aot_snapshot("analysis_server_aot_product") {
   main_dart = "../../pkg/analysis_server/bin/server.dart"
   name = "analysis_server_aot_product"
   output = "$root_gen_dir/analysis_server_aot_product.dart.snapshot"
+  args = [ "-Dbuilt_as_aot=true" ]
 
   # dartaotruntime in the dart sdk has dart_product_config applied to it,
   # so it is built in product mode in both release and
@@ -32,5 +33,4 @@ application_snapshot("analysis_server") {
     "--sdk=" + rebase_path("../../sdk/"),
     "--train-using=" + rebase_path("../../pkg/compiler/lib"),
   ]
-  vm_args = [ "-Dbuilt_as_aot=false" ]
 }

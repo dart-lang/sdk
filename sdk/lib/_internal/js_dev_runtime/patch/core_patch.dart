@@ -663,7 +663,10 @@ class NoSuchMethodError {
       });
     }
     String memberName = _symbolToString(_memberName);
-    String receiverText = Error.safeToString(_receiver);
+    String receiverText = dart.isDartLibrary(_receiver)
+        ? 'Top level in '
+              '${JS('', '#[#]', _receiver, dart.libraryImportUri)}'
+        : Error.safeToString(_receiver);
     String actualParameters = '$sb';
     var invocation = _invocation;
     var failureMessage = (invocation is dart.InvocationImpl)

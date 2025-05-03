@@ -31,6 +31,8 @@ class TypePropertyResolver {
   late Expression? _receiver;
   late SyntacticEntity _nameErrorEntity;
   late String _name;
+  late bool _hasRead;
+  late bool _hasWrite;
 
   bool _needsGetterError = false;
   bool _reportedGetterError = false;
@@ -64,12 +66,16 @@ class TypePropertyResolver {
     required ExpressionImpl? receiver,
     required TypeImpl receiverType,
     required String name,
+    required bool hasRead,
+    required bool hasWrite,
     required SyntacticEntity propertyErrorEntity,
     required SyntacticEntity nameErrorEntity,
     AstNode? parentNode,
   }) {
     _receiver = receiver;
     _name = name;
+    _hasRead = hasRead;
+    _hasWrite = hasWrite;
     _nameErrorEntity = nameErrorEntity;
     _resetResult();
 
@@ -264,35 +270,58 @@ class TypePropertyResolver {
   }) {
     var isSuper = _receiver is SuperExpression;
 
-    var getterName = Name(_definingLibrary.source.uri, _name);
-    _getterRequested =
-        _resolver.inheritance
-            .getMember(type, getterName, forSuper: isSuper)
-            ?.asElement2;
-    _needsGetterError = _getterRequested == null;
+    if (_hasRead) {
+      var getterName = Name(_definingLibrary.source.uri, _name);
+      _getterRequested =
+          _resolver.inheritance
+              .getMember(type, getterName, forSuper: isSuper)
+              ?.asElement2;
+      _needsGetterError = _getterRequested == null;
 
-    if (_getterRequested == null && recoverWithStatic) {
-      var classElement = type.element3;
-      _getterRecovery ??=
-          classElement.lookupStaticGetter(_name, _definingLibrary) ??
-          classElement.lookupStaticMethod(_name, _definingLibrary);
-      _needsGetterError = _getterRecovery == null;
+      if (_getterRequested == null && recoverWithStatic) {
+        var classElement = type.element3;
+        _getterRecovery ??=
+            classElement.lookupStaticGetter(_name, _definingLibrary) ??
+            classElement.lookupStaticMethod(_name, _definingLibrary);
+        _needsGetterError = _getterRecovery == null;
+      }
     }
 
-    var setterName = Name(_definingLibrary.source.uri, '$_name=');
-    _setterRequested =
-        _resolver.inheritance
-            .getMember(type, setterName, forSuper: isSuper)
-            ?.asElement2;
-    _needsSetterError = _setterRequested == null;
+    if (_hasWrite) {
+      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      _setterRequested =
+          _resolver.inheritance
+              .getMember(type, setterName, forSuper: isSuper)
+              ?.asElement2;
+      _needsSetterError = _setterRequested == null;
 
-    if (_setterRequested == null && recoverWithStatic) {
-      var classElement = type.element3;
-      _setterRecovery ??= classElement.lookupStaticSetter(
-        _name,
-        _definingLibrary,
-      );
-      _needsSetterError = _setterRecovery == null;
+      if (_setterRequested == null && recoverWithStatic) {
+        var classElement = type.element3;
+        _setterRecovery ??= classElement.lookupStaticSetter(
+          _name,
+          _definingLibrary,
+        );
+        _needsSetterError = _setterRecovery == null;
+      }
+    }
+
+    // If we wanted a getter, but it is not in the interface, then check
+    // if there is the setter, i.e. the basename at all. If there is, we
+    // should not check extensions.
+    if (_hasRead && _getterRequested == null) {
+      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      _setterRequested =
+          _resolver.inheritance
+              .getMember(type, setterName, forSuper: isSuper)
+              ?.asElement2;
+    }
+
+    if (_hasWrite && _setterRequested == null) {
+      var getterName = Name(_definingLibrary.source.uri, _name);
+      _getterRequested =
+          _resolver.inheritance
+              .getMember(type, getterName, forSuper: isSuper)
+              ?.asElement2;
     }
   }
 

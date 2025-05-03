@@ -420,6 +420,8 @@ class FunctionReferenceResolver {
               receiver: receiver,
               receiverType: receiverType,
               name: methodName.name,
+              hasRead: true,
+              hasWrite: false,
               propertyErrorEntity: methodName,
               nameErrorEntity: methodName,
             )
@@ -603,6 +605,8 @@ class FunctionReferenceResolver {
               receiver: function.realTarget,
               receiverType: targetType,
               name: function.propertyName.name,
+              hasRead: true,
+              hasWrite: false,
               propertyErrorEntity: function.propertyName,
               nameErrorEntity: function,
             )
@@ -721,6 +725,8 @@ class FunctionReferenceResolver {
         receiver: null,
         receiverType: receiverType,
         name: function.name,
+        hasRead: true,
+        hasWrite: false,
         propertyErrorEntity: function,
         nameErrorEntity: function,
       );
@@ -950,6 +956,8 @@ class FunctionReferenceResolver {
               receiver: receiver,
               receiverType: receiverType,
               name: name.name,
+              hasRead: true,
+              hasWrite: false,
               propertyErrorEntity: name,
               nameErrorEntity: nameErrorEntity,
             )

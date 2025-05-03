@@ -9558,6 +9558,10 @@ library
     <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class C @34
           reference: <testLibraryFragment>::@class::C

@@ -733,6 +733,9 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Whether the annotation marks the associated member as not to be used.
   bool get isDoNotSubmit;
 
+  /// Whether the annotation marks the associated element as experimental.
+  bool get isExperimental;
+
   /// Whether the annotation marks the associated member as a factory.
   bool get isFactory;
 
@@ -2636,6 +2639,9 @@ abstract class Metadata {
 
   /// Whether the receiver has an annotation of the form `@doNotSubmit`.
   bool get hasDoNotSubmit;
+
+  /// Whether the receiver has an annotation of the form `@experimental`.
+  bool get hasExperimental;
 
   /// Whether the receiver has an annotation of the form `@factory`.
   bool get hasFactory;

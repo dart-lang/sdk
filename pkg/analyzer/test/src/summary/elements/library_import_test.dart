@@ -337,6 +337,10 @@ library
           fragments: @70
         <testLibraryFragment>::@prefix2::i3
           fragments: @117
+      libraryExports
+        dart:math
+        dart:math
+        dart:math
 ''');
   }
 
@@ -352,6 +356,8 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          combinators
+            hide: Stream, Completer
       topLevelVariables
         f @51
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -445,6 +451,9 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          combinators
+            hide: Stream
+            show: Future
       topLevelVariables
         f @52
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -628,6 +637,8 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          combinators
+            show: Future, Stream
       topLevelVariables
         f @48
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -1034,6 +1045,8 @@ library
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element2: <testLibraryFragment>::@getter::a#element
+          combinators
+            show: Random
       topLevelVariables
         hasInitializer a @42
           reference: <testLibraryFragment>::@topLevelVariable::a

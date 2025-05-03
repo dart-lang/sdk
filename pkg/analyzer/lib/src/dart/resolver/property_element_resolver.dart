@@ -167,6 +167,8 @@ class PropertyElementResolver with ScopeHelpers {
       receiver: target,
       receiverType: targetType,
       name: '[]',
+      hasRead: hasRead,
+      hasWrite: hasWrite,
       propertyErrorEntity: node.leftBracket,
       nameErrorEntity: target,
     );
@@ -540,6 +542,8 @@ class PropertyElementResolver with ScopeHelpers {
       receiver: target,
       receiverType: targetType,
       name: propertyName.name,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
       propertyErrorEntity: propertyName,
       nameErrorEntity: propertyName,
     );
@@ -579,10 +583,20 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       _checkForStaticMember(target, propertyName, result.setter2);
       if (result.needsSetterError) {
+        var readResult = _resolver.typePropertyResolver.resolve(
+          receiver: target,
+          receiverType: targetType,
+          name: propertyName.name,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: propertyName,
+          nameErrorEntity: propertyName,
+        );
+
         AssignmentVerifier(errorReporter).verify(
           node: propertyName,
           requested: null,
-          recovery: result.getter2,
+          recovery: readResult.getter2,
           receiverType: targetType,
         );
       }

@@ -219,7 +219,8 @@ Object? dartify(Object? object) {
     if (o is! JSValue) return o;
     WasmExternRef? ref = o.toExternRef;
     final refType = externRefType(ref);
-    // TODO(joshualitt) handle Date and Promise.
+    // TODO(srujzs): Either handle Date and Promise, or remove them completely
+    // from the conversion (preferred) across all backends.
     if (refType == ExternRefType.unknown && isJSSimpleObject(ref)) {
       final dartMap = <Object?, Object?>{};
       convertedObjects[o] = dartMap;

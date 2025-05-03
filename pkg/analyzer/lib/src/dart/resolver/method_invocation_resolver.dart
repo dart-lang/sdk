@@ -1069,6 +1069,8 @@ class MethodInvocationResolver with ScopeHelpers {
       receiver: receiver,
       receiverType: receiverType,
       name: name,
+      hasRead: true,
+      hasWrite: false,
       propertyErrorEntity: nameNode,
       nameErrorEntity: nameNode,
     );

@@ -572,34 +572,71 @@ extension JSAnyUtilityExtension on JSAny? {
   @Since('3.4')
   external bool isA<T extends JSAny?>();
 
-  /// Converts a JavaScript value to the Dart equivalent if possible.
+  /// Converts a JavaScript JSON-like value to the Dart equivalent if possible.
   ///
   /// Effectively the inverse of [NullableObjectUtilExtension.jsify], [dartify]
-  /// takes a JavaScript value and recursively converts it to a Dart object.
-  /// Only JavaScript primitives, `Array`s, typed arrays, and map-like objects
-  /// with string property names are supported.
+  /// takes a JavaScript JSON-like value and recursively converts it to a Dart
+  /// object, doing the following:
+  ///
+  /// - If the value is a string, number, boolean, `null`, `undefined`,
+  ///   `DataView` or a typed array, does the equivalent `toDart` operation if
+  ///   it exists and returns the result.
+  /// - If the value is a simple JS object (the protoype is either `null` or JS
+  ///   `Object`), creates and returns a `[Map]<Object?, Object?>` whose keys
+  ///   are the recursively converted keys obtained from `Object.keys` and its
+  ///   values are the associated values of the keys in the JS object.
+  /// - If the value is a JS `Array`, each item in it is recursively converted
+  ///   and added to a new `[List]<Object?>`, which is then returned.
+  /// - Otherwise, the conversion is undefined.
+  ///
+  /// If the value contains a cycle, the behavior is undefined.
   ///
   /// > [!NOTE]
   /// > Prefer using the specific conversion method like `toDart` if you know
-  /// > the JavaScript type as this method may perform many type-checks.
+  /// > the JavaScript type as this method may perform many type-checks. You
+  /// > should generally call this method with values that only contain
+  /// > JSON-like values as the conversion may be platform- and
+  /// > compiler-specific otherwise.
   // TODO(srujzs): We likely need stronger tests for this method to ensure
-  // consistency.
+  // consistency. We should also limit the accepted types in this API to avoid
+  // confusion. Once the conversion for unrelated types is consistent across all
+  // backends, we can update the documentation to say that the value is
+  // internalized instead of the conversion being undefined.
   external Object? dartify();
 }
 
 /// Common utility functions for <code>[Object]?</code>s.
 extension NullableObjectUtilExtension on Object? {
-  /// Converts a Dart object to the JavaScript equivalent if possible.
+  /// Converts a Dart JSON-like object to the JavaScript equivalent if possible.
   ///
   /// Effectively the inverse of [JSAnyUtilityExtension.dartify], [jsify] takes
-  /// a Dart object and recursively converts it to a JavaScript value. Only Dart
-  /// primitives, [Iterable]s, typed lists, and [Map]s are supported.
+  /// a Dart JSON-like object and recursively converts it to a JavaScript value,
+  /// doing the following:
+  ///
+  /// - If the object is a JS value, returns the object.
+  /// - If the object is a Dart primitive type, `null`, or a `dart:typed_data`
+  ///   type, does the equivalent `toJS` operation if it exists and returns the
+  ///   result.
+  /// - If the object is a [Map], creates and returns a new JS object whose
+  ///   properties and associated values are the recursively converted keys and
+  ///   values of the [Map].
+  /// - If the object is an [Iterable], each item in it is recursively converted
+  ///   and pushed into a new JS `Array` which is then returned.
+  /// - Otherwise, the conversion is undefined.
+  ///
+  /// If the object contains a cycle, the behavior is undefined.
   ///
   /// > [!NOTE]
   /// > Prefer using the specific conversion method like `toJS` if you know the
-  /// > Dart type as this method may perform many type-checks.
+  /// > Dart type as this method may perform many type-checks. You should
+  /// > generally call this method with objects that only contain JSON-like
+  /// > values as the conversion may be platform- and compiler-specific
+  /// > otherwise.
   // TODO(srujzs): We likely need stronger tests for this method to ensure
-  // consistency.
+  // consistency. We should also limit the accepted types in this API to avoid
+  // confusion. Once the conversion for unrelated types is consistent across all
+  // backends, we can update the documentation to say that the object is
+  // externalized instead of the conversion being undefined.
   external JSAny? jsify();
 }
 

@@ -334,12 +334,6 @@ window.PackageJSClass = function PackageJSClass(x) {
 
   group('Library formatting', () {
     final lib = getCurrentLibrary();
-    if (dartDevEmbedder == null) {
-      // The new module format adds a `link` function to every library. Patch
-      // something like that in so we can have a consistent golden file for all
-      // module formats.
-      lib['link'] = () {}.toJS;
-    }
     addFormatterGoldens(
       'Test library',
       // TODO(srujzs): We have to construct a `Library` manually here,

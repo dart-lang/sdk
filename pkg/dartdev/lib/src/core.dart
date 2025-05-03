@@ -12,7 +12,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
-import 'sdk.dart';
 import 'utils.dart';
 
 // Initialize a default logger. We'll replace this with a verbose logger if
@@ -84,19 +83,6 @@ extension DartDevCommand<T> on Command<T> {
 
   List<String> get specifiedExperiments =>
       globalResults!.multiOption(experimentFlagName);
-}
-
-/// A utility method to start a Dart VM instance with the given arguments and an
-/// optional current working directory.
-///
-/// [arguments] should contain the snapshot path.
-Future<Process> startDartProcess(
-  Sdk sdk,
-  List<String> arguments, {
-  String? cwd,
-}) {
-  log.trace('${sdk.dart} ${arguments.join(' ')}');
-  return Process.start(sdk.dart, arguments, workingDirectory: cwd);
 }
 
 Future<int> runProcess(

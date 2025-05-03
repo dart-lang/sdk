@@ -13,4 +13,5 @@ dependencies:
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
+  analyzer_utilities: any
   lints: any

@@ -488,6 +488,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Convert to flutter style todos everywhere in file',
   );
+  static const CONVERT_TO_FOR_EACH = FixKind(
+    'dart.fix.convert.toForEach',
+    DartFixKindPriority.standard,
+    "Convert to 'forEach'",
+  );
   static const CONVERT_TO_FOR_ELEMENT = FixKind(
     'dart.fix.convert.toForElement',
     DartFixKindPriority.standard,

@@ -398,6 +398,38 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_functionReference() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  static String foo<X>() => "C<$X>";
+
+  @override
+  bool operator ==(Object other) {
+    return false;
+  }
+}
+
+void test<T extends num>() {
+  C() == .foo<T>;
+}
+
+main() {
+  test<int>();
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibraryFragment>::@class::C::@method::foo#element
+    staticType: String Function<X>()
+  staticType: String Function<X>()
+''');
+  }
+
   test_futureOr() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
