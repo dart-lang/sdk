@@ -4,13 +4,19 @@
 
 defaultArg3() => "3b";
 defaultArg4() => "4b";
-myFunction3(positional1, positional2,
-        {argumentName3 = defaultArg3, argumentName4 = defaultArg4}) =>
-    "$positional1 $positional2 ${argumentName3()} - ${argumentName4()}";
+myFunction3(
+  positional1,
+  positional2, {
+  argumentName3 = defaultArg3,
+  argumentName4 = defaultArg4,
+}) => "$positional1 $positional2 ${argumentName3()} - ${argumentName4()}";
 
-myFunction4(positional1, positional2,
-        {argumentName5 = const X(5), argumentName6}) =>
-    argumentName5.value;
+myFunction4(
+  positional1,
+  positional2, {
+  argumentName5 = const X(5),
+  argumentName6,
+}) => argumentName5.value;
 
 class X {
   final int value;

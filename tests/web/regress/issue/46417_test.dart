@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   var v = {
-    ...Map.unmodifiable({'x': null})
+    ...Map.unmodifiable({'x': null}),
   };
   Expect.equals(null, v['x']);
 }

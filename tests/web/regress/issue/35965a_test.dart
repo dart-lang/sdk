@@ -37,9 +37,9 @@ mixin M on II {
   // The super call causes the closure's call method's generator to have a name
   // depending on the super mixin application name.
   fred<T>() => (T a) async {
-        super.bar();
-        return a;
-      };
+    super.bar();
+    return a;
+  };
 }
 
 class BB implements II {

@@ -14,23 +14,24 @@ import 'package:js/js.dart';
 external void eval(String code);
 
 typedef SumTwoPositionalFun = String Function(String a, String b);
-typedef SumOnePositionalAndOneOptionalFun = String Function(String a,
-    [String? b]);
+typedef SumOnePositionalAndOneOptionalFun =
+    String Function(String a, [String? b]);
 typedef SumTwoOptionalFun = String Function([String? a, String? b]);
-typedef SumOnePositionalAndOneOptionalNonNullFun = String Function(String a,
-    [String b]);
+typedef SumOnePositionalAndOneOptionalNonNullFun =
+    String Function(String a, [String b]);
 typedef SumTwoOptionalNonNullFun = String Function([String a, String b]);
 
 @JS()
 @staticInterop
 class DartFromJSCallbackHelper {
   external factory DartFromJSCallbackHelper.factory(
-      SumTwoPositionalFun sumTwoPositional,
-      SumOnePositionalAndOneOptionalFun sumOnePositionalOneOptional,
-      SumTwoOptionalFun sumTwoOptional,
-      SumOnePositionalAndOneOptionalNonNullFun
-          sumOnePositionalAndOneOptionalNonNull,
-      SumTwoOptionalNonNullFun sumTwoOptionalNonNull);
+    SumTwoPositionalFun sumTwoPositional,
+    SumOnePositionalAndOneOptionalFun sumOnePositionalOneOptional,
+    SumTwoOptionalFun sumTwoOptional,
+    SumOnePositionalAndOneOptionalNonNullFun
+    sumOnePositionalAndOneOptionalNonNull,
+    SumTwoOptionalNonNullFun sumTwoOptionalNonNull,
+  );
 }
 
 extension DartFromJSCallbackHelperMethods on DartFromJSCallbackHelper {
@@ -128,30 +129,41 @@ void staticInteropCallbackTest() {
   ''');
 
   final helper = DartFromJSCallbackHelper.factory(
-      allowInterop<SumTwoPositionalFun>(sumTwoPositional),
-      allowInterop<SumOnePositionalAndOneOptionalFun>(
-          sumOnePositionalAndOneOptional),
-      allowInterop<SumTwoOptionalFun>(sumTwoOptional),
-      allowInterop<SumOnePositionalAndOneOptionalNonNullFun>(
-          sumOnePositionalAndOneOptionalNonNull),
-      allowInterop<SumTwoOptionalNonNullFun>(sumTwoOptionalNonNull));
+    allowInterop<SumTwoPositionalFun>(sumTwoPositional),
+    allowInterop<SumOnePositionalAndOneOptionalFun>(
+      sumOnePositionalAndOneOptional,
+    ),
+    allowInterop<SumTwoOptionalFun>(sumTwoOptional),
+    allowInterop<SumOnePositionalAndOneOptionalNonNullFun>(
+      sumOnePositionalAndOneOptionalNonNull,
+    ),
+    allowInterop<SumTwoOptionalNonNullFun>(sumTwoOptionalNonNull),
+  );
 
   Expect.equals('hello world!', helper.doSum1());
   Expect.equals('foobar', helper.doSum2('foo', 'bar'));
-  Expect.equals('hello world!',
-      helper.doSum3(allowInterop<SumTwoPositionalFun>((a, b) => a + b)));
+  Expect.equals(
+    'hello world!',
+    helper.doSum3(allowInterop<SumTwoPositionalFun>((a, b) => a + b)),
+  );
 
   Expect.equals('foobar', helper.doSumOnePositionalAndOneOptionalA('foo'));
   Expect.equals(
-      'foobar', helper.doSumOnePositionalAndOneOptionalB('foo', 'bar'));
+    'foobar',
+    helper.doSumOnePositionalAndOneOptionalB('foo', 'bar'),
+  );
   Expect.equals('foobar', helper.doSumTwoOptionalA());
   Expect.equals('foobar', helper.doSumTwoOptionalB('foo'));
   Expect.equals('foobar', helper.doSumTwoOptionalC('foo', 'bar'));
 
   Expect.equals(
-      'foobar', helper.doSumOnePositionalAndOneOptionalANonNull('foo'));
+    'foobar',
+    helper.doSumOnePositionalAndOneOptionalANonNull('foo'),
+  );
   Expect.equals(
-      'foobar', helper.doSumOnePositionalAndOneOptionalBNonNull('foo', 'bar'));
+    'foobar',
+    helper.doSumOnePositionalAndOneOptionalBNonNull('foo', 'bar'),
+  );
   Expect.equals('foobar', helper.doSumTwoOptionalANonNull());
   Expect.equals('foobar', helper.doSumTwoOptionalBNonNull('foo'));
   Expect.equals('foobar', helper.doSumTwoOptionalCNonNull('foo', 'bar'));
@@ -159,8 +171,8 @@ void staticInteropCallbackTest() {
 
 typedef NoArgsFun = String Function();
 typedef OneArgFun = String Function(String arg);
-typedef OnePositionalAndOneOptionalArgsFun = String Function(String arg,
-    [String arg2]);
+typedef OnePositionalAndOneOptionalArgsFun =
+    String Function(String arg, [String arg2]);
 typedef TwoOptionalArgsFun = String Function([String arg, String arg2]);
 
 class TornOffClass {
@@ -182,8 +194,8 @@ class TornOffClass {
 }
 
 typedef OneArgFunB = String Function(double arg);
-typedef OnePositionalAndOneOptionalArgsFunB = String Function(double arg,
-    [String arg2]);
+typedef OnePositionalAndOneOptionalArgsFunB =
+    String Function(double arg, [String arg2]);
 typedef TwoOptionalArgsFunB = String Function([double arg, String arg2]);
 
 class GenericTornOffClass<T, V> {
@@ -287,73 +299,103 @@ void allowInteropCallbackTest() {
   // General
   {
     final interopCallback = allowInterop<SumTwoPositionalFun>((a, b) => a + b);
-    Expect.equals('foobar',
-        callMethod(globalThis, 'doSum1', [interopCallback]).toString());
+    Expect.equals(
+      'foobar',
+      callMethod(globalThis, 'doSum1', [interopCallback]).toString(),
+    );
     setProperty(globalThis, 'summer', interopCallback);
     Expect.equals(
-        'foobar', callMethod(globalThis, 'doSum2', ['foo', 'bar']).toString());
+      'foobar',
+      callMethod(globalThis, 'doSum2', ['foo', 'bar']).toString(),
+    );
     final roundTripCallback = getProperty(globalThis, 'summer');
-    Expect.equals('foobar',
-        (dartify(roundTripCallback) as SumTwoPositionalFun)('foo', 'bar'));
+    Expect.equals(
+      'foobar',
+      (dartify(roundTripCallback) as SumTwoPositionalFun)('foo', 'bar'),
+    );
   }
 
   // 1 nullable optional argument
   {
     final interopCallback = allowInterop<SumOnePositionalAndOneOptionalFun>(
-        (a, [b]) => a + (b ?? 'bar'));
+      (a, [b]) => a + (b ?? 'bar'),
+    );
     setProperty(globalThis, 'summer', interopCallback);
     Expect.equals(
-        'foobar',
-        callMethod(globalThis, 'doSumOnePositionalAndOneOptionalA', ['foo'])
-            .toString());
+      'foobar',
+      callMethod(globalThis, 'doSumOnePositionalAndOneOptionalA', [
+        'foo',
+      ]).toString(),
+    );
     Expect.equals(
-        'foobar',
-        callMethod(
-                globalThis, 'doSumOnePositionalAndOneOptionalB', ['foo', 'bar'])
-            .toString());
+      'foobar',
+      callMethod(globalThis, 'doSumOnePositionalAndOneOptionalB', [
+        'foo',
+        'bar',
+      ]).toString(),
+    );
   }
 
   // All nullable optional arguments
   {
     final interopCallback = allowInterop<SumTwoOptionalFun>(
-        ([a, b]) => (a ?? 'foo') + (b ?? 'bar'));
+      ([a, b]) => (a ?? 'foo') + (b ?? 'bar'),
+    );
     setProperty(globalThis, 'summer', interopCallback);
     Expect.equals(
-        'foobar', callMethod(globalThis, 'doSumTwoOptionalA', []).toString());
-    Expect.equals('foobar',
-        callMethod(globalThis, 'doSumTwoOptionalB', ['foo']).toString());
-    Expect.equals('foobar',
-        callMethod(globalThis, 'doSumTwoOptionalC', ['foo', 'bar']).toString());
+      'foobar',
+      callMethod(globalThis, 'doSumTwoOptionalA', []).toString(),
+    );
+    Expect.equals(
+      'foobar',
+      callMethod(globalThis, 'doSumTwoOptionalB', ['foo']).toString(),
+    );
+    Expect.equals(
+      'foobar',
+      callMethod(globalThis, 'doSumTwoOptionalC', ['foo', 'bar']).toString(),
+    );
   }
 
   // 1 non-nullable optional argument
   {
     final interopCallback =
         allowInterop<SumOnePositionalAndOneOptionalNonNullFun>(
-            (a, [b = 'bar']) => a + b);
+          (a, [b = 'bar']) => a + b,
+        );
     setProperty(globalThis, 'summer', interopCallback);
     Expect.equals(
-        'foobar',
-        callMethod(globalThis, 'doSumOnePositionalAndOneOptionalA', ['foo'])
-            .toString());
+      'foobar',
+      callMethod(globalThis, 'doSumOnePositionalAndOneOptionalA', [
+        'foo',
+      ]).toString(),
+    );
     Expect.equals(
-        'foobar',
-        callMethod(
-                globalThis, 'doSumOnePositionalAndOneOptionalB', ['foo', 'bar'])
-            .toString());
+      'foobar',
+      callMethod(globalThis, 'doSumOnePositionalAndOneOptionalB', [
+        'foo',
+        'bar',
+      ]).toString(),
+    );
   }
 
   // All non-nullable optional arguments
   {
     final interopCallback = allowInterop<SumTwoOptionalNonNullFun>(
-        ([a = 'foo', b = 'bar']) => a + b);
+      ([a = 'foo', b = 'bar']) => a + b,
+    );
     setProperty(globalThis, 'summer', interopCallback);
     Expect.equals(
-        'foobar', callMethod(globalThis, 'doSumTwoOptionalA', []).toString());
-    Expect.equals('foobar',
-        callMethod(globalThis, 'doSumTwoOptionalB', ['foo']).toString());
-    Expect.equals('foobar',
-        callMethod(globalThis, 'doSumTwoOptionalC', ['foo', 'bar']).toString());
+      'foobar',
+      callMethod(globalThis, 'doSumTwoOptionalA', []).toString(),
+    );
+    Expect.equals(
+      'foobar',
+      callMethod(globalThis, 'doSumTwoOptionalB', ['foo']).toString(),
+    );
+    Expect.equals(
+      'foobar',
+      callMethod(globalThis, 'doSumTwoOptionalC', ['foo', 'bar']).toString(),
+    );
   }
 
   // Tear off cases
@@ -362,7 +404,9 @@ void allowInteropCallbackTest() {
     final t = TornOffClass();
     final interopCallback = allowInterop<NoArgsFun>(t.noArgs);
     Expect.equals(
-        'foo', callMethod(globalThis, 'tearOffNoArgs', [interopCallback]));
+      'foo',
+      callMethod(globalThis, 'tearOffNoArgs', [interopCallback]),
+    );
   }
 
   // One arg.
@@ -370,45 +414,57 @@ void allowInteropCallbackTest() {
     final t = TornOffClass();
     final interopCallback = allowInterop<OneArgFun>(t.oneArg);
     Expect.equals(
-        'foo', callMethod(globalThis, 'tearOffOneArg', [interopCallback]));
+      'foo',
+      callMethod(globalThis, 'tearOffOneArg', [interopCallback]),
+    );
   }
 
   // One positional and one optional case A.
   {
     final t = TornOffClass();
     final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFun>(
-        t.onePositionalAndOneOptionalArgs);
+      t.onePositionalAndOneOptionalArgs,
+    );
     Expect.equals(
-        'foobar',
-        callMethod(globalThis, 'tearOffOnePositionalAndOneOptionalArgsA',
-            [interopCallback]));
+      'foobar',
+      callMethod(globalThis, 'tearOffOnePositionalAndOneOptionalArgsA', [
+        interopCallback,
+      ]),
+    );
   }
 
   // One positional and one optional case B.
   {
     final t = TornOffClass();
     final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFun>(
-        t.onePositionalAndOneOptionalArgs);
+      t.onePositionalAndOneOptionalArgs,
+    );
     Expect.equals(
-        'foobaz',
-        callMethod(globalThis, 'tearOffOnePositionalAndOneOptionalArgsB',
-            [interopCallback]));
+      'foobaz',
+      callMethod(globalThis, 'tearOffOnePositionalAndOneOptionalArgsB', [
+        interopCallback,
+      ]),
+    );
   }
 
   // Two optional case A.
   {
     final t = TornOffClass();
     final interopCallback = allowInterop<TwoOptionalArgsFun>(t.twoOptionalArgs);
-    Expect.equals('foo',
-        callMethod(globalThis, 'tearOffTwoOptionalArgsA', [interopCallback]));
+    Expect.equals(
+      'foo',
+      callMethod(globalThis, 'tearOffTwoOptionalArgsA', [interopCallback]),
+    );
   }
 
   // Two optional case B.
   {
     final t = TornOffClass();
     final interopCallback = allowInterop<TwoOptionalArgsFun>(t.twoOptionalArgs);
-    Expect.equals('foobaz',
-        callMethod(globalThis, 'tearOffTwoOptionalArgsB', [interopCallback]));
+    Expect.equals(
+      'foobaz',
+      callMethod(globalThis, 'tearOffTwoOptionalArgsB', [interopCallback]),
+    );
   }
 
   // Tearoffs of generic classes.
@@ -416,60 +472,76 @@ void allowInteropCallbackTest() {
   {
     final t = GenericTornOffClass<double, String>();
     final interopCallback = allowInterop<NoArgsFun>(t.noArgs);
-    Expect.equals('foo',
-        callMethod(globalThis, 'tearOffGenericNoArgs', [interopCallback]));
+    Expect.equals(
+      'foo',
+      callMethod(globalThis, 'tearOffGenericNoArgs', [interopCallback]),
+    );
   }
 
   // One arg.
   {
     final t = GenericTornOffClass<double, String>();
     final interopCallback = allowInterop<OneArgFunB>(t.oneArg);
-    Expect.equals('1.0',
-        callMethod(globalThis, 'tearOffGenericOneArg', [interopCallback]));
+    Expect.equals(
+      '1.0',
+      callMethod(globalThis, 'tearOffGenericOneArg', [interopCallback]),
+    );
   }
 
   // One positional and one optional case A.
   {
     final t = GenericTornOffClass<double, String>();
     final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFunB>(
-        t.onePositionalAndOneOptionalArgs);
+      t.onePositionalAndOneOptionalArgs,
+    );
     Expect.equals(
-        '1.0 null',
-        callMethod(globalThis, 'tearOffGenericOnePositionalAndOneOptionalArgsA',
-            [interopCallback]));
+      '1.0 null',
+      callMethod(globalThis, 'tearOffGenericOnePositionalAndOneOptionalArgsA', [
+        interopCallback,
+      ]),
+    );
   }
 
   // One positional and one optional case B.
   {
     final t = GenericTornOffClass<double, String>();
     final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFunB>(
-        t.onePositionalAndOneOptionalArgs);
+      t.onePositionalAndOneOptionalArgs,
+    );
     Expect.equals(
-        '1.0 baz',
-        callMethod(globalThis, 'tearOffGenericOnePositionalAndOneOptionalArgsB',
-            [interopCallback]));
+      '1.0 baz',
+      callMethod(globalThis, 'tearOffGenericOnePositionalAndOneOptionalArgsB', [
+        interopCallback,
+      ]),
+    );
   }
 
   // Two optional case A.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback =
-        allowInterop<TwoOptionalArgsFunB>(t.twoOptionalArgs);
+    final interopCallback = allowInterop<TwoOptionalArgsFunB>(
+      t.twoOptionalArgs,
+    );
     Expect.equals(
-        '1.0 null',
-        callMethod(
-            globalThis, 'tearOffGenericTwoOptionalArgsA', [interopCallback]));
+      '1.0 null',
+      callMethod(globalThis, 'tearOffGenericTwoOptionalArgsA', [
+        interopCallback,
+      ]),
+    );
   }
 
   // Two optional case B.
   {
     final t = GenericTornOffClass<double, String>();
-    final interopCallback =
-        allowInterop<TwoOptionalArgsFunB>(t.twoOptionalArgs);
+    final interopCallback = allowInterop<TwoOptionalArgsFunB>(
+      t.twoOptionalArgs,
+    );
     Expect.equals(
-        '1.0 baz',
-        callMethod(
-            globalThis, 'tearOffGenericTwoOptionalArgsB', [interopCallback]));
+      '1.0 baz',
+      callMethod(globalThis, 'tearOffGenericTwoOptionalArgsB', [
+        interopCallback,
+      ]),
+    );
   }
 }
 

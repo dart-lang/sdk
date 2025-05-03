@@ -290,14 +290,15 @@ void topLevelMethodsTest() {
 @anonymous
 @staticInterop
 class AnonymousJSClass {
-  external factory AnonymousJSClass.factory(
-      {String? foo,
-      String bar = 'baz',
-      String? bleep,
-      int? goo,
-      int ooo = 1,
-      List<double>? saz,
-      List<double> zoo = const [1.0, 2.0]});
+  external factory AnonymousJSClass.factory({
+    String? foo,
+    String bar = 'baz',
+    String? bleep,
+    int? goo,
+    int ooo = 1,
+    List<double>? saz,
+    List<double> zoo = const [1.0, 2.0],
+  });
 }
 
 extension AnonymousJSClassExtension on AnonymousJSClass {
@@ -312,7 +313,11 @@ extension AnonymousJSClassExtension on AnonymousJSClass {
 
 void anonymousTest() {
   final anonymousJSClass = AnonymousJSClass.factory(
-      foo: 'boo', bleep: 'bleep', saz: const [1.0, 2.0], goo: 0);
+    foo: 'boo',
+    bleep: 'bleep',
+    saz: const [1.0, 2.0],
+    goo: 0,
+  );
   Expect.equals('boo', anonymousJSClass.foo);
   Expect.equals(null, anonymousJSClass.bar);
   Expect.equals('bleep', anonymousJSClass.bleep);
@@ -337,8 +342,9 @@ extension AnonymousRedirectJSClassExtension on AnonymousRedirectJSClass {
 }
 
 void concreteFactoryConstructorTest() {
-  final anonymousRedirectJSClass =
-      AnonymousRedirectJSClass.concrete((String bar) => bar + bar);
+  final anonymousRedirectJSClass = AnonymousRedirectJSClass.concrete(
+    (String bar) => bar + bar,
+  );
   Expect.equals('foofoo', anonymousRedirectJSClass.foo('foo'));
 }
 

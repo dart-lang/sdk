@@ -19,8 +19,10 @@ make2<A, B>(A a) {
 class C<A> {
   final A a;
   C(this.a);
-  make<B>() => (B b) => a;
-  make2<B>() => (B b) => 'x';
+  make<B>() =>
+      (B b) => a;
+  make2<B>() =>
+      (B b) => 'x';
 }
 
 main() {

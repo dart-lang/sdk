@@ -21,31 +21,43 @@ main() {
     await lib2.loadLibrary();
 
     Expect.equals(
-        Function.apply(lib1.myFunction1, [], {#argumentName1: () => "A"}),
-        "A - 2");
+      Function.apply(lib1.myFunction1, [], {#argumentName1: () => "A"}),
+      "A - 2",
+    );
 
     Expect.equals(
-        Function.apply(lib2.myFunction2, [], {#argumentName4: () => "B"}),
-        "3 - B");
+      Function.apply(lib2.myFunction2, [], {#argumentName4: () => "B"}),
+      "3 - B",
+    );
 
     await lib3.loadLibrary();
 
     Expect.equals(
-        Function.apply(
-            lib3.myFunction3, ["x", "y"], {#argumentName4: () => "C"}),
-        "x y 3b - C");
+      Function.apply(lib3.myFunction3, ["x", "y"], {#argumentName4: () => "C"}),
+      "x y 3b - C",
+    );
 
     Expect.equals(
-        Function.apply(lib3.myFunction3, ["x", "y"], {}), "x y 3b - 4b");
+      Function.apply(lib3.myFunction3, ["x", "y"], {}),
+      "x y 3b - 4b",
+    );
 
     Expect.equals(Function.apply(lib3.myFunction4, ["x", "y"], {}), 5);
     Expect.equals(
-        Function.apply(
-            lib3.myFunction4, ["x", "y"], {#argumentName5: new lib3.X(4)}),
-        4);
+      Function.apply(
+        lib3.myFunction4,
+        ["x", "y"],
+        {#argumentName5: new lib3.X(4)},
+      ),
+      4,
+    );
     Expect.equals(
-        Function.apply(
-            lib3.myFunction4, ["x", "y"], {#argumentName5: lib3.value3}),
-        3);
+      Function.apply(
+        lib3.myFunction4,
+        ["x", "y"],
+        {#argumentName5: lib3.value3},
+      ),
+      3,
+    );
   });
 }

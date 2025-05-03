@@ -21,7 +21,8 @@ Error? getError(action(), name, part) {
 }
 
 indexErrorContainsIndex() {
-  makeFault(i) => () => confuse([])[i];
+  makeFault(i) =>
+      () => confuse([])[i];
 
   var name = 'index error contains index';
   var e1 = getError(makeFault(1234), name, 'small');
@@ -93,7 +94,11 @@ constantIndexHugeEmpty() {
   }
 
   compare(
-      'constant index on empty list with huge index', fault1, fault2, fault3);
+    'constant index on empty list with huge index',
+    fault1,
+    fault2,
+    fault3,
+  );
 }
 
 constantIndexNonempty() {
@@ -135,8 +140,12 @@ constantIndexHugeNonempty() {
     return [a[HUGE], a[1], a[2]];
   }
 
-  compare('constant index on non-empty list with huge index', fault1, fault2,
-      fault3);
+  compare(
+    'constant index on non-empty list with huge index',
+    fault1,
+    fault2,
+    fault3,
+  );
 }
 
 constantIndexSetEmpty() {
@@ -233,7 +242,11 @@ variableIndexNonempty(index, qualifier) {
   }
 
   compare(
-      'variable index on non-empty list $qualifier', fault1, fault2, fault3);
+    'variable index on non-empty list $qualifier',
+    fault1,
+    fault2,
+    fault3,
+  );
 }
 
 variableIndexSetEmpty(index, qualifier) {
@@ -263,7 +276,11 @@ variableIndexSetEmpty(index, qualifier) {
   }
 
   compare(
-      'variable index-set on empty list $qualifier', fault1, fault2, fault3);
+    'variable index-set on empty list $qualifier',
+    fault1,
+    fault2,
+    fault3,
+  );
 }
 
 variableIndexSetNonempty(index, qualifier) {
@@ -292,8 +309,12 @@ variableIndexSetNonempty(index, qualifier) {
     return a;
   }
 
-  compare('variable index-set on non-empty list $qualifier', fault1, fault2,
-      fault3);
+  compare(
+    'variable index-set on non-empty list $qualifier',
+    fault1,
+    fault2,
+    fault3,
+  );
 }
 
 main() {

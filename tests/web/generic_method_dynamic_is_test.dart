@@ -26,8 +26,9 @@ class F {
 test(o) => o is C<A>;
 
 main() {
-  dynamic o =
-      new DateTime.now().millisecondsSinceEpoch == 0 ? new F() : new E();
+  dynamic o = new DateTime.now().millisecondsSinceEpoch == 0
+      ? new F()
+      : new E();
   Expect.isTrue(test(o.m<B>()));
   Expect.isFalse(test(o.m<D>()));
 }

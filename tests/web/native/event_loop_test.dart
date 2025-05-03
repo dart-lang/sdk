@@ -45,10 +45,13 @@ main() {
     events.add("scheduleMicrotask");
   }).whenComplete(asyncEnd);
 
-  Expect.equals(499, a.foo(() {
-    events.add("closure to foo");
-    return 499;
-  }));
+  Expect.equals(
+    499,
+    a.foo(() {
+      events.add("closure to foo");
+      return 499;
+    }),
+  );
 
   events.add("after native call");
   Expect.listEquals(["closure to foo", "after native call"], events);

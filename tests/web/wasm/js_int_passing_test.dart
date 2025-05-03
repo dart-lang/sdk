@@ -33,20 +33,19 @@ void main() {
   int i31refs = 0;
   int others = 0;
 
-  setReturnIdentity =
-      ((JSAny js) {
-        final isI31Ref = externRefForJSAny(js).internalize()!.isI31;
+  setReturnIdentity = ((JSAny js) {
+    final isI31Ref = externRefForJSAny(js).internalize()!.isI31;
 
-        if (isI31Ref) {
-          i31refs += 1;
-        } else {
-          others += 1;
-        }
+    if (isI31Ref) {
+      i31refs += 1;
+    } else {
+      others += 1;
+    }
 
-        final dartValue = (js.dartify() as double).toInt();
-        Expect.equals(isI31Ref, dartValue >= minI31 && dartValue <= maxI31);
-        return js;
-      }).toJS;
+    final dartValue = (js.dartify() as double).toInt();
+    Expect.equals(isI31Ref, dartValue >= minI31 && dartValue <= maxI31);
+    return js;
+  }).toJS;
 
   for (int i in <int>[maxI31, maxI31 + 1, minI31, minI31 - 1]) {
     returnIdentity(i);

@@ -32,8 +32,10 @@ main() {
       String nameOfString = (String).toString();
       String expected =
           "'$nameOfC<$nameOfC<$nameOfInt, $nameOfString>, $nameOfString>'";
-      Expect.isTrue(e.toString().contains(expected),
-          'Expected "$expected" in the message: $e');
+      Expect.isTrue(
+        e.toString().contains(expected),
+        'Expected "$expected" in the message: $e',
+      );
       print(e);
       caught = true;
     }

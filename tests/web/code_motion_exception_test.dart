@@ -79,8 +79,10 @@ call2b() {
 
 checkNSME(text) {
   return (e) {
-    Expect.isTrue(e is NoSuchMethodError,
-        'expecting NoSuchMethodError, got "${e.runtimeType}"');
+    Expect.isTrue(
+      e is NoSuchMethodError,
+      'expecting NoSuchMethodError, got "${e.runtimeType}"',
+    );
     Expect.isTrue('$e'.contains(text), '"$e".contains("$text")');
     return e is NoSuchMethodError;
   };

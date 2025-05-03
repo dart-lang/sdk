@@ -21,4 +21,4 @@ class Class extends SuperB with Mixin {}
 main() {
   var c = new Class();
   Expect.equals("BMC", c.method('C'));
-} 
+}

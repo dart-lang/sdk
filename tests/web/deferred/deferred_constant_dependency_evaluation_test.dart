@@ -18,9 +18,9 @@ class A {
   final int x;
 
   const A(bool foo)
-      // The deferred task would crash trying to compute the value here, where
-      // [foo] is a free variable.
-      : x = foo ? 1 : 0;
+    // The deferred task would crash trying to compute the value here, where
+    // [foo] is a free variable.
+    : x = foo ? 1 : 0;
 }
 
 main() => const A(true);

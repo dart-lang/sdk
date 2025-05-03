@@ -6,8 +6,8 @@
 
 typedef UpdateShouldNotify<T> = bool Function(T previous, T current);
 
-typedef ValueWidgetBuilder<T> = Widget Function(
-    BuildContext context, T value, Widget child);
+typedef ValueWidgetBuilder<T> =
+    Widget Function(BuildContext context, T value, Widget child);
 
 class BuildContext {}
 
@@ -27,11 +27,13 @@ class InheritedProvider<T> extends InheritedWidget {
   final T? _value;
   final UpdateShouldNotify<T>? _updateShouldNotify;
 
-  InheritedProvider(
-      {T? value, UpdateShouldNotify<T>? updateShouldNotify, Widget? child})
-      : _value = value,
-        _updateShouldNotify = updateShouldNotify,
-        super(child: child);
+  InheritedProvider({
+    T? value,
+    UpdateShouldNotify<T>? updateShouldNotify,
+    Widget? child,
+  }) : _value = value,
+       _updateShouldNotify = updateShouldNotify,
+       super(child: child);
 }
 
 class StateDelegate {}
@@ -77,9 +79,11 @@ class ValueListenableProvider<T>
 
   final UpdateShouldNotify<T>? updateShouldNotify;
 
-  ValueListenableProvider(ValueStateDelegate<ValueListenable<T>> delegate,
-      this.updateShouldNotify, this.child)
-      : super(delegate);
+  ValueListenableProvider(
+    ValueStateDelegate<ValueListenable<T>> delegate,
+    this.updateShouldNotify,
+    this.child,
+  ) : super(delegate);
 
   ValueListenableBuilder<T> build() {
     return ValueListenableBuilder<T>(

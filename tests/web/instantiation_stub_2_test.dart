@@ -4,12 +4,25 @@
 
 import 'package:expect/expect.dart';
 
-List<T?> foo<T>([T? a1, T? a2, T? a3, T? a4, T? a5, T? a6, T? a7]) =>
-    [a1, a2, a3, a4, a5, a6, a7];
+List<T?> foo<T>([T? a1, T? a2, T? a3, T? a4, T? a5, T? a6, T? a7]) => [
+  a1,
+  a2,
+  a3,
+  a4,
+  a5,
+  a6,
+  a7,
+];
 
 class CC {
-  List<T?> bar<T, U, V>([T? a1, T? a2, T? a3, T? a4, T? a5, T? a6]) =>
-      [a1, a2, a3, a4, a5, a6];
+  List<T?> bar<T, U, V>([T? a1, T? a2, T? a3, T? a4, T? a5, T? a6]) => [
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+  ];
 }
 
 main() {

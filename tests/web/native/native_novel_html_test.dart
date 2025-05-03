@@ -46,8 +46,14 @@ main() {
   Expect.equals('dartMethod(Goofy.nativeMethod(11))', e.dartMethod(10));
 
   var f = makeF();
-  Expect.throws(() => f.nativeMethod(20), (e) => e is NoSuchMethodError,
-      'fake HTML Element must not run Dart method on native class');
-  Expect.throws(() => f.dartMethod(20), (e) => e is NoSuchMethodError,
-      'fake HTML Element must not run native method on native class');
+  Expect.throws(
+    () => f.nativeMethod(20),
+    (e) => e is NoSuchMethodError,
+    'fake HTML Element must not run Dart method on native class',
+  );
+  Expect.throws(
+    () => f.dartMethod(20),
+    (e) => e is NoSuchMethodError,
+    'fake HTML Element must not run native method on native class',
+  );
 }

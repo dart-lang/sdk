@@ -13,6 +13,6 @@
 import 'default_arg_is_tearoff_lib.dart' deferred as lib;
 
 main() => lib.loadLibrary().then((_) {
-      // Call via Function.apply to ensure he metadata is generated
-      Function.apply(lib.myFunction, []);
-    });
+  // Call via Function.apply to ensure he metadata is generated
+  Function.apply(lib.myFunction, []);
+});
