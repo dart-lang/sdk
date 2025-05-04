@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -1407,7 +1408,10 @@ class AnalysisDriver {
           // getErrors()
           _errorsRequestedFiles.completeAll(
             unitFile.path,
-            _createErrorsResultImpl(file: unitFile, errors: unitResult.errors),
+            _createErrorsResultImpl(
+              file: unitFile,
+              diagnostics: unitResult.errors,
+            ),
           );
 
           // getIndex()
@@ -1572,15 +1576,15 @@ class AnalysisDriver {
       events.GetErrorsFromBytes(file: file, library: library),
     );
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    var errors = _getErrorsFromSerialized(file, unit.errors);
+    var errors = _getDiagnosticsFromSerialized(file, unit.errors);
     _updateHasErrorOrWarningFlag(file, errors);
-    var result = _createErrorsResultImpl(file: file, errors: errors);
+    var result = _createErrorsResultImpl(file: file, diagnostics: errors);
     return result;
   }
 
   ErrorsResultImpl _createErrorsResultImpl({
     required FileState file,
-    required List<AnalysisError> errors,
+    required List<Diagnostic> diagnostics,
   }) {
     return ErrorsResultImpl(
       session: currentSession,
@@ -1590,7 +1594,7 @@ class AnalysisDriver {
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
-      errors: errors,
+      errors: diagnostics,
       analysisOptions: file.analysisOptions,
     );
   }
@@ -1674,6 +1678,21 @@ class AnalysisDriver {
     for (var path in _fileTracker.addedFiles) {
       _fsState.getFileForPath(path);
     }
+  }
+
+  /// Return [Diagnostic]s for the given [serialized] diagnostics.
+  List<Diagnostic> _getDiagnosticsFromSerialized(
+    FileState file,
+    List<AnalysisDriverUnitError> serialized,
+  ) {
+    List<Diagnostic> diagnostics = <Diagnostic>[];
+    for (AnalysisDriverUnitError error in serialized) {
+      var analysisError = ErrorEncoding.decode(file.source, error);
+      if (analysisError != null) {
+        diagnostics.add(analysisError);
+      }
+    }
+    return diagnostics;
   }
 
   void _getErrors(String path) {
@@ -1779,21 +1798,6 @@ class AnalysisDriver {
     }
 
     _analyzeFile(path);
-  }
-
-  /// Return [AnalysisError]s for the given [serialized] errors.
-  List<AnalysisError> _getErrorsFromSerialized(
-    FileState file,
-    List<AnalysisDriverUnitError> serialized,
-  ) {
-    List<AnalysisError> errors = <AnalysisError>[];
-    for (AnalysisDriverUnitError error in serialized) {
-      var analysisError = ErrorEncoding.decode(file.source, error);
-      if (analysisError != null) {
-        errors.add(analysisError);
-      }
-    }
-    return errors;
   }
 
   Future<void> _getFilesDefiningClassMemberName(
@@ -1958,7 +1962,7 @@ class AnalysisDriver {
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
       errors: [
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: file.source,
           offset: 0,
           length: 0,
@@ -2329,14 +2333,14 @@ class AnalysisDriver {
     }
   }
 
-  /// Given the list of [errors] for the [file], update the [file]'s
+  /// Given the list of [diagnostics] for the [file], update the [file]'s
   /// [FileState.hasErrorOrWarning] flag.
   void _updateHasErrorOrWarningFlag(
     FileState file,
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
   ) {
-    for (var error in errors) {
-      var severity = error.errorCode.errorSeverity;
+    for (var diagnostic in diagnostics) {
+      var severity = diagnostic.errorCode.errorSeverity;
       if (severity == DiagnosticSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
@@ -2663,7 +2667,7 @@ abstract class DriverWatcher {
 }
 
 class ErrorEncoding {
-  static AnalysisError? decode(Source source, AnalysisDriverUnitError error) {
+  static Diagnostic? decode(Source source, AnalysisDriverUnitError error) {
     String errorName = error.uniqueName;
     DiagnosticCode? diagnosticCode =
         errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
@@ -2691,7 +2695,7 @@ class ErrorEncoding {
       );
     }
 
-    return AnalysisError.forValues(
+    return Diagnostic.forValues(
       source: source,
       offset: error.offset,
       length: error.length,
@@ -2702,9 +2706,9 @@ class ErrorEncoding {
     );
   }
 
-  static AnalysisDriverUnitErrorBuilder encode(AnalysisError error) {
+  static AnalysisDriverUnitErrorBuilder encode(Diagnostic diagnostic) {
     var contextMessages = <DiagnosticMessageBuilder>[];
-    for (var message in error.contextMessages) {
+    for (var message in diagnostic.contextMessages) {
       contextMessages.add(
         DiagnosticMessageBuilder(
           filePath: message.filePath,
@@ -2717,11 +2721,11 @@ class ErrorEncoding {
     }
 
     return AnalysisDriverUnitErrorBuilder(
-      offset: error.offset,
-      length: error.length,
-      uniqueName: error.errorCode.uniqueName,
-      message: error.message,
-      correction: error.correctionMessage ?? '',
+      offset: diagnostic.offset,
+      length: diagnostic.length,
+      uniqueName: diagnostic.errorCode.uniqueName,
+      message: diagnostic.message,
+      correction: diagnostic.correctionMessage ?? '',
       contextMessages: contextMessages,
     );
   }

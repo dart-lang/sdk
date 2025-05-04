@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -1019,7 +1020,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (element != null) {
       var fragment = element.firstFragment;
       _errorListener.onError(
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: fragment.libraryFragment!.source,
           offset:
               fragment.nameOffset2 ??

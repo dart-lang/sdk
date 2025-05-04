@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -328,22 +328,22 @@ class FileResolver {
       errorsSignatureBuilder.addString(file.contentHash);
       var errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
 
-      List<AnalysisError> errors;
+      List<Diagnostic> diagnostics;
       var bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
-        errors =
+        diagnostics =
             data.errors.map((error) {
               return ErrorEncoding.decode(file.source, error)!;
             }).toList();
       } else {
         var unitResult = await resolve(path: path, performance: performance);
-        errors = unitResult.errors;
+        diagnostics = unitResult.errors;
 
         _errorResultsCache.put(
           errorsKey,
           CiderUnitErrorsBuilder(
-            errors: errors.map(ErrorEncoding.encode).toList(),
+            errors: diagnostics.map(ErrorEncoding.encode).toList(),
           ).toBuffer(),
         );
       }
@@ -356,7 +356,7 @@ class FileResolver {
         lineInfo: file.lineInfo,
         isLibrary: file.kind is LibraryFileKind,
         isPart: file.kind is PartFileKind,
-        errors: errors,
+        errors: diagnostics,
         analysisOptions: file.analysisOptions,
       );
     });

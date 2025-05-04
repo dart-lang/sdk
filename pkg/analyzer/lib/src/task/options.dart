@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/formatter_options.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -22,14 +23,14 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-List<AnalysisError> analyzeAnalysisOptions(
+List<Diagnostic> analyzeAnalysisOptions(
   Source source,
   String content,
   SourceFactory sourceFactory,
   String contextRoot,
   VersionConstraint? sdkVersionConstraint,
 ) {
-  List<AnalysisError> errors = [];
+  List<Diagnostic> errors = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
   AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
@@ -42,14 +43,14 @@ List<AnalysisError> analyzeAnalysisOptions(
   // functions, and should be refactored to a class maintaining state, with less
   // variable shadowing.
   void addDirectErrorOrIncludedError(
-    List<AnalysisError> validationErrors,
+    List<Diagnostic> validationErrors,
     Source source, {
     required bool sourceIsOptionsForContextRoot,
   }) {
     if (!sourceIsOptionsForContextRoot) {
       // [source] is an included file, and we should only report errors in
       // [initialSource], noting that the included file has warnings.
-      for (AnalysisError error in validationErrors) {
+      for (Diagnostic error in validationErrors) {
         var args = [
           source.fullName,
           error.offset.toString(),
@@ -57,7 +58,7 @@ List<AnalysisError> analyzeAnalysisOptions(
           error.message,
         ];
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -116,7 +117,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       var includedSource = sourceFactory.resolveUri(source, includeUri);
       if (includedSource == initialSource) {
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -128,7 +129,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       }
       if (includedSource == null || !includedSource.exists()) {
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -141,7 +142,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       var spanInChain = includeChain[includedSource];
       if (spanInChain != null) {
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -185,7 +186,7 @@ List<AnalysisError> analyzeAnalysisOptions(
         // Report errors for included option files on the `include` directive
         // located in the initial options file.
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -213,7 +214,7 @@ List<AnalysisError> analyzeAnalysisOptions(
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
     errors.add(
-      AnalysisError.tmp(
+      Diagnostic.tmp(
         source: source,
         offset: span.start.offset,
         length: span.length,
@@ -246,7 +247,7 @@ String? _firstPluginName(YamlMap options) {
 
 /// Validates the legacy 'plugins' options in [options], given
 /// [firstEnabledPluginName].
-List<AnalysisError> _validateLegacyPluginsOption(
+List<Diagnostic> _validateLegacyPluginsOption(
   Source source, {
   required YamlMap options,
   String? firstEnabledPluginName,
@@ -405,7 +406,7 @@ class OptionsFileValidator {
          _PluginsOptionsValidator(),
        ];
 
-  List<AnalysisError> validate(YamlMap options) {
+  List<Diagnostic> validate(YamlMap options) {
     RecordingErrorListener recorder = RecordingErrorListener();
     ErrorReporter reporter = ErrorReporter(recorder, _source);
     for (var validator in _validators) {

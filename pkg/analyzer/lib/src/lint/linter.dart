@@ -299,7 +299,7 @@ abstract class LintRule {
     ErrorCode? errorCode,
   }) {
     // Cache error and location info for creating `AnalysisErrorInfo`s.
-    var error = AnalysisError.tmp(
+    var error = Diagnostic.tmp(
       source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,

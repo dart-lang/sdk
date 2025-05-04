@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -190,10 +191,10 @@ class IgnoreInfo {
     return ignoredOnLine;
   }
 
-  /// Whether [error] is ignored via an inline "ignore" comment.
-  bool ignored(AnalysisError error, {String? pluginName}) {
-    var line = _lineInfo.getLocation(error.offset).lineNumber;
-    return _ignoredAt(error.errorCode, line, pluginName: pluginName);
+  /// Whether [diagnostic] is ignored via an inline "ignore" comment.
+  bool ignored(Diagnostic diagnostic, {String? pluginName}) {
+    var line = _lineInfo.getLocation(diagnostic.offset).lineNumber;
+    return _ignoredAt(diagnostic.errorCode, line, pluginName: pluginName);
   }
 
   /// Returns whether the [errorCode] is ignored at the given [line].

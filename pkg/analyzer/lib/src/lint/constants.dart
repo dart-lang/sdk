@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -23,7 +24,8 @@ final class LinterConstantEvaluationResult {
   final DartObject? value;
 
   /// The errors reported during the evaluation.
-  final List<AnalysisError> errors;
+  // TODO(srawlins): Rename to `diagnostics`.
+  final List<Diagnostic> errors;
 
   LinterConstantEvaluationResult._(this.value, this.errors);
 }
@@ -36,7 +38,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
   bool hasConstError = false;
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     ErrorCode errorCode = error.errorCode;
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {

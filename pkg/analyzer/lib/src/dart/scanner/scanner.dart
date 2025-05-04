@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -129,7 +129,7 @@ class Scanner {
     List<Object?>? arguments,
   ) {
     _errorListener.onError(
-      AnalysisError.tmp(
+      Diagnostic.tmp(
         source: source,
         offset: offset,
         length: 1,
@@ -202,7 +202,7 @@ class Scanner {
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
       _errorListener.onError(
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,

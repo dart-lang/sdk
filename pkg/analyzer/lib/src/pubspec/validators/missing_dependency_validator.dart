@@ -54,7 +54,7 @@ class MissingDependencyValidator {
   /// section of the pubspec.yaml file.
   /// Returns the list of names of the packages to be added/removed for these
   /// sections.
-  List<AnalysisError> validate(Set<String> usedDeps, Set<String> usedDevDeps) {
+  List<Diagnostic> validate(Set<String> usedDeps, Set<String> usedDevDeps) {
     var contents = this.contents;
     if (contents is! YamlMap) {
       return [];

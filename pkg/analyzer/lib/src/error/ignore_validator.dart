@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -29,7 +30,7 @@ class IgnoreValidator {
   final ErrorReporter _errorReporter;
 
   /// The diagnostics that are reported in the file being analyzed.
-  final List<AnalysisError> _reportedErrors;
+  final List<Diagnostic> _reportedErrors;
 
   /// The information about the ignore comments in the file being analyzed.
   final IgnoreInfo _ignoreInfo;
@@ -284,7 +285,7 @@ class IgnoreValidator {
   }
 }
 
-extension on AnalysisError {
+extension on Diagnostic {
   String get ignoreName => errorCode.name.toLowerCase();
 
   String get ignoreUniqueName {
