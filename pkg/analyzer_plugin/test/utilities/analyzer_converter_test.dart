@@ -28,7 +28,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   /// Assert that the given [pluginError] matches the given [analyzerError].
   void assertError(
       plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
-      {analyzer.ErrorSeverity? severity,
+      {analyzer.DiagnosticSeverity? severity,
       int startColumn = -1,
       int startLine = -1}) {
     var errorCode = analyzerError.errorCode;
@@ -80,7 +80,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   Future<void> test_convertAnalysisError_contextMessages() async {
     var analyzerError = await createError(13, contextMessage: 'here');
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
 
     var pluginError = converter.convertAnalysisError(analyzerError,
         lineInfo: lineInfo, severity: severity);
@@ -107,7 +107,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   Future<void> test_convertAnalysisError_lineInfo_severity() async {
     var analyzerError = await createError(13);
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
 
     assertError(
         converter.convertAnalysisError(analyzerError,
@@ -126,7 +126,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
 
   Future<void> test_convertAnalysisError_noLineInfo_severity() async {
     var analyzerError = await createError(11);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
 
     assertError(
         converter.convertAnalysisError(analyzerError, severity: severity),
@@ -159,7 +159,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       await createError(25),
     ];
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
     var options = (analyzer.AnalysisOptionsBuilder()
           ..errorProcessors.add(analyzer.ErrorProcessor(
               analyzerErrors[0].errorCode.name, severity)))
@@ -194,7 +194,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       await createError(13),
       await createError(25),
     ];
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
     var options = (analyzer.AnalysisOptionsBuilder()
           ..errorProcessors.add(analyzer.ErrorProcessor(
               analyzerErrors[0].errorCode.name, severity)))
@@ -620,8 +620,8 @@ typedef A<T> = Map<int, T>;
   }
 
   void test_convertErrorSeverity() {
-    for (var severity in analyzer.ErrorSeverity.values) {
-      if (severity != analyzer.ErrorSeverity.NONE) {
+    for (var severity in analyzer.DiagnosticSeverity.values) {
+      if (severity != analyzer.DiagnosticSeverity.NONE) {
         expect(converter.convertErrorSeverity(severity), isNotNull,
             reason: severity.name);
       }

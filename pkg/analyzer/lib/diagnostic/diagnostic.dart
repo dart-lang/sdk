@@ -126,11 +126,11 @@ class Diagnostic {
 
   Severity get severity {
     switch (errorCode.errorSeverity) {
-      case ErrorSeverity.ERROR:
+      case DiagnosticSeverity.ERROR:
         return Severity.error;
-      case ErrorSeverity.WARNING:
+      case DiagnosticSeverity.WARNING:
         return Severity.warning;
-      case ErrorSeverity.INFO:
+      case DiagnosticSeverity.INFO:
         return Severity.info;
       default:
         throw StateError('Invalid error severity: ${errorCode.errorSeverity}');

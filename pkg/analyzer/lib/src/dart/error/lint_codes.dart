@@ -29,7 +29,7 @@ class LintCode extends ErrorCode {
        );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.INFO;
 
   @override
   int get hashCode => uniqueName.hashCode;

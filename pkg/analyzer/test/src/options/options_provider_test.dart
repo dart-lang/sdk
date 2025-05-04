@@ -109,10 +109,10 @@ analyzer:
       options.errorProcessors,
       unorderedMatches([
         ErrorProcessorMatcher(
-          ErrorProcessor('toplevelerror', ErrorSeverity.WARNING),
+          ErrorProcessor('toplevelerror', DiagnosticSeverity.WARNING),
         ),
         ErrorProcessorMatcher(
-          ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING),
+          ErrorProcessor('lowlevelerror', DiagnosticSeverity.WARNING),
         ),
       ]),
     );
@@ -139,7 +139,9 @@ include: second_options.yaml
     expect(
       options.errorProcessors,
       contains(
-        ErrorProcessorMatcher(ErrorProcessor('error_1', ErrorSeverity.ERROR)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
+        ),
       ),
     );
   }
@@ -166,8 +168,12 @@ include:
     expect(
       options.errorProcessors,
       unorderedMatches([
-        ErrorProcessorMatcher(ErrorProcessor('error_1', ErrorSeverity.ERROR)),
-        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_1', DiagnosticSeverity.ERROR),
+        ),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
       ]),
     );
   }
@@ -194,7 +200,9 @@ analyzer:
         // We want to explicitly state the expected severity.
         // ignore: avoid_redundant_argument_values
         ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
-        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
       ]),
     );
   }
@@ -226,7 +234,9 @@ include:
         // We want to explicitly state the expected severity.
         // ignore: avoid_redundant_argument_values
         ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
-        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+        ErrorProcessorMatcher(
+          ErrorProcessor('error_2', DiagnosticSeverity.WARNING),
+        ),
       ]),
     );
   }

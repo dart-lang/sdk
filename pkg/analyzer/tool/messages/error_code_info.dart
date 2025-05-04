@@ -442,7 +442,7 @@ class ErrorClassInfo {
     if (severity == null) {
       return '$typeCode.severity';
     } else {
-      return 'ErrorSeverity.$severity';
+      return 'DiagnosticSeverity.$severity';
     }
   }
 
