@@ -160,9 +160,7 @@ void matchIL$testCreation2(FlowGraph graph) {
       'error' << match.AllocateObject(),
       match.Throw('error'),
     ]),
-    match.block('Target', [
-      match.DartReturn('S'),
-    ]),
+    match.block('Target', [match.DartReturn('S')]),
   ]);
 }
 

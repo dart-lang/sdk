@@ -105,8 +105,9 @@ main(List<String> args) async {
     Expect.notEquals(0, result3.exitCode);
     Expect.contains('The uri', result3.stderr);
     Expect.contains(
-        'provided to `Isolate.spawnUri()` does not contain a valid AOT '
-        'snapshot',
-        result3.stderr);
+      'provided to `Isolate.spawnUri()` does not contain a valid AOT '
+      'snapshot',
+      result3.stderr,
+    );
   });
 }

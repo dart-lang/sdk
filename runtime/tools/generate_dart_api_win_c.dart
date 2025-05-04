@@ -48,14 +48,17 @@ void main(List<String> args) {
     final returnType = match.namedGroup('returnType')!;
     final name = match.namedGroup('name')!;
     final argumentsString = match.namedGroup('arguments') ?? '';
-    final argumentList =
-        argumentsString.split(',').where((arg) => arg != 'void').map((arg) {
+    final argumentList = argumentsString
+        .split(',')
+        .where((arg) => arg != 'void')
+        .map((arg) {
           final parts = arg.trim().split(' ');
           return (
             type: parts.sublist(0, parts.length - 1).join(' '),
             name: parts[parts.length - 1],
           );
-        }).toList();
+        })
+        .toList();
     procedures.add((
       name: name,
       returnType: returnType,
@@ -201,12 +204,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
   }
 }
 
-typedef Procedure =
-    ({
-      String name,
-      String returnType,
-      List<({String name, String type})> arguments,
-    });
+typedef Procedure = ({
+  String name,
+  String returnType,
+  List<({String name, String type})> arguments,
+});
 
 extension on Procedure {
   String get typedefName => '${name}Type';

@@ -30,15 +30,17 @@ main() async {
     // Generate stress test.
     File(stressTest).writeAsStringSync(await generateStressTest(testFiles));
 
-    final packageConfig =
-        path.join(path.absolute('.'), '.dart_tool/package_config.json');
+    final packageConfig = path.join(
+      path.absolute('.'),
+      '.dart_tool/package_config.json',
+    );
 
     // Compile stress test to kernel.
     final args = [
       '--packages=$packageConfig',
       '--snapshot-kind=kernel',
       '--snapshot=$stressTestDill',
-      stressTest
+      stressTest,
     ];
     print('Running $dartExecutable ${args.join(' ')}');
     final process = await Process.start(dartExecutable, args);
@@ -46,14 +48,14 @@ main() async {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
-      stdout.writeln(line);
-    });
+          stdout.writeln(line);
+        });
     process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
-      stderr.writeln(line);
-    });
+          stderr.writeln(line);
+        });
     Expect.equals(0, await process.exitCode);
   });
 }

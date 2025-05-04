@@ -25,12 +25,16 @@ List<Dog> Function(String s) decodeFromDog = decodeFrom;
 
 void main() async {
   final receivePort = ReceivePort();
-  receivePort.listen(expectAsync1((data) {
-    print("Received $data");
-    Expect.equals('$data',
-        "[Closure: (String) => List<Dog> from Function 'decodeFrom': static.]");
-    receivePort.close();
-  }));
+  receivePort.listen(
+    expectAsync1((data) {
+      print("Received $data");
+      Expect.equals(
+        '$data',
+        "[Closure: (String) => List<Dog> from Function 'decodeFrom': static.]",
+      );
+      receivePort.close();
+    }),
+  );
   print("Sending $decodeFromDog");
   receivePort.sendPort.send(<dynamic>[decodeFromDog]);
 }

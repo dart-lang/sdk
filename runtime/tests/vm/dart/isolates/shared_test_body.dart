@@ -84,21 +84,22 @@ void main(List<String> args) async {
   var sendPort = rpResults.sendPort;
 
   var list = List.generate(
-      numberOfWorkers,
-      (index) => Isolate.run(() async {
-            int countProcessed = 0;
-            while (true) {
-              var mine = mutex.runLocked(() => lastProcessed++);
-              if (mine >= workItems.length) {
-                break;
-              }
-              workItems[mine].doWork(sendPort);
-              countProcessed++;
-              mutex.runLocked(() => SharedState.totalProcessed++);
-              await Future.delayed(Duration(seconds: 0));
-            }
-            print('worker $index processed $countProcessed items');
-          }, debugName: 'worker $index'));
+    numberOfWorkers,
+    (index) => Isolate.run(() async {
+      int countProcessed = 0;
+      while (true) {
+        var mine = mutex.runLocked(() => lastProcessed++);
+        if (mine >= workItems.length) {
+          break;
+        }
+        workItems[mine].doWork(sendPort);
+        countProcessed++;
+        mutex.runLocked(() => SharedState.totalProcessed++);
+        await Future.delayed(Duration(seconds: 0));
+      }
+      print('worker $index processed $countProcessed items');
+    }, debugName: 'worker $index'),
+  );
   await Future.wait(list);
   rpResults.close();
   Expect.equals(results.keys.length, totalWorkItems);

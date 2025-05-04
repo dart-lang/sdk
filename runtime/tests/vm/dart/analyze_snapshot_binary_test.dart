@@ -15,12 +15,14 @@ import 'use_flag_test_helper.dart';
 // Used to ensure we don't have multiple equivalent calls to test.
 final _seenDescriptions = <String>{};
 
-Future<void> testAOT(String dillPath,
-    {bool useAsm = false,
-    bool forceDrops = false,
-    bool stripUtil = false, // Note: forced true if useAsm.
-    bool stripFlag = false,
-    bool disassemble = false}) async {
+Future<void> testAOT(
+  String dillPath, {
+  bool useAsm = false,
+  bool forceDrops = false,
+  bool stripUtil = false, // Note: forced true if useAsm.
+  bool stripFlag = false,
+  bool disassemble = false,
+}) async {
   if (const bool.fromEnvironment('dart.vm.product') && disassemble) {
     Expect.isFalse(disassemble, 'no use of disassembler in PRODUCT mode');
   }
@@ -51,11 +53,14 @@ Future<void> testAOT(String dillPath,
   }
 
   final description = descriptionBuilder.toString();
-  Expect.isTrue(_seenDescriptions.add(description),
-      "test configuration $description would be run multiple times");
+  Expect.isTrue(
+    _seenDescriptions.add(description),
+    "test configuration $description would be run multiple times",
+  );
 
-  await withTempDir('analyze_snapshot_binary-$description',
-      (String tempDir) async {
+  await withTempDir('analyze_snapshot_binary-$description', (
+    String tempDir,
+  ) async {
     // Generate the snapshot
     final snapshotPath = path.join(tempDir, 'test.snap');
     final commonSnapshotArgs = [
@@ -63,7 +68,7 @@ Future<void> testAOT(String dillPath,
       if (forceDrops) ...[
         '--dwarf-stack-traces',
         '--no-retain-function-objects',
-        '--no-retain-code-objects'
+        '--no-retain-code-objects',
       ],
       if (disassemble) '--disassemble', // Not defined in PRODUCT mode.
       dillPath,
@@ -100,11 +105,15 @@ Future<void> testAOT(String dillPath,
       final textSections = elf.namedSections(".text");
       Expect.isNotEmpty(textSections);
       Expect.isTrue(
-          textSections.length <= 2, "More text sections than expected");
+        textSections.length <= 2,
+        "More text sections than expected",
+      );
       final dataSections = elf.namedSections(".rodata");
       Expect.isNotEmpty(dataSections);
       Expect.isTrue(
-          dataSections.length <= 2, "More data sections than expected");
+        dataSections.length <= 2,
+        "More data sections than expected",
+      );
     }
 
     final analyzerOutputPath = path.join(tempDir, 'analyze_test.json');
@@ -118,11 +127,17 @@ Future<void> testAOT(String dillPath,
     final analyzerJsonBytes = await readFile(analyzerOutputPath);
     final analyzerJson = json.decode(analyzerJsonBytes);
     Expect.isFalse(analyzerJson.isEmpty);
-    Expect.isTrue(analyzerJson.keys
-        .toSet()
-        .containsAll(['snapshot_data', 'objects', 'metadata']));
+    Expect.isTrue(
+      analyzerJson.keys.toSet().containsAll([
+        'snapshot_data',
+        'objects',
+        'metadata',
+      ]),
+    );
 
-    final objects = (analyzerJson['objects'] as List).map((o) => o as Map).toList();
+    final objects = (analyzerJson['objects'] as List)
+        .map((o) => o as Map)
+        .toList();
     final classes = objects.where((o) => o['type'] == 'Class').toList();
     final classnames = <int, String>{};
     final superclass = <int, int>{};
@@ -138,51 +153,66 @@ Future<void> testAOT(String dillPath,
     }
 
     // Find MethodChannel class.
-    final methodChannelId =
-        classnames.entries.singleWhere((e) => e.value == 'MethodChannel').key;
+    final methodChannelId = classnames.entries
+        .singleWhere((e) => e.value == 'MethodChannel')
+        .key;
 
     // Find string instance.
     final stringList = objects
         .where((o) => o['type'] == 'String' && o['value'] == 'constChannel1')
         .toList();
-    Expect.isTrue(stringList.length == 1,
-        'one "constChannel1" string must exist in output');
+    Expect.isTrue(
+      stringList.length == 1,
+      'one "constChannel1" string must exist in output',
+    );
     final int stringObjId = stringList.first['id'];
 
     // Find MethodChannel instance.
     final instanceList = objects
-        .where((o) =>
-            o['type'] == 'Instance' &&
-            o['class'] == methodChannelId &&
-            o['references'].contains(stringObjId))
+        .where(
+          (o) =>
+              o['type'] == 'Instance' &&
+              o['class'] == methodChannelId &&
+              o['references'].contains(stringObjId),
+        )
         .toList();
     Expect.isTrue(instanceList.length == 1, '''one instance of MethodChannel
         with reference to "constChannel1" must exist in output''');
 
     // Test class hierarchy information
-    final myBaseClassId =
-        classnames.entries.singleWhere((e) => e.value == 'MyBase').key;
-    final mySubClassId =
-        classnames.entries.singleWhere((e) => e.value == 'MySub').key;
-    final myInterfaceClassId =
-        classnames.entries.singleWhere((e) => e.value == 'MyInterface').key;
+    final myBaseClassId = classnames.entries
+        .singleWhere((e) => e.value == 'MyBase')
+        .key;
+    final mySubClassId = classnames.entries
+        .singleWhere((e) => e.value == 'MySub')
+        .key;
+    final myInterfaceClassId = classnames.entries
+        .singleWhere((e) => e.value == 'MyInterface')
+        .key;
 
     Expect.equals(myBaseClassId, superclass[mySubClassId]);
-    Expect.equals(myInterfaceClassId, implementedInterfaces[mySubClassId]!.single);
+    Expect.equals(
+      myInterfaceClassId,
+      implementedInterfaces[mySubClassId]!.single,
+    );
 
-    Expect.isTrue(analyzerJson['metadata'].containsKey('analyzer_version'),
-        'snapshot analyzer version must be reported');
-    Expect.isTrue(analyzerJson['metadata']['analyzer_version'] == 2,
-        'invalid snapshot analyzer version');
-
+    Expect.isTrue(
+      analyzerJson['metadata'].containsKey('analyzer_version'),
+      'snapshot analyzer version must be reported',
+    );
+    Expect.isTrue(
+      analyzerJson['metadata']['analyzer_version'] == 2,
+      'invalid snapshot analyzer version',
+    );
   });
 }
 
 main() async {
-  void printSkip(String description) =>
-      print('Skipping $description for ${path.basename(buildDir)} '
-              'on ${Platform.operatingSystem}' +
-          (clangBuildToolsDir == null ? ' without //buildtools' : ''));
+  void printSkip(String description) => print(
+    'Skipping $description for ${path.basename(buildDir)} '
+            'on ${Platform.operatingSystem}' +
+        (clangBuildToolsDir == null ? ' without //buildtools' : ''),
+  );
 
   // We don't have access to the SDK on Android.
   if (Platform.isAndroid) {
@@ -192,8 +222,14 @@ main() async {
 
   await withTempDir('analyze_snapshot_binary', (String tempDir) async {
     // We only need to generate the dill file once for all JIT tests.
-    final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
-        'analyze_snapshot_program.dart');
+    final _thisTestPath = path.join(
+      sdkDir,
+      'runtime',
+      'tests',
+      'vm',
+      'dart',
+      'analyze_snapshot_program.dart',
+    );
 
     // We only need to generate the dill file once for all AOT tests.
     final aotDillPath = path.join(tempDir, 'aot_test.dill');
@@ -201,13 +237,15 @@ main() async {
       '--aot',
       '--platform',
       platformDill,
-      ...Platform.executableArguments.where((arg) =>
-          arg.startsWith('--enable-experiment=') ||
-          arg == '--sound-null-safety' ||
-          arg == '--no-sound-null-safety'),
+      ...Platform.executableArguments.where(
+        (arg) =>
+            arg.startsWith('--enable-experiment=') ||
+            arg == '--sound-null-safety' ||
+            arg == '--no-sound-null-safety',
+      ),
       '-o',
       aotDillPath,
-      _thisTestPath
+      _thisTestPath,
     ]);
 
     // Just as a reminder for AOT tests:
@@ -233,9 +271,7 @@ main() async {
     }
 
     // Test unstripped ELF generation that is then externally stripped.
-    await Future.wait([
-      testAOT(aotDillPath, stripUtil: true),
-    ]);
+    await Future.wait([testAOT(aotDillPath, stripUtil: true)]);
 
     // Dont test assembled snapshot for simulated platforms
     if (!buildDir.endsWith("SIMARM64") && !buildDir.endsWith("SIMARM64C")) {

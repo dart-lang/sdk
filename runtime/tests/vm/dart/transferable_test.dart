@@ -33,7 +33,8 @@ main() async {
   await runBatch(useTransferable: true);
   final transferable = stopwatch.elapsedMilliseconds;
   print(
-      'standard($standard ms)/transferable($transferable ms): ${standard / transferable}x');
+    'standard($standard ms)/transferable($transferable ms): ${standard / transferable}x',
+  );
   keepTimerRunning = false;
 }
 
@@ -55,8 +56,10 @@ runBatch({required bool useTransferable}) async {
   final port = ReceivePort();
   final inbox = StreamIterator<dynamic>(port);
   final worker = await Isolate.spawn(
-      isolateMain, StartMessage(port.sendPort, useTransferable),
-      paused: true);
+    isolateMain,
+    StartMessage(port.sendPort, useTransferable),
+    paused: true,
+  );
   final workerCompleted = Completer<bool>();
   final workerExitedPort = ReceivePort()
     ..listen((_) => workerCompleted.complete(true));

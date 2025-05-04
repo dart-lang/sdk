@@ -35,10 +35,12 @@ final bool kTrue = int.parse('1') == 1;
 main() {
   createFoo();
   final dbl = getDoubleWithHeapObjectTag();
-  Expect.equals(4.0,
-      bar(kTrue ? 1 : 2, kTrue ? 2 * dbl : 0.0, globalFoo, kTrue ? dbl : 1.0));
   Expect.equals(
-      3.0,
-      bar(kTrue ? 1 : 2, kTrue ? 2 * dbl : 0.0, globalFoo, kTrue ? dbl : 1.0,
-          0));
+    4.0,
+    bar(kTrue ? 1 : 2, kTrue ? 2 * dbl : 0.0, globalFoo, kTrue ? dbl : 1.0),
+  );
+  Expect.equals(
+    3.0,
+    bar(kTrue ? 1 : 2, kTrue ? 2 * dbl : 0.0, globalFoo, kTrue ? dbl : 1.0, 0),
+  );
 }

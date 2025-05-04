@@ -70,27 +70,29 @@ main() async {
   for (final pair in [
     [
       () => Fu.unsendable('fu'),
-      ["NativeClass", "Baz", "Fu"]
+      ["NativeClass", "Baz", "Fu"],
     ],
     [
       () => Future.value(123),
-      ["Future"]
+      ["Future"],
     ],
     [
       Locked.new,
-      ["Locked"]
+      ["Locked"],
     ],
     [
       ExtendsLocked.new,
-      ["ExtendsLocked"]
+      ["ExtendsLocked"],
     ],
     [
       ImplementsLocked.new,
-      ["ImplementsLocked"]
-    ]
+      ["ImplementsLocked"],
+    ],
   ]) {
-    Expect.throws(() => rp.sendPort.send((pair[0] as Function)()),
-        (e) => checkForRetainingPath(e, pair[1] as List<String>));
+    Expect.throws(
+      () => rp.sendPort.send((pair[0] as Function)()),
+      (e) => checkForRetainingPath(e, pair[1] as List<String>),
+    );
   }
 
   try {

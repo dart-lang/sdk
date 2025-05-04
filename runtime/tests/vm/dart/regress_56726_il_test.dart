@@ -52,11 +52,14 @@ void matchIL$useList(FlowGraph graph) {
             'a.length_unboxed' << match.UnboxInt64('a.length'),
           ],
           match.Branch(
-              match.RelationalOp(
-                  is32BitConfiguration ? 'i_32a' : 'i', 'a.length_unboxed',
-                  kind: '<'),
-              ifTrue: 'B3',
-              ifFalse: 'B4'),
+            match.RelationalOp(
+              is32BitConfiguration ? 'i_32a' : 'i',
+              'a.length_unboxed',
+              kind: '<',
+            ),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -64,12 +67,17 @@ void matchIL$useList(FlowGraph graph) {
           if (is32BitConfiguration)
             'i_boxed' << match.BoxInt64('i', skipUntilMatched: false),
           'a.data' <<
-              match.LoadField('a',
-                  slot: 'GrowableObjectArray.data', skipUntilMatched: false),
+              match.LoadField(
+                'a',
+                slot: 'GrowableObjectArray.data',
+                skipUntilMatched: false,
+              ),
           'value' <<
               match.LoadIndexed(
-                  'a.data', is32BitConfiguration ? 'i_boxed' : 'i',
-                  skipUntilMatched: false),
+                'a.data',
+                is32BitConfiguration ? 'i_boxed' : 'i',
+                skipUntilMatched: false,
+              ),
           'value_unboxed' << match.UnboxInt64('value'),
           match.StaticCall('value_unboxed'),
           if (is32BitConfiguration) ...[
@@ -81,9 +89,6 @@ void matchIL$useList(FlowGraph graph) {
           ],
           match.Goto('B5'),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn('c_null'),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn('c_null')]),
   ]);
 }

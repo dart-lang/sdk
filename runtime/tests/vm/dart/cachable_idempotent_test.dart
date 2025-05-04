@@ -86,8 +86,18 @@ void testManyArguments() {
 
 @pragma('vm:never-inline')
 @pragma('vm:cachable-idempotent')
-int manyArguments(int i1, int i2, int i3, int i4, int i5, int i6, int i7,
-    int i8, int i9, int i10) {
+int manyArguments(
+  int i1,
+  int i2,
+  int i3,
+  int i4,
+  int i5,
+  int i6,
+  int i7,
+  int i8,
+  int i9,
+  int i10,
+) {
   return i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9 + i10;
 }
 
@@ -147,30 +157,12 @@ bool is64bitsArch() => sizeOf<Pointer>() == 8;
 
 @pragma('vm:force-optimize')
 void testIntArguments() {
-  final result = lotsOfIntArguments(
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-  );
+  final result = lotsOfIntArguments(1, 2, 3, 4, 5, 6, 7, 8);
   Expect.equals(36, result);
 
   // Do a second call with different values to prevent the argument values
   // propagating to the function body in TFA.
-  final result2 = lotsOfIntArguments(
-    101,
-    102,
-    103,
-    104,
-    105,
-    106,
-    107,
-    108,
-  );
+  final result2 = lotsOfIntArguments(101, 102, 103, 104, 105, 106, 107, 108);
   Expect.equals(836, result2);
 }
 
@@ -192,16 +184,7 @@ int lotsOfIntArguments(
 
 @pragma('vm:force-optimize')
 void testDoubleArguments() {
-  final result = lotsOfDoubleArguments(
-    1.0,
-    2.0,
-    3.0,
-    4.0,
-    5.0,
-    6.0,
-    7.0,
-    8.0,
-  );
+  final result = lotsOfDoubleArguments(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
   Expect.equals(36, result);
 
   // Do a second call with different values to prevent the argument values

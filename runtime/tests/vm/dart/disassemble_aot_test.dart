@@ -59,11 +59,14 @@ Future<void> main(List<String> args) async {
       '--always_generate_trampolines_for_testing',
       '--snapshot-kind=app-aot-elf',
       '--elf=$elfFile',
-      scriptDill
+      scriptDill,
     ]);
 
     // Run the AOT runtime with the disassemble flags set.
-    await run(dartPrecompiledRuntime,
-        <String>['--disassemble', '--disassemble_stubs', elfFile]);
+    await run(dartPrecompiledRuntime, <String>[
+      '--disassemble',
+      '--disassemble_stubs',
+      elfFile,
+    ]);
   });
 }

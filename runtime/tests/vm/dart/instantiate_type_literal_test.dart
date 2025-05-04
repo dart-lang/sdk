@@ -46,7 +46,8 @@ String generateTable() {
   sb.writeln('T  with FutureOr<int>?  = $nonNullableTNullableFutureOrInt');
   sb.writeln('T  with FutureOr<int?>  = $nonNullableTFutureOrNullableInt');
   sb.writeln(
-      'T  with FutureOr<int?>? = $nonNullableTNullableFutureOrNullableInt');
+    'T  with FutureOr<int?>? = $nonNullableTNullableFutureOrNullableInt',
+  );
   sb.writeln('T? with FutureOr<int>   = $nullableTFutureOrInt');
   sb.writeln('T? with FutureOr<int>?  = $nullableTNullableFutureOrInt');
   sb.writeln('T? with FutureOr<int?>  = $nullableTFutureOrNullableInt');
@@ -54,7 +55,8 @@ String generateTable() {
   sb.writeln('');
   sb.writeln('T  with void (() => void)? = $nonNullableTNullableVoidFunction');
   sb.writeln(
-      'T  with void (() => void)  = $nonNullableTNonNullableVoidFunction');
+    'T  with void (() => void)  = $nonNullableTNonNullableVoidFunction',
+  );
   sb.writeln('T? with void (() => void)? = $nullableTNullableVoidFunction');
   sb.writeln('T? with void (() => void)  = $nullableTNonNullableVoidFunction');
   return '$sb';

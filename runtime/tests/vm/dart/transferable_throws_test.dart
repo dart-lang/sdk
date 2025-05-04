@@ -51,13 +51,16 @@ throwsIfReceiverMaterializesMoreThanOnce() async {
   final completer = Completer<List>();
   final isolateErrors = ReceivePort()..listen((e) => completer.complete(e));
   await Isolate.spawn(
-      receiver, TransferableTypedData.fromList([Uint8List(1024)]),
-      onError: isolateErrors.sendPort);
+    receiver,
+    TransferableTypedData.fromList([Uint8List(1024)]),
+    onError: isolateErrors.sendPort,
+  );
   final error = await completer.future;
   Expect.equals(
-      error[0],
-      "Invalid argument(s): Attempt to materialize object that was"
-      " transferred already.");
+    error[0],
+    "Invalid argument(s): Attempt to materialize object that was"
+    " transferred already.",
+  );
   isolateErrors.close();
 }
 
@@ -78,7 +81,8 @@ throwsIfCumulativeListIsTooLargeOn32bitPlatform() {
 
   var halfmax = new Uint8List(pow(2, 29) - 1 as int);
   Expect.throwsArgumentError(
-      () => TransferableTypedData.fromList([halfmax, halfmax, Uint8List(2)]));
+    () => TransferableTypedData.fromList([halfmax, halfmax, Uint8List(2)]),
+  );
 }
 
 class MyList<T> extends ListBase<T> {
@@ -102,5 +106,6 @@ main() async {
   Expect.throwsTypeError(() => TransferableTypedData.fromList(myNull));
   Expect.throwsTypeError(() => TransferableTypedData.fromList([myNull]));
   Expect.throwsTypeError(
-      () => TransferableTypedData.fromList(MyList<Uint8List>()));
+    () => TransferableTypedData.fromList(MyList<Uint8List>()),
+  );
 }

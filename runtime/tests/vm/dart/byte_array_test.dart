@@ -16,56 +16,86 @@ class ByteArrayTest {
     Expect.equals(1, array.elementSizeInBytes);
     Expect.equals(10, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -81,13 +111,33 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0x7F - i;
     }
-    Expect.listEquals(
-        [127, 126, 125, 124, 123, 122, 121, 120, 119, 118], array);
+    Expect.listEquals([
+      127,
+      126,
+      125,
+      124,
+      123,
+      122,
+      121,
+      120,
+      119,
+      118,
+    ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -0x80 + i;
     }
-    Expect.listEquals(
-        [-128, -127, -126, -125, -124, -123, -122, -121, -120, -119], array);
+    Expect.listEquals([
+      -128,
+      -127,
+      -126,
+      -125,
+      -124,
+      -123,
+      -122,
+      -121,
+      -120,
+      -119,
+    ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
     }
@@ -110,11 +160,14 @@ class ByteArrayTest {
   }
 
   static testInt8List() {
-    Expect.throws(() {
-      new Int8List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Int8List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Int8List(10);
     testInt8ListImpl(array);
   }
@@ -125,56 +178,86 @@ class ByteArrayTest {
     Expect.equals(1, array.elementSizeInBytes);
     Expect.equals(10, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -186,8 +269,18 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF - i;
     }
-    Expect.listEquals(
-        [0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0xF9, 0xF8, 0xF7, 0xF6], array);
+    Expect.listEquals([
+      0xFF,
+      0xFE,
+      0xFD,
+      0xFC,
+      0xFB,
+      0xFA,
+      0xF9,
+      0xF8,
+      0xF7,
+      0xF6,
+    ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
     }
@@ -210,11 +303,14 @@ class ByteArrayTest {
   }
 
   static testUint8List() {
-    Expect.throws(() {
-      new Uint8List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Uint8List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Uint8List(10);
     testUint8ListImpl(array);
   }
@@ -225,56 +321,86 @@ class ByteArrayTest {
     Expect.equals(1, array.elementSizeInBytes);
     Expect.equals(10, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1 + i;
     }
@@ -282,13 +408,33 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0x100 + i;
     }
-    Expect.listEquals(
-        [255, 255, 255, 255, 255, 255, 255, 255, 255, 255], array);
+    Expect.listEquals([
+      255,
+      255,
+      255,
+      255,
+      255,
+      255,
+      255,
+      255,
+      255,
+      255,
+    ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF - i;
     }
-    Expect.listEquals(
-        [0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0xF9, 0xF8, 0xF7, 0xF6], array);
+    Expect.listEquals([
+      0xFF,
+      0xFE,
+      0xFD,
+      0xFC,
+      0xFB,
+      0xFA,
+      0xF9,
+      0xF8,
+      0xF7,
+      0xF6,
+    ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
     }
@@ -311,11 +457,14 @@ class ByteArrayTest {
   }
 
   static testUint8ClampedList() {
-    Expect.throws(() {
-      new Uint8ClampedList(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Uint8ClampedList(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Uint8ClampedList(10);
     testUint8ClampedListImpl(array);
   }
@@ -326,56 +475,86 @@ class ByteArrayTest {
     Expect.equals(2, array.elementSizeInBytes);
     Expect.equals(20, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -401,7 +580,7 @@ class ByteArrayTest {
       0x7FF9,
       0x7FF8,
       0x7FF7,
-      0x7FF6
+      0x7FF6,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -0x8000 + i;
@@ -416,7 +595,7 @@ class ByteArrayTest {
       -0x7FFA,
       -0x7FF9,
       -0x7FF8,
-      -0x7FF7
+      -0x7FF7,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
@@ -440,11 +619,14 @@ class ByteArrayTest {
   }
 
   static testInt16List() {
-    Expect.throws(() {
-      new Int16List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Int16List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Int16List(10);
     testInt16ListImpl(array);
   }
@@ -455,56 +637,86 @@ class ByteArrayTest {
     Expect.equals(2, array.elementSizeInBytes);
     Expect.equals(20, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -526,7 +738,7 @@ class ByteArrayTest {
       0xFFF9,
       0xFFF8,
       0xFFF7,
-      0xFFF6
+      0xFFF6,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
@@ -550,11 +762,14 @@ class ByteArrayTest {
   }
 
   static testUint16List() {
-    Expect.throws(() {
-      new Uint16List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Uint16List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Uint16List(10);
     testUint16ListImpl(array);
   }
@@ -565,56 +780,86 @@ class ByteArrayTest {
     Expect.equals(4, array.elementSizeInBytes);
     Expect.equals(40, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -640,7 +885,7 @@ class ByteArrayTest {
       0x7FFFFFF9,
       0x7FFFFFF8,
       0x7FFFFFF7,
-      0x7FFFFFF6
+      0x7FFFFFF6,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -0x80000000 + i;
@@ -655,7 +900,7 @@ class ByteArrayTest {
       -0x7FFFFFFA,
       -0x7FFFFFF9,
       -0x7FFFFFF8,
-      -0x7FFFFFF7
+      -0x7FFFFFF7,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
@@ -679,11 +924,14 @@ class ByteArrayTest {
   }
 
   static testInt32List() {
-    Expect.throws(() {
-      new Int32List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Int32List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Int32List(10);
     testInt32ListImpl(array);
   }
@@ -694,56 +942,86 @@ class ByteArrayTest {
     Expect.equals(4, array.elementSizeInBytes);
     Expect.equals(40, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -765,7 +1043,7 @@ class ByteArrayTest {
       0xFFFFFFF9,
       0xFFFFFFF8,
       0xFFFFFFF7,
-      0xFFFFFFF6
+      0xFFFFFFF6,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
@@ -789,16 +1067,22 @@ class ByteArrayTest {
   }
 
   static testUint32List() {
-    Expect.throws(() {
-      new Uint32List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
-    Expect.throws(() {
-      new Uint32List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Uint32List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint32List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Uint32List(10);
     testUint32ListImpl(array);
   }
@@ -809,56 +1093,86 @@ class ByteArrayTest {
     Expect.equals(8, array.elementSizeInBytes);
     Expect.equals(80, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -880,7 +1194,7 @@ class ByteArrayTest {
       0x7FFFFFFFFFFFFFF9,
       0x7FFFFFFFFFFFFFF8,
       0x7FFFFFFFFFFFFFF7,
-      0x7FFFFFFFFFFFFFF6
+      0x7FFFFFFFFFFFFFF6,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -0x8000000000000000 + i;
@@ -895,7 +1209,7 @@ class ByteArrayTest {
       -0x7FFFFFFFFFFFFFFA,
       -0x7FFFFFFFFFFFFFF9,
       -0x7FFFFFFFFFFFFFF8,
-      -0x7FFFFFFFFFFFFFF7
+      -0x7FFFFFFFFFFFFFF7,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
@@ -915,17 +1229,29 @@ class ByteArrayTest {
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
     array.setRange(3, 7, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
-    Expect.listEquals(
-        [0, 1, 2, -0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF, 7, 8, 9],
-        array);
+    Expect.listEquals([
+      0,
+      1,
+      2,
+      -0x8000000000000000,
+      0,
+      1,
+      0x7FFFFFFFFFFFFFFF,
+      7,
+      8,
+      9,
+    ], array);
   }
 
   static testInt64List() {
-    Expect.throws(() {
-      new Int64List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Int64List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Int64List(10);
     testInt64ListImpl(array);
   }
@@ -936,56 +1262,86 @@ class ByteArrayTest {
     Expect.equals(8, array.elementSizeInBytes);
     Expect.equals(80, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array);
-    Expect.throws(() {
-      array[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        array[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -1003,7 +1359,7 @@ class ByteArrayTest {
       0xFFFFFFFFFFFFFFF9,
       0xFFFFFFFFFFFFFFF8,
       0xFFFFFFFFFFFFFFF7,
-      0xFFFFFFFFFFFFFFF6
+      0xFFFFFFFFFFFFFFF6,
     ], array);
     for (int i = 0; i < array.length; ++i) {
       array[i] = i;
@@ -1023,17 +1379,29 @@ class ByteArrayTest {
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
     array.setRange(3, 7, [-0x8000000000000000, 0, 1, 0xFFFFFFFFFFFFFFFF]);
-    Expect.listEquals(
-        [0, 1, 2, -0x8000000000000000, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
-        array);
+    Expect.listEquals([
+      0,
+      1,
+      2,
+      -0x8000000000000000,
+      0,
+      1,
+      0xFFFFFFFFFFFFFFFF,
+      7,
+      8,
+      9,
+    ], array);
   }
 
   static testUint64List() {
-    Expect.throws(() {
-      new Uint64List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Uint64List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Uint64List(10);
     testUint64ListImpl(array);
   }
@@ -1043,63 +1411,113 @@ class ByteArrayTest {
     Expect.equals(10, array.length);
     Expect.equals(4, array.elementSizeInBytes);
     Expect.equals(40, array.lengthInBytes);
-    Expect.listEquals(
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], array);
-    Expect.throws(() {
-      array[-1] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0.0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0.0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.listEquals([
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+    ], array);
+    Expect.throws(
+      () {
+        array[-1] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0.0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0.0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1.0 + i;
     }
-    Expect.listEquals(
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], array);
+    Expect.listEquals([
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+    ], array);
     // TODO: min, max, and round
     for (int i = 0; i < array.length; ++i) {
       array[i] = i * 1.0;
@@ -1129,16 +1547,19 @@ class ByteArrayTest {
       double.infinity,
       7.0,
       8.0,
-      9.0
+      9.0,
     ], array);
   }
 
   static testFloat32List() {
-    Expect.throws(() {
-      new Float32List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Float32List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Float32List(10);
     testFloat32ListImpl(array);
   }
@@ -1148,63 +1569,113 @@ class ByteArrayTest {
     Expect.equals(10, array.length);
     Expect.equals(8, array.elementSizeInBytes);
     Expect.equals(80, array.lengthInBytes);
-    Expect.listEquals(
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], array);
-    Expect.throws(() {
-      array[-1] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array[10] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      array.add(0.0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.addAll([0.0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      array.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.listEquals([
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+    ], array);
+    Expect.throws(
+      () {
+        array[-1] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array[10] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.add(0.0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.addAll([0.0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        array.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1.0 + i;
     }
-    Expect.listEquals(
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], array);
+    Expect.listEquals([
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+    ], array);
     // TODO: min, max
     for (int i = 0; i < array.length; ++i) {
       array[i] = i * 1.0;
@@ -1234,16 +1705,19 @@ class ByteArrayTest {
       double.infinity,
       7.0,
       8.0,
-      9.0
+      9.0,
     ], array);
   }
 
   static testFloat64List() {
-    Expect.throws(() {
-      new Float64List(-1);
-    }, (e) {
-      return e is ArgumentError;
-    });
+    Expect.throws(
+      () {
+        new Float64List(-1);
+      },
+      (e) {
+        return e is ArgumentError;
+      },
+    );
     var array = new Float64List(10);
     testFloat64ListImpl(array);
   }
@@ -1254,206 +1728,326 @@ class ByteArrayTest {
     Expect.equals(8, array.lengthInBytes);
     var byte_array = new ByteData.view(array.buffer);
     Expect.equals(8, byte_array.lengthInBytes);
-    Expect.throws(() {
-      byte_array.getInt8(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint8(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getInt16(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint16(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getInt32(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint32(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getInt64(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint64(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getFloat32(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getFloat64(-1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt8(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint8(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt16(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint16(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt32(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint32(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt64(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint64(-1, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setFloat32(-1, 0.0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setFloat64(-1, 0.0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getInt8(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint8(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getInt16(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint16(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getInt32(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint32(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getInt64(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getUint64(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getFloat32(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.getFloat64(8);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt8(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint8(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt16(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint16(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt32(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint32(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setInt64(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setUint64(8, 0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setFloat32(8, 0.0);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      byte_array.setFloat64(8, 0.0);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        byte_array.getInt8(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint8(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getInt16(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint16(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getInt32(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint32(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getInt64(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint64(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getFloat32(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getFloat64(-1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt8(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint8(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt16(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint16(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt32(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint32(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt64(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint64(-1, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setFloat32(-1, 0.0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setFloat64(-1, 0.0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getInt8(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint8(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getInt16(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint16(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getInt32(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint32(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getInt64(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getUint64(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getFloat32(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.getFloat64(8);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt8(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint8(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt16(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint16(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt32(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint32(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setInt64(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setUint64(8, 0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setFloat32(8, 0.0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        byte_array.setFloat64(8, 0.0);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     Expect.equals(0, byte_array.getInt8(0));
     Expect.equals(0, byte_array.getUint8(0));
     Expect.equals(0, byte_array.getInt16(0));
@@ -1520,31 +2114,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() {
-      new Int8List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int8List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int8List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int8List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int8List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Int8List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int8List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int8List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int8List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int8List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Int8List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int8List);
@@ -1560,56 +2169,86 @@ class ByteArrayTest {
     Expect.equals(1, view.elementSizeInBytes);
     Expect.equals(10, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1, -1, -1], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1636,19 +2275,41 @@ class ByteArrayTest {
       0xFD,
       0xFE,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x7F - i;
     }
     Expect.listEquals([127, 126, 125, 124, 123, 122, 121, 120, 119, 118], view);
-    Expect.listEquals(
-        [0xFF, 127, 126, 125, 124, 123, 122, 121, 120, 119, 118, 0xFF], array);
+    Expect.listEquals([
+      0xFF,
+      127,
+      126,
+      125,
+      124,
+      123,
+      122,
+      121,
+      120,
+      119,
+      118,
+      0xFF,
+    ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = -0x80 + i;
     }
-    Expect.listEquals(
-        [-128, -127, -126, -125, -124, -123, -122, -121, -120, -119], view);
+    Expect.listEquals([
+      -128,
+      -127,
+      -126,
+      -125,
+      -124,
+      -123,
+      -122,
+      -121,
+      -120,
+      -119,
+    ], view);
     Expect.listEquals([
       0xFF,
       0x80,
@@ -1661,7 +2322,7 @@ class ByteArrayTest {
       0x87,
       0x88,
       0x89,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -1693,31 +2354,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() {
-      new Uint8List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint8List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint8List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint8List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint8List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Uint8List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint8List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint8List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint8List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint8List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Uint8List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint8List);
@@ -1732,58 +2408,98 @@ class ByteArrayTest {
     Expect.equals(10, view.length);
     Expect.equals(1, view.elementSizeInBytes);
     Expect.equals(10, view.lengthInBytes);
-    Expect.listEquals(
-        [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.listEquals([
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+    ], view);
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1797,8 +2513,18 @@ class ByteArrayTest {
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0xFF - i;
     }
-    Expect.listEquals(
-        [0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0xF9, 0xF8, 0xF7, 0xF6], view);
+    Expect.listEquals([
+      0xFF,
+      0xFE,
+      0xFD,
+      0xFC,
+      0xFB,
+      0xFA,
+      0xF9,
+      0xF8,
+      0xF7,
+      0xF6,
+    ], view);
     Expect.listEquals([-1, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -1], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -1828,31 +2554,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() {
-      new Int16List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int16List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int16List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int16List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int16List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Int16List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int16List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int16List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int16List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int16List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Int16List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int16List);
@@ -1868,56 +2609,86 @@ class ByteArrayTest {
     Expect.equals(2, view.elementSizeInBytes);
     Expect.equals(20, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1, -1, -1], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1946,7 +2717,7 @@ class ByteArrayTest {
       0x0A,
       0x00,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x10000 + i;
@@ -1976,7 +2747,7 @@ class ByteArrayTest {
       0x09,
       0x00,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = -10 + i;
@@ -2006,7 +2777,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x7FFF - i;
@@ -2021,7 +2792,7 @@ class ByteArrayTest {
       0x7FF9,
       0x7FF8,
       0x7FF7,
-      0x7FF6
+      0x7FF6,
     ], view);
     Expect.listEquals([
       0xFF,
@@ -2047,7 +2818,7 @@ class ByteArrayTest {
       0xF6,
       0x7F,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = -0x8000 + i;
@@ -2062,7 +2833,7 @@ class ByteArrayTest {
       -0x7FFA,
       -0x7FF9,
       -0x7FF8,
-      -0x7FF7
+      -0x7FF7,
     ], view);
     Expect.listEquals([
       0xFF,
@@ -2088,7 +2859,7 @@ class ByteArrayTest {
       0x09,
       0x80,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -2128,7 +2899,7 @@ class ByteArrayTest {
       0x09,
       0x00,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
   }
 
@@ -2145,31 +2916,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() {
-      new Uint16List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint16List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint16List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint16List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint16List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Uint16List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint16List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint16List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint16List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint16List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Uint16List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint16List);
@@ -2194,58 +2980,88 @@ class ByteArrayTest {
       0xFFFF,
       0xFFFF,
       0xFFFF,
-      0xFFFF
+      0xFFFF,
     ], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -2274,7 +3090,7 @@ class ByteArrayTest {
       10,
       0,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x10000 + i;
@@ -2304,7 +3120,7 @@ class ByteArrayTest {
       9,
       0,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0xFFFF - i;
@@ -2319,7 +3135,7 @@ class ByteArrayTest {
       0xFFF9,
       0xFFF8,
       0xFFF7,
-      0xFFF6
+      0xFFF6,
     ], view);
     Expect.listEquals([
       -1,
@@ -2345,7 +3161,7 @@ class ByteArrayTest {
       -10,
       -1,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -2385,7 +3201,7 @@ class ByteArrayTest {
       9,
       0,
       -1,
-      -1
+      -1,
     ], array);
   }
 
@@ -2402,31 +3218,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() {
-      new Int32List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int32List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int32List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int32List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int32List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Int32List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int32List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int32List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int32List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int32List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Int32List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int32List);
@@ -2442,56 +3273,86 @@ class ByteArrayTest {
     Expect.equals(4, view.elementSizeInBytes);
     Expect.equals(40, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1, -1, -1], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -2544,7 +3405,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x100000000 + i;
@@ -2598,7 +3459,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = -10 + i;
@@ -2652,7 +3513,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x7FFFFFFF - i;
@@ -2667,7 +3528,7 @@ class ByteArrayTest {
       0x7FFFFFF9,
       0x7FFFFFF8,
       0x7FFFFFF7,
-      0x7FFFFFF6
+      0x7FFFFFF6,
     ], view);
     Expect.listEquals([
       0xFF,
@@ -2717,7 +3578,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = -0x80000000 + i;
@@ -2732,7 +3593,7 @@ class ByteArrayTest {
       -0x7FFFFFFA,
       -0x7FFFFFF9,
       -0x7FFFFFF8,
-      -0x7FFFFFF7
+      -0x7FFFFFF7,
     ], view);
     Expect.listEquals([
       0xFF,
@@ -2782,7 +3643,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -2846,7 +3707,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
   }
 
@@ -2858,31 +3719,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() {
-      new Uint32List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint32List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint32List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint32List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint32List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Uint32List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint32List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint32List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint32List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint32List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Uint32List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint32List);
@@ -2907,58 +3783,88 @@ class ByteArrayTest {
       0xFFFFFFFF,
       0xFFFFFFFF,
       0xFFFFFFFF,
-      0xFFFFFFFF
+      0xFFFFFFFF,
     ], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -3011,7 +3917,7 @@ class ByteArrayTest {
       -1,
       -1,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x100000000 + i;
@@ -3065,7 +3971,7 @@ class ByteArrayTest {
       -1,
       -1,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0xFFFFFFFF - i;
@@ -3080,7 +3986,7 @@ class ByteArrayTest {
       0xFFFFFFF9,
       0xFFFFFFF8,
       0xFFFFFFF7,
-      0xFFFFFFF6
+      0xFFFFFFF6,
     ], view);
     Expect.listEquals([
       -1,
@@ -3130,7 +4036,7 @@ class ByteArrayTest {
       -1,
       -1,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -3194,7 +4100,7 @@ class ByteArrayTest {
       -1,
       -1,
       -1,
-      -1
+      -1,
     ], array);
   }
 
@@ -3210,31 +4116,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() {
-      new Int64List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int64List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int64List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int64List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Int64List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Int64List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int64List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int64List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int64List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Int64List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Int64List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int64List);
@@ -3250,56 +4171,86 @@ class ByteArrayTest {
     Expect.equals(8, view.elementSizeInBytes);
     Expect.equals(80, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1, -1, -1], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -3400,7 +4351,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = -10 + i;
@@ -3502,7 +4453,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0x7FFFFFFFFFFFFFFF - i;
@@ -3517,7 +4468,7 @@ class ByteArrayTest {
       0x7FFFFFFFFFFFFFF9,
       0x7FFFFFFFFFFFFFF8,
       0x7FFFFFFFFFFFFFF7,
-      0x7FFFFFFFFFFFFFF6
+      0x7FFFFFFFFFFFFFF6,
     ], view);
     Expect.listEquals([
       0xFF,
@@ -3615,7 +4566,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = -0x8000000000000000 + i;
@@ -3630,7 +4581,7 @@ class ByteArrayTest {
       -0x7FFFFFFFFFFFFFFA,
       -0x7FFFFFFFFFFFFFF9,
       -0x7FFFFFFFFFFFFFF8,
-      -0x7FFFFFFFFFFFFFF7
+      -0x7FFFFFFFFFFFFFF7,
     ], view);
     Expect.listEquals([
       0xFF,
@@ -3728,7 +4679,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -3743,9 +4694,18 @@ class ByteArrayTest {
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
     view.setRange(3, 7, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
-    Expect.listEquals(
-        [0, 1, 2, -0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF, 7, 8, 9],
-        view);
+    Expect.listEquals([
+      0,
+      1,
+      2,
+      -0x8000000000000000,
+      0,
+      1,
+      0x7FFFFFFFFFFFFFFF,
+      7,
+      8,
+      9,
+    ], view);
     Expect.listEquals([
       0xFF,
       0xFF,
@@ -3842,7 +4802,7 @@ class ByteArrayTest {
       0xFF,
       0xFF,
       0xFF,
-      0xFF
+      0xFF,
     ], array);
   }
 
@@ -3859,31 +4819,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() {
-      new Uint64List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint64List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint64List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint64List.view(array.buffer, 0, array.length + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Uint64List.view(array.buffer, array.length - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Uint64List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint64List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint64List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint64List.view(array.buffer, 0, array.length + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Uint64List.view(array.buffer, array.length - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Uint64List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint64List);
@@ -3908,58 +4883,88 @@ class ByteArrayTest {
       0xFFFFFFFFFFFFFFFF,
       0xFFFFFFFFFFFFFFFF,
       0xFFFFFFFFFFFFFFFF,
-      0xFFFFFFFFFFFFFFFF
+      0xFFFFFFFFFFFFFFFF,
     ], view);
-    Expect.throws(() {
-      view[-1] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[view.length] = 0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, view.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.throws(
+      () {
+        view[-1] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[view.length] = 0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, view.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -4060,7 +5065,7 @@ class ByteArrayTest {
       -1,
       -1,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = 0xFFFFFFFFFFFFFFFF - i;
@@ -4075,7 +5080,7 @@ class ByteArrayTest {
       0xFFFFFFFFFFFFFFF9,
       0xFFFFFFFFFFFFFFF8,
       0xFFFFFFFFFFFFFFF7,
-      0xFFFFFFFFFFFFFFF6
+      0xFFFFFFFFFFFFFFF6,
     ], view);
     Expect.listEquals([
       -1,
@@ -4173,7 +5178,7 @@ class ByteArrayTest {
       -1,
       -1,
       -1,
-      -1
+      -1,
     ], array);
     for (int i = 0; i < view.length; ++i) {
       view[i] = i;
@@ -4188,8 +5193,18 @@ class ByteArrayTest {
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
     view.setRange(3, 7, [0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
-    Expect.listEquals(
-        [0, 1, 2, 0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9], view);
+    Expect.listEquals([
+      0,
+      1,
+      2,
+      0x8000000000000001,
+      0,
+      1,
+      0xFFFFFFFFFFFFFFFF,
+      7,
+      8,
+      9,
+    ], view);
     Expect.listEquals([
       -1,
       -1,
@@ -4286,7 +5301,7 @@ class ByteArrayTest {
       -1,
       -1,
       -1,
-      -1
+      -1,
     ], array);
   }
 
@@ -4303,31 +5318,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xBF800000;
     }
-    Expect.throws(() {
-      new Float32List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float32List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float32List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float32List.view(array.buffer, 0, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float32List.view(array.buffer, array.lengthInBytes - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Float32List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float32List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float32List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float32List.view(array.buffer, 0, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float32List.view(array.buffer, array.lengthInBytes - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Float32List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<double>);
     Expect.isTrue(empty is Float32List);
@@ -4342,63 +5372,113 @@ class ByteArrayTest {
     Expect.equals(10, view.length);
     Expect.equals(4, view.elementSizeInBytes);
     Expect.equals(40, view.lengthInBytes);
-    Expect.listEquals(
-        [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0], view);
-    Expect.throws(() {
-      view[-1] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0.0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0.0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.listEquals([
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+    ], view);
+    Expect.throws(
+      () {
+        view[-1] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0.0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0.0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1.0 + i;
     }
-    Expect.listEquals(
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], view);
+    Expect.listEquals([
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+    ], view);
     Expect.listEquals([
       0xBF800000,
       0x3F800000,
@@ -4411,7 +5491,7 @@ class ByteArrayTest {
       0x41000000,
       0x41100000,
       0x41200000,
-      0xBF800000
+      0xBF800000,
     ], array);
     // TODO: min, max, and round
     for (int i = 0; i < view.length; ++i) {
@@ -4437,7 +5517,7 @@ class ByteArrayTest {
       double.infinity,
       7.0,
       8.0,
-      9.0
+      9.0,
     ], view);
     Expect.listEquals([
       0xBF800000,
@@ -4451,7 +5531,7 @@ class ByteArrayTest {
       0x40E00000,
       0x41000000,
       0x41100000,
-      0xBF800000
+      0xBF800000,
     ], array);
   }
 
@@ -4468,31 +5548,46 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xBFF0000000000000;
     }
-    Expect.throws(() {
-      new Float64List.view(array.buffer, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float64List.view(array.buffer, 0, -1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float64List.view(array.buffer, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float64List.view(array.buffer, 0, array.lengthInBytes + 1);
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      new Float64List.view(array.buffer, array.lengthInBytes - 1, 2);
-    }, (e) {
-      return e is RangeError;
-    });
+    Expect.throws(
+      () {
+        new Float64List.view(array.buffer, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float64List.view(array.buffer, 0, -1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float64List.view(array.buffer, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float64List.view(array.buffer, 0, array.lengthInBytes + 1);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        new Float64List.view(array.buffer, array.lengthInBytes - 1, 2);
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
     var empty = new Float64List.view(array.buffer, array.lengthInBytes);
     Expect.isTrue(empty is List<double>);
     Expect.isTrue(empty is Float64List);
@@ -4507,63 +5602,113 @@ class ByteArrayTest {
     Expect.equals(10, view.length);
     Expect.equals(8, view.elementSizeInBytes);
     Expect.equals(80, view.lengthInBytes);
-    Expect.listEquals(
-        [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0], view);
-    Expect.throws(() {
-      view[-1] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[-1];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10];
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view[10] = 0.0;
-    }, (e) {
-      return e is RangeError;
-    });
-    Expect.throws(() {
-      view.add(0.0);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.addAll([0.0]);
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.clear();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.length = 0;
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeLast();
-    }, (e) {
-      return e is UnsupportedError;
-    });
-    Expect.throws(() {
-      view.removeRange(0, array.length - 1);
-    }, (e) {
-      return e is UnsupportedError;
-    });
+    Expect.listEquals([
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+    ], view);
+    Expect.throws(
+      () {
+        view[-1] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[-1];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10];
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view[10] = 0.0;
+      },
+      (e) {
+        return e is RangeError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.add(0.0);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.addAll([0.0]);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.clear();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.length = 0;
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeLast();
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
+    Expect.throws(
+      () {
+        view.removeRange(0, array.length - 1);
+      },
+      (e) {
+        return e is UnsupportedError;
+      },
+    );
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1.0 + i;
     }
-    Expect.listEquals(
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], view);
+    Expect.listEquals([
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+    ], view);
     Expect.listEquals([
       0xBFF0000000000000,
       0x3FF0000000000000,
@@ -4576,7 +5721,7 @@ class ByteArrayTest {
       0x4020000000000000,
       0x4022000000000000,
       0x4024000000000000,
-      0xBFF0000000000000
+      0xBFF0000000000000,
     ], array);
     // TODO: min, max
     for (int i = 0; i < view.length; ++i) {
@@ -4602,7 +5747,7 @@ class ByteArrayTest {
       double.infinity,
       7.0,
       8.0,
-      9.0
+      9.0,
     ], view);
     Expect.listEquals([
       0xBFF0000000000000,
@@ -4616,7 +5761,7 @@ class ByteArrayTest {
       0x401C000000000000,
       0x4020000000000000,
       0x4022000000000000,
-      0xBFF0000000000000
+      0xBFF0000000000000,
     ], array);
   }
 

@@ -115,6 +115,6 @@ final currentExpectations = [
 #0    main.<anonymous closure> (%test%)
 #1    invisibleClosure (%test%)
 #2    main (%test%)
-<asynchronous suspension>"""
+<asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END

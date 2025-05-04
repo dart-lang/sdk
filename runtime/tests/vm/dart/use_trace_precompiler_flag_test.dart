@@ -38,8 +38,10 @@ main(List<String> args) async {
   await withTempDir('trace-precompiler-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
     // We can just reuse the program for the use_save_debugging_info_flag test.
-    final script =
-        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
+    final script = path.join(
+      cwDir,
+      'use_save_debugging_info_flag_program.dart',
+    );
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.
@@ -55,7 +57,7 @@ main(List<String> args) async {
     // following flags that affect object retention:
     final retentionFlags = [
       'retain-function-objects',
-      'dwarf-stack-traces-mode'
+      'dwarf-stack-traces-mode',
     ];
 
     for (var i = 0; i < 1 << retentionFlags.length; i++) {
@@ -74,7 +76,10 @@ main(List<String> args) async {
 }
 
 Future<void> testTracePrecompiler(
-    String tempDir, String scriptDill, List<String> flags) async {
+  String tempDir,
+  String scriptDill,
+  List<String> flags,
+) async {
   final reasonsFile = path.join(tempDir, 'reasons.json');
   final snapshot = path.join(tempDir, 'snapshot.so');
   await run(genSnapshot, <String>[
@@ -88,8 +93,10 @@ Future<void> testTracePrecompiler(
   final stream = Stream.fromFuture(File(reasonsFile).readAsString());
   final decisionsJson = await json.decoder.bind(stream).first;
   Expect.isTrue(decisionsJson is List, 'not a list of decisions');
-  Expect.isTrue((decisionsJson as List).every((o) => o is Map),
-      'not a list of decision objects');
+  Expect.isTrue(
+    (decisionsJson as List).every((o) => o is Map),
+    'not a list of decision objects',
+  );
   final decisions = (decisionsJson as List).map((o) => o as Map);
   for (final m in decisions) {
     Expect.isTrue(m.containsKey("name"), 'no name field in decision');

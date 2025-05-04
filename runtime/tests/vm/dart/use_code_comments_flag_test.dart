@@ -38,8 +38,10 @@ main(List<String> args) async {
 
     // Run the AOT compiler with/without code comments.
     final scriptCommentedSnapshot = path.join(tempDir, 'comments.snapshot');
-    final scriptUncommentedSnapshot =
-        path.join(tempDir, 'no_comments.snapshot');
+    final scriptUncommentedSnapshot = path.join(
+      tempDir,
+      'no_comments.snapshot',
+    );
     await Future.wait(<Future>[
       run(genSnapshot, <String>[
         '--code-comments',

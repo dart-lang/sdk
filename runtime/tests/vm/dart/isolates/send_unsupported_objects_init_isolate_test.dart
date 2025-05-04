@@ -23,27 +23,34 @@ main() async {
         final foo2 = Foo();
         await () async {
           final foo3 = Foo();
-          await Isolate.spawn((arg) {
-            arg();
-          }, () {
-            print('${fu.label} $foo1 $foo2 $foo3');
-            Expect.fail('This closure should fail to be sent, '
-                'shouldn\'t be called');
-          });
+          await Isolate.spawn(
+            (arg) {
+              arg();
+            },
+            () {
+              print('${fu.label} $foo1 $foo2 $foo3');
+              Expect.fail(
+                'This closure should fail to be sent, '
+                'shouldn\'t be called',
+              );
+            },
+          );
         }();
       }();
     }();
   } catch (e) {
-    Expect.isTrue(checkForRetainingPath(e, <String>[
-      'Baz',
-      'Fu',
-      if (isAOTRuntime) ...[
-        'Context',
-        'main.<anonymous closure>'
-      ] else ...[
-        'field fu in main.<anonymous closure>'
-      ],
-    ]));
+    Expect.isTrue(
+      checkForRetainingPath(e, <String>[
+        'Baz',
+        'Fu',
+        if (isAOTRuntime) ...[
+          'Context',
+          'main.<anonymous closure>',
+        ] else ...[
+          'field fu in main.<anonymous closure>',
+        ],
+      ]),
+    );
     asyncEnd();
   }
 }

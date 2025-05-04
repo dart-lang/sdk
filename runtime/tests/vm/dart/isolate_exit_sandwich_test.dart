@@ -16,15 +16,17 @@ import '../../../../tests/ffi/dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific('ffi_test_functions');
 
-final lookupAndCallWorkerThatCallsIsolateExit =
-    ffiTestFunctions.lookupFunction<Void Function(Int64), void Function(int)>(
-        'IsolateExitTest_LookupAndCallIsolateExit');
+final lookupAndCallWorkerThatCallsIsolateExit = ffiTestFunctions
+    .lookupFunction<Void Function(Int64), void Function(int)>(
+      'IsolateExitTest_LookupAndCallIsolateExit',
+    );
 
 @pragma('vm:entry-point')
 void recurseLookupAndCallWorker(int i) {
   lookupAndCallWorkerThatCallsIsolateExit(i);
   print(
-      'coming back after $i invocation of lookupAndCallWorkerThatCallsIsolateExit');
+    'coming back after $i invocation of lookupAndCallWorkerThatCallsIsolateExit',
+  );
   assert(false);
 }
 
@@ -41,8 +43,10 @@ main(List<String> args) async {
     print('got back');
     return;
   }
-  ProcessResult result = await Process.run(
-      Platform.executable, <String>[Platform.script.toString(), 'worker']);
+  ProcessResult result = await Process.run(Platform.executable, <String>[
+    Platform.script.toString(),
+    'worker',
+  ]);
   Expect.isTrue(result.exitCode != 0);
   // The child process should be terminated before it had a chance
   // to print "got back".

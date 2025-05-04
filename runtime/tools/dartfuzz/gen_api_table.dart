@@ -303,7 +303,7 @@ final typedDataFloatTypes = [
   float32x4ListEncoding,
   float64ListEncoding,
   float64x2Encoding,
-  float64x2ListEncoding
+  float64x2ListEncoding,
 ];
 
 void main() async {
@@ -328,7 +328,9 @@ void main() async {
     if (typeToLibraryMethodsList[key]!.isNotEmpty) {
       // Only output library methods lists that are non-empty.
       dumpTable(
-          typeToLibraryMethodsListName[key]!, typeToLibraryMethodsList[key]!);
+        typeToLibraryMethodsListName[key]!,
+        typeToLibraryMethodsList[key]!,
+      );
     }
   }
   dumpFooter();
@@ -356,15 +358,19 @@ void visitLibrary(LibraryElement2 library) {
   // to visit typedefs, etc.
   for (var variable in library.topLevelVariables) {
     if (variable.isPublic) {
-      addToTable(typeString(variable.type), variable.name3!,
-          [voidEncoding, voidEncoding],
-          isMethod: false);
+      addToTable(typeString(variable.type), variable.name3!, [
+        voidEncoding,
+        voidEncoding,
+      ], isMethod: false);
     }
   }
   for (var function in library.topLevelFunctions) {
     if (function.isPublic) {
-      addToTable(typeString(function.returnType), function.name3!,
-          protoString(null, function.formalParameters));
+      addToTable(
+        typeString(function.returnType),
+        function.name3!,
+        protoString(null, function.formalParameters),
+      );
     }
   }
   for (var classElement in library.classes) {
@@ -390,21 +396,26 @@ void visitClass(ClassElement2 classElement) {
         constructor.isFactory &&
         constructor.name3 != 'new') {
       addToTable(
-          typeString(classElement.thisType),
-          '${classString(classElement)}.${constructor.name3}',
-          protoString(null, constructor.formalParameters));
+        typeString(classElement.thisType),
+        '${classString(classElement)}.${constructor.name3}',
+        protoString(null, constructor.formalParameters),
+      );
     }
   }
   for (var method in classElement.methods2) {
     if (method.isPublic && !method.isOperator) {
       if (method.isStatic) {
         addToTable(
-            typeString(method.returnType),
-            '${classString(classElement)}.${method.name3}',
-            protoString(null, method.formalParameters));
+          typeString(method.returnType),
+          '${classString(classElement)}.${method.name3}',
+          protoString(null, method.formalParameters),
+        );
       } else {
-        addToTable(typeString(method.returnType), method.name3!,
-            protoString(classElement.thisType, method.formalParameters));
+        addToTable(
+          typeString(method.returnType),
+          method.name3!,
+          protoString(classElement.thisType, method.formalParameters),
+        );
       }
     }
   }
@@ -413,14 +424,16 @@ void visitClass(ClassElement2 classElement) {
       var variable = accessor.variable3!;
       if (accessor.isStatic) {
         addToTable(
-            typeString(variable.type),
-            '${classElement.name3}.${variable.name3}',
-            [voidEncoding, voidEncoding],
-            isMethod: false);
+          typeString(variable.type),
+          '${classElement.name3}.${variable.name3}',
+          [voidEncoding, voidEncoding],
+          isMethod: false,
+        );
       } else {
-        addToTable(typeString(variable.type), variable.name3!,
-            [typeString(classElement.thisType), voidEncoding],
-            isMethod: false);
+        addToTable(typeString(variable.type), variable.name3!, [
+          typeString(classElement.thisType),
+          voidEncoding,
+        ], isMethod: false);
       }
     }
   }
@@ -591,7 +604,9 @@ String typeStringHelper(DartType type) {
 }
 
 List<String> protoString(
-    DartType? receiver, List<FormalParameterElement> parameters) {
+  DartType? receiver,
+  List<FormalParameterElement> parameters,
+) {
   final proto = [receiver == null ? voidEncoding : typeString(receiver)];
   // Construct prototype for non-named parameters.
   for (var parameter in parameters) {
@@ -608,8 +623,12 @@ List<DartLib> getTable(String ret) => typeToLibraryMethodsList.containsKey(ret)
     ? typeToLibraryMethodsList[ret]!
     : throw ArgumentError('Invalid ret value: $ret');
 
-void addToTable(String ret, String name, List<String> proto,
-    {bool isMethod = true}) {
+void addToTable(
+  String ret,
+  String name,
+  List<String> proto, {
+  bool isMethod = true,
+}) {
   // If any of the type representations equal a question
   // mark, this means that DartFuzz' type system cannot
   // deal with such an expression yet. So drop the entry.
@@ -657,8 +676,9 @@ void addToTable(String ret, String name, List<String> proto,
   getTable(ret).add(DartLib(name, proto, restrictions, isMethod));
   // Every non-nullable result is also a valid nullable result.
   if (!ret.endsWith("_NULLABLE")) {
-    getTable("${ret}_NULLABLE")
-        .add(DartLib(name, proto, restrictions, isMethod));
+    getTable(
+      "${ret}_NULLABLE",
+    ).add(DartLib(name, proto, restrictions, isMethod));
   }
 }
 
@@ -721,13 +741,18 @@ void dumpTypedDataFloatTypes() {
 
 void dumpTable(String identifier, List<DartLib> table) {
   print('  static const $identifier = [');
-  table.sort((a, b) => (a.name.compareTo(b.name) == 0)
-      ? a.proto.join().compareTo(b.proto.join())
-      : a.name.compareTo(b.name));
+  table.sort(
+    (a, b) => (a.name.compareTo(b.name) == 0)
+        ? a.proto.join().compareTo(b.proto.join())
+        : a.name.compareTo(b.name),
+  );
   table.forEach(
-      (t) => print('    DartLib(\'${t.name}\', ${t.proto}, ${t.isMethod}'
-          '${t.restrictions == null ? "" : ", "
-              "restrictions: ${t.restrictions}"}),'));
+    (t) => print(
+      '    DartLib(\'${t.name}\', ${t.proto}, ${t.isMethod}'
+      '${t.restrictions == null ? "" : ", "
+                "restrictions: ${t.restrictions}"}),',
+    ),
+  );
   print('  ];');
 }
 

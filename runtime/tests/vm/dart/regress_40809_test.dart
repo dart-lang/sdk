@@ -31,7 +31,7 @@ void main() {
   final tests = [
     ['1', '11'],
     ['2', '22'],
-    ['three', 'three5']
+    ['three', 'three5'],
   ];
   for (var test in tests) {
     final input = test[0];

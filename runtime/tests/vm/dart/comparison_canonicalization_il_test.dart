@@ -42,17 +42,14 @@ void matchIL$strictCompareValueEqConstant(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('value', 'A(0)', kind: '==='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.StrictCompare('value', 'A(0)', kind: '==='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('int 0'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('int 42'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('int 0')]),
+    'B2' << match.block('Target', [match.DartReturn('int 42')]),
   ]);
 }
 
@@ -75,17 +72,14 @@ void matchIL$strictCompareConstantEqValue(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('value', 'A(0)', kind: '==='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.StrictCompare('value', 'A(0)', kind: '==='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('int 0'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('int 42'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('int 0')]),
+    'B2' << match.block('Target', [match.DartReturn('int 42')]),
   ]);
 }
 
@@ -108,17 +102,14 @@ void matchIL$strictCompareValueNeConstant(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('value', 'A(0)', kind: '!=='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.StrictCompare('value', 'A(0)', kind: '!=='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('int 42'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('int 0'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('int 42')]),
+    'B2' << match.block('Target', [match.DartReturn('int 0')]),
   ]);
 }
 
@@ -141,17 +132,14 @@ void matchIL$strictCompareConstantNeValue(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('value', 'A(0)', kind: '!=='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.StrictCompare('value', 'A(0)', kind: '!=='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('int 42'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('int 0'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('int 42')]),
+    'B2' << match.block('Target', [match.DartReturn('int 0')]),
   ]);
 }
 
@@ -174,17 +162,14 @@ void matchIL$strictCompareBoolEqTrue(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('value', 'true', kind: '==='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.StrictCompare('value', 'true', kind: '==='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('false'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('true'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('false')]),
+    'B2' << match.block('Target', [match.DartReturn('true')]),
   ]);
 }
 
@@ -207,17 +192,14 @@ void matchIL$strictCompareBoolNeTrue(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.StrictCompare('value', 'true', kind: '!=='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.StrictCompare('value', 'true', kind: '!=='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('true'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('false'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('true')]),
+    'B2' << match.block('Target', [match.DartReturn('false')]),
   ]);
 }
 
@@ -240,17 +222,14 @@ void matchIL$equalityCompareValueEqConstant(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.EqualityCompare('value', 'int 0', kind: '=='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.EqualityCompare('value', 'int 0', kind: '=='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('int 1'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('int 42'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('int 1')]),
+    'B2' << match.block('Target', [match.DartReturn('int 42')]),
   ]);
 }
 
@@ -277,17 +256,14 @@ void matchIL$foldingOfRepeatedComparison(FlowGraph graph) {
     ]),
     match.block('Function', [
       'value' << match.Parameter(index: 0),
-      match.Branch(match.RelationalOp('value', 'int 1', kind: '>='),
-          ifTrue: 'B1', ifFalse: 'B2'),
+      match.Branch(
+        match.RelationalOp('value', 'int 1', kind: '>='),
+        ifTrue: 'B1',
+        ifFalse: 'B2',
+      ),
     ]),
-    'B1' <<
-        match.block('Target', [
-          match.DartReturn('int 1'),
-        ]),
-    'B2' <<
-        match.block('Target', [
-          match.DartReturn('int 42'),
-        ]),
+    'B1' << match.block('Target', [match.DartReturn('int 1')]),
+    'B2' << match.block('Target', [match.DartReturn('int 42')]),
   ]);
 }
 

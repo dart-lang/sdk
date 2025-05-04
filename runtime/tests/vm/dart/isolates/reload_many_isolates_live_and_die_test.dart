@@ -35,7 +35,8 @@ main() async {
   });
 }
 
-String dartTestFile(int N) => '''
+String dartTestFile(int N) =>
+    '''
 import 'dart:async';
 import 'dart:isolate';
 

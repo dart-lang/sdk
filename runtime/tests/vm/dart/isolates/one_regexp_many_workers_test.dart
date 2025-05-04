@@ -36,8 +36,9 @@ main() {
     Isolate.spawn(worker, <dynamic>[r, i, rps[i].sendPort]);
   }
 
-  Future.wait(List<Future<dynamic>>.generate(nWorkers, (i) => rps[i].first))
-      .whenComplete(() {
+  Future.wait(
+    List<Future<dynamic>>.generate(nWorkers, (i) => rps[i].first),
+  ).whenComplete(() {
     rps.forEach((rp) => rp.close());
     asyncEnd();
   });

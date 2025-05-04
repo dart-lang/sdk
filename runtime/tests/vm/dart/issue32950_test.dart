@@ -14,9 +14,13 @@ main() async {
   """);
 
   var exitPort = new ReceivePort();
-  await Isolate.spawnUri(p.toUri(p.absolute(path)), [], null,
-      packageConfig: p.toUri(p.absolute(".dart_tool/package_config.json")),
-      onExit: exitPort.sendPort);
+  await Isolate.spawnUri(
+    p.toUri(p.absolute(path)),
+    [],
+    null,
+    packageConfig: p.toUri(p.absolute(".dart_tool/package_config.json")),
+    onExit: exitPort.sendPort,
+  );
   await exitPort.first;
   await sourceFile.delete();
 }

@@ -10,31 +10,33 @@
 import 'package:expect/expect.dart';
 
 @pragma('vm:prefer-inline')
-List<int> badFunction(int v,
-    [int a0 = 0,
-    int a1 = 1,
-    int a2 = 2,
-    int a3 = 3,
-    int a4 = 4,
-    int a5 = 5,
-    int a6 = 6,
-    int a7 = 7,
-    int a8 = 8,
-    int a9 = 9,
-    int a10 = 10,
-    int a11 = 11,
-    int a12 = 12,
-    int a13 = 13,
-    int a14 = 14,
-    int a15 = 15,
-    int a16 = 16,
-    int a17 = 17,
-    int a18 = 18,
-    int a19 = 19,
-    int a20 = 20,
-    int a21 = 21,
-    int a22 = 22,
-    int a23 = 23]) {
+List<int> badFunction(
+  int v, [
+  int a0 = 0,
+  int a1 = 1,
+  int a2 = 2,
+  int a3 = 3,
+  int a4 = 4,
+  int a5 = 5,
+  int a6 = 6,
+  int a7 = 7,
+  int a8 = 8,
+  int a9 = 9,
+  int a10 = 10,
+  int a11 = 11,
+  int a12 = 12,
+  int a13 = 13,
+  int a14 = 14,
+  int a15 = 15,
+  int a16 = 16,
+  int a17 = 17,
+  int a18 = 18,
+  int a19 = 19,
+  int a20 = 20,
+  int a21 = 21,
+  int a22 = 22,
+  int a23 = 23,
+]) {
   return [
     a0,
     a1,
@@ -75,8 +77,33 @@ List<int> badFunction(int v,
 List<int> badFunction2() => badFunction(0);
 
 @pragma('vm:never-inline')
-List<int> badFunction3() => badFunction(88, 88, 88, 88, 88, 88, 88, 88, 88, 88,
-    88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88);
+List<int> badFunction3() => badFunction(
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+  88,
+);
 
 void main() {
   Expect.listEquals(<int>[
@@ -103,7 +130,7 @@ void main() {
     20,
     21,
     22,
-    23
+    23,
   ], badFunction2());
   Expect.listEquals(<int>[
     88,
@@ -129,6 +156,6 @@ void main() {
     88,
     88,
     88,
-    88
+    88,
   ], badFunction3());
 }

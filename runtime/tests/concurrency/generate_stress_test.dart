@@ -10,11 +10,13 @@ import 'package:path/path.dart' as path;
 
 final thisDirectory = path.join('runtime', 'tests', 'concurrency');
 final stressTestListJson = path.join(thisDirectory, 'stress_test_list.json');
-final generatedTest =
-    path.join(path.join(thisDirectory, 'generated_stress_test.dart'));
+final generatedTest = path.join(
+  path.join(thisDirectory, 'generated_stress_test.dart'),
+);
 
-final List<String> testFiles =
-    List<String>.from(json.decode(File(stressTestListJson).readAsStringSync()));
+final List<String> testFiles = List<String>.from(
+  json.decode(File(stressTestListJson).readAsStringSync()),
+);
 final dart = 'tools/sdks/dart-sdk/bin/dart';
 
 main(List<String> args) async {
@@ -191,7 +193,7 @@ Future<String> format(String generatedSource) async {
       result.stdin.close(),
       result.stdout.transform(utf8.decoder).join(''),
       result.stderr.transform(utf8.decoder).join(''),
-      result.exitCode
+      result.exitCode,
     ]);
 
     final exitCode = results[3] as int;
@@ -202,8 +204,10 @@ Future<String> format(String generatedSource) async {
     final stdout = results[1] as String;
     final stderr = results[2] as String;
     if (stderr.trim().length != 0) {
-      print('Note: Failed to format source code. Dart format had stderr: '
-          '$stderr');
+      print(
+        'Note: Failed to format source code. Dart format had stderr: '
+        '$stderr',
+      );
       return generatedSource;
     }
     return stdout;

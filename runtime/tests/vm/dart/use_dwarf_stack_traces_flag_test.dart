@@ -19,12 +19,19 @@ import 'use_dwarf_stack_traces_flag_helper.dart';
 
 Future<void> main() async {
   await runTests(
-      'dwarf-flag-test',
-      path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
-          'use_dwarf_stack_traces_flag_program.dart'),
-      runNonDwarf,
-      runElf,
-      runAssembly);
+    'dwarf-flag-test',
+    path.join(
+      sdkDir,
+      'runtime',
+      'tests',
+      'vm',
+      'dart',
+      'use_dwarf_stack_traces_flag_program.dart',
+    ),
+    runNonDwarf,
+    runElf,
+    runAssembly,
+  );
 }
 
 Future<NonDwarfState> runNonDwarf(String tempDir, String scriptDill) async {
@@ -42,12 +49,10 @@ Future<NonDwarfState> runNonDwarf(String tempDir, String scriptDill) async {
   ]);
 
   // Run the resulting non-Dwarf-AOT compiled script.
-  final outputWithOppositeFlag =
-      (await runTestProgram(dartPrecompiledRuntime, <String>[
-    '--dwarf-stack-traces-mode',
-    scriptNonDwarfSnapshot,
-    scriptDill,
-  ]));
+  final outputWithOppositeFlag = (await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--dwarf-stack-traces-mode', scriptNonDwarfSnapshot, scriptDill],
+  ));
   final output = (await runTestProgram(dartPrecompiledRuntime, <String>[
     '--no-dwarf-stack-traces-mode',
     scriptNonDwarfSnapshot,
@@ -58,8 +63,12 @@ Future<NonDwarfState> runNonDwarf(String tempDir, String scriptDill) async {
 }
 
 class DwarfElfState extends ElfState<Dwarf> {
-  DwarfElfState(super.snapshot, super.debugInfo, super.output,
-      super.outputWithOppositeFlag);
+  DwarfElfState(
+    super.snapshot,
+    super.debugInfo,
+    super.output,
+    super.outputWithOppositeFlag,
+  );
 
   @override
   Future<void> check(Trace trace, Dwarf dwarf) =>
@@ -82,27 +91,43 @@ Future<DwarfElfState> runElf(String tempDir, String scriptDill) async {
 
   // Run the resulting Dwarf-AOT compiled script.
 
-  final output = await runTestProgram(dartPrecompiledRuntime,
-      <String>['--dwarf-stack-traces-mode', snapshotPath, scriptDill]);
-  final outputWithOppositeFlag = await runTestProgram(dartPrecompiledRuntime,
-      <String>['--no-dwarf-stack-traces-mode', snapshotPath, scriptDill]);
+  final output = await runTestProgram(dartPrecompiledRuntime, <String>[
+    '--dwarf-stack-traces-mode',
+    snapshotPath,
+    scriptDill,
+  ]);
+  final outputWithOppositeFlag = await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--no-dwarf-stack-traces-mode', snapshotPath, scriptDill],
+  );
 
   return DwarfElfState(snapshot, debugInfo, output, outputWithOppositeFlag);
 }
 
 class DwarfAssemblyState extends AssemblyState<Dwarf> {
-  DwarfAssemblyState(super.snapshot, super.debugInfo, super.output,
-      super.outputWithOppositeFlag,
-      [super.singleArch, super.multiArch]);
+  DwarfAssemblyState(
+    super.snapshot,
+    super.debugInfo,
+    super.output,
+    super.outputWithOppositeFlag, [
+    super.singleArch,
+    super.multiArch,
+  ]);
 
   @override
-  Future<void> check(Trace trace, Dwarf dwarf) =>
-      compareTraces(trace, output, outputWithOppositeFlag, dwarf,
-          fromAssembly: true);
+  Future<void> check(Trace trace, Dwarf dwarf) => compareTraces(
+    trace,
+    output,
+    outputWithOppositeFlag,
+    dwarf,
+    fromAssembly: true,
+  );
 }
 
 Future<DwarfAssemblyState?> runAssembly(
-    String tempDir, String scriptDill) async {
+  String tempDir,
+  String scriptDill,
+) async {
   if (skipAssembly != false) return null;
 
   final asmPath = path.join(tempDir, 'dwarf_assembly.S');
@@ -133,12 +158,10 @@ Future<DwarfAssemblyState?> runAssembly(
     snapshotPath,
     scriptDill,
   ]);
-  final outputWithOppositeFlag =
-      await runTestProgram(dartPrecompiledRuntime, <String>[
-    '--no-dwarf-stack-traces-mode',
-    snapshotPath,
-    scriptDill,
-  ]);
+  final outputWithOppositeFlag = await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--no-dwarf-stack-traces-mode', snapshotPath, scriptDill],
+  );
 
   // Get the shared object path inside the .dSYM after compilation on MacOS.
   debugSnapshotPath = MachO.handleDSYM(debugSnapshotPath);
@@ -179,13 +202,23 @@ Future<DwarfAssemblyState?> runAssembly(
     multiArchSnapshot = Dwarf.fromFile(multiArchSnapshotPath)!;
   }
 
-  return DwarfAssemblyState(snapshot, debugInfo, output, outputWithOppositeFlag,
-      singleArchSnapshot, multiArchSnapshot);
+  return DwarfAssemblyState(
+    snapshot,
+    debugInfo,
+    output,
+    outputWithOppositeFlag,
+    singleArchSnapshot,
+    multiArchSnapshot,
+  );
 }
 
-Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
-    DwarfTestOutput output2, Dwarf dwarf,
-    {bool fromAssembly = false}) async {
+Future<void> compareTraces(
+  List<String> nonDwarfTrace,
+  DwarfTestOutput output1,
+  DwarfTestOutput output2,
+  Dwarf dwarf, {
+  bool fromAssembly = false,
+}) async {
   final header1 = StackTraceHeader.fromLines(output1.trace);
   print('Header1 = $header1');
   checkHeader(header1);
@@ -200,12 +233,18 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
   final tracePCOffsets2 = collectPCOffsets(output2.trace);
   expect(tracePCOffsets2, equals(tracePCOffsets1));
   expect(tracePCOffsets1, isNotEmpty);
-  checkRootUnitAssumptions(output1, output2, dwarf,
-      sampleOffset: tracePCOffsets1.first, matchingBuildIds: !fromAssembly);
+  checkRootUnitAssumptions(
+    output1,
+    output2,
+    dwarf,
+    sampleOffset: tracePCOffsets1.first,
+    matchingBuildIds: !fromAssembly,
+  );
 
   final decoder = DwarfStackTraceDecoder(dwarf);
-  final translatedDwarfTrace1 =
-      await Stream.fromIterable(output1.trace).transform(decoder).toList();
+  final translatedDwarfTrace1 = await Stream.fromIterable(
+    output1.trace,
+  ).transform(decoder).toList();
 
   checkTranslatedTrace(nonDwarfTrace, translatedDwarfTrace1);
 
@@ -237,10 +276,14 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
 
   expect(virtTrace2, equals(virtTrace1));
 
-  expect(tracePCOffsets1.map((o) => o.virtualAddressIn(dwarf)),
-      equals(virtTrace1));
-  expect(tracePCOffsets2.map((o) => o.virtualAddressIn(dwarf)),
-      equals(virtTrace2));
+  expect(
+    tracePCOffsets1.map((o) => o.virtualAddressIn(dwarf)),
+    equals(virtTrace1),
+  );
+  expect(
+    tracePCOffsets2.map((o) => o.virtualAddressIn(dwarf)),
+    equals(virtTrace2),
+  );
 
   expect(relocatedFromDso1, equals(virtTrace1));
   expect(relocatedFromDso2, equals(virtTrace2));
