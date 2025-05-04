@@ -77,64 +77,64 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 class ErrorSeverityTest {
   test_max_error_error() async {
     expect(
-      ErrorSeverity.ERROR.max(ErrorSeverity.ERROR),
-      same(ErrorSeverity.ERROR),
+      DiagnosticSeverity.ERROR.max(DiagnosticSeverity.ERROR),
+      same(DiagnosticSeverity.ERROR),
     );
   }
 
   test_max_error_none() async {
     expect(
-      ErrorSeverity.ERROR.max(ErrorSeverity.NONE),
-      same(ErrorSeverity.ERROR),
+      DiagnosticSeverity.ERROR.max(DiagnosticSeverity.NONE),
+      same(DiagnosticSeverity.ERROR),
     );
   }
 
   test_max_error_warning() async {
     expect(
-      ErrorSeverity.ERROR.max(ErrorSeverity.WARNING),
-      same(ErrorSeverity.ERROR),
+      DiagnosticSeverity.ERROR.max(DiagnosticSeverity.WARNING),
+      same(DiagnosticSeverity.ERROR),
     );
   }
 
   test_max_none_error() async {
     expect(
-      ErrorSeverity.NONE.max(ErrorSeverity.ERROR),
-      same(ErrorSeverity.ERROR),
+      DiagnosticSeverity.NONE.max(DiagnosticSeverity.ERROR),
+      same(DiagnosticSeverity.ERROR),
     );
   }
 
   test_max_none_none() async {
     expect(
-      ErrorSeverity.NONE.max(ErrorSeverity.NONE),
-      same(ErrorSeverity.NONE),
+      DiagnosticSeverity.NONE.max(DiagnosticSeverity.NONE),
+      same(DiagnosticSeverity.NONE),
     );
   }
 
   test_max_none_warning() async {
     expect(
-      ErrorSeverity.NONE.max(ErrorSeverity.WARNING),
-      same(ErrorSeverity.WARNING),
+      DiagnosticSeverity.NONE.max(DiagnosticSeverity.WARNING),
+      same(DiagnosticSeverity.WARNING),
     );
   }
 
   test_max_warning_error() async {
     expect(
-      ErrorSeverity.WARNING.max(ErrorSeverity.ERROR),
-      same(ErrorSeverity.ERROR),
+      DiagnosticSeverity.WARNING.max(DiagnosticSeverity.ERROR),
+      same(DiagnosticSeverity.ERROR),
     );
   }
 
   test_max_warning_none() async {
     expect(
-      ErrorSeverity.WARNING.max(ErrorSeverity.NONE),
-      same(ErrorSeverity.WARNING),
+      DiagnosticSeverity.WARNING.max(DiagnosticSeverity.NONE),
+      same(DiagnosticSeverity.WARNING),
     );
   }
 
   test_max_warning_warning() async {
     expect(
-      ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
-      same(ErrorSeverity.WARNING),
+      DiagnosticSeverity.WARNING.max(DiagnosticSeverity.WARNING),
+      same(DiagnosticSeverity.WARNING),
     );
   }
 }

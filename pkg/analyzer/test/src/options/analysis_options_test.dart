@@ -142,7 +142,7 @@ analyzer:
 
     var processor = processors.first;
     expect(processor.appliesTo(warning), isTrue);
-    expect(processor.severity, ErrorSeverity.ERROR);
+    expect(processor.severity, DiagnosticSeverity.ERROR);
   }
 
   test_analyzer_errors_severityIsIgnore() {

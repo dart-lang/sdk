@@ -28,7 +28,7 @@ class AnalyzerConverter {
   plugin.AnalysisError convertAnalysisError(
     analyzer.AnalysisError error, {
     analyzer.LineInfo? lineInfo,
-    analyzer.ErrorSeverity? severity,
+    analyzer.DiagnosticSeverity? severity,
   }) {
     var errorCode = error.errorCode;
     severity ??= errorCode.errorSeverity;
@@ -176,7 +176,7 @@ class AnalyzerConverter {
   /// Convert the error [severity] from the 'analyzer' package to an analysis
   /// error severity defined by the plugin API.
   plugin.AnalysisErrorSeverity convertErrorSeverity(
-          analyzer.ErrorSeverity severity) =>
+          analyzer.DiagnosticSeverity severity) =>
       plugin.AnalysisErrorSeverity.values.byName(severity.name);
 
   /// Convert the error [type] from the 'analyzer' package to an analysis error

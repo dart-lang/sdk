@@ -2337,7 +2337,7 @@ class AnalysisDriver {
   ) {
     for (var error in errors) {
       var severity = error.errorCode.errorSeverity;
-      if (severity == ErrorSeverity.ERROR) {
+      if (severity == DiagnosticSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
       }

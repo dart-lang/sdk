@@ -86,7 +86,7 @@ class TodoCode extends ErrorCode {
     : super(problemMessage: "{0}", name: name, uniqueName: 'TodoCode.$name');
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.INFO;
 
   @override
   DiagnosticType get type => DiagnosticType.TODO;

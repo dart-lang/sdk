@@ -2072,7 +2072,7 @@ class ParserErrorCode extends ErrorCode {
        );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.ERROR;
 
   @override
   DiagnosticType get type => DiagnosticType.SYNTACTIC_ERROR;

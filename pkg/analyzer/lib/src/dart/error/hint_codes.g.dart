@@ -121,7 +121,7 @@ class HintCode extends ErrorCode {
        );
 
   @override
-  ErrorSeverity get errorSeverity => DiagnosticType.HINT.severity;
+  DiagnosticSeverity get errorSeverity => DiagnosticType.HINT.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.HINT;

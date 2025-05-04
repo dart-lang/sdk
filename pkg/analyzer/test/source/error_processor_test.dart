@@ -81,7 +81,7 @@ analyzer:
 ''');
       expect(
         context.getProcessor(invalid_assignment)!.severity,
-        ErrorSeverity.ERROR,
+        DiagnosticSeverity.ERROR,
       );
       expect(
         context.getProcessor(assignment_of_do_not_store)!.severity,
@@ -127,7 +127,7 @@ analyzer:
         var unusedLocalProcessor = errorConfig.processors.firstWhere(
           (p) => p.appliesTo(unused_local_variable),
         );
-        expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
+        expect(unusedLocalProcessor.severity, DiagnosticSeverity.ERROR);
 
         // skip
         var invalidAssignmentProcessor = errorConfig.processors
@@ -154,7 +154,7 @@ analyzer:
         var unusedLocalProcessor = errorConfig.processors.firstWhere(
           (p) => p.appliesTo(unused_local_variable),
         );
-        expect(unusedLocalProcessor.severity, ErrorSeverity.ERROR);
+        expect(unusedLocalProcessor.severity, DiagnosticSeverity.ERROR);
 
         // skip
         var invalidAssignmentProcessor = errorConfig.processors
@@ -174,7 +174,7 @@ analyzer:
 
       ErrorProcessor processor = errorConfig.processors.first;
       expect(processor.appliesTo(annotate_overrides), true);
-      expect(processor.severity, ErrorSeverity.WARNING);
+      expect(processor.severity, DiagnosticSeverity.WARNING);
     });
   });
 }

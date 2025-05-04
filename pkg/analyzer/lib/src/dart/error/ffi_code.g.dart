@@ -536,7 +536,8 @@ class FfiCode extends ErrorCode {
        );
 
   @override
-  ErrorSeverity get errorSeverity => DiagnosticType.COMPILE_TIME_ERROR.severity;
+  DiagnosticSeverity get errorSeverity =>
+      DiagnosticType.COMPILE_TIME_ERROR.severity;
 
   @override
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;

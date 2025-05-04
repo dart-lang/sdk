@@ -59,7 +59,7 @@ class AnalysisOptionsErrorCode extends ErrorCode {
        );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.ERROR;
 
   @override
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
@@ -323,7 +323,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
        );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
+  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.WARNING;
 
   @override
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;

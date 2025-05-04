@@ -10,10 +10,10 @@ import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
-const Map<String, ErrorSeverity> severityMap = {
-  'error': ErrorSeverity.ERROR,
-  'info': ErrorSeverity.INFO,
-  'warning': ErrorSeverity.WARNING,
+const Map<String, DiagnosticSeverity> severityMap = {
+  'error': DiagnosticSeverity.ERROR,
+  'info': DiagnosticSeverity.INFO,
+  'warning': DiagnosticSeverity.WARNING,
 };
 
 /// Error processor configuration derived from analysis (or embedder) options.
@@ -53,7 +53,7 @@ class ErrorConfig {
   }
 }
 
-/// Process errors by filtering or changing associated [ErrorSeverity].
+/// Process errors by filtering or changing associated [DiagnosticSeverity].
 class ErrorProcessor {
   /// The code name of the associated error.
   final String code;
@@ -61,7 +61,7 @@ class ErrorProcessor {
   /// The desired severity of the processed error.
   ///
   /// If `null`, this processor will "filter" the associated error code.
-  final ErrorSeverity? severity;
+  final DiagnosticSeverity? severity;
 
   /// Create an error processor that assigns errors with this [code] the
   /// given [severity].

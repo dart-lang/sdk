@@ -20,7 +20,7 @@ class MockDiagnosticType implements DiagnosticType {
   late int ordinal;
 
   @override
-  late ErrorSeverity severity;
+  late DiagnosticSeverity severity;
 
   @override
   int compareTo(DiagnosticType other) => 0;
@@ -82,7 +82,7 @@ class MockSource extends BasicSource {
 
 class TestDiagnosticCode extends DiagnosticCode {
   @override
-  late ErrorSeverity errorSeverity;
+  late DiagnosticSeverity errorSeverity;
 
   @override
   late DiagnosticType type;
