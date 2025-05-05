@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
@@ -25,21 +26,22 @@ void main() {
 class AnalyzerConverterTest extends AbstractSingleUnitTest {
   AnalyzerConverter converter = AnalyzerConverter();
 
-  /// Assert that the given [pluginError] matches the given [analyzerError].
+  /// Asserts that the given [pluginError] matches the given
+  /// [analyzerDiagnostic].
   void assertError(
-      plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
+      plugin.AnalysisError pluginError, analyzer.Diagnostic analyzerDiagnostic,
       {analyzer.DiagnosticSeverity? severity,
       int startColumn = -1,
       int startLine = -1}) {
-    var errorCode = analyzerError.errorCode;
+    var errorCode = analyzerDiagnostic.errorCode;
     expect(pluginError, isNotNull);
     var location = pluginError.location;
     expect(pluginError.code, errorCode.name.toLowerCase());
     expect(pluginError.correction, errorCode.correctionMessage);
     expect(location, isNotNull);
-    expect(location.file, analyzerError.source.fullName);
-    expect(location.length, analyzerError.length);
-    expect(location.offset, analyzerError.offset);
+    expect(location.file, analyzerDiagnostic.source.fullName);
+    expect(location.length, analyzerDiagnostic.length);
+    expect(location.offset, analyzerDiagnostic.offset);
     expect(location.startColumn, startColumn);
     expect(location.startLine, startLine);
     expect(pluginError.message, errorCode.problemMessage);
@@ -48,7 +50,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     expect(pluginError.type, converter.convertErrorType(errorCode.type));
   }
 
-  Future<analyzer.AnalysisError> createError(
+  Future<analyzer.Diagnostic> createError(
     int offset, {
     String? contextMessage,
   }) async {
@@ -68,7 +70,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
         ),
       );
     }
-    return analyzer.AnalysisError.tmp(
+    return analyzer.Diagnostic.tmp(
       source: testSource,
       offset: offset,
       length: 5,
@@ -135,7 +137,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_lineInfo_noOptions() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(13),
       await createError(25),
     ];
@@ -154,7 +156,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_lineInfo_options() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(13),
       await createError(25),
     ];
@@ -175,7 +177,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_noLineInfo_noOptions() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(11),
       await createError(25),
     ];
@@ -190,7 +192,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_noLineInfo_options() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(13),
       await createError(25),
     ];
