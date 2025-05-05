@@ -20,7 +20,6 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/deopt_instructions.h"
 #include "vm/dispatch_table.h"
 #include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
@@ -1869,8 +1868,6 @@ Isolate::~Isolate() {
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.
-  ASSERT(deopt_context_ ==
-         nullptr);  // No deopt in progress when isolate deleted.
   ASSERT(spawn_count_ == 0);
 
   // The [Thread] object should've been released on the last
@@ -2791,13 +2788,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     ServiceIsolate::VisitObjectPointers(visitor);
   }
 #endif  // !defined(PRODUCT)
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Visit objects that are being used for deoptimization.
-  if (deopt_context() != nullptr) {
-    deopt_context()->VisitObjectPointers(visitor);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));

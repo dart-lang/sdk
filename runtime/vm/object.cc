@@ -25665,7 +25665,7 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 
     // The backing array may be a shared instance, or may not have correct
     // type parameters. Create a new empty array.
-    Heap::Space space = thread->IsDartMutatorThread() ? Heap::kNew : Heap::kOld;
+    Heap::Space space = thread->HasDartMutatorStack() ? Heap::kNew : Heap::kOld;
     Array& array = Array::Handle(zone, Array::New(0, space));
     array.SetTypeArguments(type_arguments);
     return array.ptr();

@@ -1296,6 +1296,10 @@ class Thread : public AllStatic {
 
   static word suspend_state_handle_exception_entry_point_offset();
 
+#if !defined(PRODUCT)
+  static word single_step_offset();
+#endif  // !defined(PRODUCT)
+
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);
 };
@@ -1344,7 +1348,6 @@ class Isolate : public AllStatic {
   static word user_tag_offset();
   static word finalizers_offset();
 #if !defined(PRODUCT)
-  static word single_step_offset();
   static word has_resumption_breakpoints_offset();
 #endif  // !defined(PRODUCT)
 };

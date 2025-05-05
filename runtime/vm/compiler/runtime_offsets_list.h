@@ -174,7 +174,6 @@
   FIELD(IsolateGroup, object_store_offset)                                     \
   FIELD(IsolateGroup, class_table_offset)                                      \
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
-  NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashBase, data_offset)                                           \
   FIELD(ImmutableLinkedHashBase, data_offset)                                  \
@@ -319,6 +318,7 @@
   FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \
   FIELD(Thread, shared_field_table_values_offset)                              \
+  NOT_IN_PRODUCT(FIELD(Thread, single_step_offset))                            \
   FIELD(Thread, slow_type_test_stub_offset)                                    \
   FIELD(Thread, slow_type_test_entry_point_offset)                             \
   FIELD(Thread, stack_limit_offset)                                            \

@@ -35,11 +35,12 @@ namespace dart {
 class AbstractType;
 class ApiLocalScope;
 class Array;
+class Bytecode;
 class CompilerState;
 class CompilerTimings;
 class Class;
 class Code;
-class Bytecode;
+class DeoptContext;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -346,6 +347,17 @@ struct TsanUtils {
   }
 };
 
+class MutatorThreadVisitor {
+ public:
+  MutatorThreadVisitor() {}
+  virtual ~MutatorThreadVisitor() {}
+
+  virtual void VisitMutatorThread(Thread* isolate) = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MutatorThreadVisitor);
+};
+
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by EnsureInit before entering an isolate, and destroyed
@@ -378,6 +390,7 @@ class Thread : public ThreadState {
   // across `Thread::ExitIsolate()` and `Thread::EnterIsolate()`.
   bool HasActiveState();
   void AssertNonMutatorInvariants();
+  void AssertDartMutatorInvariants();
   void AssertNonDartMutatorInvariants();
   void AssertEmptyStackInvariants();
   void AssertEmptyThreadInvariants();
@@ -395,6 +408,10 @@ class Thread : public ThreadState {
   static void EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
                                             TaskKind kind);
   static void ExitIsolateGroupAsNonMutator();
+
+  static void EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
+                                         bool bypass_safepoint);
+  static void ExitIsolateGroupAsMutator(bool bypass_safepoint);
 
   // Empties the store buffer block into the isolate.
   void ReleaseStoreBuffer();
@@ -488,8 +505,12 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, exit_through_ffi_);
   }
 
-  TaskKind task_kind() const { return task_kind_; }
-  void set_task_kind(TaskKind kind) { task_kind_ = kind; }
+  TaskKind task_kind() const {
+    return task_kind_.load(std::memory_order_acquire);
+  }
+  void set_task_kind(TaskKind kind) {
+    task_kind_.store(kind, std::memory_order_release);
+  }
 
   // Retrieves and clears the stack overflow flags.  These are set by
   // the generated code before the slow path runtime routine for a
@@ -562,8 +583,12 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, shared_field_table_values_);
   }
 
-  bool IsDartMutatorThread() const {
-    return scheduled_dart_mutator_isolate_ != nullptr;
+  bool IsDartMutatorThread() const { return task_kind_ == kMutatorTask; }
+
+  bool HasDartMutatorStack() const {
+    // The thread with dart mutator task might be temporarily
+    // occupied by a gc task.
+    return IsDartMutatorThread() || scheduled_dart_mutator_isolate_ != nullptr;
   }
 
   // Returns the dart mutator [Isolate] this thread belongs to or nullptr.
@@ -1295,6 +1320,19 @@ class Thread : public ThreadState {
   }
 #endif
 
+  void set_single_step(bool value) { single_step_ = value; }
+  bool single_step() const { return single_step_; }
+  static intptr_t single_step_offset() {
+    return OFFSET_OF(Thread, single_step_);
+  }
+
+  bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
+  DeoptContext* deopt_context() const { return deopt_context_; }
+  void set_deopt_context(DeoptContext* value) {
+    ASSERT(value == nullptr || deopt_context_ == nullptr);
+    deopt_context_ = value;
+  }
+
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1436,6 +1474,8 @@ class Thread : public ThreadState {
 
   TsanUtils* tsan_utils_ = nullptr;
 
+  bool single_step_ = false;
+
   // ---- End accessed from generated code. ----
 
   // The layout of Thread object up to this point should not depend
@@ -1444,7 +1484,7 @@ class Thread : public ThreadState {
   // DART_PRECOMPILED_RUNTIME.
 
   uword true_end_ = 0;
-  TaskKind task_kind_;
+  std::atomic<TaskKind> task_kind_;
   TimelineStream* const dart_stream_;
   StreamInfo* const service_extension_stream_;
   mutable Monitor thread_lock_;
@@ -1555,6 +1595,8 @@ class Thread : public ThreadState {
   bytecode::BytecodeLoader* bytecode_loader_ = nullptr;
 #endif
 
+  DeoptContext* deopt_context_ = nullptr;
+
   explicit Thread(bool is_vm_isolate);
 
   void StoreBufferRelease(
@@ -1576,15 +1618,15 @@ class Thread : public ThreadState {
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
 
-  void SetupState(TaskKind kind);
-  void ResetState();
+  void SetupStateLocked(TaskKind kind);
+  void ResetStateLocked();
 
-  void SetupMutatorState(TaskKind kind);
+  void SetupMutatorState();
   void ResetMutatorState();
 
   void SetupDartMutatorState(Isolate* isolate);
   void SetupDartMutatorStateDependingOnSnapshot(IsolateGroup* group);
-  void ResetDartMutatorState(Isolate* isolate);
+  void ResetDartMutatorState();
 
   static void SuspendDartMutatorThreadInternal(Thread* thread,
                                                VMTag::VMTagId tag);
@@ -1593,7 +1635,7 @@ class Thread : public ThreadState {
   static void SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag);
   static void ResumeThreadInternal(Thread* thread);
 
-  // Adds a new active mutator thread to thread registry while associating it
+  // Adds a new active thread to thread registry while associating it
   // with the given isolate (group).
   //
   // All existing safepoint operations are waited for before adding the thread
@@ -1603,15 +1645,14 @@ class Thread : public ThreadState {
   // safepoint (but can access `Thread::isolate()`).
   static Thread* AddActiveThread(IsolateGroup* group,
                                  Isolate* isolate,
-                                 bool is_dart_mutator,
+                                 TaskKind task_kind,
                                  bool bypass_safepoint);
 
-  // Releases a active mutator threads from the thread registry.
+  // Releases an active thread from the thread registry.
   //
   // Thread needs to be at-safepoint.
   static void FreeActiveThread(Thread* thread,
                                Isolate* isolate,
-                               bool is_dart_mutator,
                                bool bypass_safepoint);
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
