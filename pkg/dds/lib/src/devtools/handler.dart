@@ -10,7 +10,7 @@ import 'dart:typed_data';
 import 'package:devtools_shared/devtools_deeplink_io.dart';
 import 'package:devtools_shared/devtools_extensions.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
-import 'package:devtools_shared/devtools_server.dart' hide Handler;
+import 'package:devtools_shared/devtools_server.dart';
 import 'package:devtools_shared/devtools_shared.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
