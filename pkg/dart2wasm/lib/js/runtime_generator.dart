@@ -85,13 +85,23 @@ class RuntimeFinalizer {
     return jsMethods.toString();
   }
 
-  String _generateInternalizedStrings(List<String> constantStrings) {
-    if (constantStrings.isEmpty) return '';
-    return '''
-      s: [
-        ${constantStrings.map(escape).join(',\n')}
-      ],
-''';
+  String _generateInternalizedStrings(
+      bool requireJsBuiltin, List<String> constantStrings) {
+    final sb = StringBuffer();
+    String indent = '';
+    if (constantStrings.isNotEmpty) {
+      sb.writeln('s: [');
+      indent = '      ';
+      for (final c in constantStrings) {
+        sb.writeln('$indent  ${escape(c)},');
+      }
+      sb.writeln('$indent],');
+    }
+    if (!requireJsBuiltin) {
+      sb.writeln(
+          '${indent}S: new Proxy({}, { get(_, prop) { return prop; } }),');
+    }
+    return '$sb';
   }
 
   String generate(
@@ -106,7 +116,8 @@ class RuntimeFinalizer {
       if (requireJsBuiltin) 'importedStringConstants: \'S\'',
     ];
 
-    String internalizedStrings = _generateInternalizedStrings(constantStrings);
+    String internalizedStrings =
+        _generateInternalizedStrings(requireJsBuiltin, constantStrings);
 
     final jsStringBuiltinPolyfillImportVars = {
       'JS_POLYFILL_IMPORT':
@@ -135,14 +146,14 @@ class RuntimeFinalizer {
     });
   }
 
-  String generateDynamicSubmodule(
-      Iterable<Procedure> translatedProcedures, List<String> constantStrings) {
+  String generateDynamicSubmodule(Iterable<Procedure> translatedProcedures,
+      bool requireJsStringBuiltin, List<String> constantStrings) {
     final jsMethods = generateJsMethods(translatedProcedures);
 
     return dynamicSubmoduleJsImportTemplate.instantiate({
       'JS_METHODS': jsMethods,
       'IMPORTED_JS_STRINGS_IN_MJS':
-          _generateInternalizedStrings(constantStrings),
+          _generateInternalizedStrings(requireJsStringBuiltin, constantStrings),
     });
   }
 }
