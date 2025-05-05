@@ -29,12 +29,12 @@ String _relative(String file) {
 }
 
 /// Returns the given error's severity.
-ErrorSeverity _severityIdentity(AnalysisError error) =>
+DiagnosticSeverity _severityIdentity(AnalysisError error) =>
     error.errorCode.errorSeverity;
 
 /// Returns desired severity for the given [error] (or `null` if it's to be
 /// suppressed).
-typedef SeverityProcessor = ErrorSeverity? Function(AnalysisError error);
+typedef SeverityProcessor = DiagnosticSeverity? Function(AnalysisError error);
 
 /// Analysis statistics counter.
 class AnalysisStats {
@@ -220,7 +220,7 @@ abstract class ErrorFormatter {
 
   /// Compute the severity for this [error] or `null` if this error should be
   /// filtered.
-  ErrorSeverity? _computeSeverity(AnalysisError error) =>
+  DiagnosticSeverity? _computeSeverity(AnalysisError error) =>
       _severityProcessor(error);
 }
 
@@ -299,7 +299,7 @@ class HumanErrorFormatter extends ErrorFormatter {
 
     // Get display name; translate INFOs into LINTS and HINTS.
     var errorType = severity.displayName;
-    if (severity == ErrorSeverity.INFO) {
+    if (severity == DiagnosticSeverity.INFO) {
       if (error.errorCode.type == DiagnosticType.HINT ||
           error.errorCode.type == DiagnosticType.LINT) {
         errorType = error.errorCode.type.displayName;
@@ -488,9 +488,9 @@ class MachineErrorFormatter extends ErrorFormatter {
 
     var severity = _severityProcessor(error);
 
-    if (severity == ErrorSeverity.ERROR) {
+    if (severity == DiagnosticSeverity.ERROR) {
       stats.errorCount++;
-    } else if (severity == ErrorSeverity.WARNING) {
+    } else if (severity == DiagnosticSeverity.WARNING) {
       stats.warnCount++;
     } else if (error.errorCode.type == DiagnosticType.HINT) {
       stats.hintCount++;

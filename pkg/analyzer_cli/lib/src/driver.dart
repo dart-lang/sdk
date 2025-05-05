@@ -111,7 +111,7 @@ class Driver implements CommandLineStarter {
     } else {
       var severity = await _analyzeAll(options);
       // Propagate issues to the exit code.
-      if (_shouldBeFatal(severity, options)) {
+      if (_shouldBeFatal(severity)) {
         io.exitCode = severity.ordinal;
       }
     }
@@ -154,7 +154,7 @@ class Driver implements CommandLineStarter {
   }
 
   /// Perform analysis according to the given [options].
-  Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
+  Future<DiagnosticSeverity> _analyzeAll(CommandLineOptions options) async {
     if (!options.jsonFormat && !options.machineFormat) {
       var fileNames =
           options.sourceFiles.map((String file) {
@@ -222,13 +222,13 @@ class Driver implements CommandLineStarter {
       );
     }
 
-    var allResult = ErrorSeverity.NONE;
+    var allResult = DiagnosticSeverity.NONE;
 
     void reportPartError(String partPath) {
       errorSink.writeln('$partPath is a part and cannot be analyzed.');
       errorSink.writeln('Please pass in a library that contains this part.');
-      io.exitCode = ErrorSeverity.ERROR.ordinal;
-      allResult = allResult.max(ErrorSeverity.ERROR);
+      io.exitCode = DiagnosticSeverity.ERROR.ordinal;
+      allResult = allResult.max(DiagnosticSeverity.ERROR);
     }
 
     var pathList = options.sourceFiles.map(normalizePath).toList();
@@ -253,8 +253,8 @@ class Driver implements CommandLineStarter {
       var files = _collectFiles(sourcePath);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
-        io.exitCode = ErrorSeverity.ERROR.ordinal;
-        return ErrorSeverity.ERROR;
+        io.exitCode = DiagnosticSeverity.ERROR.ordinal;
+        return DiagnosticSeverity.ERROR;
       }
 
       for (var file in files) {
@@ -461,7 +461,7 @@ class Driver implements CommandLineStarter {
       path.split(relative).any((part) => part.startsWith('.'));
 
   /// Analyze a single source.
-  Future<ErrorSeverity> _runAnalyzer(
+  Future<DiagnosticSeverity> _runAnalyzer(
     FileState file,
     CommandLineOptions options,
     ErrorFormatter formatter,
@@ -482,8 +482,8 @@ class Driver implements CommandLineStarter {
     return analyzer.analyze(formatter);
   }
 
-  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) =>
-      severity == ErrorSeverity.ERROR;
+  bool _shouldBeFatal(DiagnosticSeverity severity) =>
+      severity == DiagnosticSeverity.ERROR;
 
   void _verifyAnalysisOptionsFileExists(CommandLineOptions options) {
     var path = options.defaultAnalysisOptionsPath;
@@ -491,7 +491,7 @@ class Driver implements CommandLineStarter {
       if (!resourceProvider.getFile(path).exists) {
         printAndFail(
           'Options file not found: $path',
-          exitCode: ErrorSeverity.ERROR.ordinal,
+          exitCode: DiagnosticSeverity.ERROR.ordinal,
         );
       }
     }

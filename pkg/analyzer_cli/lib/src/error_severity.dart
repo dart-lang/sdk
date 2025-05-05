@@ -8,10 +8,10 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 
 /// Compute the severity of the error; however:
-/// - if [options.enableTypeChecks] is false, then de-escalate checked-mode
-///   compile time errors to a severity of [ErrorSeverity.INFO].
-/// - if [options.lintsAreFatal] is true, escalate lints to errors.
-ErrorSeverity? computeSeverity(
+/// - if `options.enableTypeChecks` is false, then de-escalate checked-mode
+///   compile time errors to a severity of [DiagnosticSeverity.INFO].
+/// - if `options.lintsAreFatal` is true, escalate lints to errors.
+DiagnosticSeverity? computeSeverity(
   AnalysisError error,
   CommandLineOptions commandLineOptions,
   AnalysisOptions analysisOptions,
@@ -27,7 +27,7 @@ ErrorSeverity? computeSeverity(
 
 /// Check various configuration options to get a desired severity for this
 /// [error] (or `null` if it's to be suppressed).
-ErrorSeverity? determineProcessedSeverity(
+DiagnosticSeverity? determineProcessedSeverity(
   AnalysisError error,
   CommandLineOptions commandLineOptions,
   AnalysisOptions analysisOptions,
@@ -35,7 +35,7 @@ ErrorSeverity? determineProcessedSeverity(
   var severity = computeSeverity(error, commandLineOptions, analysisOptions);
   // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
   if (error.errorCode.type == DiagnosticType.TODO &&
-      severity == ErrorSeverity.INFO) {
+      severity == DiagnosticSeverity.INFO) {
     return null;
   }
 

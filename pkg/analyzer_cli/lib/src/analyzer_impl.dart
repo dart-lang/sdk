@@ -99,12 +99,14 @@ class AnalyzerImpl {
     }
   }
 
-  /// Treats the [sourcePath] as the top level library and analyzes it using
-  /// the analysis engine. If [printMode] is `0`, then no error or performance
-  /// information is printed. If [printMode] is `1`, then errors will be printed.
-  /// If [printMode] is `2`, then performance information will be printed, and
-  /// it will be marked as being for a cold VM.
-  Future<ErrorSeverity> analyze(
+  /// Treats the [libraryFile] as the top level library and analyzes it using
+  /// the analysis engine.
+  ///
+  /// If [printMode] is `0`, then no diagnostic or performance information is
+  /// printed. If [printMode] is `1`, then diagnostics will be printed. If
+  /// [printMode] is `2`, then performance information will be printed, and it
+  /// will be marked as being for a cold VM.
+  Future<DiagnosticSeverity> analyze(
     ErrorFormatter formatter, {
     int printMode = 1,
   }) async {
@@ -112,9 +114,9 @@ class AnalyzerImpl {
     return await _analyze(printMode, formatter);
   }
 
-  /// Returns the maximal [ErrorSeverity] of the recorded errors.
-  ErrorSeverity computeMaxErrorSeverity() {
-    var status = ErrorSeverity.NONE;
+  /// Returns the maximal [DiagnosticSeverity] of the recorded diagnostics.
+  DiagnosticSeverity computeMaxErrorSeverity() {
+    var status = DiagnosticSeverity.NONE;
     for (var result in errorsResults) {
       for (var error in result.errors) {
         if (_defaultSeverityProcessor(error) == null) {
@@ -153,7 +155,7 @@ class AnalyzerImpl {
     }
   }
 
-  Future<ErrorSeverity> _analyze(
+  Future<DiagnosticSeverity> _analyze(
     int printMode,
     ErrorFormatter formatter,
   ) async {
@@ -162,7 +164,7 @@ class AnalyzerImpl {
       var libraryPath = libraryFile.path;
       stderr.writeln('Only libraries can be analyzed.');
       stderr.writeln('$libraryPath is a part and cannot be analyzed.');
-      return ErrorSeverity.ERROR;
+      return DiagnosticSeverity.ERROR;
     }
 
     var libraryElement = await _resolveLibrary();
@@ -180,7 +182,7 @@ class AnalyzerImpl {
     return computeMaxErrorSeverity();
   }
 
-  ErrorSeverity? _defaultSeverityProcessor(AnalysisError error) =>
+  DiagnosticSeverity? _defaultSeverityProcessor(AnalysisError error) =>
       determineProcessedSeverity(error, options, analysisOptions);
 
   /// Returns true if we want to report diagnostics for this library.
