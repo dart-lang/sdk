@@ -4088,9 +4088,6 @@ class HTypeKnown extends HCheck {
 
   bool isRedundant(JClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    if (abstractValueDomain.containsAll(knownType).isPotentiallyTrue) {
-      return false;
-    }
     AbstractValue inputType = checkedInput.instructionType;
     return abstractValueDomain.isIn(inputType, knownType).isDefinitelyTrue;
   }
