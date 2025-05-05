@@ -19,13 +19,13 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicate] uses the same [variable]
   /// as a previous [original] node in a pattern assignment.
-  AnalysisError duplicateAssignmentPatternVariable({
+  Diagnostic duplicateAssignmentPatternVariable({
     required Source source,
     required PromotableElement variable,
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicate.offset,
       length: duplicate.length,
@@ -45,7 +45,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
-  AnalysisError duplicateDefinition(
+  Diagnostic duplicateDefinition(
     DiagnosticCode code,
     Element duplicateElement,
     Element originalElement,
@@ -55,7 +55,7 @@ class DiagnosticFactory {
     var duplicateFragment = duplicate.firstFragment;
     var original = originalElement.nonSynthetic2;
     var originalFragment = original.firstFragment;
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: duplicateFragment.libraryFragment!.source,
       offset: duplicateFragment.nameOffset2 ?? -1,
       length: duplicate.name3!.length,
@@ -75,14 +75,14 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateNode] reuses a name
   /// already used by [originalNode].
-  AnalysisError duplicateDefinitionForNodes(
+  Diagnostic duplicateDefinitionForNodes(
     Source source,
     DiagnosticCode code,
     SyntacticEntity duplicateNode,
     SyntacticEntity originalNode,
     List<Object> arguments,
   ) {
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
@@ -102,14 +102,14 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  AnalysisError duplicateFieldDefinitionInLiteral(
+  Diagnostic duplicateFieldDefinitionInLiteral(
     Source source,
     NamedExpression duplicateField,
     NamedExpression originalField,
   ) {
     var duplicateNode = duplicateField.name.label;
     var duplicateName = duplicateNode.name;
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
@@ -132,14 +132,14 @@ class DiagnosticFactory {
   ///
   /// This method requires that both the [duplicateField] and [originalField]
   /// have a non-null `name`.
-  AnalysisError duplicateFieldDefinitionInType(
+  Diagnostic duplicateFieldDefinitionInType(
     Source source,
     RecordTypeAnnotationField duplicateField,
     RecordTypeAnnotationField originalField,
   ) {
     var duplicateNode = duplicateField.name!;
     var duplicateName = duplicateNode.lexeme;
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
@@ -159,7 +159,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  AnalysisError duplicatePatternField({
+  Diagnostic duplicatePatternField({
     required Source source,
     required String name,
     required PatternField duplicateField,
@@ -169,7 +169,7 @@ class DiagnosticFactory {
     var originalTarget = originalNode.name ?? originalNode.colon;
     var duplicateNode = duplicateField.name!;
     var duplicateTarget = duplicateNode.name ?? duplicateNode.colon;
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateTarget.offset,
       length: duplicateTarget.length,
@@ -189,12 +189,12 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
-  AnalysisError duplicateRestElementInPattern({
+  Diagnostic duplicateRestElementInPattern({
     required Source source,
     required RestPatternElement originalElement,
     required RestPatternElement duplicateElement,
   }) {
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
@@ -213,12 +213,12 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
-  AnalysisError equalElementsInConstSet(
+  Diagnostic equalElementsInConstSet(
     Source source,
     Expression duplicateElement,
     Expression originalElement,
   ) {
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
@@ -237,12 +237,12 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
   /// is a duplicate of the [originalKey].
-  AnalysisError equalKeysInConstMap(
+  Diagnostic equalKeysInConstMap(
     Source source,
     Expression duplicateKey,
     Expression originalKey,
   ) {
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
@@ -261,12 +261,12 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a map pattern)
   /// is a duplicate of the [originalKey].
-  AnalysisError equalKeysInMapPattern(
+  Diagnostic equalKeysInMapPattern(
     Source source,
     Expression duplicateKey,
     Expression originalKey,
   ) {
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
@@ -283,7 +283,7 @@ class DiagnosticFactory {
     );
   }
 
-  AnalysisError invalidNullAwareAfterShortCircuit(
+  Diagnostic invalidNullAwareAfterShortCircuit(
     Source source,
     int offset,
     int length,
@@ -291,7 +291,7 @@ class DiagnosticFactory {
     Token previousToken,
   ) {
     var lexeme = previousToken.lexeme;
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: offset,
       length: length,
@@ -312,7 +312,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [member] is not a correct override of
   /// [superMember].
-  AnalysisError invalidOverride(
+  Diagnostic invalidOverride(
     Source source,
     DiagnosticCode code,
     SyntacticEntity errorNode,
@@ -324,7 +324,7 @@ class DiagnosticFactory {
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
     var superFragment = superMember.nonSynthetic2.firstFragment;
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: errorNode.offset,
       length: errorNode.length,
@@ -364,7 +364,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the given [nameToken] was referenced
   /// before it was declared.
-  AnalysisError referencedBeforeDeclaration(
+  Diagnostic referencedBeforeDeclaration(
     Source source, {
     required Token nameToken,
     required Element element2,
@@ -383,7 +383,7 @@ class DiagnosticFactory {
         ),
       ];
     }
-    return AnalysisError.tmp(
+    return Diagnostic.tmp(
       source: source,
       offset: nameToken.offset,
       length: nameToken.length,

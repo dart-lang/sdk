@@ -17,7 +17,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -1658,21 +1658,21 @@ class ElementAnnotationImpl implements ElementAnnotation {
   ///
   // TODO(kallentu): Remove this field once we fix up g3's dependency on
   // annotations having a valid result as well as unresolved errors.
-  List<AnalysisError>? additionalErrors;
+  List<Diagnostic>? additionalErrors;
 
   /// Initialize a newly created annotation. The given [compilationUnit] is the
   /// compilation unit in which the annotation appears.
   ElementAnnotationImpl(this.compilationUnit);
 
   @override
-  List<AnalysisError> get constantEvaluationErrors {
+  List<Diagnostic> get constantEvaluationErrors {
     var evaluationResult = this.evaluationResult;
     var additionalErrors = this.additionalErrors;
     if (evaluationResult is InvalidConstant) {
       // When we have an [InvalidConstant], we don't report the additional
       // errors because this result contains the most relevant error.
       return [
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: source,
           offset: evaluationResult.offset,
           length: evaluationResult.length,
@@ -1682,7 +1682,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
         ),
       ];
     }
-    return additionalErrors ?? const <AnalysisError>[];
+    return additionalErrors ?? const <Diagnostic>[];
   }
 
   @override

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -75,28 +76,28 @@ class ErrorProcessor {
   /// The string that unique describes the processor.
   String get description => '$code -> ${severity?.name}';
 
-  /// Check if this processor applies to the given [error].
+  /// Check if this processor applies to the given [diagnostic].
   ///
   /// Note: [code] is normalized to uppercase; `errorCode.name` for regular
   /// analysis issues uses uppercase; `errorCode.name` for lints uses lowercase.
   @visibleForTesting
-  bool appliesTo(AnalysisError error) =>
-      code == error.errorCode.name ||
-      code == error.errorCode.name.toUpperCase();
+  bool appliesTo(Diagnostic diagnostic) =>
+      code == diagnostic.errorCode.name ||
+      code == diagnostic.errorCode.name.toUpperCase();
 
   @override
   String toString() => "ErrorProcessor[code='$code', severity=$severity]";
 
   /// Returns an error processor associated in the [analysisOptions] for the
-  /// given [error], or `null` if none is found.
+  /// given [diagnostic], or `null` if none is found.
   static ErrorProcessor? getProcessor(
     // TODO(srawlins): Make `analysisOptions` non-nullable, in a breaking
     // change release.
     AnalysisOptions? analysisOptions,
-    AnalysisError error,
+    Diagnostic diagnostic,
   ) {
     return analysisOptions?.errorProcessors.firstWhereOrNull(
-      (processor) => processor.appliesTo(error),
+      (processor) => processor.appliesTo(diagnostic),
     );
   }
 }

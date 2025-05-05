@@ -13,7 +13,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -2109,7 +2109,8 @@ class LibraryResolutionResult {
 class ParsedFileState {
   final String code;
   final CompilationUnitImpl unit;
-  final List<AnalysisError> errors;
+  // TODO(srawlins): Rename to `diagnostics`.
+  final List<Diagnostic> errors;
 
   ParsedFileState({
     required this.code,

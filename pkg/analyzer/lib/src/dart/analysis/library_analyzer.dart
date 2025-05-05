@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -129,7 +130,7 @@ class LibraryAnalyzer {
     var results = <UnitAnalysisResult>[];
     for (var fileAnalysis in _libraryFiles.values) {
       var errors = fileAnalysis.errorListener.errors;
-      errors = _filterIgnoredErrors(fileAnalysis, errors);
+      errors = _filterIgnoredDiagnostics(fileAnalysis, errors);
       results.add(
         UnitAnalysisResult(fileAnalysis.file, fileAnalysis.unit, errors),
       );
@@ -564,25 +565,25 @@ class LibraryAnalyzer {
     }
   }
 
-  /// Returns a subset of the given [errors] that are not marked as ignored in
+  /// Returns a subset of the given [diagnostics] that are not marked as ignored in
   /// the file.
-  List<AnalysisError> _filterIgnoredErrors(
+  List<Diagnostic> _filterIgnoredDiagnostics(
     FileAnalysis fileAnalysis,
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
   ) {
-    if (errors.isEmpty) {
-      return errors;
+    if (diagnostics.isEmpty) {
+      return diagnostics;
     }
 
     IgnoreInfo ignoreInfo = fileAnalysis.ignoreInfo;
     if (!ignoreInfo.hasIgnores) {
-      return errors;
+      return diagnostics;
     }
 
     var unignorableCodes = _analysisOptions.unignorableNames;
 
-    bool isIgnored(AnalysisError error) {
-      var code = error.errorCode;
+    bool isIgnored(Diagnostic diagnostic) {
+      var code = diagnostic.errorCode;
       // Don't allow un-ignorable codes to be ignored.
       if (unignorableCodes.contains(code.name) ||
           unignorableCodes.contains(code.uniqueName) ||
@@ -590,10 +591,10 @@ class LibraryAnalyzer {
           unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
-      return ignoreInfo.ignored(error);
+      return ignoreInfo.ignored(diagnostic);
     }
 
-    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+    return diagnostics.where((Diagnostic e) => !isIgnored(e)).toList();
   }
 
   /// Find constants in [unit] to compute.
@@ -1120,7 +1121,8 @@ class LibraryAnalyzer {
 class UnitAnalysisResult {
   final FileState file;
   final CompilationUnitImpl unit;
-  final List<AnalysisError> errors;
+  // TODO(srawlins): Renamed to `diagnostics`.
+  final List<Diagnostic> errors;
 
   UnitAnalysisResult(this.file, this.unit, this.errors);
 }

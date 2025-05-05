@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
@@ -408,7 +409,7 @@ class ManifestValidator {
   ManifestValidator(this.source);
 
   /// Validate the [content] of the Android Manifest file.
-  List<AnalysisError> validate(String content, bool checkManifest) {
+  List<Diagnostic> validate(String content, bool checkManifest) {
     // TODO(srawlins): Simplify [checkManifest] notion. Why call the method if
     //  the caller always knows whether it should just return empty?
     if (!checkManifest) return [];

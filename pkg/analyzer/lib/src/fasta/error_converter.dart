@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         codeAssertAsExpression,
         codeSetOrMapLiteralTooManyTypeArguments;
 import 'package:analyzer/dart/ast/token.dart' show Token;
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -565,7 +566,7 @@ class FastaErrorReporter {
       var errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
         errorReporter!.reportError(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: errorReporter!.source,
             offset: offset,
             length: length,
@@ -602,7 +603,7 @@ class FastaErrorReporter {
   }) {
     if (errorReporter != null) {
       errorReporter!.reportError(
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: errorReporter!.source,
           offset: offset,
           length: length,

@@ -7,7 +7,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -197,7 +197,7 @@ class ElementDeclarationResultImpl
 
 class ErrorsResultImpl implements ErrorsResult {
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 
   @override
   final bool isLibrary;
@@ -334,7 +334,7 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   final CompilationUnit unit;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 
   ParsedUnitResultImpl({
     required super.session,
@@ -349,7 +349,7 @@ class ParseStringResultImpl implements ParseStringResult {
   final String content;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 
   @override
   final CompilationUnit unit;
@@ -481,7 +481,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   final CompilationUnitImpl unit;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 
   ResolvedUnitResultImpl({
     required super.session,

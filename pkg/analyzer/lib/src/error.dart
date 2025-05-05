@@ -4,12 +4,12 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 
-/// A wrapper around [AnalysisError] that provides a more user-friendly string
+/// A wrapper around [Diagnostic] that provides a more user-friendly string
 /// representation.
 class AnalyzerError implements Exception {
-  final AnalysisError error;
+  final Diagnostic error;
 
   AnalyzerError(this.error);
 
@@ -78,9 +78,9 @@ class AnalyzerErrorGroup implements Exception {
     : _errors = errors.toList();
 
   /// Creates an [AnalyzerErrorGroup] from a list of lower-level
-  /// [AnalysisError]s.
-  AnalyzerErrorGroup.fromAnalysisErrors(Iterable<AnalysisError> errors)
-    : this(errors.map((e) => AnalyzerError(e)));
+  /// [Diagnostic]s.
+  AnalyzerErrorGroup.fromAnalysisErrors(Iterable<Diagnostic> diagnostics)
+    : this(diagnostics.map((e) => AnalyzerError(e)));
 
   /// The errors in this collection.
   List<AnalyzerError> get errors =>

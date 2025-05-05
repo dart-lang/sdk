@@ -15,6 +15,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -836,7 +837,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
         )) {
       _errorReporter.reportError(
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: _errorReporter.source,
           offset: error.offset,
           length: error.length,
@@ -847,7 +848,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       );
     } else if (defaultDiagnosticCode != null) {
       _errorReporter.reportError(
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: _errorReporter.source,
           offset: error.offset,
           length: error.length,
