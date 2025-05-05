@@ -2440,7 +2440,7 @@ class ObjectGraphCopier : public StackResource {
     auto& result = Object::Handle(zone_);
 
     {
-      LongJumpScope jump;  // e.g. for OOMs.
+      LongJumpScope jump(thread_);  // e.g. for OOMs.
       if (DART_SETJMP(*jump.Set()) == 0) {
         result = CopyObjectGraphInternal(root, &exception_msg);
         // Any allocated external typed data must have finalizers attached so

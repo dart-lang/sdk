@@ -246,7 +246,7 @@ DisableIdleTimerScope::~DisableIdleTimerScope() {
 class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
  public:
   explicit FinalizeWeakPersistentHandlesVisitor(IsolateGroup* isolate_group)
-      : HandleVisitor(Thread::Current()), isolate_group_(isolate_group) {}
+      : HandleVisitor(), isolate_group_(isolate_group) {}
 
   void VisitHandle(uword addr) override {
     auto handle = reinterpret_cast<FinalizablePersistentHandle*>(addr);

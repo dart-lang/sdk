@@ -289,12 +289,12 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
 
     IntrusiveDList<SafepointTask> tasks;
     for (intptr_t i = 0; i < num_tasks; i++) {
-      tasks.Append(new CompactorTask(thread()->isolate_group(), this, barrier,
+      tasks.Append(new CompactorTask(isolate_group(), this, barrier,
                                      &next_planning_task, &next_setup_task,
                                      &next_sliding_task, &next_forwarding_task,
                                      num_tasks, partitions, freelist));
     }
-    thread()->isolate_group()->safepoint_handler()->RunTasks(&tasks);
+    isolate_group()->safepoint_handler()->RunTasks(&tasks);
   }
 
   // Update inner pointers in typed data views (needs to be done after all
@@ -307,7 +307,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   // with parallel sliding there is no safe way to access the backing store
   // object header.)
   {
-    TIMELINE_FUNCTION_GC_DURATION(thread(),
+    TIMELINE_FUNCTION_GC_DURATION(thread_,
                                   "ForwardTypedDataViewInternalPointers");
     const intptr_t length = typed_data_views_.length();
     for (intptr_t i = 0; i < length; ++i) {
@@ -330,12 +330,12 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   }
 
   {
-    TIMELINE_FUNCTION_GC_DURATION(thread(), "ForwardStackPointers");
+    TIMELINE_FUNCTION_GC_DURATION(thread_, "ForwardStackPointers");
     ForwardStackPointers();
   }
 
   {
-    TIMELINE_FUNCTION_GC_DURATION(thread(),
+    TIMELINE_FUNCTION_GC_DURATION(thread_,
                                   "ForwardPostponedSuspendStatePointers");
     // After heap sliding is complete and ObjectStore pointers are forwarded
     // it is finally safe to visit SuspendState objects with copied frames.
