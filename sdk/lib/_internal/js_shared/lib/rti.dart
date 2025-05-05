@@ -84,12 +84,12 @@ class Rti {
     rti._is = fn;
   }
 
-  @pragma('dart2js:tryInline')
+  @pragma('dart2js:prefer-inline')
   static Object? _asCheck(Rti rti, Object? object) {
     return JS('', '#.#(#)', rti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), object);
   }
 
-  @pragma('dart2js:tryInline')
+  @pragma('dart2js:prefer-inline')
   static bool _isCheck(Rti rti, Object? object) {
     return JS(
       'bool',
@@ -1215,36 +1215,35 @@ bool _installSpecializedIsTest(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
+  final isFn = _specializedIsTest(testRti);
+  Rti._setIsTestFunction(testRti, isFn);
+  return Rti._isCheck(testRti, object);
+}
 
-  if (isObjectType(testRti)) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isObject));
-  }
-  if (isTopType(testRti)) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isTop));
-  }
+/// Returns a raw function reference for a specialized `_is` test. Also installs
+/// 'resources' on [testRti] if the specialized function needs additional data
+/// to perform the test.
+Object? _specializedIsTest(Rti testRti) {
+  if (isObjectType(testRti)) return RAW_DART_FUNCTION_REF(_isObject);
+
+  if (isTopType(testRti)) return RAW_DART_FUNCTION_REF(_isTop);
 
   int kind = Rti._getKind(testRti);
 
   if (kind == Rti.kindQuestion) {
-    return _finishIsFn(
-      testRti,
-      object,
-      RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation),
-    );
+    return RAW_DART_FUNCTION_REF(_generalNullableIsTestImplementation);
   }
 
   if (kind == Rti.kindNever) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
+    return RAW_DART_FUNCTION_REF(_isNever);
   }
 
   if (kind == Rti.kindFutureOr) {
-    return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
+    return RAW_DART_FUNCTION_REF(_isFutureOr);
   }
 
-  var isFn = _simpleSpecializedIsTest(testRti);
-  if (isFn != null) {
-    return _finishIsFn(testRti, object, isFn);
-  }
+  final simpleIsFn = _simpleSpecializedIsTest(testRti);
+  if (simpleIsFn != null) return simpleIsFn;
 
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(testRti);
@@ -1261,56 +1260,43 @@ bool _installSpecializedIsTest(Object? object) {
           : '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
       Rti._setSpecializedTestResource(testRti, propertyName);
       if (name == JS_GET_NAME(JsGetName.LIST_CLASS_TYPE_NAME)) {
-        return _finishIsFn(
-          testRti,
-          object,
-          RAW_DART_FUNCTION_REF(_isListTestViaProperty),
-        );
+        return RAW_DART_FUNCTION_REF(_isListTestViaProperty);
       }
       if (_Utils.isIdentical(testRti, TYPE_REF<JSObject>())) {
-        return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isJSObject));
+        return RAW_DART_FUNCTION_REF(_isJSObject);
       }
-      return _finishIsFn(
-        testRti,
-        object,
-        RAW_DART_FUNCTION_REF(_isTestViaProperty),
-      );
+      return RAW_DART_FUNCTION_REF(_isTestViaProperty);
     }
+
     // fall through to general implementation.
   } else if (kind == Rti.kindRecord) {
-    isFn = _recordSpecializedIsTest(testRti);
-    return _finishIsFn(testRti, object, isFn);
+    return _recordSpecializedIsTest(testRti);
   }
-  return _finishIsFn(
-    testRti,
-    object,
-    RAW_DART_FUNCTION_REF(_generalIsTestImplementation),
-  );
-}
-
-@pragma('dart2js:noInline') // Slightly smaller code.
-bool _finishIsFn(Rti testRti, Object? object, Object? isFn) {
-  Rti._setIsTestFunction(testRti, isFn);
-  return Rti._isCheck(testRti, object);
+  return RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
 }
 
 Object? _simpleSpecializedIsTest(Rti testRti) {
   // Note: We must not match `Never` below.
-  var isFn = null;
-  if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isInt);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>()) ||
-      _Utils.isIdentical(testRti, TYPE_REF<num>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isNum);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isString);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
-    isFn = RAW_DART_FUNCTION_REF(_isBool);
+  int kind = Rti._getKind(testRti);
+  if (kind == Rti.kindInterface) {
+    if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+      return RAW_DART_FUNCTION_REF(_isInt);
+    }
+    if (_Utils.isIdentical(testRti, TYPE_REF<double>()) ||
+        _Utils.isIdentical(testRti, TYPE_REF<num>())) {
+      return RAW_DART_FUNCTION_REF(_isNum);
+    }
+    if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+      return RAW_DART_FUNCTION_REF(_isString);
+    }
+    if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+      return RAW_DART_FUNCTION_REF(_isBool);
+    }
   }
-  return isFn;
+  return null;
 }
 
-Object? _recordSpecializedIsTest(Rti testRti) {
+Object _recordSpecializedIsTest(Rti testRti) {
   final partialShapeTag = Rti._getRecordPartialShapeTag(testRti);
   final fieldRtis = Rti._getRecordFields(testRti);
   final predicate = records.createRecordTypePredicate(
@@ -1328,7 +1314,12 @@ Object? _installSpecializedAsCheck(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
+  final asFn = _specializedAsCheck(testRti);
+  Rti._setAsCheckFunction(testRti, asFn);
+  return Rti._asCheck(testRti, object);
+}
 
+Object? _specializedAsCheck(Rti testRti) {
   var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
   if (isTopType(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_asTop);
@@ -1336,31 +1327,31 @@ Object? _installSpecializedAsCheck(Object? object) {
     asFn = RAW_DART_FUNCTION_REF(_asObject);
   } else if (isNullable(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_generalNullableAsCheckImplementation);
+    if (_Utils.isIdentical(testRti, TYPE_REF<int?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asIntQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<String?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asStringQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<bool?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asBoolQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<num?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asNumQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
+    }
+  } else {
+    if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asInt);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asString);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asBool);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asNum);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asDouble);
+    }
   }
-  if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asInt);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<int?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asIntQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asString);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<String?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asStringQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asBool);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<bool?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asBoolQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asNum);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<num?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asNumQ);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asDouble);
-  } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
-    asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
-  }
-
-  Rti._setAsCheckFunction(testRti, asFn);
-  return Rti._asCheck(testRti, object);
+  return asFn;
 }
 
 /// Called from generated code.
